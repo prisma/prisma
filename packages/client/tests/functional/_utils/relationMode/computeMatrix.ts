@@ -1,11 +1,16 @@
 import { Providers } from '../providers'
 
 type ComputeMatrix = {
-  relationMode: string
+  relationMode: 'prisma' | 'foreignKeys' | ''
   providersDenyList?: Providers[]
 }
 
 export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix) {
+  // Force `foreignKeys` to be set if default is used (no setting)
+  if (relationMode !== 'prisma') {
+    relationMode = 'foreignKeys'
+  }
+
   const providersBase = [
     Providers.POSTGRESQL,
     Providers.COCKROACHDB,
@@ -18,9 +23,36 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
 
   const providers = providersBase.filter((provider) => !(providersDenyList || []).includes(provider))
 
+  // "foreignKeys"
+  //
+  // 'Restrict' on SQL Server is not available and it triggers a schema parsing error.
+  // See in our docs https://pris.ly/d/relationMode
+  //
+  // `SetNull` with non-optional relations (= our 1:1, 1:n and m:n in this project) is invalid
+  // when using Foreign Keys fails with migration errors on MySQL, CockroachDB and SQL Server
+  // A schema validation error will be added, see https://github.com/prisma/prisma/issues/14673
+  //
+  // "prisma"
+  //
+  // `NoAction` on PostgreSQL / SQLite
+  // We made a schema validation error for PostgreSQL and SQLite in https://github.com/prisma/prisma-engines/pull/3274
+  // Error code: P1012 error: Error validating: Invalid referential action: `NoAction`. Allowed values: (`Cascade`, `Restrict`, `SetNull`). `NoAction` is not implemented for sqlite when using `relationMode = "prisma"`, you could try using `Restrict` instead. Learn more at https://pris.ly/d/relationMode
+  //
+  // We skip these combinations in the matrix (= filtering them out)
+
   const referentialActionsDenylistByProvider = {
-    // 'Restrict' is not available when using 'sqlserver' as a provider, and it triggers a schema parsing error arising from DMMF.
-    [Providers.SQLSERVER]: ['Restrict'],
+    foreignKeys: {
+      [Providers.SQLSERVER]: ['Restrict', 'SetNull'],
+      [Providers.COCKROACHDB]: ['SetNull'],
+      [Providers.MYSQL]: ['SetNull'],
+    },
+    prisma: {
+      [Providers.SQLSERVER]: ['Restrict', 'SetNull'],
+      [Providers.COCKROACHDB]: ['SetNull'],
+      [Providers.MYSQL]: ['SetNull'],
+      [Providers.POSTGRESQL]: ['NoAction'],
+      [Providers.SQLITE]: ['NoAction'],
+    },
   }
 
   const providersMatrix = providers.map((provider) => ({
@@ -30,33 +62,8 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
   }))
 
   const referentialActionsMatrix = providersMatrix.flatMap((entry) => {
-    const denyList = referentialActionsDenylistByProvider[entry.provider] || []
-    let referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
-
-    // Since `SetNull` when using Foreign Keys fails with migration errors on MySQL, CockroachDB and SQL Server
-    // We skip these combinations in the matrix (= filtering them out)
-    if (
-      relationMode !== 'prisma' &&
-      [Providers.MYSQL, Providers.COCKROACHDB, Providers.SQLSERVER].includes(entry.provider)
-    ) {
-      // For 1:1/1:n tests
-      //
-      // CockroachDB errors with:
-      // 1:1 - ERROR: cannot add a SET NULL cascading action on column "cl8y8lubt0000634p91cigsy4.public.ProfileOneToOne.userId" which has a NOT NULL constraint
-      // 1:n - ERROR: cannot add a SET NULL cascading action on column "cl8ya9ab30004xl4p4x7h8wuw.public.PostOneToMany.authorId" which has a NOT NULL constraint
-      // m:n - ERROR: cannot add a SET NULL cascading action on column "cl8yby0am0004qg4p6utsdh1i.public.CategoriesOnPostsManyToMany.postId" which has a NOT NULL constraint
-
-      // MySQL errors with:
-      // 1:1 - Can't create table `cl8y7xlzb000epx4p3o5oh6nu`.`ProfileOneToOne` (errno: 150 "Foreign key constraint is incorrectly formed")
-      // 1:n - Can't create table `cl8ya7mfd0004rq4p0uga2d6z`.`PostOneToMany` (errno: 150 "Foreign key constraint is incorrectly formed")
-      // m:n - Can't create table `cl8ybu3ni0004eo4p9xeubq4u`.`CategoriesOnPostsManyToMany` (errno: 150 "Foreign key constraint is incorrectly formed")
-      //
-      // SQL Server errors with:
-      // 1:1 - Cannot create the foreign key "ProfileOneToOne_userId_fkey" with the SET NULL referential action, because one or more referencing columns are not nullable.
-      // 1:n - Cannot create the foreign key "PostOneToMany_authorId_fkey" with the SET NULL referential action, because one or more referencing columns are not nullable.
-      // m:n - Cannot create the foreign key "CategoriesOnPostsManyToMany_postId_fkey" with the SET NULL referential action, because one or more referencing columns are not nullable.
-      referentialActions = referentialActions.filter((action) => action !== 'SetNull')
-    }
+    const denyList = referentialActionsDenylistByProvider[relationMode][entry.provider] || []
+    const referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
 
     return referentialActions.map((referentialAction) => ({
       ...entry,
