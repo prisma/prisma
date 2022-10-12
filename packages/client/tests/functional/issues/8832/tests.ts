@@ -46,7 +46,7 @@ testMatrix.setupTestSuite(
     describe('issue #8832', () => {
       beforeEach(async () => {
         await clean()
-      }, 30_000)
+      }, 60_000)
 
       test('should succeed when "in" has 32766 ids', async () => {
         const n = 32766
