@@ -6,11 +6,6 @@ type ComputeMatrix = {
 }
 
 export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix) {
-  // Force `foreignKeys` to be set if default is used (no setting)
-  if (relationMode !== 'prisma') {
-    relationMode = 'foreignKeys'
-  }
-
   const providersBase = [
     Providers.POSTGRESQL,
     Providers.COCKROACHDB,
@@ -62,7 +57,7 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
   }))
 
   const referentialActionsMatrix = providersMatrix.flatMap((entry) => {
-    const denyList = referentialActionsDenylistByProvider[relationMode][entry.provider] || []
+    const denyList = referentialActionsDenylistByProvider[relationMode || 'foreignKeys'][entry.provider] || []
     const referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
 
     return referentialActions.map((referentialAction) => ({
