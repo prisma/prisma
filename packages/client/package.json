@@ -89,7 +89,7 @@
     "@types/jest": "28.1.8",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.1",
-    "@types/node": "14.18.31",
+    "@types/node": "14.18.32",
     "@types/pg": "8.6.5",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
@@ -134,6 +134,7 @@
     "strip-indent": "3.0.0",
     "ts-jest": "28.0.8",
     "ts-node": "10.9.1",
+    "ts-pattern": "4.0.5",
     "tsd": "0.21.0",
     "typescript": "4.8.4",
     "yeoman-generator": "5.7.0",
@@ -148,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.5.0-20.027031139b1eeffaf00e43c56358d5c5e952ba54"
+    "@prisma/engines-version": "4.5.0-31.391c653df16840951b0b755c8c7a157da82eea16"
   },
   "sideEffects": false
 }
