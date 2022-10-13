@@ -240,18 +240,6 @@ export class DataProxyEngine extends Engine {
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
-    const errorHandler = async (response: RequestResponse) => {
-      if (!response.ok) {
-        const json = await response.json()
-
-        if (json) {
-          throw new Error(`Error in transaction start: ${JSON.stringify(json)}`)
-        } else {
-          throw new Error(`Error in transaction start: ${response.text()}`)
-        }
-      }
-    }
-
     if (action === 'start') {
       const body = JSON.stringify({
         max_wait: arg?.maxWait ?? 2000, // default
@@ -268,7 +256,16 @@ export class DataProxyEngine extends Engine {
         clientVersion: this.clientVersion,
       })
 
-      await errorHandler(response)
+      const err = await responseToError(response, this.clientVersion)
+
+      if (err) {
+        this.logEmitter.emit('warn', { message: `Error while starting transaction: ${err.message}` })
+        throw err
+      } else {
+        this.logEmitter.emit('info', {
+          message: `Transaction started`,
+        })
+      }
 
       const json = await response.json()
 
@@ -290,7 +287,16 @@ export class DataProxyEngine extends Engine {
         clientVersion: this.clientVersion,
       })
 
-      await errorHandler(response)
+      const err = await responseToError(response, this.clientVersion)
+
+      if (err) {
+        this.logEmitter.emit('warn', { message: `Error while ${action} transaction: ${err.message}` })
+        throw err
+      } else {
+        this.logEmitter.emit('info', {
+          message: `Transaction ${action} complete`,
+        })
+      }
 
       return undefined
     }
