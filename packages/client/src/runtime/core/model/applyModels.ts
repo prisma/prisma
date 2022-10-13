@@ -1,8 +1,13 @@
 import type { Client } from '../../getPrismaClient'
+import { addProperty, cacheProperties, CompositeProxyLayer, createCompositeProxy, forwardTo } from '../compositeProxy'
 import { applyModel } from './applyModel'
-import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
+
+// symbol we use for storing raw, unproxied
+// client instance, so we later can retrieve it
+// via `unapplyModels` methods
+const rawClient = Symbol()
 
 /**
  * Dynamically creates a model proxy interface for a give name. For each prop
@@ -12,37 +17,35 @@ import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
  * @returns a proxy to access models
  */
 export function applyModels(client: Client) {
-  // we don't want to create a new proxy on each prop access
-  const modelCache = {} as { [key: string]: object }
-  const ownKeys = getOwnKeys(client)
+  return createCompositeProxy(client, [modelsLayer(client), addProperty(rawClient, () => client)])
+}
 
-  return new Proxy(client, {
-    get(target, prop) {
-      // return base property if it already exists in client
-      if (prop in target || typeof prop === 'symbol') return target[prop]
+function modelsLayer(client: Client): CompositeProxyLayer {
+  return cacheProperties({
+    getKeys() {
+      return Object.keys(client._baseDmmf.modelMap).map(dmmfToJSModelName)
+    },
 
+    getPropertyValue(prop) {
       const dmmfModelName = jsToDMMFModelName(prop)
-
-      // see if a model proxy has already been created before
-      if (modelCache[dmmfModelName] !== undefined) {
-        return modelCache[dmmfModelName]
-      }
-
       // creates a new model proxy on the fly and caches it
       if (client._baseDmmf.modelMap[dmmfModelName] !== undefined) {
-        return (modelCache[dmmfModelName] = applyModel(client, dmmfModelName))
+        return applyModel(client, dmmfModelName)
       }
 
       // above silently failed if model name is lower cased
       if (client._baseDmmf.modelMap[prop] !== undefined) {
-        return (modelCache[dmmfModelName] = applyModel(client, prop))
+        return applyModel(client, prop)
       }
+
+      return undefined
     },
-    ...defaultProxyHandlers(ownKeys),
   })
 }
 
-// the only accessible fields are the ones that are models
-function getOwnKeys(client: Client) {
-  return [...Object.keys(client._baseDmmf.modelMap).map(dmmfToJSModelName), ...Object.keys(client)]
+export function unapplyModels(client: Client): Client {
+  if (client[rawClient]) {
+    return client[rawClient]
+  }
+  return client
 }

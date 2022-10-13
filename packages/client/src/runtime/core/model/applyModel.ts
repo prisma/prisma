@@ -1,22 +1,16 @@
-import type { F, O } from 'ts-toolbelt'
+import type { O } from 'ts-toolbelt'
 
-import {
-  type ClientModelAction,
-  type ClientOnlyModelAction,
-  clientOnlyActions,
-  getDmmfActionName,
-  isClientOnlyAction,
-} from '../../clientActions'
-import type { Action, Client, InternalRequestParams } from '../../getPrismaClient'
+import { type ClientModelAction, clientOnlyActions, getDmmfActionName, isClientOnlyAction } from '../../clientActions'
+import type { Client, InternalRequestParams } from '../../getPrismaClient'
 import { getCallSite } from '../../utils/CallSite'
+import { addProperty, cacheProperties, CompositeProxyLayer, createCompositeProxy, forwardTo } from '../compositeProxy'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import type { PrismaPromise } from '../request/PrismaPromise'
 import { applyAggregates } from './applyAggregates'
 import { wrapRequest } from './applyClientOnlyWrapper'
-import { applyFieldsProxy, FieldProxy } from './applyFieldsProxy'
+import { applyFieldsProxy } from './applyFieldsProxy'
 import { applyFluent } from './applyFluent'
 import type { UserArgs } from './UserArgs'
-import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 
 export type ModelAction = (
@@ -33,28 +27,51 @@ const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
  * @returns
  */
 export function applyModel(client: Client, dmmfModelName: string) {
+  const layers: CompositeProxyLayer[] = [modelActionsLayer(client, dmmfModelName)]
+
+  if (client._engineConfig.previewFeatures?.includes('fieldReference')) {
+    layers.push(fieldsPropertyLayer(client, dmmfModelName))
+  }
+
+  const jsModelName = dmmfToJSModelName(dmmfModelName)
+  for (const { model } of client._extensions) {
+    if (!model) {
+      continue
+    }
+
+    if (model['*']) {
+      layers.push(forwardTo(model['*']))
+    }
+
+    if (model[jsModelName]) {
+      layers.push(forwardTo(model[jsModelName]))
+    }
+  }
+  return createCompositeProxy({}, layers)
+}
+
+/**
+ * Dynamically creates a model interface via a proxy.
+ * @param client to trigger the request execution
+ * @param dmmfModelName the dmmf name of the model
+ * @returns
+ */
+function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProxyLayer<string> {
   // we use the javascript model name for display purposes
   const jsModelName = dmmfToJSModelName(dmmfModelName)
-  const model = client._baseDmmf.modelMap[dmmfModelName]
-  const fieldsProxyEnabled = client._engineConfig.previewFeatures?.includes('fieldReference')
   const ownKeys = getOwnKeys(client, dmmfModelName)
-  const baseObject = {} // <-- user mutations go in there
-  let fieldsProxy: FieldProxy | undefined
 
-  // we construct a proxy that acts as the model interface
-  return new Proxy(baseObject, {
-    get(target, prop: string): F.Return<ModelAction> | FieldProxy | undefined {
-      // only allow actions that are valid and available for this model
-      if (prop in target || typeof prop === 'symbol') return target[prop]
-      if (prop === 'fields' && fieldsProxyEnabled) {
-        return (fieldsProxy ??= applyFieldsProxy(model))
-      }
-      if (!isValidActionName(client, dmmfModelName, prop)) return undefined
-      const dmmfActionName = getDmmfActionName(prop as ClientModelAction)
+  return {
+    getKeys() {
+      return ownKeys
+    },
+
+    getPropertyValue(key) {
+      const dmmfActionName = getDmmfActionName(key as ClientModelAction)
 
       let requestFn = (params: InternalRequestParams) => client._request(params)
-      if (isClientOnlyAction(prop)) {
-        requestFn = wrapRequest(prop, dmmfModelName, requestFn)
+      if (isClientOnlyAction(key)) {
+        requestFn = wrapRequest(key, dmmfModelName, requestFn)
       }
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
@@ -72,7 +89,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
             model: dmmfModelName,
 
             // method name for display only
-            clientMethod: `${jsModelName}.${prop}`,
+            clientMethod: `${jsModelName}.${key}`,
             jsModelName,
 
             // transaction information
@@ -93,35 +110,38 @@ export function applyModel(client: Client, dmmfModelName: string) {
       }
 
       // we handle the edge case of aggregates that need extra steps
-      if (isValidAggregateName(prop)) {
-        return applyAggregates(client, prop, action)
+      if (isValidAggregateName(key)) {
+        return applyAggregates(client, key, action)
       }
 
       return action({}) // and by default, don't override any params
     },
-    ...defaultProxyHandlers(ownKeys),
-  })
-}
-
-// the only accessible fields are the ones that are actions
-function getOwnKeys(client: Client, dmmfModelName: string) {
-  return [...Object.keys(client._baseDmmf.mappingsMap[dmmfModelName]), 'count'].filter(
-    (key) => !['model', 'plural'].includes(key),
-  )
-}
-
-// tells if a given `action` is valid & available for a `model`
-function isValidActionName(
-  client: Client,
-  dmmfModelName: string,
-  action: string,
-): action is Action | ClientOnlyModelAction {
-  if (isClientOnlyAction(action)) {
-    return isValidActionName(client, dmmfModelName, clientOnlyActions[action].wrappedAction)
   }
-  return getOwnKeys(client, dmmfModelName).includes(action)
+}
+
+function getOwnKeys(client: Client, dmmfModelName: string) {
+  const actionKeys = Object.keys(client._baseDmmf.mappingsMap[dmmfModelName]).filter(
+    (key) => key !== 'model' && key !== 'plural',
+  )
+
+  actionKeys.push('count')
+
+  const clientOnlyActionKeys = Object.keys(clientOnlyActions).filter((actionKey) =>
+    actionKeys.includes(clientOnlyActions[actionKey].wrappedAction),
+  )
+
+  return actionKeys.concat(clientOnlyActionKeys)
 }
 
 function isValidAggregateName(action: string): action is typeof aggregateProps[number] {
   return (aggregateProps as readonly string[]).includes(action)
+}
+
+function fieldsPropertyLayer(client: Client, dmmfModelName: string) {
+  return cacheProperties(
+    addProperty('fields', () => {
+      const model = client._baseDmmf.modelMap[dmmfModelName]
+      return applyFieldsProxy(model)
+    }),
+  )
 }
