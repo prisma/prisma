@@ -72,33 +72,42 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
       onDelete: referentialAction,
     }))
 
-    const mongoDBMatrixBase = {
-      provider: Providers.MONGODB,
-      id: 'String @id @map("_id")',
-      relationMode,
+    let referentialActionMatrixForMongoDB: any[] = []
+    // MongoDB
+    // Only has one mode that cannot be changed -> `relationMode = "prisma"`
+    // So we only run it
+    // when the datasource property relationMode is not set (default) or set to `prisma`.
+    // Which also matches the error expectations in our test suite
+    if (!relationMode || relationMode === 'prisma') {
+      const mongoDBMatrixBase = {
+        provider: Providers.MONGODB,
+        id: 'String @id @map("_id")',
+        relationMode: 'prisma',
+      }
+
+      referentialActionMatrixForMongoDB = [
+        {
+          ...mongoDBMatrixBase,
+          onUpdate: 'DEFAULT',
+          onDelete: 'DEFAULT',
+        },
+        {
+          ...mongoDBMatrixBase,
+          onUpdate: 'Cascade',
+          onDelete: 'Cascade',
+        },
+        {
+          ...mongoDBMatrixBase,
+          onUpdate: 'NoAction',
+          onDelete: 'NoAction',
+        },
+        {
+          ...mongoDBMatrixBase,
+          onUpdate: 'SetNull',
+          onDelete: 'SetNull',
+        },
+      ]
     }
-    const referentialActionMatrixForMongoDB = [
-      {
-        ...mongoDBMatrixBase,
-        onUpdate: 'DEFAULT',
-        onDelete: 'DEFAULT',
-      },
-      {
-        ...mongoDBMatrixBase,
-        onUpdate: 'Cascade',
-        onDelete: 'Cascade',
-      },
-      {
-        ...mongoDBMatrixBase,
-        onUpdate: 'NoAction',
-        onDelete: 'NoAction',
-      },
-      {
-        ...mongoDBMatrixBase,
-        onUpdate: 'SetNull',
-        onDelete: 'SetNull',
-      },
-    ]
 
     return [...referentialActionMatrixForSQL, ...referentialActionMatrixForMongoDB]
   })

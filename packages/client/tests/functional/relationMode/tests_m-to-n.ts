@@ -112,6 +112,7 @@ testMatrix.setupTestSuite(
     const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
     const isRelationMode_foreignKeys = !isRelationMode_prisma
     const isRelationMode_prismaAndSetNull = isRelationMode_prisma && onDelete === 'SetNull'
+    const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
     /**
      * m:n relationship
@@ -190,17 +191,21 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  `Foreign key constraint failed on the field:`
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                  }),
             )
 
             expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual([])
@@ -346,17 +351,21 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  `Foreign key constraint failed on the field:`
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -433,17 +442,21 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  `Foreign key constraint failed on the field:`
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -624,17 +637,21 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  `Foreign key constraint failed on the field:`
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -691,17 +708,21 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  `Foreign key constraint failed on the field:`
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -769,18 +790,22 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-                prisma:
-                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can ignore the error message here
+                  undefined
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                      [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                    prisma:
+                      "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -807,18 +832,22 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-                prisma:
-                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can ignore the error message here
+                  undefined
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                      [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `postId`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                    prisma:
+                      "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -849,18 +878,22 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                // Note: The test suite does not test `SetNull` with providers that errors during migration
-                // see _utils/relationMode/computeMatrix.ts
-                foreignKeys: {
-                  [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
-                  // TODO: the following providers throw a migration error
-                  [Providers.SQLSERVER]: '__SNAPSHOT__',
-                  [Providers.COCKROACHDB]: '__SNAPSHOT__',
-                },
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  ` constraint `
+                : conditionalError.snapshot({
+                    // Note: The test suite does not test `SetNull` with providers that errors during migration
+                    // see _utils/relationMode/computeMatrix.ts
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                      [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+                      // TODO: the following providers throw a migration error
+                      [Providers.SQLSERVER]: '__SNAPSHOT__',
+                      [Providers.COCKROACHDB]: '__SNAPSHOT__',
+                    },
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -887,18 +920,22 @@ testMatrix.setupTestSuite(
                 },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                // Note: The test suite does not test `SetNull` with providers that errors during migration
-                // see _utils/relationMode/computeMatrix.ts
-                foreignKeys: {
-                  [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
-                  // TODO: the following providers throw a migration error
-                  [Providers.SQLSERVER]: '__SNAPSHOT__',
-                  [Providers.COCKROACHDB]: '__SNAPSHOT__',
-                },
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  ` constraint `
+                : conditionalError.snapshot({
+                    // Note: The test suite does not test `SetNull` with providers that errors during migration
+                    // see _utils/relationMode/computeMatrix.ts
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                      [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+                      // TODO: the following providers throw a migration error
+                      [Providers.SQLSERVER]: '__SNAPSHOT__',
+                      [Providers.COCKROACHDB]: '__SNAPSHOT__',
+                    },
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -1047,19 +1084,23 @@ testMatrix.setupTestSuite(
                 where: { id: '1' },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-                prisma:
-                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can ignore the error message here
+                  undefined
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                    prisma:
+                      "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -1076,25 +1117,28 @@ testMatrix.setupTestSuite(
           })
 
           test('[delete] category should throw', async () => {
-            // TODO (prisma, *, Restrict): "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models."
             await expect(
               prisma[categoryModel].delete({
                 where: { id: '1-cat-a' },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-                prisma:
-                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can ignore the error message here
+                  undefined
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                    prisma:
+                      "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -1118,19 +1162,23 @@ testMatrix.setupTestSuite(
                 where: { id: '1' },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-                prisma:
-                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  `Foreign key constraint failed on the field:`
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                    prisma:
+                      "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -1172,19 +1220,23 @@ testMatrix.setupTestSuite(
                 where: { id: '1-cat-a' },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                foreignKeys: {
-                  [Providers.POSTGRESQL]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLSERVER]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
-                },
-                prisma:
-                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  `Foreign key constraint failed on the field:`
+                : conditionalError.snapshot({
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                      [Providers.SQLSERVER]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
+                    },
+                    prisma:
+                      "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -1241,18 +1293,22 @@ testMatrix.setupTestSuite(
                 where: { id: '1' },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                // Note: The test suite does not test `SetNull` with providers that errors during migration
-                // see _utils/relationMode/computeMatrix.ts
-                foreignKeys: {
-                  [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
-                  [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
-                  // TODO: the following providers throw a migration error
-                  [Providers.SQLSERVER]: '__SNAPSHOT__',
-                  [Providers.COCKROACHDB]: '__SNAPSHOT__',
-                },
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  ` constraint `
+                : conditionalError.snapshot({
+                    // Note: The test suite does not test `SetNull` with providers that errors during migration
+                    // see _utils/relationMode/computeMatrix.ts
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`postId`)',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
+                      [Providers.SQLITE]: 'Null constraint violation on the fields: (`postId`)',
+                      // TODO: the following providers throw a migration error
+                      [Providers.SQLSERVER]: '__SNAPSHOT__',
+                      [Providers.COCKROACHDB]: '__SNAPSHOT__',
+                    },
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
@@ -1274,18 +1330,22 @@ testMatrix.setupTestSuite(
                 where: { id: '1-cat-a' },
               }),
             ).rejects.toThrowError(
-              conditionalError.snapshot({
-                // Note: The test suite does not test `SetNull` with providers that errors during migration
-                // see _utils/relationMode/computeMatrix.ts
-                foreignKeys: {
-                  [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
-                  [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
-                  [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
-                  // TODO: the following providers throw a migration error
-                  [Providers.SQLSERVER]: '__SNAPSHOT__',
-                  [Providers.COCKROACHDB]: '__SNAPSHOT__',
-                },
-              }),
+              isSchemaUsingMap
+                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  // So we can be less specific here
+                  ` constraint `
+                : conditionalError.snapshot({
+                    // Note: The test suite does not test `SetNull` with providers that errors during migration
+                    // see _utils/relationMode/computeMatrix.ts
+                    foreignKeys: {
+                      [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`categoryId`)',
+                      [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
+                      [Providers.SQLITE]: 'Null constraint violation on the fields: (`categoryId`)',
+                      // TODO: the following providers throw a migration error
+                      [Providers.SQLSERVER]: '__SNAPSHOT__',
+                      [Providers.COCKROACHDB]: '__SNAPSHOT__',
+                    },
+                  }),
             )
 
             expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
