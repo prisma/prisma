@@ -162,7 +162,7 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.3
         with:
           version: 7
 
