@@ -121,8 +121,18 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteCon
 function getTestSuiteParametersString(configs: Record<string, string>[]) {
   return configs
     .map((config) => {
-      const firstKey = Object.keys(config)[0]
-      return `${firstKey}=${config[firstKey]}`
+      // Note if we use the JSON.stringy name for all tests
+      // Some tests will error with `ENAMETOOLONG: name too long` as this is used for the directory name
+      // Example of failing tests: `field-reference` and `fulltext-search`
+      // So we scope this to the values used in `relationMode` tests
+      if (config.relationMode || config.onUpdate || config.onDelete) {
+        return Object.entries(config).map(
+          ([key, value]) => `${key}=${value !== null && typeof value === 'object' ? JSON.stringify(value) : value}`,
+        )
+      } else {
+        const firstKey = Object.keys(config)[0]
+        return `${firstKey}=${config[firstKey]}`
+      }
     })
     .join(', ')
 }
