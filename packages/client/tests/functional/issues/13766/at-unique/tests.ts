@@ -8,7 +8,7 @@ declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/13766
 testMatrix.setupTestSuite(({ provider }) => {
-  test('referentialIntegrity=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation', async () => {
+  test('relationMode=prisma should not prevent any updates on a model when updating a field which is not referenced in a relation', async () => {
     const orderId = faker.database.mongodbObjectId()
     const orderStatusHistoryId = faker.database.mongodbObjectId()
 
@@ -37,7 +37,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     expect(updatedOrder).toMatchObject({ orderId, paid: true })
   })
 
-  test('referentialIntegrity=prisma should prevent updates on a model if any other relation references a field', async () => {
+  test('relationMode=prisma should prevent updates on a model if any other relation references a field', async () => {
     const orderId1 = faker.database.mongodbObjectId()
     const orderId2 = faker.database.mongodbObjectId()
     const orderStatusHistoryId1 = faker.database.mongodbObjectId()

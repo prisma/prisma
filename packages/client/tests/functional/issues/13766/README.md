@@ -1,4 +1,4 @@
-## referentialIntegrity = prisma with onUpdate = Restrict
+## relationMode = prisma with onUpdate = Restrict
 
 We test 2 different schemas
 

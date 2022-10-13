@@ -34,6 +34,15 @@ const args = arg(
     '--no-mini-proxy-default-ca': Boolean,
     // Enable debug logs in the bundled Mini-Proxy server
     '--mini-proxy-debug': Boolean,
+    // Since `relationMode` tests need to be run with 2 different values
+    // `foreignKeys` and `prisma`
+    // We run them separately in a GitHub Action matrix for now
+    // Also the typescript tests fail and it might not be easily fixable
+    // This flag is used for this purpose
+    '--relation-mode-tests-only': Boolean,
+    //
+    // Jest flags
+    //
     // Passes the same flag to Jest to only run tests related to changed files
     '--onlyChanged': Boolean,
     // Passes the same flag to Jest to only run tests related to changed files
@@ -98,6 +107,13 @@ async function main(): Promise<number | void> {
   }
 
   const jestArgs = ['--testPathIgnorePatterns', 'typescript']
+
+  // See flag description above.
+  // If the flag is not provided we want to ignore `relationMode` tests
+  if (!args['--relation-mode-tests-only']) {
+    jestArgs.push('--testPathIgnorePatterns', 'relationMode')
+  }
+
   if (args['--onlyChanged']) {
     jestArgs.push('--onlyChanged')
   }
