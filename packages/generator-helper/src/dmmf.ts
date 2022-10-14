@@ -199,6 +199,7 @@ export namespace DMMF {
     constraints: {
       maxNumFields: number | null
       minNumFields: number | null
+      fields?: string[]
     }
     meta?: {
       source?: string
