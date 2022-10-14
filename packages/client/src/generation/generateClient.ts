@@ -147,7 +147,7 @@ export async function buildClient({
 
     fileMap['deno/edge.js'] = await JS(denoTsClient, true)
     fileMap['deno/index.d.ts'] = await TS(denoTsClient)
-    fileMap['deno/edge.ts'] = `import 'https://deno.land/std@0.152.0/dotenv/load.ts'
+    fileMap['deno/edge.ts'] = `
 import './polyfill.js'
 // @deno-types="./index.d.ts"
 export * from './edge.js'`
