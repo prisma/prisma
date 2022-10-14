@@ -60,10 +60,10 @@
     "index-browser.js"
   ],
   "devDependencies": {
-    "@faker-js/faker": "7.5.0",
+    "@faker-js/faker": "7.6.0",
     "@fast-check/jest": "1.0.1",
     "@jest/test-sequencer": "28.1.3",
-    "@microsoft/api-extractor": "7.31.2",
+    "@microsoft/api-extractor": "7.33.1",
     "@opentelemetry/api": "1.2.0",
     "@opentelemetry/context-async-hooks": "1.7.0",
     "@opentelemetry/instrumentation": "0.33.0",
@@ -79,9 +79,9 @@
     "@prisma/instrumentation": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
-    "@prisma/mini-proxy": "0.1.2",
-    "@swc-node/register": "1.5.1",
-    "@swc/core": "1.3.2",
+    "@prisma/mini-proxy": "0.2.0",
+    "@swc-node/register": "1.5.4",
+    "@swc/core": "1.3.8",
     "@swc/jest": "0.2.22",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
@@ -89,15 +89,15 @@
     "@types/jest": "28.1.8",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.1",
-    "@types/node": "14.18.31",
+    "@types/node": "14.18.32",
     "@types/pg": "8.6.5",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
     "chalk": "4.1.2",
     "cuid": "2.1.8",
-    "decimal.js": "10.4.1",
-    "esbuild": "0.15.8",
+    "decimal.js": "10.4.2",
+    "esbuild": "0.15.10",
     "execa": "5.1.1",
     "expect-type": "0.14.2",
     "flat-map-polyfill": "0.3.8",
@@ -118,6 +118,7 @@
     "mariadb": "3.0.1",
     "memfs": "3.4.7",
     "mssql": "9.0.1",
+    "node-fetch": "2.6.7",
     "pg": "8.8.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
@@ -133,8 +134,9 @@
     "strip-indent": "3.0.0",
     "ts-jest": "28.0.8",
     "ts-node": "10.9.1",
+    "ts-pattern": "4.0.5",
     "tsd": "0.21.0",
-    "typescript": "4.8.3",
+    "typescript": "4.8.4",
     "yeoman-generator": "5.7.0",
     "yo": "4.3.0"
   },
@@ -147,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.5.0-17.c0187fe8f0cdae61e8eecbad039e9c09ad62184d"
+    "@prisma/engines-version": "4.5.0-34.5a48a95376daf2f71f434e8f77a3eeb9943d997b"
   },
   "sideEffects": false
 }

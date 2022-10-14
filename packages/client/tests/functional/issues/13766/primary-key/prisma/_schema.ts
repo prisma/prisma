@@ -11,7 +11,7 @@ export default testMatrix.setupSchema(({ provider }) => {
     datasource db {
       provider = "${provider}"
       url      = env("DATABASE_URI_${provider}")
-      referentialIntegrity = "prisma"
+      relationMode = "prisma"
     }
 
     model Order {

@@ -1,4 +1,4 @@
-# Enable/Disable PR comments 
+# Enable/Disable PR comments
 comment: false
 
 # About `carryforward: true`
