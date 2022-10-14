@@ -17,10 +17,11 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await prisma.post.create({
+    await prisma.profile.create({
       data: {
-        title: 'Hello World 1',
-        author: {
+        alias: 'john1',
+        email: 'john1@doe.io',
+        user: {
           connect: {
             id: userId,
           },
@@ -50,10 +51,11 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await prisma.post.create({
+    await prisma.profile.create({
       data: {
-        title: 'Hello World 2',
-        author: {
+        alias: 'john2',
+        email: 'john2@doe.io',
+        user: {
           connect: {
             id: userId,
             referralId: userReferralId,
@@ -84,10 +86,11 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await prisma.post.create({
+    await prisma.profile.create({
       data: {
-        title: 'Hello World 3',
-        author: {
+        alias: 'john3',
+        email: 'john3@doe.io',
+        user: {
           connect: {
             referralId: userReferralId,
           },

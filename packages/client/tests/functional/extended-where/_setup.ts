@@ -6,9 +6,9 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 export async function setup(_prisma: unknown) {
   const userId1 = randomBytes(12).toString('hex')
   const referralId = randomBytes(12).toString('hex')
-  const postId1 = randomBytes(12).toString('hex')
-  const postId2 = randomBytes(12).toString('hex')
-  const postId3 = randomBytes(12).toString('hex')
+  const postId1 = `01${randomBytes(11).toString('hex')}`
+  const postId2 = `02${randomBytes(11).toString('hex')}`
+  const postId3 = `03${randomBytes(11).toString('hex')}`
   const profileId = randomBytes(12).toString('hex')
 
   const prisma = _prisma as PrismaClient
