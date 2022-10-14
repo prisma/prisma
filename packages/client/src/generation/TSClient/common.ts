@@ -141,6 +141,11 @@ export import MetricHistogram = runtime.MetricHistogram
 export import MetricHistogramBucket = runtime.MetricHistogramBucket
 
 /**
+ * Extensions
+ */
+export type Extension = runtime.Extension 
+
+/**
  * Prisma Client JS version: ${clientVersion}
  * Query Engine version: ${engineVersion}
  */
