@@ -141,7 +141,7 @@ testMatrix.setupTestSuite(
      * A transaction might fail if it's called inside another transaction
      * //! this works only for postgresql
      */
-    testIf(provider === 'postgresql')('potgresql: nested create', async () => {
+    testIf(provider === 'postgresql')('postgresql: nested create', async () => {
       const result = prisma.$transaction(async (tx) => {
         await tx.user.create({
           data: {
@@ -394,6 +394,33 @@ testMatrix.setupTestSuite(
 
         expect(users.length).toBe(2)
       })
+
+      test('middleware exclude from transaction', async () => {
+        const isolatedPrisma = newPrismaClient()
+
+        isolatedPrisma.$use((params, next) => {
+          return next({ ...params, runInTransaction: false })
+        })
+
+        await isolatedPrisma
+          .$transaction(async (prisma) => {
+            await prisma.user.create({
+              data: {
+                email: 'user_1@website.com',
+              },
+            })
+
+            await prisma.user.create({
+              data: {
+                email: 'user_1@website.com',
+              },
+            })
+          })
+          .catch((e) => {})
+
+        const users = await isolatedPrisma.user.findMany()
+        expect(users).toHaveLength(1)
+      })
     })
 
     /**
@@ -583,7 +610,7 @@ testMatrix.setupTestSuite(
 
             // Add a delay here to force the transaction to be open for longer
             // this will increase the chance of deadlock in the itx transactions
-            // if deadlock is a possiblity.
+            // if deadlock is a possibility.
             await delay(100)
 
             const updatedUser = await transactionPrisma.user.update({
@@ -696,12 +723,13 @@ testMatrix.setupTestSuite(
       // })
 
       test('invalid value', async () => {
+        // @ts-test-if: provider === 'mongodb'
         const result = prisma.$transaction(
           async (tx) => {
             await tx.user.create({ data: { email: 'user@example.com' } })
           },
           {
-            // @ts-expect-error
+            // @ts-test-if: provider !== 'mongodb'
             isolationLevel: 'NotAValidLevel',
           },
         )
@@ -719,12 +747,13 @@ testMatrix.setupTestSuite(
     })
 
     testIf(provider === 'mongodb')('attempt to set isolation level on mongo', async () => {
+      // @ts-test-if: provider === 'mongodb'
       const result = prisma.$transaction(
         async (tx) => {
           await tx.user.create({ data: { email: 'user@example.com' } })
         },
         {
-          // @ts-expect-error
+          // @ts-test-if: provider !== 'mongodb'
           isolationLevel: 'CanBeAnything',
         },
       )

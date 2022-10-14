@@ -11,6 +11,11 @@ import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
 
 function batchingTransactionDefinition(this: PrismaClientClass) {
+  const args = ['arg: [...P]']
+  if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
+    args.push('options?: { isolationLevel?: Prisma.TransactionIsolationLevel }')
+  }
+  const argsString = args.join(', ')
   return `
   /**
    * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
@@ -25,7 +30,7 @@ function batchingTransactionDefinition(this: PrismaClientClass) {
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>;`
+  $transaction<P extends PrismaPromise<any>[]>(${argsString}): Promise<UnwrapTuple<P>>;`
 }
 
 function interactiveTransactionDefinition(this: PrismaClientClass) {
@@ -149,6 +154,17 @@ function runCommandRawDefinition(this: PrismaClientClass) {
   $runCommandRaw(command: Prisma.InputJsonObject): PrismaPromise<Prisma.JsonObject>;`
 }
 
+function extendsDefinition(this: PrismaClientClass) {
+  if (!this.generator?.previewFeatures.includes('clientExtensions')) {
+    return ''
+  }
+  return `
+  /**
+   * Returns new fork of the client with the extension applied
+   */
+  $extends(extension: Prisma.Extension): this;`
+}
+
 export class PrismaClientClass implements Generatable {
   constructor(
     protected readonly dmmf: DMMFHelper,
@@ -240,6 +256,7 @@ ${[
   interactiveTransactionDefinition.bind(this)(),
   runCommandRawDefinition.bind(this)(),
   metricDefinition.bind(this)(),
+  extendsDefinition.bind(this)(),
 ]
   .join('\n')
   .trim()}
@@ -387,7 +404,7 @@ export type PrismaAction =
   | 'findRaw'
 
 /**
- * These options are being passed in to the middleware as "params"
+ * These options are being passed into the middleware as "params"
  */
 export type MiddlewareParams = {
   model?: ModelName

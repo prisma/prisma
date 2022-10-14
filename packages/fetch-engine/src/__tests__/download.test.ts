@@ -553,8 +553,8 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     )
 
     // This is a rather high number to avoid flakiness in CI
-    expect(timeInMsToDownloadAllFromCache1).toBeLessThan(60_000)
-    expect(timeInMsToDownloadAllFromCache2).toBeLessThan(60_000)
+    expect(timeInMsToDownloadAllFromCache1).toBeLessThan(100_000)
+    expect(timeInMsToDownloadAllFromCache2).toBeLessThan(100_000)
 
     // Using cache should be faster
     expect(timeInMsToDownloadAllFromCache1).toBeLessThan(timeInMsToDownloadAll)
@@ -595,7 +595,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     expect(await getVersion(targetPath, BinaryType.queryEngine)).not.toBe(undefined)
   })
 
-  test('handle non-existent "binaryTarget"', async () => {
+  test('handle nonexistent "binaryTarget"', async () => {
     await expect(
       download({
         binaries: {
@@ -609,7 +609,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     )
   })
 
-  test('handle non-existent "binaryTarget" with missing custom engine binary', async () => {
+  test('handle nonexistent "binaryTarget" with missing custom engine binary', async () => {
     expect.assertions(1)
     process.env.PRISMA_QUERY_ENGINE_BINARY = '../query-engine'
     try {
@@ -627,7 +627,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     }
   })
 
-  test('handle non-existent "binaryTarget" with custom engine binary', async () => {
+  test('handle nonexistent "binaryTarget" with custom engine binary', async () => {
     const e = await download({
       binaries: {
         'query-engine': __dirname,

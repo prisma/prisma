@@ -17,7 +17,13 @@ import type { Readable } from 'stream'
 import { URL } from 'url'
 import { promisify } from 'util'
 
-import type { DatasourceOverwrite, EngineConfig, EngineEventType, GetConfigResult } from '../common/Engine'
+import type {
+  BatchTransactionOptions,
+  DatasourceOverwrite,
+  EngineConfig,
+  EngineEventType,
+  GetConfigResult,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
@@ -29,7 +35,12 @@ import type { RustError, RustLog } from '../common/errors/utils/log'
 import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { EngineSpanEvent, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
+import type {
+  EngineSpanEvent,
+  QueryEngineBatchRequest,
+  QueryEngineRequestHeaders,
+  QueryEngineResult,
+} from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
@@ -812,17 +823,21 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.getConfigPromise = undefined
     let stopChildPromise
     if (this.child) {
-      debug(`Stopping Prisma engine4`)
+      debug(`Stopping Prisma engine`)
       if (this.startPromise) {
         debug(`Waiting for start promise`)
         await this.startPromise
       }
       debug(`Done waiting for start promise`)
-      stopChildPromise = new Promise((resolve, reject) => {
-        this.engineStopDeferred = { resolve, reject }
-      })
+      if (this.child.exitCode === null) {
+        stopChildPromise = new Promise((resolve, reject) => {
+          this.engineStopDeferred = { resolve, reject }
+        })
+      } else {
+        debug('Child already exited with code', this.child.exitCode)
+      }
       this.connection.close()
-      this.child?.kill()
+      this.child.kill()
       this.child = undefined
     }
     if (stopChildPromise) {
@@ -934,7 +949,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.clientVersion!)
       }
 
-      // Rust engine returns time in microseconds and we want it in miliseconds
+      // Rust engine returns time in microseconds and we want it in milliseconds
       const elapsed = parseInt(headers['x-elapsed']) / 1000
 
       // reset restart count after successful request
@@ -946,9 +961,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       return { data, elapsed } as any
     } catch (e: any) {
       logger('req - e', e)
-      if (e instanceof PrismaClientKnownRequestError) {
-        throw e
-      }
 
       await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
       // retry
@@ -964,14 +976,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   async requestBatch<T>(
     queries: string[],
     headers: QueryEngineRequestHeaders = {},
-    transaction = false,
+    transaction?: BatchTransactionOptions,
     numTry = 1,
   ): Promise<QueryEngineResult<T>[]> {
     await this.start()
 
-    const request = {
+    const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
-      transaction,
+      transaction: Boolean(transaction),
+      isolationLevel: transaction?.isolationLevel,
     }
 
     this.lastQuery = JSON.stringify(request)
@@ -979,7 +992,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
-        // Rust engine returns time in microseconds and we want it in miliseconds
+        // Rust engine returns time in microseconds and we want it in milliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
         const { batchResult, errors } = data
         if (Array.isArray(batchResult)) {
@@ -1104,6 +1117,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     // if we are starting, wait for it before we handle any error
     if (this.startPromise) {
       await this.startPromise
+    }
+
+    if (error instanceof PrismaClientKnownRequestError) {
+      throw error
     }
 
     this.throwAsyncErrorIfExists()
