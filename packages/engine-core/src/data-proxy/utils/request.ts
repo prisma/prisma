@@ -1,5 +1,5 @@
 import type { IncomingMessage } from 'http'
-import type Https from 'https'
+import Https from 'https'
 import type { RequestInit, Response } from 'node-fetch'
 import type { O } from 'ts-toolbelt'
 
@@ -64,6 +64,9 @@ function buildOptions(options: RequestOptions): Https.RequestOptions {
   return {
     method: options.method,
     headers: buildHeaders(options),
+    agent: new Https.Agent({
+      keepAlive: true,
+    }),
   }
 }
 
