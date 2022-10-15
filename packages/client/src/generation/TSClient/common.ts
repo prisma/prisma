@@ -9,11 +9,11 @@ export const commonCodeJS = ({
   browser,
   clientVersion,
   engineVersion,
-  denoDeploy,
-}: TSClientOptions): string => `${denoDeploy ? 'const exports = {}' : ''}
+  deno,
+}: TSClientOptions): string => `${deno ? 'const exports = {}' : ''}
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
-  denoDeploy
+  deno
     ? `
 import {
   PrismaClientKnownRequestError,

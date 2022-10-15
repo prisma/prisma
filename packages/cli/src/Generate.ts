@@ -207,12 +207,12 @@ Please run \`prisma generate\` manually.`
       let hint = ''
       if (prismaClientJSGenerator) {
         const generator = prismaClientJSGenerator.options?.generator
-        const isDenoDeploy = generator?.previewFeatures.includes('denoDeploy') && !!globalThis.Deno
-        if (isDenoDeploy && !generator?.isCustomOutput) {
+        const isDeno = generator?.previewFeatures.includes('deno') && !!globalThis.Deno
+        if (isDeno && !generator?.isCustomOutput) {
           throw new Error(`Can't find output dir for generator ${chalk.bold(
             generator?.name,
           )} with provider ${chalk.bold(generator?.provider.value)}.
-When you enable denoDeploy preview feature, you need to define \`output\` in client generator section of schema.prisma file.`)
+When using Deno, you need to define \`output\` in the client generator section of your schema.prisma file.`)
         }
 
         const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
@@ -237,7 +237,7 @@ ${breakingChangesMessage}`
 This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
-        if (!isDenoDeploy) {
+        if (!isDeno) {
           hint = `You can now start using Prisma Client in your code. Reference: ${link('https://pris.ly/d/client')}
 ${chalk.dim('```')}
 ${highlightTS(`\

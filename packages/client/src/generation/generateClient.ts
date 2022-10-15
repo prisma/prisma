@@ -135,23 +135,25 @@ export async function buildClient({
     fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
   }
 
-  if (generator?.previewFeatures.includes('denoDeploy') && !!globalThis.Deno) {
-    // we create a client that is fit for edge runtimes
-    const denoTsClient = new TSClient({
-      ...tsClientOptions,
-      dataProxy: true, // edge only works w/ data proxy
-      runtimeName: 'index.d.ts',
-      runtimeDir: '../' + runtimeDirs.edge,
-      denoDeploy: true,
-    })
+  if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
+    if (dataProxy === true) {
+      // we create a client that is fit for edge runtimes
+      const denoEdgeTsClient = new TSClient({
+        ...tsClientOptions,
+        dataProxy: true, // edge only works w/ data proxy
+        runtimeName: 'index.d.ts',
+        runtimeDir: '../' + runtimeDirs.edge,
+        deno: true,
+      })
 
-    fileMap['deno/edge.js'] = await JS(denoTsClient, true)
-    fileMap['deno/index.d.ts'] = await TS(denoTsClient)
-    fileMap['deno/edge.ts'] = `
+      fileMap['deno/edge.js'] = await JS(denoEdgeTsClient, true)
+      fileMap['deno/index.d.ts'] = await TS(denoEdgeTsClient)
+      fileMap['deno/edge.ts'] = `
 import './polyfill.js'
 // @deno-types="./index.d.ts"
 export * from './edge.js'`
-    fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
+      fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
+    }
   }
 
   return {
@@ -241,7 +243,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   await makeDir(finalOutputDir)
   await makeDir(path.join(outputDir, 'runtime'))
-  if (generator?.previewFeatures.includes('denoDeploy') && !!globalThis.Deno) {
+  if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
     await makeDir(path.join(outputDir, 'deno'))
   }
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?

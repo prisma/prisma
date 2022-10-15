@@ -45,7 +45,7 @@ export interface TSClientOptions {
   outputDir: string
   activeProvider: string
   dataProxy: boolean
-  denoDeploy?: boolean
+  deno?: boolean
 }
 
 export class TSClient implements Generatable {
@@ -67,7 +67,7 @@ export class TSClient implements Generatable {
       runtimeName,
       datasources,
       dataProxy,
-      denoDeploy,
+      deno,
     } = this.options
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
@@ -134,7 +134,7 @@ ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
-Object.assign(exports, Prisma)${denoDeploy ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
+Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
 ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 `
     return code
