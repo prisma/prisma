@@ -237,36 +237,26 @@ ${breakingChangesMessage}`
 This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
-        if (!isDeno) {
-          hint = `You can now start using Prisma Client in your code. Reference: ${link('https://pris.ly/d/client')}
+
+        hint = `You can now start using Prisma Client in your code. Reference: ${link('https://pris.ly/d/client')}
 ${chalk.dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
 ${chalk.dim('```')}${
-            prismaClientJSGenerator.options?.dataProxy
-              ? `
+          prismaClientJSGenerator.options?.dataProxy
+            ? `
 
 To use Prisma Client in edge runtimes like Cloudflare Workers or Vercel Edge Functions, import it like this:
 ${chalk.dim('```')}
 ${highlightTS(`\
-import { PrismaClient } from '${importPath}/edge'`)}
+import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'`)}
 ${chalk.dim('```')}
 
 You will need a Prisma Data Proxy connection string. See documentation: ${link('https://pris.ly/d/data-proxy')}
 `
-              : ''
-          }${breakingChangesStr}${versionsWarning}`
-        } else {
-          hint = `You can now start using Prisma Client in your code. Reference: ${link('https://pris.ly/d/client')}
-${chalk.dim('```')}
-${highlightTS(`\
-import { PrismaClient } from '${importPath}/deno/edge.ts'`)}
-${chalk.dim('```')}
-
-You will need a Prisma Data Proxy connection string. See documentation: ${link('https://pris.ly/d/data-proxy')}
-${breakingChangesStr}${versionsWarning}`
-        }
+            : ''
+        }${breakingChangesStr}${versionsWarning}`
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
