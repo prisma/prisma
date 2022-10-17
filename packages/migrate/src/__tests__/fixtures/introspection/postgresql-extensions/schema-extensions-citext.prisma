@@ -1,7 +1,7 @@
 datasource db {
-  provider   = "postgresql"
-  url        = env("TEST_POSTGRES_URI_MIGRATE")
-  extensions = [citext]
+  provider     = "postgresql"
+  url          = env("TEST_POSTGRES_URI_MIGRATE")
+  extensions   = [citext(schema: "public")]
 }
 
 generator client {
