@@ -1497,7 +1497,7 @@ function tryInferArgs(
 
   return new Arg({
     key,
-    value: value.map((v) => {
+    value: value.map((v: unknown) => {
       if (inputType.isList && typeof v !== 'object') {
         return v
       }
