@@ -964,7 +964,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       .then(({ data, headers }) => {
         // Rust engine returns time in microseconds and we want it in milliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
-        const { batchResult, errors } = data
+        const { batchResult } = data
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
             if (result.errors && result.errors.length > 0) {
