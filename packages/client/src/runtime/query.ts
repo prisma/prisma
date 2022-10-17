@@ -602,8 +602,7 @@ export class Args {
 /**
  * Custom stringify which turns undefined into null - needed by GraphQL
  * @param value to stringify
- * @param _
- * @param tab
+ * @param inputType
  */
 function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
   if (Buffer.isBuffer(value)) {
