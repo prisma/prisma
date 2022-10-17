@@ -27,11 +27,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-function isSpecificValue(val) {
+function isSpecificValue(val: unknown) {
   return val instanceof Buffer || val instanceof Date || val instanceof RegExp ? true : false
 }
 
-function cloneSpecificValue(val) {
+function cloneSpecificValue(val: unknown) {
   if (val instanceof Buffer) {
     const x = Buffer.alloc ? Buffer.alloc(val.length) : new Buffer(val.length)
     val.copy(x)
@@ -48,8 +48,8 @@ function cloneSpecificValue(val) {
 /**
  * Recursive cloning array.
  */
-function deepCloneArray(arr) {
-  const clone: any = []
+function deepCloneArray(arr: unknown[]) {
+  const clone: unknown[] = []
   arr.forEach(function (item, index) {
     if (typeof item === 'object' && item !== null) {
       if (Array.isArray(item)) {
@@ -66,7 +66,7 @@ function deepCloneArray(arr) {
   return clone
 }
 
-function safeGetProperty(object, property) {
+function safeGetProperty(object: object, property: string | number | symbol) {
   return property === '__proto__' ? undefined : object[property]
 }
 
@@ -79,7 +79,7 @@ function safeGetProperty(object, property) {
  * object as first argument, like this:
  *   deepExtend({}, yourObj_1, [yourObj_N]);
  */
-export const deepExtend = function (target, ...args) {
+export const deepExtend = function (target: unknown, ...args: unknown[]) {
   if (!target || typeof target !== 'object') {
     return false
   }
@@ -88,7 +88,7 @@ export const deepExtend = function (target, ...args) {
     return target
   }
 
-  let val, src
+  let val: unknown, src: unknown
 
   for (const obj of args) {
     // skip argument if isn't an object, is null, or is an array
