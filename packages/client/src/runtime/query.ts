@@ -753,13 +753,13 @@ ${indent(value.toString(), 2)}
 
     if (Array.isArray(this.value)) {
       return errors.concat(
-        (this.value as any[]).flatMap((val, index) => {
-          if (!val?.collectErrors) {
+        this.value.flatMap((val, index) => {
+          if (!(val instanceof Args)) {
             return []
           }
 
           return val.collectErrors().map((e) => {
-            return { ...e, path: [this.key, index, ...e.path] }
+            return { ...e, path: [this.key, String(index), ...e.path] }
           })
         }),
       )
