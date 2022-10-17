@@ -560,7 +560,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           stdio: ['ignore', 'pipe', 'pipe'],
         })
 
-        byline(this.child.stderr).on('data', (msg) => {
+        byline(this.child.stderr).on('data', (msg: string | Buffer) => {
           const data = String(msg)
           debug('stderr', data)
 
@@ -581,7 +581,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           }
         })
 
-        byline(this.child.stdout).on('data', (msg) => {
+        byline(this.child.stdout).on('data', (msg: string | Buffer) => {
           const data = String(msg)
 
           try {
