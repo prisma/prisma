@@ -782,7 +782,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       }
     }
     this.getConfigPromise = undefined
-    let stopChildPromise
+    let stopChildPromise: Promise<number | null> | undefined
     if (this.child) {
       debug(`Stopping Prisma engine`)
       if (this.startPromise) {
