@@ -206,6 +206,15 @@ Please run \`prisma generate\` manually.`
       )
       let hint = ''
       if (prismaClientJSGenerator) {
+        const generator = prismaClientJSGenerator.options?.generator
+        const isDeno = generator?.previewFeatures.includes('deno') && !!globalThis.Deno
+        if (isDeno && !generator?.isCustomOutput) {
+          throw new Error(`Can't find output dir for generator ${chalk.bold(
+            generator?.name,
+          )} with provider ${chalk.bold(generator?.provider.value)}.
+When using Deno, you need to define \`output\` in the client generator section of your schema.prisma file.`)
+        }
+
         const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
           ? prefixRelativePathIfNecessary(
               replacePathSeparatorsIfNecessary(
@@ -241,7 +250,7 @@ ${chalk.dim('```')}${
 To use Prisma Client in edge runtimes like Cloudflare Workers or Vercel Edge Functions, import it like this:
 ${chalk.dim('```')}
 ${highlightTS(`\
-import { PrismaClient } from '${importPath}/edge'`)}
+import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'`)}
 ${chalk.dim('```')}
 
 You will need a Prisma Data Proxy connection string. See documentation: ${link('https://pris.ly/d/data-proxy')}

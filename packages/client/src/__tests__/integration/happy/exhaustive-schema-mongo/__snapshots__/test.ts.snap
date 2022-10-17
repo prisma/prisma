@@ -900,6 +900,11 @@ export namespace Prisma {
   export import MetricHistogramBucket = runtime.MetricHistogramBucket
 
   /**
+   * Extensions
+   */
+  export type Extension = runtime.Extension 
+
+  /**
    * Prisma Client JS version: local
    * Query Engine version: local
    */

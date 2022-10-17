@@ -39,7 +39,7 @@ function getAllTestSuiteTypeChecks(fileNames: string[]) {
 describe('typescript', () => {
   const suitePaths = glob
     .sync('./**/.generated/**/*.ts', {
-      ignore: ['./**/.generated/**/*.d.ts', './**/.generated/**/_schema.ts'],
+      ignore: ['./**/.generated/**/*.d.ts', './**/.generated/**/_schema*'],
     })
     // global.d.ts does not really needs typechecking, but
     // since no sources import it directly, it has to be included
