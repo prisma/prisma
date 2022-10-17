@@ -534,6 +534,7 @@ describe.only('postgresql-extensions', () => {
       datasource db {
         provider = "postgresql"
         url      = env("TEST_POSTGRES_URI_MIGRATE")
+        extensions = [citext]
       }
 
       model Post {
