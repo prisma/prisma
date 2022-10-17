@@ -17,7 +17,7 @@ export type InstanceRejectOnNotFound =
  */
 export class NotFoundError extends PrismaClientKnownRequestError {
   constructor(message: string) {
-    super(message, 'P2025', clientVersion)
+    super(message, { code: 'P2025', clientVersion })
     this.name = 'NotFoundError'
   }
 }
