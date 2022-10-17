@@ -570,7 +570,7 @@ describe('postgresql-extensions', () => {
   //   expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   // })
 
-  test('re-introspection should succed and keep defined extension in schema.prisma file', async () => {
+  test('re-introspection should succeed and keep defined extension in schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'schema-extensions-citext.prisma'])
