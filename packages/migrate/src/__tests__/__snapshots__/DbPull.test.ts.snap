@@ -695,3 +695,87 @@ enum Role {
 
 // introspectionSchemaVersion: NonPrisma,
 `;
+
+exports[`postgresql-multi-schema --url with \`?schema=base\` should succeed 2`] = `
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate?schema=base"
+}
+
+model User {
+  id    String @id
+  email String
+}
+
+model some_table {
+  id    String @id(map: "User_pkey2")
+  email String
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql-multi-schema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
+
+exports[`postgresql-multi-schema datasource property \`schemas=["base"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  schemas  = ["base"]
+}
+
+model User {
+  id    String @id
+  email String
+
+  @@schema("base")
+}
+
+model some_table {
+  id    String @id(map: "User_pkey2")
+  email String
+
+  @@schema("base")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  schemas  = ["base", "does-not-exist"]
+}
+
+model User {
+  id    String @id
+  email String
+
+  @@schema("base")
+}
+
+model some_table {
+  id    String @id(map: "User_pkey2")
+  email String
+
+  @@schema("base")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;
