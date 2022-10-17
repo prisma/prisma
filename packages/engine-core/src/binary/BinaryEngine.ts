@@ -309,7 +309,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     searchedLocations: string[]
   }> {
     const searchedLocations: string[] = []
-    let enginePath
+    let enginePath: string
     if (this.prismaPath) {
       return { prismaPath: this.prismaPath, searchedLocations }
     }
