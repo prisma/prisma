@@ -53,7 +53,7 @@ const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
 
 // eslint-disable-next-line
-const logger = (...args) => {
+const logger = (...args: any[]) => {
   // console.log(chalk.red.bold('logger '), ...args)
 }
 
