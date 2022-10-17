@@ -39,8 +39,8 @@ export function applyModel(client: Client, dmmfModelName: string) {
       continue
     }
 
-    if (model['*']) {
-      layers.push(forwardTo(model['*']))
+    if (model.$allModels) {
+      layers.push(forwardTo(model.$allModels))
     }
 
     if (model[jsModelName]) {

@@ -25,7 +25,7 @@ testMatrix.setupTestSuite(() => {
     const extMethod = jest.fn()
     const xprisma = prisma.$extends({
       model: {
-        '*': {
+        $allModels: {
           extMethod,
         },
       },
@@ -64,12 +64,12 @@ testMatrix.setupTestSuite(() => {
     expect(xprisma.user.extMethod()).toBe('hi!')
   })
 
-  test('specific model extension has precedence over *', () => {
+  test('specific model extension has precedence over $allModels', () => {
     const genericMethod = jest.fn()
     const specificMethod = jest.fn()
     const xprisma = prisma.$extends({
       model: {
-        '*': {
+        $allModels: {
           extMethod: genericMethod,
         },
         user: {
