@@ -34,7 +34,7 @@ testMatrix.setupTestSuite(() => {
                  }
                })
 
-      Argument where of type UserWhereUniqueInput needs at least one argument and at least one argument for id, or referralId.  Available args are listed in green.
+      Argument where of type UserWhereUniqueInput needs at least one argument and at least one argument for id, or referralId. Available args are listed in green.
 
       Note: Lines with ? are optional.
 
@@ -63,7 +63,7 @@ testMatrix.setupTestSuite(() => {
                }
              })
 
-      Argument where of type UserWhereUniqueInput needs at least one argument and at least one argument for id, or referralId.  Available args are listed in green.
+      Argument where of type UserWhereUniqueInput needs at least one argument and at least one argument for id, or referralId. Available args are listed in green.
 
 
     `)
