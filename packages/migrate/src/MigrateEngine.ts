@@ -106,6 +106,9 @@ export class MigrateEngine {
   public getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
   }
+  public introspect(args: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
+      return this.runCommand(this.getRPCPayload('introspect', args))
+  }
   public schemaPush(args: EngineArgs.SchemaPush): Promise<EngineResults.SchemaPush> {
     return this.runCommand(this.getRPCPayload('schemaPush', args))
   }

@@ -18,6 +18,7 @@ import {
   loadEnvFile,
   protocolToConnectorType,
 } from '@prisma/internals'
+import { MigrateEngine } from '../MigrateEngine'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
@@ -214,8 +215,9 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    const engine = new IntrospectionEngine({
-      cwd: schemaPath ? path.dirname(schemaPath) : undefined,
+    const engine = new MigrateEngine({
+        projectDir: path.dirname(schemaPath as any) as any,
+        schemaPath: schemaPath as any,
     })
 
     const basedOn =
@@ -229,7 +231,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     let introspectionWarnings: IntrospectionWarnings[]
     let introspectionSchemaVersion: IntrospectionSchemaVersion
     try {
-      const introspectionResult = await engine.introspect(schema, args['--force'], args['--composite-type-depth'])
+      const introspectionResult = await engine.introspect({ schema, force: args['--force'] || false, compositeTypeDepth: args['--composite-type-depth'] || undefined })
 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
