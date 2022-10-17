@@ -495,7 +495,7 @@ describe('postgresql', () => {
 })
 
 // TODO remove .only
-describe.only('postgresql-extensions', () => {
+describe('postgresql-extensions', () => {
   const setupParams: SetupParams = {
     connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-extensions'),
