@@ -409,7 +409,7 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
         : ''
       return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
         error.inputType.name,
-      )} needs ${chalk.greenBright('at least one')} argument${chalk.bold(atLeastFieldsError)}. ${additional}`
+      )} needs ${chalk.greenBright('at least one')} argument${chalk.bold(atLeastFieldsError)}.${additional}`
     }
 
     if (error.type === 'atMostOne') {
