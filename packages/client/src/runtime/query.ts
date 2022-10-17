@@ -1661,13 +1661,11 @@ export function mapScalars({ field, data }: MapScalarsOptions): any {
   }
 
   const deserializers = {
-    DateTime: (value) => new Date(value),
-    Json: (value) => JSON.parse(value),
-    Bytes: (value) => Buffer.from(value, 'base64'),
-    Decimal: (value) => {
-      return new Decimal(value)
-    },
-    BigInt: (value) => BigInt(value),
+    DateTime: (value: string) => new Date(value),
+    Json: (value: string) => JSON.parse(value),
+    Bytes: (value: string) => Buffer.from(value, 'base64'),
+    Decimal: (value: string) => new Decimal(value),
+    BigInt: (value: string) => BigInt(value),
   }
 
   for (const child of field.children) {
