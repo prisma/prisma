@@ -774,7 +774,9 @@ ${indent(value.toString(), 2)}
   }
 }
 
-export type ArgValue = string | boolean | number | undefined | Args | string[] | boolean[] | number[] | Args[] | null
+export type ArgValueScalar = string | boolean | number | Args
+
+export type ArgValue = ArgValueScalar | ArgValueScalar[] | undefined | null
 
 export interface DocumentInput {
   dmmf: DMMFHelper
