@@ -520,7 +520,7 @@ describe('postgresql-extensions', () => {
   })
 
   test('introspection should succeed and not add extensions property to the schema.prisma file', async () => {
-    ctx.fixture('introspection/postgresql-extensions')
+    ctx.fixture('introspection/postgresql-extensions-no-extension-installed')
     const introspect = new DbPull()
     const result = introspect.parse(['--print'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -534,7 +534,6 @@ describe('postgresql-extensions', () => {
       datasource db {
         provider   = "postgresql"
         url        = env("TEST_POSTGRES_URI_MIGRATE")
-        extensions = [citext(schema: "public")]
       }
 
       model Post {
