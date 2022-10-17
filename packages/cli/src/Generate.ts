@@ -247,7 +247,7 @@ ${chalk.dim('```')}${
           prismaClientJSGenerator.options?.dataProxy
             ? `
 
-To use Prisma Client in edge runtimes like Cloudflare Workers or Vercel Edge Functions, import it like this:
+${isDeno ? 'To use Prisma Client with Deno and the Data Proxy, import it like this:' : 'To use Prisma Client in edge runtimes like Cloudflare Workers or Vercel Edge Functions, import it like this:' }
 ${chalk.dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'`)}
