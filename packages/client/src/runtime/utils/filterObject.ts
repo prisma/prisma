@@ -1,4 +1,4 @@
-export function filterObject(obj, cb) {
+export function filterObject(obj: any, cb: (key: string | number | symbol, value: any) => boolean) {
   if (!obj || typeof obj !== 'object' || typeof obj.hasOwnProperty !== 'function') {
     return obj
   }

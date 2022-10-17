@@ -1224,7 +1224,7 @@ function getExpectedType(inputType: DMMF.SchemaArgInputType, context: MakeDocume
   return wrapWithList(type, isList)
 }
 
-const cleanObject = (obj) => filterObject(obj, (k, v) => v !== undefined)
+const cleanObject = (obj: any) => filterObject(obj, (_k, v) => v !== undefined)
 
 function isDecimalString(value: string): boolean {
   // from https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L116
