@@ -13,7 +13,7 @@ import {
   loadEnvFile,
   pick,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
+import { getSchemaPathAndPrint, MigrateEngine } from '@prisma/migrate'
 import chalk from 'chalk'
 import equal from 'fast-deep-equal'
 import fs from 'fs'
@@ -87,13 +87,14 @@ ${chalk.bold('Examples')}
       throw new Error(`${canConnect.code}: ${canConnect.message}`)
     }
 
-    const engine = new IntrospectionEngine({
-      cwd: path.dirname(schemaPath),
+    const engine = new MigrateEngine({
+        projectDir: path.dirname(schemaPath as any) as any,
+        schemaPath: kchemaPath as any,
     })
 
     let datamodel
     try {
-      const result = await engine.introspect(schema)
+      const result = await engine.introspect({ schema })
       datamodel = result.datamodel
     } finally {
       engine.stop()

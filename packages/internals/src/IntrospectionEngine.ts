@@ -261,18 +261,18 @@ export class IntrospectionEngine {
   public getDatabaseVersion(schema: string): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema }))
   }
-  public introspect(
-    schema: string,
-    force?: Boolean,
-    compositeTypeDepth = -1, // optional, only for mongodb
-  ): Promise<{
-    datamodel: string
-    warnings: IntrospectionWarnings[]
-    version: IntrospectionSchemaVersion
-  }> {
-    this.lastUrl = schema
-    return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
-  }
+  // public introspect(
+  //   schema: string,
+  //   force?: Boolean,
+  //   compositeTypeDepth = -1, // optional, only for mongodb
+  // ): Promise<{
+  //   datamodel: string
+  //   warnings: IntrospectionWarnings[]
+  //   version: IntrospectionSchemaVersion
+  // }> {
+  //   this.lastUrl = schema
+  //   return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
+  // }
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
   }
