@@ -564,7 +564,7 @@ describe('postgresql-extensions', () => {
 
       // introspectionSchemaVersion: NonPrisma,
     `)
-    expect(introspectedSchema).not.toContain('extensions')
+    expect(introspectedSchema).not.toContain('extensions =')
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
