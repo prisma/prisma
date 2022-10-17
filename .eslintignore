@@ -3,7 +3,6 @@ dist/
 esm/
 build/
 fixtures/
-byline.ts
 prism.ts
 charm.ts
 pnpm-lock.yaml
