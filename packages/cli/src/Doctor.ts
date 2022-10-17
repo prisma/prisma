@@ -89,12 +89,12 @@ ${chalk.bold('Examples')}
 
     const engine = new MigrateEngine({
         projectDir: path.dirname(schemaPath as any) as any,
-        schemaPath: kchemaPath as any,
+        schemaPath: schemaPath as any,
     })
 
     let datamodel
     try {
-      const result = await engine.introspect({ schema })
+      const result = await (engine as any).introspect({ schema })
       datamodel = result.datamodel
     } finally {
       engine.stop()
