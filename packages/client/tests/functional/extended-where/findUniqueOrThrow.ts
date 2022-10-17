@@ -12,27 +12,33 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('findUniqueOrThrow with where 1 unique (PK)', async () => {
-    await prisma.user.findUniqueOrThrow({
+    const data = await prisma.user.findUniqueOrThrow({
       where: {
         id: vars.userId,
       },
     })
+
+    expect(data.id).toBe(vars.userId)
   })
 
   test('findUniqueOrThrow with where 2 uniques (PK & non-PK)', async () => {
-    await prisma.post.findUniqueOrThrow({
+    const data = await prisma.post.findUniqueOrThrow({
       where: {
         id: vars.postId1,
         title: 'Hello World 1',
       },
     })
+
+    expect(data.id).toBe(vars.postId1)
   })
 
   test('finUniqueOrThrow with where 1 unique (non-PK)', async () => {
-    await prisma.post.findUniqueOrThrow({
+    const data = await prisma.post.findUniqueOrThrow({
       where: {
         title: 'Hello World 1',
       },
     })
+
+    expect(data.id).toBe(vars.postId1)
   })
 })

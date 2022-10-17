@@ -15,19 +15,23 @@ testMatrix.setupTestSuite(() => {
 
   test('upsert with where 1 unique (PK)', async () => {
     const referralId = randomBytes(12).toString('hex')
-    await prisma.user.upsert({
+    const data = await prisma.user.upsert({
       where: {
         id: vars.userId,
       },
       create: {
         referralId,
       },
-      update: {},
+      update: {
+        referralId,
+      },
     })
+
+    expect(data.referralId).toBe(referralId)
   })
 
   test('upsert with where 2 uniques (PK & non-PK)', async () => {
-    await prisma.post.upsert({
+    const data = await prisma.post.upsert({
       where: {
         id: vars.postId1,
         title: 'Hello World 1',
@@ -40,10 +44,12 @@ testMatrix.setupTestSuite(() => {
         title: 'Hello World 4',
       },
     })
+
+    expect(data.title).toBe('Hello World 4')
   })
 
   test('upsert with where 1 unique (non-PK)', async () => {
-    await prisma.post.upsert({
+    const data = await prisma.post.upsert({
       where: {
         title: 'Hello World 2',
       },
@@ -55,5 +61,7 @@ testMatrix.setupTestSuite(() => {
         title: 'Hello World 5',
       },
     })
+
+    expect(data.title).toBe('Hello World 5')
   })
 })

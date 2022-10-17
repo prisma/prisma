@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    expect(data?.id).toBe(vars.postId2)
+    expect(data.id).toBe(vars.postId2)
   })
 
   test('findFirstOrThrow with cursor 2 uniques (PK & non-PK)', async () => {
@@ -29,7 +29,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    expect(data?.id).toBe(vars.postId2)
+    expect(data.id).toBe(vars.postId2)
   })
 
   test('findFirstOrThrow with cursor 1 unique (non-PK)', async () => {
@@ -39,6 +39,6 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    expect(data?.id).toBe(vars.postId2)
+    expect(data.id).toBe(vars.postId2)
   })
 })

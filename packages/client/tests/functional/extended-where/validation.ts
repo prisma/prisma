@@ -1,7 +1,8 @@
+import { expectTypeOf } from 'expect-type'
+
 import testMatrix from './_matrix'
-import { setup } from './_setup'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -16,10 +17,10 @@ testMatrix.setupTestSuite(() => {
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
       Invalid \`prisma.user.delete()\` invocation in
-      /client/tests/functional/extended-where/errors.ts:0:0
+      /client/tests/functional/extended-where/validation.ts:0:0
 
          XX // arbitrarily chose delete operation to test errors for invalid inputs
-         XX testMatrix.setupTestSuite(() => {
+        XX testMatrix.setupTestSuite(() => {
         XX   test('where and no keys provided', async () => {
       → XX     const result = prisma.user.delete({
                  where: {
@@ -51,7 +52,7 @@ testMatrix.setupTestSuite(() => {
     await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
       Invalid \`prisma.user.delete()\` invocation in
-      /client/tests/functional/extended-where/errors.ts:0:0
+      /client/tests/functional/extended-where/validation.ts:0:0
 
         XX })
         XX 
@@ -66,5 +67,27 @@ testMatrix.setupTestSuite(() => {
 
 
     `)
+  })
+
+  test('AtLeast type with optional object', () => {
+    type T = PrismaNamespace.AtLeast<{ a?: string; b?: string; c?: string }, 'a'>
+
+    expectTypeOf<T>().toHaveProperty('a').toMatchTypeOf<string | undefined>()
+    expectTypeOf<T>().toHaveProperty('b').toMatchTypeOf<string | undefined>()
+    expectTypeOf<T>().toHaveProperty('c').toMatchTypeOf<string | undefined>()
+    expectTypeOf<{ a: string | undefined; b?: string; c?: string }>().toMatchTypeOf<T>()
+    expectTypeOf<{ a: string; b?: string; c?: string }>().toMatchTypeOf<T>()
+    expectTypeOf<T>().toMatchTypeOf<
+      { a: string; b?: string; c?: string } | { a: string | undefined; b?: string; c?: string }
+    >()
+  })
+
+  test('AtLeast type with optional object and no keys', () => {
+    type T = PrismaNamespace.AtLeast<{ a?: string; b?: string; c?: string }, never>
+
+    expectTypeOf<T>().toHaveProperty('a').toMatchTypeOf<string | undefined>()
+    expectTypeOf<T>().toHaveProperty('b').toMatchTypeOf<string | undefined>()
+    expectTypeOf<T>().toHaveProperty('c').toMatchTypeOf<string | undefined>()
+    expectTypeOf<T>().toMatchTypeOf<{ a?: string; b?: string; c?: string }>()
   })
 })
