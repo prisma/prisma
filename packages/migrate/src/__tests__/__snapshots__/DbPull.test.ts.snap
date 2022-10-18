@@ -779,3 +779,105 @@ model some_table {
 `;
 
 exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;
+
+exports[`sqlserver-multi-schema --url with \`schema=base\` should succeed 2`] = `
+datasource db {
+  provider = "sqlserver"
+  url      = "sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
+}
+
+model some_table {
+  id    String @id(map: "PK__some_tab__3213E83F7E44C5CC") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+}
+
+model SomeUser {
+  id    String @id(map: "PK__SomeUser__3213E83E707C8E69", clustered: false) @db.NVarChar(1)
+  email String @db.NVarChar(1)
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`sqlserver-multi-schema --url with \`schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
+
+exports[`sqlserver-multi-schema datasource property \`schemas=["base", "transactional"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+  schemas  = ["base", "transactional"]
+}
+
+model some_table {
+  id    String @id(map: "PK__some_tab__3213E83FBEBB8D34") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+}
+
+model SomeUser {
+  id    String @id(map: "PK__SomeUser__3213E83E3D398B7E", clustered: false) @db.NVarChar(1)
+  email String @db.NVarChar(1)
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`sqlserver-multi-schema datasource property \`schemas=["base"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+  schemas  = ["base"]
+}
+
+model some_table {
+  id    String @id(map: "PK__some_tab__3213E83F14CED8EA") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+}
+
+model SomeUser {
+  id    String @id(map: "PK__SomeUser__3213E83E3E2CCCC2", clustered: false) @db.NVarChar(1)
+  email String @db.NVarChar(1)
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`sqlserver-multi-schema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+  schemas  = ["base", "does-not-exist"]
+}
+
+model some_table {
+  id    String @id(map: "PK__some_tab__3213E83FD18A833B") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+}
+
+model SomeUser {
+  id    String @id(map: "PK__SomeUser__3213E83E803699C9", clustered: false) @db.NVarChar(1)
+  email String @db.NVarChar(1)
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`sqlserver-multi-schema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;

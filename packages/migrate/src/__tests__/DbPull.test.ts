@@ -497,6 +497,162 @@ describe('postgresql', () => {
   })
 })
 
+describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
+  if (process.env.CI) {
+    // to avoid timeouts on macOS
+    jest.setTimeout(80_000)
+  } else {
+    jest.setTimeout(20_000)
+  }
+
+  const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+
+  /*
+  // Update env var because it's the one that is used in the schemas tested
+  process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
+    'tests-migrate',
+    'tests-migrate-dev',
+  )
+  */
+
+  const setupParams: SetupParams = {
+    connectionString,
+    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'sqlserver-multi-schema'),
+  }
+
+  beforeAll(async () => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
+      console.error(e)
+    })
+  })
+
+  beforeEach(async () => {
+    await setupMSSQL(setupParams, 'tests-migrate').catch((e) => {
+      console.error(e)
+    })
+  })
+
+  afterEach(async () => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
+      console.error(e)
+    })
+  })
+
+  test('without datasource property `schemas` it should error with P4001, empty database', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
+    await expect(result).rejects.toThrowError(`P4001`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+      Schema validation error - Error (query-engine-node-api library)
+      Error code: P1012
+      error: If provided, the schemas array can not be empty.
+        -->  schema.prisma:4
+         | 
+       3 |   url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+       4 |   schemas  = []
+         | 
+
+      Validation Error Count: 1
+      [Context: getConfig]
+
+      Prisma CLI Version : 0.0.0
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["base"]` should succeed', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
+    await expect(result).rejects.toThrowError(`P4001`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse([
+      '--print',
+      '--schema',
+      'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma',
+    ])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url with `schema=does-not-exist` should error with with P4001, empty database', async () => {
+    const introspect = new DbPull()
+    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`
+    const result = introspect.parse(['--print', '--url', connectionString])
+    await expect(result).rejects.toThrowError(`P4001`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url with `schema=base` should succeed', async () => {
+    const introspect = new DbPull()
+    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`
+    const result = introspect.parse(['--print', '--url', connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
+
 describe('postgresql-multi-schema', () => {
   const setupParams: SetupParams = {
     connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
