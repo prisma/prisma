@@ -13,6 +13,54 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describeIf(process.platform !== 'win32')('push', () => {
+  it('fails with relationMode = "prisma" + NoAction referential action on Postgres', async () => {
+    ctx.fixture('referential-actions/no-action/relationMode-prisma')
+
+    const result = DbPush.new().parse(['--schema', './prisma/postgres.prisma'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      P1012
+
+      error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relationMode
+        -->  schema.prisma:21
+         | 
+      20 |   id       String @id @default(cuid())
+      21 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction)
+         | 
+      error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relationMode
+        -->  schema.prisma:28
+         | 
+      27 |   id       String @id @default(cuid())
+      28 |   user     SomeUser @relation(fields: [userId], references: [id], onDelete: NoAction)
+         | 
+
+
+    `)
+  })
+
+  it('fails with relationMode = "prisma" + NoAction referential action on sqlite', async () => {
+    ctx.fixture('referential-actions/no-action/relationMode-prisma')
+
+    const result = DbPush.new().parse(['--schema', './prisma/sqlite.prisma'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      P1012
+
+      error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for sqlite when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relationMode
+        -->  schema.prisma:20
+         | 
+      19 |   id       String @id @default(cuid())
+      20 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+         | 
+      error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for sqlite when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relationMode
+        -->  schema.prisma:20
+         | 
+      19 |   id       String @id @default(cuid())
+      20 |   user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction, onDelete: NoAction)
+         | 
+
+
+    `)
+  })
+
   it('--preview-feature flag is not required anymore', async () => {
     ctx.fixture('empty')
 

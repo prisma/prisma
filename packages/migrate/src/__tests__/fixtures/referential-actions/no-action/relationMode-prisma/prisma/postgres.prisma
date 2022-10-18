@@ -1,0 +1,31 @@
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI")
+  relationMode = "prisma"
+}
+
+model SomeUser {
+  id            String @id @default(cuid())
+  profileUpdate ProfileUpdateNoAction?
+  profileDelete ProfileDeleteNoAction?
+  enabled       Boolean?
+}
+
+model ProfileUpdateNoAction {
+  id       String @id @default(cuid())
+  user     SomeUser @relation(fields: [userId], references: [id], onUpdate: NoAction)
+  userId   String @unique
+  enabled  Boolean?
+}
+
+model ProfileDeleteNoAction {
+  id       String @id @default(cuid())
+  user     SomeUser @relation(fields: [userId], references: [id], onDelete: NoAction)
+  userId   String @unique
+  enabled  Boolean?
+}
