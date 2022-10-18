@@ -143,7 +143,15 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
  * @returns
  */
 export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Record<string, string>) {
-  return require(suiteMeta._schemaPath).default(matrixOptions)
+  const schemaStr = require(suiteMeta._schemaPath).default(matrixOptions)
+
+  // By default, mini-proxy distiguishes different engine instances using inline schema hash
+  // In case 2 tests are running in parallel with identical schema, this can cause all kinds of problems
+  // Adding a unique comment at the top of schema file forces them to have different hash and avoids
+  // those problems
+  const header = `// ${JSON.stringify({ test: suiteMeta.testPath, matrixOptions })}`
+
+  return `${header}\n${schemaStr}`
 }
 
 /**
