@@ -61,6 +61,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
     dataProxy: Boolean(process.env.DATA_PROXY),
+    inlineSchema: Buffer.from(datamodel).toString('base64'),
   }
 
   return getPrismaClient(options)
