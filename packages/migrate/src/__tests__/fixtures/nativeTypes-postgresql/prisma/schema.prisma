@@ -1,10 +1,12 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  provider   = "postgresql"
+  url        = env("TEST_POSTGRES_URI_MIGRATE")
+  extensions = [citext]
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 // Thanks to Sid for this schema 100
@@ -119,7 +121,7 @@ model with_id_and_unique {
 model with_unique {
   id                      Int                      @unique
   name                    String
-  WART_id                 Int?                     @unique                 
+  WART_id                 Int?                     @unique
   with_all_relation_types with_all_relation_types? @relation("WART_WU", fields: [WART_id], references: [id])
 }
 
@@ -158,7 +160,7 @@ model with_native_types {
   uuid            String   @db.Uuid
   xml             String   @db.Xml
   inet            String   @db.Inet
-  // citext          String   @db.Citext
+  citext          String   @db.Citext
   boolean         Boolean  @db.Boolean
   integer         Int      @db.Integer
   smallint        Int      @db.SmallInt
