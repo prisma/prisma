@@ -792,7 +792,7 @@ model some_table {
 }
 
 model SomeUser {
-  id    String @id(map: "PK__SomeUser__3213E83E7E56CE7A", clustered: false) @db.NVarChar(1)
+  id    String @id(map: "PK__SomeUser__3213E83EFBC47063", clustered: false) @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
@@ -820,7 +820,7 @@ model some_table {
 }
 
 model SomeUser {
-  id    String @id(map: "PK__SomeUser__3213E83EA2CCC113", clustered: false) @db.NVarChar(1)
+  id    String @id(map: "PK__SomeUser__3213E83E0758BF28", clustered: false) @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
@@ -846,7 +846,7 @@ model some_table {
 }
 
 model SomeUser {
-  id    String @id(map: "PK__SomeUser__3213E83E015234DB", clustered: false) @db.NVarChar(1)
+  id    String @id(map: "PK__SomeUser__3213E83E18FD0857", clustered: false) @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
@@ -872,7 +872,7 @@ model some_table {
 }
 
 model SomeUser {
-  id    String @id(map: "PK__SomeUser__3213E83EFF26496D", clustered: false) @db.NVarChar(1)
+  id    String @id(map: "PK__SomeUser__3213E83EC40EB9DB", clustered: false) @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
