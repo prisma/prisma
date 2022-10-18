@@ -7,8 +7,8 @@ import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@pr
 declare let prisma: PrismaClient
 
 // arbitrarily chose delete operation to test errors for invalid inputs
-testMatrix.setupTestSuite(() => {
-  test('where and no keys provided', async () => {
+testMatrix.setupTestSuite((_0, _1, { runtime }) => {
+  testIf(runtime !== 'edge')('where and no keys provided', async () => {
     const result = prisma.user.delete({
       // @ts-expect-error
       where: {},
@@ -20,8 +20,8 @@ testMatrix.setupTestSuite(() => {
       /client/tests/functional/extended-where/validation.ts:0:0
 
          XX // arbitrarily chose delete operation to test errors for invalid inputs
-        XX testMatrix.setupTestSuite(() => {
-        XX   test('where and no keys provided', async () => {
+        XX testMatrix.setupTestSuite((_0, _1, { runtime }) => {
+        XX   testIf(runtime !== 'edge')('where and no keys provided', async () => {
       → XX     const result = prisma.user.delete({
                  where: {
                ?   id?: String,
@@ -41,7 +41,7 @@ testMatrix.setupTestSuite(() => {
     `)
   })
 
-  test('where and missing unique keys', async () => {
+  testIf(runtime !== 'edge')('where and missing unique keys', async () => {
     const result = prisma.user.delete({
       // @ts-expect-error
       where: {
@@ -56,7 +56,7 @@ testMatrix.setupTestSuite(() => {
 
         XX })
         XX 
-        XX test('where and missing unique keys', async () => {
+        XX testIf(runtime !== 'edge')('where and missing unique keys', async () => {
       → XX   const result = prisma.user.delete({
                where: {
                  profile: {}
