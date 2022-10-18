@@ -156,3 +156,24 @@ test('recalculates property on every access', () => {
   expect(proxy.prop).toBe(1)
   expect(proxy.prop).toBe(2)
 })
+
+test('allows to override a property from a layer', () => {
+  const target = {} as Record<string, unknown>
+
+  const proxy = createCompositeProxy(target, [
+    {
+      getKeys() {
+        return ['prop']
+      },
+
+      getPropertyValue() {
+        return 'from proxy'
+      },
+    },
+  ])
+
+  proxy.prop = 'override'
+
+  expect(target.prop).toBe('override')
+  expect(proxy.prop).toBe('override')
+})

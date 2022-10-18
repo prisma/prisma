@@ -27,21 +27,31 @@ export interface CompositeProxyLayer<KeyType extends string | symbol = string | 
 export function createCompositeProxy<T extends object>(target: T, layers: CompositeProxyLayer[]): T {
   const keysToLayerMap = mapKeysToLayers(layers)
   const ownKeys = getOwnKeys(target, Array.from(keysToLayerMap.keys()))
+  const overwrittenKeys = new Set<string | symbol>()
 
+  const defaultHandlers = defaultProxyHandlers<T>(ownKeys)
   return new Proxy(target, {
+    ...defaultHandlers,
     get(target, prop) {
+      // explicit overwrites of a property have highest priority
+      if (overwrittenKeys.has(prop)) {
+        return target[prop]
+      }
+
+      // next, we see if property is defined in one of the layers
       const layer = keysToLayerMap.get(prop)
       if (layer) {
         return layer.getPropertyValue(prop)
       }
 
-      if (prop in target) {
-        return target[prop]
-      }
-
-      return undefined
+      // finally, we read a prop from target
+      return target[prop]
     },
-    ...defaultProxyHandlers(ownKeys),
+
+    set(target, prop, value) {
+      overwrittenKeys.add(prop)
+      return defaultHandlers.set(target, prop, value)
+    },
   })
 }
 
