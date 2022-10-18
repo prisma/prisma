@@ -129,8 +129,8 @@ importers:
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
-      '@prisma/studio': 0.475.0
-      '@prisma/studio-server': 0.475.0
+      '@prisma/studio': 0.476.0
+      '@prisma/studio-server': 0.476.0
       '@swc/core': 1.3.8
       '@swc/jest': 0.2.22
       '@types/debug': 4.1.7
@@ -175,8 +175,8 @@ importers:
       '@prisma/get-platform': link:../get-platform
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
-      '@prisma/studio': 0.475.0
-      '@prisma/studio-server': 0.475.0_af2arurw4njyhq5wa6w6rrkc54
+      '@prisma/studio': 0.476.0
+      '@prisma/studio-server': 0.476.0_af2arurw4njyhq5wa6w6rrkc54
       '@swc/core': 1.3.8
       '@swc/jest': 0.2.22_@swc+core@1.3.8
       '@types/debug': 4.1.7
@@ -1604,7 +1604,7 @@ packages:
       '@types/node': 18.7.14
       ansi-escapes: 4.3.2
       chalk: 4.1.2
-      ci-info: 3.3.2
+      ci-info: 3.5.0
       exit: 0.1.2
       graceful-fs: 4.2.10
       jest-changed-files: 29.2.0
@@ -2411,6 +2411,7 @@ packages:
       shimmer: 1.2.1
     transitivePeerDependencies:
       - supports-color
+    dev: false
 
   /@opentelemetry/instrumentation/0.33.0_@opentelemetry+api@1.2.0:
     resolution: {integrity: sha512-8joPjKJ6TznNt04JbnzZG+m1j/4wm1OIrX7DEw/V5lyZ9/2fahIqG72jeZ26VKOZnLOpVzUUnU/dweURqBzT3Q==}
@@ -2496,15 +2497,15 @@ packages:
     resolution: {integrity: sha512-qi31dgc4b9ZIM4UTfRnn7FzPHDUeKjFH566Kd6Kge5EHJSV76Q2HJtOb91/h0uMmfUB0m4Yt8fIYHlMfMoylpQ==}
     dev: false
 
-  /@prisma/studio-common/0.475.0:
-    resolution: {integrity: sha512-CFeu7hjmea/8YFtZXBHfh9dPnMhKtZS0lnPEZcaGJ6uye52v6wgTULmOV5y3AF50e9nqE+tNtERDdBmvJ97elQ==}
+  /@prisma/studio-common/0.476.0:
+    resolution: {integrity: sha512-5CmX5TOoc+35EV24+wDaGh83+HZbM2H7MtUxLxhXZWX2BJ5cr068ziUdsjm+s+7l9eeDYUMF7LkWj9ktGB5Jfw==}
     engines: {node: '>= 12'}
     dependencies:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw/0.475.0_af2arurw4njyhq5wa6w6rrkc54:
-    resolution: {integrity: sha512-9DsV9eWYDlrtiAOUUV7o+OcNz+CeIGvDlyHNDB2vUqjVCNdZwLcws2HKoCSEDIPUEwEhVXG6zoQjkMtgBi/vpA==}
+  /@prisma/studio-pcw/0.476.0_af2arurw4njyhq5wa6w6rrkc54:
+    resolution: {integrity: sha512-anb7tdibbZuhSWx0O9LTH/5lYXt+y8eXLtS+Ddyh5LydY91vfj7IlPNfyBPViVTPaGs2y+vTEybLZOmCHqm3oA==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/client': '*'
@@ -2518,16 +2519,16 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.475.0_af2arurw4njyhq5wa6w6rrkc54:
-    resolution: {integrity: sha512-VLw3INZdwQbU0KLpMguF7B+f4xkDMUpORYKCouCcrTDHOLN2khmreURMWZR5/ysBk6i8WZPb4bU9sNXdqrvvJQ==}
+  /@prisma/studio-server/0.476.0_af2arurw4njyhq5wa6w6rrkc54:
+    resolution: {integrity: sha512-l8kKDG+nQv0EwPACgtFkMPD/y9ckmPO7169u1c4rqTh3WOlEgHI2qtBgB95+gNldfbw1jIVnB7NngRtg880aVg==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/internals': '*'
     dependencies:
       '@prisma/internals': link:packages/internals
-      '@prisma/studio': 0.475.0
-      '@prisma/studio-common': 0.475.0
-      '@prisma/studio-pcw': 0.475.0_af2arurw4njyhq5wa6w6rrkc54
+      '@prisma/studio': 0.476.0
+      '@prisma/studio-common': 0.476.0
+      '@prisma/studio-pcw': 0.476.0_af2arurw4njyhq5wa6w6rrkc54
       checkpoint-client: 1.1.20
       cors: 2.8.5
       debug: 4.3.3
@@ -2538,8 +2539,8 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio/0.475.0:
-    resolution: {integrity: sha512-zuHIRZM0TnqGjDyJ5PiV2TBtutmURTgqrQQQ+Q3pgyYGgYcKYVWcj55dVatWiaOndlrLaqFzZE/vWkhKCwdEDA==}
+  /@prisma/studio/0.476.0:
+    resolution: {integrity: sha512-ZLJTV2kbAp3Uk1wj55mRxa+q4H0rp9uuvWd5iFApuGqBPiCsDlRIcx3W79nO4fpcX/27KIp+2RvKfGlAyg+WFQ==}
     dev: true
 
   /@rushstack/node-core-library/3.53.2:
@@ -4606,6 +4607,10 @@ packages:
 
   /ci-info/3.3.2:
     resolution: {integrity: sha512-xmDt/QIAdeZ9+nfdPsaBCpMvHNLFiLdjj59qjqn+6iPe6YmHGQ35sBnQ8uslRBXFmXkiZQOJRjvQeoGppoTjjg==}
+    dev: true
+
+  /ci-info/3.5.0:
+    resolution: {integrity: sha512-yH4RezKOGlOhxkmhbeNuC4eYZKAUsEaGtBuBzDDP1eFUKiccDWzBABxBfOx31IDwDIXMTxWuwAxUGModvkbuVw==}
     dev: true
 
   /cjs-module-lexer/1.2.2:
@@ -8013,7 +8018,7 @@ packages:
       pretty-format: 28.1.3
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1_zod6kfuszzp72cga5atkbnbrq4
+      ts-node: 10.9.1_llqve4fnv2tf53grzeqkaqnwie
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -8076,7 +8081,7 @@ packages:
       '@types/node': 16.11.65
       babel-jest: 29.2.0_@babel+core@7.18.13
       chalk: 4.1.2
-      ci-info: 3.3.2
+      ci-info: 3.5.0
       deepmerge: 4.2.2
       glob: 7.2.3
       graceful-fs: 4.2.10
@@ -8115,7 +8120,7 @@ packages:
       '@types/node': 18.7.14
       babel-jest: 29.2.0_@babel+core@7.18.13
       chalk: 4.1.2
-      ci-info: 3.3.2
+      ci-info: 3.5.0
       deepmerge: 4.2.2
       glob: 7.2.3
       graceful-fs: 4.2.10
@@ -8681,7 +8686,7 @@ packages:
       '@jest/types': 29.2.0
       '@types/node': 18.7.14
       chalk: 4.1.2
-      ci-info: 3.3.2
+      ci-info: 3.5.0
       graceful-fs: 4.2.10
       picomatch: 2.3.1
     dev: true
@@ -8693,7 +8698,7 @@ packages:
       '@jest/types': 29.2.0
       '@types/node': 18.7.14
       chalk: 4.1.2
-      ci-info: 3.3.2
+      ci-info: 3.5.0
       graceful-fs: 4.2.10
       picomatch: 2.3.1
     dev: true
