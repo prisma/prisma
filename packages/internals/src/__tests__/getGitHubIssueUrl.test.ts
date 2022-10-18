@@ -1,10 +1,10 @@
 import stripAnsi from 'strip-ansi'
 
-import { getGithubIssueUrl } from '../utils/getGithubIssueUrl'
+import { getGitHubIssueUrl } from '../utils/getGitHubIssueUrl'
 
 describe('getErrorMessageWithLink', () => {
   test('basic serialization', () => {
-    const message = getGithubIssueUrl({
+    const message = getGitHubIssueUrl({
       title: 'This is a title',
       body: 'This is a body',
     })

@@ -86,7 +86,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    describe('mutliple instances', () => {
+    describe('multiple instances', () => {
       test('does not share metrics between 2 different instances of client', async () => {
         const secondClient = newPrismaClient()
         await secondClient.user.create({

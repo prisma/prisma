@@ -7,7 +7,7 @@ export const isCi = (): boolean => {
   // This list is probably not exhaustive though `process.env.CI` should be enough
   //  but since we were using this utility in the past, we want to keep the same behavior
   return !!(
-    env.CI || // Travis CI, CircleCI, Cirrus CI, Gitlab CI, Appveyor, CodeShip, dsari
+    env.CI || // Travis CI, CircleCI, Cirrus CI, GitLab CI, Appveyor, CodeShip, dsari
     env.CONTINUOUS_INTEGRATION || // Travis CI, Cirrus CI
     env.BUILD_NUMBER || // Jenkins, TeamCity
     env.RUN_ID || // TaskCluster, dsari

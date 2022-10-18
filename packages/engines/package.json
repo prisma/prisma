@@ -8,16 +8,16 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "4.5.0-1.1345307687fcc8a5d46c472b51cdbc9bea08a758",
+    "@prisma/engines-version": "4.5.0-42.156d8b51290f79bcfc4125c80a9e63c4e03fb102",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@swc/core": "1.3.2",
+    "@swc/core": "1.3.8",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.8",
-    "@types/node": "16.11.62",
+    "@types/node": "16.11.65",
     "execa": "5.1.1",
     "jest": "28.1.3",
-    "typescript": "4.8.3"
+    "typescript": "4.8.4"
   },
   "repository": {
     "type": "git",

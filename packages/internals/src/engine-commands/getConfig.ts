@@ -262,7 +262,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
         E.tryCatch(
           () => JSON.parse(errorOutput),
           () => {
-            debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
+            debug(`Couldn't apply JSON.parse to "${errorOutput}"`)
             return new GetConfigError({ _tag: 'unparsed', message: errorOutput, reason: e.reason })
           },
         ),
