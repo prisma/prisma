@@ -258,7 +258,7 @@ export interface GetPrismaClientConfig {
    * The contents of the schema encoded into a string
    * @remarks only used for the purpose of data proxy
    */
-  inlineSchema?: string
+  inlineSchema: string
 
   /**
    * A special env object just for the data proxy edge runtime.
@@ -437,7 +437,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             ),
           // we attempt to load env with fs -> attempt edge env -> default
           env: loadedEnv?.parsed ?? config.injectableEdgeEnv?.parsed ?? {},
-          flags: [],
           clientVersion: config.clientVersion,
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,

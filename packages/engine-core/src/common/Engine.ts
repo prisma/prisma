@@ -79,7 +79,6 @@ export interface EngineConfig {
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
   env: Record<string, string>
-  flags?: string[]
   clientVersion?: string
   previewFeatures?: string[]
   engineEndpoint?: string
@@ -89,7 +88,7 @@ export interface EngineConfig {
    * The contents of the schema encoded into a string
    * @remarks only used for the purpose of data proxy
    */
-  inlineSchema?: string
+  inlineSchema: string
 
   /**
    * The contents of the datasource url saved in a string

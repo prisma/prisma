@@ -127,7 +127,7 @@ ${buildDMMF(dataProxy, this.options.document)}
 const config = ${JSON.stringify(config, null, 2)}
 config.document = dmmf
 config.dirname = dirname
-${await buildInlineSchema(dataProxy, schemaPath)}
+${await buildInlineSchema(true, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}

@@ -4,7 +4,6 @@ import type { Platform } from '@prisma/get-platform'
 import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import EventEmitter from 'events'
-import fs from 'fs'
 
 import type { BatchTransactionOptions, DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
@@ -65,10 +64,10 @@ export class LibraryEngine extends Engine {
   private libraryLoader: LibraryLoader
   private library?: Library
   private logEmitter: EventEmitter
+  private datamodel: string
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
-  datamodel: string
   logQueries: boolean
   logLevel: QueryEngineLogLevel
   lastQuery?: string
@@ -90,7 +89,7 @@ export class LibraryEngine extends Engine {
   constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
     super()
 
-    this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
+    this.datamodel = Buffer.from(config.inlineSchema, 'base64').toString('utf8')
     this.config = config
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false

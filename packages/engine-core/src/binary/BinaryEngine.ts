@@ -87,7 +87,6 @@ export class BinaryEngine extends Engine {
   private logQueries: boolean
   private logLevel?: 'info' | 'warn'
   private env?: Record<string, string>
-  private flags: string[]
   private port?: number
   private enableDebugLogs: boolean
   private allowTriggerPanic: boolean
@@ -126,6 +125,7 @@ export class BinaryEngine extends Engine {
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
   private tracingConfig: TracingConfig
+  private inlineSchema: string
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -140,7 +140,6 @@ export class BinaryEngine extends Engine {
     logLevel,
     logQueries,
     env,
-    flags,
     clientVersion,
     previewFeatures,
     engineEndpoint,
@@ -149,9 +148,11 @@ export class BinaryEngine extends Engine {
     dirname,
     activeProvider,
     tracingConfig,
+    inlineSchema,
   }: EngineConfig) {
     super()
 
+    this.inlineSchema = inlineSchema
     this.dirname = dirname
     this.env = env
     this.cwd = this.resolveCwd(cwd)
@@ -170,7 +171,6 @@ export class BinaryEngine extends Engine {
     this.logLevel = logLevel
     this.logQueries = logQueries ?? false
     this.clientVersion = clientVersion
-    this.flags = flags ?? []
     this.previewFeatures = previewFeatures ?? []
     this.activeProvider = activeProvider
     this.connection = new Connection()
@@ -572,13 +572,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
-        const flags = [
-          '--enable-raw-queries',
-          '--enable-metrics',
-          '--enable-open-telemetry',
-          ...this.flags,
-          ...additionalFlag,
-        ]
+        const flags = ['--datamodel', this.inlineSchema, '--enable-raw-queries', ...additionalFlag]
 
         this.port = await this.getFreePort()
         flags.push('--port', String(this.port))
