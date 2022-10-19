@@ -70,7 +70,6 @@ function normalizeBinaryFilePath(str) {
 
 function normalizeMigrateTimestamps(str) {
   return str.replace(/(?<!\d)\d{14}(?!\d)/g, '20201231000000')
-  // return str.replace(/\d{14}/g, '20201231000000')
 }
 
 function normalizeDbUrl(str) {
