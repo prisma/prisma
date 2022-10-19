@@ -49,8 +49,8 @@ testMatrix.setupTestSuite(
       expect(suiteMeta.testFileName).toEqual(path.basename(__filename))
     })
 
-    test('getTestSuiteSchema', async () => {
-      const schemaString = await getTestSuiteSchema(suiteMeta, suiteConfig)
+    test('getTestSuiteSchema', () => {
+      const schemaString = getTestSuiteSchema(suiteMeta, suiteConfig)
 
       expect(schemaString).toContain('generator')
       expect(schemaString).toContain('datasource')
