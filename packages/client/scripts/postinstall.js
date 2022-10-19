@@ -209,7 +209,10 @@ async function createDefaultGeneratedThrowFiles() {
     const defaultBrowserIndexPath = path.join(dotPrismaClientDir, 'index-browser.js')
     const defaultEdgeIndexPath = path.join(dotPrismaClientDir, 'edge.js')
     const defaultEdgeIndexDtsPath = path.join(dotPrismaClientDir, 'edge.d.ts')
+    const defaultDenoClientDir = path.join(dotPrismaClientDir, 'deno')
+    const defaultDenoEdgeIndexPath = path.join(defaultDenoClientDir, 'edge.ts')
     await makeDir(dotPrismaClientDir)
+    await makeDir(defaultDenoClientDir)
 
     if (!fs.existsSync(defaultNodeIndexPath)) {
       await copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
@@ -229,6 +232,10 @@ async function createDefaultGeneratedThrowFiles() {
 
     if (!fs.existsSync(defaultEdgeIndexDtsPath)) {
       await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultEdgeIndexDtsPath)
+    }
+
+    if (!fs.existsSync(defaultDenoEdgeIndexPath)) {
+      await copyFile(path.join(__dirname, 'default-deno-edge.ts'), defaultDenoEdgeIndexPath)
     }
   } catch (e) {
     console.error(e)
@@ -282,7 +289,7 @@ function makeDir(input) {
  * an error while attempting to get this value then the string constant
  * 'ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER' is returned.
  * This information is just necessary for telemetry.
- * This get's passed in to Generate, which then automatically get's propagated to telemetry.
+ * This is passed to `prisma generate` as a string like `--postinstall value`.
  */
 function getPostInstallTrigger() {
   /*

@@ -11,7 +11,7 @@ import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
  * @param client to create the proxy around
  * @returns a proxy to access models
  */
-export function applyModels<C extends Client>(client: C) {
+export function applyModels(client: Client) {
   // we don't want to create a new proxy on each prop access
   const modelCache = {} as { [key: string]: object }
   const ownKeys = getOwnKeys(client)
