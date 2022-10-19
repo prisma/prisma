@@ -149,6 +149,19 @@ testMatrix.setupTestSuite(() => {
     expect(posts).toEqual([expect.objectContaining({ title })])
   })
 
+  // https://github.com/prisma/prisma/issues/10642
+  test.failing('findFirstOrThrow where nested entity is not found', async () => {
+    const property = await prisma.user
+      .findFirstOrThrow({
+        where: {
+          email,
+        },
+      })
+      .property()
+
+    expect(property).toBeNull()
+  })
+
   test('findUniqueOrThrow', async () => {
     const posts = await prisma.user
       .findUniqueOrThrow({
@@ -159,6 +172,19 @@ testMatrix.setupTestSuite(() => {
       .posts()
 
     expect(posts).toEqual([expect.objectContaining({ title })])
+  })
+
+  // https://github.com/prisma/prisma/issues/10642
+  test.failing('findUniqueOrThrow where nested entity is not found', async () => {
+    const property = await prisma.user
+      .findUniqueOrThrow({
+        where: {
+          email,
+        },
+      })
+      .property()
+
+    expect(property).toBeNull()
   })
 
   test('create', async () => {
