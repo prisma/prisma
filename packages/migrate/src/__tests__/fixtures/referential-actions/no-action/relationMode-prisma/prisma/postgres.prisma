@@ -29,3 +29,4 @@ model ProfileDeleteNoAction {
   userId   String @unique
   enabled  Boolean?
 }
+
