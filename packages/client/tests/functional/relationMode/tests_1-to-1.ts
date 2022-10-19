@@ -730,13 +730,13 @@ testMatrix.setupTestSuite(
                             'Foreign key constraint failed on the field: `userId`'
                           : // DEFAULT
                             /*
-                            Error occurred during query execution:
-                            ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
-                              code: 1761,
-                              message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
-                              key 'ProfileOneToOne_userId_key'\",
-                              state: \"23000\" })) })
-                            */
+                          Error occurred during query execution:
+                          ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
+                            code: 1761,
+                            message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
+                            key 'ProfileOneToOne_userId_key'\",
+                            state: \"23000\" })) })
+                          */
                             // Note: in CI we run with --lower_case_table_names=1
                             `Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone'`,
                       [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
@@ -862,13 +862,13 @@ testMatrix.setupTestSuite(
                             'Foreign key constraint failed on the field: `userId`'
                           : // DEFAULT
                             /*
-                            Error occurred during query execution:
-                            ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
-                              code: 1761, 
-                              message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
-                              key 'ProfileOneToOne_userId_key'\",
-                              state: \"23000\" })) })"
-                            */
+                          Error occurred during query execution:
+                          ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { 
+                            code: 1761, 
+                            message: \"Foreign key constraint for table 'UserOneToOne', record '2' would lead to a duplicate entry in table 'ProfileOneToOne',
+                            key 'ProfileOneToOne_userId_key'\",
+                            state: \"23000\" })) })"
+                          */
                             // Note: in CI we run with --lower_case_table_names=1
                             `Foreign key constraint for table 'useronetoone', record '2' would lead to a duplicate entry in table 'profileonetoone'`,
                       [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
@@ -1159,9 +1159,11 @@ testMatrix.setupTestSuite(
                 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
               [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
             },
+            prisma:
+              "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models",
           })
-          // foreignKeys
-          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [delete] parent should throw', async () => {
+
+          test('[delete] parent should throw', async () => {
             await expect(
               prisma[userModel].delete({
                 where: { id: '1' },
@@ -1183,52 +1185,24 @@ testMatrix.setupTestSuite(
               },
             ])
           })
-          testIf(isRelationMode_foreignKeys)(
-            'relationMode=foreignKeys - [deleteMany] parents should throw',
-            async () => {
-              await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
 
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-            },
-          )
-
-          // prisma
-          testIf(isRelationMode_prisma)('relationMode=prisma - [delete] parent should succeed', async () => {
-            await prisma[userModel].delete({
-              where: { id: '1' },
-            }),
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-          })
-          testIf(isRelationMode_prisma)('relationMode=prisma - [deleteMany] parents should succeed', async () => {
-            await prisma[userModel].deleteMany()
+          test('[deleteMany] parents should throw', async () => {
+            await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
 
             expect(
               await prisma[userModel].findMany({
                 orderBy: { id: 'asc' },
               }),
-            ).toEqual([])
+            ).toEqual([
+              {
+                id: '1',
+                enabled: null,
+              },
+              {
+                id: '2',
+                enabled: null,
+              },
+            ])
           })
         })
 

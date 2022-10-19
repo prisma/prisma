@@ -856,10 +856,51 @@ testMatrix.setupTestSuite(
               "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
           })
 
-          // foreignKeys
-          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [delete] parent should throw', async () => {
-            // this throws because "postModel" has a mandatory relation with "userModel", hence
-            // we have a "onDelete: Restrict" situation by default
+          test('[delete] parent should throw', async () => {
+            await expect(
+              prisma[userModel].delete({
+                where: { id: '1' },
+              }),
+            ).rejects.toThrowError(expectedError)
+
+            expect(
+              await prisma[userModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1',
+                enabled: null,
+              },
+              {
+                id: '2',
+                enabled: null,
+              },
+            ])
+          })
+          test('[deleteMany] parents should throw', async () => {
+            await prisma[postModel].delete({
+              where: { id: '1-post-a' },
+            })
+
+            expect(
+              await prisma[postModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1-post-b',
+                authorId: '1',
+              },
+              {
+                id: '2-post-a',
+                authorId: '2',
+              },
+              {
+                id: '2-post-b',
+                authorId: '2',
+              },
+            ])
 
             await expect(
               prisma[userModel].delete({
@@ -882,114 +923,6 @@ testMatrix.setupTestSuite(
               },
             ])
           })
-          testIf(isRelationMode_foreignKeys)(
-            'relationMode=foreignKeys - [deleteMany] parents should throw',
-            async () => {
-              await prisma[postModel].delete({
-                where: { id: '1-post-a' },
-              })
-
-              expect(
-                await prisma[postModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1-post-b',
-                  authorId: '1',
-                },
-                {
-                  id: '2-post-a',
-                  authorId: '2',
-                },
-                {
-                  id: '2-post-b',
-                  authorId: '2',
-                },
-              ])
-
-              await expect(
-                prisma[userModel].delete({
-                  where: { id: '1' },
-                }),
-              ).rejects.toThrowError(expectedError)
-
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-            },
-          )
-
-          // prisma
-          testIf(isRelationMode_prisma)('relationMode=prisma - [delete] parent should succeed', async () => {
-            await prisma[userModel].delete({
-              where: { id: '1' },
-            })
-
-            expect(
-              await prisma[userModel].findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '2',
-                enabled: null,
-              },
-            ])
-          })
-          testIf(isRelationMode_prisma)(
-            'relationMode=prisma - a subset of children and then [delete] parent should succeed',
-            async () => {
-              await prisma[postModel].delete({
-                where: { id: '1-post-a' },
-              })
-
-              expect(
-                await prisma[postModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1-post-b',
-                  authorId: '1',
-                },
-                {
-                  id: '2-post-a',
-                  authorId: '2',
-                },
-                {
-                  id: '2-post-b',
-                  authorId: '2',
-                },
-              ])
-
-              await prisma[userModel].delete({
-                where: { id: '1' },
-              })
-
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
-            },
-          )
 
           // Only test for foreignKeys
           testIf(isRelationMode_foreignKeys && (isPostgreSQL || isSQLite))(
