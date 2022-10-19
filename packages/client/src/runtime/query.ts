@@ -651,6 +651,10 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
     return value
   }
 
+  if (typeof value === 'number' && inputType?.type === 'Float') {
+    return value.toExponential()
+  }
+
   return JSON.stringify(value, null, 2)
 }
 

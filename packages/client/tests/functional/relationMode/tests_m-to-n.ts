@@ -613,7 +613,7 @@ testMatrix.setupTestSuite(
 
         // TODO: these are the same tests as onUpdate: Restrict, different SQL Server message
         describeIf(['NoAction'].includes(onUpdate))(`onUpdate: NoAction`, () => {
-          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [update] post id should throw', async () => {
+          test('[update] post id should throw', async () => {
             await expect(
               prisma[postModel].update({
                 where: {
@@ -634,6 +634,8 @@ testMatrix.setupTestSuite(
                     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                 },
+                prisma:
+                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
               }),
             )
 
@@ -649,38 +651,8 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
-          testIf(isRelationMode_prisma)('relationMode=prisma - [update] post id should succeed', async () => {
-            await prisma[postModel].update({
-              where: {
-                id: '1',
-              },
-              data: {
-                id: '3',
-              },
-            })
 
-            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
-              {
-                id: '2',
-                published: null,
-              },
-              {
-                // The update
-                id: '3',
-                published: null,
-              },
-            ])
-            expect(
-              await prisma[categoryModel].findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual(expectedFindManyCategoryModelIfNoChange)
-            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-              expectedFindManyCategoriesOnPostsModelIfNoChange,
-            )
-          })
-
-          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [update] category should throw', async () => {
+          test('[update] category should throw', async () => {
             await expect(
               prisma[categoryModel].update({
                 where: {
@@ -701,6 +673,8 @@ testMatrix.setupTestSuite(
                     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                 },
+                prisma:
+                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
               }),
             )
 
@@ -712,45 +686,6 @@ testMatrix.setupTestSuite(
                 orderBy: { id: 'asc' },
               }),
             ).toEqual(expectedFindManyCategoryModelIfNoChange)
-            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-              expectedFindManyCategoriesOnPostsModelIfNoChange,
-            )
-          })
-          testIf(isRelationMode_prisma)('relationMode=prisma - [update] category should succeed', async () => {
-            await prisma[categoryModel].update({
-              where: {
-                id: '1-cat-a',
-              },
-              data: {
-                id: '1-cat-a-updated',
-              },
-            })
-
-            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
-              expectedFindManyPostModelIfNoChange,
-            )
-            expect(
-              await prisma[categoryModel].findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1-cat-a-updated',
-                published: null,
-              },
-              {
-                id: '1-cat-b',
-                published: null,
-              },
-              {
-                id: '2-cat-a',
-                published: null,
-              },
-              {
-                id: '2-cat-b',
-                published: null,
-              },
-            ])
             expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
@@ -1112,7 +1047,7 @@ testMatrix.setupTestSuite(
         })
 
         describeIf(['NoAction'].includes(onDelete))(`onDelete: NoAction`, () => {
-          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [delete] post should throw', async () => {
+          test('[delete] post should throw', async () => {
             await expect(
               prisma[postModel].delete({
                 where: { id: '1' },
@@ -1145,28 +1080,8 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
-          testIf(isRelationMode_prisma)('relationMode=prisma - [delete] post should succeed', async () => {
-            await prisma[postModel].delete({
-              where: { id: '1' },
-            })
 
-            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
-              {
-                id: '2',
-                published: null,
-              },
-            ])
-            expect(
-              await prisma[categoryModel].findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual(expectedFindManyCategoryModelIfNoChange)
-            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-              expectedFindManyCategoriesOnPostsModelIfNoChange,
-            )
-          })
-
-          testIf(isRelationMode_foreignKeys)('relationMode=foreignKeys - [delete] category should throw', async () => {
+          test('[delete] category should throw', async () => {
             await expect(
               prisma[categoryModel].delete({
                 where: { id: '1-cat-a' },
@@ -1195,36 +1110,6 @@ testMatrix.setupTestSuite(
                 orderBy: { id: 'asc' },
               }),
             ).toEqual(expectedFindManyCategoryModelIfNoChange)
-            expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-              expectedFindManyCategoriesOnPostsModelIfNoChange,
-            )
-          })
-          testIf(isRelationMode_prisma)('relationMode=prisma - [delete] category should succeed', async () => {
-            await prisma[categoryModel].delete({
-              where: { id: '1-cat-a' },
-            })
-
-            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
-              expectedFindManyPostModelIfNoChange,
-            )
-            expect(
-              await prisma[categoryModel].findMany({
-                orderBy: { id: 'asc' },
-              }),
-            ).toEqual([
-              {
-                id: '1-cat-b',
-                published: null,
-              },
-              {
-                id: '2-cat-a',
-                published: null,
-              },
-              {
-                id: '2-cat-b',
-                published: null,
-              },
-            ])
             expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
