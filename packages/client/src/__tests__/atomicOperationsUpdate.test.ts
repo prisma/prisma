@@ -40,7 +40,7 @@ describe('minimal atomic update transformation', () => {
       mutation {
         updateOneUser(
           data: {
-            countFloat: 3.1415926
+            countFloat: 3.1415926e+0
             countInt1: 3
           }
         ) {
