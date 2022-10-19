@@ -335,13 +335,8 @@ testMatrix.setupTestSuite(
                     [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
                     [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                   },
-                  prisma: {
-                    [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                    [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
-                    [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                  },
+                  prisma:
+                    "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
                 }),
               )
 

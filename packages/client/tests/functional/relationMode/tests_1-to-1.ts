@@ -559,9 +559,9 @@ testMatrix.setupTestSuite(
               },
             )
 
-            // prisma - Restrict
-            testIf(isRelationMode_prisma && onUpdate === 'Restrict')(
-              'relationMode=prisma - Restrict - [updateMany] parent id with non-existing id should throw',
+            // prisma - Restrict / NoAction
+            testIf(isRelationMode_prisma && ['Restrict', 'NoAction'].includes(onUpdate))(
+              'relationMode=prisma - Restrict, NoAction - [updateMany] parent id with non-existing id should throw',
               async () => {
                 await expect(
                   prisma[userModel].updateMany({
@@ -605,62 +605,6 @@ testMatrix.setupTestSuite(
           })
 
           describeIf(['NoAction'].includes(onUpdate))('onUpdate: NoAction', () => {
-            // prisma - NoAction
-            testIf(isRelationMode_prisma)(
-              'relationMode=prisma - NoAction - [update] parent id with non-existing id should suceed',
-              async () => {
-                await prisma[userModel].update({
-                  where: { id: '1' },
-                  data: {
-                    id: '3',
-                  },
-                })
-
-                expect(
-                  await prisma[userModel].findMany({
-                    orderBy: { id: 'asc' },
-                  }),
-                ).toEqual([
-                  {
-                    id: '2',
-                    enabled: null,
-                  },
-                  {
-                    id: '3',
-                    enabled: null,
-                  },
-                ])
-              },
-            )
-
-            // prisma - NoAction
-            testIf(isRelationMode_prisma)(
-              'relationMode=prisma - NoAction - [updateMany] parent id with non-existing id should succeed',
-              async () => {
-                await prisma[userModel].updateMany({
-                  where: { id: '1' },
-                  data: {
-                    id: '3',
-                  },
-                })
-
-                expect(
-                  await prisma[userModel].findMany({
-                    orderBy: { id: 'asc' },
-                  }),
-                ).toEqual([
-                  {
-                    id: '2',
-                    enabled: null,
-                  },
-                  {
-                    id: '3',
-                    enabled: null,
-                  },
-                ])
-              },
-            )
-
             test('[updateMany] parent id with existing id should throw', async () => {
               await expect(
                 prisma[userModel].updateMany({
@@ -676,14 +620,8 @@ testMatrix.setupTestSuite(
                     [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
                     [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                   },
-                  prisma: {
-                    [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                    [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                    //  relationMode.tests_1-to-1 (provider=mysql, id=String @id, relationMode=prisma, referentialActions={onUpdateNoAction,onDeleteNoAction}) › 1:1 mandatory (explicit) › [update] › mutate id › onUpdate: NoAction › [updateMany] parent id with existing id should throw
-                    [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                    [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToOne`',
-                    [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                  },
+                  prisma:
+                    "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models",
                 }),
               )
 
