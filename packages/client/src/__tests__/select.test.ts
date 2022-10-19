@@ -28,7 +28,7 @@ describe('select validation', () => {
             age_gt: 10123123123,
             id_endsWith: 'veryLongNameGoIntoaNewLineNow@gmail.com',
             name_contains: 'hans',
-            name_gt: 2131203912039123,
+            name_gt: 21312039120391,
             name_in: ['hans'],
             AND: [
               {
