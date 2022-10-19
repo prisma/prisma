@@ -1,0 +1,13 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Floats {
+  id    String @id @default(uuid())
+  value Float
+}
