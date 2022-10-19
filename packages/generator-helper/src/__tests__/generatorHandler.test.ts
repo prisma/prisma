@@ -80,7 +80,7 @@ describe('generatorHandler', () => {
     jest.retryTimes(3)
 
     const generator = new GeneratorProcess(getExecutable('invalid-executable'))
-    await expect(() => generator.init()).rejects.toThrow('Cannot find module')
+    await expect(() => generator.init()).rejects.toThrow('something terrible happened')
   })
 
   test('minimal-executable', async () => {
