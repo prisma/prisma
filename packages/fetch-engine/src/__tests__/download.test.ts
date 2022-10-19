@@ -16,6 +16,7 @@ const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/
 
 // Network can be slow, especially for macOS in CI.
 jest.setTimeout(300_000)
+jest.retryTimes(3)
 
 describe('download', () => {
   beforeEach(async () => {
