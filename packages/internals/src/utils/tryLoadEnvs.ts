@@ -85,7 +85,7 @@ function checkForConflicts(
     const envConfig = dotenv.parse(fs.readFileSync(envPath))
     const conflicts: string[] = []
     for (const k in envConfig) {
-      if (parsedRootEnv[k] === envConfig[k]) {
+      if (k in parsedRootEnv) {
         conflicts.push(k)
       }
     }
