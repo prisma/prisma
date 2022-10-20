@@ -70,12 +70,14 @@ export class DataLoader<T = unknown> {
           .then((results) => {
             if (results instanceof Error) {
               for (let i = 0; i < batch.length; i++) {
-                batch[i].reject(results)
+                console.log('HMMM')
+                batch[i].reject(results[i])
               }
             } else {
               for (let i = 0; i < batch.length; i++) {
                 const value = results[i]
                 if (value instanceof Error) {
+                  console.log('LEL')
                   batch[i].reject(value)
                 } else {
                   batch[i].resolve(value)
@@ -84,6 +86,7 @@ export class DataLoader<T = unknown> {
             }
           })
           .catch((e) => {
+            console.log('LOLOL')
             for (let i = 0; i < batch.length; i++) {
               batch[i].reject(e)
             }
