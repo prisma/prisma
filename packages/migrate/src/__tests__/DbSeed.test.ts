@@ -38,7 +38,7 @@ describeIf(process.platform !== 'win32')('seed', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
       `Running seed command \`node prisma/seed.js\` ...`,
     )
-    expect(ctx.mocked['console.error'].mock.calls.join()).toContain('An error occured while running the seed command:')
+    expect(ctx.mocked['console.error'].mock.calls.join()).toContain('An error occurred while running the seed command:')
     expect(mockExit).toBeCalledWith(1)
   })
 

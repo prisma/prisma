@@ -67,7 +67,7 @@ export type InvalidArgError =
   | InvalidNullArgError
 
 /**
- * This error occurs if the user provides an arg name that doens't exist
+ * This error occurs if the user provides an arg name that doesn't exist
  */
 export interface InvalidArgNameError {
   type: 'invalidName'
@@ -114,6 +114,7 @@ export interface AtLeastOneError {
   type: 'atLeastOne'
   key: string
   inputType: DMMF.InputType
+  atLeastFields?: string[]
 }
 
 /**

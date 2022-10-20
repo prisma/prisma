@@ -74,7 +74,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       },
     })
 
-    // Read all the join tabels
+    // Read all the join tables
     const studentClasses = await prisma.studentClass.findMany({
       select: {
         student: true,
