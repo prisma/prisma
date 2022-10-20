@@ -21,13 +21,13 @@ testMatrix.setupTestSuite(
     test('middleware with aggregate', async () => {
       prisma.$use((params, next) => {
         if (params.action === 'aggregate') {
-          expect(params.args).toStrictEqual({ skip: 1 })
+          expect(params.args).toStrictEqual({ skip: 1, _count: true })
         }
 
         return next(params)
       })
 
-      await prisma.resource.aggregate({ skip: 1 })
+      await prisma.resource.aggregate({ skip: 1, _count: true })
     })
 
     test('middleware with groupBy', async () => {
