@@ -962,9 +962,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     } catch (e: any) {
       logger('req - e', e)
 
-      await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
+      const { error, shouldRetry } = await this.handleRequestError(e)
+
+      if (error) {
+        throw error
+      }
+
       // retry
-      if (numTry <= MAX_REQUEST_RETRIES) {
+      if (numTry <= MAX_REQUEST_RETRIES && shouldRetry) {
         logger('trying a retry now')
         return this.request(query, headers, numTry + 1)
       }
@@ -1010,15 +1015,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         }
       })
       .catch(async (e) => {
-        const isError = await this.handleRequestError(e, numTry < 3)
-        if (!isError) {
+        const { error, shouldRetry } = await this.handleRequestError(e)
+        if (!error && shouldRetry) {
           // retry
           if (numTry <= MAX_REQUEST_RETRIES) {
             return this.requestBatch(queries, headers, transaction, numTry + 1)
           }
         }
 
-        throw isError
+        throw error
       })
   }
 
@@ -1112,66 +1117,70 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
-  private handleRequestError = async (error: Error & { code?: string }, graceful = false) => {
+  private handleRequestError = async (
+    error: Error & { code?: string },
+  ): Promise<{ error: Error & { code?: string }; shouldRetry: boolean }> => {
     debug({ error })
+
     // if we are starting, wait for it before we handle any error
     if (this.startPromise) {
       await this.startPromise
     }
 
+    // matching on all relevant error codes from
+    // https://github.com/nodejs/undici/blob/2.x/lib/core/errors.js
+    const isNetworkError = [
+      'ECONNRESET',
+      'ECONNREFUSED',
+      'UND_ERR_CLOSED',
+      'UND_ERR_SOCKET',
+      'UND_ERR_DESTROYED',
+      'UND_ERR_ABORTED',
+    ].includes(error.code as string)
+
     if (error instanceof PrismaClientKnownRequestError) {
-      throw error
+      return { error, shouldRetry: false }
     }
 
-    this.throwAsyncErrorIfExists()
-
-    // A currentRequestPromise is only being canceled by the sendPanic function
-    if (this.currentRequestPromise?.isCanceled) {
-      this.throwAsyncErrorIfExists()
-    } else if (
-      // matching on all relevant error codes from
-      // https://github.com/nodejs/undici/blob/2.x/lib/core/errors.js
-      error.code === 'ECONNRESET' ||
-      error.code === 'ECONNREFUSED' ||
-      error.code === 'UND_ERR_CLOSED' ||
-      error.code === 'UND_ERR_SOCKET' ||
-      error.code === 'UND_ERR_DESTROYED' ||
-      error.code === 'UND_ERR_ABORTED' ||
-      error.message.toLowerCase().includes('client is destroyed') ||
-      error.message.toLowerCase().includes('other side closed') ||
-      error.message.toLowerCase().includes('the client is closed')
-    ) {
-      if (this.globalKillSignalReceived && !this.child?.connected) {
-        throw new PrismaClientUnknownRequestError(
-          `The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
-and your request can't be processed.
-You probably have some open handle that prevents your process from exiting.
-It could be an open http server or stream that didn't close yet.
-We recommend using the \`wtfnode\` package to debug open handles.`,
-          this.clientVersion!,
-        )
-      }
-
+    try {
       this.throwAsyncErrorIfExists()
 
-      if (this.startCount > MAX_STARTS) {
-        // if we didn't throw yet, which is unlikely, we want to poll on stderr / stdout here
-        // to get an error first
-        for (let i = 0; i < 5; i++) {
-          await new Promise((r) => setTimeout(r, 50))
-          this.throwAsyncErrorIfExists(true)
+      // A currentRequestPromise is only being canceled by the sendPanic function
+      if (this.currentRequestPromise?.isCanceled) {
+        this.throwAsyncErrorIfExists()
+      } else if (isNetworkError) {
+        if (this.globalKillSignalReceived && !this.child?.connected) {
+          throw new PrismaClientUnknownRequestError(
+            `The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
+  and your request can't be processed.
+  You probably have some open handle that prevents your process from exiting.
+  It could be an open http server or stream that didn't close yet.
+  We recommend using the \`wtfnode\` package to debug open handles.`,
+            this.clientVersion!,
+          )
         }
-        throw new Error(`Query engine is trying to restart, but can't.
-Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
+
+        this.throwAsyncErrorIfExists()
+
+        if (this.startCount > MAX_STARTS) {
+          // if we didn't throw yet, which is unlikely, we want to poll on stderr / stdout here
+          // to get an error first
+          for (let i = 0; i < 5; i++) {
+            await new Promise((r) => setTimeout(r, 50))
+            this.throwAsyncErrorIfExists(true)
+          }
+
+          throw new Error(`Query engine is trying to restart, but can't.
+  Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
+        }
       }
-    }
 
-    if (!graceful) {
       this.throwAsyncErrorIfExists(true)
-      throw error
-    }
 
-    return false
+      throw error
+    } catch (e) {
+      return { error: e, shouldRetry: isNetworkError }
+    }
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>
