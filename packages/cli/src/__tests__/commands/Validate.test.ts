@@ -4,6 +4,11 @@ import { Validate } from '../../Validate'
 
 const ctx = jestContext.new().assemble()
 
+it('validate should throw if schema is broken', async () => {
+  ctx.fixture('example-project/prisma')
+  await expect(Validate.new().parse(['--schema=broken.prisma'])).rejects.toThrowError()
+})
+
 it('validate should reject NoAction referential action on Postgres when relationMode = "prisma"', async () => {
   ctx.fixture('referential-actions/no-action/relationMode-prisma')
   const result = Validate.new().parse(['--schema', './prisma/postgres.prisma'])
@@ -56,7 +61,8 @@ it('validate should reject NoAction referential action on sqlite when relationMo
   `)
 })
 
-it('validate should throw if schema is broken', async () => {
-  ctx.fixture('example-project/prisma')
-  await expect(Validate.new().parse(['--schema=broken.prisma'])).rejects.toThrowError()
+it('validate should accept NoAction referential action on e.g. MySQL when relationMode = "prisma"', async () => {
+  ctx.fixture('referential-actions/no-action/relationMode-prisma')
+  const result = await Validate.new().parse(['--schema', './prisma/mysql.prisma'])
+  expect(result).toBeTruthy()
 })
