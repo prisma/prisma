@@ -95,7 +95,7 @@ testMatrix.setupTestSuite(
       })
 
       describe('[create]', () => {
-        test('[create] catgegory alone should succeed', async () => {
+        test('[create] category alone should succeed', async () => {
           await prisma[categoryModel].create({
             data: {
               id: '1',
