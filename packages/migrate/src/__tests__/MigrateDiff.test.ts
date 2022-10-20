@@ -481,13 +481,13 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--from-url', connectionString, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Error in migration engine.
-              Reason: [/some/rust/path:0:0] Missing native type in postgres_renderer::render_column_type()
+        Error in migration engine.
+        Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
 
-              Please create an issue with your \`schema.prisma\` at
-              https://github.com/prisma/prisma/issues/new
+        Please create an issue with your \`schema.prisma\` at
+        https://github.com/prisma/prisma/issues/new
 
-            `)
+      `)
     })
   })
 

@@ -476,7 +476,7 @@ query {
           age_gt: 10123123123
           id_endsWith: "veryLongNameGoIntoaNewLineNow@gmail.com"
           name_contains: "hans"
-          name_gt: 2020123100000023
+          name_gt: 2131203912039123
           name_in: ["hans"]
           AND: [
             {
@@ -541,7 +541,7 @@ Invalid \`prisma.findManyUser()\` invocation:
         ~~~~~~~~~~~
         name_contains: 'hans',
         ~~~~~~~~~~~~~
-        name_gt: 2020123100000023,
+        name_gt: 2131203912039123,
         ~~~~~~~
         name_in: [
         ~~~~~~~
@@ -827,7 +827,7 @@ Invalid \`prisma.findManyUser()\` invocation:
         ~~~~~~~~~~~
         name_contains: 'hans',
         ~~~~~~~~~~~~~
-        name_gt: 2020123100000023,
+        name_gt: 2131203912039123,
         ~~~~~~~
         name_in: [
         ~~~~~~~

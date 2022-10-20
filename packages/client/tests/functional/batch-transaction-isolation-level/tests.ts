@@ -1,4 +1,5 @@
 import { NewPrismaClient } from '../_utils/types'
+import { waitFor } from '../_utils/waitFor'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -39,8 +40,10 @@ testMatrix.setupTestSuite(
           isolationLevel: level(),
         })
 
-        // eslint-disable-next-line jest/no-standalone-expect
-        expect(queries).toContain(expectSql)
+        await waitFor(() => {
+          // eslint-disable-next-line jest/no-standalone-expect
+          expect(queries).toContain(expectSql)
+        })
       })
     }
 

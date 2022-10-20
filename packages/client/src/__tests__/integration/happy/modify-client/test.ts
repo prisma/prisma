@@ -49,6 +49,7 @@ describe('modify-client', () => {
         user,
         profile,
         post,
+        $extends,
         prop,
         prop2,
       ]
