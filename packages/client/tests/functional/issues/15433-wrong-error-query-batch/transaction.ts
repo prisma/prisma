@@ -7,7 +7,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     test('example', async () => {
-      const data = prisma.$transaction([
+      const data = Promise.all([
         prisma.user.create({ data: { email: 'john1@doe.io' } }),
         prisma.user.create({ data: { email: 'john2@doe.io' } }),
         prisma.user.create({ data: { email: 'john3@doe.io' } }),
@@ -17,11 +17,11 @@ testMatrix.setupTestSuite(
       await expect(data).rejects.toMatchPrismaErrorInlineSnapshot(`
 
         Invalid \`prisma.user.create()\` invocation in
-        /client/tests/functional/issues/15433-wrong-error-query-tx/tests.ts:0:0
+        /client/tests/functional/issues/15433-wrong-error-query-batch/transaction.ts:0:0
 
            XX (suiteConfig, suiteMeta) => {
            XX   test('example', async () => {
-          XX     const data = prisma.$transaction([
+          XX     const data = Promise.all([
           XX       prisma.user.create({ data: { email: 'john1@doe.io' } }),
           XX       prisma.user.create({ data: { email: 'john2@doe.io' } }),
           XX       prisma.user.create({ data: { email: 'john3@doe.io' } }),
