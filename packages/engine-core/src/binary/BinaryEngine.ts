@@ -79,6 +79,7 @@ const engines: BinaryEngine[] = []
 const socketPaths: string[] = []
 
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
+const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
 export class BinaryEngine extends Engine {
   private logEmitter: EventEmitter
@@ -964,7 +965,12 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         throw e
       }
 
-      await this.handleRequestError(e)
+      await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
+      // retry
+      if (numTry <= MAX_REQUEST_RETRIES) {
+        logger('trying a retry now')
+        return this.request(query, headers, numTry + 1)
+      }
     }
 
     return null as any // needed to make TS happy
@@ -974,6 +980,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     queries: string[],
     headers: QueryEngineRequestHeaders = {},
     transaction?: BatchTransactionOptions,
+    numTry = 1,
   ): Promise<QueryEngineResult<T>[]> {
     await this.start()
 
@@ -1006,7 +1013,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         }
       })
       .catch(async (e) => {
-        await this.handleRequestError(e)
+        const isError = await this.handleRequestError(e, numTry < 3)
+        if (!isError) {
+          // retry
+          if (numTry <= MAX_REQUEST_RETRIES) {
+            return this.requestBatch(queries, headers, transaction, numTry + 1)
+          }
+        }
+
+        throw isError
       })
   }
 
@@ -1100,7 +1115,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
-  private handleRequestError = async (error: Error & { code?: string }) => {
+  private handleRequestError = async (error: Error & { code?: string }, graceful = false) => {
     debug({ error })
     // if we are starting, wait for it before we handle any error
     if (this.startPromise) {
@@ -1150,8 +1165,12 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
       }
     }
 
-    this.throwAsyncErrorIfExists(true)
-    throw error
+    if (!graceful) {
+      this.throwAsyncErrorIfExists(true)
+      throw error
+    }
+
+    return false
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>
