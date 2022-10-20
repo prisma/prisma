@@ -964,14 +964,14 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       const { error, shouldRetry } = await this.handleRequestError(e)
 
-      if (error) {
-        throw error
-      }
-
       // retry
       if (numTry <= MAX_REQUEST_RETRIES && shouldRetry) {
         logger('trying a retry now')
         return this.request(query, headers, numTry + 1)
+      }
+
+      if (error) {
+        throw error
       }
     }
 
