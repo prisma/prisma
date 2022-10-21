@@ -37,16 +37,16 @@
     "@types/node-fetch": "2.6.2",
     "@types/redis": "2.8.32",
     "@types/resolve": "1.20.2",
-    "@typescript-eslint/eslint-plugin": "5.40.0",
-    "@typescript-eslint/parser": "5.40.0",
+    "@typescript-eslint/eslint-plugin": "5.40.1",
+    "@typescript-eslint/parser": "5.40.1",
     "arg": "5.0.2",
     "batching-toposort": "1.2.0",
     "buffer": "6.0.3",
     "chalk": "4.1.2",
     "chokidar": "3.5.3",
-    "esbuild": "0.15.10",
+    "esbuild": "0.15.12",
     "esbuild-register": "3.3.3",
-    "eslint": "8.25.0",
+    "eslint": "8.26.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.26.0",
@@ -81,7 +81,7 @@
     "ts-toolbelt": "9.6.0",
     "tty-browserify": "0.0.1",
     "typescript": "4.8.4",
-    "util": "0.12.4"
+    "util": "0.12.5"
   },
   "pnpm": {
     "peerDependencyRules": {
