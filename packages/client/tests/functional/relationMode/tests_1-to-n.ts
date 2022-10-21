@@ -71,10 +71,16 @@ testMatrix.setupTestSuite(
     describe('1:n mandatory (explicit)', () => {
       const userModel = 'userOneToMany'
       const postModel = 'postOneToMany'
+      const postOptionalModel = 'postOptionalOneToMany'
       const postColumn = 'posts'
+      const postOptionalColumn = 'postsOptional'
 
       beforeEach(async () => {
-        await prisma.$transaction([prisma[postModel].deleteMany(), prisma[userModel].deleteMany()])
+        await prisma.$transaction([
+          prisma[postModel].deleteMany(),
+          prisma[postOptionalModel].deleteMany(),
+          prisma[userModel].deleteMany(),
+        ])
       })
 
       afterEach(async () => {
@@ -333,8 +339,8 @@ testMatrix.setupTestSuite(
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                   [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                  [Providers.MYSQL]: ['DEFAULT', 'Cascade'].includes(onUpdate)
-                    ? // DEFAULT / Cascade
+                  [Providers.MYSQL]: ['DEFAULT', 'Cascade', 'SetNull'].includes(onUpdate)
+                    ? // DEFAULT / Cascade / SetNull
                       'Unique constraint failed on the constraint: `PRIMARY`'
                     : // Other
                       'Foreign key constraint failed on the field: `authorId`',
@@ -504,27 +510,16 @@ testMatrix.setupTestSuite(
           'onDelete: DEFAULT, Restrict, NoAction, SetNull',
           () => {
             const expectedError = conditionalError.snapshot({
-              // Note: The test suite does not test `SetNull` with providers that errors during migration
-              // see _utils/relationMode/computeMatrix.ts
               foreignKeys: {
                 [Providers.MONGODB]:
                   "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
                 [Providers.POSTGRESQL]:
-                  onUpdate === 'SetNull'
-                    ? // SetNull
-                      'Null constraint violation on the fields: (`authorId`)'
-                    : // DEFAULT / Restrict
-                      'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                 [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                 [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                [Providers.SQLITE]:
-                  onUpdate === 'SetNull'
-                    ? // SetNull
-                      'Null constraint violation on the fields: (`authorId`)'
-                    : // DEFAULT / Restrict
-                      'Foreign key constraint failed on the field: `foreign key`',
+                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
               },
               prisma:
                 "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
@@ -613,7 +608,7 @@ testMatrix.setupTestSuite(
             //
             // See issue https://github.com/prisma/prisma/issues/15683
 
-            testIf(isRelationMode_prismaAndSetNull).failing(
+            testIf(isRelationMode_prismaAndSetNull)(
               'relationMode=prisma / SetNull: [delete] parent should throw',
               async () => {
                 await expect(
@@ -638,7 +633,7 @@ testMatrix.setupTestSuite(
                 ])
               },
             )
-            testIf(isRelationMode_prismaAndSetNull).failing(
+            testIf(isRelationMode_prismaAndSetNull)(
               'relationMode=prisma / SetNull: [delete] a subset of children and then [delete] parent should throw',
               async () => {
                 await prisma[postModel].delete({

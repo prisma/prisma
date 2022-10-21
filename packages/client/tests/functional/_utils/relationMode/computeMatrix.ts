@@ -8,7 +8,7 @@ type ComputeMatrix = {
 export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix) {
   const providersBase = [
     Providers.POSTGRESQL,
-    Providers.COCKROACHDB,
+    // Providers.COCKROACHDB,
     Providers.SQLSERVER,
     Providers.MYSQL,
     Providers.SQLITE,
@@ -43,14 +43,10 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
 
   const referentialActionsDenylistByProvider = {
     foreignKeys: {
-      [Providers.SQLSERVER]: ['Restrict', 'SetNull'],
-      [Providers.COCKROACHDB]: ['SetNull'],
-      [Providers.MYSQL]: ['SetNull'],
+      [Providers.SQLSERVER]: ['Restrict'],
     },
     prisma: {
-      [Providers.SQLSERVER]: ['Restrict', 'SetNull'],
-      [Providers.COCKROACHDB]: ['SetNull'],
-      [Providers.MYSQL]: ['SetNull'],
+      [Providers.SQLSERVER]: ['Restrict'],
       [Providers.POSTGRESQL]: ['NoAction'],
       [Providers.SQLITE]: ['NoAction'],
     },

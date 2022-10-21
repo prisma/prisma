@@ -3,7 +3,14 @@ type ComputeReferentialActionLine = {
   onDelete: string
 }
 
-export function computeReferentialActionLine({ onUpdate, onDelete }: ComputeReferentialActionLine): string {
+export type ReferentialActionLineOutput = { supportsRequired: boolean; referentialActionLine: string }
+
+export function computeReferentialActionLine({
+  onUpdate,
+  onDelete,
+}: ComputeReferentialActionLine): ReferentialActionLineOutput {
+  const supportsRequired = ![onUpdate, onDelete].includes('SetNull')
+
   let referentialActionLine = ''
   const DEFAULT = 'DEFAULT'
 
@@ -15,5 +22,5 @@ export function computeReferentialActionLine({ onUpdate, onDelete }: ComputeRefe
     referentialActionLine += `, onDelete: ${onDelete}`
   }
 
-  return referentialActionLine
+  return { supportsRequired, referentialActionLine }
 }
