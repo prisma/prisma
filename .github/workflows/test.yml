@@ -766,6 +766,10 @@ jobs:
         os: [ubuntu-latest]
         node: [16, 18]
 
+    env:
+      TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+      TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+
     steps:
       - uses: actions/checkout@v3
 
