@@ -131,18 +131,13 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>(query: string, headers: Record<string, string>, attempt = 0) {
+  request<T>(query: string, headers: Record<string, string>) {
     this.logEmitter.emit('query', { query })
 
-    return this.requestInternal<T>({ query, variables: {} }, headers, attempt)
+    return this.requestInternal<T>({ query, variables: {} }, headers)
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: Record<string, string>,
-    transaction?: BatchTransactionOptions,
-    attempt = 0,
-  ) {
+  async requestBatch<T>(queries: string[], headers: Record<string, string>, transaction?: BatchTransactionOptions) {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
       query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,
@@ -154,77 +149,58 @@ export class DataProxyEngine extends Engine {
       isolationLevel: transaction?.isolationLevel,
     }
 
-    const { batchResult } = await this.requestInternal<T>(body, headers, attempt)
+    const { batchResult } = await this.requestInternal<T>(body, headers)
 
     return batchResult
   }
 
-  private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>, attempt: number) {
-    try {
-      this.logEmitter.emit('info', {
-        message: `Calling ${await this.url('graphql')} (n=${attempt})`,
-      })
+  private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>) {
+    return await this.withRetry({
+      actionGerund: 'querying',
+      callback: async ({ logHttpCall }) => {
+        const transactionId = headers.transactionId
 
-      const transactionId = headers.transactionId
+        let url = await this.url('graphql')
+        if (transactionId) {
+          url = await this.url(`itx/${transactionId}/graphql`)
+        }
 
-      let url = await this.url('graphql')
-      if (transactionId) {
-        url = await this.url(`itx/${transactionId}/graphql`)
-      }
+        logHttpCall(url)
 
-      const response = await request(url, {
-        method: 'POST',
-        headers: { ...headers, ...this.headers },
-        body: JSON.stringify(body),
-        clientVersion: this.clientVersion,
-      })
-
-      if (!response.ok) {
-        debug('graphql response status', response.status)
-      }
-
-      const e = await responseToError(response, this.clientVersion)
-
-      if (e instanceof SchemaMissingError) {
-        await this.uploadSchema()
-        throw new ForcedRetryError({
+        const response = await request(url, {
+          method: 'POST',
+          headers: { ...headers, ...this.headers },
+          body: JSON.stringify(body),
           clientVersion: this.clientVersion,
-          cause: e,
         })
-      }
 
-      if (e) throw e
-
-      const data = await response.json()
-
-      if (data.errors) {
-        if (data.errors.length === 1) {
-          throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+        if (!response.ok) {
+          debug('graphql response status', response.status)
         }
-      }
 
-      return data
-    } catch (e) {
-      this.logEmitter.emit('error', {
-        message: `Error while querying: ${e.message ?? '(unknown)'}`,
-      })
+        const e = await responseToError(response, this.clientVersion)
 
-      if (!(e instanceof DataProxyError)) throw e
-      if (!e.isRetryable) throw e
-      if (attempt >= MAX_RETRIES) {
-        if (e instanceof ForcedRetryError) {
-          throw e.cause
-        } else {
-          throw e
+        if (e instanceof SchemaMissingError) {
+          await this.uploadSchema()
+          throw new ForcedRetryError({
+            clientVersion: this.clientVersion,
+            cause: e,
+          })
         }
-      }
 
-      this.logEmitter.emit('warn', { message: 'This request can be retried' })
-      const delay = await backOff(attempt)
-      this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
+        if (e) throw e
 
-      return this.requestInternal<T>(body, headers, attempt + 1)
-    }
+        const data = await response.json()
+
+        if (data.errors) {
+          if (data.errors.length === 1) {
+            throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+          }
+        }
+
+        return data
+      },
+    })
   }
 
   /**
@@ -238,68 +214,73 @@ export class DataProxyEngine extends Engine {
   async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
   async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
-    await this.start()
-
-    if (action === 'start') {
-      const body = JSON.stringify({
-        max_wait: arg?.maxWait ?? 2000, // default
-        timeout: arg?.timeout ?? 5000, // default
-        isolation_level: arg?.isolationLevel,
-      })
-
-      const url = await this.url('transaction/start')
-
-      const response = await request(url, {
-        method: 'POST',
-        headers: { ...headers, ...this.headers },
-        body,
-        clientVersion: this.clientVersion,
-      })
-
-      const err = await responseToError(response, this.clientVersion)
-
-      if (err) {
-        this.logEmitter.emit('warn', { message: `Error while starting transaction: ${err.message}` })
-        throw err
-      } else {
-        this.logEmitter.emit('info', {
-          message: `Transaction started`,
-        })
-      }
-
-      const json = await response.json()
-
-      const endpoint = json['data-proxy'].endpoint as string
-
-      const id = endpoint.split('/').pop() as string
-
-      const data: Tx.Info = {
-        id,
-      }
-
-      return data as Tx.Info
-    } else {
-      const url = await this.url(`transaction/${arg.id}/${action}`)
-
-      const response = await request(url, {
-        method: 'POST',
-        headers: { ...headers, ...this.headers },
-        clientVersion: this.clientVersion,
-      })
-
-      const err = await responseToError(response, this.clientVersion)
-
-      if (err) {
-        this.logEmitter.emit('warn', { message: `Error while ${action} transaction: ${err.message}` })
-        throw err
-      } else {
-        this.logEmitter.emit('info', {
-          message: `Transaction ${action} complete`,
-        })
-      }
-
-      return undefined
+    const actionToGerund = {
+      start: 'starting',
+      commit: 'committing',
+      rollback: 'rolling back',
     }
+
+    return await this.withRetry({
+      actionGerund: `${actionToGerund[action]} transaction`,
+      callback: async ({ logHttpCall }) => {
+        if (action === 'start') {
+          const body = JSON.stringify({
+            max_wait: arg?.maxWait ?? 2000, // default
+            timeout: arg?.timeout ?? 5000, // default
+            isolation_level: arg?.isolationLevel,
+          })
+
+          const url = await this.url('transaction/start')
+
+          logHttpCall(url)
+
+          const response = await request(url, {
+            method: 'POST',
+            headers: { ...headers, ...this.headers },
+            body,
+            clientVersion: this.clientVersion,
+          })
+
+          const err = await responseToError(response, this.clientVersion)
+
+          if (err instanceof SchemaMissingError) {
+            await this.uploadSchema()
+            throw new ForcedRetryError({
+              clientVersion: this.clientVersion,
+              cause: err,
+            })
+          }
+
+          if (err) {
+            throw err
+          }
+
+          const json = await response.json()
+          const endpoint = json['data-proxy'].endpoint as string
+          const id = endpoint.split('/').pop() as string
+
+          return { id }
+        } else {
+          const url = await this.url(`transaction/${arg.id}/${action}`)
+
+          logHttpCall(url)
+
+          const response = await request(url, {
+            method: 'POST',
+            headers: { ...headers, ...this.headers },
+            clientVersion: this.clientVersion,
+          })
+
+          const err = await responseToError(response, this.clientVersion)
+
+          if (err) {
+            throw err
+          }
+
+          return undefined
+        }
+      },
+    })
   }
 
   private extractHostAndApiKey() {
@@ -393,5 +374,40 @@ export class DataProxyEngine extends Engine {
     throw new NotImplementedYetError('Metric are not yet supported for Data Proxy', {
       clientVersion: this.clientVersion,
     })
+  }
+
+  private async withRetry<T>(args: {
+    callback: (api: { logHttpCall: (url: string) => void }) => Promise<T>
+    actionGerund: string
+  }): Promise<T> {
+    for (let attempt = 0; ; attempt++) {
+      const logHttpCall = (url: string) => {
+        this.logEmitter.emit('info', {
+          message: `Calling ${url} (n=${attempt})`,
+        })
+      }
+
+      try {
+        return await args.callback({ logHttpCall })
+      } catch (e) {
+        this.logEmitter.emit('error', {
+          message: `Error while ${args.actionGerund}: ${e.message ?? '(unknown)'}`,
+        })
+
+        if (!(e instanceof DataProxyError)) throw e
+        if (!e.isRetryable) throw e
+        if (attempt >= MAX_RETRIES) {
+          if (e instanceof ForcedRetryError) {
+            throw e.cause
+          } else {
+            throw e
+          }
+        }
+
+        this.logEmitter.emit('warn', { message: 'This request can be retried' })
+        const delay = await backOff(attempt)
+        this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
+      }
+    }
   }
 }
