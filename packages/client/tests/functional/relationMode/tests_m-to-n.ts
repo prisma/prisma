@@ -176,7 +176,6 @@ testMatrix.setupTestSuite(
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
     const isRelationMode_foreignKeys = !isRelationMode_prisma
-    const isRelationMode_prismaAndSetNull = isRelationMode_prisma && onDelete === 'SetNull'
 
     /**
      * m:n relationship
@@ -765,7 +764,7 @@ testMatrix.setupTestSuite(
         })
 
         describeIf(['SetNull', 'SetDefault'].includes(onUpdate))(`onUpdate: SetNull, SetDefault`, () => {
-          testIf(!isRelationMode_prismaAndSetNull)('[update] post id should succeed', async () => {
+          test('[update] post id should succeed', async () => {
             await prisma[postModel].update({
               where: {
                 id: '1',
@@ -788,7 +787,7 @@ testMatrix.setupTestSuite(
             )
           })
 
-          testIf(!isRelationMode_prismaAndSetNull)('[update] category id should succeed', async () => {
+          test('[update] category id should succeed', async () => {
             const result = await prisma[categoryModel].update({
               where: {
                 id: '1-cat-a',
@@ -811,59 +810,6 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfCategoryUpdate,
             )
           })
-
-          testIf(isRelationMode_prismaAndSetNull)(
-            'relationMode=prisma / SetNull: [update] post id (optional relation) should succeed',
-            async () => {
-              // Resolved to value:
-              await prisma[postModel].update({
-                where: {
-                  id: '1',
-                },
-                data: {
-                  id: '3',
-                },
-              })
-
-              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
-                expectedFindManyPostModelIfUpdate,
-              )
-              expect(
-                await prisma[categoryModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual(expectedFindManyCategoryModelIfNoChange)
-              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-                expectedFindManyCategoriesOnPostsModelIfPostUpdate,
-              )
-            },
-          )
-
-          testIf(isRelationMode_prismaAndSetNull)(
-            'relationMode=prisma / SetNull: [update] category id (optional relation) should succeed',
-            async () => {
-              await prisma[categoryModel].update({
-                where: {
-                  id: '1-cat-a',
-                },
-                data: {
-                  id: '1-cat-a-updated',
-                },
-              })
-
-              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
-                expectedFindManyPostModelIfNoChange,
-              )
-              expect(
-                await prisma[categoryModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual(expectedFindManyCategoryModelIfUpdate)
-              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-                expectedFindManyCategoriesOnPostsModelIfCategoryUpdate,
-              )
-            },
-          )
         })
 
         test('[update] categoriesOnPostsModel postId should succeed', async () => {
@@ -995,7 +941,7 @@ testMatrix.setupTestSuite(
         // Note: The test suite does not test `SetNull` with providers that errors during migration
         // see _utils/relationMode/computeMatrix.ts
         describeIf(['SetNull', 'SetDefault'].includes(onDelete))(`onDelete: SetNull, SetDefault`, () => {
-          testIf(!isRelationMode_prismaAndSetNull)('[delete] post should throw', async () => {
+          test('[delete] post should throw', async () => {
             await expect(
               prisma[postModel].delete({
                 where: { id: '1' },
@@ -1012,6 +958,8 @@ testMatrix.setupTestSuite(
                   [Providers.COCKROACHDB]:
                     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                 },
+                prisma:
+                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
               }),
             )
 
@@ -1028,7 +976,7 @@ testMatrix.setupTestSuite(
             )
           })
 
-          testIf(!isRelationMode_prismaAndSetNull)('[delete] category should throw', async () => {
+          test('[delete] category should throw', async () => {
             await expect(
               prisma[categoryModel].delete({
                 where: { id: '1-cat-a' },
@@ -1045,6 +993,8 @@ testMatrix.setupTestSuite(
                   [Providers.COCKROACHDB]:
                     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                 },
+                prisma:
+                  "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
               }),
             )
 
@@ -1060,54 +1010,6 @@ testMatrix.setupTestSuite(
               expectedFindManyCategoriesOnPostsModelIfNoChange,
             )
           })
-
-          testIf(isRelationMode_prismaAndSetNull)(
-            'relationMode=prisma / SetNull: [delete] post should throw',
-            async () => {
-              // TODO (prisma, *, SetNull for PostgreSQL): Resolved to {"id": "1", "published": null}
-              await expect(
-                prisma[postModel].delete({
-                  where: { id: '1' },
-                }),
-              ).rejects.toThrowError()
-
-              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
-                expectedFindManyPostModelIfNoChange,
-              )
-              expect(
-                await prisma[categoryModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual(expectedFindManyCategoryModelIfNoChange)
-              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-                expectedFindManyCategoriesOnPostsModelIfNoChange,
-              )
-            },
-          )
-
-          testIf(isRelationMode_prismaAndSetNull)(
-            'relationMode=prisma / SetNull: [delete] category should throw',
-            async () => {
-              // TODO (prisma, *, SetNull for PostgreSQL): Resolved to {"id": "1-cat-a", "published": null}
-              await expect(
-                prisma[categoryModel].delete({
-                  where: { id: '1-cat-a' },
-                }),
-              ).rejects.toThrowError()
-
-              expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
-                expectedFindManyPostModelIfNoChange,
-              )
-              expect(
-                await prisma[categoryModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual(expectedFindManyCategoryModelIfNoChange)
-              expect(await prisma[categoriesOnPostsModel].findMany({ orderBy: { categoryId: 'asc' } })).toEqual(
-                expectedFindManyCategoriesOnPostsModelIfNoChange,
-              )
-            },
-          )
         })
 
         describeIf(['Cascade'].includes(onDelete))('onDelete: Cascade', () => {

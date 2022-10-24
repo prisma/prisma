@@ -62,7 +62,6 @@ testMatrix.setupTestSuite(
     const isSQLite = suiteConfig.provider === Providers.SQLITE
     const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
     const isRelationMode_foreignKeys = !isRelationMode_prisma
-    const isRelationMode_prismaAndSetNull = isRelationMode_prisma && onDelete === 'SetNull'
 
     /**
      * 1:n relationship
