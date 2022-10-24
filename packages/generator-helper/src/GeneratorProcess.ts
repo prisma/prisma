@@ -11,6 +11,14 @@ const debug = Debug('prisma:GeneratorProcess')
 
 let globalMessageId = 1
 
+type GeneratorProcessOptions = {
+  isNode?: boolean
+  /**
+   * Time to wait before we consider generator successfully started, ms
+   */
+  initWaitTime?: number
+}
+
 export class GeneratorError extends Error {
   public code: number
   public data?: any
@@ -30,12 +38,16 @@ export class GeneratorProcess {
   private exitCode: number | null = null
   private stderrLogs = ''
   private initPromise?: Promise<void>
-  private lastError?: Error
+  private isNode: boolean
+  private initWaitTime: number
   private currentGenerateDeferred?: {
     resolve: (result: any) => void
     reject: (error: Error) => void
   }
-  constructor(private executablePath: string, private isNode?: boolean) {}
+  constructor(private executablePath: string, { isNode = false, initWaitTime = 200 }: GeneratorProcessOptions = {}) {
+    this.isNode = isNode
+    this.initWaitTime = initWaitTime
+  }
   async init(): Promise<void> {
     if (!this.initPromise) {
       this.initPromise = this.initSingleton()
@@ -74,7 +86,6 @@ export class GeneratorProcess {
         })
 
         this.child.on('error', (err) => {
-          this.lastError = err
           if (err.message.includes('EACCES')) {
             reject(
               new Error(
@@ -101,14 +112,18 @@ export class GeneratorProcess {
             this.handleResponse(data)
           }
         })
-        // wait 200ms for the binary to fail
+        // wait initWaitTime for the binary to fail
+        // TODO: this a really flaky way to detect startup failure
+        // In future, generator should explicitly send a notification when it finishes
+        // initialization and we should wait until we got that notification. We can't introduce
+        // it now since it would be a breaking change.
         setTimeout(() => {
           if (this.exitCode && this.exitCode > 0) {
             reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
           } else {
             resolve()
           }
-        }, 200)
+        }, this.initWaitTime)
       } catch (e) {
         reject(e)
       }
