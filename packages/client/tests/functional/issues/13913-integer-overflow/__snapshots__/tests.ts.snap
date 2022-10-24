@@ -55,5 +55,5 @@ Invalid \`prisma.resource.create()\` invocation in
   XX   test('int overflow', async () => {
 → XX     const result = prisma.resource.create(
 Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(TokenError { code: 8115, state: 2, class: 16, message: "Arithmetic overflow error converting expression to data type int.", server: "d8cded75e95c", procedure: "", line: 1 }) })
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(TokenError { code: 8115, state: 2, class: 16, message: "Arithmetic overflow error converting expression to data type int.", server: "xxxxxxxxxxxx", procedure: "", line: 1 }) })
 `;

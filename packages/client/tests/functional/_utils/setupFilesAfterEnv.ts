@@ -1,6 +1,8 @@
 import { toMatchInlineSnapshot, toMatchSnapshot } from 'jest-snapshot'
 import stripAnsi from 'strip-ansi'
 
+import { pipe } from '../../../../../helpers/blaze/pipe'
+
 process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS = 'true'
 
 expect.extend({
@@ -13,7 +15,7 @@ expect.extend({
     }
     // @ts-expect-error: jest-snapshot and jest typings are incompatible,
     // even though custom snapshot matchers supposed to work this way
-    return toMatchSnapshot.call(this, sanitizeLineNumbers(received.message))
+    return toMatchSnapshot.call(this, sanitize(received.message))
   },
 
   toMatchPrismaErrorInlineSnapshot(received: unknown, ...rest: unknown[]) {
@@ -26,12 +28,18 @@ expect.extend({
 
     // @ts-expect-error: jest-snapshot and jest typings are incompatible,
     // even though custom snapshot matchers supposed to work this way
-    return toMatchInlineSnapshot.call(this, sanitizeLineNumbers(received.message), ...rest)
+    return toMatchInlineSnapshot.call(this, sanitize(received.message), ...rest)
   },
 })
 
+const sanitize = pipe(sanitizeLineNumbers, sanitizeServerNumber)
+
 function sanitizeLineNumbers(message: string) {
   return stripAnsi(message).replace(/^(\s*→?\s+)\d+/gm, '$1XX')
+}
+
+function sanitizeServerNumber(message: string) {
+  return message.replace(/server: ".*?"/, 'server: "xxxxxxxxxxxx"')
 }
 
 /**
