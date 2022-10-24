@@ -840,7 +840,7 @@ testMatrix.setupTestSuite(
           )
 
           testIf(isRelationMode_prismaAndSetNull)(
-            'relationMode=prisma / SetNull: [update] category id should throw',
+            'relationMode=prisma / SetNull: [update] category id (optional relation) should succeed',
             async () => {
               await prisma[categoryModel].update({
                 where: {
