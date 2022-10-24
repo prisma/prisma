@@ -31,6 +31,18 @@ const P = Promise.resolve()
 
 const debug = Debug('prisma:client:dataproxyEngine')
 
+// TODO: temporary hack; we need to store url on the client itx proxy instead and pass it to the engine similar to id
+// (probably some opaque `engineMeta: unknown` field and downcast it here to avoid leaking implementation details)
+const txBaseUrls = new Map<string, string>()
+
+function txUrl(id: string, path: string): string {
+  const baseUrl = txBaseUrls.get(id)
+  if (baseUrl === undefined) {
+    throw new Error(`Wrong itx id: ${id}`)
+  }
+  return `${baseUrl}/${path}`
+}
+
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
   readonly inlineSchemaHash: string
@@ -159,11 +171,7 @@ export class DataProxyEngine extends Engine {
       actionGerund: 'querying',
       callback: async ({ logHttpCall }) => {
         const transactionId = headers.transactionId
-
-        let url = await this.url('graphql')
-        if (transactionId) {
-          url = await this.url(`itx/${transactionId}/graphql`)
-        }
+        const url = transactionId ? txUrl(transactionId, 'graphql') : await this.url('graphql')
 
         logHttpCall(url)
 
@@ -239,9 +247,11 @@ export class DataProxyEngine extends Engine {
           const endpoint = json['data-proxy'].endpoint as string
           const id = endpoint.split('/').pop() as string
 
+          txBaseUrls.set(id, endpoint)
+
           return { id }
         } else {
-          const url = await this.url(`transaction/${arg.id}/${action}`)
+          const url = txUrl(arg.id, action)
 
           logHttpCall(url)
 
