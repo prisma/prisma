@@ -22,7 +22,7 @@ import { SchemaMissingError } from './errors/SchemaMissingError'
 import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
-import { request, RequestResponse } from './utils/request'
+import { request } from './utils/request'
 
 const MAX_RETRIES = 10
 
