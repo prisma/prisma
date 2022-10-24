@@ -4,6 +4,7 @@ import testMatrix from './_matrix'
 import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
+process.env.DEBUG = 'prisma:*'
 
 testMatrix.setupTestSuite(
   () => {
