@@ -25,7 +25,7 @@ testMatrix.setupTestSuite(
 
       const queryLogPromise = ((): Promise<any> =>
         new Promise((resolve) => {
-          // @ts-ignore
+          // @ts-expect-error
           client.$on('query', (data) => {
             if ('query' in data) {
               resolve(data)
