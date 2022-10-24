@@ -179,16 +179,7 @@ export class DataProxyEngine extends Engine {
         }
 
         const e = await responseToError(response, this.clientVersion)
-
-        if (e instanceof SchemaMissingError) {
-          await this.uploadSchema()
-          throw new ForcedRetryError({
-            clientVersion: this.clientVersion,
-            cause: e,
-          })
-        }
-
-        if (e) throw e
+        await this.handleError(e)
 
         const data = await response.json()
 
@@ -242,18 +233,7 @@ export class DataProxyEngine extends Engine {
           })
 
           const err = await responseToError(response, this.clientVersion)
-
-          if (err instanceof SchemaMissingError) {
-            await this.uploadSchema()
-            throw new ForcedRetryError({
-              clientVersion: this.clientVersion,
-              cause: err,
-            })
-          }
-
-          if (err) {
-            throw err
-          }
+          await this.handleError(err)
 
           const json = await response.json()
           const endpoint = json['data-proxy'].endpoint as string
@@ -272,10 +252,7 @@ export class DataProxyEngine extends Engine {
           })
 
           const err = await responseToError(response, this.clientVersion)
-
-          if (err) {
-            throw err
-          }
+          await this.handleError(err)
 
           return undefined
         }
@@ -408,6 +385,18 @@ export class DataProxyEngine extends Engine {
         const delay = await backOff(attempt)
         this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
       }
+    }
+  }
+
+  private async handleError(error: DataProxyError | undefined): Promise<void> {
+    if (error instanceof SchemaMissingError) {
+      await this.uploadSchema()
+      throw new ForcedRetryError({
+        clientVersion: this.clientVersion,
+        cause: error,
+      })
+    } else if (error) {
+      throw error
     }
   }
 }
