@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.6.0-4.bc452eb701d4709e75729888e0ea0f53c19775d1",
+    "@prisma/engines-version": "4.6.0-10.query-engine-mongo-logging-fix-12d17f6198de6f592ce3ff9b8e25669dae0bd284",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.10",
