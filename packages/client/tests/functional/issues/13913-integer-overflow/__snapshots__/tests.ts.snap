@@ -1,0 +1,59 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`issues.13913-integer-overflow (provider=cockroachdb) int overflow 1`] = `
+Object {
+  id: ac6be4a35f2ed6e94bb2928d,
+  number: -2029967296,
+}
+`;
+
+exports[`issues.13913-integer-overflow (provider=mongodb) int overflow 1`] = `
+Object {
+  id: ac6be4a35f2ed6e94bb2928d,
+  number: 2265000000,
+}
+`;
+
+exports[`issues.13913-integer-overflow (provider=mysql) int overflow 1`] = `
+
+Invalid \`prisma.resource.create()\` invocation in
+/client/tests/functional/issues/13913-integer-overflow/tests.ts:0:0
+
+   XX 
+  XX testMatrix.setupTestSuite(({ provider }) => {
+  XX   test('int overflow', async () => {
+→ XX     const result = prisma.resource.create(
+Value out of range for the type. Out of range value for column 'number' at row 1
+`;
+
+exports[`issues.13913-integer-overflow (provider=postgresql) int overflow 1`] = `
+Object {
+  id: ac6be4a35f2ed6e94bb2928d,
+  number: -2029967296,
+}
+`;
+
+exports[`issues.13913-integer-overflow (provider=sqlite) int overflow 1`] = `
+
+Invalid \`prisma.resource.create()\` invocation in
+/client/tests/functional/issues/13913-integer-overflow/tests.ts:0:0
+
+   XX 
+  XX testMatrix.setupTestSuite(({ provider }) => {
+  XX   test('int overflow', async () => {
+→ XX     const result = prisma.resource.create(
+Inconsistent column data: Conversion failed: Value 2265000000 does not fit in an INT column, try migrating the 'number' column type to BIGINT
+`;
+
+exports[`issues.13913-integer-overflow (provider=sqlserver) int overflow 1`] = `
+
+Invalid \`prisma.resource.create()\` invocation in
+/client/tests/functional/issues/13913-integer-overflow/tests.ts:0:0
+
+   XX 
+  XX testMatrix.setupTestSuite(({ provider }) => {
+  XX   test('int overflow', async () => {
+→ XX     const result = prisma.resource.create(
+Error occurred during query execution:
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(TokenError { code: 8115, state: 2, class: 16, message: "Arithmetic overflow error converting expression to data type int.", server: "d8cded75e95c", procedure: "", line: 1 }) })
+`;
