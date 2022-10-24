@@ -25,6 +25,7 @@ testMatrix.setupTestSuite(
 
       const queryLogPromise = ((): Promise<any> =>
         new Promise((resolve) => {
+          // @ts-ignore
           client.$on('query', (data) => {
             if ('query' in data) {
               resolve(data)
@@ -42,6 +43,10 @@ testMatrix.setupTestSuite(
     optOut: {
       from: ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver'],
       reason: 'Only testing MongoDB provider(s) to replicate this issue',
+    },
+    skipDataProxy: {
+      runtimes: ['edge', 'node'],
+      reason: 'https://github.com/prisma/mini-proxy/pull/35',
     },
   },
 )
