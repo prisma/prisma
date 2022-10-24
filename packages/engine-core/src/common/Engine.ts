@@ -30,17 +30,19 @@ export abstract class Engine {
   abstract getConfig(): Promise<GetConfigResult>
   abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
-  abstract request<T>(
-    query: string,
-    headers?: QueryEngineRequestHeaders,
-    numTry?: number,
-  ): Promise<QueryEngineResult<T>>
-  abstract requestBatch<T>(
-    queries: string[],
-    headers?: QueryEngineRequestHeaders,
-    transaction?: BatchTransactionOptions,
-    numTry?: number,
-  ): Promise<QueryEngineResult<T>[]>
+  abstract request<T>(options: {
+    query: string
+    headers?: QueryEngineRequestHeaders
+    numTry?: number
+    clientMethod: string
+  }): Promise<QueryEngineResult<T>>
+  abstract requestBatch<T>(options: {
+    queries: string[]
+    headers?: QueryEngineRequestHeaders
+    transaction?: BatchTransactionOptions
+    numTry?: number
+    requestContainsWrite: boolean
+  }): Promise<QueryEngineResult<T>[]>
   abstract transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,

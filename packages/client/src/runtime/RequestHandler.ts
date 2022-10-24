@@ -53,6 +53,7 @@ export type Request = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   tracingConfig?: TracingConfig
+  clientMethod: string
 }
 
 function getRequestInfo(request: Request) {
@@ -92,13 +93,25 @@ export class RequestHandler {
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        return this.client._engine.requestBatch(queries, info.headers, info.batchTransaction)
+        const writeWords = ['create', 'update', 'delete']
+        const requestContainsWrite = requests.some((r) =>
+          writeWords.some((writeWord) => {
+            r.clientMethod.includes(writeWord)
+          }),
+        )
+
+        return this.client._engine.requestBatch({
+          queries,
+          headers: info.headers,
+          transaction: info.batchTransaction,
+          requestContainsWrite,
+        })
       },
       singleLoader: (request) => {
         const info = getRequestInfo(request)
         const query = String(request.document)
 
-        return this.client._engine.request(query, info.headers)
+        return this.client._engine.request({ query, headers: info.headers, clientMethod: request.clientMethod })
       },
       batchBy: (request) => {
         if (request.transaction?.id) {
@@ -152,7 +165,7 @@ export class RequestHandler {
             runInTransaction: Boolean(transaction),
           },
           (params) => {
-            return this.dataloader.request({ ...params, tracingConfig: this.client._tracingConfig })
+            return this.dataloader.request({ ...params, tracingConfig: this.client._tracingConfig, clientMethod })
           },
         )
         data = result.data
@@ -165,6 +178,7 @@ export class RequestHandler {
           otelParentCtx,
           otelChildCtx,
           tracingConfig: this.client._tracingConfig,
+          clientMethod,
         })
         data = result?.data
         elapsed = result?.elapsed

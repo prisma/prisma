@@ -130,18 +130,33 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>(query: string, headers: Record<string, string>, attempt = 0) {
+  request<T>({
+    query,
+    headers,
+    attempt = 0,
+  }: {
+    query: string
+    headers: Record<string, string>
+    attempt
+    clientMethod: string
+  }) {
     this.logEmitter.emit('query', { query })
 
     return this.requestInternal<T>({ query, variables: {} }, headers, attempt)
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: Record<string, string>,
-    transaction?: BatchTransactionOptions,
+  async requestBatch<T>({
+    queries,
+    headers,
+    transaction,
     attempt = 0,
-  ) {
+  }: {
+    queries: string[]
+    headers: Record<string, string>
+    transaction?: BatchTransactionOptions
+    attempt
+    requestContainsWrite: boolean
+  }) {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
       query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,

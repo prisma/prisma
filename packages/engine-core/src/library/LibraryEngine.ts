@@ -442,11 +442,15 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.library?.debugPanic(message) as Promise<never>
   }
 
-  async request<T>(
-    query: string,
-    headers: QueryEngineRequestHeaders = {},
-    numTry = 1,
-  ): Promise<{ data: T; elapsed: number }> {
+  async request<T>({
+    query,
+    headers = {},
+  }: {
+    query: string
+    headers: QueryEngineRequestHeaders
+    numTry: number
+    clientMethod: string
+  }): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const request: QueryEngineRequest = { query, variables: {} }
     const headerStr = JSON.stringify(headers) // object equivalent to http headers for the library
@@ -486,11 +490,16 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: QueryEngineRequestHeaders = {},
-    transaction?: BatchTransactionOptions,
-  ): Promise<QueryEngineResult<T>[]> {
+  async requestBatch<T>({
+    queries,
+    headers = {},
+    transaction,
+  }: {
+    queries: string[]
+    headers: QueryEngineRequestHeaders
+    transaction?: BatchTransactionOptions
+    requestContainsWrite: boolean
+  }): Promise<QueryEngineResult<T>[]> {
     debug('requestBatch')
     const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),

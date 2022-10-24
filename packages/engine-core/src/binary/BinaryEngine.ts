@@ -933,7 +933,17 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return this.lastVersion
   }
 
-  async request<T>(query: string, headers: QueryEngineRequestHeaders = {}, numTry = 1): Promise<QueryEngineResult<T>> {
+  async request<T>({
+    query,
+    headers = {},
+    numTry = 1,
+    clientMethod,
+  }: {
+    query: string
+    headers: QueryEngineRequestHeaders
+    numTry: number
+    clientMethod: string
+  }): Promise<QueryEngineResult<T>> {
     await this.start()
 
     this.currentRequestPromise = this.connection.post('/', stringifyQuery(query), runtimeHeadersToHttpHeaders(headers))
@@ -964,26 +974,31 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       const { error, shouldRetry } = await this.handleRequestError(e)
 
+      const isWrite = ['create', 'update', 'delete'].some((method) => clientMethod.includes(method))
+
       // retry
-      if (numTry <= MAX_REQUEST_RETRIES && shouldRetry) {
+      if (numTry <= MAX_REQUEST_RETRIES && shouldRetry && !isWrite) {
         logger('trying a retry now')
-        return this.request(query, headers, numTry + 1)
+        return this.request({ query, headers, numTry: numTry + 1, clientMethod })
       }
 
-      if (error) {
-        throw error
-      }
+      throw error
     }
-
-    return null as any // needed to make TS happy
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: QueryEngineRequestHeaders = {},
-    transaction?: BatchTransactionOptions,
+  async requestBatch<T>({
+    queries,
+    headers = {},
+    transaction,
     numTry = 1,
-  ): Promise<QueryEngineResult<T>[]> {
+    requestContainsWrite,
+  }: {
+    queries: string[]
+    headers: QueryEngineRequestHeaders
+    transaction?: BatchTransactionOptions
+    numTry: number
+    requestContainsWrite: boolean
+  }): Promise<QueryEngineResult<T>[]> {
     await this.start()
 
     const request: QueryEngineBatchRequest = {
@@ -1016,10 +1031,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       })
       .catch(async (e) => {
         const { error, shouldRetry } = await this.handleRequestError(e)
-        if (!error && shouldRetry) {
+        if (shouldRetry && !requestContainsWrite) {
           // retry
           if (numTry <= MAX_REQUEST_RETRIES) {
-            return this.requestBatch(queries, headers, transaction, numTry + 1)
+            return this.requestBatch({ queries, headers, transaction, numTry: numTry + 1, requestContainsWrite })
           }
         }
 
