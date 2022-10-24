@@ -48,5 +48,6 @@ testMatrix.setupTestSuite(
       runtimes: ['edge', 'node'],
       reason: 'https://github.com/prisma/mini-proxy/pull/35',
     },
+    skipDefaultClientInstance: true
   },
 )
