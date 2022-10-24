@@ -14,11 +14,11 @@
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@swc/core": "1.3.4",
+    "@swc/core": "1.3.10",
     "@swc/jest": "0.2.22",
     "@types/jest": "28.1.8",
-    "@types/node": "16.11.65",
-    "esbuild": "0.15.10",
+    "@types/node": "16.11.68",
+    "esbuild": "0.15.12",
     "jest": "28.1.3",
     "jest-junit": "14.0.1",
     "typescript": "4.8.4"
@@ -43,7 +43,7 @@
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.2",
     "strip-ansi": "6.0.1",
-    "undici": "5.10.0"
+    "undici": "5.11.0"
   },
   "files": [
     "README.md",
