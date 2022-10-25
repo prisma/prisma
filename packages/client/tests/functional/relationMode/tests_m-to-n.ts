@@ -955,8 +955,7 @@ testMatrix.setupTestSuite(
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                   [Providers.SQLSERVER]:
                     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                  [Providers.COCKROACHDB]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                 },
                 prisma:
                   "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
@@ -990,8 +989,7 @@ testMatrix.setupTestSuite(
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                   [Providers.SQLSERVER]:
                     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                  [Providers.COCKROACHDB]:
-                    'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                  [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                 },
                 prisma:
                   "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
