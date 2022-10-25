@@ -9,10 +9,6 @@ testMatrix.setupTestSuite(
   () => {
     let client: PrismaClient
 
-    afterAll(async () => {
-      await client.$disconnect()
-    })
-
     test('should log queries', async () => {
       client = newPrismaClient({
         log: [
@@ -48,6 +44,6 @@ testMatrix.setupTestSuite(
       runtimes: ['edge', 'node'],
       reason: 'https://github.com/prisma/mini-proxy/pull/35',
     },
-    skipDefaultClientInstance: true
+    skipDefaultClientInstance: true,
   },
 )
