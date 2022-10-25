@@ -88,7 +88,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -162,7 +162,7 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -255,7 +255,7 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -312,7 +312,7 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -338,6 +338,7 @@ jobs:
           TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
           TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
+          NODE_OPTIONS: '--max-old-space-size=8096'
 
       - run: pnpm run test:functional --data-proxy --edge-client
         working-directory: packages/client
@@ -350,6 +351,7 @@ jobs:
           TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
           TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
+          NODE_OPTIONS: '--max-old-space-size=8096'
 
       - uses: codecov/codecov-action@v3
         with:
@@ -388,7 +390,7 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -491,7 +493,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -558,7 +560,7 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -633,7 +635,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -705,7 +707,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -764,6 +766,10 @@ jobs:
         os: [ubuntu-latest]
         node: [16, 18]
 
+    env:
+      TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+      TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+
     steps:
       - uses: actions/checkout@v3
 
@@ -775,7 +781,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -822,7 +828,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -987,7 +993,7 @@ jobs:
       - name: Set up MySQL
         run: bash .github/workflows/scripts/setup-mysql.sh
 
-      - uses: pnpm/action-setup@v2.2.3
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 

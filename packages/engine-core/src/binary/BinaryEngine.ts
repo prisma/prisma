@@ -512,10 +512,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       PRISMA_DML_PATH: this.datamodelPath,
     }
 
-    if (this.logQueries || this.logLevel === 'info') {
-      if (this.logQueries) {
-        env.LOG_QUERIES = 'true'
-      }
+    if (this.logQueries) {
+      env.LOG_QUERIES = 'true'
     }
 
     if (this.datasources) {

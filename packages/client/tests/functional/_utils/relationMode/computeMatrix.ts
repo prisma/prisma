@@ -29,9 +29,10 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
   // 'Restrict' on SQL Server is not available and it triggers a schema parsing error.
   // See in our docs https://pris.ly/d/relationMode
   //
-  // `SetNull` with non-optional relations (= our 1:1, 1:n and m:n in this project) is invalid
-  // when using Foreign Keys fails with migration errors on MySQL, CockroachDB and SQL Server
-  // A schema validation error will be added, see https://github.com/prisma/prisma/issues/14673
+  // `SetNull` with non-optional relations is invalid
+  // Previously, when using Foreign Keys it failed with migration errors on MySQL, CockroachDB and SQL Server, and at runtime for PostgreSQL
+  // A schema validation error was added in 4.6.0 making the schema invalid in that case.
+  // see https://github.com/prisma/prisma/issues/14673
   //
   // "prisma"
   //
@@ -43,14 +44,10 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
 
   const referentialActionsDenylistByProvider = {
     foreignKeys: {
-      [Providers.SQLSERVER]: ['Restrict', 'SetNull'],
-      [Providers.COCKROACHDB]: ['SetNull'],
-      [Providers.MYSQL]: ['SetNull'],
+      [Providers.SQLSERVER]: ['Restrict'],
     },
     prisma: {
-      [Providers.SQLSERVER]: ['Restrict', 'SetNull'],
-      [Providers.COCKROACHDB]: ['SetNull'],
-      [Providers.MYSQL]: ['SetNull'],
+      [Providers.SQLSERVER]: ['Restrict'],
       [Providers.POSTGRESQL]: ['NoAction'],
       [Providers.SQLITE]: ['NoAction'],
     },
