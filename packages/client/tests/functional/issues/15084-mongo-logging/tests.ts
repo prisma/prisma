@@ -25,7 +25,7 @@ testMatrix.setupTestSuite(
 
       const queryLogPromise = ((): Promise<any> =>
         new Promise((resolve) => {
-          // @ts-ignore
+          // @ts-expect-error
           client.$on('query', (data) => {
             if ('query' in data) {
               resolve(data)
@@ -48,5 +48,6 @@ testMatrix.setupTestSuite(
       runtimes: ['edge', 'node'],
       reason: 'https://github.com/prisma/mini-proxy/pull/35',
     },
+    skipDefaultClientInstance: true
   },
 )
