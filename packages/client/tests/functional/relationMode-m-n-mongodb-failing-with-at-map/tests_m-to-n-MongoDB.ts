@@ -81,16 +81,11 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     // @ts-expect-error
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
-    const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
     /**
      * m:n relationship
      */
-
-    // We need to skip when isSchemaUsingMap is true because of
-    // https://github.com/prisma/prisma/issues/15776
-    // The tests are duplicated and running in ../relationMode-m-n-mongodb-failing-with-at-map
-    describeIf(isMongoDB && isSchemaUsingMap === false)('m:n mandatory (explicit) - MongoDB', () => {
+    describeIf(isMongoDB)('m:n mandatory (explicit) - MongoDB', () => {
       const postModel = 'PostManyToMany'
       const categoryModel = 'CategoryManyToMany'
 
@@ -100,6 +95,7 @@ testMatrix.setupTestSuite(
       })
 
       describe('[create]', () => {
+        // Only this test and the one below pass
         test('[create] category alone should succeed', async () => {
           await prisma[categoryModel].create({
             data: {
@@ -115,6 +111,7 @@ testMatrix.setupTestSuite(
           ])
         })
 
+        // Only this test and the one above pass
         test('[create] post alone should succeed', async () => {
           await prisma[postModel].create({
             data: {
@@ -130,35 +127,38 @@ testMatrix.setupTestSuite(
           ])
         })
 
-        test('[create] create post [nested] [create] categories [nested] [create] category should succeed', async () => {
-          await prisma[postModel].create({
-            data: {
-              id: '1',
-              categories: {
-                create: [
-                  {
-                    id: '1',
-                  },
-                ],
+        test.failing(
+          '[create] create post [nested] [create] categories [nested] [create] category should succeed',
+          async () => {
+            await prisma[postModel].create({
+              data: {
+                id: '1',
+                categories: {
+                  create: [
+                    {
+                      id: '1',
+                    },
+                  ],
+                },
               },
-            },
-          })
+            })
 
-          expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
-            {
-              id: '1',
-              published: null,
-              categoryIDs: ['1'],
-            },
-          ])
-          expect(await prisma[categoryModel].findMany()).toEqual([
-            {
-              id: '1',
-              published: null,
-              postIDs: ['1'],
-            },
-          ])
-        })
+            expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual([
+              {
+                id: '1',
+                published: null,
+                categoryIDs: ['1'],
+              },
+            ])
+            expect(await prisma[categoryModel].findMany()).toEqual([
+              {
+                id: '1',
+                published: null,
+                postIDs: ['1'],
+              },
+            ])
+          },
+        )
       })
 
       describe('[update]', () => {
@@ -171,7 +171,7 @@ testMatrix.setupTestSuite(
         })
 
         // Note: it's not possible on MongoDB to mutate _id, it is immutable
-        test('[update] id (_id) should throw at runtime because id field is read-only/immutable', async () => {
+        test.failing('[update] id (_id) should throw at runtime because id field is read-only/immutable', async () => {
           await expect(
             prisma[postModel].update({
               where: {
@@ -195,7 +195,7 @@ testMatrix.setupTestSuite(
           ).toEqual(expectedFindManyCategoryModelIfNoChange)
         })
 
-        test('[update] (post) optional boolean field should succeed', async () => {
+        test.failing('[update] (post) optional boolean field should succeed', async () => {
           await prisma[postModel].update({
             where: {
               id: '1',
@@ -225,7 +225,7 @@ testMatrix.setupTestSuite(
           ).toEqual(expectedFindManyCategoryModelIfNoChange)
         })
 
-        test('[update] (category): optional boolean field should succeed', async () => {
+        test.failing('[update] (category): optional boolean field should succeed', async () => {
           await prisma[categoryModel].update({
             where: {
               id: '1-cat-a',
@@ -280,7 +280,7 @@ testMatrix.setupTestSuite(
         // Note :Referential actions on two-way embedded many-to-many relations are not supported (schema validation error when added)
         // Which means everything has the same following behaviour:
         describe(`onDelete:`, () => {
-          test('[delete] post should succeed', async () => {
+          test.failing('[delete] post should succeed', async () => {
             await prisma[postModel].delete({
               where: { id: '1' },
             })
@@ -299,7 +299,7 @@ testMatrix.setupTestSuite(
             ).toEqual(expectedFindManyCategoryModelIfNoChange)
           })
 
-          test('[delete] category should succeed', async () => {
+          test.failing('[delete] category should succeed', async () => {
             await prisma[categoryModel].delete({
               where: { id: '1-cat-a' },
             })
