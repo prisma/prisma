@@ -1,6 +1,9 @@
 import { Providers } from '../../_utils/providers'
+import { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
 
-export function schema_mton(id, provider, referentialActionLine) {
+export function schema_mton(id, provider, referentialActionLineOutput: ReferentialActionLineOutput) {
+  const { supportsRequired, referentialActionLine } = referentialActionLineOutput
+
   const manyToManySQLExplicit = /* Prisma */ `
 model PostManyToMany {
   id         ${id}
@@ -15,9 +18,13 @@ model CategoryManyToMany {
 }
 
 model CategoriesOnPostsManyToMany {
-  post       PostManyToMany     @relation(fields: [postId], references: [id] ${referentialActionLine})
+  post       PostManyToMany     @relation(fields: [postId], references: [id] ${
+    supportsRequired ? referentialActionLine : ''
+  })
   postId     String
-  category   CategoryManyToMany @relation(fields: [categoryId], references: [id] ${referentialActionLine})
+  category   CategoryManyToMany @relation(fields: [categoryId], references: [id] ${
+    supportsRequired ? referentialActionLine : ''
+  })
   categoryId String
 
   @@id([postId, categoryId])

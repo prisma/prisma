@@ -7,15 +7,15 @@ import { schema_mton } from './_schema_m_to_n'
 
 export default testMatrix.setupSchema(({ provider, previewFeatures, relationMode, onUpdate, onDelete, id }) => {
   const schemaHeader = computeSchemaHeader({ provider, previewFeatures, relationMode })
-  const referentialActionLine = computeReferentialActionLine({ onUpdate, onDelete })
+  const referentialActionLineOutput = computeReferentialActionLine({ onUpdate, onDelete })
 
   return /* Prisma */ `
 ${schemaHeader}
 
-${schema_1to1(id, provider, referentialActionLine)}
+${schema_1to1(id, provider, referentialActionLineOutput)}
 
-${schema_1ton(id, provider, referentialActionLine)}
+${schema_1ton(id, provider, referentialActionLineOutput)}
 
-${schema_mton(id, provider, referentialActionLine)}
+${schema_mton(id, provider, referentialActionLineOutput)}
 `
 })

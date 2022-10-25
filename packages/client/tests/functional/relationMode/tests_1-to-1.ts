@@ -57,10 +57,16 @@ testMatrix.setupTestSuite(
     describe('1:1 mandatory (explicit)', () => {
       const userModel = 'userOneToOne'
       const profileModel = 'profileOneToOne'
+      const profileOptionalModel = 'profileOptionalOneToOne'
       const profileColumn = 'profile'
+      const profileOptionalColumn = 'profileOptional'
 
       beforeEach(async () => {
-        await prisma.$transaction([prisma[profileModel].deleteMany(), prisma[userModel].deleteMany()])
+        await prisma.$transaction([
+          prisma[profileModel].deleteMany(),
+          prisma[profileOptionalModel].deleteMany(),
+          prisma[userModel].deleteMany(),
+        ])
       })
 
       describe('[create]', () => {
@@ -578,36 +584,11 @@ testMatrix.setupTestSuite(
                     "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models."
                   : // DEFAULT / SetNull
                     {
-                      [Providers.POSTGRESQL]:
-                        onUpdate === 'SetNull'
-                          ? // SetNull
-                            'Unique constraint failed on the fields: (`id`)'
-                          : // DEFAULT
-                            'Unique constraint failed on the fields: (`userId`)',
-                      [Providers.COCKROACHDB]:
-                        onUpdate === 'SetNull'
-                          ? // SetNull
-                            'Unique constraint failed on the fields: (`id`)'
-                          : // DEFAULT
-                            'Unique constraint failed on the fields: (`userId`)',
-                      [Providers.MYSQL]:
-                        onUpdate === 'SetNull'
-                          ? // SetNull
-                            'Unique constraint failed on the constraint: `PRIMARY`'
-                          : // DEFAULT
-                            'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
-                      [Providers.SQLSERVER]:
-                        onUpdate === 'SetNull'
-                          ? // SetNull
-                            'Unique constraint failed on the constraint: `dbo.UserOneToOne`'
-                          : // DEFAULT
-                            'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
-                      [Providers.SQLITE]:
-                        onUpdate === 'SetNull'
-                          ? // SetNull
-                            'Unique constraint failed on the fields: (`id`)'
-                          : // DEFAULT
-                            'Unique constraint failed on the fields: (`userId`)',
+                      [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`userId`)',
+                      [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
+                      [Providers.MYSQL]: 'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
+                      [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
+                      [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
                     },
               })
 
@@ -926,26 +907,22 @@ testMatrix.setupTestSuite(
           },
         )
 
-        // Note: The test suite does not test `SetNull` with providers that errors during migration
-        // see _utils/relationMode/computeMatrix.ts
         describeIf(['SetNull'].includes(onDelete))(`onDelete: SetNull`, () => {
           const expectedError = conditionalError.snapshot({
             foreignKeys: {
-              [Providers.POSTGRESQL]: 'Null constraint violation on the fields: (`userId`)',
-              [Providers.COCKROACHDB]: 'Migration error',
-              [Providers.MYSQL]: 'Migration error',
-              [Providers.SQLSERVER]: 'Migration error',
-              [Providers.SQLITE]: 'Null constraint violation on the fields: (`userId`)',
+              [Providers.POSTGRESQL]:
+                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+              [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
+              [Providers.SQLSERVER]:
+                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+              [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
             },
-            prisma: 'It does not error. see https://github.com/prisma/prisma/issues/15683',
+            prisma: 'It does not error. see https://github.com/prisma/prisma/issues/15683 ',
           })
 
           testIf(isRelationMode_foreignKeys)('[delete] parent should throw', async () => {
-            await expect(
-              prisma[userModel].delete({
-                where: { id: '1' },
-              }),
-            ).rejects.toThrowError(expectedError)
+            await expect(prisma[userModel].delete({ where: { id: '1' } })).rejects.toThrowError(expectedError)
 
             expect(
               await prisma[userModel].findMany({
