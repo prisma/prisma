@@ -9,9 +9,11 @@ importers:
 
   .:
     specifiers:
+      '@microsoft/api-extractor': 7.31.2
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
       '@types/benchmark': 2.1.2
+      '@types/fs-extra': 9.0.13
       '@types/glob': 8.0.0
       '@types/graphviz': 0.0.34
       '@types/node': 14.18.32
@@ -36,6 +38,7 @@ importers:
       eslint-plugin-simple-import-sort: 8.0.0
       eventemitter3: 4.0.7
       execa: 5.1.1
+      fs-extra: 10.1.0
       glob: 8.0.3
       globby: 11.1.0
       graphviz-mit: 0.0.9
@@ -64,9 +67,11 @@ importers:
       typescript: 4.8.4
       util: 0.12.5
     devDependencies:
+      '@microsoft/api-extractor': 7.31.2
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
       '@types/benchmark': 2.1.2
+      '@types/fs-extra': 9.0.13
       '@types/glob': 8.0.0
       '@types/graphviz': 0.0.34
       '@types/node': 14.18.32
@@ -91,6 +96,7 @@ importers:
       eslint-plugin-simple-import-sort: 8.0.0_eslint@8.26.0
       eventemitter3: 4.0.7
       execa: 5.1.1
+      fs-extra: 10.1.0
       glob: 8.0.3
       globby: 11.1.0
       graphviz-mit: 0.0.9
@@ -2056,12 +2062,38 @@ packages:
       - supports-color
     dev: true
 
+  /@microsoft/api-extractor-model/7.24.2:
+    resolution: {integrity: sha512-uUvjqTCY7hYERWGks+joTioN1QYHIucCDy7I/JqLxFxLbFXE5dpc1X7L+FG4PN/s8QYL24DKt0fqJkgcrFKLTw==}
+    dependencies:
+      '@microsoft/tsdoc': 0.14.1
+      '@microsoft/tsdoc-config': 0.16.1
+      '@rushstack/node-core-library': 3.52.0
+    dev: true
+
   /@microsoft/api-extractor-model/7.25.1:
     resolution: {integrity: sha512-AaZ0ohCGLRjWiZviM+0p/DaxgMhbawS183LW2+CSqyEBh6wZks7NjoyhzhibAYapS4omnrmv96+0V/2wBvnIZQ==}
     dependencies:
       '@microsoft/tsdoc': 0.14.1
       '@microsoft/tsdoc-config': 0.16.1
       '@rushstack/node-core-library': 3.53.2
+    dev: true
+
+  /@microsoft/api-extractor/7.31.2:
+    resolution: {integrity: sha512-ZODCU9ckTS9brXiZpUW2iDrnAg7jLxeLBM1AkPpSZFcbG/8HGLvfKOKrd71VIJHjc52x2lB8xj7ZWksnP7AOBA==}
+    hasBin: true
+    dependencies:
+      '@microsoft/api-extractor-model': 7.24.2
+      '@microsoft/tsdoc': 0.14.1
+      '@microsoft/tsdoc-config': 0.16.1
+      '@rushstack/node-core-library': 3.52.0
+      '@rushstack/rig-package': 0.3.15
+      '@rushstack/ts-command-line': 4.12.3
+      colors: 1.2.5
+      lodash: 4.17.21
+      resolve: 1.17.0
+      semver: 7.3.8
+      source-map: 0.6.1
+      typescript: 4.7.4
     dev: true
 
   /@microsoft/api-extractor/7.33.4:
@@ -2561,6 +2593,19 @@ packages:
     resolution: {integrity: sha512-ZLJTV2kbAp3Uk1wj55mRxa+q4H0rp9uuvWd5iFApuGqBPiCsDlRIcx3W79nO4fpcX/27KIp+2RvKfGlAyg+WFQ==}
     dev: true
 
+  /@rushstack/node-core-library/3.52.0:
+    resolution: {integrity: sha512-Z+MAP//G3rEGZd3JxJcBGcPYJlh8pvPoLMTLa5Sy6FTE6hRPzN+5J8DT7BbTmlqZaL6SZpXF30heRUbnYOvujw==}
+    dependencies:
+      '@types/node': 12.20.24
+      colors: 1.2.5
+      fs-extra: 7.0.1
+      import-lazy: 4.0.0
+      jju: 1.4.0
+      resolve: 1.17.0
+      semver: 7.3.8
+      z-schema: 5.0.4
+    dev: true
+
   /@rushstack/node-core-library/3.53.2:
     resolution: {integrity: sha512-FggLe5DQs0X9MNFeJN3/EXwb+8hyZUTEp2i+V1e8r4Va4JgkjBNY0BuEaQI+3DW6S4apV3UtXU3im17MSY00DA==}
     dependencies:
@@ -2574,11 +2619,27 @@ packages:
       z-schema: 5.0.4
     dev: true
 
+  /@rushstack/rig-package/0.3.15:
+    resolution: {integrity: sha512-jxVfvO5OnkRlYRhcVDZWvwiI2l4pv37HDJRtyg5HbD8Z/I8Xj32RICgrxS5xMeGGytobrg5S6OfPOHskg7Nw+A==}
+    dependencies:
+      resolve: 1.17.0
+      strip-json-comments: 3.1.1
+    dev: true
+
   /@rushstack/rig-package/0.3.17:
     resolution: {integrity: sha512-nxvAGeIMnHl1LlZSQmacgcRV4y1EYtgcDIrw6KkeVjudOMonlxO482PhDj3LVZEp6L7emSf6YSO2s5JkHlwfZA==}
     dependencies:
       resolve: 1.17.0
       strip-json-comments: 3.1.1
+    dev: true
+
+  /@rushstack/ts-command-line/4.12.3:
+    resolution: {integrity: sha512-Pdij22RotMXzI+HWHyYCvw0RMZhiP5a6Za/96XamZ1+mxmpSm4ujf8TROKxGAHySmR5A8iNVSlzhNMnUlFQE6g==}
+    dependencies:
+      '@types/argparse': 1.0.38
+      argparse: 1.0.10
+      colors: 1.2.5
+      string-argv: 0.3.1
     dev: true
 
   /@rushstack/ts-command-line/4.13.0:
@@ -4828,6 +4889,7 @@ packages:
 
   /commander/2.20.3:
     resolution: {integrity: sha512-GpVkmM8vF2vQUkj2LvZmD35JxeJOLCwJ9cUkugyk2nuhbv3+mJvpLYYt+0+USMxE+oj+ey/lJEnhZw75x/OMcQ==}
+    requiresBuild: true
     dev: true
 
   /commander/7.1.0:
@@ -8248,7 +8310,7 @@ packages:
       pretty-format: 28.1.3
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1_jexns7s3hw4btto2sfu6qjigfu
+      ts-node: 10.9.1_3ml2rap6thybw6zdinselodoyu
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -12841,6 +12903,12 @@ packages:
 
   /typedarray/0.0.6:
     resolution: {integrity: sha512-/aCDEGatGvZ2BIk+HmLf4ifCJFwvKFNb9/JeZPMulfgFracn9QFcAf5GO8B/mweUjSoblS5In0cWhqpfs/5PQA==}
+    dev: true
+
+  /typescript/4.7.4:
+    resolution: {integrity: sha512-C0WQT0gezHuw6AdY1M2jxUO83Rjf0HP7Sk1DtXj6j1EwkQNZrHAg2XPWlq62oqEhYvONq5pkC2Y9oPljWToLmQ==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
     dev: true
 
   /typescript/4.8.4:
