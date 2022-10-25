@@ -18,6 +18,25 @@ test('caches getPropertyValue calls', () => {
   expect(getPropertyValue).toBeCalledTimes(1)
 })
 
+test('forwards getPropertyDescriptor calls', () => {
+  const layer = cacheProperties({
+    getKeys() {
+      return ['prop1', 'prop2']
+    },
+    getPropertyValue() {
+      return 1
+    },
+
+    getPropertyDescriptor(key) {
+      return key === 'prop1' ? { enumerable: false } : undefined
+    },
+  })
+
+  const proxy = createCompositeProxy({}, [layer])
+
+  expect(Object.keys(proxy)).toEqual(['prop2'])
+})
+
 test('keeps separate cache entries for separate properties', () => {
   const getPropertyValue = jest.fn().mockImplementation((key) => {
     return key === 'first' ? 1 : 2

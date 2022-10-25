@@ -21,9 +21,13 @@ export function applyModels(client: Client) {
 }
 
 function modelsLayer(client: Client): CompositeProxyLayer {
+  const dmmfModelKeys = Object.keys(client._baseDmmf.modelMap)
+  const jsModelKeys = dmmfModelKeys.map(dmmfToJSModelName)
+  const allKeys = [...new Set(dmmfModelKeys.concat(jsModelKeys))]
+
   return cacheProperties({
     getKeys() {
-      return Object.keys(client._baseDmmf.modelMap).map(dmmfToJSModelName)
+      return allKeys
     },
 
     getPropertyValue(prop) {
@@ -36,6 +40,14 @@ function modelsLayer(client: Client): CompositeProxyLayer {
       // above silently failed if model name is lower cased
       if (client._baseDmmf.modelMap[prop] !== undefined) {
         return applyModel(client, prop)
+      }
+
+      return undefined
+    },
+
+    getPropertyDescriptor(key) {
+      if (!jsModelKeys.includes(key)) {
+        return { enumerable: false }
       }
 
       return undefined

@@ -1,4 +1,4 @@
-const defaultPropertyDescriptor = {
+export const defaultPropertyDescriptor = {
   enumerable: true,
   configurable: true,
   writable: true,

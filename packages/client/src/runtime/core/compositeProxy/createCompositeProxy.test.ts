@@ -52,6 +52,35 @@ test('allows to add multiple properties via single layer', () => {
   expect(proxy).toHaveProperty('second', 2)
 })
 
+test('allows to set property descriptor via layer', () => {
+  const proxy = createCompositeProxy({}, [
+    {
+      getKeys() {
+        return ['first', 'second']
+      },
+
+      getPropertyValue() {
+        return 123
+      },
+
+      getPropertyDescriptor(key) {
+        if (key === 'first') {
+          return {
+            writable: true,
+            configurable: true,
+            enumerable: false,
+          }
+        }
+        return undefined
+      },
+    },
+  ])
+
+  expect(Object.keys(proxy)).toEqual(['second'])
+  expect(proxy).toHaveProperty('first', 123)
+  expect(proxy).toHaveProperty('second', 123)
+})
+
 test('does not add layers for undeclared keys', () => {
   const getPropertyValue = jest.fn()
   const proxy = createCompositeProxy({} as Record<string, unknown>, [
@@ -176,4 +205,34 @@ test('allows to override a property from a layer', () => {
 
   expect(target.prop).toBe('override')
   expect(proxy.prop).toBe('override')
+})
+
+test('does not allow to overriding property from a layer if it is non writable', () => {
+  const target = {} as Record<string, unknown>
+
+  const proxy = createCompositeProxy(target, [
+    {
+      getKeys() {
+        return ['prop']
+      },
+
+      getPropertyValue() {
+        return 'from proxy'
+      },
+
+      getPropertyDescriptor() {
+        return {
+          writable: false,
+          configurable: false,
+        }
+      },
+    },
+  ])
+
+  expect(() => {
+    proxy.prop = 'override'
+  }).toThrowError()
+
+  expect(target.prop).toBeUndefined()
+  expect(proxy.prop).toBe('from proxy')
 })

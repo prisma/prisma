@@ -1,4 +1,4 @@
-import { defaultProxyHandlers } from '../model/utils/defaultProxyHandlers'
+import { defaultPropertyDescriptor, defaultProxyHandlers } from '../model/utils/defaultProxyHandlers'
 
 export interface CompositeProxyLayer<KeyType extends string | symbol = string | symbol> {
   /**
@@ -12,6 +12,13 @@ export interface CompositeProxyLayer<KeyType extends string | symbol = string | 
    * @param key
    */
   getPropertyValue(key: KeyType): unknown
+
+  /**
+   * Gets a descriptor for given property. If not implemented or undefined is returned, { enumerable: true, writeable: true, configurable: true}
+   * is used
+   * @param key
+   */
+  getPropertyDescriptor?(key: KeyType): PropertyDescriptor | undefined
 }
 
 /**
@@ -49,8 +56,23 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
     },
 
     set(target, prop, value) {
+      const layer = keysToLayerMap.get(prop)
+      if (layer?.getPropertyDescriptor?.(prop)?.writable === false) {
+        return false
+      }
       overwrittenKeys.add(prop)
       return defaultHandlers.set(target, prop, value)
+    },
+
+    getOwnPropertyDescriptor(target, prop) {
+      const layer = keysToLayerMap.get(prop)
+      if (layer && layer.getPropertyDescriptor) {
+        return {
+          ...defaultPropertyDescriptor,
+          ...layer.getPropertyDescriptor(prop),
+        }
+      }
+      return defaultPropertyDescriptor
     },
   })
 }
