@@ -912,8 +912,7 @@ testMatrix.setupTestSuite(
             foreignKeys: {
               [Providers.POSTGRESQL]:
                 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-              [Providers.COCKROACHDB]:
-                'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+              [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
               [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
               [Providers.SQLSERVER]:
                 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
