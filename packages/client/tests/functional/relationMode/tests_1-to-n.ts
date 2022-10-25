@@ -62,7 +62,6 @@ testMatrix.setupTestSuite(
     const isSQLite = suiteConfig.provider === Providers.SQLITE
     const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
     const isRelationMode_foreignKeys = !isRelationMode_prisma
-    const isRelationMode_prismaAndSetNull = isRelationMode_prisma && onDelete === 'SetNull'
 
     /**
      * 1:n relationship
@@ -71,10 +70,16 @@ testMatrix.setupTestSuite(
     describe('1:n mandatory (explicit)', () => {
       const userModel = 'userOneToMany'
       const postModel = 'postOneToMany'
+      const postOptionalModel = 'postOptionalOneToMany'
       const postColumn = 'posts'
+      const postOptionalColumn = 'postsOptional'
 
       beforeEach(async () => {
-        await prisma.$transaction([prisma[postModel].deleteMany(), prisma[userModel].deleteMany()])
+        await prisma.$transaction([
+          prisma[postModel].deleteMany(),
+          prisma[postOptionalModel].deleteMany(),
+          prisma[userModel].deleteMany(),
+        ])
       })
 
       afterEach(async () => {
@@ -333,8 +338,8 @@ testMatrix.setupTestSuite(
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                   [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
-                  [Providers.MYSQL]: ['DEFAULT', 'Cascade'].includes(onUpdate)
-                    ? // DEFAULT / Cascade
+                  [Providers.MYSQL]: ['DEFAULT', 'Cascade', 'SetNull'].includes(onUpdate)
+                    ? // DEFAULT / Cascade / SetNull
                       'Unique constraint failed on the constraint: `PRIMARY`'
                     : // Other
                       'Foreign key constraint failed on the field: `authorId`',
@@ -504,33 +509,22 @@ testMatrix.setupTestSuite(
           'onDelete: DEFAULT, Restrict, NoAction, SetNull',
           () => {
             const expectedError = conditionalError.snapshot({
-              // Note: The test suite does not test `SetNull` with providers that errors during migration
-              // see _utils/relationMode/computeMatrix.ts
               foreignKeys: {
                 [Providers.MONGODB]:
                   "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
                 [Providers.POSTGRESQL]:
-                  onUpdate === 'SetNull'
-                    ? // SetNull
-                      'Null constraint violation on the fields: (`authorId`)'
-                    : // DEFAULT / Restrict
-                      'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                  'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                 [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                 [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                 [Providers.SQLSERVER]:
                   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                [Providers.SQLITE]:
-                  onUpdate === 'SetNull'
-                    ? // SetNull
-                      'Null constraint violation on the fields: (`authorId`)'
-                    : // DEFAULT / Restrict
-                      'Foreign key constraint failed on the field: `foreign key`',
+                [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
               },
               prisma:
                 "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
             })
 
-            testIf(!isRelationMode_prismaAndSetNull)('[delete] parent should throw', async () => {
+            testIf(['SetNull'].includes(onDelete))('[delete] parent should throw', async () => {
               await expect(
                 prisma[userModel].delete({
                   where: { id: '1' },
@@ -552,94 +546,8 @@ testMatrix.setupTestSuite(
                 },
               ])
             })
-            testIf(!isRelationMode_prismaAndSetNull)(
+            testIf(['SetNull'].includes(onDelete))(
               '[delete] a subset of children and then [delete] parent should throw',
-              async () => {
-                await prisma[postModel].delete({
-                  where: { id: '1-post-a' },
-                })
-
-                expect(
-                  await prisma[postModel].findMany({
-                    orderBy: { id: 'asc' },
-                  }),
-                ).toEqual([
-                  {
-                    id: '1-post-b',
-                    authorId: '1',
-                  },
-                  {
-                    id: '2-post-a',
-                    authorId: '2',
-                  },
-                  {
-                    id: '2-post-b',
-                    authorId: '2',
-                  },
-                ])
-
-                await expect(
-                  prisma[userModel].delete({
-                    where: { id: '1' },
-                  }),
-                ).rejects.toThrowError(expectedError)
-
-                expect(
-                  await prisma[userModel].findMany({
-                    orderBy: { id: 'asc' },
-                  }),
-                ).toEqual([
-                  {
-                    id: '1',
-                    enabled: null,
-                  },
-                  {
-                    id: '2',
-                    enabled: null,
-                  },
-                ])
-              },
-            )
-
-            // For all databases (PostgreSQL, SQLite, MySQL, SQL Server, CockroachDB & MongoDB)
-            // onDelete: SetNull & relationMode: prisma
-            // fails the 2 following tests
-            // they are a copy above the tests above but with relationMode: prisma and `.failing`
-            // So we can run all the tests successfully
-            //
-            // They fail with
-            // Received promise resolved instead of rejected
-            // Resolved to value: {"enabled": null, "id": "1"}
-            //
-            // See issue https://github.com/prisma/prisma/issues/15683
-
-            testIf(isRelationMode_prismaAndSetNull).failing(
-              'relationMode=prisma / SetNull: [delete] parent should throw',
-              async () => {
-                await expect(
-                  prisma[userModel].delete({
-                    where: { id: '1' },
-                  }),
-                ).rejects.toThrowError(expectedError)
-
-                expect(
-                  await prisma[userModel].findMany({
-                    orderBy: { id: 'asc' },
-                  }),
-                ).toEqual([
-                  {
-                    id: '1',
-                    enabled: null,
-                  },
-                  {
-                    id: '2',
-                    enabled: null,
-                  },
-                ])
-              },
-            )
-            testIf(isRelationMode_prismaAndSetNull).failing(
-              'relationMode=prisma / SetNull: [delete] a subset of children and then [delete] parent should throw',
               async () => {
                 await prisma[postModel].delete({
                   where: { id: '1-post-a' },

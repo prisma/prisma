@@ -3,7 +3,21 @@ type ComputeReferentialActionLine = {
   onDelete: string
 }
 
-export function computeReferentialActionLine({ onUpdate, onDelete }: ComputeReferentialActionLine): string {
+export type ReferentialActionLineOutput = {
+  // is the referential action supported by a relation whose field arity is required?
+  supportsRequired: boolean
+
+  // the referential action part of a relation, e.g. `onUpdate: Cascade, onDelete: Cascade`
+  referentialActionLine: string
+}
+
+export function computeReferentialActionLine({
+  onUpdate,
+  onDelete,
+}: ComputeReferentialActionLine): ReferentialActionLineOutput {
+  // required fields in a relation do not support the `SetNull` referential action
+  const supportsRequired = ![onUpdate, onDelete].includes('SetNull')
+
   let referentialActionLine = ''
   const DEFAULT = 'DEFAULT'
 
@@ -15,5 +29,5 @@ export function computeReferentialActionLine({ onUpdate, onDelete }: ComputeRefe
     referentialActionLine += `, onDelete: ${onDelete}`
   }
 
-  return referentialActionLine
+  return { supportsRequired, referentialActionLine }
 }
