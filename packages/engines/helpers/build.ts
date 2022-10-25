@@ -25,7 +25,6 @@ const defaultBuildConfig: BuildOptions = {
   entryPoints: ['src/index.ts'],
   outfile: 'dist/index',
   bundle: true,
-  emitTypes: false,
 }
 
 void build([postinstallBuildConfig, localinstallBuildConfig, defaultBuildConfig])

@@ -1,6 +1,5 @@
 {
   "compilerOptions": {
-    "incremental": true,
     "target": "es2018",
     "module": "commonjs",
     "lib": ["es2018", "ES2021.WeakRef"],
