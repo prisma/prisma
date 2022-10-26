@@ -12,7 +12,7 @@ import type {
 import { Engine } from '../common/Engine'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import { QueryEngineBatchRequest } from '../common/types/QueryEngine'
+import { QueryEngineBatchRequest, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
@@ -143,13 +143,18 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>(query: string, headers: Record<string, string>) {
+  request<T>(query: string, headers: QueryEngineRequestHeaders = {}): Promise<QueryEngineResult<T>> {
     this.logEmitter.emit('query', { query })
 
+    // TODO: `elapsed`?
     return this.requestInternal<T>({ query, variables: {} }, headers)
   }
 
-  async requestBatch<T>(queries: string[], headers: Record<string, string>, transaction?: BatchTransactionOptions) {
+  async requestBatch<T>(
+    queries: string[],
+    headers: QueryEngineRequestHeaders = {},
+    transaction?: BatchTransactionOptions,
+  ): Promise<QueryEngineResult<T>[]> {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
       query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,
@@ -161,12 +166,17 @@ export class DataProxyEngine extends Engine {
       isolationLevel: transaction?.isolationLevel,
     }
 
-    const { batchResult } = await this.requestInternal<T>(body, headers)
+    const { batchResult } = await this.requestInternal<T, true>(body, headers)
 
+    // TODO: add elapsed to each result similar to BinaryEngine
+    // also check that the error handling is correct for batch
     return batchResult
   }
 
-  private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>) {
+  private async requestInternal<T, Batch extends boolean = false>(
+    body: Record<string, any>,
+    headers: QueryEngineRequestHeaders,
+  ): Promise<Batch extends true ? { batchResult: QueryEngineResult<T>[] } : QueryEngineResult<T>> {
     return await this.withRetry({
       actionGerund: 'querying',
       callback: async ({ logHttpCall }) => {
@@ -177,7 +187,7 @@ export class DataProxyEngine extends Engine {
 
         const response = await request(url, {
           method: 'POST',
-          headers: { ...headers, ...this.headers },
+          headers: { ...clientHeadersToDataProxyHeaders(headers), ...this.headers },
           body: JSON.stringify(body),
           clientVersion: this.clientVersion,
         })
@@ -409,4 +419,18 @@ export class DataProxyEngine extends Engine {
       throw error
     }
   }
+}
+
+function clientHeadersToDataProxyHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
+  const result: Record<string, string | undefined> = {}
+
+  for (const headerKey of Object.keys(headers)) {
+    if (headerKey === 'transactionId') {
+      result['X-transaction-id'] = headers[headerKey]
+    } else {
+      result[headerKey] = headers[headerKey]
+    }
+  }
+
+  return result
 }
