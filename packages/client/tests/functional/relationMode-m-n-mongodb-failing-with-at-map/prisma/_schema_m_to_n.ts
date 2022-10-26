@@ -73,17 +73,3 @@ model CategoryManyToMany {
 ${provider === Providers.MONGODB ? manyToManyMongoDB : manyToManySQLExplicit}
 `
 }
-
-// const manyToManySQLImplicit = /* Prisma */ `
-// model PostManyToMany {
-//   id         String        @id
-//   categories CategoryManyToMany[]
-//   published   Boolean?
-// }
-
-// model CategoryManyToMany {
-//   id    String    @id
-//   posts PostManyToMany[]
-//   published   Boolean?
-// }
-// `
