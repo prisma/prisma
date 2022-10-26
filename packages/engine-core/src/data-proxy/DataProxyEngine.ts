@@ -201,6 +201,8 @@ export class DataProxyEngine extends Engine {
 
         const data = await response.json()
 
+        // TODO: headers contain `x-elapsed` and it needs to be returned
+
         if (data.errors) {
           if (data.errors.length === 1) {
             throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
