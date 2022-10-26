@@ -4,9 +4,21 @@ import { Validate } from '../../Validate'
 
 const ctx = jestContext.new().assemble()
 
-it('validate should throw if schema is broken', async () => {
+it('validate should succeed if schema is valid', async () => {
   ctx.fixture('example-project/prisma')
-  await expect(Validate.new().parse(['--schema=broken.prisma'])).rejects.toThrowError()
+  await expect(Validate.new().parse(['--schema=schema.prisma'])).resolves.toContain('is valid')
+})
+
+it('validate should throw if schema is invalid', async () => {
+  ctx.fixture('example-project/prisma')
+  await expect(Validate.new().parse(['--schema=broken.prisma'])).rejects.toThrowError('Schema validation error')
+})
+
+it('validate should throw if env var is not set', async () => {
+  ctx.fixture('example-project/prisma')
+  await expect(Validate.new().parse(['--schema=env-does-not-exists.prisma'])).rejects.toThrowError(
+    'Environment variable not found',
+  )
 })
 
 describe('referential actions', () => {
