@@ -61,9 +61,9 @@
   ],
   "devDependencies": {
     "@faker-js/faker": "7.6.0",
-    "@fast-check/jest": "1.0.1",
+    "@fast-check/jest": "1.3.1",
     "@jest/test-sequencer": "28.1.3",
-    "@microsoft/api-extractor": "7.33.1",
+    "@microsoft/api-extractor": "7.33.5",
     "@opentelemetry/api": "1.2.0",
     "@opentelemetry/context-async-hooks": "1.7.0",
     "@opentelemetry/instrumentation": "0.33.0",
@@ -81,8 +81,8 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.2.0",
     "@swc-node/register": "1.5.4",
-    "@swc/core": "1.3.8",
-    "@swc/jest": "0.2.22",
+    "@swc/core": "1.3.10",
+    "@swc/jest": "0.2.23",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
@@ -97,9 +97,9 @@
     "chalk": "4.1.2",
     "cuid": "2.1.8",
     "decimal.js": "10.4.2",
-    "esbuild": "0.15.10",
+    "esbuild": "0.15.12",
     "execa": "5.1.1",
-    "expect-type": "0.14.2",
+    "expect-type": "0.15.0",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "10.1.0",
     "fs-monkey": "1.0.3",
@@ -149,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.6.0-4.bc452eb701d4709e75729888e0ea0f53c19775d1"
+    "@prisma/engines-version": "4.6.0-16.5b408740a8e34034fbec56170296d016da6dabca"
   },
   "sideEffects": false
 }

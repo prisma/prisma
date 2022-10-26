@@ -21,7 +21,7 @@ datasource db {
 }
   `
 
-  const referentialActionLine = computeReferentialActionLine({ ...referentialActions })
+  const { referentialActionLine } = computeReferentialActionLine({ ...referentialActions })
 
   return /* Prisma */ `
 ${schemaHeader}
