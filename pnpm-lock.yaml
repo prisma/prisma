@@ -691,7 +691,7 @@ importers:
       find-up: 5.0.0
       fp-ts: 2.13.1
       fs-extra: 10.1.0
-      fs-jetpack: 5.0.0
+      fs-jetpack: 5.1.0
       global-dirs: 3.0.0
       globby: 11.1.0
       has-yarn: 2.1.0
@@ -742,7 +742,7 @@ importers:
       find-up: 5.0.0
       fp-ts: 2.13.1
       fs-extra: 10.1.0
-      fs-jetpack: 5.0.0
+      fs-jetpack: 5.1.0
       global-dirs: 3.0.0
       globby: 11.1.0
       has-yarn: 2.1.0
@@ -6634,17 +6634,10 @@ packages:
       universalify: 0.1.2
     dev: true
 
-  /fs-jetpack/5.0.0:
-    resolution: {integrity: sha512-0f9QoIbfAq/DuafAQisvsHJmLnJB2D53d9FXIu0UZPUg4Kzocez1+AinToPON6JD/C60kDlye121puiR5ivfdg==}
-    dependencies:
-      minimatch: 5.1.0
-    dev: false
-
   /fs-jetpack/5.1.0:
     resolution: {integrity: sha512-Xn4fDhLydXkuzepZVsr02jakLlmoARPy+YWIclo4kh0GyNGUHnTqeH/w/qIsVn50dFxtp8otPL2t/HcPJBbxUA==}
     dependencies:
       minimatch: 5.1.0
-    dev: true
 
   /fs-minipass/2.1.0:
     resolution: {integrity: sha512-V/JgOLFCS+R6Vcq0slCuaeWEdNC3ouDlJMNIsacH2VtALiu9mV4LPrHc5cDl8k5aw6J8jwgWWpiTo5RYhmIzvg==}

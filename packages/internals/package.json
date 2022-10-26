@@ -57,7 +57,7 @@
     "find-up": "5.0.0",
     "fp-ts": "2.13.1",
     "fs-extra": "10.1.0",
-    "fs-jetpack": "5.0.0",
+    "fs-jetpack": "5.1.0",
     "global-dirs": "3.0.0",
     "globby": "11.1.0",
     "has-yarn": "2.1.0",
