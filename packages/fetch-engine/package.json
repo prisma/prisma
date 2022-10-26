@@ -17,7 +17,7 @@
   "devDependencies": {
     "@prisma/engines-version": "4.6.0-13.c56b082b48dc7a5cb7381933d62b1685266bdef8",
     "@swc/core": "1.3.10",
-    "@swc/jest": "0.2.22",
+    "@swc/jest": "0.2.23",
     "@types/jest": "28.1.8",
     "@types/node": "16.18.0",
     "@types/node-fetch": "2.6.2",
