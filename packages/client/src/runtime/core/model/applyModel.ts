@@ -3,7 +3,13 @@ import type { O } from 'ts-toolbelt'
 import { type ClientModelAction, clientOnlyActions, getDmmfActionName, isClientOnlyAction } from '../../clientActions'
 import type { Client, InternalRequestParams } from '../../getPrismaClient'
 import { getCallSite } from '../../utils/CallSite'
-import { addProperty, cacheProperties, CompositeProxyLayer, createCompositeProxy, forwardTo } from '../compositeProxy'
+import {
+  addObjectProperties,
+  addProperty,
+  cacheProperties,
+  CompositeProxyLayer,
+  createCompositeProxy,
+} from '../compositeProxy'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import type { PrismaPromise } from '../request/PrismaPromise'
 import { applyAggregates } from './applyAggregates'
@@ -40,11 +46,11 @@ export function applyModel(client: Client, dmmfModelName: string) {
     }
 
     if (model.$allModels) {
-      layers.push(forwardTo(model.$allModels))
+      layers.push(addObjectProperties(model.$allModels))
     }
 
     if (model[jsModelName]) {
-      layers.push(forwardTo(model[jsModelName]))
+      layers.push(addObjectProperties(model[jsModelName]))
     }
   }
   return createCompositeProxy({}, layers)

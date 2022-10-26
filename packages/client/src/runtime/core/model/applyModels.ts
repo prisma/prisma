@@ -1,5 +1,5 @@
 import type { Client } from '../../getPrismaClient'
-import { addProperty, cacheProperties, CompositeProxyLayer, createCompositeProxy, forwardTo } from '../compositeProxy'
+import { addProperty, cacheProperties, CompositeProxyLayer, createCompositeProxy } from '../compositeProxy'
 import { applyModel } from './applyModel'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import { jsToDMMFModelName } from './utils/jsToDMMFModelName'

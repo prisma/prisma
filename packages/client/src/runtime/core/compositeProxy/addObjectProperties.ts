@@ -7,7 +7,7 @@ import type { CompositeProxyLayer } from './createCompositeProxy'
  * @param object
  * @returns
  */
-export function forwardTo(object: object): CompositeProxyLayer {
+export function addObjectProperties(object: object): CompositeProxyLayer {
   return {
     getKeys() {
       return Object.keys(object)
