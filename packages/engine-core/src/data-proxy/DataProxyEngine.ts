@@ -244,8 +244,8 @@ export class DataProxyEngine extends Engine {
           await this.handleError(err)
 
           const json = await response.json()
+          const id = json.id as string
           const endpoint = json['data-proxy'].endpoint as string
-          const id = endpoint.split('/').pop() as string
 
           txBaseUrls.set(id, endpoint)
 
