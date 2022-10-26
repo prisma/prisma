@@ -89,6 +89,6 @@ function mapKeysToLayers(layers: CompositeProxyLayer[]) {
 }
 
 function getOwnKeys(target: object, layerKeys: (string | symbol)[]) {
-  const set = new Set([...Object.keys(target), ...layerKeys])
+return [...new Set([...Object.keys(target), ...layerKeys])]
   return Array.from(set)
 }
