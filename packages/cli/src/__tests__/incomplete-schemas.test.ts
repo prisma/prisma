@@ -10,8 +10,6 @@ import { Validate } from '../Validate'
 
 const ctx = jestContext.new().assemble()
 
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
 /**
  * Commands:
  * - wasm engine
@@ -67,8 +65,6 @@ const envVarNotFoundValidationError = `
   Prisma CLI Version : 0.0.0
   `
 
-// - `Validation Error Count` is missing
-// - The error code is missing (as it's set to null in the given error)
 const urlMustStartWithProtocolValidationError = `
  Schema validation error - Error (get-config wasm)
  Error code: P1012
@@ -368,7 +364,6 @@ describe('[normalized library/binary] incomplete-schemas', () => {
     })
   })
 
-  // TODO: OK
   describe('empty-schema', () => {
     beforeEach(() => {
       ctx.fixture('incomplete-schemas/empty-schema/prisma')
