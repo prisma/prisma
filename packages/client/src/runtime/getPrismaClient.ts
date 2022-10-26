@@ -1164,6 +1164,7 @@ new PrismaClient({
           rootTypeName: operation,
           select: args,
           modelName: model,
+          extensions: this._extensions,
         })
 
         document.validate(args, false, clientMethod, this._errorFormat, callsite)
@@ -1208,6 +1209,7 @@ new PrismaClient({
         callsite,
         args,
         engineHook: this._middlewares.engine.get(0),
+        extensions: this._extensions,
         headers,
         transaction,
         unpacker,

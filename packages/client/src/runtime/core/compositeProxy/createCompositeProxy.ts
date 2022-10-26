@@ -1,4 +1,4 @@
-import { defaultPropertyDescriptor, defaultProxyHandlers } from '../model/utils/defaultProxyHandlers'
+import { defaultPropertyDescriptor } from '../model/utils/defaultProxyHandlers'
 
 export interface CompositeProxyLayer<KeyType extends string | symbol = string | symbol> {
   /**
@@ -19,6 +19,12 @@ export interface CompositeProxyLayer<KeyType extends string | symbol = string | 
    * @param key
    */
   getPropertyDescriptor?(key: KeyType): PropertyDescriptor | undefined
+
+  /**
+   * Allows to override results for hasOwnProperty/in operator. If not implemented, returns true
+   * @param key
+   */
+  has?(key: KeyType): boolean
 }
 
 /**
@@ -33,12 +39,9 @@ export interface CompositeProxyLayer<KeyType extends string | symbol = string | 
  */
 export function createCompositeProxy<T extends object>(target: T, layers: CompositeProxyLayer[]): T {
   const keysToLayerMap = mapKeysToLayers(layers)
-  const ownKeys = getOwnKeys(target, Array.from(keysToLayerMap.keys()))
   const overwrittenKeys = new Set<string | symbol>()
 
-  const defaultHandlers = defaultProxyHandlers<T>(ownKeys)
   return new Proxy(target, {
-    ...defaultHandlers,
     get(target, prop) {
       // explicit overwrites of a property have highest priority
       if (overwrittenKeys.has(prop)) {
@@ -55,13 +58,31 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
       return target[prop]
     },
 
+    has(target, prop) {
+      if (overwrittenKeys.has(prop)) {
+        return true
+      }
+      const layer = keysToLayerMap.get(prop)
+      if (layer) {
+        return layer.has?.(prop) ?? true
+      }
+
+      return Reflect.has(target, prop)
+    },
+
+    ownKeys(target) {
+      const targetKeys = getExistingKeys(Reflect.ownKeys(target), keysToLayerMap)
+      const layerKeys = getExistingKeys(Array.from(keysToLayerMap.keys()), keysToLayerMap)
+      return [...new Set([...targetKeys, ...layerKeys, ...overwrittenKeys])]
+    },
+
     set(target, prop, value) {
       const layer = keysToLayerMap.get(prop)
       if (layer?.getPropertyDescriptor?.(prop)?.writable === false) {
         return false
       }
       overwrittenKeys.add(prop)
-      return defaultHandlers.set(target, prop, value)
+      return Reflect.set(target, prop, value)
     },
 
     getOwnPropertyDescriptor(target, prop) {
@@ -88,6 +109,9 @@ function mapKeysToLayers(layers: CompositeProxyLayer[]) {
   return keysToLayerMap
 }
 
-function getOwnKeys(target: object, layerKeys: (string | symbol)[]) {
-  return [...new Set([...Object.keys(target), ...layerKeys])]
+function getExistingKeys(keys: Array<string | symbol>, keysToLayerMap: Map<string | symbol, CompositeProxyLayer>) {
+  return keys.filter((key) => {
+    const layer = keysToLayerMap.get(key)
+    return layer?.has?.(key) ?? true
+  })
 }
