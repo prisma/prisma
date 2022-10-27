@@ -72,16 +72,14 @@ describe('generatorHandler', () => {
   })
 
   // TODO: Windows: this test fails with ENOENT even though the .cmd file is there and can be run manually.
-  testIf(process.platform !== 'win32')('parsing error', async () => {
-    // It fails often and randomly on GitHub Actions with
-    // Received promise resolved instead of rejected
-    // Resolved to value: undefined
-    // So we retry it with the hope that it a retry would help
-    jest.retryTimes(3)
-    
-    const generator = new GeneratorProcess(getExecutable('invalid-executable'))
-    await expect(() => generator.init()).rejects.toThrow('Cannot find module')
-  })
+  testIf(process.platform !== 'win32')(
+    'parsing error',
+    async () => {
+      const generator = new GeneratorProcess(getExecutable('invalid-executable'), { initWaitTime: 5000 })
+      await expect(() => generator.init()).rejects.toThrow('Cannot find module')
+    },
+    10_000,
+  )
 
   test('minimal-executable', async () => {
     const generator = new GeneratorProcess(getExecutable('minimal-executable'))

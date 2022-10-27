@@ -65,6 +65,14 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   logLevel: 'error',
 }
 
+// we define the config for edge in esm format (used by deno)
+const edgeEsmRuntimeBuildConfig: BuildOptions = {
+  ...edgeRuntimeBuildConfig,
+  name: 'edge-esm',
+  outfile: 'runtime/edge-esm',
+  format: 'esm',
+}
+
 // we define the config for generator
 const generatorBuildConfig: BuildOptions = {
   name: 'generator',
@@ -127,7 +135,13 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
   }
 }
 
-void build([generatorBuildConfig, nodeRuntimeBuildConfig, browserBuildConfig, edgeRuntimeBuildConfig]).then(() => {
+void build([
+  generatorBuildConfig,
+  nodeRuntimeBuildConfig,
+  browserBuildConfig,
+  edgeRuntimeBuildConfig,
+  edgeEsmRuntimeBuildConfig,
+]).then(() => {
   if (process.env.DEV !== 'true') {
     bundleTypeDefinitions('declaration/runtime/index', 'runtime/index')
     bundleTypeDefinitions('declaration/runtime/index-browser', 'runtime/index-browser')

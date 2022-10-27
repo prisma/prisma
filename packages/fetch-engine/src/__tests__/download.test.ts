@@ -16,6 +16,7 @@ const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/
 
 // Network can be slow, especially for macOS in CI.
 jest.setTimeout(300_000)
+jest.retryTimes(3)
 
 describe('download', () => {
   beforeEach(async () => {
@@ -553,8 +554,8 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     )
 
     // This is a rather high number to avoid flakiness in CI
-    expect(timeInMsToDownloadAllFromCache1).toBeLessThan(60_000)
-    expect(timeInMsToDownloadAllFromCache2).toBeLessThan(60_000)
+    expect(timeInMsToDownloadAllFromCache1).toBeLessThan(100_000)
+    expect(timeInMsToDownloadAllFromCache2).toBeLessThan(100_000)
 
     // Using cache should be faster
     expect(timeInMsToDownloadAllFromCache1).toBeLessThan(timeInMsToDownloadAll)

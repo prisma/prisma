@@ -2,7 +2,7 @@ export type EmptyObjectToUnknown<T> = T extends unknown ? ({} extends T ? unknow
 
 export type EmptyToUnknown<T> = [T] extends [never] ? unknown : T
 
-export type PatchDeepObject<O1 extends object, O2 extends object, O = O1 & O2> = {
+export type PatchDeepObject<O1, O2, O = O1 & O2> = {
   /* eslint-disable prettier/prettier */
   [K in keyof O]:
     K extends keyof O1
@@ -21,7 +21,7 @@ export type PatchDeepObject<O1 extends object, O2 extends object, O = O1 & O2> =
     /* eslint-enable */
 }
 
-export type PatchFlat<O1 extends object, O2 extends object, O = O1 & O2> = {
+export type PatchFlat<O1, O2, O = O1 & O2> = {
   /* eslint-disable prettier/prettier */
     [K in keyof O]:
     K extends keyof O1

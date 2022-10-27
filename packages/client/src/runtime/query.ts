@@ -404,9 +404,12 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
 
     if (error.type === 'atLeastOne') {
       const additional = minimal ? '' : ` Available args are listed in ${chalk.dim.green('green')}.`
+      const atLeastFieldsError = error.atLeastFields
+        ? ` and at least one argument for ${error.atLeastFields.map((field) => chalk.bold(field)).join(', or ')}`
+        : ''
       return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
         error.inputType.name,
-      )} needs ${chalk.greenBright('at least one')} argument.${additional}`
+      )} needs ${chalk.greenBright('at least one')} argument${chalk.bold(atLeastFieldsError)}.${additional}`
     }
 
     if (error.type === 'atMostOne') {
@@ -646,6 +649,10 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
       return `[${value.join(', ')}]`
     }
     return value
+  }
+
+  if (typeof value === 'number' && inputType?.type === 'Float') {
+    return value.toExponential()
   }
 
   return JSON.stringify(value, null, 2)
@@ -1343,15 +1350,17 @@ function tryInferArgs(
         const numKeys = keys.length
 
         if (
-          numKeys === 0 &&
-          typeof inputType.type.constraints.minNumFields === 'number' &&
-          inputType.type.constraints.minNumFields > 0
+          (numKeys === 0 &&
+            typeof inputType.type.constraints.minNumFields === 'number' &&
+            inputType.type.constraints.minNumFields > 0) ||
+          inputType.type.constraints.fields?.some((field) => keys.includes(field)) === false
         ) {
           // continue here
           error = {
             type: 'atLeastOne',
             key,
             inputType: inputType.type,
+            atLeastFields: inputType.type.constraints.fields,
           }
         } else if (
           numKeys > 1 &&

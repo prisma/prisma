@@ -114,6 +114,7 @@ export interface AtLeastOneError {
   type: 'atLeastOne'
   key: string
   inputType: DMMF.InputType
+  atLeastFields?: string[]
 }
 
 /**
