@@ -10,6 +10,121 @@ import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
 
+function clientExtensionsModelResultDefinition(this: PrismaClientClass) {
+  const modelNames = Object.keys(this.dmmf.getModelMap())
+
+  const modelResultNeedsGenericParam = (modelName: string) => {
+    return `R_${modelName}_Needs extends {
+      [K in keyof R_${modelName}_Fields]: Prisma.${modelName}SelectScalar
+    } & {
+      [K in string]: Prisma.${modelName}SelectScalar
+    }`
+  }
+
+  const modelResultFieldsGenericParam = (modelName: string) => {
+    return `R_${modelName}_Fields extends {
+      [K in keyof R_${modelName}_Needs]: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }> & Prisma.OptionalFlat<${modelName}>) => unknown
+    }`
+  }
+
+  const modelResultGenericParams = (modelName: string) => {
+    return [modelResultNeedsGenericParam(modelName), modelResultFieldsGenericParam(modelName)]
+  }
+
+  const resultGenericParams = [
+    ...modelNames.flatMap(modelResultGenericParams),
+    'R extends runtime.Types.Extensions.Args["result"] = {}',
+  ].join(',\n    ')
+
+  const modelResultParam = (modelName: string) => {
+    return `${lowerCase(modelName)}?: { needs: R_${modelName}_Needs, fields: R_${modelName}_Fields }`
+  }
+
+  const resultParams = `{
+        ${modelNames.map(modelResultParam).join(',\n        ')}
+      }`
+
+  return {
+    genericParams: resultGenericParams,
+    params: resultParams,
+  }
+}
+
+function clientExtensionsModelDefinition(this: PrismaClientClass) {
+  const modelNames = Object.keys(this.dmmf.getModelMap())
+
+  const modelGenericParam = `M extends {${modelNames.reduce((acc, modelName) => {
+    return `${acc}
+      ${lowerCase(modelName)}?: runtime.Types.Extensions.Args['model'][string]`
+  }, '')}
+    } = {}`
+
+  return {
+    genericParams: modelGenericParam,
+  }
+}
+
+function clientExtensionsQueryDefinition(this: PrismaClientClass) {
+  const modelNames = Object.keys(this.dmmf.getModelMap())
+
+  const modelGenericParam = `Q extends {${modelNames.reduce((acc, modelName) => {
+    return `${acc}
+      ${lowerCase(modelName)}?: runtime.Types.Extensions.Args['query'][string]`
+  }, '')}
+    } = {}`
+
+  return {
+    genericParams: modelGenericParam,
+  }
+}
+
+function clientExtensionsClientDefinition(this: PrismaClientClass) {
+  if (!this.generator?.previewFeatures.includes('clientExtensions')) {
+    // return ''
+  }
+
+  const clientGenericParam = `C extends runtime.Types.Extensions.Args['client'] = {}`
+
+  return {
+    genericParams: clientGenericParam,
+  }
+}
+
+function clientExtensionsDefinition(this: PrismaClientClass) {
+  const result = clientExtensionsModelResultDefinition.call(this)
+  const model = clientExtensionsModelDefinition.call(this)
+  const client = clientExtensionsClientDefinition.call(this)
+  const query = clientExtensionsQueryDefinition.call(this)
+
+  return `
+  /**
+   * Allows you to extend the Prisma Client with custom logic.
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/extends).
+   */
+  $extends<
+    ${result.genericParams},
+    ${client.genericParams},
+    ${model.genericParams},
+    ${query.genericParams},
+  >(extension: {
+    result?: Prisma.Cast<R, ${result.params}>
+    model?: M,
+    client?: C,
+    query?: Q,
+  }): runtime.Types.Utils.PatchDeepObject<{ result: R, model: M, query: Q, client: C }, ExtArgs> extends infer ExtArgs
+      ? ExtArgs extends runtime.Types.Extensions.Args 
+        ? runtime.Types.Utils.PatchFlat<
+            runtime.Types.Utils.EmptyObjectToUnknown<{ 
+              [K in Exclude<keyof ExtArgs['client'], symbol> as \`$\${K}\`]: ExtArgs['client'][K]
+            }>,
+            PrismaClient<T, U, GlobalReject, ExtArgs>
+          >
+        : never
+      : never
+`
+}
+
 function batchingTransactionDefinition(this: PrismaClientClass) {
   const args = ['arg: [...P]']
   if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
@@ -191,7 +306,8 @@ export class PrismaClient<
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
   GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined = 'rejectOnNotFound' extends keyof T
     ? T['rejectOnNotFound']
-    : false
+    : false,
+  ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: {}, query: {}, client: {} }
       > {
       /**
        * @private
@@ -245,6 +361,7 @@ ${[
   interactiveTransactionDefinition.bind(this)(),
   runCommandRawDefinition.bind(this)(),
   metricDefinition.bind(this)(),
+  clientExtensionsDefinition.bind(this)(),
 ]
   .join('\n')
   .trim()}
@@ -263,7 +380,9 @@ ${[
   * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
   * \`\`\`
   */
-get ${methodName}(): Prisma.${m.model}Delegate<GlobalReject>;`
+get ${methodName}(): runtime.Types.Utils.PatchFlat<runtime.Types.Utils.EmptyToUnknown<ExtArgs['model']['${lowerCase(
+            m.model,
+          )}']>, Prisma.${m.model}Delegate<GlobalReject, ExtArgs>>;`
         })
         .join('\n\n'),
       2,

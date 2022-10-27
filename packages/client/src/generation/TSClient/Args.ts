@@ -2,6 +2,7 @@ import indent from 'indent-string'
 
 import { ClientModelAction } from '../../runtime/clientActions'
 import { DMMF } from '../../runtime/dmmf-types'
+import { lowerCase } from '../../runtime/utils/common'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
@@ -82,7 +83,7 @@ export class ArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${modelArgName} = {
+export type ${modelArgName}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
@@ -104,14 +105,14 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.gene
 /**
  * ${name} base type for ${action} actions
  */
-export type ${baseTypeName} = {
+export type ${baseTypeName}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 
 /**
  * ${name}: ${action}
  */
-export interface ${modelArgName} extends ${baseTypeName} {
+export interface ${modelArgName}<ExtArgs extends runtime.Types.Extensions.Args = never> extends ${baseTypeName}<ExtArgs> {
  /**
   * Throw an Error if query returns no results
   * @deprecated since 4.0.0: use \`${replacement}\` method instead
@@ -134,7 +135,7 @@ export interface ${modelArgName} extends ${baseTypeName} {
 /**
  * ${name}: ${action}
  */
-export type ${modelArgName} = ${baseTypeName}
+export type ${modelArgName}<ExtArgs extends runtime.Types.Extensions.Args = never> = ${baseTypeName}<ExtArgs>
       `
   }
 }
@@ -159,7 +160,7 @@ export class MinimalArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${this.generatedTypeName} = {
+export type ${this.generatedTypeName}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
 ${indent(
   args
     .map((arg) => {

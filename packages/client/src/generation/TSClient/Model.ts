@@ -10,6 +10,7 @@ import {
 } from '../../runtime/clientActions'
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
+import { lowerCase } from '../../runtime/utils/common'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import {
   getAggregateArgsName,
@@ -279,7 +280,7 @@ ${indent(
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
-      ? `\nexport type ${getIncludeName(model.name)} = {
+      ? `\nexport type ${getIncludeName(model.name)}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
 ${indent(
   outputType.fields
     .filter((f) => {
@@ -291,14 +292,14 @@ ${indent(
       return (
         `${f.name}?: boolean` +
         (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}`
+          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}<ExtArgs>`
           : '')
       )
     })
     .join('\n'),
   TAB_SIZE,
 )}
-}\n`
+} \n`
       : ''
 
     return `
@@ -310,7 +311,7 @@ ${!this.dmmf.typeMap[model.name] ? this.getAggregationTypes() : ''}
 
 ${!this.dmmf.typeMap[model.name] ? this.getGroupByTypes() : ''}
 
-export type ${getSelectName(model.name)} = {
+export type ${getSelectName(model.name)}<ExtArgs extends runtime.Types.Extensions.Args = never>  = {
 ${indent(
   outputType.fields
     .map((f) => {
@@ -318,10 +319,21 @@ ${indent(
       return (
         `${f.name}?: boolean` +
         (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}`
+          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}<ExtArgs>`
           : '')
       )
     })
+    .join('\n'),
+  TAB_SIZE,
+)}
+} & runtime.Types.Extensions.GetResultSelect<ExtArgs['result']['${lowerCase(model.name)}']>
+
+// TODO put this behind preview flag
+export type ${getSelectName(model.name)}Scalar = {
+${indent(
+  outputType.fields
+    .filter((field) => field.outputType.location === 'scalar')
+    .map((f) => `${f.name}?: boolean`)
     .join('\n'),
   TAB_SIZE,
 )}
@@ -397,7 +409,7 @@ ${
 `
     : ''
 }
-export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined, ExtArgs extends runtime.Types.Extensions.Args = never> {
 ${indent(
   nonAggregateActions
     .map(
@@ -509,7 +521,7 @@ ${fieldsProxy}
  * Because we want to prevent naming conflicts as mentioned in
  * https://github.com/prisma/prisma-client-js/issues/707
  */
-export class Prisma__${name}Client<T, Null = never> implements PrismaPromise<T> {
+export class Prisma__${name}Client<T, Null = never, ExtArgs extends runtime.Types.Extensions.Args = never> implements PrismaPromise<T> {
   [prisma]: true;
   private readonly _dmmf;
   private readonly _fetcher;
@@ -531,10 +543,13 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])} = {}>(args?: Subset<T, ${getFieldArgName(
+${f.name}<T extends ${getFieldArgName(
         f,
         !this.dmmf.typeMap[fieldTypeName],
-      )}>): ${getReturnType({
+      )}<ExtArgs> = {}>(args?: Subset<T, ${getFieldArgName(
+        f,
+        !this.dmmf.typeMap[fieldTypeName],
+      )}<ExtArgs>>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
         hideCondition: false,

@@ -3,6 +3,7 @@ import indent from 'indent-string'
 import { get } from '../../../../../helpers/blaze/get'
 import { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
+import { lowerCase } from '../../runtime/utils/common'
 import { getArgName, getModelArgName, getPayloadName, Projection } from '../utils'
 import type { Generatable } from './Generatable'
 import type { OutputType } from './Output'
@@ -18,29 +19,31 @@ export class PayloadType implements Generatable {
     const { type } = this
     const { name } = type
 
-    const argsName = getArgName(name, false)
+    const argsName = `${getArgName(name, false)}<ExtArgs>`
 
     const include = this.renderRelations(Projection.include)
     const select = this.renderRelations(Projection.select)
 
     const isModel = !this.dmmf.typeMap[name]
-    const findManyArg = isModel && this.findMany ? ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}` : ''
+    const findManyArg =
+      isModel && this.findMany ? ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}<ExtArgs>` : ''
 
     return `\
-export type ${getPayloadName(name)}<
-  S extends boolean | null | undefined | ${argsName},
-  U = keyof S
-    > = S extends true
-      ? ${name}
-  : S extends undefined
-  ? never
-  : S extends ${argsName}${findManyArg}
-  ?'include' extends U
-  ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
-  : 'select' extends U
-  ? ${select}
-  : ${name}
-: ${name}
+export type ${getPayloadName(
+      name,
+    )}<S extends boolean | null | undefined | ${argsName}, ExtArgs extends runtime.Types.Extensions.Args = never, U = keyof S, _${name} = ${name} & runtime.Types.Extensions.GetResultTypes<ExtArgs['result']['${lowerCase(
+      name,
+    )}']>> =
+  S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+  S extends true ? _${name} :
+  S extends undefined ? never :
+  S extends ${argsName}${findManyArg}
+    ? 'include' extends U
+      ? _${name} ${include.length > 0 ? `& runtime.Types.Utils.EmptyObjectToUnknown<${include}>` : ''}
+      : 'select' extends U
+        ? ${select}
+        : _${name}
+    : _${name}
 `
   }
   private renderRelations(projection: Projection): string {
@@ -72,7 +75,7 @@ export type ${getPayloadName(name)}<
 
     if (projection === Projection.include && relations.length === 0) return ''
 
-    const selectPrefix = projection === Projection.select ? ` P extends keyof ${type.name} ? ${type.name}[P] :` : ''
+    const selectPrefix = projection === Projection.select ? ` P extends keyof _${type.name} ? _${type.name}[P] :` : ''
 
     return `{
   [P in TrueKeys<S['${projection}']>]:
@@ -84,7 +87,7 @@ ${indent(
           f,
           `${getPayloadName(
             (f.outputType.type as DMMF.OutputType).name,
-          )}<Exclude<S['${projection}'], undefined | null>[P]>`,
+          )}<Exclude<S['${projection}'], undefined | null>[P], ExtArgs>`,
         )} :`,
     )
     .join('\n'),

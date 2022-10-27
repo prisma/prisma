@@ -39,14 +39,14 @@ export function getGenericMethod(name: string, actionName: ClientModelAction) {
     return `<T extends ${getModelArgName(
       name,
       actionName,
-    )},  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
+    )}<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
   }
   const modelArgName = getModelArgName(name, actionName)
 
   if (!modelArgName) {
     console.log({ name, actionName })
   }
-  return `<T extends ${modelArgName}>`
+  return `<T extends ${modelArgName}<ExtArgs>>`
 }
 export function getArgs(modelName: string, actionName: ClientModelAction) {
   if (actionName === 'count') {
@@ -67,7 +67,7 @@ export function getArgs(modelName: string, actionName: ClientModelAction) {
     actionName === 'findUniqueOrThrow'
       ? '?'
       : ''
-  }: SelectSubset<T, ${getModelArgName(modelName, actionName)}>`
+  }: SelectSubset<T, ${getModelArgName(modelName, actionName)}<ExtArgs>>`
 }
 export function wrapComment(str: string): string {
   return `/**\n${str

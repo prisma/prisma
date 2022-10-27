@@ -143,7 +143,7 @@ export import MetricHistogramBucket = runtime.MetricHistogramBucket
 /**
  * Extensions
  */
-export type Extension = runtime.Extension 
+export type Extension = runtime.Types.Extensions.Args 
 
 /**
  * Prisma Client JS version: ${clientVersion}

@@ -1,34 +1,33 @@
 import { actionOperationMap, Client } from '../../getPrismaClient'
 
-export type Extension = {
-  type: string
-} & ResultOptions &
-  ModelOptions &
-  ClientOptions &
-  QueryOptions
+export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
-type ResultOptionsNeeds = {
-  [K in string]: boolean | ResultOptionsNeeds
-}
-
-type ResultOptions = {
-  result?: {
-    needs: ResultOptionsNeeds
-    fields: {
-      [K in string]: () => unknown
+type ResultArgs = {
+  result: {
+    [ModelName in string]: {
+      needs: {
+        [VirtPropName in string]: {
+          [ModelPropName in string]: boolean
+        }
+      }
+      fields: {
+        [VirtPropName in string]: (args: unknown) => unknown
+      }
     }
   }
 }
 
-type ModelOptions = {
-  model?: {
-    [K in string]: () => unknown
+type ModelArgs = {
+  model: {
+    [ModelName in string]: {
+      [MethodName in string]: (...args: unknown[]) => unknown
+    }
   }
 }
 
-type ClientOptions = {
-  client?: {
-    [K in string]: () => unknown
+type ClientArgs = {
+  client: {
+    [MethodName in string]: () => unknown
   }
 }
 
@@ -44,11 +43,13 @@ type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
 }
 
 type QueryOptions = {
-  query?: {
-    [key in keyof typeof actionOperationMap]: (args: QueryOptionsCbArgs) => unknown
-  } & {
-    nested?: {
-      [K in string]: (args: QueryOptionsCbArgsNested) => unknown
+  query: {
+    [ModelName in string]: {
+      [ModelAction in keyof typeof actionOperationMap]: (args: QueryOptionsCbArgs) => unknown
+    } & {
+      // $nestedOperations?: {
+      //   [K in string]: (args: QueryOptionsCbArgsNested) => unknown
+      // }
     }
   }
 }
@@ -57,7 +58,7 @@ type QueryOptions = {
  * TODO
  * @param this
  */
-export function $extends(this: Client, extension: Extension | (() => Extension)): Client {
+export function $extends(this: Client, extension: Args | (() => Args)): Client {
   return Object.create(this, {
     _extensions: {
       get: () => {

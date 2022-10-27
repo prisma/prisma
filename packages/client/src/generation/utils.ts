@@ -258,41 +258,30 @@ export function getReturnType({
     const promiseOpen = renderPromise ? 'PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `CheckSelect<T, ${promiseOpen}${listOpen}${name}${listClose}${
+    return `${promiseOpen}${listOpen}${getPayloadName(name)}<T, ExtArgs>${listClose}${
       isChaining ? '| Null' : ''
-    }${promiseClose}, ${promiseOpen}${listOpen}${getPayloadName(name)}<T>${listClose}${
-      isChaining ? '| Null' : ''
-    }${promiseClose}>`
+    }${promiseClose}`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
-    return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
-      isList,
-    )}>>`
+    return `Prisma__${name}Client<${getType(getPayloadName(name) + '<T, ExtArgs>', isList)}, never, ExtArgs>`
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
-      return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | Null>, Prisma__${name}Client<${getType(
-        getPayloadName(name) + '<T>',
+      return `Prisma__${name}Client<${getType(
+        getPayloadName(name) + '<T, ExtArgs>',
         isList,
-      )} | Null>>`
+      )} | Null, never, ExtArgs> // lol`
     }
-    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? CheckSelect<T, Prisma__${name}Client<${getType(
-      name,
+    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? Prisma__${name}Client<${getType(
+      getPayloadName(name) + '<T, ExtArgs>',
       isList,
-    )}>, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
+    )}, never, ExtArgs> : Prisma__${name}Client<${getType(
+      getPayloadName(name) + '<T, ExtArgs>',
       isList,
-    )}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null, null>, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
-      isList,
-    )} | null, null>>`
+    )} | null, null, ExtArgs>`
   }
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(
-    getPayloadName(name) + '<T>',
-    isList,
-  )}>>`
+  return `Prisma__${name}Client<${getType(getPayloadName(name) + '<T, ExtArgs>', isList)}, never, ExtArgs>`
 }
 
 export function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mutation'): boolean {
@@ -355,3 +344,5 @@ export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
 
   return `'${typeName}'`
 }
+
+type A = {} extends {} ? 1 : 0

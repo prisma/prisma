@@ -92,6 +92,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
         '@prisma/engine-core',
         '@prisma/generator-helper',
         '@prisma/debug',
+        'ts-toolbelt',
       ],
       compiler: {
         tsconfigFilePath: 'tsconfig.build.json',

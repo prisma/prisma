@@ -1,4 +1,5 @@
 import indent from 'indent-string'
+import { cpuUsage } from 'process'
 
 import type { DMMF } from '../../runtime/dmmf-types'
 import { argIsInputType, GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../../runtime/utils/common'
@@ -54,6 +55,10 @@ function stringifyInputType(
 
   if (type === 'Null') {
     return 'null'
+  }
+
+  if (typeof type === 'string' && (type.endsWith('Select') || type?.endsWith('Include'))) {
+    type = `${type}<ExtArgs>`
   }
 
   if (genericsInfo.needsGenericModelArg(t)) {
@@ -178,6 +183,6 @@ export type ${this.getTypeName()} = ${body}`
     if (this.genericsInfo.inputTypeNeedsGenericModelArg(this.type)) {
       return `${this.type.name}<$PrismaModel = never>`
     }
-    return this.type.name
+    return `${this.type.name}<$PrismaModel = never>`
   }
 }

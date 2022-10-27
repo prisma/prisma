@@ -52,7 +52,7 @@ export class Count implements Generatable {
 
 ${outputType.toTS()}
 
-export type ${getSelectName(name)} = {
+export type ${getSelectName(name)}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
 ${indent(
   type.fields
     .map((field) => {
