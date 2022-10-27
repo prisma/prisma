@@ -66,7 +66,7 @@ services:
       - cockroachdb
 
   postgres:
-    image: postgres:9.4
+    image: postgres:9.6
     restart: always
     environment:
       - POSTGRES_DB=tests
@@ -76,7 +76,7 @@ services:
       - '5432:5432'
 
   postgres_isolated:
-    image: postgres:9.4
+    image: postgres:9.6
     restart: always
     environment:
       - POSTGRES_DB=tests
