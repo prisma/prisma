@@ -1,4 +1,4 @@
-FROM mongo:4
+FROM mongo:4.2
 
 COPY init.json /init.json
 

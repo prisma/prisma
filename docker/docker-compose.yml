@@ -4,7 +4,7 @@ version: '3.7'
 # https://github.com/prisma/prisma/blob/main/TESTING.md#environment-variables
 services:
   postgres:
-    image: postgres:10
+    image: postgres:9.4
     restart: always
     environment:
       - POSTGRES_DB=tests
@@ -14,7 +14,7 @@ services:
       - '5432:5432'
 
   postgres_isolated:
-    image: postgres:10
+    image: postgres:9.4
     restart: always
     environment:
       - POSTGRES_DB=tests
@@ -82,7 +82,7 @@ services:
   #     FOREIGN_KEY_MODE: 'disallow'
 
   mysql:
-    image: mysql:8.0
+    image: mysql:5.6
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
     restart: always
     environment:
@@ -93,7 +93,7 @@ services:
       - '3306:3306'
 
   mysql_isolated:
-    image: mysql:8.0
+    image: mysql:5.6
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
     restart: always
     environment:
@@ -105,7 +105,7 @@ services:
       - '3307:3306'
 
   mariadb:
-    image: mariadb:10
+    image: mariadb:10.3
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=root
@@ -116,7 +116,7 @@ services:
       - '4306:3306'
 
   mssql:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+    image: mcr.microsoft.com/mssql/server:2017-latest
     restart: always
     environment:
       - ACCEPT_EULA=Y
@@ -125,7 +125,7 @@ services:
       - '1433:1433'
 
   mongodb_migrate:
-    image: mongo:4
+    image: mongo:4.2
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
