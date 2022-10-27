@@ -1,8 +1,10 @@
-export type EmptyObjectToUnknown<T> = T extends unknown ? ({} extends T ? unknown : T) : never
+export type EmptyToUnknown<T> = T extends unknown ? ({} extends T ? unknown : T) : never
 
-export type EmptyToUnknown<T> = [T] extends [never] ? unknown : T
+export type NeverToUnknown<T> = [T] extends [never] ? unknown : T
 
-export type PatchDeepObject<O1, O2, O = O1 & O2> = {
+export type PatchFlat<O1, O2> = O1 & Omit<O2, keyof O1>
+
+export type PatchDeep<O1, O2, O = O1 & O2> = {
   /* eslint-disable prettier/prettier */
   [K in keyof O]:
     K extends keyof O1
@@ -13,19 +15,20 @@ export type PatchDeepObject<O1, O2, O = O1 & O2> = {
             ? O1[K]
             : O2[K] extends Function
               ? O1[K]
-              : PatchDeepObject<O1[K], O2[K]>
+              : PatchDeep<O1[K], O2[K]>
           : O1[K]
         : O1[K]
       : O1[K]
     : O2[K & keyof O2]
     /* eslint-enable */
-}
+} & unknown
 
-export type PatchFlat<O1, O2, O = O1 & O2> = {
-  /* eslint-disable prettier/prettier */
-    [K in keyof O]:
-    K extends keyof O1
-    ? O1[K]
-    : O2[K & keyof O2]
-    /* eslint-enable */
-}
+type Omit<T, K extends string | number | symbol> = {
+  [P in keyof T as P extends K ? never : P]: T[P]
+} & unknown
+
+type Pick<T, K extends string | number | symbol> = {
+  [P in keyof T as P extends K ? P : never]: T[P]
+} & unknown
+
+export type CastWithIntellisense<A, B> = A extends B ? A | B : B

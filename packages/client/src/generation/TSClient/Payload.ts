@@ -39,7 +39,7 @@ export type ${getPayloadName(
   S extends undefined ? never :
   S extends ${argsName}${findManyArg}
     ? 'include' extends U
-      ? _${name} ${include.length > 0 ? `& runtime.Types.Utils.EmptyObjectToUnknown<${include}>` : ''}
+      ? _${name} ${include.length > 0 ? `& runtime.Types.Utils.EmptyToUnknown<${include}>` : ''}
       : 'select' extends U
         ? ${select}
         : _${name}
