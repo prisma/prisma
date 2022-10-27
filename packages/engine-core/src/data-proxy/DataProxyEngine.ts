@@ -14,6 +14,7 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineBatchRequest, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
+import { runtimeHeadersToHttpHeaders } from '../common/utils/runtimeHeadersToHttpHeaders'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -187,7 +188,7 @@ export class DataProxyEngine extends Engine {
 
         const response = await request(url, {
           method: 'POST',
-          headers: { ...clientHeadersToDataProxyHeaders(headers), ...this.headers },
+          headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
           body: JSON.stringify(body),
           clientVersion: this.clientVersion,
         })
@@ -421,18 +422,4 @@ export class DataProxyEngine extends Engine {
       throw error
     }
   }
-}
-
-function clientHeadersToDataProxyHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
-  const result: Record<string, string | undefined> = {}
-
-  for (const headerKey of Object.keys(headers)) {
-    if (headerKey === 'transactionId') {
-      result['X-transaction-id'] = headers[headerKey]
-    } else {
-      result[headerKey] = headers[headerKey]
-    }
-  }
-
-  return result
 }

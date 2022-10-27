@@ -9,7 +9,6 @@ import { spawn } from 'child_process'
 import EventEmitter from 'events'
 import execa from 'execa'
 import fs from 'fs'
-import type { IncomingHttpHeaders } from 'http'
 import net from 'net'
 import pRetry from 'p-retry'
 import path from 'path'
@@ -43,6 +42,7 @@ import type {
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
+import { runtimeHeadersToHttpHeaders } from '../common/utils/runtimeHeadersToHttpHeaders'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
@@ -1242,26 +1242,6 @@ function initHooks() {
     hookProcess('SIGTERM', true)
     hooksInitialized = true
   }
-}
-
-/**
- * Takes runtime data headers and turns it into QE HTTP headers
- * @param headers to transform
- * @returns
- */
-function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): IncomingHttpHeaders {
-  return Object.keys(headers).reduce((acc, runtimeHeaderKey) => {
-    let httpHeaderKey = runtimeHeaderKey
-
-    if (runtimeHeaderKey === 'transactionId') {
-      httpHeaderKey = 'X-transaction-id'
-    }
-
-    // if header key isn't changed, a copy happens
-    acc[httpHeaderKey] = headers[runtimeHeaderKey]
-
-    return acc
-  }, {} as IncomingHttpHeaders)
 }
 
 function killProcessAndWait(childProcess: ChildProcess): Promise<void> {
