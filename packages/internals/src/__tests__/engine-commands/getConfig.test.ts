@@ -6,7 +6,7 @@ describe('getConfig', () => {
     expect.assertions(1)
 
     try {
-      // @ts-ignore
+      // @ts-expect-error
       await getConfig({ datamodel: true })
     } catch (e) {
       const error = e as Error
