@@ -23,11 +23,11 @@ export type PatchDeep<O1, O2, O = O1 & O2> = {
     /* eslint-enable */
 } & unknown
 
-type Omit<T, K extends string | number | symbol> = {
+export type Omit<T, K extends string | number | symbol> = {
   [P in keyof T as P extends K ? never : P]: T[P]
 } & unknown
 
-type Pick<T, K extends string | number | symbol> = {
+export type Pick<T, K extends string | number | symbol> = {
   [P in keyof T as P extends K ? P : never]: T[P]
 } & unknown
 

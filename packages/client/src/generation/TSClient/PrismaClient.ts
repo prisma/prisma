@@ -121,7 +121,7 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
     model?: runtime.Types.Utils.CastWithIntellisense<M, ${model.params}>,
     query?: runtime.Types.Utils.CastWithIntellisense<Q, ${query.params}>,
     client?: runtime.Types.Utils.CastWithIntellisense<C, ${client.params}>,
-  }): Omit<PrismaClient<T, U, GlobalReject, {
+  }): runtime.Types.Utils.Omit<PrismaClient<T, U, GlobalReject, {
         result: ${Omit(`ExtArgs['result']`, `keyof R`)} & {
           [K in keyof R & string]: {
             fields: ${Patch(`R[K]['fields']`, `ExtArgs['result'][K]['fields']`)},
