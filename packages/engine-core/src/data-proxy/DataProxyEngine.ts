@@ -10,6 +10,7 @@ import type {
   InlineDatasource,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
+import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineBatchRequest, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
@@ -207,6 +208,8 @@ export class DataProxyEngine extends Engine {
         if (data.errors) {
           if (data.errors.length === 1) {
             throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+          } else {
+            throw new PrismaClientUnknownRequestError(data.errors, this.config.clientVersion!)
           }
         }
 
