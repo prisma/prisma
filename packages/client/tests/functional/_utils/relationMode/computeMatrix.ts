@@ -1,17 +1,19 @@
 import { Providers } from '../providers'
+import { getProviderFromFlavor, ProviderFlavor, ProviderFlavors } from './ProviderFlavor'
 
 type ComputeMatrix = {
   relationMode: 'prisma' | 'foreignKeys' | ''
-  providersDenyList?: Providers[]
+  providersDenyList?: ProviderFlavor[]
 }
 
 export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix) {
-  const providersBase = [
+  const providerFlavorsBase = [
     Providers.POSTGRESQL,
     Providers.COCKROACHDB,
     Providers.SQLSERVER,
-    Providers.MYSQL,
     Providers.SQLITE,
+    Providers.MYSQL,
+    ProviderFlavors.VITESS_8,
   ] as const
   // Note: SetDefault is not implemented in the emulation (relationMode="prisma")
 
@@ -22,7 +24,9 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
 
   const referentialActionsBase = ['DEFAULT', 'Cascade', 'NoAction', 'Restrict', 'SetNull'] as const
 
-  const providers = providersBase.filter((provider) => !(providersDenyList || []).includes(provider))
+  const providerFlavors = providerFlavorsBase.filter(
+    (provideFlavor) => !(providersDenyList || []).includes(provideFlavor),
+  )
 
   // "foreignKeys"
   //
@@ -42,9 +46,10 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
   //
   // We skip these combinations in the matrix (= filtering them out)
 
-  const referentialActionsDenylistByProvider = {
+  const referentialActionsDenylistByProviderFlavor = {
     foreignKeys: {
       [Providers.SQLSERVER]: ['Restrict'],
+      [ProviderFlavors.VITESS_8]: referentialActionsBase, // no action is executed for Vitess & relationMode="foreignKeys"
     },
     prisma: {
       [Providers.SQLSERVER]: ['Restrict'],
@@ -53,14 +58,16 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     },
   }
 
-  const providersMatrix = providers.map((provider) => ({
-    provider,
+  const providersMatrix = providerFlavors.map((providerFlavor) => ({
+    provider: getProviderFromFlavor(providerFlavor),
+    providerFlavor,
     id: 'String @id',
     relationMode,
   }))
 
   const referentialActionsMatrix = providersMatrix.flatMap((entry) => {
-    const denyList = referentialActionsDenylistByProvider[relationMode || 'foreignKeys'][entry.provider] || []
+    const denyList =
+      referentialActionsDenylistByProviderFlavor[relationMode || 'foreignKeys'][entry.providerFlavor] || []
     const referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
 
     const referentialActionMatrixForSQL = referentialActions.map((referentialAction) => ({
@@ -78,6 +85,7 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     if (!relationMode || relationMode === 'prisma') {
       const mongoDBMatrixBase = {
         provider: Providers.MONGODB,
+        providerFlavor: getProviderFromFlavor(Providers.MONGODB),
         id: 'String @id @map("_id")',
         relationMode: 'prisma',
       }
