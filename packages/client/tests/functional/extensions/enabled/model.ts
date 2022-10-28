@@ -183,6 +183,10 @@ testMatrix.setupTestSuite(() => {
     expect(users).toEqual([])
   })
 
+  // TODO: we should align compile and run- time behavior here: this
+  // should either be valid in both cases, or error in both cases. Right now,
+  // it works in runtime but we are not sure we can make it work on a type level
+  // https://github.com/prisma/client-planning/issues/108
   test('extension methods can call methods of other extensions', () => {
     const firstMethod = jest.fn()
     const xprisma = prisma
