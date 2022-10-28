@@ -18,6 +18,7 @@ import { tscPlugin } from './plugins/tscPlugin'
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
   name?: string
+  emitTypes?: boolean
   outbase?: never // we don't support this
 }
 
@@ -48,7 +49,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
-  plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin, onErrorPlugin],
+  plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin(options.emitTypes), onErrorPlugin],
 })
 
 /**
@@ -105,7 +106,7 @@ function addDefaultOutDir(options: BuildOptions) {
  * Execute esbuild with all the configurations we pass
  */
 async function executeEsBuild(options: BuildOptions) {
-  return [options, await esbuild.build(omit(options, ['name']))] as const
+  return [options, await esbuild.build(omit(options, ['name', 'emitTypes']))] as const
 }
 
 /**
