@@ -83,6 +83,46 @@ describe('artificial-panic formatter', () => {
   })
 })
 
+describe('artificial-panic get-config', () => {
+  const OLD_ENV = { ...process.env }
+
+  afterEach(() => {
+    process.env = { ...OLD_ENV }
+  })
+
+  it('get-config', async () => {
+    ctx.fixture('artificial-panic')
+    expect.assertions(5)
+    process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG = '1'
+
+    const command = new Validate()
+    try {
+      await command.parse([])
+    } catch (e) {
+      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(isRustPanic(e)).toBe(true)
+      expect(e.rustStack).toBeTruthy()
+      expect(e.schema).toMatchInlineSnapshot(`
+        // This is your Prisma schema file,
+        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+        generator client {
+          provider = "prisma-client-js"
+        }
+
+        datasource db {
+          provider = "postgresql"
+          url      = env("DATABASE_URL")
+        }
+
+      `)
+      expect(e).toMatchObject({
+        schemaPath: undefined,
+      })
+    }
+  })
+})
+
 describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-panic library', () => {
   const OLD_ENV = { ...process.env }
 
@@ -121,25 +161,6 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
       })
     }
   })
-
-  it('query-engine get-config library', async () => {
-    ctx.fixture('artificial-panic')
-    expect.assertions(4)
-    process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG = '1'
-
-    const command = new Validate()
-    try {
-      await command.parse([])
-    } catch (e) {
-      expect(e).toMatchInlineSnapshot(`FORCE_PANIC_QUERY_ENGINE_GET_CONFIG`)
-      expect(isRustPanic(e)).toBe(true)
-      expect(e.rustStack).toBeTruthy()
-      expect(e).toMatchObject({
-        schemaPath: undefined,
-        schema: undefined,
-      })
-    }
-  })
 })
 
 describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'binary')('artificial-panic binary', () => {
@@ -160,27 +181,6 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'binary')('artificial-pan
     } catch (e) {
       expect(e).toMatchInlineSnapshot(
         `Command failed with exit code 101: prisma-engines-path FORCE_PANIC_QUERY_ENGINE_GET_DMMF`,
-      )
-      expect(isRustPanic(e)).toBe(true)
-      expect(e.rustStack).toBeTruthy()
-      expect(e.schemaPath).toBeTruthy()
-      expect(e).toMatchObject({
-        schema: undefined,
-      })
-    }
-  })
-
-  it('query-engine get-config binary', async () => {
-    ctx.fixture('artificial-panic')
-    expect.assertions(5)
-    process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG = '1'
-
-    const command = new Validate()
-    try {
-      await command.parse([])
-    } catch (e) {
-      expect(e).toMatchInlineSnapshot(
-        `Command failed with exit code 101: prisma-engines-path FORCE_PANIC_QUERY_ENGINE_GET_CONFIG`,
       )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
