@@ -28,7 +28,7 @@
     "prepare": "is-ci || husky install"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.33.4",
+    "@microsoft/api-extractor": "7.33.5",
     "@sindresorhus/slugify": "1.1.2",
     "@slack/webhook": "6.1.0",
     "@types/benchmark": "2.1.2",
