@@ -4,7 +4,7 @@ import { actionOperationMap, Client } from '../../getPrismaClient'
 export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
 type ResultArgs = {
-  result: {
+  result?: {
     [ModelName in string]: {
       needs: {
         [VirtPropName in string]: {
@@ -19,7 +19,7 @@ type ResultArgs = {
 }
 
 type ModelArgs = {
-  model: {
+  model?: {
     [ModelName in string]: {
       [MethodName in string]: (...args: unknown[]) => unknown
     }
@@ -27,7 +27,7 @@ type ModelArgs = {
 }
 
 type ClientArgs = {
-  client: {
+  client?: {
     [MethodName in string]: () => unknown
   }
 }
@@ -44,14 +44,15 @@ type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
 }
 
 type QueryOptions = {
-  query: {
-    [ModelName in string]: {
-      [ModelAction in keyof typeof actionOperationMap]: (args: QueryOptionsCbArgs) => unknown
-    } & {
-      // $nestedOperations?: {
-      //   [K in string]: (args: QueryOptionsCbArgsNested) => unknown
-      // }
-    }
+  query?: {
+    [ModelName in string]:
+      | {
+          [ModelAction in keyof typeof actionOperationMap]: (args: QueryOptionsCbArgs) => Promise<any>
+        } & {
+          // $nestedOperations?: {
+          //   [K in string]: (args: QueryOptionsCbArgsNested) => unknown
+          // }
+        }
   }
 }
 

@@ -46,6 +46,7 @@ import { ModelFieldRefs } from './ModelFieldRefs'
 import { ModelOutputField, OutputType } from './Output'
 import { PayloadType } from './Payload'
 import { SchemaOutputType } from './SchemaOutput'
+import { getModelActions } from './utils/getModelActions'
 
 export class Model implements Generatable {
   protected outputType: OutputType
@@ -109,7 +110,7 @@ export class Model implements Generatable {
     return `
 
 
-export type ${groupByArgsName} = {
+export type ${groupByArgsName}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
 ${indent(
   groupByRootField.args
     .map((arg) => {
@@ -225,7 +226,7 @@ ${
     : ''
 }
 
-export type ${aggregateArgsName} = {
+export type ${aggregateArgsName}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
 ${indent(
   aggregateRootField.args
     .map((arg) => {
@@ -326,7 +327,7 @@ ${indent(
     .join('\n'),
   TAB_SIZE,
 )}
-} & runtime.Types.Extensions.GetResultSelect<ExtArgs['result']['${lowerCase(model.name)}']>
+} & runtime.Types.Extensions.GetResultSelect<(ExtArgs['result'] & {})['${lowerCase(model.name)}']>
 
 // TODO put this behind preview flag
 export type ${getSelectName(model.name)}Scalar = {
@@ -365,7 +366,9 @@ export class ModelDelegate implements Generatable {
    * @returns
    */
   private getNonAggregateActions(availableActions: ClientModelAction[]): ClientModelAction[] {
-    const actions = availableActions.filter((key) => key !== 'aggregate' && key !== 'groupBy') as ClientModelAction[]
+    const actions = availableActions.filter(
+      (key) => key !== 'aggregate' && key !== 'groupBy' && key !== 'count',
+    ) as ClientModelAction[]
 
     for (const [clientOnlyAction, { wrappedAction }] of Object.entries(clientOnlyActions)) {
       if (actions.includes(wrappedAction as DMMF.ModelAction)) {
@@ -381,10 +384,7 @@ export class ModelDelegate implements Generatable {
     const mapping = this.dmmf.mappingsMap[name] ?? { model: name, plural: `${name}s` }
     const modelOrType = this.dmmf.typeAndModelMap[name]
 
-    const mappingKeys = Object.keys(mapping)
-    const availableActions = mappingKeys.filter(
-      (key) => key !== 'model' && key !== 'plural' && mapping[key],
-    ) as DMMF.ModelAction[]
+    const availableActions = getModelActions(this.dmmf, name)
     const nonAggregateActions = this.getNonAggregateActions(availableActions)
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
@@ -401,7 +401,7 @@ export class ModelDelegate implements Generatable {
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
-    ? `type ${countArgsName} = Merge<
+    ? `type ${countArgsName}<ExtArgs extends runtime.Types.Extensions.Args = never> = Merge<
   Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'> & {
     select?: ${getCountAggregateInputName(name)} | true
   }

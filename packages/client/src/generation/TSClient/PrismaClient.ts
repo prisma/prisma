@@ -4,14 +4,16 @@ import indent from 'indent-string'
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { getModelArgName } from '../utils'
 import { runtimeImport } from '../utils/runtimeImport'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
+import { getModelActions } from './utils/getModelActions'
 
 function Omit(O: string, K: string) {
-  return `{ [P in keyof ${O} as P extends ${K} ? never : P]: ${O}[P] } & unknown`
+  return `{ [P in keyof ${O} as P extends ${K} ? never : P]: ${O}[P] }`
 }
 
 function Patch(O1: string, O2: string) {
@@ -41,7 +43,7 @@ function clientExtensionsModelResultDefinition(this: PrismaClientClass) {
 
   const genericParams = [
     ...modelNames.flatMap(modelResultGenericParams),
-    'R extends runtime.Types.Extensions.Args["result"] = {}',
+    `R extends runtime.Types.Extensions.Args['result'] = {}`,
   ].join(',\n    ')
 
   const modelResultParam = (modelName: string) => {
@@ -49,7 +51,7 @@ function clientExtensionsModelResultDefinition(this: PrismaClientClass) {
   }
 
   const params = `{
-      ${modelNames.map(modelResultParam).join(',\n      ')}
+      ${modelNames.map(modelResultParam).join('\n      ')}
     }`
 
   return {
@@ -63,7 +65,7 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
 
   const params = `{${modelNames.reduce((acc, modelName) => {
     return `${acc}
-      ${lowerCase(modelName)}?: runtime.Types.Extensions.Args['model'][string]`
+      ${lowerCase(modelName)}?: (runtime.Types.Extensions.Args['model'] & {})[string]`
   }, '')}
     }`
 
@@ -77,8 +79,17 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const params = `{${modelNames.reduce((acc, modelName) => {
+    const actions = getModelActions(this.dmmf, modelName)
+
     return `${acc}
-      ${lowerCase(modelName)}?: runtime.Types.Extensions.Args['query'][string]`
+      ${lowerCase(modelName)}?: {${actions.reduce((acc, action) => {
+      return `${acc}
+        ${action}?: (args: { model: '${modelName}', operation: '${action}', args: Prisma.${getModelArgName(
+        modelName,
+        action,
+      )}<ExtArgs>, data: PrismaPromise<${modelName}> }) => PrismaPromise<${modelName}>`
+    }, '')}
+      }`
   }, '')}
     }`
 
@@ -117,18 +128,18 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
     ${query.genericParams},
     ${client.genericParams},
   >(extension: {
-    result?: runtime.Types.Utils.CastWithIntellisense<R, ${result.params}>
-    model?: runtime.Types.Utils.CastWithIntellisense<M, ${model.params}>,
-    query?: runtime.Types.Utils.CastWithIntellisense<Q, ${query.params}>,
-    client?: runtime.Types.Utils.CastWithIntellisense<C, ${client.params}>,
+    result?: R & ${result.params}
+    model?: M & ${model.params}
+    query?: Q & ${query.params}
+    client?: C & ${client.params}
   }): runtime.Types.Utils.Omit<PrismaClient<T, U, GlobalReject, {
         result: ${Omit(`ExtArgs['result']`, `keyof R`)} & {
           [K in keyof R & string]: {
-            fields: ${Patch(`R[K]['fields']`, `ExtArgs['result'][K]['fields']`)},
-            needs: ${Patch(`R[K]['needs']`, `ExtArgs['result'][K]['needs']`)},
+            fields: ${Patch(`(R & {})[K]['fields']`, `(ExtArgs['result'] & {})[K]['fields']`)},
+            needs: ${Patch(`(R & {})[K]['needs']`, `(ExtArgs['result'] & {})[K]['needs']`)},
           }
         },
-        model: { [K in keyof M & string]: ${Patch(`M[K]`, `ExtArgs['model'][K]`)} }, 
+        model: { [K in keyof M & string]: ${Patch(`M[K]`, `(ExtArgs['model'] & {})[K]`)} }, 
         query: Q & ExtArgs['query'], 
         client: ${Patch(`C`, `ExtArgs['client']`)}
       }>, keyof C> & C
@@ -391,7 +402,7 @@ ${[
   * \`\`\`
   */
 get ${methodName}(): ${Patch(
-            `ExtArgs['model']['${lowerCase(m.model)}']`,
+            `(ExtArgs['model'] & {})['${lowerCase(m.model)}']`,
             `Prisma.${m.model}Delegate<GlobalReject, ExtArgs>`,
           )};`
         })

@@ -30,5 +30,3 @@ export type Omit<T, K extends string | number | symbol> = {
 export type Pick<T, K extends string | number | symbol> = {
   [P in keyof T as P extends K ? P : never]: T[P]
 } & unknown
-
-export type CastWithIntellisense<A, B> = A extends B ? A | B : B
