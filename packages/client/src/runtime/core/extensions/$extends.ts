@@ -12,7 +12,7 @@ type ResultArgs = {
         }
       }
       fields: {
-        [VirtPropName in string]: (args: unknown) => unknown
+        [VirtPropName in string]: (args: any) => unknown
       }
     }
   }
