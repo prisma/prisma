@@ -47,7 +47,7 @@ type QueryOptions = {
   query?: {
     [ModelName in string]:
       | {
-          [ModelAction in keyof typeof actionOperationMap]: (args: QueryOptionsCbArgs) => Promise<any>
+          [ModelAction in string]: (args: QueryOptionsCbArgs) => Promise<any>
         } & {
           // $nestedOperations?: {
           //   [K in string]: (args: QueryOptionsCbArgsNested) => unknown

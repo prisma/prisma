@@ -130,7 +130,7 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
   >(extension: {
     result?: R & ${result.params}
     model?: M & ${model.params}
-    query?: Q & ${query.params}
+    query?: ${query.params}
     client?: C & ${client.params}
   }): runtime.Types.Utils.Omit<PrismaClient<T, U, GlobalReject, {
         result: ${Omit(`ExtArgs['result']`, `keyof R`)} & {
@@ -140,8 +140,8 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
           }
         },
         model: { [K in keyof M & string]: ${Patch(`M[K]`, `(ExtArgs['model'] & {})[K]`)} }, 
-        query: Q & ExtArgs['query'], 
         client: ${Patch(`C`, `ExtArgs['client']`)}
+        query: {},
       }>, keyof C> & C
 `
 }
