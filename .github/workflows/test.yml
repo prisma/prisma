@@ -147,6 +147,7 @@ jobs:
       TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
       TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
       TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
       TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -160,7 +161,7 @@ jobs:
           echo "RELATION_MODE=${{ matrix.relationMode }}"
           if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -227,6 +228,7 @@ jobs:
       TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
       TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
       TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
       TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -253,7 +255,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -310,7 +312,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -335,6 +337,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
           TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -348,6 +351,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
           TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'

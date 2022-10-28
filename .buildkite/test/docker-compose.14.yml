@@ -38,6 +38,7 @@ services:
       # Functional test URLS
       - TEST_FUNCTIONAL_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/PRISMA_DB_NAME
       - TEST_FUNCTIONAL_MYSQL_URI=mysql://root:root@mysql:3306/PRISMA_DB_NAME
+      - TEST_FUNCTIONAL_VITESS_8_URI=mysql://root:root@localhost:33807/PRISMA_DB_NAME
       - TEST_FUNCTIONAL_MSSQL_URI=sqlserver://mssql:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_FUNCTIONAL_MONGO_URI=mongodb://root:prisma@mongo:27018/PRISMA_DB_NAME?authSource=admin
       - TEST_FUNCTIONAL_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/PRISMA_DB_NAME
@@ -64,6 +65,7 @@ services:
       - mongodb_migrate
       - mongodb_migrate_seed
       - cockroachdb
+      - vitess-8
 
   postgres:
     image: postgres:10
@@ -114,6 +116,20 @@ services:
       - MYSQL_PASSWORD=prisma
     ports:
       - '3307:3306'
+
+  vitess-8:
+    image: vitess/vttestserver:mysql80@sha256:9412e3d51bde38e09c3039090b5c68808e299579f12c79178a4ec316f7831889
+    restart: always
+    ports:
+      - 33807:33807
+    environment:
+      PORT: '33804' # unused in testing, but required by vttestserver
+      KEYSPACES: 'keyspace' # unused in testing, but required by vttestserver
+      NUM_SHARDS: '1' # unused in testing, but required by vttestserver
+
+      MYSQL_BIND_HOST: '0.0.0.0'
+      FOREIGN_KEY_MODE: 'disallow'
+      VT_DIALECT: 'mysql80'
 
   mariadb:
     image: mariadb:10.7.3
