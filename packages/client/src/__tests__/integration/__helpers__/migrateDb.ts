@@ -1,20 +1,11 @@
-import { createDatabase } from '@prisma/internals'
-import { Migrate } from '@prisma/migrate'
+import { DbPush } from '@prisma/migrate'
 
-export type MigrateOptions = {
-  connectionString: string
-  schemaPath: string
-}
-
-export async function migrateDb({ connectionString, schemaPath }: MigrateOptions) {
-  await createDatabase(connectionString)
-  const migrate = new Migrate(schemaPath)
-
-  try {
-    await migrate.push({
-      force: true,
-    })
-  } finally {
-    migrate.stop()
-  }
+/**
+ * Creates/Resets the database and apply necessary SQL to be in sync with the provided Prisma schema
+ * Run `db push --schema schemaPath --force-reset --skip-generate`
+ */
+export async function migrateDb({ connectionString, schemaPath }: { connectionString: string; schemaPath: string }) {
+  const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
+  await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
+  consoleInfoMock.mockRestore()
 }
