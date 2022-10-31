@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import testMatrix from './_matrix'
 // @ts-ignore
