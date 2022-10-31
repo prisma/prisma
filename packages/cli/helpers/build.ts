@@ -63,6 +63,7 @@ const cliBuildConfig: BuildOptions = {
   external: ['@prisma/engines'],
   plugins: [cliLifecyclePlugin],
   bundle: true,
+  emitTypes: false,
 }
 
 // we define the config for preinstall
@@ -71,6 +72,7 @@ const preinstallBuildConfig: BuildOptions = {
   entryPoints: ['scripts/preinstall.js'],
   outfile: 'preinstall/index',
   bundle: true,
+  emitTypes: false,
 }
 
 // we define the config for install
@@ -80,6 +82,7 @@ const installBuildConfig: BuildOptions = {
   outfile: 'install/index',
   bundle: true,
   minify: true,
+  emitTypes: false,
 }
 
 void build([cliBuildConfig, preinstallBuildConfig, installBuildConfig])
