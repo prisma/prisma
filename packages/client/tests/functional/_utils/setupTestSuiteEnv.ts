@@ -12,7 +12,7 @@ import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import { Providers } from './providers'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta } from './types'
+import { AlterStatementCallback, ClientMeta } from './types'
 
 const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
@@ -107,7 +107,7 @@ export async function setupTestSuiteDatabase(
   suiteMeta: TestSuiteMeta,
   suiteConfig: NamedTestSuiteConfig,
   errors: Error[] = [],
-  alterStatement?: string,
+  alterStatementCallback?: AlterStatementCallback,
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
@@ -115,13 +115,17 @@ export async function setupTestSuiteDatabase(
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
 
-    if (alterStatement) {
+    if (alterStatementCallback) {
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
+      const provider = suiteConfig.matrixOptions['provider'] as Providers
 
       await fs.promises.mkdir(`${prismaDir}/migrations/${timestamp}`, { recursive: true })
-      await fs.promises.writeFile(`${prismaDir}/migrations/migration_lock.toml`, 'provider = "postgresql"')
-      await fs.promises.writeFile(`${prismaDir}/migrations/${timestamp}/migration.sql`, alterStatement)
+      await fs.promises.writeFile(`${prismaDir}/migrations/migration_lock.toml`, `provider = "${provider}"`)
+      await fs.promises.writeFile(
+        `${prismaDir}/migrations/${timestamp}/migration.sql`,
+        alterStatementCallback(provider),
+      )
 
       await DbExecute.new().parse([
         '--file',

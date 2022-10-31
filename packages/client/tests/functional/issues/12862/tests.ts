@@ -78,7 +78,7 @@ testMatrix.setupTestSuite(
       from: ['cockroachdb', 'mongodb', 'mysql', 'sqlite', 'sqlserver'],
       reason: 'Issue relates to postgresql only',
     },
-    alterStatement: `
+    alterStatementCallback: () => `
       ALTER TABLE "Post" 
       ADD CONSTRAINT Post_viewCount_check CHECK ("viewCount" >= 0);
     `,
