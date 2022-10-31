@@ -16,5 +16,9 @@ export default testMatrix.setupSchema(({ provider }) => {
   model User {
     id ${idForProvider(provider)}
   }
+
+  model Post {
+    id ${idForProvider(provider)}
+  }
   `
 })
