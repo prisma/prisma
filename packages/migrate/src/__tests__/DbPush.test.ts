@@ -77,9 +77,10 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  it('missing db', async () => {
+  it('missing SQLite db should be created next to the schema.prisma file', async () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/dev.db')
+    const schemaPath = 'prisma/schema.prisma'
 
     const result = DbPush.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -91,6 +92,36 @@ describeIf(process.platform !== 'win32')('push', () => {
 
       🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
+    await expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
+    await expect(ctx.fs.inspect('dev.db')?.size).toBeGreaterThan(0)
+
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  it('missing SQLite db should be created next to the --schema path', async () => {
+    ctx.fixture('reset')
+    ctx.fs.remove('prisma/dev.db')
+
+    const oldSchemaPath = 'prisma/schema.prisma'
+    const newSchemaPath = 'something/schema.prisma'
+    ctx.fs.move(oldSchemaPath, newSchemaPath)
+
+    const result = DbPush.new().parse(['--schema', newSchemaPath])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from something/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      SQLite database dev.db created at file:dev.db
+
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
+    `)
+    await expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
+    await expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
+    await expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), 'dev.db'))?.size).toBeUndefined()
+    await expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
+    await expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
+
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -255,14 +286,14 @@ describeIf(process.platform !== 'win32')('push', () => {
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-      ⚠️ We found changes that cannot be executed:
+                                    ⚠️ We found changes that cannot be executed:
 
-        • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                      • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-      Use the --force-reset flag to drop the database before push like prisma db push --force-reset
-      All data will be lost.
-              
-    `)
+                                    Use the --force-reset flag to drop the database before push like prisma db push --force-reset
+                                    All data will be lost.
+                                            
+                        `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
