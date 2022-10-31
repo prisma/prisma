@@ -1,3 +1,4 @@
+import { faker } from '@faker-js/faker'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { NewPrismaClient } from '../_utils/types'
@@ -761,6 +762,53 @@ testMatrix.setupTestSuite(
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
         `The current database provider doesn't support a feature that the query used: Mongo does not support setting transaction isolation levels.`,
       )
+    })
+
+    test('should log queries that are executed inside an interactive transaction', async () => {
+      const client = newPrismaClient({
+        log: [
+          {
+            emit: 'event',
+            level: 'query',
+          },
+        ],
+      })
+
+      const queriesPromise = ((): Promise<string[]> => {
+        const entries: string[] = []
+
+        return new Promise((resolve) => {
+          client.$on('query', (data) => {
+            // @ts-expect-error
+            const query = data.query as string
+
+            entries.push(query)
+
+            if (query.includes('COMMIT')) {
+              resolve(entries)
+            }
+          })
+        })
+      })()
+
+      await prisma.$transaction(async (tx) => {
+        const user = await tx.user.create({
+          data: {
+            email: faker.internet.email(),
+          },
+        })
+
+        await tx.user.findFirst({
+          where: {
+            id: user.id,
+          },
+        })
+      })
+
+      const queries = await queriesPromise
+
+      const hasQueries = Boolean(queries.length)
+      expect(hasQueries).toEqual(true)
     })
   },
   {
