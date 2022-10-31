@@ -149,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.6.0-36.integration-native-upsert-47583072d286164bf79b85f9ae53af9650f00e3c"
+    "@prisma/engines-version": "4.6.0-41.integration-native-upsert-47583072d286164bf79b85f9ae53af9650f00e3c"
   },
   "sideEffects": false
 }
