@@ -1,6 +1,9 @@
 import { actionOperationMap, Client } from '../../getPrismaClient'
 import { PrismaClientValidationError } from '../../query'
-import { applyModels, unapplyModels } from '../model/applyModels'
+import {
+  applyModelsAndClientExtensions,
+  unapplyModelsAndClientExtensions,
+} from '../model/applyModelsAndClientExtensions'
 
 export type Extension = {
   type: string
@@ -69,7 +72,7 @@ export function $extends(this: Client, extension: Extension | (() => Extension))
   // we need to re-apply models to the extend client:
   // they always capture specific instance of the client and without
   // re-application would never see new extensions
-  const oldClient = unapplyModels(this)
+  const oldClient = unapplyModelsAndClientExtensions(this)
   const newClient = Object.create(oldClient, {
     _extensions: {
       get: () => {
@@ -81,5 +84,5 @@ export function $extends(this: Client, extension: Extension | (() => Extension))
       },
     },
   })
-  return applyModels(newClient)
+  return applyModelsAndClientExtensions(newClient)
 }
