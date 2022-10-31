@@ -2,7 +2,7 @@ import { getLogs } from '@prisma/debug'
 import chalk from 'chalk'
 import stripAnsi from 'strip-ansi'
 
-import { getGithubIssueUrl } from '../../utils/util'
+import { getGitHubIssueUrl } from '../../utils/util'
 import type { ErrorWithLinkInput } from '../types/ErrorWithLinkInput'
 import { maskQuery } from './maskQuery'
 import { normalizeLogs } from './normalizeLogs'
@@ -55,7 +55,7 @@ ${query ? maskQuery(query) : ''}
 `,
   )
 
-  const url = getGithubIssueUrl({ title, body })
+  const url = getGitHubIssueUrl({ title, body })
   return `${title}
 
 This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.

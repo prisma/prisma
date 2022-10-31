@@ -154,6 +154,17 @@ function runCommandRawDefinition(this: PrismaClientClass) {
   $runCommandRaw(command: Prisma.InputJsonObject): PrismaPromise<Prisma.JsonObject>;`
 }
 
+function extendsDefinition(this: PrismaClientClass) {
+  if (!this.generator?.previewFeatures.includes('clientExtensions')) {
+    return ''
+  }
+  return `
+  /**
+   * Returns new fork of the client with the extension applied
+   */
+  $extends(extension: Prisma.Extension): this;`
+}
+
 export class PrismaClientClass implements Generatable {
   constructor(
     protected readonly dmmf: DMMFHelper,
@@ -245,6 +256,7 @@ ${[
   interactiveTransactionDefinition.bind(this)(),
   runCommandRawDefinition.bind(this)(),
   metricDefinition.bind(this)(),
+  extendsDefinition.bind(this)(),
 ]
   .join('\n')
   .trim()}
@@ -392,7 +404,7 @@ export type PrismaAction =
   | 'findRaw'
 
 /**
- * These options are being passed in to the middleware as "params"
+ * These options are being passed into the middleware as "params"
  */
 export type MiddlewareParams = {
   model?: ModelName

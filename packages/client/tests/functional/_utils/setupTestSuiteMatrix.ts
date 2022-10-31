@@ -6,6 +6,7 @@ import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from '.
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
 import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
@@ -111,6 +112,9 @@ function setupTestSuiteMatrix(
             // sometimes we test connection errors. In that case,
             // disconnect might also fail, so ignoring the error here
           })
+          if (clientMeta.dataProxy) {
+            await stopMiniProxyQueryEngine(client)
+          }
         }
         clients.length = 0
         if (!options?.skipDb) {
@@ -124,7 +128,7 @@ function setupTestSuiteMatrix(
         delete globalThis['prisma']
         delete globalThis['Prisma']
         delete globalThis['newPrismaClient']
-      })
+      }, 120_000)
 
       tests(suiteConfig.matrixOptions, suiteMeta, clientMeta)
     })

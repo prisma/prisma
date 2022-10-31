@@ -132,19 +132,23 @@ DROP TABLE 'test-dbexecute';`
     })
 
     // On Windows: snapshot output = "-- Drop & Create & Drop"
-    testIf(process.platform !== 'win32')('should pass with --stdin --schema', async () => {
-      ctx.fixture('schema-only-sqlite')
+    testIf(process.platform !== 'win32')(
+      'should pass with --stdin --schema',
+      async () => {
+        ctx.fixture('schema-only-sqlite')
 
-      const { stdout, stderr } = await exec(
-        `echo "${sqlScript}" | ${pathToBin} db execute --stdin --schema=./prisma/schema.prisma`,
-      )
-      expect(stderr).toBeFalsy()
-      expect(stdout).toMatchInlineSnapshot(`
+        const { stdout, stderr } = await exec(
+          `echo "${sqlScript}" | ${pathToBin} db execute --stdin --schema=./prisma/schema.prisma`,
+        )
+        expect(stderr).toBeFalsy()
+        expect(stdout).toMatchInlineSnapshot(`
                   Script executed successfully.
 
               `)
-       // This is a slow test and macOS machine can be even slower and fail the test
-    }, 30_000)
+        // This is a slow test and macOS machine can be even slower and fail the test
+      },
+      30_000,
+    )
 
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-sqlite')

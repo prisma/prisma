@@ -512,10 +512,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       PRISMA_DML_PATH: this.datamodelPath,
     }
 
-    if (this.logQueries || this.logLevel === 'info') {
-      if (this.logQueries) {
-        env.LOG_QUERIES = 'true'
-      }
+    if (this.logQueries) {
+      env.LOG_QUERIES = 'true'
     }
 
     if (this.datasources) {
@@ -823,17 +821,21 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.getConfigPromise = undefined
     let stopChildPromise
     if (this.child) {
-      debug(`Stopping Prisma engine4`)
+      debug(`Stopping Prisma engine`)
       if (this.startPromise) {
         debug(`Waiting for start promise`)
         await this.startPromise
       }
       debug(`Done waiting for start promise`)
-      stopChildPromise = new Promise((resolve, reject) => {
-        this.engineStopDeferred = { resolve, reject }
-      })
+      if (this.child.exitCode === null) {
+        stopChildPromise = new Promise((resolve, reject) => {
+          this.engineStopDeferred = { resolve, reject }
+        })
+      } else {
+        debug('Child already exited with code', this.child.exitCode)
+      }
       this.connection.close()
-      this.child?.kill()
+      this.child.kill()
       this.child = undefined
     }
     if (stopChildPromise) {
@@ -945,7 +947,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.clientVersion!)
       }
 
-      // Rust engine returns time in microseconds and we want it in miliseconds
+      // Rust engine returns time in microseconds and we want it in milliseconds
       const elapsed = parseInt(headers['x-elapsed']) / 1000
 
       // reset restart count after successful request
@@ -957,9 +959,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       return { data, elapsed } as any
     } catch (e: any) {
       logger('req - e', e)
-      if (e instanceof PrismaClientKnownRequestError) {
-        throw e
-      }
 
       await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
       // retry
@@ -991,7 +990,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
-        // Rust engine returns time in microseconds and we want it in miliseconds
+        // Rust engine returns time in microseconds and we want it in milliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
         const { batchResult, errors } = data
         if (Array.isArray(batchResult)) {
@@ -1116,6 +1115,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     // if we are starting, wait for it before we handle any error
     if (this.startPromise) {
       await this.startPromise
+    }
+
+    if (error instanceof PrismaClientKnownRequestError) {
+      throw error
     }
 
     this.throwAsyncErrorIfExists()
