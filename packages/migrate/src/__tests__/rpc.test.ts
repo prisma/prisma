@@ -153,7 +153,6 @@ it('applyMigrations', async () => {
   migrate.stop()
 })
 
-//
 it('applyMigrations - should fail on existing brownfield db', async () => {
   ctx.fixture('existing-db-brownfield')
   const schemaPath = (await getSchemaPath())!
@@ -171,7 +170,8 @@ it('applyMigrations - should fail on existing brownfield db', async () => {
   migrate.stop()
 })
 
-it('push', async () => {
+// The Prisma CLI creates the SQLite database file if it doesn't exist before calling the RPC
+it('schemaPush should throw if SQLite database file is missing', async () => {
   ctx.fixture('schema-only-sqlite')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
@@ -181,17 +181,36 @@ it('push', async () => {
     schema: schema,
   })
 
-  await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            executedSteps: 1,
-            unexecutable: Array [],
-            warnings: Array [],
-          }
-        `)
+  await expect(result).rejects.toMatchInlineSnapshot(`
+    P1003
+
+    Database dev.db does not exist at dev.db
+
+  `)
   migrate.stop()
 })
 
-it('push should return executedSteps 0 with warning if dataloss detected', async () => {
+it('schemaPush should succeed without warning', async () => {
+  ctx.fixture('existing-db-1-draft')
+  const schemaPath = (await getSchemaPath())!
+  const migrate = new Migrate(schemaPath)
+  const schema = migrate.getPrismaSchema()
+  const result = migrate.engine.schemaPush({
+    force: false,
+    schema: schema,
+  })
+
+  await expect(result).resolves.toMatchInlineSnapshot(`
+    Object {
+      executedSteps: 1,
+      unexecutable: Array [],
+      warnings: Array [],
+    }
+  `)
+  migrate.stop()
+})
+
+it('schemaPush should return executedSteps 0 with warning if dataloss detected', async () => {
   ctx.fixture('existing-db-brownfield')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
@@ -214,7 +233,7 @@ it('push should return executedSteps 0 with warning if dataloss detected', async
   migrate.stop()
 })
 
-it('push force should accept dataloss', async () => {
+it('schemaPush force should accept dataloss', async () => {
   ctx.fixture('existing-db-brownfield')
   const schemaPath = (await getSchemaPath())!
   const migrate = new Migrate(schemaPath)
