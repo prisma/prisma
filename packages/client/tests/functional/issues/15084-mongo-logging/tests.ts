@@ -32,6 +32,12 @@ testMatrix.setupTestSuite(
       await client.user.findMany()
       const queryLog = await queryLogPromise
 
+      expect(queryLog).toHaveProperty('timestamp')
+      expect(queryLog).toHaveProperty('query')
+      expect(queryLog).toHaveProperty('params')
+      expect(queryLog).toHaveProperty('duration')
+      expect(queryLog).toHaveProperty('target')
+
       expect(queryLog.query).toMatchInlineSnapshot('db.User.aggregate([ { $project: { _id: 1, }, }, ])')
     })
   },
