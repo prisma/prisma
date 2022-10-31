@@ -251,7 +251,7 @@ export class DataProxyEngine extends Engine {
 
           const response = await request(url, {
             method: 'POST',
-            headers: { ...headers, ...this.headers },
+            headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
             body,
             clientVersion: this.clientVersion,
           })
@@ -273,7 +273,7 @@ export class DataProxyEngine extends Engine {
 
           const response = await request(url, {
             method: 'POST',
-            headers: { ...headers, ...this.headers },
+            headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
             clientVersion: this.clientVersion,
           })
 
