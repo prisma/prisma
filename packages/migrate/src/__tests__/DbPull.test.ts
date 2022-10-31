@@ -158,18 +158,18 @@ describe('common/sqlite', () => {
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      
-      
+
+
       - Introspecting based on datasource defined in prisma/reintrospection.prisma
-      
+
       ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
             
       *** WARNING ***
 
       These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+      - Model "AwesomeUser"
       - Model "AwesomeNewPost"
       - Model "AwesomeProfile"
-      - Model "AwesomeUser"
 
       Run prisma generate to generate Prisma Client.
 
@@ -858,7 +858,6 @@ describe('postgresql-extensions', () => {
   //       ADMIN
   //     }
 
-
   //     // introspectionSchemaVersion: NonPrisma,
   //   `)
   //   expect(introspectedSchema).not.toContain('extensions =')
@@ -920,7 +919,7 @@ describe('postgresql-extensions', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
-  
+
   test('re-introspection should succeed and keep defined extension in schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()

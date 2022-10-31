@@ -1,8 +1,19 @@
-import stripAnsi from 'strip-ansi'
-
 import { getConfig } from '../..'
+import { isRustPanic } from '../../panic'
 
 describe('getConfig', () => {
+  test('should raise a Rust panic when given arguments of the wrong type', async () => {
+    expect.assertions(1)
+
+    try {
+      // @ts-expect-error
+      await getConfig({ datamodel: true })
+    } catch (e) {
+      const error = e as Error
+      expect(isRustPanic(error)).toBe(true)
+    }
+  })
+
   test('empty config', async () => {
     const config = await getConfig({
       datamodel: `

@@ -1,9 +1,7 @@
 {
   "extends": "../../tsconfig.build.bundle.json",
   "compilerOptions": {
-    "outDir": "dist",
-    "noEmit": true,
-    "emitDeclarationOnly": false
+    "outDir": "dist"
   },
   "include": ["src"]
 }

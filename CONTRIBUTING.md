@@ -76,7 +76,7 @@ cd reproductions
 # Copy a template from the reproduction folder
 cp -r basic-sqlite my-repro && cd my-repro
 # Install dependencies
-cd my-repro && pnpm install
+pnpm install
 # Ensure that the db and the schema are synced
 pnpm dbpush
 # Do some code changes, always re-generate the client, then try it out
