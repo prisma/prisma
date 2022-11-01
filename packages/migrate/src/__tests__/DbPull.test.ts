@@ -816,57 +816,6 @@ describe('postgresql-extensions', () => {
     })
   })
 
-  // test('introspection should succeed and not add extensions property to the schema.prisma file', async () => {
-  //   ctx.fixture('introspection/postgresql-extensions-no-extension-installed')
-  //   const introspect = new DbPull()
-  //   const result = introspect.parse(['--print'])
-  //   await expect(result).resolves.toMatchInlineSnapshot(``)
-  //   const introspectedSchema = ctx.mocked['console.log'].mock.calls.join('\n')
-  //   expect(introspectedSchema).toMatchInlineSnapshot(`
-  //     generator client {
-  //       provider        = "prisma-client-js"
-  //       previewFeatures = ["postgresqlExtensions"]
-  //     }
-
-  //     datasource db {
-  //       provider = "postgresql"
-  //       url      = env("TEST_POSTGRES_URI_MIGRATE")
-  //     }
-
-  //     model Post {
-  //       id        String    @id
-  //       createdAt DateTime  @default(now())
-  //       updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
-  //       published Boolean   @default(false)
-  //       title     String
-  //       content   String?
-  //       authorId  String?
-  //       jsonData  Json?
-  //       coinflips Boolean[]
-  //       User      User?     @relation(fields: [authorId], references: [id])
-  //     }
-
-  //     model User {
-  //       id    String  @id
-  //       email String  @unique(map: "User.email")
-  //       name  String?
-  //       Post  Post[]
-  //     }
-
-  //     enum Role {
-  //       USER
-  //       ADMIN
-  //     }
-
-  //     // introspectionSchemaVersion: NonPrisma,
-  //   `)
-  //   expect(introspectedSchema).not.toContain('extensions =')
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  //   expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  //   expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  //   expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  // })
-
   test('introspection should succeed and add extensions property to the schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
