@@ -718,6 +718,56 @@ model some_table {
 
 exports[`postgresql-multi-schema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
 
+exports[`postgresql-multi-schema datasource property \`schemas=["base", "transactional"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  schemas  = ["base", "transactional"]
+}
+
+model User {
+  id    String @id
+  email String
+  Post  Post[]
+
+  @@schema("base")
+}
+
+model some_table {
+  id               String       @id(map: "User_pkey2")
+  email            String
+  other_some_table some_table[] @relation("some_tableTosome_table")
+
+  @@schema("base")
+}
+
+model Post {
+  id       String @id
+  title    String
+  authorId String
+  User     User   @relation(fields: [authorId], references: [id])
+
+  @@schema("transactional")
+}
+
+model some_table {
+  id         String     @id(map: "Post_pkey2")
+  title      String
+  authorId   String
+  some_table some_table @relation("some_tableTosome_table", fields: [authorId], references: [id], map: "Post_authorId_fkey2")
+
+  @@schema("transactional")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
 exports[`postgresql-multi-schema datasource property \`schemas=["base"]\` should succeed 2`] = `
 generator client {
   provider        = "prisma-client-js"
@@ -787,12 +837,12 @@ datasource db {
 }
 
 model some_table {
-  id    String @id @db.NVarChar(1)
+  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
 model SomeUser {
-  id    String @id(map: "PK__SomeUser__3213E83EFBC47063", clustered: false) @db.NVarChar(1)
+  id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
@@ -815,12 +865,12 @@ datasource db {
 }
 
 model some_table {
-  id    String @id @db.NVarChar(1)
+  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
 model SomeUser {
-  id    String @id(map: "PK__SomeUser__3213E83E0758BF28", clustered: false) @db.NVarChar(1)
+  id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
@@ -841,12 +891,12 @@ datasource db {
 }
 
 model some_table {
-  id    String @id @db.NVarChar(1)
+  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
 model SomeUser {
-  id    String @id(map: "PK__SomeUser__3213E83E18FD0857", clustered: false) @db.NVarChar(1)
+  id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
@@ -867,12 +917,12 @@ datasource db {
 }
 
 model some_table {
-  id    String @id @db.NVarChar(1)
+  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
 model SomeUser {
-  id    String @id(map: "PK__SomeUser__3213E83EC40EB9DB", clustered: false) @db.NVarChar(1)
+  id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
 }
 
