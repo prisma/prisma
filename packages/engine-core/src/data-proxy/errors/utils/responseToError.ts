@@ -1,14 +1,19 @@
 import { PrismaClientInitializationError } from '../../../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../../common/errors/PrismaClientKnownRequestError'
 import type { RequestResponse } from '../../utils/request'
-import { BadRequestError } from '../BadRequestError'
+import { BAD_REQUEST_DEFAULT_MESSAGE, BadRequestError } from '../BadRequestError'
 import type { DataProxyError } from '../DataProxyError'
-import { GatewayTimeoutError } from '../GatewayTimeoutError'
-import { NotFoundError } from '../NotFoundError'
+import { HealthcheckTimeoutError } from '../EngineHealthcheckTimeoutError'
+import { EngineStartupError } from '../EngineStartupError'
+import { EngineVersionNotSupportedError } from '../EngineVersionNotSupportedError'
+import { GATEWAY_TIMEOUT_DEFAULT_MESSAGE, GatewayTimeoutError } from '../GatewayTimeoutError'
+import { InteractiveTransactionError } from '../InteractiveTransactionError'
+import { InvalidRequestError } from '../InvalidRequestError'
+import { NOT_FOUND_DEFAULT_MESSAGE, NotFoundError } from '../NotFoundError'
 import { SchemaMissingError } from '../SchemaMissingError'
-import { ServerError } from '../ServerError'
-import { UnauthorizedError } from '../UnauthorizedError'
-import { UsageExceededError } from '../UsageExceededError'
+import { SERVER_ERROR_DEFAULT_MESSAGE, ServerError } from '../ServerError'
+import { UNAUTHORIZED_DEFAULT_MESSAGE, UnauthorizedError } from '../UnauthorizedError'
+import { USAGE_EXCEEDED_DEFAULT_MESSAGE, UsageExceededError } from '../UsageExceededError'
 
 type DataProxyHttpError =
   | 'InternalDataProxyError'
@@ -92,12 +97,11 @@ export async function responseToError(
         return new SchemaMissingError(info)
       }
       if (error.error.EngineNotStarted.reason === 'EngineVersionNotSupported') {
-        throw new BadRequestError(info, 'Engine version is not supported')
+        throw new EngineVersionNotSupportedError(info)
       }
       if ('EngineStartupError' in error.error.EngineNotStarted.reason) {
         const { msg, logs } = error.error.EngineNotStarted.reason.EngineStartupError
-        const message = logs.length > 0 ? msg + '\n\nLogs:\n' + logs.join('\n') : msg
-        throw new PrismaClientInitializationError(message, clientVersion)
+        throw new EngineStartupError(info, msg, logs)
       }
       if ('KnownEngineStartupError' in error.error.EngineNotStarted.reason) {
         const { msg, error_code } = error.error.EngineNotStarted.reason.KnownEngineStartupError
@@ -105,36 +109,54 @@ export async function responseToError(
       }
       if ('HealthcheckTimeout' in error.error.EngineNotStarted.reason) {
         const { logs } = error.error.EngineNotStarted.reason.HealthcheckTimeout
-        let message = 'Healthcheck timeout'
-        if (logs.length > 0) message += '\n\nLogs:\n' + logs.join('\n')
-        throw new PrismaClientInitializationError(message, clientVersion)
+        throw new HealthcheckTimeoutError(info, logs)
       }
+    }
+
+    if ('InteractiveTransactionMisrouted' in error.error) {
+      const messageByReason: Record<InteractiveTransactionMisroutedReason, string> = {
+        IDParseError: 'Could not parse interactive transaction ID',
+        NoQueryEngineFoundError: 'Could not find Query Engine for the specified transaction ID',
+        TransactionStartError: 'Could not start interactive transaction',
+      }
+      throw new InteractiveTransactionError(info, messageByReason[error.error.InteractiveTransactionMisrouted.reason])
+    }
+
+    if ('InvalidRequestError' in error.error) {
+      throw new InvalidRequestError(info, error.error.InvalidRequestError.reason)
     }
   }
 
-  if (response.status === 429) {
-    throw new UsageExceededError(info)
-  }
-
-  if (response.status === 504) {
-    throw new GatewayTimeoutError(info)
-  }
-
-  if (response.status === 401) {
-    throw new UnauthorizedError(info)
+  if (response.status === 401 || response.status === 403) {
+    throw new UnauthorizedError(info, buildErrorMessage(UNAUTHORIZED_DEFAULT_MESSAGE, error))
   }
 
   if (response.status === 404) {
-    return new NotFoundError(info)
+    return new NotFoundError(info, buildErrorMessage(NOT_FOUND_DEFAULT_MESSAGE, error))
+  }
+
+  if (response.status === 429) {
+    throw new UsageExceededError(info, buildErrorMessage(USAGE_EXCEEDED_DEFAULT_MESSAGE, error))
+  }
+
+  if (response.status === 504) {
+    throw new GatewayTimeoutError(info, buildErrorMessage(GATEWAY_TIMEOUT_DEFAULT_MESSAGE, error))
   }
 
   if (response.status >= 500) {
-    throw new ServerError(info, JSON.stringify(error))
+    throw new ServerError(info, buildErrorMessage(SERVER_ERROR_DEFAULT_MESSAGE, error))
   }
 
   if (response.status >= 400) {
-    throw new BadRequestError(info, JSON.stringify(error))
+    throw new BadRequestError(info, buildErrorMessage(BAD_REQUEST_DEFAULT_MESSAGE, error))
   }
 
   return undefined
+}
+
+function buildErrorMessage(defaultMessage: string, errorBody: ResponseErrorBody): string {
+  if (errorBody.type === 'EmptyError') {
+    return defaultMessage
+  }
+  return `${defaultMessage}: ${JSON.stringify(errorBody)}`
 }
