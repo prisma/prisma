@@ -1,15 +1,17 @@
 import { O } from 'ts-toolbelt'
 
 import { Providers } from '../providers'
+import { ProviderFlavor } from './ProviderFlavor'
 
 type RelationMode = 'prisma' | 'foreignKeys'
 
 type Target = {
   provider: Providers
+  providerFlavor: ProviderFlavor
   relationMode: RelationMode
 }
 
-type ConditionalErrorSnapshotErrors = O.AtLeast<Record<Providers, string>> | string
+type ConditionalErrorSnapshotErrors = O.AtLeast<Record<ProviderFlavor, string>> | string
 
 interface With<Supplied> {
   with<T extends Omit<Target, keyof Supplied>, K extends keyof T>(
@@ -31,7 +33,7 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
   }
 
   snapshot(errors: O.AtLeast<Record<RelationMode, ConditionalErrorSnapshotErrors>>) {
-    const { provider, relationMode } = this.target as Target
+    const { provider, providerFlavor, relationMode } = this.target as Target
     const errorBase = errors[relationMode]
 
     if (typeof errorBase === 'string') {
@@ -42,22 +44,23 @@ class ConditionalErrorBuilder<Supplied> implements With<Supplied>, ConditionalEr
       return `TODO: add error for relationMode=${relationMode}`
     }
 
-    return errorBase[provider] || `TODO: add error for provider=${provider}`
+    return errorBase[providerFlavor] || `TODO: add error for provider=${provider} and providerFlavor=${providerFlavor}`
   }
 }
 
 /**
  * Example usage:
  *
- * const conditionalError  = ConditionalError
+ * const conditionalError = ConditionalError
  *   .new()
- *   .with('provider', Providers.POSTGRESQL)
+ *   .with('provider', Providers.MYSQL)
+ *   .with('providerFlavor', ProviderFlavors.VITESS_8)
  *   .with('relationMode', 'prisma')
  *
  * conditionalError.snapshot({
- *   prisma: 'TODO add error with relationMode = prisma',
- *   foreignKeys: {
- *     [Providers.POSTGRESQL]: 'TODO add error for POSTGRESQL with relationMode = foreignKeys',
+ *   foreignKeys: 'TODO add error with relationMode=foreignKeys',
+ *   prisma: {
+ *     [ProviderFlavors.VITESS_8]: 'TODO add error for provider=mysql and providerFlavor=vitess-8',
  *   }
  * })
  */
