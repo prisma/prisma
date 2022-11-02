@@ -16,6 +16,10 @@ testMatrix.setupTestSuite(
             emit: 'event',
             level: 'query',
           },
+          {
+            emit: 'stdout',
+            level: 'query',
+          },
         ],
       })
 
@@ -29,16 +33,21 @@ testMatrix.setupTestSuite(
           })
         }))()
 
+      const consoleInfoMock = jest.spyOn(console, 'log').mockImplementation()
       await client.user.findMany()
-      const queryLog = await queryLogPromise
+      const consoleCalls = [...consoleInfoMock.mock.calls]
+      consoleInfoMock.mockRestore()
 
-      expect(queryLog).toHaveProperty('timestamp')
-      expect(queryLog).toHaveProperty('query')
-      expect(queryLog).toHaveProperty('params')
-      expect(queryLog).toHaveProperty('duration')
-      expect(queryLog).toHaveProperty('target')
-
-      expect(queryLog.query).toMatchInlineSnapshot('db.User.aggregate([ { $project: { _id: 1, }, }, ])')
+      const queryLogEvents = await queryLogPromise
+      expect(queryLogEvents).toHaveProperty('timestamp')
+      expect(queryLogEvents).toHaveProperty('query')
+      expect(queryLogEvents).toHaveProperty('params')
+      expect(queryLogEvents).toHaveProperty('duration')
+      expect(queryLogEvents).toHaveProperty('target')
+      expect(queryLogEvents.query).toMatchInlineSnapshot('db.User.aggregate([ { $project: { _id: 1, }, }, ])')
+      expect(consoleCalls.join('/n')).toMatchInlineSnapshot(
+        `prisma:query,db.User.aggregate([ { $project: { _id: 1, }, }, ])`,
+      )
     })
   },
   {
