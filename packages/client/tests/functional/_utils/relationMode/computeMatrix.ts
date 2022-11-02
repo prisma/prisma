@@ -49,7 +49,9 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
   const referentialActionsDenylistByProviderFlavor = {
     foreignKeys: {
       [Providers.SQLSERVER]: ['Restrict'],
-      [ProviderFlavors.VITESS_8]: referentialActionsBase, // no action is executed for Vitess & relationMode="foreignKeys"
+
+      // skip all actions for Vitess & relationMode="foreignKeys" as Foreign Keys are not supported by that provider
+      [ProviderFlavors.VITESS_8]: referentialActionsBase,
     },
     prisma: {
       [Providers.SQLSERVER]: ['Restrict'],
