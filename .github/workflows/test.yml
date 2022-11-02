@@ -178,20 +178,20 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
+      # shouldn't take more than 15 minutes
       - name: 1 to 1
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-1.ts
         working-directory: packages/client
-        timeout-minutes: 15
 
+      # shouldn't take more than 15 minutes
       - name: 1 to n
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-n.ts
         working-directory: packages/client
-        timeout-minutes: 15
 
+      # shouldn't take more than 15 minutes
       - name: m to n (SQL databases)
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n.ts
         working-directory: packages/client
-        timeout-minutes: 15
 
       - name: m to n (MongoDB)
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n-MongoDB.ts
