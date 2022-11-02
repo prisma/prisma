@@ -7,6 +7,7 @@ const postinstallBuildConfig: BuildOptions = {
   entryPoints: ['src/scripts/postinstall.ts'],
   outfile: 'dist/scripts/postinstall',
   bundle: true,
+  emitTypes: false,
 }
 
 // we define the config for localinstall
@@ -15,6 +16,7 @@ const localinstallBuildConfig: BuildOptions = {
   entryPoints: ['src/scripts/localinstall.ts'],
   outfile: 'dist/scripts/localinstall',
   bundle: true,
+  emitTypes: false,
 }
 
 // we define the config for the default
