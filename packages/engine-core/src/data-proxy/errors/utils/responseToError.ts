@@ -116,7 +116,7 @@ export async function responseToError(
     if ('InteractiveTransactionMisrouted' in error.error) {
       const messageByReason: Record<InteractiveTransactionMisroutedReason, string> = {
         IDParseError: 'Could not parse interactive transaction ID',
-        NoQueryEngineFoundError: 'Could not find Query Engine for the specified transaction ID',
+        NoQueryEngineFoundError: 'Could not find Query Engine for the specified host and transaction ID',
         TransactionStartError: 'Could not start interactive transaction',
       }
       throw new InteractiveTransactionError(info, messageByReason[error.error.InteractiveTransactionMisrouted.reason])
