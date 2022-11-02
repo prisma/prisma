@@ -4,8 +4,6 @@ exports[`postgresql should fail if cannot connect 3`] = ``;
 
 exports[`postgresql should fail if cannot connect 4`] = ``;
 
-exports[`sqlite baseline-sqlite 3`] = ``;
-
 exports[`sqlite existing-db-1-failed-migration 3`] = ``;
 
 exports[`sqlite existing-db-1-migration 3`] = ``;
@@ -27,6 +25,8 @@ exports[`sqlite old-migrate 4`] = ``;
 exports[`sqlite reset 3`] = ``;
 
 exports[`sqlite reset 4`] = ``;
+
+exports[`sqlite should error when database needs to be baselined 3`] = ``;
 
 exports[`sqlite should fail if no sqlite db - empty schema 3`] = ``;
 
