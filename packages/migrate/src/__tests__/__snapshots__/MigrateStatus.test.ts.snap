@@ -26,7 +26,7 @@ exports[`sqlite reset 3`] = ``;
 
 exports[`sqlite reset 4`] = ``;
 
-exports[`sqlite should error when migration(s) have not yet been applied 3`] = ``;
+exports[`sqlite should error when database needs to be baselined 3`] = ``;
 
 exports[`sqlite should fail if no sqlite db - empty schema 3`] = ``;
 
