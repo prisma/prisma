@@ -118,7 +118,7 @@ jobs:
   # CLIENT test:functional relationMode
   #
   client-relationMode:
-    timeout-minutes: 35
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
@@ -181,14 +181,17 @@ jobs:
       - name: 1 to 1
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-1.ts
         working-directory: packages/client
+        timeout-minutes: 15
 
       - name: 1 to n
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-n.ts
         working-directory: packages/client
+        timeout-minutes: 15
 
       - name: m to n (SQL databases)
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n.ts
         working-directory: packages/client
+        timeout-minutes: 15
 
       - name: m to n (MongoDB)
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n-MongoDB.ts
