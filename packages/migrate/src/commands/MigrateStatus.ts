@@ -133,8 +133,6 @@ ${unappliedMigrations.join('\n')}
 To apply migrations in development run ${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate dev`))}.
 To apply migrations in production run ${chalk.bold.greenBright(getCommandWithExecutor(`prisma migrate deploy`))}.`,
       )
-      // Exit 1 to signal that the status is not in sync
-      process.exit(1)
     } else if (diagnoseResult.history?.diagnostic === 'historiesDiverge') {
       console.error(`Your local migration history and the migrations table from your database are different:
 
