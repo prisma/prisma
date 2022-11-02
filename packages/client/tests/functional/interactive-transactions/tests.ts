@@ -774,24 +774,18 @@ testMatrix.setupTestSuite(
         ],
       })
 
-      const queriesPromise = ((): Promise<string[]> => {
-        const entries: string[] = []
+      const didLogCommit = new Promise((resolve) => {
+        client.$on('query', (data) => {
+          // @ts-expect-error
+          const query = data.query as string
 
-        return new Promise((resolve) => {
-          client.$on('query', (data) => {
-            // @ts-expect-error
-            const query = data.query as string
-
-            entries.push(query)
-
-            if (query.includes('COMMIT')) {
-              resolve(entries)
-            }
-          })
+          if (query.includes('COMMIT')) {
+            resolve(true)
+          }
         })
-      })()
+      })
 
-      await prisma.$transaction(async (tx) => {
+      await client.$transaction(async (tx) => {
         const user = await tx.user.create({
           data: {
             email: faker.internet.email(),
@@ -805,10 +799,7 @@ testMatrix.setupTestSuite(
         })
       })
 
-      const queries = await queriesPromise
-
-      const hasQueries = Boolean(queries.length)
-      expect(hasQueries).toEqual(true)
+      expect(await didLogCommit).toEqual(true)
     })
   },
   {
