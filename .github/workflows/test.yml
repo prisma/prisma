@@ -118,7 +118,7 @@ jobs:
   # CLIENT test:functional relationMode
   #
   client-relationMode:
-    timeout-minutes: 35
+    timeout-minutes: 60
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
@@ -147,6 +147,7 @@ jobs:
       TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
       TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
       TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
       TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -160,7 +161,7 @@ jobs:
           echo "RELATION_MODE=${{ matrix.relationMode }}"
           if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -177,14 +178,17 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
+      # shouldn't take more than 15 minutes
       - name: 1 to 1
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-1.ts
         working-directory: packages/client
 
+      # shouldn't take more than 15 minutes
       - name: 1 to n
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-n.ts
         working-directory: packages/client
 
+      # shouldn't take more than 15 minutes
       - name: m to n (SQL databases)
         run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n.ts
         working-directory: packages/client
@@ -1033,7 +1037,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          NODE_OPTIONS: '--max-old-space-size=8096'
+          NODE_OPTIONS: '--max-old-space-size=10240' # allow Node.js to allocate at most 10gb of heap
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
