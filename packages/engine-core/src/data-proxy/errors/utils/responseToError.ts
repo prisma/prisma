@@ -37,10 +37,10 @@ type QueryEngineError = {
 }
 
 type ResponseErrorBody =
-  | { type: 'DataProxyError'; error: DataProxyHttpError }
-  | { type: 'QueryEngineError'; error: QueryEngineError }
-  | { type: 'UnknownJsonError'; error: unknown }
-  | { type: 'UnknownTextError'; error: string }
+  | { type: 'DataProxyError'; body: DataProxyHttpError }
+  | { type: 'QueryEngineError'; body: QueryEngineError }
+  | { type: 'UnknownJsonError'; body: unknown }
+  | { type: 'UnknownTextError'; body: string }
   | { type: 'EmptyError' }
 
 async function getResponseErrorBody(response: RequestResponse): Promise<ResponseErrorBody> {
@@ -52,25 +52,25 @@ async function getResponseErrorBody(response: RequestResponse): Promise<Response
     if (typeof error === 'string') {
       switch (error) {
         case 'InternalDataProxyError':
-          return { type: 'DataProxyError', error }
+          return { type: 'DataProxyError', body: error }
         default:
-          return { type: 'UnknownTextError', error }
+          return { type: 'UnknownTextError', body: error }
       }
     }
 
     if (typeof error === 'object' && error !== null) {
       if ('is_panic' in error && 'message' in error && 'error_code' in error) {
-        return { type: 'QueryEngineError', error }
+        return { type: 'QueryEngineError', body: error }
       }
 
       if ('EngineNotStarted' in error || 'InteractiveTransactionMisrouted' in error || 'InvalidRequestError' in error) {
-        return { type: 'DataProxyError', error }
+        return { type: 'DataProxyError', body: error }
       }
     }
 
-    return { type: 'UnknownJsonError', error }
+    return { type: 'UnknownJsonError', body: error }
   } catch {
-    return text === '' ? { type: 'EmptyError' } : { type: 'UnknownTextError', error: text }
+    return text === '' ? { type: 'EmptyError' } : { type: 'UnknownTextError', body: text }
   }
 }
 
@@ -84,46 +84,46 @@ export async function responseToError(
   const error = await getResponseErrorBody(response)
 
   if (error.type === 'QueryEngineError') {
-    throw new PrismaClientKnownRequestError(error.error.message, error.error.error_code, clientVersion)
+    throw new PrismaClientKnownRequestError(error.body.message, error.body.error_code, clientVersion)
   }
 
   if (error.type === 'DataProxyError') {
-    if (error.error === 'InternalDataProxyError') {
+    if (error.body === 'InternalDataProxyError') {
       throw new ServerError(info, 'Internal Data Proxy error')
     }
 
-    if ('EngineNotStarted' in error.error) {
-      if (error.error.EngineNotStarted.reason === 'SchemaMissing') {
+    if ('EngineNotStarted' in error.body) {
+      if (error.body.EngineNotStarted.reason === 'SchemaMissing') {
         return new SchemaMissingError(info)
       }
-      if (error.error.EngineNotStarted.reason === 'EngineVersionNotSupported') {
+      if (error.body.EngineNotStarted.reason === 'EngineVersionNotSupported') {
         throw new EngineVersionNotSupportedError(info)
       }
-      if ('EngineStartupError' in error.error.EngineNotStarted.reason) {
-        const { msg, logs } = error.error.EngineNotStarted.reason.EngineStartupError
+      if ('EngineStartupError' in error.body.EngineNotStarted.reason) {
+        const { msg, logs } = error.body.EngineNotStarted.reason.EngineStartupError
         throw new EngineStartupError(info, msg, logs)
       }
-      if ('KnownEngineStartupError' in error.error.EngineNotStarted.reason) {
-        const { msg, error_code } = error.error.EngineNotStarted.reason.KnownEngineStartupError
+      if ('KnownEngineStartupError' in error.body.EngineNotStarted.reason) {
+        const { msg, error_code } = error.body.EngineNotStarted.reason.KnownEngineStartupError
         throw new PrismaClientInitializationError(msg, clientVersion, error_code)
       }
-      if ('HealthcheckTimeout' in error.error.EngineNotStarted.reason) {
-        const { logs } = error.error.EngineNotStarted.reason.HealthcheckTimeout
+      if ('HealthcheckTimeout' in error.body.EngineNotStarted.reason) {
+        const { logs } = error.body.EngineNotStarted.reason.HealthcheckTimeout
         throw new HealthcheckTimeoutError(info, logs)
       }
     }
 
-    if ('InteractiveTransactionMisrouted' in error.error) {
+    if ('InteractiveTransactionMisrouted' in error.body) {
       const messageByReason: Record<InteractiveTransactionMisroutedReason, string> = {
         IDParseError: 'Could not parse interactive transaction ID',
         NoQueryEngineFoundError: 'Could not find Query Engine for the specified host and transaction ID',
         TransactionStartError: 'Could not start interactive transaction',
       }
-      throw new InteractiveTransactionError(info, messageByReason[error.error.InteractiveTransactionMisrouted.reason])
+      throw new InteractiveTransactionError(info, messageByReason[error.body.InteractiveTransactionMisrouted.reason])
     }
 
-    if ('InvalidRequestError' in error.error) {
-      throw new InvalidRequestError(info, error.error.InvalidRequestError.reason)
+    if ('InvalidRequestError' in error.body) {
+      throw new InvalidRequestError(info, error.body.InvalidRequestError.reason)
     }
   }
 
