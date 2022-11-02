@@ -775,13 +775,9 @@ testMatrix.setupTestSuite(
       })
 
       const didLogCommit = new Promise((resolve) => {
-        client.$on('query', (data) => {
-          // @ts-expect-error
-          const query = data.query as string
-
-          if (query.includes('COMMIT')) {
-            resolve(true)
-          }
+        client.$on('query', () => {
+          // If any query is emmited we know that we are logging
+          resolve(true)
         })
       })
 
