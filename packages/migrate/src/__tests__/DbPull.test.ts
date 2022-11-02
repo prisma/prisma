@@ -24,6 +24,9 @@ process.env.CI = 'true'
 // describeIf is making eslint not happy about the names
 /* eslint-disable jest/no-identical-title */
 
+// We want to remove unique IDs to have stable snapshots
+// Example:
+// `PK__User__3213E83E450CDF1F` will be changed to `PK__User__RANDOM_ID_SANITIZED`
 function sanitizeSQLServerIdName(schema: string) {
   const schemaRows = schema.split('\n')
   const regexp = new RegExp(/map: "PK__(.*)__(.*)"/)
