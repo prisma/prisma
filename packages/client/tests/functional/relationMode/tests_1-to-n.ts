@@ -1,6 +1,7 @@
 import { Providers } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
+import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
@@ -51,6 +52,7 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     const conditionalError = ConditionalError.new()
       .with('provider', suiteConfig.provider)
+      .with('providerFlavor', suiteConfig.providerFlavor)
       // @ts-ignore
       .with('relationMode', suiteConfig.relationMode || 'foreignKeys')
 
@@ -365,6 +367,7 @@ testMatrix.setupTestSuite(
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
+                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
                         },
                   }),
             )
