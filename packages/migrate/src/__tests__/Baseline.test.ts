@@ -19,6 +19,14 @@ process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 // And we want to baseline the production database with a baseline migration
 // For that, we use `db pull`, `migrate dev`, `migrate resolve` and `migrate deploy` commands
 describe('Baselining', () => {
+  // Backup env vars
+  const OLD_ENV = { ...process.env }
+
+  afterEach(() => {
+    // Restore env vars to backup state
+    process.env = { ...OLD_ENV }
+  })
+
   it('SQLite: should succeed', async () => {
     ctx.fixture('baseline-sqlite')
     fs.remove('prisma/migrations')
