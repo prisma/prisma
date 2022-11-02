@@ -3,6 +3,7 @@ import * as miniProxy from '@prisma/mini-proxy'
 import cuid from 'cuid'
 import fs from 'fs-extra'
 import path from 'path'
+import { match } from 'ts-pattern'
 import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
@@ -11,6 +12,7 @@ import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import { Providers } from './providers'
+import { ProviderFlavor, ProviderFlavors } from './relationMode/ProviderFlavor'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta } from './types'
 
@@ -191,15 +193,27 @@ export type DatasourceInfo = {
  */
 export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientMeta: ClientMeta): DatasourceInfo {
   const provider = suiteConfig['provider'] as Providers
+  const providerFlavor = suiteConfig['providerFlavor'] as ProviderFlavor | undefined
   const dbId = cuid()
-  const envVarName = `DATABASE_URI_${provider}`
-  const newURI = getDbUrl(provider).replace(DB_NAME_VAR, dbId)
 
+  const { envVarName, newURI } = match(providerFlavor)
+    .with(undefined, () => {
+      const envVarName = `DATABASE_URI_${provider}`
+      const newURI = getDbUrl(provider)
+      return { envVarName, newURI }
+    })
+    .otherwise(() => {
+      const envVarName = `DATABASE_URI_${providerFlavor!}`
+      const newURI = getDbUrlFromFlavor(providerFlavor, provider)
+      return { envVarName, newURI }
+    })
+
+  const databaseUrl = newURI.replace(DB_NAME_VAR, dbId)
   let dataProxyUrl: string | undefined
 
   if (clientMeta.dataProxy) {
     dataProxyUrl = miniProxy.generateConnectionString({
-      databaseUrl: newURI,
+      databaseUrl,
       envVar: envVarName,
       port: miniProxy.defaultServerConfig.port,
     })
@@ -207,7 +221,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
 
   return {
     envVarName,
-    databaseUrl: newURI,
+    databaseUrl,
     dataProxyUrl,
   }
 }
@@ -234,6 +248,18 @@ function getDbUrl(provider: Providers): string {
     default:
       assertNever(provider, `No URL for provider ${provider} configured`)
   }
+}
+
+/**
+ * Returns configured database URL for specified provider flavor, falling back to
+ * `getDbUrl(provider)` if no flavor-specific URL is configured.
+ * @param providerFlavor provider variant, e.g. `vitess` for `mysql`
+ * @param provider provider supported by Prisma, e.g. `mysql`
+ */
+function getDbUrlFromFlavor(providerFlavor: ProviderFlavor | undefined, provider: Providers): string {
+  return match(providerFlavor)
+    .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+    .otherwise(() => getDbUrl(provider))
 }
 
 /**
