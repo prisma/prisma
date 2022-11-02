@@ -38,14 +38,21 @@ services:
     restart: always
     ports:
       - 33807:33807
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P33577']
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 25s
     environment:
       PORT: '33804' # unused in testing, but required by vttestserver
-      KEYSPACES: 'keyspace' # unused in testing, but required by vttestserver
+      KEYSPACES: 'unsharded' # unused in testing, but required by vttestserver
       NUM_SHARDS: '1' # unused in testing, but required by vttestserver
-
       MYSQL_BIND_HOST: '0.0.0.0'
       FOREIGN_KEY_MODE: 'disallow'
       VT_DIALECT: 'mysql80'
+      PLANNER_VERSION: 'gen4fallback'
+      TOPOLOGY_FLAGS: '-shutdown_grace_period 2'
 
   #  vitess-test-5_7:
   #     image: vitess/vttestserver:mysql57@sha256:2b132a22d08b3b227d9391f8f58ed7ab5c081ca07bf0f87a0c166729124d360a
