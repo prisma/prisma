@@ -70,6 +70,7 @@ function getRequestInfo(request: Request) {
 
   return {
     batchTransaction: transaction?.kind === 'batch' ? transaction : undefined,
+    interactiveTransaction: transaction?.kind === 'itx' ? transaction : undefined,
     headers,
   }
 }
@@ -98,7 +99,7 @@ export class RequestHandler {
         const info = getRequestInfo(request)
         const query = String(request.document)
 
-        return this.client._engine.request(query, info.headers)
+        return this.client._engine.request(query, info.headers, info.interactiveTransaction)
       },
       batchBy: (request) => {
         if (request.transaction?.id) {

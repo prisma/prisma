@@ -22,6 +22,7 @@ import type {
   EngineConfig,
   EngineEventType,
   GetConfigResult,
+  InteractiveTransactionOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -46,7 +47,7 @@ import { runtimeHeadersToHttpHeaders } from '../common/utils/runtimeHeadersToHtt
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
-import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
+import { createSpan, runInChildSpan } from '../tracing'
 import { TracingConfig } from '../tracing/getTracingConfig'
 import type { Result } from './Connection'
 import { Connection } from './Connection'
@@ -931,9 +932,15 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return this.lastVersion
   }
 
-  async request<T>(query: string, headers: QueryEngineRequestHeaders = {}, numTry = 1): Promise<QueryEngineResult<T>> {
+  async request<T>(
+    query: string,
+    headers: QueryEngineRequestHeaders = {},
+    _transaction?: InteractiveTransactionOptions<undefined>,
+    numTry = 1,
+  ): Promise<QueryEngineResult<T>> {
     await this.start()
 
+    // TODO: we don't need the transactionId "runtime header" anymore, we can use the txInfo object here
     this.currentRequestPromise = this.connection.post('/', stringifyQuery(query), runtimeHeadersToHttpHeaders(headers))
     this.lastQuery = query
 
@@ -964,7 +971,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       // retry
       if (numTry <= MAX_REQUEST_RETRIES) {
         logger('trying a retry now')
-        return this.request(query, headers, numTry + 1)
+        return this.request(query, headers, _transaction, numTry + 1)
       }
     }
 
@@ -1027,9 +1034,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info<undefined>>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
@@ -1041,7 +1048,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       })
 
       const result = await Connection.onHttpError(
-        this.connection.post<Tx.Info>('/transaction/start', jsonOptions, runtimeHeadersToHttpHeaders(headers)),
+        this.connection.post<Tx.Info<undefined>>(
+          '/transaction/start',
+          jsonOptions,
+          runtimeHeadersToHttpHeaders(headers),
+        ),
         (result) => this.transactionHttpErrorHandler(result),
       )
 

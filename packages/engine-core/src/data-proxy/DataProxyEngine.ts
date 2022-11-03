@@ -8,6 +8,7 @@ import type {
   EngineEventType,
   GetConfigResult,
   InlineDatasource,
+  InteractiveTransactionOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
@@ -33,17 +34,11 @@ const P = Promise.resolve()
 
 const debug = Debug('prisma:client:dataproxyEngine')
 
-// TODO: temporary hack; we need to store url on the client itx proxy instead and pass it to the engine similar to id
-// (probably some opaque `engineMeta: unknown` field and downcast it here to avoid leaking implementation details)
-const txBaseUrls = new Map<string, string>()
-
-function txUrl(id: string, path: string): string {
-  const baseUrl = txBaseUrls.get(id)
-  if (baseUrl === undefined) {
-    throw new Error(`Wrong itx id: ${id}`)
-  }
-  return `${baseUrl}/${path}`
+type DataProxyTxInfoPayload = {
+  endpoint: string
 }
+
+type DataProxyTxInfo = Tx.Info<DataProxyTxInfoPayload>
 
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
@@ -145,11 +140,15 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>(query: string, headers: QueryEngineRequestHeaders = {}): Promise<QueryEngineResult<T>> {
+  request<T>(
+    query: string,
+    headers: QueryEngineRequestHeaders = {},
+    transaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>,
+  ): Promise<QueryEngineResult<T>> {
     this.logEmitter.emit('query', { query })
 
     // TODO: `elapsed`?
-    return this.requestInternal<T>({ query, variables: {} }, headers)
+    return this.requestInternal<T>({ query, variables: {} }, headers, transaction)
   }
 
   async requestBatch<T>(
@@ -178,12 +177,12 @@ export class DataProxyEngine extends Engine {
   private async requestInternal<T, Batch extends boolean = false>(
     body: Record<string, any>,
     headers: QueryEngineRequestHeaders,
+    itx?: InteractiveTransactionOptions<DataProxyTxInfoPayload>,
   ): Promise<Batch extends true ? { batchResult: QueryEngineResult<T>[] } : QueryEngineResult<T>> {
     return await this.withRetry({
       actionGerund: 'querying',
       callback: async ({ logHttpCall }) => {
-        const transactionId = headers.transactionId
-        const url = transactionId ? txUrl(transactionId, 'graphql') : await this.url('graphql')
+        const url = itx ? `${itx.payload.endpoint}/graphql` : await this.url('graphql')
 
         logHttpCall(url)
 
@@ -225,9 +224,9 @@ export class DataProxyEngine extends Engine {
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<DataProxyTxInfo>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: DataProxyTxInfo): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: DataProxyTxInfo): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     const actionToGerund = {
       start: 'starting',
@@ -263,11 +262,9 @@ export class DataProxyEngine extends Engine {
           const id = json.id as string
           const endpoint = json['data-proxy'].endpoint as string
 
-          txBaseUrls.set(id, endpoint)
-
-          return { id }
+          return { id, payload: { endpoint } }
         } else {
-          const url = txUrl(arg.id, action)
+          const url = `${arg.payload.endpoint}/${action}`
 
           logHttpCall(url)
 
