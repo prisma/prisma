@@ -1,7 +1,6 @@
-// @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from '@prisma/client'
-
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -36,7 +35,7 @@ testMatrix.setupTestSuite(
           break
 
         default:
-          throw new Error('invalid prodiver')
+          throw new Error('invalid provider')
       }
     })
 

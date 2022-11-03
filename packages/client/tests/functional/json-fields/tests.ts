@@ -1,7 +1,8 @@
 import testMatrix from './_matrix'
-
 // @ts-ignore
-declare let prisma: import('@prisma/client').PrismaClient
+import type { PrismaClient } from './node_modules/@prisma/client'
+
+declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {

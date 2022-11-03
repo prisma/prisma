@@ -284,7 +284,7 @@ generator gen {
 
             // remove item and replace with parsed values
             // value is an array
-            // so we create one new iteam for each element in the array
+            // so we create one new item for each element in the array
             generatorBinaryTargets.shift()
 
             if (Array.isArray(parsedBinaryTargetsEnvValue)) {
@@ -333,7 +333,7 @@ generator gen {
         generator.setBinaryPaths(generatorBinaryPaths)
 
         // in case cli engine version !== client engine version
-        // we need to re-generate the dmmf and pass it in to the generator
+        // we need to re-generate the dmmf and pass it into the generator
         if (
           engineVersion !== version &&
           generator.options &&

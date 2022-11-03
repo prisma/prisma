@@ -46,6 +46,7 @@ describe('modify-client', () => {
 
     expect(Object.keys(client).filter((k) => !k.startsWith('_'))).toMatchInlineSnapshot(`
       Array [
+        $extends,
         user,
         profile,
         post,

@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext, serializeQueryEngineName } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/internals'
 import fs from 'fs-jetpack'
 import path from 'path'
 import prompt from 'prompts'
@@ -28,8 +28,8 @@ describe('common', () => {
       await MigrateDev.new().parse(['--schema=./prisma/invalid.prisma'])
       expect(true).toBe(false) // unreachable
     } catch (error) {
-      expect(serializeQueryEngineName(error.message)).toMatchInlineSnapshot(`
-        Schema validation error - Error (query-engine-NORMALIZED)
+      expect(error.message).toMatchInlineSnapshot(`
+        Schema validation error - Error (get-config wasm)
         Error code: P1012
         error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
           -->  schema.prisma:10
@@ -60,8 +60,8 @@ describe('common', () => {
       await MigrateDev.new().parse(['--schema=./prisma/provider-array.prisma'])
       expect(true).toBe(false) // unreachable
     } catch (error) {
-      expect(serializeQueryEngineName(error.message)).toMatchInlineSnapshot(`
-        Schema validation error - Error (query-engine-NORMALIZED)
+      expect(error.message).toMatchInlineSnapshot(`
+        Schema validation error - Error (get-config wasm)
         Error code: P1012
         error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
           -->  schema.prisma:2
@@ -861,7 +861,7 @@ describe('sqlite', () => {
       Running seed command \`node prisma/seed.js\` ...
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toContain(`An error occured while running the seed command:`)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toContain(`An error occurred while running the seed command:`)
     expect(mockExit).toBeCalledWith(1)
   })
 

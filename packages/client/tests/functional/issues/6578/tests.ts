@@ -1,11 +1,9 @@
-// @ts-ignore
-import { PrismaClient } from '@prisma/client'
-
 import { QueryEvent } from '../../../../src/runtime/getPrismaClient'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore this is just for type checks
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 // https://github.com/prisma/prisma/issues/6578
@@ -76,6 +74,10 @@ testMatrix.setupTestSuite(
     optOut: {
       from: ['mongodb'],
       reason: 'Params not applicable to mongodb',
+    },
+    skipDataProxy: {
+      runtimes: ['node', 'edge'],
+      reason: 'Query logs are not supported for Data Proxy yet',
     },
   },
 )

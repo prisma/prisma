@@ -71,7 +71,7 @@ function safeGetProperty(object, property) {
 }
 
 /**
- * Extening object that entered in first argument.
+ * Extending object that entered in first argument.
  *
  * Returns extended object or false if have no target object or incorrect type.
  *

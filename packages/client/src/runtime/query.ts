@@ -33,7 +33,6 @@ import { isDecimalJsLike, stringifyDecimalJsLike } from './utils/decimalJsLike'
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
-import { flatMap } from './utils/flatMap'
 import { isObject } from './utils/isObject'
 import { omit } from './utils/omit'
 import type { MissingItem, PrintJsonWithErrorsArgs } from './utils/printJsonErrors'
@@ -405,9 +404,12 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
 
     if (error.type === 'atLeastOne') {
       const additional = minimal ? '' : ` Available args are listed in ${chalk.dim.green('green')}.`
+      const atLeastFieldsError = error.atLeastFields
+        ? ` and at least one argument for ${error.atLeastFields.map((field) => chalk.bold(field)).join(', or ')}`
+        : ''
       return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
         error.inputType.name,
-      )} needs ${chalk.greenBright('at least one')} argument.${additional}`
+      )} needs ${chalk.greenBright('at least one')} argument${chalk.bold(atLeastFieldsError)}.${additional}`
     }
 
     if (error.type === 'atMostOne') {
@@ -592,7 +594,7 @@ export class Args {
       return []
     }
 
-    return flatMap(this.args, (arg) => arg.collectErrors())
+    return this.args.flatMap((arg) => arg.collectErrors())
   }
 }
 
@@ -619,7 +621,7 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
     if (value === null) {
       return 'null'
     }
-    if (value && value.values && value.__prismaRawParamaters__) {
+    if (value && value.values && value.__prismaRawParameters__) {
       return JSON.stringify(value.values)
     }
     if (inputType?.isList && Array.isArray(value)) {
@@ -630,7 +632,7 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
   }
 
   if (value === undefined) {
-    // TODO: This is a bit weird. can't we unify this with the === null caes?
+    // TODO: This is a bit weird. can't we unify this with the === null case?
     return null
   }
 
@@ -647,6 +649,10 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
       return `[${value.join(', ')}]`
     }
     return value
+  }
+
+  if (typeof value === 'number' && inputType?.type === 'Float') {
+    return value.toExponential()
   }
 
   return JSON.stringify(value, null, 2)
@@ -746,8 +752,8 @@ ${indent(value.toString(), 2)}
     }
 
     if (Array.isArray(this.value)) {
-      errors.push(
-        ...(flatMap(this.value as any[], (val, index) => {
+      return errors.concat(
+        (this.value as any[]).flatMap((val, index) => {
           if (!val?.collectErrors) {
             return []
           }
@@ -755,13 +761,13 @@ ${indent(value.toString(), 2)}
           return val.collectErrors().map((e) => {
             return { ...e, path: [this.key, index, ...e.path] }
           })
-        }) as any),
+        }),
       )
     }
 
     // collect errors of children if there are any
     if (this.value instanceof Args) {
-      errors.push(...this.value.collectErrors().map((e) => ({ ...e, path: [this.key, ...e.path] })))
+      return errors.concat(this.value.collectErrors().map((e) => ({ ...e, path: [this.key, ...e.path] })))
     }
 
     return errors
@@ -1118,23 +1124,7 @@ function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, co
     return true
   }
 
-  if (graphQLType === 'List<Int>' && expectedType === 'List<BigInt>') {
-    return true
-  }
-
-  if (graphQLType === 'List<BigInt | Int>' && expectedType === 'List<BigInt>') {
-    return true
-  }
-
-  if (graphQLType === 'List<Int | BigInt>' && expectedType === 'List<BigInt>') {
-    return true
-  }
-
   if ((graphQLType === 'Int' || graphQLType === 'Float') && expectedType === 'Decimal') {
-    return true
-  }
-
-  if (isValidDecimalListInput(graphQLType, value) && expectedType === 'List<Decimal>') {
     return true
   }
 
@@ -1142,33 +1132,13 @@ function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, co
   if (graphQLType === 'DateTime' && expectedType === 'String') {
     return true
   }
-  if (graphQLType === 'List<DateTime>' && expectedType === 'List<String>') {
-    return true
-  }
 
   // UUID is a subset of string
   if (graphQLType === 'UUID' && expectedType === 'String') {
     return true
   }
-  if (graphQLType === 'List<UUID>' && expectedType === 'List<String>') {
-    return true
-  }
 
   if (graphQLType === 'String' && expectedType === 'ID') {
-    return true
-  }
-  if (graphQLType === 'List<String>' && expectedType === 'List<ID>') {
-    return true
-  }
-
-  if (graphQLType === 'List<String>' && expectedType === 'List<Json>') {
-    return true
-  }
-
-  if (
-    expectedType === 'List<String>' &&
-    (graphQLType === 'List<String | UUID>' || graphQLType === 'List<UUID | String>')
-  ) {
     return true
   }
 
@@ -1176,14 +1146,9 @@ function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, co
   if (graphQLType === 'Int' && expectedType === 'Float') {
     return true
   }
-  if (graphQLType === 'List<Int>' && expectedType === 'List<Float>') {
-    return true
-  }
+
   // Int is a subset of Long
   if (graphQLType === 'Int' && expectedType === 'Long') {
-    return true
-  }
-  if (graphQLType === 'List<Int>' && expectedType === 'List<Long>') {
     return true
   }
 
@@ -1194,6 +1159,11 @@ function hasCorrectScalarType(value: any, inputType: DMMF.SchemaArgInputType, co
 
   if (value === null) {
     return true
+  }
+
+  if (inputType.isList && Array.isArray(value)) {
+    // when it's a list, we check that all the conditions above are met within that list
+    return value.every((v) => hasCorrectScalarType(v, { ...inputType, isList: false }, context))
   }
 
   return false
@@ -1208,14 +1178,6 @@ function getExpectedType(inputType: DMMF.SchemaArgInputType, context: MakeDocume
 }
 
 const cleanObject = (obj) => filterObject(obj, (k, v) => v !== undefined)
-
-function isValidDecimalListInput(graphQLType: string, value: any[]): boolean {
-  return (
-    graphQLType === 'List<Int>' ||
-    graphQLType === 'List<Float>' ||
-    (graphQLType === 'List<String>' && value.every(isDecimalString))
-  )
-}
 
 function isDecimalString(value: string): boolean {
   // from https://github.com/MikeMcl/decimal.js/blob/master/decimal.js#L116
@@ -1388,15 +1350,17 @@ function tryInferArgs(
         const numKeys = keys.length
 
         if (
-          numKeys === 0 &&
-          typeof inputType.type.constraints.minNumFields === 'number' &&
-          inputType.type.constraints.minNumFields > 0
+          (numKeys === 0 &&
+            typeof inputType.type.constraints.minNumFields === 'number' &&
+            inputType.type.constraints.minNumFields > 0) ||
+          inputType.type.constraints.fields?.some((field) => keys.includes(field)) === false
         ) {
           // continue here
           error = {
             type: 'atLeastOne',
             key,
             inputType: inputType.type,
+            atLeastFields: inputType.type.constraints.fields,
           }
         } else if (
           numKeys > 1 &&
@@ -1620,7 +1584,7 @@ export interface UnpackOptions {
 }
 
 /**
- * Unpacks the result of a data object and maps DateTime fields to instances of `Date` inplace
+ * Unpacks the result of a data object and maps DateTime fields to instances of `Date` in-place
  * @param options: UnpackOptions
  */
 export function unpack({ document, path, data }: UnpackOptions): any {

@@ -9,7 +9,7 @@ export function replaceTimeValues(fn: jest.Mock) {
       event.duration = 0
     }
 
-    // Only replace valid dates. Dates with valueOf() equal to NaN should fail the snaphots.
+    // Only replace valid dates. Dates with valueOf() equal to NaN should fail the snapshots.
     if (event.timestamp instanceof Date && !Number.isNaN(event.timestamp.valueOf())) {
       event.timestamp = new Date(0)
     }

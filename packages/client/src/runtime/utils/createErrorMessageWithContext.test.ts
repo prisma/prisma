@@ -47,8 +47,8 @@ test('basic panic', () => {
     }),
   ).toMatchInlineSnapshot(`
 
-                                    Oops, an unknown error occured! This is on us, you did nothing wrong.
-                                    It occured in the \`prisma.model.findFirst()\` invocation:
+                                    Oops, an unknown error occurred! This is on us, you did nothing wrong.
+                                    It occurred in the \`prisma.model.findFirst()\` invocation:
 
 
                                     What a terrible failure!
@@ -99,8 +99,8 @@ test('panic with matching source file', () => {
     }),
   ).toMatchInlineSnapshot(`
 
-                Oops, an unknown error occured! This is on us, you did nothing wrong.
-                It occured in the \`prisma.model.findFirst()\` invocation in
+                Oops, an unknown error occurred! This is on us, you did nothing wrong.
+                It occurred in the \`prisma.model.findFirst()\` invocation in
                 /project/some-file.js:1:1
 
                 → 1 prisma.model.findFirst({})
@@ -123,6 +123,23 @@ test('with matching source file, but without matching call at the line', () => {
 
                                     What a terrible failure!
                   `)
+})
+
+test('with matching source file, but non-existing line number', () => {
+  mockFile('/project/some-file.js', 'someCode()')
+  expect(
+    createErrorMessageWithContext({
+      originalMethod: 'model.findFirst',
+      callsite: mockCallsite('/project/some-file.js', 10, 1),
+      message: 'What a terrible failure!',
+    }),
+  ).toMatchInlineSnapshot(`
+
+    Invalid \`prisma.model.findFirst()\` invocation:
+
+
+    What a terrible failure!
+  `)
 })
 
 test('with matching source line, but without {', () => {

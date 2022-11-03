@@ -54,7 +54,7 @@ describe('scalar where transformation', () => {
             }
           }
           someFloats: {
-            set: [1, 1.2]
+            set: [1e+0, 1.2e+0]
           }
         }) {
           id
@@ -112,7 +112,7 @@ describe('scalar where transformation', () => {
               id: 5
             }
           }
-          someFloats: [1, 1.2]
+          someFloats: [1e+0, 1.2e+0]
         }) {
           id
           name

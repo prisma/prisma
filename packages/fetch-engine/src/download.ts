@@ -12,7 +12,6 @@ import { promisify } from 'util'
 import plusxSync from './chmod'
 import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
-import { flatMap } from './flatMap'
 import { getHash } from './getHash'
 import { getLatestTag } from './getLatestTag'
 import { getBar } from './log'
@@ -109,7 +108,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   }
 
   // creates a matrix of binaries x binary targets
-  const binaryJobs = flatMap(Object.entries(opts.binaries), ([binaryName, targetFolder]: [string, string]) =>
+  const binaryJobs = Object.entries(opts.binaries).flatMap(([binaryName, targetFolder]: [string, string]) =>
     opts.binaryTargets.map((binaryTarget) => {
       const fileName = getBinaryName(binaryName, binaryTarget)
       const targetFilePath = path.join(targetFolder, fileName)

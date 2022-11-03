@@ -2,10 +2,17 @@ import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 import EventEmitter from 'events'
 
-import type { EngineConfig, EngineEventType, GetConfigResult, InlineDatasource } from '../common/Engine'
+import type {
+  BatchTransactionOptions,
+  EngineConfig,
+  EngineEventType,
+  GetConfigResult,
+  InlineDatasource,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import { QueryEngineBatchRequest } from '../common/types/QueryEngine'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -25,16 +32,16 @@ const debug = Debug('prisma:client:dataproxyEngine')
 
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
-  private inlineSchemaHash: string
+  readonly inlineSchemaHash: string
   private inlineDatasources: Record<string, InlineDatasource>
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k in string]?: string }
 
   private clientVersion: string
-  private remoteClientVersion: Promise<string>
-  private headers: { Authorization: string }
-  private host: string
+  readonly remoteClientVersion: Promise<string>
+  readonly headers: { Authorization: string }
+  readonly host: string
 
   constructor(config: EngineConfig) {
     super()
@@ -129,14 +136,21 @@ export class DataProxyEngine extends Engine {
     return this.requestInternal<T>({ query, variables: {} }, headers, attempt)
   }
 
-  async requestBatch<T>(queries: string[], headers: Record<string, string>, isTransaction = false, attempt = 0) {
+  async requestBatch<T>(
+    queries: string[],
+    headers: Record<string, string>,
+    transaction?: BatchTransactionOptions,
+    attempt = 0,
+  ) {
+    const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
       query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,
     })
 
-    const body = {
+    const body: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
       transaction: isTransaction,
+      isolationLevel: transaction?.isolationLevel,
     }
 
     const { batchResult } = await this.requestInternal<T>(body, headers, attempt)

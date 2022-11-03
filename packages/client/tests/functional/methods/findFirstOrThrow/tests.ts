@@ -2,16 +2,16 @@ import { faker } from '@faker-js/faker'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
-
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
 // @ts-ignore
-declare let Prisma: typeof import('@prisma/client').Prisma
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+
+declare let prisma: PrismaClient
+declare let Prisma: typeof PrismaNamespace
 
 const existingEmail = faker.internet.email()
 const nonExistingEmail = faker.internet.email()
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
+testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   beforeAll(async () => {
     await prisma.user.create({ data: { email: existingEmail, posts: { create: { title: 'How to exist?' } } } })
   })
@@ -42,7 +42,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(record).toBeNull()
   })
 
-  test('works with interactive transactions', async () => {
+  testIf(!clientMeta.dataProxy)('works with interactive transactions', async () => {
     const newEmail = faker.internet.email()
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({ data: { email: newEmail } })
@@ -67,7 +67,8 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
   })
 
-  test('does not accept rejectOnNotFound option', async () => {
+  // TODO: Edge: skipped because of the error snapshot
+  testIf(clientMeta.runtime !== 'edge')('does not accept rejectOnNotFound option', async () => {
     const record = prisma.user.findFirstOrThrow({
       where: { email: existingEmail },
       // @ts-expect-error passing not supported option on purpose
@@ -79,9 +80,9 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       Invalid \`prisma.user.findFirstOrThrow()\` invocation in
       /client/tests/functional/methods/findFirstOrThrow/tests.ts:0:0
 
-        XX })
         XX 
-        XX test('does not accept rejectOnNotFound option', async () => {
+        XX // TODO: Edge: skipped because of the error snapshot
+        XX testIf(clientMeta.runtime !== 'edge')('does not accept rejectOnNotFound option', async () => {
       → XX   const record = prisma.user.findFirstOrThrow(
       'rejectOnNotFound' option is not supported
     `)

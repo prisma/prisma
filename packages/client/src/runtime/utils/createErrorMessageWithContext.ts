@@ -76,8 +76,8 @@ function getTemplateParameters(
 
   const contextFirstLine = Math.max(1, callLocation.lineNumber - 3)
   let source = SourceFileSlice.read(callLocation.fileName)?.slice(contextFirstLine, callLocation.lineNumber)
-  if (source) {
-    const invocationLine = source.lineAt(callLocation.lineNumber)
+  const invocationLine = source?.lineAt(callLocation.lineNumber)
+  if (source && invocationLine) {
     const invocationLineIndent = getIndent(invocationLine)
     const invocationCallCode = findPrismaActionCall(invocationLine)
     if (!invocationCallCode) {
@@ -142,8 +142,8 @@ function stringifyErrorMessage(
 
   const introSuffix = location ? ' in' : ':'
   if (isPanic) {
-    lines.push(colors.red(`Oops, an unknown error occured! This is ${colors.bold('on us')}, you did nothing wrong.`))
-    lines.push(colors.red(`It occured in the ${colors.bold(`\`${functionName}\``)} invocation${introSuffix}`))
+    lines.push(colors.red(`Oops, an unknown error occurred! This is ${colors.bold('on us')}, you did nothing wrong.`))
+    lines.push(colors.red(`It occurred in the ${colors.bold(`\`${functionName}\``)} invocation${introSuffix}`))
   } else {
     lines.push(colors.red(`Invalid ${colors.bold(`\`${functionName}\``)} invocation${introSuffix}`))
   }

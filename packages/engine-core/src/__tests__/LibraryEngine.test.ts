@@ -157,7 +157,7 @@ test('responds to unknown error with PrismaClientUnknownRequestError', async () 
   await expect(engine.request('query Foo { id }')).rejects.toBeInstanceOf(PrismaClientUnknownRequestError)
 })
 
-test('responds to a non panic error without gihub link', async () => {
+test('responds to a non panic error without github link', async () => {
   const { engine, rustEngineMock } = setupMockLibraryEngine()
 
   rustEngineMock.query.mockResolvedValue(
