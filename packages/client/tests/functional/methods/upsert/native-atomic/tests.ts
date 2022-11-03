@@ -187,7 +187,6 @@ testMatrix.setupTestSuite(
 
     test('should only use ON CONFLICT when there is only 1 unique field in the where clause', async () => {
       const name = faker.name.firstName()
-      const title = faker.name.jobTitle()
 
       await expect(() =>
         // This will fail
