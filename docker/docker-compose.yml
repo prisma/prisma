@@ -34,7 +34,7 @@ services:
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:9412e3d51bde38e09c3039090b5c68808e299579f12c79178a4ec316f7831889
+    image: vitess/vttestserver:mysql80@sha256:50b5e7f7cbdfd734ffb7f152b322bbb6c0d796b163419ce06ebfa74f9b5e89f6
     restart: always
     ports:
       - 33807:33807
