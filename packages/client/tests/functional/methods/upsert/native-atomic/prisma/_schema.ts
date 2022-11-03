@@ -24,5 +24,19 @@ export default testMatrix.setupSchema(({ provider }) => {
       author          User?     @relation(fields: [authorId], references: [id])
       authorId        String
     }
+
+
+    model Compound {
+      id1 Int
+      id2 String
+
+      field1 Int
+      field2 String
+
+      val Int
+
+      @@unique([field1, field2], name: "uniques")
+      @@id([id1, id2])
+    }
   `
 })
