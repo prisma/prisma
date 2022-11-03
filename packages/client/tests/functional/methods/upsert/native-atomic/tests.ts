@@ -16,8 +16,10 @@ class UpsertChecker {
   }
 
   capturelogs(client: PrismaClient) {
+    // @ts-expect-error
     client.$on('query', (data) => {
       if ('query' in data) {
+        // @ts-expect-error
         this.logs.push(data.query)
       }
     })
@@ -193,7 +195,7 @@ testMatrix.setupTestSuite(
         client.user.upsert({
           where: {
             // Because two unique fields are used
-            id: 1,
+            id: '1',
             name,
           },
           create: {
