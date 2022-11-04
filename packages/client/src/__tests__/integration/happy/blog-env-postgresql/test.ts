@@ -9,7 +9,7 @@ test('Blog fixture: Postgres', async () => {
 
   const { PrismaClientValidationError, prismaVersion } = Prisma
 
-  let originalConnectionString = process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/tests'
+  let originalConnectionString = process.env.TEST_POSTGRES_URI!
   originalConnectionString += '-blog-env-postgresql'
 
   const SetupParams: SetupParams = {

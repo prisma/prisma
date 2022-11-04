@@ -10,7 +10,7 @@ describe.skip('connection-limit-postgres', () => {
 
   test('the client cannot query the db with 100 connections already open', async () => {
     const PrismaClient = await getTestClient()
-    const connectionString = process.env.TEST_POSTGRES_ISOLATED_URI || 'postgres://prisma:prisma@localhost:5435/tests'
+    const connectionString = process.env.TEST_POSTGRES_ISOLATED_URI!
 
     for (let i = 0; i <= 100; i++) {
       const client = new PrismaClient({

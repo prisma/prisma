@@ -9,7 +9,7 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () => {
   let prisma: any = null
   let PrismaHelpers: any = null
-  let setupParams: any = null
+  let setupParams: SetupParams
   const requests: any[] = []
   const errorLogs: any[] = []
 
@@ -18,7 +18,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
     const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
     PrismaHelpers = Prisma
 
-    let originalConnectionString = process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests'
+    let originalConnectionString = process.env.TEST_COCKROACH_URI!
     originalConnectionString += '-blog-env-cockroachdb'
 
     setupParams = {

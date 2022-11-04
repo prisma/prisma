@@ -256,9 +256,7 @@ COMMIT;`,
   })
 
   describe('postgresql', () => {
-    const connectionString = (
-      process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-execute')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
@@ -457,9 +455,10 @@ COMMIT;`,
   })
 
   describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-    const connectionString = (
-      process.env.TEST_COCKROACH_URI_MIGRATE || 'postgresql://prisma@localhost:26257/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE!.replace(
+      'tests-migrate',
+      'tests-migrate-db-execute',
+    )
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
@@ -650,9 +649,7 @@ COMMIT;`,
   })
 
   describe('mysql', () => {
-    const connectionString = (
-      process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-execute')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MYSQL_URI_MIGRATE = connectionString
