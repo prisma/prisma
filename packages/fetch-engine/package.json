@@ -32,7 +32,7 @@
     "@prisma/get-platform": "workspace:*",
     "chalk": "4.1.2",
     "execa": "5.1.1",
-    "find-cache-dir": "3.3.2",
+    "find-cache-dir": "4.0.0",
     "hasha": "5.2.2",
     "http-proxy-agent": "5.0.0",
     "https-proxy-agent": "5.0.1",
