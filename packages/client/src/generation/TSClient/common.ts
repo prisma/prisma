@@ -31,7 +31,8 @@ import {
   Decimal,
   Debug,
   objectEnumValues,
-  makeStrictEnum
+  makeStrictEnum,
+  Extensions
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
@@ -58,7 +59,8 @@ const {
   Decimal,
   Debug,
   objectEnumValues,
-  makeStrictEnum
+  makeStrictEnum,
+  Extensions
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -92,6 +94,12 @@ Prisma.empty = ${notSupportOnBrowser('empty', browser)}
 Prisma.join = ${notSupportOnBrowser('join', browser)}
 Prisma.raw = ${notSupportOnBrowser('raw', browser)}
 Prisma.validator = () => (val) => val
+
+/**
+ * Extensions
+ */
+Prisma.getExtensionModel = ${notSupportOnBrowser('Extensions.getExtensionModel', browser)}
+Prisma.getExtensionClient = ${notSupportOnBrowser('Extensions.getExtensionClient', browser)}
 
 /**
  * Shorthand utilities for JSON filtering
@@ -156,15 +164,17 @@ export type DecimalJsLike = runtime.DecimalJsLike
 /**
  * Metrics 
  */
-export import Metrics = runtime.Metrics
-export import Metric = runtime.Metric
-export import MetricHistogram = runtime.MetricHistogram
-export import MetricHistogramBucket = runtime.MetricHistogramBucket
+export type Metrics = runtime.Metrics
+export type Metric<T> = runtime.Metric<T>
+export type MetricHistogram = runtime.MetricHistogram
+export type MetricHistogramBucket = runtime.MetricHistogramBucket
 
 /**
  * Extensions
  */
-export type Extension = runtime.Types.Extensions.Args 
+export type Extension = runtime.Types.Extensions.Args
+export import getExtensionModel = runtime.Extensions.getExtensionModel
+export import getExtensionClient = runtime.Extensions.getExtensionClient
 
 /**
  * Prisma Client JS version: ${clientVersion}
@@ -565,7 +575,7 @@ type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
 type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
 
 
-export import FieldRef = runtime.FieldRef
+export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
 
 type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 

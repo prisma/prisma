@@ -1,5 +1,6 @@
 import { PrismaClientValidationError } from '../..'
-import { actionOperationMap, Client } from '../../getPrismaClient'
+import { Client } from '../../getPrismaClient'
+import { HIDDEN_CLIENT, HIDDEN_MODEL } from '../types/Extensions'
 
 export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
@@ -12,7 +13,7 @@ type ResultArgs = {
         }
       }
       fields: {
-        [VirtPropName in string]: (args: any) => unknown
+        [VirtPropName in string]: (data: any) => unknown
       }
     }
   }
@@ -21,14 +22,18 @@ type ResultArgs = {
 type ModelArgs = {
   model?: {
     [ModelName in string]: {
-      [MethodName in string]: (...args: unknown[]) => unknown
+      [MethodName in string]: (...args: any) => unknown
+    } & {
+      [K in typeof HIDDEN_MODEL]?: unknown
     }
   }
 }
 
 type ClientArgs = {
   client?: {
-    [MethodName in string]: () => unknown
+    [MethodName in string]: (...args: any) => unknown
+  } & {
+    [K in typeof HIDDEN_CLIENT]?: unknown
   }
 }
 

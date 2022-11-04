@@ -1,5 +1,6 @@
 import * as lzString from 'lz-string'
 
+import * as Extensions from './core/extensions'
 import * as Types from './core/types'
 
 export {
@@ -37,3 +38,4 @@ const decompressFromBase64 = lzString.decompressFromBase64
 export { decompressFromBase64 }
 
 export { Types }
+export { Extensions }

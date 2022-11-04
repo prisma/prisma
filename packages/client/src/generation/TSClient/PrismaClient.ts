@@ -65,7 +65,11 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
 
   const params = `{${modelNames.reduce((acc, modelName) => {
     return `${acc}
-      ${lowerCase(modelName)}?: (runtime.Types.Extensions.Args['model'] & {})[string]`
+      ${lowerCase(
+        modelName,
+      )}?: { [K in string]: unknown } & { [K in typeof runtime.Types.Extensions.HIDDEN_MODEL]?: PrismaClient<never, never, false, ExtArgs>['${lowerCase(
+      modelName,
+    )}'] }`
   }, '')}
     }`
 
@@ -106,7 +110,7 @@ function clientExtensionsClientDefinition(this: PrismaClientClass) {
 
   return {
     genericParams: `C extends runtime.Types.Extensions.Args['client'] = {}`,
-    params: `runtime.Types.Extensions.Args['client']`,
+    params: `{ [K in string]: unknown } & { [K in typeof runtime.Types.Extensions.HIDDEN_CLIENT]?: PrismaClient<never, never, false, ExtArgs> }`,
   }
 }
 
@@ -139,7 +143,7 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
             needs: ${Patch(`(R & {})[K]['needs']`, `(ExtArgs['result'] & {})[K]['needs']`)},
           }
         },
-        model: { [K in keyof M & string]: ${Patch(`M[K]`, `(ExtArgs['model'] & {})[K]`)} }, 
+        model: { [K in keyof M & string]: ${Patch(`M[K]`, `(ExtArgs['model'] & {})[K]`)} },
         client: ${Patch(`C`, `ExtArgs['client']`)}
         query: {},
       }>, keyof C> & C
