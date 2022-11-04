@@ -9,7 +9,4 @@ export type GetResultSelect<T extends (Args['result'] & {})[string], F extends T
   // if not a concrete type, return unknown otherwise return the value type
   [T] extends [never] ? unknown : { [K in keyof Utils.EmptyToUnknown<F>]?: true }
 
-export const HIDDEN_MODEL = Symbol.for('prisma:extensions:hidden_model')
-export const HIDDEN_CLIENT = Symbol.for('prisma:extensions:hidden_client')
-
 export type { Args }

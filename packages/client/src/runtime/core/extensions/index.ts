@@ -1,5 +1,3 @@
-import { getExtensionClient } from './getExtensionClient'
-import { getExtensionModel } from './getExtensionModel'
+import { getExtensionContext } from './getExtensionContext'
 
-export { getExtensionClient }
-export { getExtensionModel }
+export { getExtensionContext }

@@ -67,9 +67,9 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
     return `${acc}
       ${lowerCase(
         modelName,
-      )}?: { [K in string]: unknown } & { [K in typeof runtime.Types.Extensions.HIDDEN_MODEL]?: PrismaClient<never, never, false, ExtArgs>['${lowerCase(
+      )}?: Record<string, unknown> & Prisma.OptionalFlat<PrismaClient<never, never, false, ExtArgs>['${lowerCase(
       modelName,
-    )}'] }`
+    )}']>`
   }, '')}
     }`
 
@@ -110,7 +110,7 @@ function clientExtensionsClientDefinition(this: PrismaClientClass) {
 
   return {
     genericParams: `C extends runtime.Types.Extensions.Args['client'] = {}`,
-    params: `{ [K in string]: unknown } & { [K in typeof runtime.Types.Extensions.HIDDEN_CLIENT]?: PrismaClient<never, never, false, ExtArgs> }`,
+    params: `Record<string, unknown> & Prisma.OptionalFlat<PrismaClient<never, never, false, ExtArgs>>`,
   }
 }
 

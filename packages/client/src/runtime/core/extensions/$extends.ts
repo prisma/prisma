@@ -1,6 +1,5 @@
 import { PrismaClientValidationError } from '../..'
 import { Client } from '../../getPrismaClient'
-import { HIDDEN_CLIENT, HIDDEN_MODEL } from '../types/Extensions'
 
 export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
@@ -22,9 +21,7 @@ type ResultArgs = {
 type ModelArgs = {
   model?: {
     [ModelName in string]: {
-      [MethodName in string]: (...args: any) => unknown
-    } & {
-      [K in typeof HIDDEN_MODEL]?: unknown
+      [MethodName in string]: unknown
     }
   }
 }
@@ -32,8 +29,6 @@ type ModelArgs = {
 type ClientArgs = {
   client?: {
     [MethodName in string]: (...args: any) => unknown
-  } & {
-    [K in typeof HIDDEN_CLIENT]?: unknown
   }
 }
 

@@ -98,8 +98,7 @@ Prisma.validator = () => (val) => val
 /**
  * Extensions
  */
-Prisma.getExtensionModel = ${notSupportOnBrowser('Extensions.getExtensionModel', browser)}
-Prisma.getExtensionClient = ${notSupportOnBrowser('Extensions.getExtensionClient', browser)}
+Prisma.getExtensionContext = ${notSupportOnBrowser('Extensions.getExtensionContext', browser)}
 
 /**
  * Shorthand utilities for JSON filtering
@@ -173,8 +172,7 @@ export type MetricHistogramBucket = runtime.MetricHistogramBucket
  * Extensions
  */
 export type Extension = runtime.Types.Extensions.Args
-export import getExtensionModel = runtime.Extensions.getExtensionModel
-export import getExtensionClient = runtime.Extensions.getExtensionClient
+export import getExtensionContext = runtime.Extensions.getExtensionContext
 
 /**
  * Prisma Client JS version: ${clientVersion}
