@@ -33,7 +33,7 @@ function clientExtensionsModelResultDefinition(this: PrismaClientClass) {
 
   const modelResultFieldsGenericParam = (modelName: string) => {
     return `R_${modelName}_Fields extends {
-      [K in keyof R_${modelName}_Needs]: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }> & Prisma.OptionalFlat<${modelName}>) => unknown
+      [K in keyof R_${modelName}_Needs]: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }>) => unknown
     }`
   }
 
@@ -144,9 +144,12 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
           }
         },
         model: { [K in keyof M & string]: ${Patch(`M[K]`, `(ExtArgs['model'] & {})[K]`)} },
-        client: ${Patch(`C`, `ExtArgs['client']`)}
+        client: ${Patch(`{ [K in keyof C as \`$\$\{K & string\}\`]: C[K] }`, `ExtArgs['client']`)}
         query: {},
-      }>, keyof C> & C
+      }>, \`$\$\{keyof C & string\}\`> & ${Patch(
+        `{ [K in keyof C as \`$\$\{K & string\}\`]: C[K] }`,
+        `ExtArgs['client']`,
+      )}
 `
 }
 
@@ -332,7 +335,7 @@ export class PrismaClient<
   GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined = 'rejectOnNotFound' extends keyof T
     ? T['rejectOnNotFound']
     : false,
-  ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: {}, query: {}, client: {} }
+  ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: { $allModels: {} }, query: {}, client: {} }
       > {
       /**
        * @private
@@ -406,7 +409,7 @@ ${[
   * \`\`\`
   */
 get ${methodName}(): ${Patch(
-            `(ExtArgs['model'] & {})['${lowerCase(m.model)}']`,
+            `(ExtArgs['model'] & {})['${lowerCase(m.model)}'] & (ExtArgs['model'] & {})['$allModels']`,
             `Prisma.${m.model}Delegate<GlobalReject, ExtArgs>`,
           )};`
         })

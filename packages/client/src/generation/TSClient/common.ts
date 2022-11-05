@@ -100,6 +100,8 @@ Prisma.validator = () => (val) => val
  */
 Prisma.getExtensionContext = ${notSupportOnBrowser('Extensions.getExtensionContext', browser)}
 
+// Prisma.
+
 /**
  * Shorthand utilities for JSON filtering
  */
