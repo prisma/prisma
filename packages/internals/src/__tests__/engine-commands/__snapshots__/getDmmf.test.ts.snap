@@ -164,8 +164,10 @@ Object {
         "deleteMany": "deleteManyUser1",
         "deleteOne": "deleteOneUser1",
         "findFirst": "findFirstUser1",
+        "findFirstOrThrow": "findFirstUser1OrThrow",
         "findMany": "findManyUser1",
         "findUnique": "findUniqueUser1",
+        "findUniqueOrThrow": "findUniqueUser1OrThrow",
         "groupBy": "groupByUser1",
         "model": "User1",
         "updateMany": "updateManyUser1",
@@ -179,8 +181,10 @@ Object {
         "deleteMany": "deleteManyUser2",
         "deleteOne": "deleteOneUser2",
         "findFirst": "findFirstUser2",
+        "findFirstOrThrow": "findFirstUser2OrThrow",
         "findMany": "findManyUser2",
         "findUnique": "findUniqueUser2",
+        "findUniqueOrThrow": "findUniqueUser2OrThrow",
         "groupBy": "groupByUser2",
         "model": "User2",
         "updateMany": "updateManyUser2",
@@ -4724,6 +4728,100 @@ Object {
                   "name": "distinct",
                 },
               ],
+              "isNullable": true,
+              "name": "findFirstUser1OrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User1",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1OrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1OrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User1ScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
               "isNullable": false,
               "name": "findManyUser1",
               "outputType": Object {
@@ -4947,6 +5045,31 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User1WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueUser1OrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User1",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User2WhereInput",
                     },
                   ],
@@ -5026,6 +5149,100 @@ Object {
               ],
               "isNullable": true,
               "name": "findFirstUser2",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User2",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2OrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2OrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User2ScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
+              "isNullable": true,
+              "name": "findFirstUser2OrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -5326,6 +5543,31 @@ Object {
               ],
               "isNullable": true,
               "name": "findUniqueUser2",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User2",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueUser2OrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -6746,8 +6988,10 @@ Object {
         "deleteMany": "deleteManyUser",
         "deleteOne": "deleteOneUser",
         "findFirst": "findFirstUser",
+        "findFirstOrThrow": "findFirstUserOrThrow",
         "findMany": "findManyUser",
         "findUnique": "findUniqueUser",
+        "findUniqueOrThrow": "findUniqueUserOrThrow",
         "groupBy": "groupByUser",
         "model": "User",
         "updateMany": "updateManyUser",
@@ -9262,6 +9506,100 @@ Object {
                   "name": "distinct",
                 },
               ],
+              "isNullable": true,
+              "name": "findFirstUserOrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserOrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "UserScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
               "isNullable": false,
               "name": "findManyUser",
               "outputType": Object {
@@ -9470,6 +9808,31 @@ Object {
               ],
               "isNullable": true,
               "name": "findUniqueUser",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueUserOrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -10435,8 +10798,10 @@ Object {
         "deleteMany": "deleteManyPost",
         "deleteOne": "deleteOnePost",
         "findFirst": "findFirstPost",
+        "findFirstOrThrow": "findFirstPostOrThrow",
         "findMany": "findManyPost",
         "findUnique": "findUniquePost",
+        "findUniqueOrThrow": "findUniquePostOrThrow",
         "groupBy": "groupByPost",
         "model": "Post",
         "updateMany": "updateManyPost",
@@ -10450,8 +10815,10 @@ Object {
         "deleteMany": "deleteManyUser",
         "deleteOne": "deleteOneUser",
         "findFirst": "findFirstUser",
+        "findFirstOrThrow": "findFirstUserOrThrow",
         "findMany": "findManyUser",
         "findUnique": "findUniqueUser",
+        "findUniqueOrThrow": "findUniqueUserOrThrow",
         "groupBy": "groupByUser",
         "model": "User",
         "updateMany": "updateManyUser",
@@ -10465,8 +10832,10 @@ Object {
         "deleteMany": "deleteManyUser1",
         "deleteOne": "deleteOneUser1",
         "findFirst": "findFirstUser1",
+        "findFirstOrThrow": "findFirstUser1OrThrow",
         "findMany": "findManyUser1",
         "findUnique": "findUniqueUser1",
+        "findUniqueOrThrow": "findUniqueUser1OrThrow",
         "groupBy": "groupByUser1",
         "model": "User1",
         "updateMany": "updateManyUser1",
@@ -10480,8 +10849,10 @@ Object {
         "deleteMany": "deleteManyUser2",
         "deleteOne": "deleteOneUser2",
         "findFirst": "findFirstUser2",
+        "findFirstOrThrow": "findFirstUser2OrThrow",
         "findMany": "findManyUser2",
         "findUnique": "findUniqueUser2",
+        "findUniqueOrThrow": "findUniqueUser2OrThrow",
         "groupBy": "groupByUser2",
         "model": "User2",
         "updateMany": "updateManyUser2",
@@ -19086,6 +19457,100 @@ Object {
                   "name": "distinct",
                 },
               ],
+              "isNullable": true,
+              "name": "findFirstPostOrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "Post",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostOrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "PostScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
               "isNullable": false,
               "name": "findManyPost",
               "outputType": Object {
@@ -19309,6 +19774,31 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "PostWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniquePostOrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "Post",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "UserWhereInput",
                     },
                   ],
@@ -19388,6 +19878,100 @@ Object {
               ],
               "isNullable": true,
               "name": "findFirstUser",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserOrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "UserScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
+              "isNullable": true,
+              "name": "findFirstUserOrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -19703,6 +20287,31 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "UserWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueUserOrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User1WhereInput",
                     },
                   ],
@@ -19782,6 +20391,100 @@ Object {
               ],
               "isNullable": true,
               "name": "findFirstUser1",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User1",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1OrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1OrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User1ScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
+              "isNullable": true,
+              "name": "findFirstUser1OrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -20097,6 +20800,31 @@ Object {
                       "isList": false,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
+                      "type": "User1WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueUser1OrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User1",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
                       "type": "User2WhereInput",
                     },
                   ],
@@ -20176,6 +20904,100 @@ Object {
               ],
               "isNullable": true,
               "name": "findFirstUser2",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User2",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2OrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2OrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "User2ScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
+              "isNullable": true,
+              "name": "findFirstUser2OrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -20476,6 +21298,31 @@ Object {
               ],
               "isNullable": true,
               "name": "findUniqueUser2",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User2",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2WhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueUser2OrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -22953,9 +23800,9 @@ Object {
 }
 `;
 
-exports[`getDMMF big schema 1`] = `132318758`;
+exports[`getDMMF big schema 1`] = `140496894`;
 
-exports[`getDMMF chinook introspected schema 1`] = `885639`;
+exports[`getDMMF chinook introspected schema 1`] = `903623`;
 
 exports[`getDMMF simple model, mongodb 1`] = `
 Object {
@@ -23056,9 +23903,11 @@ Object {
         "deleteMany": "deleteManyA",
         "deleteOne": "deleteOneA",
         "findFirst": "findFirstA",
+        "findFirstOrThrow": "findFirstAOrThrow",
         "findMany": "findManyA",
         "findRaw": "findARaw",
         "findUnique": "findUniqueA",
+        "findUniqueOrThrow": "findUniqueAOrThrow",
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
@@ -25422,6 +26271,100 @@ Object {
                   "name": "distinct",
                 },
               ],
+              "isNullable": true,
+              "name": "findFirstAOrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
               "isNullable": false,
               "name": "findManyA",
               "outputType": Object {
@@ -25630,6 +26573,31 @@ Object {
               ],
               "isNullable": true,
               "name": "findUniqueA",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueAOrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -26369,8 +27337,10 @@ Object {
         "deleteMany": "deleteManyA",
         "deleteOne": "deleteOneA",
         "findFirst": "findFirstA",
+        "findFirstOrThrow": "findFirstAOrThrow",
         "findMany": "findManyA",
         "findUnique": "findUniqueA",
+        "findUniqueOrThrow": "findUniqueAOrThrow",
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
@@ -28852,6 +29822,100 @@ Object {
                   "name": "distinct",
                 },
               ],
+              "isNullable": true,
+              "name": "findFirstAOrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
               "isNullable": false,
               "name": "findManyA",
               "outputType": Object {
@@ -29060,6 +30124,31 @@ Object {
               ],
               "isNullable": true,
               "name": "findUniqueA",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueAOrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -29787,8 +30876,10 @@ Object {
         "deleteMany": "deleteManyA",
         "deleteOne": "deleteOneA",
         "findFirst": "findFirstA",
+        "findFirstOrThrow": "findFirstAOrThrow",
         "findMany": "findManyA",
         "findUnique": "findUniqueA",
+        "findUniqueOrThrow": "findUniqueAOrThrow",
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
@@ -32084,6 +33175,100 @@ Object {
                   "name": "distinct",
                 },
               ],
+              "isNullable": true,
+              "name": "findFirstAOrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
               "isNullable": false,
               "name": "findManyA",
               "outputType": Object {
@@ -32292,6 +33477,31 @@ Object {
               ],
               "isNullable": true,
               "name": "findUniqueA",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueAOrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -32913,8 +34123,10 @@ Object {
         "deleteMany": "deleteManyA",
         "deleteOne": "deleteOneA",
         "findFirst": "findFirstA",
+        "findFirstOrThrow": "findFirstAOrThrow",
         "findMany": "findManyA",
         "findUnique": "findUniqueA",
+        "findUniqueOrThrow": "findUniqueAOrThrow",
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
@@ -35429,6 +36641,100 @@ Object {
                   "name": "distinct",
                 },
               ],
+              "isNullable": true,
+              "name": "findFirstAOrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
               "isNullable": false,
               "name": "findManyA",
               "outputType": Object {
@@ -35637,6 +36943,31 @@ Object {
               ],
               "isNullable": true,
               "name": "findUniqueA",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueAOrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -36365,8 +37696,10 @@ Object {
         "deleteMany": "deleteManyA",
         "deleteOne": "deleteOneA",
         "findFirst": "findFirstA",
+        "findFirstOrThrow": "findFirstAOrThrow",
         "findMany": "findManyA",
         "findUnique": "findUniqueA",
+        "findUniqueOrThrow": "findUniqueAOrThrow",
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
@@ -38849,6 +40182,100 @@ Object {
                   "name": "distinct",
                 },
               ],
+              "isNullable": true,
+              "name": "findFirstAOrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
               "isNullable": false,
               "name": "findManyA",
               "outputType": Object {
@@ -39057,6 +40484,31 @@ Object {
               ],
               "isNullable": true,
               "name": "findUniqueA",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueAOrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
@@ -39772,8 +41224,10 @@ Object {
         "deleteMany": "deleteManyA",
         "deleteOne": "deleteOneA",
         "findFirst": "findFirstA",
+        "findFirstOrThrow": "findFirstAOrThrow",
         "findMany": "findManyA",
         "findUnique": "findUniqueA",
+        "findUniqueOrThrow": "findUniqueAOrThrow",
         "groupBy": "groupByA",
         "model": "A",
         "updateMany": "updateManyA",
@@ -42219,6 +43673,100 @@ Object {
                   "name": "distinct",
                 },
               ],
+              "isNullable": true,
+              "name": "findFirstAOrThrow",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AOrderByWithRelationInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "orderBy",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "cursor",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "take",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "scalar",
+                      "type": "Int",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "skip",
+                },
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": true,
+                      "location": "enumTypes",
+                      "namespace": "prisma",
+                      "type": "AScalarFieldEnum",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "distinct",
+                },
+              ],
               "isNullable": false,
               "name": "findManyA",
               "outputType": Object {
@@ -42427,6 +43975,31 @@ Object {
               ],
               "isNullable": true,
               "name": "findUniqueA",
+              "outputType": Object {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "A",
+              },
+            },
+            Object {
+              "args": Array [
+                Object {
+                  "inputTypes": Array [
+                    Object {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "AWhereUniqueInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": true,
+                  "name": "where",
+                },
+              ],
+              "isNullable": true,
+              "name": "findUniqueAOrThrow",
               "outputType": Object {
                 "isList": false,
                 "location": "outputObjectTypes",
