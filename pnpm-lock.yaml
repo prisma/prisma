@@ -53,7 +53,7 @@ importers:
       path-browserify: 1.0.1
       prettier: 2.7.1
       redis: 3.1.2
-      redis-lock: 0.1.4
+      redis-lock: 1.0.0
       regenerator-runtime: 0.13.10
       resolve: 1.22.1
       safe-buffer: 5.2.1
@@ -111,7 +111,7 @@ importers:
       path-browserify: 1.0.1
       prettier: 2.7.1
       redis: 3.1.2
-      redis-lock: 0.1.4
+      redis-lock: 1.0.0
       regenerator-runtime: 0.13.10
       resolve: 1.22.1
       safe-buffer: 5.2.1
@@ -11978,9 +11978,9 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
-  /redis-lock/0.1.4:
-    resolution: {integrity: sha512-7/+zu86XVQfJVx1nHTzux5reglDiyUCDwmW7TSlvVezfhH2YLc/Rc8NE0ejQG+8/0lwKzm29/u/4+ogKeLosiA==}
-    engines: {node: '>=0.6'}
+  /redis-lock/1.0.0:
+    resolution: {integrity: sha512-zfI+Il36jXwRT/W8SBsG132Bc2yp3tMuf3KTGjSzXimadI17NEGBvb/KrDkCuAC2hzVxW5uR5ns/rxuqiWeV3Q==}
+    engines: {node: '>=12'}
     dev: true
 
   /redis-parser/3.0.0:

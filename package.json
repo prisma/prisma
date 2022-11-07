@@ -72,7 +72,7 @@
     "path-browserify": "1.0.1",
     "prettier": "2.7.1",
     "redis": "3.1.2",
-    "redis-lock": "0.1.4",
+    "redis-lock": "1.0.0",
     "regenerator-runtime": "0.13.10",
     "resolve": "1.22.1",
     "safe-buffer": "5.2.1",
