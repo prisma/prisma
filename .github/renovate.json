@@ -11,7 +11,8 @@
     "@prisma/engines-version",
     "@prisma/fetch-engine",
     "@prisma/get-platform",
-    "@prisma/prisma-fmt-wasm"
+    "@prisma/prisma-fmt-wasm",
+    "vitess/vttestserver"
   ],
   "constraints": {
     "pnpm": "7"
