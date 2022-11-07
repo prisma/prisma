@@ -238,7 +238,9 @@ export namespace DMMF {
 
   export enum ModelAction {
     findUnique = 'findUnique',
+    findUniqueOrThrow = 'findUniqueOrThrow',
     findFirst = 'findFirst',
+    findFirstOrThrow = 'findFirstOrThrow',
     findMany = 'findMany',
     create = 'create',
     createMany = 'createMany',
