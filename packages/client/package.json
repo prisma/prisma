@@ -149,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.6.0-51.24b1bccc0fd2e73994d1ad76742680dab5037ee5"
+    "@prisma/engines-version": "4.6.0-52.b0348b120a75e184ab847702be445977133746c3"
   },
   "sideEffects": false
 }
