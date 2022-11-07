@@ -183,7 +183,7 @@ export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
     if (this.genericsInfo.inputTypeNeedsGenericModelArg(this.type)) {
       return `${this.type.name}<$PrismaModel = never>`
     }
-    return `${this.type.name}<$PrismaModel = never>`
+    return this.type.name
   }
 }
 
