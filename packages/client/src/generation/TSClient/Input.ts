@@ -1,5 +1,4 @@
 import indent from 'indent-string'
-import { cpuUsage } from 'process'
 
 import type { DMMF } from '../../runtime/dmmf-types'
 import { argIsInputType, GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../../runtime/utils/common'
@@ -57,7 +56,7 @@ function stringifyInputType(
     return 'null'
   }
 
-  if (typeof type === 'string' && (type.endsWith('Select') || type?.endsWith('Include'))) {
+  if (typeof type === 'string' && (type.endsWith('Select') || type.endsWith('Include'))) {
     type = `${type}<ExtArgs>`
   }
 
