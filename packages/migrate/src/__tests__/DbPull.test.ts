@@ -521,7 +521,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     jest.setTimeout(20_000)
   }
 
-  const connectionString = process.env.TEST_MSSQL_URI!
+  if (!process.env.TEST_MSSQL_URI) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
+  }
+  const connectionString = process.env.TEST_MSSQL_URI
 
   const setupParams: SetupParams = {
     connectionString,
@@ -934,8 +937,11 @@ describe('postgresql-extensions', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+  if (!process.env.TEST_COCKROACH_URI) {
+    throw new Error('You must set a value for process.env.TEST_COCKROACH_URI. See TESTING.md')
+  }
   const defaultParams = {
-    connectionString: process.env.TEST_COCKROACH_URI!,
+    connectionString: process.env.TEST_COCKROACH_URI,
   }
 
   async function testSetup(setupDirname = 'cockroachdb', options = { withFixture: false }) {
@@ -1100,14 +1106,18 @@ describe('mysql', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
-  const connectionString = process.env.TEST_MSSQL_URI!
+  if (!process.env.TEST_MSSQL_URI) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
+  }
+  if (!process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
+  }
+
   const setupParams: SetupParams = {
-    connectionString,
+    connectionString: process.env.TEST_MSSQL_URI,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'sqlserver'),
   }
-  const JDBC_URI =
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-    'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+  const JDBC_URI = process.env.TEST_MSSQL_JDBC_URI_MIGRATE
 
   beforeAll(async () => {
     await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {

@@ -123,17 +123,22 @@ describe('createDatabase', () => {
   })
 
   testIf(!process.env.TEST_SKIP_MSSQL)('sqlserver - create database', async () => {
-    let uri = process.env.TEST_MSSQL_JDBC_URI!
-    uri = uri.replace(/database=(.*?);/, 'database=can-create-a-db;')
+    if (!process.env.TEST_MSSQL_JDBC_URI) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI. See TESTING.md')
+    }
+    const connectionString = process.env.TEST_MSSQL_JDBC_URI.replace(/database=(.*?);/, 'database=can-create-a-db;')
     try {
-      await dropDatabase(uri, __dirname)
+      await dropDatabase(connectionString, __dirname)
     } catch (e) {}
-    await expect(createDatabase(uri, __dirname)).resolves.toEqual(true)
+    await expect(createDatabase(connectionString, __dirname)).resolves.toEqual(true)
   })
 
   testIf(!process.env.TEST_SKIP_MSSQL)('sqlserver - database already exists', async () => {
-    const uri = process.env.TEST_MSSQL_JDBC_URI!
-    await expect(createDatabase(uri, __dirname)).resolves.toEqual(false)
+    if (!process.env.TEST_MSSQL_JDBC_URI) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI. See TESTING.md')
+    }
+    const connectionString = process.env.TEST_MSSQL_JDBC_URI
+    await expect(createDatabase(connectionString, __dirname)).resolves.toEqual(false)
   })
 
   test('invalid database type', async () => {

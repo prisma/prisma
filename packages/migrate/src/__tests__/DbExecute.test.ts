@@ -455,10 +455,10 @@ COMMIT;`,
   })
 
   describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-    const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE!.replace(
-      'tests-migrate',
-      'tests-migrate-db-execute',
-    )
+    if (!process.env.TEST_COCKROACH_URI_MIGRATE) {
+      throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
+    }
+    const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE.replace('tests-migrate', 'tests-migrate-db-execute')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
@@ -809,10 +809,14 @@ COMMIT;`,
   })
 
   describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
-    const jdbcConnectionString = (
-      process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-      'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    if (!process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
+    }
+
+    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE.replace(
+      'tests-migrate',
+      'tests-migrate-db-execute',
+    )
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
