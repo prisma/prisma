@@ -63,7 +63,7 @@ To run tests requiring a database, start the test databases using Docker, see [D
 
 ## Jest tips
 
-1. Update your dependencies:
+1. Install/update the dependencies, run the following command in the root directory:
 
    ```sh
    pnpm i
