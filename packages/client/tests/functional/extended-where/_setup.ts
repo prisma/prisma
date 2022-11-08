@@ -33,6 +33,9 @@ export async function setup(_prisma: unknown) {
           },
         ],
       },
+      payment: {
+        create: {},
+      },
     },
   })
 
