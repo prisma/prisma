@@ -133,8 +133,8 @@ exports[`interactive-transactions (provider=sqlite) batching rollback 1`] = `
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:0:0
 
-  XX  */
-  XX testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
+  XX 'batching rollback',
+  XX async () => {
   XX   const result = prisma.$transaction([
 → XX     prisma.user.create(
 Unique constraint failed on the fields: (\`email\`)
