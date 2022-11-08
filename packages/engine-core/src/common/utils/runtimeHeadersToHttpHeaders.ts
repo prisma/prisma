@@ -6,16 +6,10 @@ import { QueryEngineRequestHeaders } from '../types/QueryEngine'
  * @returns
  */
 export function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
-  return Object.keys(headers).reduce((acc, runtimeHeaderKey) => {
-    let httpHeaderKey = runtimeHeaderKey
-
-    if (runtimeHeaderKey === 'transactionId') {
-      httpHeaderKey = 'X-transaction-id'
-    }
-
-    // if header key isn't changed, a copy happens
-    acc[httpHeaderKey] = headers[runtimeHeaderKey]
-
-    return acc
-  }, {} as Record<string, string | undefined>)
+  if (headers.transactionId) {
+      const { transactionId, ...httpHeaders } = headers
+      httpHeaders['X-transaction-id'] = transactionId
+      return httpHeaders
+  }
+  return headers
 }
