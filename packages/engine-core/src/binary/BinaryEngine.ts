@@ -512,10 +512,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       PRISMA_DML_PATH: this.datamodelPath,
     }
 
-    if (this.logQueries || this.logLevel === 'info') {
-      if (this.logQueries) {
-        env.LOG_QUERIES = 'true'
-      }
+    if (this.logQueries) {
+      env.LOG_QUERIES = 'true'
     }
 
     if (this.datasources) {
@@ -949,7 +947,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.clientVersion!)
       }
 
-      // Rust engine returns time in microseconds and we want it in miliseconds
+      // Rust engine returns time in microseconds and we want it in milliseconds
       const elapsed = parseInt(headers['x-elapsed']) / 1000
 
       // reset restart count after successful request
@@ -961,9 +959,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       return { data, elapsed } as any
     } catch (e: any) {
       logger('req - e', e)
-      if (e instanceof PrismaClientKnownRequestError) {
-        throw e
-      }
 
       await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
       // retry
@@ -995,7 +990,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
-        // Rust engine returns time in microseconds and we want it in miliseconds
+        // Rust engine returns time in microseconds and we want it in milliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
         const { batchResult, errors } = data
         if (Array.isArray(batchResult)) {
@@ -1120,6 +1115,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     // if we are starting, wait for it before we handle any error
     if (this.startPromise) {
       await this.startPromise
+    }
+
+    if (error instanceof PrismaClientKnownRequestError) {
+      throw error
     }
 
     this.throwAsyncErrorIfExists()

@@ -1,4 +1,3 @@
-import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
 import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
@@ -38,6 +37,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   bundle: true,
   minify: true,
   legalComments: 'none',
+  emitTypes: false,
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
@@ -65,70 +65,27 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   logLevel: 'error',
 }
 
+// we define the config for edge in esm format (used by deno)
+const edgeEsmRuntimeBuildConfig: BuildOptions = {
+  ...edgeRuntimeBuildConfig,
+  name: 'edge-esm',
+  outfile: 'runtime/edge-esm',
+  format: 'esm',
+}
+
 // we define the config for generator
 const generatorBuildConfig: BuildOptions = {
   name: 'generator',
   entryPoints: ['src/generation/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
+  emitTypes: false,
 }
 
-/**
- * Bundle all type definitions by using the API Extractor from RushStack
- * @param filename the source d.ts to bundle
- * @param outfile the output bundled file
- */
-function bundleTypeDefinitions(filename: string, outfile: string) {
-  // we give the config in its raw form instead of a file
-  const extractorConfig = ExtractorConfig.prepare({
-    configObject: {
-      projectFolder: path.join(__dirname, '..'),
-      mainEntryPointFilePath: `${filename}.d.ts`,
-      bundledPackages: [
-        'decimal.js',
-        'sql-template-tag',
-        '@opentelemetry/api',
-        '@prisma/internals',
-        '@prisma/engine-core',
-        '@prisma/generator-helper',
-        '@prisma/debug',
-      ],
-      compiler: {
-        tsconfigFilePath: 'tsconfig.build.json',
-        overrideTsconfig: {
-          compilerOptions: {
-            paths: {}, // bug with api extract + paths
-          },
-        },
-      },
-      dtsRollup: {
-        enabled: true,
-        untrimmedFilePath: `${outfile}.d.ts`,
-      },
-      tsdocMetadata: {
-        enabled: false,
-      },
-    },
-    packageJsonFullPath: path.join(__dirname, '..', 'package.json'),
-    configObjectFullPath: undefined,
-  })
-
-  // here we trigger the "command line" interface equivalent
-  const extractorResult = Extractor.invoke(extractorConfig, {
-    showVerboseMessages: true,
-    localBuild: true,
-  })
-
-  // we exit the process immediately if there were errors
-  if (extractorResult.succeeded === false) {
-    console.error(`API Extractor completed with errors`)
-    process.exit(1)
-  }
-}
-
-void build([generatorBuildConfig, nodeRuntimeBuildConfig, browserBuildConfig, edgeRuntimeBuildConfig]).then(() => {
-  if (process.env.DEV !== 'true') {
-    bundleTypeDefinitions('declaration/runtime/index', 'runtime/index')
-    bundleTypeDefinitions('declaration/runtime/index-browser', 'runtime/index-browser')
-  }
-})
+void build([
+  generatorBuildConfig,
+  nodeRuntimeBuildConfig,
+  browserBuildConfig,
+  edgeRuntimeBuildConfig,
+  edgeEsmRuntimeBuildConfig,
+])

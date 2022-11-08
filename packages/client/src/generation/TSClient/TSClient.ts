@@ -45,14 +45,19 @@ export interface TSClientOptions {
   outputDir: string
   activeProvider: string
   dataProxy: boolean
+  deno?: boolean
 }
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
   protected readonly genericsInfo: GenericArgsInfo = new GenericArgsInfo()
 
+  static enabledPreviewFeatures: string[]
+
   constructor(protected readonly options: TSClientOptions) {
     this.dmmf = new DMMFHelper(klona(options.document))
+
+    TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
   }
 
   public async toJS(edge = false): Promise<string> {
@@ -66,6 +71,7 @@ export class TSClient implements Generatable {
       runtimeName,
       datasources,
       dataProxy,
+      deno,
     } = this.options
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
@@ -132,7 +138,7 @@ ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
-Object.assign(exports, Prisma)
+Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
 ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 `
     return code

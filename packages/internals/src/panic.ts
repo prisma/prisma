@@ -48,3 +48,10 @@ export enum ErrorArea {
 export function isExecaErrorCausedByRustPanic<E extends ExecaError>(error: E) {
   return error.exitCode === 101 || error.stderr?.includes('panicked at')
 }
+
+/**
+ * Returns true if the given error is a Wasm panic.
+ */
+export function isWasmPanic(error: Error): boolean {
+  return error.name === 'RuntimeError'
+}

@@ -40,7 +40,7 @@ function normalizeToUnixPaths(str) {
   return replaceAll(str, path.sep, '/')
 }
 
-function normalizeGithubLinks(str) {
+function normalizeGitHubLinks(str) {
   return str.replace(/https:\/\/github.com\/prisma\/prisma(-client-js)?\/issues\/new\S+/, 'TEST_GITHUB_LINK')
 }
 
@@ -69,7 +69,7 @@ function normalizeBinaryFilePath(str) {
 }
 
 function normalizeMigrateTimestamps(str) {
-  return str.replace(/\d{14}/g, '20201231000000')
+  return str.replace(/(?<!\d)\d{14}(?!\d)/g, '20201231000000')
 }
 
 function normalizeDbUrl(str) {
@@ -85,7 +85,7 @@ function normalizeArtificialPanic(str) {
 }
 
 function normalizeTime(str) {
-  // sometimes someting can take a few seconds when usually it's less than 1s or a few ms
+  // sometimes something can take a few seconds when usually it's less than 1s or a few ms
   return str.replace(/ \d+ms/g, ' XXXms').replace(/ \d+(\.\d+)?s/g, ' XXXms')
 }
 
@@ -131,7 +131,7 @@ module.exports = {
       normalizeTmpDir,
       normalizeTime,
       // From Client package
-      normalizeGithubLinks,
+      normalizeGitHubLinks,
       removePlatforms,
       normalizeNodeApiLibFilePath,
       normalizeBinaryFilePath,
