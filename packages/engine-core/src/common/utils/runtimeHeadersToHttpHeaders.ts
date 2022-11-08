@@ -7,9 +7,9 @@ import { QueryEngineRequestHeaders } from '../types/QueryEngine'
  */
 export function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
   if (headers.transactionId) {
-      const { transactionId, ...httpHeaders } = headers
-      httpHeaders['X-transaction-id'] = transactionId
-      return httpHeaders
+    const { transactionId, ...httpHeaders } = headers
+    httpHeaders['X-transaction-id'] = transactionId
+    return httpHeaders
   }
   return headers
 }
