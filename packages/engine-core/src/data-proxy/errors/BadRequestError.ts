@@ -4,7 +4,7 @@ import { setRetryable } from './utils/setRetryable'
 
 export interface BadRequestErrorInfo extends DataProxyAPIErrorInfo {}
 
-const BAD_REQUEST_DEFAULT_MESSAGE = 'This request could not be understood by the server'
+export const BAD_REQUEST_DEFAULT_MESSAGE = 'This request could not be understood by the server'
 
 export class BadRequestError extends DataProxyAPIError {
   public name = 'BadRequestError'

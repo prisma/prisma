@@ -974,7 +974,7 @@ new PrismaClient({
       let result: unknown
       try {
         // execute user logic with a proxied the client
-        result = await callback(transactionProxy(this, { id: info.id }))
+        result = await callback(transactionProxy(this, { id: info.id, payload: info.payload }))
 
         // it went well, then we commit the transaction
         await this._engine.transaction('commit', headers, info)
