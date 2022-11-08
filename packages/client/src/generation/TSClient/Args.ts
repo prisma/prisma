@@ -97,7 +97,8 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.gene
     modelArgName: string,
   ) {
     const baseTypeName = getBaseTypeName(name, action)
-    const replacement = action === DMMF.ModelAction.findFirst ? 'findFirstOrThrow' : 'findUniqueOrThrow'
+    const replacement =
+      action === DMMF.ModelAction.findFirst ? DMMF.ModelAction.findFirstOrThrow : DMMF.ModelAction.findUniqueOrThrow
 
     // we have to use interface for arg type here, since as for TS 4.7.2
     // using BaseType & { rejectOnNotFound } intersection breaks type checking for `select`
@@ -185,16 +186,16 @@ ${indent(
 type ActionWithBaseType =
   | DMMF.ModelAction.findFirst
   | DMMF.ModelAction.findUnique
-  | 'findFirstOrThrow'
-  | 'findUniqueOrThrow'
+  | DMMF.ModelAction.findFirstOrThrow
+  | DMMF.ModelAction.findUniqueOrThrow
 
 function getBaseTypeName(modelName: string, action: ActionWithBaseType): string {
   switch (action) {
     case DMMF.ModelAction.findFirst:
-    case 'findFirstOrThrow':
+    case DMMF.ModelAction.findFirstOrThrow:
       return `${modelName}FindFirstArgsBase`
     case DMMF.ModelAction.findUnique:
-    case 'findUniqueOrThrow':
+    case DMMF.ModelAction.findUniqueOrThrow:
       return `${modelName}FindUniqueArgsBase`
   }
 }

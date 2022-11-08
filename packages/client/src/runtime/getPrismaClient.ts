@@ -288,7 +288,9 @@ export interface GetPrismaClientConfig {
 
 export const actionOperationMap = {
   findUnique: 'query',
+  findUniqueOrThrow: 'query',
   findFirst: 'query',
+  findFirstOrThrow: 'query',
   findMany: 'query',
   count: 'query',
   create: 'mutation',
