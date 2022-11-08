@@ -44,8 +44,15 @@ type ResponseErrorBody =
   | { type: 'EmptyError' }
 
 async function getResponseErrorBody(response: RequestResponse): Promise<ResponseErrorBody> {
-  // eslint-disable-next-line @typescript-eslint/await-thenable
-  const text = await response.text()
+  let text: string
+
+  try {
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    text = await response.text()
+  } catch {
+    return { type: 'EmptyError' }
+  }
+
   try {
     const error = JSON.parse(text)
 
@@ -64,6 +71,10 @@ async function getResponseErrorBody(response: RequestResponse): Promise<Response
       }
 
       if ('EngineNotStarted' in error || 'InteractiveTransactionMisrouted' in error || 'InvalidRequestError' in error) {
+        const reason = (Object.values(error as object)[0] as any).reason
+        if (typeof reason === 'string' && !['SchemaMissing', 'EngineVersionNotSupported'].includes(reason)) {
+          return { type: 'UnknownJsonError', body: error }
+        }
         return { type: 'DataProxyError', body: error }
       }
     }
