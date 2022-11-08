@@ -17,6 +17,10 @@ function Omit(O: string, K: string) {
   return `{ [P in keyof ${O} as P extends ${K} ? never : P]: ${O}[P] }`
 }
 
+function Pick(O: string, K: string) {
+  return `{ [P in keyof ${O} as P extends ${K} ? P : never]: ${O}[P] }`
+}
+
 function Patch(O1: string, O2: string) {
   return `${Omit(O2, `keyof ${O1}`)} & ${O1}`
 }
@@ -107,7 +111,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
 function clientExtensionsClientDefinition(this: PrismaClientClass) {
   return {
     genericParams: `C extends runtime.Types.Extensions.Args['client'] = {}`,
-    params: `Record<string, unknown> & Prisma.OptionalFlat<PrismaClient<never, never, false, ExtArgs>>`,
+    params: `Record<\`\$\${string}\`, unknown>`,
   }
 }
 
@@ -117,7 +121,7 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
   const client = clientExtensionsClientDefinition.call(this)
   const query = clientExtensionsQueryDefinition.call(this)
 
-  const definition = `
+  const definition = () => `
   /**
    * Allows you to extend the Prisma Client with custom logic.
    * 
@@ -134,19 +138,16 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
     query?: ${query.params}
     client?: C & ${client.params}
   }): runtime.Types.Utils.Omit<PrismaClient<T, U, GlobalReject, {
-        result: ${Omit(`ExtArgs['result']`, `keyof R`)} & {
+        result: ${Omit(`ExtArgs['result']`, 'keyof R')} & {
           [K in keyof R & string]: {
             fields: ${Patch(`(R & {})[K]['fields']`, `(ExtArgs['result'] & {})[K]['fields']`)},
             needs: ${Patch(`(R & {})[K]['needs']`, `(ExtArgs['result'] & {})[K]['needs']`)},
           }
         },
         model: { [K in keyof M & string]: ${Patch(`M[K]`, `(ExtArgs['model'] & {})[K]`)} },
-        client: ${Patch(`{ [K in keyof C as \`$\$\{K & string\}\`]: C[K] }`, `ExtArgs['client']`)}
+        client: ${Patch(Pick(`C`, '`$${string}`'), `ExtArgs['client']`)}
         query: {},
-      }>, \`$\$\{keyof C & string\}\`> & ${Patch(
-        `{ [K in keyof C as \`$\$\{K & string\}\`]: C[K] }`,
-        `ExtArgs['client']`,
-      )}
+      }>, keyof C & \`\$\${string}\`> & ${Patch(Pick(`C`, '`$${string}`'), `ExtArgs['client']`)}
 `
 
   return ifExtensions(definition, '')
