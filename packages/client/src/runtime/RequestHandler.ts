@@ -69,7 +69,7 @@ function getRequestInfo(request: Request) {
   }
 
   return {
-    batchTransaction: transaction?.kind === 'batch' ? transaction : undefined,
+    transaction,
     headers,
   }
 }
@@ -92,13 +92,16 @@ export class RequestHandler {
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        return this.client._engine.requestBatch(queries, info.headers, info.batchTransaction)
+        const batchTransaction = info.transaction?.kind === 'batch' ? info.transaction : undefined
+
+        return this.client._engine.requestBatch(queries, info.headers, batchTransaction)
       },
       singleLoader: (request) => {
         const info = getRequestInfo(request)
         const query = String(request.document)
+        const interactiveTransaction = info.transaction?.kind === 'itx' ? info.transaction : undefined
 
-        return this.client._engine.request(query, info.headers)
+        return this.client._engine.request(query, info.headers, interactiveTransaction)
       },
       batchBy: (request) => {
         if (request.transaction?.id) {
