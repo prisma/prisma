@@ -1,5 +1,9 @@
-import { PrismaClientValidationError } from '../..'
 import { Client } from '../../getPrismaClient'
+import { PrismaClientValidationError } from '../../query'
+import {
+  applyModelsAndClientExtensions,
+  unapplyModelsAndClientExtensions,
+} from '../model/applyModelsAndClientExtensions'
 
 export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
@@ -67,7 +71,11 @@ export function $extends(this: Client, extension: Args | (() => Args)): Client {
     // ask users to enable 'clientExtensions' preview feature
     throw new PrismaClientValidationError('Extensions are not yet available')
   }
-  return Object.create(this, {
+  // we need to re-apply models to the extend client:
+  // they always capture specific instance of the client and without
+  // re-application would never see new extensions
+  const oldClient = unapplyModelsAndClientExtensions(this)
+  const newClient = Object.create(oldClient, {
     _extensions: {
       get: () => {
         if (typeof extension === 'function') {
@@ -78,4 +86,5 @@ export function $extends(this: Client, extension: Args | (() => Args)): Client {
       },
     },
   })
+  return applyModelsAndClientExtensions(newClient)
 }

@@ -29,7 +29,7 @@ import type { InlineDatasources } from '../generation/utils/buildInlineDatasourc
 import { PrismaClientValidationError } from '.'
 import { $extends, Args as Extension } from './core/extensions/$extends'
 import { MetricsClient } from './core/metrics/MetricsClient'
-import { applyModels } from './core/model/applyModels'
+import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import type {
   InteractiveTransactionOptions,
@@ -477,7 +477,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         throw e
       }
 
-      return applyModels(this) // custom constructor return value
+      return applyModelsAndClientExtensions(this) // custom constructor return value
     }
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
