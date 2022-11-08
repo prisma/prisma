@@ -174,12 +174,12 @@ export class DataProxyEngine extends Engine {
     return batchResult
   }
 
-  private async requestInternal<T, Batch extends boolean = false>(
+  private requestInternal<T, Batch extends boolean = false>(
     body: Record<string, any>,
     headers: QueryEngineRequestHeaders,
     itx?: InteractiveTransactionOptions<DataProxyTxInfoPayload>,
   ): Promise<Batch extends true ? { batchResult: QueryEngineResult<T>[] } : QueryEngineResult<T>> {
-    return await this.withRetry({
+    return this.withRetry({
       actionGerund: 'querying',
       callback: async ({ logHttpCall }) => {
         const url = itx ? `${itx.payload.endpoint}/graphql` : await this.url('graphql')
@@ -224,9 +224,9 @@ export class DataProxyEngine extends Engine {
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<DataProxyTxInfo>
-  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: DataProxyTxInfo): Promise<undefined>
-  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: DataProxyTxInfo): Promise<undefined>
+  transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<DataProxyTxInfo>
+  transaction(action: 'commit', headers: Tx.TransactionHeaders, info: DataProxyTxInfo): Promise<undefined>
+  transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: DataProxyTxInfo): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     const actionToGerund = {
       start: 'starting',
@@ -234,7 +234,7 @@ export class DataProxyEngine extends Engine {
       rollback: 'rolling back',
     }
 
-    return await this.withRetry({
+    return this.withRetry({
       actionGerund: `${actionToGerund[action]} transaction`,
       callback: async ({ logHttpCall }) => {
         if (action === 'start') {
