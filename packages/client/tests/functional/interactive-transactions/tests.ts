@@ -11,7 +11,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-testMatrix.setupTestSuite(({ provider }) => {
+testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543
@@ -182,7 +182,7 @@ testMatrix.setupTestSuite(({ provider }) => {
   /**
    * If one of the query fails, all queries should cancel
    */
-  test('rollback query', async () => {
+  testIf(clientMeta.runtime !== 'edge')('rollback query', async () => {
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({
         data: {
@@ -225,7 +225,8 @@ testMatrix.setupTestSuite(({ provider }) => {
       clientVersion: '0.0.0',
     })
 
-    await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+    if (clientMeta.runtime !== 'edge') {
+      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
         Invalid \`transactionBoundPrisma.user.create()\` invocation in
         /client/tests/functional/interactive-transactions/tests.ts:0:0
@@ -236,6 +237,7 @@ testMatrix.setupTestSuite(({ provider }) => {
         → XX   await transactionBoundPrisma.user.create(
         Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
       `)
+    }
 
     const users = await prisma.user.findMany()
 
@@ -268,32 +270,35 @@ testMatrix.setupTestSuite(({ provider }) => {
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
-    const result = prisma.$transaction([
-      prisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
-      }),
-      prisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
-      }),
-    ])
+  testIf(getClientEngineType() === ClientEngineType.Library && clientMeta.runtime !== 'edge')(
+    'batching rollback',
+    async () => {
+      const result = prisma.$transaction([
+        prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        }),
+        prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        }),
+      ])
 
-    await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-    const users = await prisma.user.findMany()
+      const users = await prisma.user.findMany()
 
-    expect(users.length).toBe(0)
-  })
+      expect(users.length).toBe(0)
+    },
+  )
 
   /**
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  testIf(getClientEngineType() === ClientEngineType.Library && provider !== 'mongodb')(
+  testIf(getClientEngineType() === ClientEngineType.Library && provider !== 'mongodb' && clientMeta.runtime !== 'edge')(
     'batching raw rollback',
     async () => {
       await prisma.user.create({
