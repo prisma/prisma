@@ -2,6 +2,7 @@ import indent from 'indent-string'
 
 import { TAB_SIZE } from './constants'
 import type { TSClientOptions } from './TSClient'
+import { ifExtensions } from './utils/ifExtensions'
 
 export const commonCodeJS = ({
   runtimeDir,
@@ -31,7 +32,8 @@ import {
   Decimal,
   Debug,
   objectEnumValues,
-  makeStrictEnum
+  makeStrictEnum,
+  Extensions
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
@@ -58,7 +60,8 @@ const {
   Decimal,
   Debug,
   objectEnumValues,
-  makeStrictEnum
+  makeStrictEnum,
+  Extensions
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -93,6 +96,15 @@ Prisma.join = ${notSupportOnBrowser('join', browser)}
 Prisma.raw = ${notSupportOnBrowser('raw', browser)}
 Prisma.validator = () => (val) => val
 
+${ifExtensions(
+  `/**
+* Extensions
+*/
+Prisma.getExtensionContext = ${notSupportOnBrowser('Extensions.getExtensionContext', browser)}
+
+`,
+  '',
+)}
 /**
  * Shorthand utilities for JSON filtering
  */
@@ -156,16 +168,21 @@ export type DecimalJsLike = runtime.DecimalJsLike
 /**
  * Metrics 
  */
-export import Metrics = runtime.Metrics
-export import Metric = runtime.Metric
-export import MetricHistogram = runtime.MetricHistogram
-export import MetricHistogramBucket = runtime.MetricHistogramBucket
+export type Metrics = runtime.Metrics
+export type Metric<T> = runtime.Metric<T>
+export type MetricHistogram = runtime.MetricHistogram
+export type MetricHistogramBucket = runtime.MetricHistogramBucket
 
-/**
- * Extensions
- */
-export type Extension = runtime.Extension 
+${ifExtensions(
+  `/**
+* Extensions
+*/
+export type Extension = runtime.Types.Extensions.Args
+export import getExtensionContext = runtime.Extensions.getExtensionContext
 
+`,
+  '',
+)}
 /**
  * Prisma Client JS version: ${clientVersion}
  * Query Engine version: ${engineVersion}
@@ -565,7 +582,7 @@ type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
 type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
 
 
-export import FieldRef = runtime.FieldRef
+export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
 
 type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
