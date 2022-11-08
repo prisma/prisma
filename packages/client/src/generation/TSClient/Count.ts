@@ -11,6 +11,7 @@ import type { Generatable } from './Generatable'
 import { TS } from './Generatable'
 import { OutputType } from './Output'
 import { PayloadType } from './Payload'
+import { ifExtensions } from './utils/ifExtensions'
 
 export class Count implements Generatable {
   constructor(
@@ -52,7 +53,7 @@ export class Count implements Generatable {
 
 ${outputType.toTS()}
 
-export type ${getSelectName(name)}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
+export type ${getSelectName(name)}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
 ${indent(
   type.fields
     .map((field) => {

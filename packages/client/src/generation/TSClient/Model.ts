@@ -47,6 +47,7 @@ import { ModelOutputField, OutputType } from './Output'
 import { PayloadType } from './Payload'
 import { SchemaOutputType } from './SchemaOutput'
 import { getModelActions } from './utils/getModelActions'
+import { ifExtensions } from './utils/ifExtensions'
 
 export class Model implements Generatable {
   protected outputType: OutputType
@@ -110,7 +111,7 @@ export class Model implements Generatable {
     return `
 
 
-export type ${groupByArgsName}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
+export type ${groupByArgsName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
 ${indent(
   groupByRootField.args
     .map((arg) => {
@@ -226,7 +227,7 @@ ${
     : ''
 }
 
-export type ${aggregateArgsName}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
+export type ${aggregateArgsName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
 ${indent(
   aggregateRootField.args
     .map((arg) => {
@@ -281,7 +282,10 @@ ${indent(
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
-      ? `\nexport type ${getIncludeName(model.name)}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
+      ? `\nexport type ${getIncludeName(model.name)}${ifExtensions(
+          '<ExtArgs extends runtime.Types.Extensions.Args = never>',
+          '',
+        )} = {
 ${indent(
   outputType.fields
     .filter((f) => {
@@ -293,7 +297,7 @@ ${indent(
       return (
         `${f.name}?: boolean` +
         (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}<ExtArgs>`
+          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions('<ExtArgs>', '')}`
           : '')
       )
     })
@@ -312,7 +316,10 @@ ${!this.dmmf.typeMap[model.name] ? this.getAggregationTypes() : ''}
 
 ${!this.dmmf.typeMap[model.name] ? this.getGroupByTypes() : ''}
 
-export type ${getSelectName(model.name)}<ExtArgs extends runtime.Types.Extensions.Args = never>  = {
+export type ${getSelectName(model.name)}${ifExtensions(
+      '<ExtArgs extends runtime.Types.Extensions.Args = never>',
+      '',
+    )} = {
 ${indent(
   outputType.fields
     .map((f) => {
@@ -320,17 +327,19 @@ ${indent(
       return (
         `${f.name}?: boolean` +
         (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}<ExtArgs>`
+          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions('<ExtArgs>', '')}`
           : '')
       )
     })
     .join('\n'),
   TAB_SIZE,
 )}
-} & runtime.Types.Extensions.GetResultSelect<(ExtArgs['result'] & {})['${lowerCase(model.name)}']>
-
-// TODO put this behind preview flag
-export type ${getSelectName(model.name)}Scalar = {
+}${ifExtensions(
+      () => ` & runtime.Types.Extensions.GetResultSelect<(ExtArgs['result'] & {})['${lowerCase(model.name)}']>`,
+      '',
+    )}
+${ifExtensions(() => {
+  return `export type ${getSelectName(model.name)}Scalar = {
 ${indent(
   outputType.fields
     .filter((field) => field.outputType.location === 'scalar')
@@ -338,7 +347,8 @@ ${indent(
     .join('\n'),
   TAB_SIZE,
 )}
-}
+}`
+}, '')}
 ${includeType}
 ${new PayloadType(this.outputType, this.dmmf).toTS()}
 
@@ -401,7 +411,7 @@ export class ModelDelegate implements Generatable {
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
-    ? `type ${countArgsName}<ExtArgs extends runtime.Types.Extensions.Args = never> = Merge<
+    ? `type ${countArgsName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = Merge<
   Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'> & {
     select?: ${getCountAggregateInputName(name)} | true
   }
@@ -409,7 +419,10 @@ ${
 `
     : ''
 }
-export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined, ExtArgs extends runtime.Types.Extensions.Args = never> {
+export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined${ifExtensions(
+      ', ExtArgs extends runtime.Types.Extensions.Args = never',
+      '',
+    )}> {
 ${indent(
   nonAggregateActions
     .map(
@@ -521,7 +534,10 @@ ${fieldsProxy}
  * Because we want to prevent naming conflicts as mentioned in
  * https://github.com/prisma/prisma-client-js/issues/707
  */
-export class Prisma__${name}Client<T, Null = never, ExtArgs extends runtime.Types.Extensions.Args = never> implements PrismaPromise<T> {
+export class Prisma__${name}Client<T, Null = never${ifExtensions(
+      ', ExtArgs extends runtime.Types.Extensions.Args = never',
+      '',
+    )}> implements PrismaPromise<T> {
   [prisma]: true;
   private readonly _dmmf;
   private readonly _fetcher;
@@ -543,13 +559,13 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(
-        f,
-        !this.dmmf.typeMap[fieldTypeName],
-      )}<ExtArgs> = {}>(args?: Subset<T, ${getFieldArgName(
-        f,
-        !this.dmmf.typeMap[fieldTypeName],
-      )}<ExtArgs>>): ${getReturnType({
+${f.name}<T extends ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions(
+        '<ExtArgs> = {}>',
+        '= {}',
+      )}>(args?: Subset<T, ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions(
+        '<ExtArgs>',
+        '',
+      )}>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
         hideCondition: false,

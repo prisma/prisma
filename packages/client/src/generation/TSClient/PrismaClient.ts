@@ -11,6 +11,7 @@ import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
+import { ifExtensions } from './utils/ifExtensions'
 
 function Omit(O: string, K: string) {
   return `{ [P in keyof ${O} as P extends ${K} ? never : P]: ${O}[P] }`
@@ -104,10 +105,6 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
 }
 
 function clientExtensionsClientDefinition(this: PrismaClientClass) {
-  if (!this.generator?.previewFeatures.includes('clientExtensions')) {
-    // return ''
-  }
-
   return {
     genericParams: `C extends runtime.Types.Extensions.Args['client'] = {}`,
     params: `Record<string, unknown> & Prisma.OptionalFlat<PrismaClient<never, never, false, ExtArgs>>`,
@@ -120,7 +117,7 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
   const client = clientExtensionsClientDefinition.call(this)
   const query = clientExtensionsQueryDefinition.call(this)
 
-  return `
+  const definition = `
   /**
    * Allows you to extend the Prisma Client with custom logic.
    * 
@@ -151,6 +148,8 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
         `ExtArgs['client']`,
       )}
 `
+
+  return ifExtensions(definition, '')
 }
 
 function batchingTransactionDefinition(this: PrismaClientClass) {
@@ -334,8 +333,11 @@ export class PrismaClient<
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
   GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined = 'rejectOnNotFound' extends keyof T
     ? T['rejectOnNotFound']
-    : false,
-  ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: { $allModels: {} }, query: {}, client: {} }
+    : false${ifExtensions(
+      `,
+  ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: { $allModels: {} }, query: {}, client: {} }`,
+      '',
+    )}
       > {
       /**
        * @private
@@ -408,9 +410,12 @@ ${[
   * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
   * \`\`\`
   */
-get ${methodName}(): ${Patch(
-            `(ExtArgs['model'] & {})['${lowerCase(m.model)}'] & (ExtArgs['model'] & {})['$allModels']`,
-            `Prisma.${m.model}Delegate<GlobalReject, ExtArgs>`,
+get ${methodName}(): ${ifExtensions(
+            `${Patch(
+              `(ExtArgs['model'] & {})['${lowerCase(m.model)}'] & (ExtArgs['model'] & {})['$allModels']`,
+              `Prisma.${m.model}Delegate<GlobalReject, ExtArgs>`,
+            )}`,
+            `Prisma.${m.model}Delegate<GlobalReject>`,
           )};`
         })
         .join('\n\n'),

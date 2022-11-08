@@ -9,6 +9,7 @@ import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { getArgFieldJSDoc } from './helpers'
 import { InputField } from './Input'
+import { ifExtensions } from './utils/ifExtensions'
 
 export class ArgsType implements Generatable {
   constructor(
@@ -83,7 +84,7 @@ export class ArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${modelArgName}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
+export type ${modelArgName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
@@ -105,14 +106,17 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.gene
 /**
  * ${name} base type for ${action} actions
  */
-export type ${baseTypeName}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
+export type ${baseTypeName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 
 /**
  * ${name}: ${action}
  */
-export interface ${modelArgName}<ExtArgs extends runtime.Types.Extensions.Args = never> extends ${baseTypeName}<ExtArgs> {
+export interface ${modelArgName}${ifExtensions(
+      '<ExtArgs extends runtime.Types.Extensions.Args = never>',
+      '',
+    )} extends ${baseTypeName}${ifExtensions('<ExtArgs>', '')} {
  /**
   * Throw an Error if query returns no results
   * @deprecated since 4.0.0: use \`${replacement}\` method instead
@@ -135,7 +139,10 @@ export interface ${modelArgName}<ExtArgs extends runtime.Types.Extensions.Args =
 /**
  * ${name}: ${action}
  */
-export type ${modelArgName}<ExtArgs extends runtime.Types.Extensions.Args = never> = ${baseTypeName}<ExtArgs>
+export type ${modelArgName}${ifExtensions(
+      '<ExtArgs extends runtime.Types.Extensions.Args = never>',
+      '',
+    )} = ${baseTypeName}${ifExtensions('<ExtArgs>', '')}
       `
   }
 }
@@ -160,7 +167,7 @@ export class MinimalArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${this.generatedTypeName}<ExtArgs extends runtime.Types.Extensions.Args = never> = {
+export type ${this.generatedTypeName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
 ${indent(
   args
     .map((arg) => {

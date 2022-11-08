@@ -6,6 +6,7 @@ import { ClientModelAction } from '../runtime/clientActions'
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
 import { GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
+import { ifExtensions } from './TSClient/utils/ifExtensions'
 
 export enum Projection {
   select = 'select',
@@ -258,30 +259,36 @@ export function getReturnType({
     const promiseOpen = renderPromise ? 'PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `${promiseOpen}${listOpen}${getPayloadName(name)}<T, ExtArgs>${listClose}${
+    return `${promiseOpen}${listOpen}${getPayloadName(name)}<T${ifExtensions(', ExtArgs', '')}>${listClose}${
       isChaining ? '| Null' : ''
     }${promiseClose}`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
-    return `Prisma__${name}Client<${getType(getPayloadName(name) + '<T, ExtArgs>', isList)}, never, ExtArgs>`
+    return `Prisma__${name}Client<${getType(
+      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
+      isList,
+    )}${ifExtensions(', never, ExtArgs', '')}>`
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
       return `Prisma__${name}Client<${getType(
-        getPayloadName(name) + '<T, ExtArgs>',
+        getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
         isList,
-      )} | Null, never, ExtArgs> // lol`
+      )} | Null${ifExtensions(', never, ExtArgs', '')}>`
     }
     return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T, ExtArgs>',
+      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
       isList,
-    )}, never, ExtArgs> : Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T, ExtArgs>',
+    )}${ifExtensions(', never, ExtArgs', '')}> : Prisma__${name}Client<${getType(
+      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
       isList,
-    )} | null, null, ExtArgs>`
+    )} | null, null${ifExtensions(', ExtArgs', '')}>`
   }
-  return `Prisma__${name}Client<${getType(getPayloadName(name) + '<T, ExtArgs>', isList)}, never, ExtArgs>`
+  return `Prisma__${name}Client<${getType(
+    getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
+    isList,
+  )}${ifExtensions(', never, ExtArgs', '')}>`
 }
 
 export function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mutation'): boolean {
@@ -344,5 +351,3 @@ export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
 
   return `'${typeName}'`
 }
-
-type A = {} extends {} ? 1 : 0
