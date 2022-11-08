@@ -220,7 +220,9 @@ export namespace DMMF {
     model: string
     plural: string
     findUnique?: string | null
+    findUniqueOrThrow?: string | null
     findFirst?: string | null
+    findFirstOrThrow?: string | null
     findMany?: string | null
     create?: string | null
     createMany?: string | null
