@@ -2125,40 +2125,6 @@ export namespace Prisma {
     ): Prisma__PostClient<PostGetPayload<T>>
 
     /**
-     * Find one Post that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {PostFindUniqueOrThrowArgs} args - Arguments to find a Post
-     * @example
-     * // Get one Post
-     * const post = await prisma.post.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends PostFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, PostFindUniqueOrThrowArgs>
-    ): Prisma__PostClient<PostGetPayload<T>>
-
-    /**
-     * Find the first Post that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {PostFindFirstOrThrowArgs} args - Arguments to find a Post
-     * @example
-     * // Get one Post
-     * const post = await prisma.post.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends PostFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, PostFindFirstOrThrowArgs>
-    ): Prisma__PostClient<PostGetPayload<T>>
-
-    /**
      * Count the number of Posts.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -2634,18 +2600,6 @@ export namespace Prisma {
     where?: PostWhereInput
   }
 
-
-  /**
-   * Post: findUniqueOrThrow
-   */
-  export type PostFindUniqueOrThrowArgs = PostFindUniqueArgsBase
-      
-
-  /**
-   * Post: findFirstOrThrow
-   */
-  export type PostFindFirstOrThrowArgs = PostFindFirstArgsBase
-      
 
   /**
    * Post without action
@@ -3164,40 +3118,6 @@ export namespace Prisma {
     ): Prisma__UserClient<UserGetPayload<T>>
 
     /**
-     * Find one User that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {UserFindUniqueOrThrowArgs} args - Arguments to find a User
-     * @example
-     * // Get one User
-     * const user = await prisma.user.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends UserFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, UserFindUniqueOrThrowArgs>
-    ): Prisma__UserClient<UserGetPayload<T>>
-
-    /**
-     * Find the first User that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserFindFirstOrThrowArgs} args - Arguments to find a User
-     * @example
-     * // Get one User
-     * const user = await prisma.user.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends UserFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, UserFindFirstOrThrowArgs>
-    ): Prisma__UserClient<UserGetPayload<T>>
-
-    /**
      * Count the number of Users.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -3673,18 +3593,6 @@ export namespace Prisma {
     where?: UserWhereInput
   }
 
-
-  /**
-   * User: findUniqueOrThrow
-   */
-  export type UserFindUniqueOrThrowArgs = UserFindUniqueArgsBase
-      
-
-  /**
-   * User: findFirstOrThrow
-   */
-  export type UserFindFirstOrThrowArgs = UserFindFirstArgsBase
-      
 
   /**
    * User without action
@@ -4195,40 +4103,6 @@ export namespace Prisma {
     ): Prisma__MClient<MGetPayload<T>>
 
     /**
-     * Find one M that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {MFindUniqueOrThrowArgs} args - Arguments to find a M
-     * @example
-     * // Get one M
-     * const m = await prisma.m.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends MFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, MFindUniqueOrThrowArgs>
-    ): Prisma__MClient<MGetPayload<T>>
-
-    /**
-     * Find the first M that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {MFindFirstOrThrowArgs} args - Arguments to find a M
-     * @example
-     * // Get one M
-     * const m = await prisma.m.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends MFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, MFindFirstOrThrowArgs>
-    ): Prisma__MClient<MGetPayload<T>>
-
-    /**
      * Count the number of Ms.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -4704,18 +4578,6 @@ export namespace Prisma {
     where?: MWhereInput
   }
 
-
-  /**
-   * M: findUniqueOrThrow
-   */
-  export type MFindUniqueOrThrowArgs = MFindUniqueArgsBase
-      
-
-  /**
-   * M: findFirstOrThrow
-   */
-  export type MFindFirstOrThrowArgs = MFindFirstArgsBase
-      
 
   /**
    * M without action
@@ -5226,40 +5088,6 @@ export namespace Prisma {
     ): Prisma__NClient<NGetPayload<T>>
 
     /**
-     * Find one N that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {NFindUniqueOrThrowArgs} args - Arguments to find a N
-     * @example
-     * // Get one N
-     * const n = await prisma.n.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends NFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, NFindUniqueOrThrowArgs>
-    ): Prisma__NClient<NGetPayload<T>>
-
-    /**
-     * Find the first N that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {NFindFirstOrThrowArgs} args - Arguments to find a N
-     * @example
-     * // Get one N
-     * const n = await prisma.n.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends NFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, NFindFirstOrThrowArgs>
-    ): Prisma__NClient<NGetPayload<T>>
-
-    /**
      * Count the number of Ns.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -5735,18 +5563,6 @@ export namespace Prisma {
     where?: NWhereInput
   }
 
-
-  /**
-   * N: findUniqueOrThrow
-   */
-  export type NFindUniqueOrThrowArgs = NFindUniqueArgsBase
-      
-
-  /**
-   * N: findFirstOrThrow
-   */
-  export type NFindFirstOrThrowArgs = NFindFirstArgsBase
-      
 
   /**
    * N without action
@@ -6257,40 +6073,6 @@ export namespace Prisma {
     ): Prisma__OneOptionalClient<OneOptionalGetPayload<T>>
 
     /**
-     * Find one OneOptional that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {OneOptionalFindUniqueOrThrowArgs} args - Arguments to find a OneOptional
-     * @example
-     * // Get one OneOptional
-     * const oneOptional = await prisma.oneOptional.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends OneOptionalFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, OneOptionalFindUniqueOrThrowArgs>
-    ): Prisma__OneOptionalClient<OneOptionalGetPayload<T>>
-
-    /**
-     * Find the first OneOptional that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {OneOptionalFindFirstOrThrowArgs} args - Arguments to find a OneOptional
-     * @example
-     * // Get one OneOptional
-     * const oneOptional = await prisma.oneOptional.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends OneOptionalFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, OneOptionalFindFirstOrThrowArgs>
-    ): Prisma__OneOptionalClient<OneOptionalGetPayload<T>>
-
-    /**
      * Count the number of OneOptionals.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -6766,18 +6548,6 @@ export namespace Prisma {
     where?: OneOptionalWhereInput
   }
 
-
-  /**
-   * OneOptional: findUniqueOrThrow
-   */
-  export type OneOptionalFindUniqueOrThrowArgs = OneOptionalFindUniqueArgsBase
-      
-
-  /**
-   * OneOptional: findFirstOrThrow
-   */
-  export type OneOptionalFindFirstOrThrowArgs = OneOptionalFindFirstArgsBase
-      
 
   /**
    * OneOptional without action
@@ -7296,40 +7066,6 @@ export namespace Prisma {
     ): Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>
 
     /**
-     * Find one ManyRequired that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {ManyRequiredFindUniqueOrThrowArgs} args - Arguments to find a ManyRequired
-     * @example
-     * // Get one ManyRequired
-     * const manyRequired = await prisma.manyRequired.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends ManyRequiredFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, ManyRequiredFindUniqueOrThrowArgs>
-    ): Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>
-
-    /**
-     * Find the first ManyRequired that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {ManyRequiredFindFirstOrThrowArgs} args - Arguments to find a ManyRequired
-     * @example
-     * // Get one ManyRequired
-     * const manyRequired = await prisma.manyRequired.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends ManyRequiredFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, ManyRequiredFindFirstOrThrowArgs>
-    ): Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>
-
-    /**
      * Count the number of ManyRequireds.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -7805,18 +7541,6 @@ export namespace Prisma {
     where?: ManyRequiredWhereInput
   }
 
-
-  /**
-   * ManyRequired: findUniqueOrThrow
-   */
-  export type ManyRequiredFindUniqueOrThrowArgs = ManyRequiredFindUniqueArgsBase
-      
-
-  /**
-   * ManyRequired: findFirstOrThrow
-   */
-  export type ManyRequiredFindFirstOrThrowArgs = ManyRequiredFindFirstArgsBase
-      
 
   /**
    * ManyRequired without action
@@ -8335,40 +8059,6 @@ export namespace Prisma {
     ): Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>
 
     /**
-     * Find one OptionalSide1 that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {OptionalSide1FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide1
-     * @example
-     * // Get one OptionalSide1
-     * const optionalSide1 = await prisma.optionalSide1.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends OptionalSide1FindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, OptionalSide1FindUniqueOrThrowArgs>
-    ): Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>
-
-    /**
-     * Find the first OptionalSide1 that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {OptionalSide1FindFirstOrThrowArgs} args - Arguments to find a OptionalSide1
-     * @example
-     * // Get one OptionalSide1
-     * const optionalSide1 = await prisma.optionalSide1.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends OptionalSide1FindFirstOrThrowArgs>(
-      args?: SelectSubset<T, OptionalSide1FindFirstOrThrowArgs>
-    ): Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>
-
-    /**
      * Count the number of OptionalSide1s.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -8844,18 +8534,6 @@ export namespace Prisma {
     where?: OptionalSide1WhereInput
   }
 
-
-  /**
-   * OptionalSide1: findUniqueOrThrow
-   */
-  export type OptionalSide1FindUniqueOrThrowArgs = OptionalSide1FindUniqueArgsBase
-      
-
-  /**
-   * OptionalSide1: findFirstOrThrow
-   */
-  export type OptionalSide1FindFirstOrThrowArgs = OptionalSide1FindFirstArgsBase
-      
 
   /**
    * OptionalSide1 without action
@@ -9362,40 +9040,6 @@ export namespace Prisma {
     ): Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>
 
     /**
-     * Find one OptionalSide2 that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {OptionalSide2FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide2
-     * @example
-     * // Get one OptionalSide2
-     * const optionalSide2 = await prisma.optionalSide2.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends OptionalSide2FindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, OptionalSide2FindUniqueOrThrowArgs>
-    ): Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>
-
-    /**
-     * Find the first OptionalSide2 that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {OptionalSide2FindFirstOrThrowArgs} args - Arguments to find a OptionalSide2
-     * @example
-     * // Get one OptionalSide2
-     * const optionalSide2 = await prisma.optionalSide2.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends OptionalSide2FindFirstOrThrowArgs>(
-      args?: SelectSubset<T, OptionalSide2FindFirstOrThrowArgs>
-    ): Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>
-
-    /**
      * Count the number of OptionalSide2s.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -9871,18 +9515,6 @@ export namespace Prisma {
     where?: OptionalSide2WhereInput
   }
 
-
-  /**
-   * OptionalSide2: findUniqueOrThrow
-   */
-  export type OptionalSide2FindUniqueOrThrowArgs = OptionalSide2FindUniqueArgsBase
-      
-
-  /**
-   * OptionalSide2: findFirstOrThrow
-   */
-  export type OptionalSide2FindFirstOrThrowArgs = OptionalSide2FindFirstArgsBase
-      
 
   /**
    * OptionalSide2 without action
@@ -10361,40 +9993,6 @@ export namespace Prisma {
     ): Prisma__AClient<AGetPayload<T>>
 
     /**
-     * Find one A that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {AFindUniqueOrThrowArgs} args - Arguments to find a A
-     * @example
-     * // Get one A
-     * const a = await prisma.a.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends AFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, AFindUniqueOrThrowArgs>
-    ): Prisma__AClient<AGetPayload<T>>
-
-    /**
-     * Find the first A that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {AFindFirstOrThrowArgs} args - Arguments to find a A
-     * @example
-     * // Get one A
-     * const a = await prisma.a.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends AFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, AFindFirstOrThrowArgs>
-    ): Prisma__AClient<AGetPayload<T>>
-
-    /**
      * Count the number of As.
      * Note, that providing \`undefined\` is treated as the value not being there.
      * Read more here: https://pris.ly/d/null-undefined
@@ -10836,18 +10434,6 @@ export namespace Prisma {
 
 
   /**
-   * A: findUniqueOrThrow
-   */
-  export type AFindUniqueOrThrowArgs = AFindUniqueArgsBase
-      
-
-  /**
-   * A: findFirstOrThrow
-   */
-  export type AFindFirstOrThrowArgs = AFindFirstArgsBase
-      
-
-  /**
    * A without action
    */
   export type AArgs = {
@@ -11276,40 +10862,6 @@ export namespace Prisma {
     **/
     upsert<T extends BUpsertArgs>(
       args: SelectSubset<T, BUpsertArgs>
-    ): Prisma__BClient<BGetPayload<T>>
-
-    /**
-     * Find one B that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {BFindUniqueOrThrowArgs} args - Arguments to find a B
-     * @example
-     * // Get one B
-     * const b = await prisma.b.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends BFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, BFindUniqueOrThrowArgs>
-    ): Prisma__BClient<BGetPayload<T>>
-
-    /**
-     * Find the first B that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {BFindFirstOrThrowArgs} args - Arguments to find a B
-     * @example
-     * // Get one B
-     * const b = await prisma.b.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends BFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, BFindFirstOrThrowArgs>
     ): Prisma__BClient<BGetPayload<T>>
 
     /**
@@ -11754,18 +11306,6 @@ export namespace Prisma {
 
 
   /**
-   * B: findUniqueOrThrow
-   */
-  export type BFindUniqueOrThrowArgs = BFindUniqueArgsBase
-      
-
-  /**
-   * B: findFirstOrThrow
-   */
-  export type BFindFirstOrThrowArgs = BFindFirstArgsBase
-      
-
-  /**
    * B without action
    */
   export type BArgs = {
@@ -12164,40 +11704,6 @@ export namespace Prisma {
     **/
     upsert<T extends CUpsertArgs>(
       args: SelectSubset<T, CUpsertArgs>
-    ): Prisma__CClient<CGetPayload<T>>
-
-    /**
-     * Find one C that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {CFindUniqueOrThrowArgs} args - Arguments to find a C
-     * @example
-     * // Get one C
-     * const c = await prisma.c.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends CFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, CFindUniqueOrThrowArgs>
-    ): Prisma__CClient<CGetPayload<T>>
-
-    /**
-     * Find the first C that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {CFindFirstOrThrowArgs} args - Arguments to find a C
-     * @example
-     * // Get one C
-     * const c = await prisma.c.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends CFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, CFindFirstOrThrowArgs>
     ): Prisma__CClient<CGetPayload<T>>
 
     /**
@@ -12642,18 +12148,6 @@ export namespace Prisma {
 
 
   /**
-   * C: findUniqueOrThrow
-   */
-  export type CFindUniqueOrThrowArgs = CFindUniqueArgsBase
-      
-
-  /**
-   * C: findFirstOrThrow
-   */
-  export type CFindFirstOrThrowArgs = CFindFirstArgsBase
-      
-
-  /**
    * C without action
    */
   export type CArgs = {
@@ -13074,40 +12568,6 @@ export namespace Prisma {
     **/
     upsert<T extends DUpsertArgs>(
       args: SelectSubset<T, DUpsertArgs>
-    ): Prisma__DClient<DGetPayload<T>>
-
-    /**
-     * Find one D that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {DFindUniqueOrThrowArgs} args - Arguments to find a D
-     * @example
-     * // Get one D
-     * const d = await prisma.d.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends DFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, DFindUniqueOrThrowArgs>
-    ): Prisma__DClient<DGetPayload<T>>
-
-    /**
-     * Find the first D that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {DFindFirstOrThrowArgs} args - Arguments to find a D
-     * @example
-     * // Get one D
-     * const d = await prisma.d.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends DFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, DFindFirstOrThrowArgs>
     ): Prisma__DClient<DGetPayload<T>>
 
     /**
@@ -13552,18 +13012,6 @@ export namespace Prisma {
 
 
   /**
-   * D: findUniqueOrThrow
-   */
-  export type DFindUniqueOrThrowArgs = DFindUniqueArgsBase
-      
-
-  /**
-   * D: findFirstOrThrow
-   */
-  export type DFindFirstOrThrowArgs = DFindFirstArgsBase
-      
-
-  /**
    * D without action
    */
   export type DArgs = {
@@ -13938,40 +13386,6 @@ export namespace Prisma {
     **/
     upsert<T extends EUpsertArgs>(
       args: SelectSubset<T, EUpsertArgs>
-    ): Prisma__EClient<EGetPayload<T>>
-
-    /**
-     * Find one E that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {EFindUniqueOrThrowArgs} args - Arguments to find a E
-     * @example
-     * // Get one E
-     * const e = await prisma.e.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends EFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, EFindUniqueOrThrowArgs>
-    ): Prisma__EClient<EGetPayload<T>>
-
-    /**
-     * Find the first E that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {EFindFirstOrThrowArgs} args - Arguments to find a E
-     * @example
-     * // Get one E
-     * const e = await prisma.e.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends EFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, EFindFirstOrThrowArgs>
     ): Prisma__EClient<EGetPayload<T>>
 
     /**
@@ -14414,18 +13828,6 @@ export namespace Prisma {
     where?: EWhereInput
   }
 
-
-  /**
-   * E: findUniqueOrThrow
-   */
-  export type EFindUniqueOrThrowArgs = EFindUniqueArgsBase
-      
-
-  /**
-   * E: findFirstOrThrow
-   */
-  export type EFindFirstOrThrowArgs = EFindFirstArgsBase
-      
 
   /**
    * E without action
