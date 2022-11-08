@@ -79,7 +79,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
           },
         })
 
-        await new Promise((res) => setTimeout(res, 600))
+        await delay(600)
       },
       {
         maxWait: 200,
