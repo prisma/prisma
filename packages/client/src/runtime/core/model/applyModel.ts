@@ -23,7 +23,16 @@ export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,
 ) => (userArgs?: UserArgs) => PrismaPromise<unknown>
 
-const fluentProps = ['findUnique', 'findFirst', 'create', 'update', 'upsert', 'delete'] as const
+const fluentProps = [
+  'findUnique',
+  'findUniqueOrThrow',
+  'findFirst',
+  'findFirstOrThrow',
+  'create',
+  'update',
+  'upsert',
+  'delete',
+] as const
 const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
 
 /**
