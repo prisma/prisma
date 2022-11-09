@@ -74,7 +74,9 @@ jobs:
     runs-on: ubuntu-latest
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' && !contains(github.actor, 'renovate')"
     steps:
-      - uses: fkirc/skip-duplicate-actions@v4.0.0
+      - uses: fkirc/skip-duplicate-actions@v5
+        with:
+          cancel_others: 'true'
 
   #
   # Linting
@@ -86,7 +88,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -113,6 +115,89 @@ jobs:
         working-directory: ./
 
   #
+  # CLIENT test:functional relationMode
+  #
+  client-relationMode:
+    timeout-minutes: 60
+    runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        # os: [buildjet-4vcpu-ubuntu-2004]
+        relationMode: ['', 'foreignKeys', 'prisma']
+        os: [ubuntu-latest]
+        node: [16]
+
+    env:
+      CI: true
+      SKIP_GIT: true
+      GITHUB_CONTEXT: ${{ toJson(github) }}
+      TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+      TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+      TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+      TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
+      TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+      TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
+      TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
+      TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
+      TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
+      TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+      TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
+      TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
+      NODE_OPTIONS: '--max-old-space-size=8096'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set RELATION_MODE custom test env var
+        run: |
+          echo "RELATION_MODE=${{ matrix.relationMode }}"
+          if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
+
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/scripts/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      # shouldn't take more than 15 minutes
+      - name: 1 to 1
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-1.ts
+        working-directory: packages/client
+
+      # shouldn't take more than 15 minutes
+      - name: 1 to n
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-n.ts
+        working-directory: packages/client
+
+      # shouldn't take more than 15 minutes
+      - name: m to n (SQL databases)
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n.ts
+        working-directory: packages/client
+
+      - name: m to n (MongoDB)
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n-MongoDB.ts
+        working-directory: packages/client
+
+  #
   # CLIENT (without types test)
   #
   client:
@@ -128,6 +213,28 @@ jobs:
         queryEngine: ['library', 'binary']
         os: [buildjet-4vcpu-ubuntu-2004]
         node: [16, 18]
+
+    env:
+      CI: true
+      SKIP_GIT: true
+      GITHUB_CONTEXT: ${{ toJson(github) }}
+      TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+      TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
+      TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+      TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
+      TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+      TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
+      TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+      TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
+      TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
+      TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
+      TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
+      TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+      TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
+      TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
+      NODE_OPTIONS: '--max-old-space-size=8096'
 
     steps:
       - uses: actions/checkout@v3
@@ -152,7 +259,64 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/scripts/setup.sh
+
+      # Run the functional test suite
+      - run: pnpm run test:functional
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        working-directory: packages/client
+      # And run  all the other tests (except the types tests)
+      - run: pnpm run test-notypes
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        working-directory: packages/client
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/client/src/__tests__/coverage/clover.xml
+          flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
+          name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
+
+  #
+  # CLIENT (functional tests with mini-proxy)
+  #
+  client-dataproxy:
+    timeout-minutes: 35
+    runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [buildjet-4vcpu-ubuntu-2004]
+        node: [14, 16, 18]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        if: "${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb
+
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -167,23 +331,25 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test-notypes && pnpm run test:functional
+      - run: pnpm run test:functional --data-proxy
         working-directory: packages/client
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-          TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
-          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-          TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
-          TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-          TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
-          TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
-          TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
-          TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
+          TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+          TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
+          TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
+          NODE_OPTIONS: '--max-old-space-size=8096'
+
+      - run: pnpm run test:functional --data-proxy --edge-client
+        working-directory: packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
@@ -194,8 +360,9 @@ jobs:
       - uses: codecov/codecov-action@v3
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
+          flags: client,${{ matrix.os }},dataproxy
+          name: client-${{ matrix.os }}-dataproxy
+
   #
   # CLIENT (memory tests)
   #
@@ -215,7 +382,19 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.2
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        if: "${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
+
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -236,6 +415,11 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+          TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
+          TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
 
       - uses: actions/github-script@v6
         if: ${{ failure() && github.event_name == 'pull_request' }}
@@ -313,7 +497,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -380,7 +564,7 @@ jobs:
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -455,7 +639,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -527,7 +711,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -586,6 +770,10 @@ jobs:
         os: [ubuntu-latest]
         node: [16, 18]
 
+    env:
+      TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+      TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+
     steps:
       - uses: actions/checkout@v3
 
@@ -597,7 +785,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -644,7 +832,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -809,7 +997,7 @@ jobs:
       - name: Set up MySQL
         run: bash .github/workflows/scripts/setup-mysql.sh
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -849,7 +1037,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          NODE_OPTIONS: '--max-old-space-size=8096'
+          NODE_OPTIONS: '--max-old-space-size=10240' # allow Node.js to allocate at most 10gb of heap
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
@@ -996,7 +1184,7 @@ jobs:
           name: engines-${{ matrix.os }}
 
       - name: Upload test results to BuildPulse for flaky test detection
-        # Only run this step for branches where where we have access to secrets.
+        # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
         uses: Workshop64/buildpulse-action@main

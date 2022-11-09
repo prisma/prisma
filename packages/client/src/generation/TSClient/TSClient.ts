@@ -9,7 +9,7 @@ import { DMMFHelper } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
-import { inputTypeNeedsGenericModelArg, needsGenericModelArg } from '../utils'
+import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildDMMF } from '../utils/buildDMMF'
@@ -45,13 +45,19 @@ export interface TSClientOptions {
   outputDir: string
   activeProvider: string
   dataProxy: boolean
+  deno?: boolean
 }
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
+  protected readonly genericsInfo: GenericArgsInfo = new GenericArgsInfo()
+
+  static enabledPreviewFeatures: string[]
 
   constructor(protected readonly options: TSClientOptions) {
     this.dmmf = new DMMFHelper(klona(options.document))
+
+    TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
   }
 
   public async toJS(edge = false): Promise<string> {
@@ -65,6 +71,7 @@ export class TSClient implements Generatable {
       runtimeName,
       datasources,
       dataProxy,
+      deno,
     } = this.options
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
@@ -131,7 +138,7 @@ ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
-Object.assign(exports, Prisma)
+Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
 ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 `
     return code
@@ -153,7 +160,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
     const commonCode = commonCodeTS(this.options)
     const modelAndTypes = Object.values(this.dmmf.typeAndModelMap).reduce((acc, modelOrType) => {
       if (this.dmmf.outputTypeMap[modelOrType.name]) {
-        acc.push(new Model(modelOrType, this.dmmf, this.options.generator))
+        acc.push(new Model(modelOrType, this.dmmf, this.genericsInfo, this.options.generator))
       }
       return acc
     }, [] as Model[])
@@ -168,7 +175,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 
     const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
       .filter((t) => t.name.endsWith('CountOutputType'))
-      .map((t) => new Count(t, this.dmmf, this.options.generator))
+      .map((t) => new Count(t, this.dmmf, this.genericsInfo, this.options.generator))
 
     const code = `
 /**
@@ -246,7 +253,7 @@ ${fieldRefs.join('\n\n')}`
 ${this.dmmf.inputObjectTypes.prisma
   .reduce((acc, inputType) => {
     if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
-      const needsGeneric = inputTypeNeedsGenericModelArg(inputType)
+      const needsGeneric = this.genericsInfo.inputTypeNeedsGenericModelArg(inputType)
       const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
       const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
       // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
@@ -257,15 +264,18 @@ ${this.dmmf.inputObjectTypes.prisma
       ${baseName}
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      acc.push(new InputType({ ...inputType, name: `${inputType.name}Base` }).toTS())
+      acc.push(new InputType({ ...inputType, name: `${inputType.name}Base` }, this.genericsInfo).toTS())
     } else {
-      acc.push(new InputType(inputType).toTS())
+      acc.push(new InputType(inputType, this.genericsInfo).toTS())
     }
     return acc
   }, [] as string[])
   .join('\n')}
 
-${this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType).toTS()).join('\n') ?? ''}
+${
+  this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join('\n') ??
+  ''
+}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany

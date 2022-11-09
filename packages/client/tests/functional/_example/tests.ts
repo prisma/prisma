@@ -1,10 +1,14 @@
 import * as path from 'path'
 
 import { getTestSuiteSchema } from '../_utils/getTestSuiteInfo'
+import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
-// @ts-ignore this is just for type checks
-declare let prisma: import('@prisma/client').PrismaClient
+declare let prisma: PrismaClient
+declare let Prisma: typeof PrismaNamespace
+declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
@@ -45,8 +49,8 @@ testMatrix.setupTestSuite(
       expect(suiteMeta.testFileName).toEqual(path.basename(__filename))
     })
 
-    test('getTestSuiteSchema', async () => {
-      const schemaString = await getTestSuiteSchema(suiteMeta, suiteConfig)
+    test('getTestSuiteSchema', () => {
+      const schemaString = getTestSuiteSchema(suiteMeta, suiteConfig)
 
       expect(schemaString).toContain('generator')
       expect(schemaString).toContain('datasource')

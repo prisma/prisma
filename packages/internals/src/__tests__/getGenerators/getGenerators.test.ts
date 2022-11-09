@@ -47,7 +47,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -130,7 +130,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -221,7 +221,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -312,7 +312,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -403,7 +403,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -501,7 +501,7 @@ describe('getGenerators', () => {
           "denylist": Array [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
+          "prettyName": "This is a pretty name",
           "requiresEngines": Array [
             "queryEngine",
             "migrationEngine",
@@ -749,39 +749,6 @@ describe('getGenerators', () => {
 
         More information in our documentation:
         https://pris.ly/d/prisma-schema
-        "
-      `)
-    }
-
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-  })
-
-  test('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
-    expect.assertions(5)
-    const aliases = {
-      'predefined-generator': {
-        generatorPath: generatorPath,
-        outputPath: __dirname,
-      },
-    }
-
-    try {
-      await getGenerators({
-        schemaPath: path.join(__dirname, 'proxy-and-interactiveTransactions-client-js.prisma'),
-        providerAliases: aliases,
-        skipDownload: true,
-        dataProxy: true,
-      })
-    } catch (e) {
-      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
-        "
-        interactiveTransactions preview feature is not yet available with --data-proxy.
-        Please remove interactiveTransactions from the previewFeatures in your schema.
-
-        More information about Data Proxy: https://pris.ly/d/data-proxy
         "
       `)
     }

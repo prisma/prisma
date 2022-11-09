@@ -36,14 +36,14 @@ npm -v
 # See package.json setup script
 pnpm run setup
 
-
+echo "Start testing..."
 # New client test suite
-# 
 pnpm run --filter "@prisma/client" test:functional
 
-# Client memory tests
-pnpm run --filter "@prisma/client" test:memory
-
-echo "Start testing..."
 # Run test for all packages
 pnpm run test
+
+# Client memory test suite
+# Note: we run it last as DB is not isolated and will be dropped after memory tests, which in turn will fail subsequent tests.
+# We should fix it in a similar way we did for functional tests, eventually.
+pnpm run --filter "@prisma/client" test:memory

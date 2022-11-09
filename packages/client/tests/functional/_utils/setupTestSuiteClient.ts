@@ -10,8 +10,9 @@ import {
   getTestSuiteSchema,
   getTestSuiteSchemaPath,
 } from './getTestSuiteInfo'
-import { setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
+import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
+import { ClientMeta, ClientRuntime } from './types'
 
 /**
  * Does the necessary setup to get a test suite client ready to run.
@@ -23,14 +24,18 @@ export async function setupTestSuiteClient({
   suiteMeta,
   suiteConfig,
   skipDb,
+  datasourceInfo,
+  clientMeta,
 }: {
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   skipDb?: boolean
+  datasourceInfo: DatasourceInfo
+  clientMeta: ClientMeta
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig.matrixOptions)
-  const schema = await getTestSuiteSchema(suiteMeta, suiteConfig.matrixOptions)
+  const schema = getTestSuiteSchema(suiteMeta, suiteConfig.matrixOptions)
   const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
@@ -38,8 +43,11 @@ export async function setupTestSuiteClient({
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
   if (!skipDb) {
+    process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
     await setupTestSuiteDatabase(suiteMeta, suiteConfig)
   }
+
+  process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl ?? datasourceInfo.databaseUrl
 
   await generateClient({
     datamodel: schema,
@@ -58,11 +66,33 @@ export async function setupTestSuiteClient({
     // Change \\ to / for windows support
     runtimeDirs: {
       node: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
-      edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime', 'edge'].join('/'),
+      edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
     },
     projectRoot: suiteFolderPath,
-    dataProxy: !!process.env.DATA_PROXY,
+    dataProxy: clientMeta.dataProxy,
   })
 
-  return require(path.join(suiteFolderPath, 'node_modules/@prisma/client'))
+  const clientPathForRuntime: Record<ClientRuntime, string> = {
+    node: 'node_modules/@prisma/client',
+    edge: 'node_modules/@prisma/client/edge',
+  }
+
+  return require(path.join(suiteFolderPath, clientPathForRuntime[clientMeta.runtime]))
+}
+
+/**
+ * Get `ClientMeta` from the environment variables
+ */
+export function getClientMeta(): ClientMeta {
+  const dataProxy = Boolean(process.env.DATA_PROXY)
+  const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
+
+  if (edge && !dataProxy) {
+    throw new Error('Edge client requires Data Proxy')
+  }
+
+  return {
+    dataProxy,
+    runtime: edge ? 'edge' : 'node',
+  }
 }

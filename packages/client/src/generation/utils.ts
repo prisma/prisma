@@ -6,6 +6,7 @@ import { ClientModelAction } from '../runtime/clientActions'
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
 import { GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
+import { ifExtensions } from './TSClient/utils/ifExtensions'
 
 export enum Projection {
   select = 'select',
@@ -216,6 +217,7 @@ interface SelectReturnTypeOptions {
   renderPromise?: boolean
   hideCondition?: boolean
   isField?: boolean
+  isChaining?: boolean
   fieldName?: string
   projection: Projection
 }
@@ -231,6 +233,7 @@ export function getReturnType({
   renderPromise = true,
   hideCondition = false,
   isField = false, // eslint-disable-line @typescript-eslint/no-unused-vars
+  isChaining = false,
 }: SelectReturnTypeOptions): string {
   if (actionName === 'count') {
     return `Promise<number>`
@@ -256,39 +259,36 @@ export function getReturnType({
     const promiseOpen = renderPromise ? 'PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `CheckSelect<T, ${promiseOpen}${listOpen}${name}${listClose}${promiseClose}, ${promiseOpen}${listOpen}${getPayloadName(
-      name,
-    )}<T>${listClose}${promiseClose}>`
+    return `${promiseOpen}${listOpen}${getPayloadName(name)}<T${ifExtensions(', ExtArgs', '')}>${listClose}${
+      isChaining ? '| Null' : ''
+    }${promiseClose}`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
-    return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
+    return `Prisma__${name}Client<${getType(
+      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
       isList,
-    )}>>`
+    )}${ifExtensions(', never, ExtArgs', '')}>`
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
-      return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null >, Prisma__${name}Client<${getType(
-        getPayloadName(name) + '<T>',
+      return `Prisma__${name}Client<${getType(
+        getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
         isList,
-      )} | null >>`
+      )} | Null${ifExtensions(', never, ExtArgs', '')}>`
     }
-    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? CheckSelect<T, Prisma__${name}Client<${getType(
-      name,
+    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? Prisma__${name}Client<${getType(
+      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
       isList,
-    )}>, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
+    )}${ifExtensions(', never, ExtArgs', '')}> : Prisma__${name}Client<${getType(
+      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
       isList,
-    )}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null >, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
-      isList,
-    )} | null >>`
+    )} | null, null${ifExtensions(', ExtArgs', '')}>`
   }
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(
-    getPayloadName(name) + '<T>',
+  return `Prisma__${name}Client<${getType(
+    getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
     isList,
-  )}>>`
+  )}${ifExtensions(', never, ExtArgs', '')}>`
 }
 
 export function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mutation'): boolean {
@@ -316,18 +316,6 @@ export function getRelativePathResolveStatement(outputDir: string, cwd?: string)
   return `path.resolve(__dirname, ${JSON.stringify(path.relative(outputDir, cwd))})`
 }
 
-function flatten(array): any[] {
-  return Array.prototype.concat.apply([], array)
-}
-
-export function flatMap<T, U>(
-  array: T[],
-  callbackFn: (value: T, index: number, array: T[]) => U[],
-  thisArg?: any,
-): U[] {
-  return flatten(array.map(callbackFn, thisArg))
-}
-
 /**
  * Returns unique elements of array
  * @param arr Array
@@ -348,80 +336,6 @@ export function unique<T>(arr: T[]): T[] {
   }
 
   return result
-}
-
-/**
- * Determines if arg types need generic <$PrismaModel> argument added.
- * Essentially, performs breadth-first search for any fieldRefTypes that
- * do not have corresponding `meta.source` defined.
- *
- * @param type
- * @returns
- */
-export function needsGenericModelArg(type: DMMF.SchemaArgInputType) {
-  /**
-   * We perform a breadth-first traverse of the types graphs here
-   * For that, we keep 2 lists:
-   * - `toVisit` is a list of types we'd need to check next
-   * - `visited` is a list of types we've already checked and do not need to check
-   * again. This list is necessary for dealing with recursive types (TypeA has a
-   * field of TypeB, TypeB has a field of TypeC, TypeC has a field of Type A).
-   *
-   * For each item in the `toVisit` list we check following:
-   * - if it is a type we've already seen then we have a recursive object type. In that case,
-   * we'll decide on generic type based on other fields of input type
-   * - if it is a field reference, current type and all the types up to the one we started
-   * with needs a generic argument
-   * - if current type is an object and meta.source is known, we don't need generic arguments -
-   * even if we have field references inside, `meta.source` tells us exactly which model should
-   * we use.
-   * - if current type is an object and meta.source is not known, we need to check all the fields
-   * of the current type. Type will require generic arguments if any of it's fields does.
-   */
-  const toVisit = [type]
-  const visited = new Set<string>()
-
-  let current: DMMF.SchemaArgInputType | undefined
-  while ((current = toVisit.shift())) {
-    const name = getTypeName(current)
-    if (visited.has(name)) {
-      continue
-    }
-    visited.add(name)
-
-    if (current.location === 'fieldRefTypes') {
-      return true
-    }
-
-    if (current.location === 'inputObjectTypes' && typeof current.type === 'object') {
-      const inputType = current.type as DMMF.InputType
-      if (!inputType.fields) {
-        continue
-      }
-
-      if (inputType.meta?.source) {
-        // if source is defined, we know model for sure and do not need generic argument
-        continue
-      }
-
-      for (const field of inputType.fields) {
-        toVisit.push(...field.inputTypes)
-      }
-    }
-  }
-
-  return false
-}
-
-export function inputTypeNeedsGenericModelArg(inputType: DMMF.InputType) {
-  return needsGenericModelArg({ type: inputType, location: 'inputObjectTypes', isList: false })
-}
-
-function getTypeName(type: DMMF.SchemaArgInputType) {
-  if (type.location === 'scalar' || type.location === 'fieldRefTypes') {
-    return type.type as string
-  }
-  return (type.type as DMMF.InputType).name
 }
 
 export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {

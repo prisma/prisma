@@ -32,7 +32,7 @@ datasource db {
 `;
 
 exports[`appends when .env present 3`] = `
-SOMTHING="is here"
+SOMETHING="is here"
 
 # This was inserted by \`prisma init\`:
 # Environment variables declared in this file are automatically made available to Prisma.

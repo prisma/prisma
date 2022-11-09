@@ -1,0 +1,13 @@
+datasource db {
+    provider = "postgresql"
+    url      = env("TEST_POSTGRES_URI")
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+model User {
+    id    String @id @default(cuid())
+    email String
+}

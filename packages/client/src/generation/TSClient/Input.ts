@@ -3,16 +3,18 @@ import indent from 'indent-string'
 import type { DMMF } from '../../runtime/dmmf-types'
 import { argIsInputType, GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
-import { inputTypeNeedsGenericModelArg, needsGenericModelArg } from '../utils'
+import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { wrapComment } from './helpers'
+import { ifExtensions } from './utils/ifExtensions'
 
 export class InputField implements Generatable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
     protected readonly prefixFilter = false,
     protected readonly noEnumerable = false,
+    protected readonly genericsInfo: GenericArgsInfo,
     protected readonly source?,
   ) {}
   public toTS(): string {
@@ -24,7 +26,13 @@ export class InputField implements Generatable {
       : ''
     const comment = `${field.comment ? field.comment + '\n' : ''}${deprecated}`
     const jsdoc = comment ? wrapComment(comment) + '\n' : ''
-    const fieldType = stringifyInputTypes(field.inputTypes, this.prefixFilter, this.noEnumerable, this.source)
+    const fieldType = stringifyInputTypes(
+      field.inputTypes,
+      this.prefixFilter,
+      this.noEnumerable,
+      this.genericsInfo,
+      this.source,
+    )
 
     return `${jsdoc}${field.name}${optionalStr}: ${fieldType}`
   }
@@ -34,6 +42,7 @@ function stringifyInputType(
   t: DMMF.SchemaArgInputType,
   prefixFilter: boolean,
   noEnumerable = false, // used for group by, there we need an Array<> for "by"
+  genericsInfo: GenericArgsInfo,
   source?: string,
 ): string {
   let type =
@@ -48,7 +57,13 @@ function stringifyInputType(
     return 'null'
   }
 
-  if (needsGenericModelArg(t)) {
+  ifExtensions(() => {
+    if (typeof type === 'string' && (type.endsWith('Select') || type.endsWith('Include'))) {
+      type = `${type}<ExtArgs>`
+    }
+  }, undefined)
+
+  if (genericsInfo.needsGenericModelArg(t)) {
     if (source) {
       type = `${type}<"${source}">`
     } else {
@@ -88,6 +103,7 @@ function stringifyInputTypes(
   inputTypes: DMMF.SchemaArgInputType[],
   prefixFilter: boolean,
   noEnumerable = false,
+  genericsInfo: GenericArgsInfo,
   source?: string,
 ): string {
   const pairMap: Record<string, number> = Object.create(null)
@@ -117,7 +133,7 @@ function stringifyInputTypes(
   const nonInputObjectTypes = filteredInputTypes.filter((t) => t.location !== 'inputObjectTypes')
 
   const stringifiedInputObjectTypes = inputObjectTypes.reduce<string>((acc, curr) => {
-    const currentStringified = stringifyInputType(curr, prefixFilter, noEnumerable, source)
+    const currentStringified = stringifyInputType(curr, prefixFilter, noEnumerable, genericsInfo, source)
     if (acc.length > 0) {
       return `XOR<${acc}, ${currentStringified}>`
     }
@@ -126,7 +142,7 @@ function stringifyInputTypes(
   }, '')
 
   const stringifiedNonInputTypes = nonInputObjectTypes
-    .map((type) => stringifyInputType(type, prefixFilter, noEnumerable, source))
+    .map((type) => stringifyInputType(type, prefixFilter, noEnumerable, genericsInfo, source))
     .join(' | ')
 
   if (stringifiedNonInputTypes.length === 0) {
@@ -141,7 +157,7 @@ function stringifyInputTypes(
 }
 
 export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType) {}
+  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {}
 
   public toTS(): string {
     const { type } = this
@@ -155,20 +171,35 @@ ${indent(
     .map((arg) => {
       // This disables enumerable on JsonFilter path argument
       const noEnumerable = type.name.includes('Json') && type.name.includes('Filter') && arg.name === 'path'
-      return new InputField(arg, false, noEnumerable, source).toTS()
+      return new InputField(arg, false, noEnumerable, this.genericsInfo, source).toTS()
     })
     .join('\n'),
   TAB_SIZE,
 )}
 }`
     return `
-export type ${this.getTypeName()} = ${body}`
+export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
   }
 
   private getTypeName() {
-    if (inputTypeNeedsGenericModelArg(this.type)) {
+    if (this.genericsInfo.inputTypeNeedsGenericModelArg(this.type)) {
       return `${this.type.name}<$PrismaModel = never>`
     }
     return this.type.name
   }
+}
+
+/**
+ * Wraps an input type with `Prisma.AtLeast`
+ * @param body type string to wrap
+ * @param input original input type
+ * @returns
+ */
+function wrapWithAtLeast(body: string, input: DMMF.InputType) {
+  if (input.constraints?.fields && input.constraints.fields.length > 0) {
+    const fields = input.constraints.fields.map((f) => `"${f}"`).join(' | ')
+    return `Prisma.AtLeast<${body}, ${fields}>`
+  }
+
+  return body
 }

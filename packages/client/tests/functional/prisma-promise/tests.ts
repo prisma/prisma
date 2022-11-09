@@ -1,8 +1,8 @@
 import { faker } from '@faker-js/faker'
-// @ts-ignore this is just for type checks
-import type { PrismaClient } from '@prisma/client'
 
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -265,16 +265,6 @@ testMatrix.setupTestSuite(({ provider }) => {
       // repeated calls to then & co should not change the result
       const res1 = await promise.finally().then().catch()
       const res2 = await promise.catch().finally().then()
-
-      expect(res1).toStrictEqual(res2)
-    })
-
-    test('repeated calls to .requestTransaction', async () => {
-      const promise = createPromise()
-
-      // repeated calls to then & co should not change the result
-      const res1 = await promise.requestTransaction(1)
-      const res2 = await promise.requestTransaction(1)
 
       expect(res1).toStrictEqual(res2)
     })

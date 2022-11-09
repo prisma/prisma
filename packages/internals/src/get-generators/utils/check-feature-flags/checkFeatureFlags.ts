@@ -1,6 +1,6 @@
 import type { ConfigMetaFormat } from '../../../engine-commands'
 import { GetGeneratorOptions } from '../../getGenerators'
-import { forbiddenPreviewFeatureWithDataProxyFlagMessage } from './forbiddenItxWithProxyFlagMessage'
+import { forbiddenPreviewFeatureWithDataProxyFlagMessage } from './forbiddenPreviewFeatureWithProxyFlagMessage'
 
 /**
  * Check feature flags and preview features
@@ -8,10 +8,10 @@ import { forbiddenPreviewFeatureWithDataProxyFlagMessage } from './forbiddenItxW
  * @param options
  */
 export function checkFeatureFlags(config: ConfigMetaFormat, options: GetGeneratorOptions) {
-  checkForbiddenItxWithDataProxyFlag(config, options)
+  checkForbiddenFeaturesWithDataProxyFlag(config, options)
 }
 
-function checkForbiddenItxWithDataProxyFlag(config: ConfigMetaFormat, options: GetGeneratorOptions) {
+function checkForbiddenFeaturesWithDataProxyFlag(config: ConfigMetaFormat, options: GetGeneratorOptions) {
   options.dataProxy === true &&
     config.generators.some((generatorConfig) => {
       return generatorConfig.previewFeatures.some((feature) => {
@@ -21,10 +21,6 @@ function checkForbiddenItxWithDataProxyFlag(config: ConfigMetaFormat, options: G
 
         if (feature.toLocaleLowerCase() === 'tracing'.toLocaleLowerCase()) {
           throw new Error(forbiddenPreviewFeatureWithDataProxyFlagMessage('tracing'))
-        }
-
-        if (feature.toLocaleLowerCase() === 'interactiveTransactions'.toLocaleLowerCase()) {
-          throw new Error(forbiddenPreviewFeatureWithDataProxyFlagMessage('interactiveTransactions'))
         }
       })
     })

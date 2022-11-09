@@ -25,12 +25,12 @@ export function isDecimalJsLike(value: unknown): value is DecimalJsLike {
 
 export function stringifyDecimalJsLike(value: DecimalJsLike): string {
   if (Decimal.isDecimal(value)) {
-    return String(value)
+    return JSON.stringify(String(value))
   }
 
-  const tmpDecimal = new Decimal(0) as DecimalJsLike
-  tmpDecimal.d = value.d
-  tmpDecimal.e = value.e
-  tmpDecimal.s = value.s
-  return String(tmpDecimal)
+  const tmpDecimal = new Decimal(0)
+  ;(tmpDecimal as DecimalJsLike).d = value.d
+  ;(tmpDecimal as DecimalJsLike).e = value.e
+  ;(tmpDecimal as DecimalJsLike).s = value.s
+  return JSON.stringify(String(tmpDecimal))
 }

@@ -6,9 +6,10 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 
-import type { DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
+import type { BatchTransactionOptions, DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
+import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { RequestError } from '../common/errors/types/RequestError'
@@ -119,9 +120,9 @@ export class LibraryEngine extends Engine {
     }
   }
 
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info<undefined>>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
@@ -144,9 +145,16 @@ export class LibraryEngine extends Engine {
 
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
 
-    if (response.error_code) throw response
+    if (response.error_code) {
+      throw new PrismaClientKnownRequestError(
+        response.message as string,
+        response.error_code as string,
+        this.config.clientVersion as string,
+        response.meta,
+      )
+    }
 
-    return response as Tx.Info | undefined
+    return response as Tx.Info<undefined> | undefined
   }
 
   private async instantiateLibrary(): Promise<void> {
@@ -434,11 +442,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.library?.debugPanic(message) as Promise<never>
   }
 
-  async request<T>(
-    query: string,
-    headers: QueryEngineRequestHeaders = {},
-    numTry = 1,
-  ): Promise<{ data: T; elapsed: number }> {
+  async request<T>(query: string, headers: QueryEngineRequestHeaders = {}): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const request: QueryEngineRequest = { query, variables: {} }
     const headerStr = JSON.stringify(headers) // object equivalent to http headers for the library
@@ -481,13 +485,13 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   async requestBatch<T>(
     queries: string[],
     headers: QueryEngineRequestHeaders = {},
-    transaction = false,
-    numTry = 1,
+    transaction?: BatchTransactionOptions,
   ): Promise<QueryEngineResult<T>[]> {
     debug('requestBatch')
     const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
-      transaction,
+      transaction: Boolean(transaction),
+      isolationLevel: transaction?.isolationLevel,
     }
     await this.start()
 

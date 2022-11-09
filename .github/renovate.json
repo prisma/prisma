@@ -10,7 +10,8 @@
     "@prisma/engines",
     "@prisma/engines-version",
     "@prisma/fetch-engine",
-    "@prisma/get-platform"
+    "@prisma/get-platform",
+    "@prisma/prisma-fmt-wasm"
   ],
   "constraints": {
     "pnpm": "7"
@@ -22,14 +23,14 @@
       "depTypeList": ["devDependencies"],
       "updateTypes": ["patch", "minor"],
       "excludePackageNames": ["@prisma/studio", "@prisma/studio-server", "checkpoint-client"],
-      "schedule": ["before 8am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "dependencies (non-major)",
       "depTypeList": ["dependencies"],
       "updateTypes": ["patch", "minor"],
       "excludePackageNames": ["checkpoint-client"],
-      "schedule": ["before 8am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "ESM devDependencies & dependencies (major)",
@@ -70,14 +71,14 @@
         "tempy",
         "terminal-link"
       ],
-      "schedule": ["before 8am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "definitelyTyped",
       "automerge": "true",
       "packagePatterns": ["^@types/"],
       "updateTypes": ["patch", "minor"],
-      "schedule": ["before 8am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "Studio",
@@ -94,19 +95,19 @@
       "groupName": "Jest",
       "automerge": "true",
       "matchPackagePatterns": [".*jest.*"],
-      "schedule": ["before 8am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "sql-template-tag",
       "packageNames": ["sql-template-tag"],
       "updateTypes": ["patch", "minor"],
-      "schedule": ["before 8am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "node-fetch",
       "ignoreUnstable": false,
       "packageNames": ["node-fetch"],
-      "schedule": ["before 8am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "tsd",
@@ -126,13 +127,18 @@
       "automerge": "true",
       "paths": ["packages/react-prisma/**"],
       "rangeStrategy": "replace",
-      "schedule": ["before 8am on Wednesday"]
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "react-prisma peerDependencies: react >=17",
       "paths": ["packages/react-prisma/**"],
       "matchDepTypes": ["peerDependencies"],
       "rangeStrategy": "widen"
+    },
+    {
+      "groupName": "Weekly vitess docker image version update",
+      "packageNames": ["vitess/vttestserver"],
+      "schedule": ["before 7am on Wednesday"]
     }
   ]
 }

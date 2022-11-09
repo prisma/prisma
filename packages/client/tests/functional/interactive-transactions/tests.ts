@@ -1,9 +1,9 @@
-// @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from '@prisma/client'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
+// @ts-ignore
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -11,7 +11,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-testMatrix.setupTestSuite(({ provider }) => {
+testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543
@@ -60,6 +60,8 @@ testMatrix.setupTestSuite(({ provider }) => {
 
     await expect(result).rejects.toMatchObject({
       message: expect.stringContaining('Transaction API error: Transaction already closed'),
+      code: 'P2028',
+      clientVersion: '0.0.0',
     })
 
     expect(await prisma.user.findMany()).toHaveLength(0)
@@ -77,7 +79,7 @@ testMatrix.setupTestSuite(({ provider }) => {
           },
         })
 
-        await new Promise((res) => setTimeout(res, 600))
+        await delay(600)
       },
       {
         maxWait: 200,
@@ -114,10 +116,31 @@ testMatrix.setupTestSuite(({ provider }) => {
   })
 
   /**
+   * Transactions should fail and rollback if a value is thrown within
+   */
+  test('rollback throw value', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+
+      throw 'you better rollback now'
+    })
+
+    await expect(result).rejects.toBe(`you better rollback now`)
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+
+  /**
    * A transaction might fail if it's called inside another transaction
    * //! this works only for postgresql
    */
-  testIf(provider === 'postgresql')('potgresql: nested create', async () => {
+  testIf(provider === 'postgresql')('postgresql: nested create', async () => {
     const result = prisma.$transaction(async (tx) => {
       await tx.user.create({
         data: {
@@ -159,7 +182,7 @@ testMatrix.setupTestSuite(({ provider }) => {
   /**
    * If one of the query fails, all queries should cancel
    */
-  test('rollback query', async () => {
+  testIf(clientMeta.runtime !== 'edge')('rollback query', async () => {
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({
         data: {
@@ -196,21 +219,25 @@ testMatrix.setupTestSuite(({ provider }) => {
       })
     })
 
-    1
     await expect(result).rejects.toMatchObject({
       message: expect.stringContaining('Transaction API error: Transaction already closed'),
+      code: 'P2028',
+      clientVersion: '0.0.0',
     })
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      Invalid \`transactionBoundPrisma.user.create()\` invocation in
-      /client/tests/functional/interactive-transactions/tests.ts:0:0
+    if (clientMeta.runtime !== 'edge') {
+      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-        189 })
-        190 
-        191 const result = prisma.$transaction(async () => {
-      → 192   await transactionBoundPrisma.user.create(
-      Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
-    `)
+        Invalid \`transactionBoundPrisma.user.create()\` invocation in
+        /client/tests/functional/interactive-transactions/tests.ts:0:0
+
+          XX })
+          XX 
+          XX const result = prisma.$transaction(async () => {
+        → XX   await transactionBoundPrisma.user.create(
+        Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
+      `)
+    }
 
     const users = await prisma.user.findMany()
 
@@ -243,32 +270,35 @@ testMatrix.setupTestSuite(({ provider }) => {
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
-    const result = prisma.$transaction([
-      prisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
-      }),
-      prisma.user.create({
-        data: {
-          email: 'user_1@website.com',
-        },
-      }),
-    ])
+  testIf(getClientEngineType() === ClientEngineType.Library && clientMeta.runtime !== 'edge')(
+    'batching rollback',
+    async () => {
+      const result = prisma.$transaction([
+        prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        }),
+        prisma.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        }),
+      ])
 
-    await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
-    const users = await prisma.user.findMany()
+      const users = await prisma.user.findMany()
 
-    expect(users.length).toBe(0)
-  })
+      expect(users.length).toBe(0)
+    },
+  )
 
   /**
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
    */
-  testIf(getClientEngineType() === ClientEngineType.Library && provider !== 'mongodb')(
+  testIf(getClientEngineType() === ClientEngineType.Library && provider !== 'mongodb' && clientMeta.runtime !== 'edge')(
     'batching raw rollback',
     async () => {
       await prisma.user.create({
@@ -367,6 +397,33 @@ testMatrix.setupTestSuite(({ provider }) => {
       const users = await prisma.user.findMany()
 
       expect(users.length).toBe(2)
+    })
+
+    test('middleware exclude from transaction', async () => {
+      const isolatedPrisma = newPrismaClient()
+
+      isolatedPrisma.$use((params, next) => {
+        return next({ ...params, runInTransaction: false })
+      })
+
+      await isolatedPrisma
+        .$transaction(async (prisma) => {
+          await prisma.user.create({
+            data: {
+              email: 'user_1@website.com',
+            },
+          })
+
+          await prisma.user.create({
+            data: {
+              email: 'user_1@website.com',
+            },
+          })
+        })
+        .catch((e) => {})
+
+      const users = await isolatedPrisma.user.findMany()
+      expect(users).toHaveLength(1)
     })
   })
 
@@ -557,7 +614,7 @@ testMatrix.setupTestSuite(({ provider }) => {
 
           // Add a delay here to force the transaction to be open for longer
           // this will increase the chance of deadlock in the itx transactions
-          // if deadlock is a possiblity.
+          // if deadlock is a possibility.
           await delay(100)
 
           const updatedUser = await transactionPrisma.user.update({
@@ -599,7 +656,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       })
     }
 
-    testIsolationLevel('read commited', provider !== 'sqlite' && provider !== 'cockroachdb', async () => {
+    testIsolationLevel('read committed', provider !== 'sqlite' && provider !== 'cockroachdb', async () => {
       await prisma.$transaction(
         async (tx) => {
           await tx.user.create({ data: { email: 'user@example.com' } })
@@ -612,7 +669,7 @@ testMatrix.setupTestSuite(({ provider }) => {
       await expect(prisma.user.findMany()).resolves.toHaveLength(1)
     })
 
-    testIsolationLevel('read uncommited', provider !== 'sqlite' && provider !== 'cockroachdb', async () => {
+    testIsolationLevel('read uncommitted', provider !== 'sqlite' && provider !== 'cockroachdb', async () => {
       await prisma.$transaction(
         async (tx) => {
           await tx.user.create({ data: { email: 'user@example.com' } })
@@ -670,15 +727,21 @@ testMatrix.setupTestSuite(({ provider }) => {
     // })
 
     test('invalid value', async () => {
+      // @ts-test-if: provider === 'mongodb'
       const result = prisma.$transaction(
         async (tx) => {
           await tx.user.create({ data: { email: 'user@example.com' } })
         },
         {
-          // @ts-expect-error
+          // @ts-test-if: provider !== 'mongodb'
           isolationLevel: 'NotAValidLevel',
         },
       )
+
+      await expect(result).rejects.toMatchObject({
+        code: 'P2023',
+        clientVersion: '0.0.0',
+      })
 
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
         `Inconsistent column data: Conversion failed: Invalid isolation level \`NotAValidLevel\``,
@@ -688,12 +751,13 @@ testMatrix.setupTestSuite(({ provider }) => {
   })
 
   testIf(provider === 'mongodb')('attempt to set isolation level on mongo', async () => {
+    // @ts-test-if: provider === 'mongodb'
     const result = prisma.$transaction(
       async (tx) => {
         await tx.user.create({ data: { email: 'user@example.com' } })
       },
       {
-        // @ts-expect-error
+        // @ts-test-if: provider !== 'mongodb'
         isolationLevel: 'CanBeAnything',
       },
     )

@@ -206,7 +206,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
         E.tryCatch(
           () => JSON.parse(errorOutput),
           () => {
-            debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
+            debug(`Couldn't apply JSON.parse to "${errorOutput}"`)
             return new GetDmmfError({ _tag: 'unparsed', message: errorOutput, reason: e.reason })
           },
         ),
@@ -406,7 +406,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
         E.tryCatch(
           () => JSON.parse(errorOutput),
           () => {
-            debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
+            debug(`Couldn't apply JSON.parse to "${errorOutput}"`)
             return new GetDmmfError({ _tag: 'unparsed', message: errorOutput, reason: e.reason })
           },
         ),

@@ -2,16 +2,20 @@ import indent from 'indent-string'
 
 import { ClientModelAction } from '../../runtime/clientActions'
 import { DMMF } from '../../runtime/dmmf-types'
+import { lowerCase } from '../../runtime/utils/common'
+import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { getArgFieldJSDoc } from './helpers'
 import { InputField } from './Input'
+import { ifExtensions } from './utils/ifExtensions'
 
 export class ArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
+    protected readonly genericsInfo: GenericArgsInfo,
     protected readonly action?: ClientModelAction,
   ) {}
   public toTS(): string {
@@ -80,8 +84,8 @@ export class ArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${modelArgName} = {
-${indent(argsToGenerate.map((arg) => new InputField(arg).toTS()).join('\n'), TAB_SIZE)}
+export type ${modelArgName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
+${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
   }
@@ -102,14 +106,17 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg).toTS()).join('\n'), TAB
 /**
  * ${name} base type for ${action} actions
  */
-export type ${baseTypeName} = {
-${indent(argsToGenerate.map((arg) => new InputField(arg).toTS()).join('\n'), TAB_SIZE)}
+export type ${baseTypeName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
+${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 
 /**
  * ${name}: ${action}
  */
-export interface ${modelArgName} extends ${baseTypeName} {
+export interface ${modelArgName}${ifExtensions(
+      '<ExtArgs extends runtime.Types.Extensions.Args = never>',
+      '',
+    )} extends ${baseTypeName}${ifExtensions('<ExtArgs>', '')} {
  /**
   * Throw an Error if query returns no results
   * @deprecated since 4.0.0: use \`${replacement}\` method instead
@@ -132,7 +139,10 @@ export interface ${modelArgName} extends ${baseTypeName} {
 /**
  * ${name}: ${action}
  */
-export type ${modelArgName} = ${baseTypeName}
+export type ${modelArgName}${ifExtensions(
+      '<ExtArgs extends runtime.Types.Extensions.Args = never>',
+      '',
+    )} = ${baseTypeName}${ifExtensions('<ExtArgs>', '')}
       `
   }
 }
@@ -141,6 +151,7 @@ export class MinimalArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
+    protected readonly genericsInfo: GenericArgsInfo,
     protected readonly action?: DMMF.ModelAction,
     protected readonly generatedTypeName = getModelArgName(type.name, action),
   ) {}
@@ -156,12 +167,12 @@ export class MinimalArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${this.generatedTypeName} = {
+export type ${this.generatedTypeName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
 ${indent(
   args
     .map((arg) => {
       const noEnumerable = arg.inputTypes.some((input) => input.type === 'Json') && arg.name === 'pipeline'
-      return new InputField(arg, false, noEnumerable).toTS()
+      return new InputField(arg, false, noEnumerable, this.genericsInfo).toTS()
     })
     .join('\n'),
   TAB_SIZE,
