@@ -27,9 +27,9 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
-import { $extends, Extension } from './core/extensions/$extends'
+import { $extends, Args as Extension } from './core/extensions/$extends'
 import { MetricsClient } from './core/metrics/MetricsClient'
-import { applyModels } from './core/model/applyModels'
+import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import type {
   InteractiveTransactionOptions,
@@ -477,7 +477,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         throw e
       }
 
-      return applyModels(this) // custom constructor return value
+      return applyModelsAndClientExtensions(this) // custom constructor return value
     }
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
@@ -974,7 +974,7 @@ new PrismaClient({
       let result: unknown
       try {
         // execute user logic with a proxied the client
-        result = await callback(transactionProxy(this, { id: info.id }))
+        result = await callback(transactionProxy(this, { id: info.id, payload: info.payload }))
 
         // it went well, then we commit the transaction
         await this._engine.transaction('commit', headers, info)

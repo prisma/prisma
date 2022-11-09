@@ -1,35 +1,38 @@
-import { actionOperationMap, Client } from '../../getPrismaClient'
+import { Client } from '../../getPrismaClient'
 import { PrismaClientValidationError } from '../../query'
+import {
+  applyModelsAndClientExtensions,
+  unapplyModelsAndClientExtensions,
+} from '../model/applyModelsAndClientExtensions'
 
-export type Extension = {
-  type: string
-} & ResultOptions &
-  ModelOptions &
-  ClientOptions &
-  QueryOptions
+export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
-type ResultOptionsNeeds = {
-  [K in string]: boolean | ResultOptionsNeeds
-}
-
-type ResultOptions = {
+type ResultArgs = {
   result?: {
-    needs: ResultOptionsNeeds
-    fields: {
-      [K in string]: () => unknown
+    [ModelName in string]: {
+      needs: {
+        [VirtPropName in string]: {
+          [ModelPropName in string]: boolean
+        }
+      }
+      fields: {
+        [VirtPropName in string]: (data: any) => unknown
+      }
     }
   }
 }
 
-type ModelOptions = {
+type ModelArgs = {
   model?: {
-    [K in string]: () => unknown
+    [ModelName in string]: {
+      [MethodName in string]: unknown
+    }
   }
 }
 
-type ClientOptions = {
+type ClientArgs = {
   client?: {
-    [K in string]: () => unknown
+    [MethodName: `$${string}`]: (...args: any) => unknown
   }
 }
 
@@ -46,11 +49,14 @@ type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
 
 type QueryOptions = {
   query?: {
-    [key in keyof typeof actionOperationMap]: (args: QueryOptionsCbArgs) => unknown
-  } & {
-    nested?: {
-      [K in string]: (args: QueryOptionsCbArgsNested) => unknown
-    }
+    [ModelName in string]:
+      | {
+          [ModelAction in string]: (args: QueryOptionsCbArgs) => Promise<any>
+        } & {
+          // $nestedOperations?: {
+          //   [K in string]: (args: QueryOptionsCbArgsNested) => unknown
+          // }
+        }
   }
 }
 
@@ -58,14 +64,18 @@ type QueryOptions = {
  * TODO
  * @param this
  */
-export function $extends(this: Client, extension: Extension | (() => Extension)): Client {
+export function $extends(this: Client, extension: Args | (() => Args)): Client {
   // this preview flag is hidden until implementation is ready for preview release
   if (!this._hasPreviewFlag('clientExtensions')) {
     // TODO: when we are ready for preview release, change error message to
     // ask users to enable 'clientExtensions' preview feature
     throw new PrismaClientValidationError('Extensions are not yet available')
   }
-  return Object.create(this, {
+  // we need to re-apply models to the extend client:
+  // they always capture specific instance of the client and without
+  // re-application would never see new extensions
+  const oldClient = unapplyModelsAndClientExtensions(this)
+  const newClient = Object.create(oldClient, {
     _extensions: {
       get: () => {
         if (typeof extension === 'function') {
@@ -76,4 +86,5 @@ export function $extends(this: Client, extension: Extension | (() => Extension))
       },
     },
   })
+  return applyModelsAndClientExtensions(newClient)
 }
