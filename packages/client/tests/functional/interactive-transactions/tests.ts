@@ -13,7 +13,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider }, _suiteMeta, clientMeta) => {
     // TODO: Technically, only "high concurrency" test requires larger timeout
     // but `jest.setTimeout` does not work inside of the test at the moment
     //  https://github.com/facebook/jest/issues/11543
@@ -81,7 +81,7 @@ testMatrix.setupTestSuite(
             },
           })
 
-          await new Promise((res) => setTimeout(res, 600))
+          await delay(600)
         },
         {
           maxWait: 200,
@@ -184,7 +184,7 @@ testMatrix.setupTestSuite(
     /**
      * If one of the query fails, all queries should cancel
      */
-    test('rollback query', async () => {
+    testIf(clientMeta.runtime !== 'edge')('rollback query', async () => {
       const result = prisma.$transaction(async (prisma) => {
         await prisma.user.create({
           data: {
@@ -227,7 +227,8 @@ testMatrix.setupTestSuite(
         clientVersion: '0.0.0',
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      if (clientMeta.runtime !== 'edge') {
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
         Invalid \`transactionBoundPrisma.user.create()\` invocation in
         /client/tests/functional/interactive-transactions/tests.ts:0:0
@@ -238,6 +239,7 @@ testMatrix.setupTestSuite(
         → XX   await transactionBoundPrisma.user.create(
         Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
       `)
+      }
 
       const users = await prisma.user.findMany()
 
@@ -270,71 +272,73 @@ testMatrix.setupTestSuite(
      * A bad batch should rollback using the interactive transaction logic
      * // TODO: skipped because output differs from binary to library
      */
-    testIf(getClientEngineType() === ClientEngineType.Library)('batching rollback', async () => {
-      const result = prisma.$transaction([
-        prisma.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        }),
-        prisma.user.create({
-          data: {
-            email: 'user_1@website.com',
-          },
-        }),
-      ])
-
-      await expect(result).rejects.toMatchPrismaErrorSnapshot()
-
-      const users = await prisma.user.findMany()
-
-      expect(users.length).toBe(0)
-    })
-
-    /**
-     * A bad batch should rollback using the interactive transaction logic
-     * // TODO: skipped because output differs from binary to library
-     */
-    testIf(getClientEngineType() === ClientEngineType.Library && provider !== 'mongodb')(
-      'batching raw rollback',
+    testIf(getClientEngineType() === ClientEngineType.Library && clientMeta.runtime !== 'edge')(
+      'batching rollback',
       async () => {
-        await prisma.user.create({
-          data: {
-            id: '1',
-            email: 'user_1@website.com',
-          },
-        })
-
-        const result =
-          provider === 'mysql'
-            ? prisma.$transaction([
-                // @ts-test-if: provider !== 'mongodb'
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-                // @ts-test-if: provider !== 'mongodb'
-                prisma.$queryRaw`DELETE FROM User`,
-                // @ts-test-if: provider !== 'mongodb'
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-                // @ts-test-if: provider !== 'mongodb'
-                prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              ])
-            : prisma.$transaction([
-                // @ts-test-if: provider !== 'mongodb'
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
-                // @ts-test-if: provider !== 'mongodb'
-                prisma.$queryRaw`DELETE FROM "User"`,
-                // @ts-test-if: provider !== 'mongodb'
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-                // @ts-test-if: provider !== 'mongodb'
-                prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
-              ])
+        const result = prisma.$transaction([
+          prisma.user.create({
+            data: {
+              email: 'user_1@website.com',
+            },
+          }),
+          prisma.user.create({
+            data: {
+              email: 'user_1@website.com',
+            },
+          }),
+        ])
 
         await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
         const users = await prisma.user.findMany()
 
-        expect(users.length).toBe(1)
+        expect(users.length).toBe(0)
       },
     )
+
+    /**
+     * A bad batch should rollback using the interactive transaction logic
+     * // TODO: skipped because output differs from binary to library
+     */
+    testIf(
+      getClientEngineType() === ClientEngineType.Library && provider !== 'mongodb' && clientMeta.runtime !== 'edge',
+    )('batching raw rollback', async () => {
+      await prisma.user.create({
+        data: {
+          id: '1',
+          email: 'user_1@website.com',
+        },
+      })
+
+      const result =
+        provider === 'mysql'
+          ? prisma.$transaction([
+              // @ts-test-if: provider !== 'mongodb'
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+              // @ts-test-if: provider !== 'mongodb'
+              prisma.$queryRaw`DELETE FROM User`,
+              // @ts-test-if: provider !== 'mongodb'
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+              // @ts-test-if: provider !== 'mongodb'
+              prisma.$executeRaw`INSERT INTO User (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            ])
+          : prisma.$transaction([
+              // @ts-test-if: provider !== 'mongodb'
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'2'}, ${'user_2@website.com'})`,
+              // @ts-test-if: provider !== 'mongodb'
+              prisma.$queryRaw`DELETE FROM "User"`,
+              // @ts-test-if: provider !== 'mongodb'
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+              // @ts-test-if: provider !== 'mongodb'
+              prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
+            ])
+
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
+
+      const users = await prisma.user.findMany()
+
+      expect(users.length).toBe(1)
+    })
 
     // running this test on isolated prisma instance since
     // middleware change the return values of model methods
@@ -744,58 +748,57 @@ testMatrix.setupTestSuite(
           `Inconsistent column data: Conversion failed: Invalid isolation level \`NotAValidLevel\``,
         )
       })
-      /* eslint-enable jest/no-standalone-expect */
-    })
 
-    testIf(provider === 'mongodb')('attempt to set isolation level on mongo', async () => {
-      // @ts-test-if: provider === 'mongodb'
-      const result = prisma.$transaction(
-        async (tx) => {
-          await tx.user.create({ data: { email: 'user@example.com' } })
-        },
-        {
-          // @ts-test-if: provider !== 'mongodb'
-          isolationLevel: 'CanBeAnything',
-        },
-      )
-
-      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
-        `The current database provider doesn't support a feature that the query used: Mongo does not support setting transaction isolation levels.`,
-      )
-    })
-
-    test('should log queries that are executed inside an interactive transaction', async () => {
-      const client = newPrismaClient({
-        log: [
+      testIf(provider === 'mongodb')('attempt to set isolation level on mongo', async () => {
+        // @ts-test-if: provider === 'mongodb'
+        const result = prisma.$transaction(
+          async (tx) => {
+            await tx.user.create({ data: { email: 'user@example.com' } })
+          },
           {
-            emit: 'event',
-            level: 'query',
+            // @ts-test-if: provider !== 'mongodb'
+            isolationLevel: 'CanBeAnything',
           },
-        ],
+        )
+
+        await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(
+          `The current database provider doesn't support a feature that the query used: Mongo does not support setting transaction isolation levels.`,
+        )
       })
 
-      const didLogCommit = new Promise((resolve) => {
-        client.$on('query', () => {
-          // If any query is emmited we know that we are logging
-          resolve(true)
+      test('should log queries that are executed inside an interactive transaction', async () => {
+        const client = newPrismaClient({
+          log: [
+            {
+              emit: 'event',
+              level: 'query',
+            },
+          ],
         })
+
+        const didLogCommit = new Promise((resolve) => {
+          client.$on('query', () => {
+            // If any query is emmited we know that we are logging
+            resolve(true)
+          })
+        })
+
+        await client.$transaction(async (tx) => {
+          const user = await tx.user.create({
+            data: {
+              email: faker.internet.email(),
+            },
+          })
+
+          await tx.user.findFirst({
+            where: {
+              id: user.id,
+            },
+          })
+        })
+
+        expect(await didLogCommit).toEqual(true)
       })
-
-      await client.$transaction(async (tx) => {
-        const user = await tx.user.create({
-          data: {
-            email: faker.internet.email(),
-          },
-        })
-
-        await tx.user.findFirst({
-          where: {
-            id: user.id,
-          },
-        })
-      })
-
-      expect(await didLogCommit).toEqual(true)
     })
   },
   {

@@ -9,6 +9,7 @@ export type PrismaPromiseBatchTransaction = {
 export type PrismaPromiseInteractiveTransaction = {
   kind: 'itx'
   id: string
+  payload: unknown
 }
 
 export type PrismaPromiseTransaction = PrismaPromiseBatchTransaction | PrismaPromiseInteractiveTransaction

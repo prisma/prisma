@@ -2,7 +2,7 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
 
-declare let prisma: any //TODO: make it PrismaClient after extension types are generated
+declare let prisma: PrismaClient //TODO: make it PrismaClient after extension types are generated
 
 testMatrix.setupTestSuite(() => {
   test('extend specific model', () => {
@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(() => {
     xprisma.user.extMethod()
 
     expect(extMethod).toHaveBeenCalledTimes(1)
-    expect(xprisma.post.extMethod).toBeUndefined()
+    expect((xprisma.post as any).extMethod).toBeUndefined()
   })
 
   test('extend all models', () => {

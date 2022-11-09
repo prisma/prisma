@@ -126,9 +126,5 @@ testMatrix.setupTestSuite(
       from: ['sqlite', 'mysql', 'postgresql', 'sqlserver', 'cockroachdb'],
       reason: 'findRaw, runCommandRaw and aggregateRaw are MongoDB-only APIs',
     },
-    skipDataProxy: {
-      runtimes: ['node', 'edge'],
-      reason: 'Interactive transactions are not supported in Data Proxy yet',
-    },
   },
 )
