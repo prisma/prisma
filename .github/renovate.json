@@ -1,10 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base", ":disableRateLimiting", ":noUnscheduledUpdates"],
-  "schedule": [
-    "before 7am every weekday",
-    "every weekend"
-  ],
+  "schedule": ["before 7am every weekday", "every weekend"],
   "semanticCommits": "enabled",
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@danstarns", "@jkomyno"],
   "rebaseWhen": "conflicted",
@@ -122,7 +119,7 @@
     {
       "groupName": "sqlite-async",
       "packageNames": ["sqlite-async"],
-      "schedule": ["before 7am on Wednesday"],
+      "schedule": ["before 7am on Wednesday"]
     },
     {
       "groupName": "@swc/core for internals",
