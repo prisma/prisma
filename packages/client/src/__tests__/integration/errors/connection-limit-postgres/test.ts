@@ -42,5 +42,5 @@ describe('connection-limit-postgres', () => {
     } catch (e) {
       expect(e.message).toMatch('Error querying the database: db error: FATAL: sorry, too many clients already')
     }
-  }, 100_000)
+  }, 200_000)
 })
