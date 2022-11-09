@@ -77,8 +77,8 @@ jobs:
             const hash = context.payload.inputs.version.split('.').pop()
             core.setOutput('hash', hash)
 
-      #  
-      # Regular engines PR, from prisma-engines main branch 
+      #
+      # Regular engines PR, from prisma-engines main branch
       # Will be automerged if tests are passing
       #
       - name: Create Pull Request
@@ -150,7 +150,7 @@ jobs:
         if: github.event.inputs.npmDistTag == 'integration'
         run: |
           echo "Pull Request URL - ${{ steps.cpr-integration.outputs.pull-request-url }}"
-          
+
       #
       # Patch Engine PR, from a prisma-engines patch branch (e.g. "4.6.x")
       # This will create a draft PR as we don't want to merge it automatically
@@ -190,7 +190,7 @@ jobs:
         if: github.event.inputs.npmDistTag == 'patch'
         run: |
           echo "Pull Request URL - ${{ steps.cpr-patch.outputs.pull-request-url }}"
-          
+
       - name: 'Set current job url in SLACK_FOOTER env var'
         if: ${{ failure() }}
         run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
