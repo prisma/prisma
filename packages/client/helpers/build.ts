@@ -82,8 +82,6 @@ const generatorBuildConfig: BuildOptions = {
   emitTypes: false,
 }
 
-void build([generatorBuildConfig, nodeRuntimeBuildConfig, browserBuildConfig, edgeRuntimeBuildConfig])
-
 void build([
   generatorBuildConfig,
   nodeRuntimeBuildConfig,

@@ -63,6 +63,12 @@ To run tests requiring a database, start the test databases using Docker, see [D
 
 ## Jest tips
 
+1. Install/update the dependencies, run the following command in the root directory:
+
+   ```sh
+   pnpm i
+   ```
+
 1. We use the [Jest test framework](https://jestjs.io/). Its CLI is powerful and removes the need for npm scripts mostly. For most cases this is what you need to know:
 
    Note: the following command `pnpm run test` can be used inside the packages folders like `packages/client`. In the base folder you can only run `pnpm run test` without extra arguments.
@@ -71,10 +77,10 @@ To run tests requiring a database, start the test databases using Docker, see [D
    pnpm run test <fileNamePattern> -t <testNamePattern>
    ```
 
-   and to update snapshots use the -u option like this (the `--` are required, anything after the dashes will be passed to Jest):
+   and to update snapshots use the -u option
 
    ```sh
-   pnpm run test <fileNamePattern> -- -u
+   pnpm run test <fileNamePattern> -u
    ```
 
 1. In `integration-tests` [Jest's `each` feature](https://jestjs.io/docs/en/api#testeachtablename-fn-timeout) is used. If you only want to run a subset of the test cases, simply leverage the `-t` flag on the command line (see above point). For example in `packages/cli` here is how you would run Just the `findOne where PK` cases for sqlite integration:

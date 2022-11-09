@@ -120,9 +120,9 @@ export class LibraryEngine extends Engine {
     }
   }
 
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info<undefined>>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
@@ -154,7 +154,7 @@ export class LibraryEngine extends Engine {
       )
     }
 
-    return response as Tx.Info | undefined
+    return response as Tx.Info<undefined> | undefined
   }
 
   private async instantiateLibrary(): Promise<void> {
@@ -442,11 +442,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.library?.debugPanic(message) as Promise<never>
   }
 
-  async request<T>(
-    query: string,
-    headers: QueryEngineRequestHeaders = {},
-    numTry = 1,
-  ): Promise<{ data: T; elapsed: number }> {
+  async request<T>(query: string, headers: QueryEngineRequestHeaders = {}): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const request: QueryEngineRequest = { query, variables: {} }
     const headerStr = JSON.stringify(headers) // object equivalent to http headers for the library
