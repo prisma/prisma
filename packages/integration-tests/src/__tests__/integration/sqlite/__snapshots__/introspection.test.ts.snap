@@ -136,7 +136,7 @@ datasource sqlite {
 
 model column_name_that_becomes_empty_string {
   field1 Int @id @default(autoincrement())
-  // This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+  /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
   // 12345 Int? @map("12345")
 }
 

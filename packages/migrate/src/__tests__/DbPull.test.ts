@@ -21,6 +21,25 @@ const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()
 // To avoid the loading spinner locally
 process.env.CI = 'true'
 
+// describeIf is making eslint not happy about the names
+/* eslint-disable jest/no-identical-title */
+
+// We want to remove unique IDs to have stable snapshots
+// Example:
+// `PK__User__3213E83E450CDF1F` will be changed to `PK__User__RANDOM_ID_SANITIZED`
+function sanitizeSQLServerIdName(schema: string) {
+  const schemaRows = schema.split('\n')
+  const regexp = new RegExp(/map: "PK__(.*)__(.*)"/)
+  const schemaRowsSanitized = schemaRows.map((row) => {
+    const match = regexp.exec(row)
+    if (match) {
+      row = row.replace(match[2], 'RANDOM_ID_SANITIZED')
+    }
+    return row
+  })
+  return schemaRowsSanitized.join('\n')
+}
+
 describe('common/sqlite', () => {
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlite')
@@ -149,10 +168,10 @@ describe('common/sqlite', () => {
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      
-      
+
+
       - Introspecting based on datasource defined in prisma/reintrospection.prisma
-      
+
       ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
             
       *** WARNING ***
@@ -385,13 +404,13 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      - Introspecting based on datasource defined in prisma/invalid.prisma
+                                    - Introspecting based on datasource defined in prisma/invalid.prisma
 
-      ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
-            
-      Run prisma generate to generate Prisma Client.
+                                    ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
+                                          
+                                    Run prisma generate to generate Prisma Client.
 
-    `)
+                        `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 
     expect(ctx.fs.read('prisma/invalid.prisma')).toMatchSnapshot()
@@ -485,11 +504,300 @@ describe('postgresql', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      - Introspecting based on datasource defined in prisma/using-dotenv.prisma
+                                    - Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
-      ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
+                                    ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
+                                                        `)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
+
+describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
+  if (process.env.CI) {
+    // to avoid timeouts on macOS
+    jest.setTimeout(80_000)
+  } else {
+    jest.setTimeout(20_000)
+  }
+
+  const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+
+  const setupParams: SetupParams = {
+    connectionString,
+    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'sqlserver-multi-schema'),
+  }
+
+  beforeAll(async () => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
+      console.error(e)
+    })
+  })
+
+  beforeEach(async () => {
+    await setupMSSQL(setupParams, 'tests-migrate').catch((e) => {
+      console.error(e)
+    })
+  })
+
+  afterEach(async () => {
+    await tearDownMSSQL(setupParams, 'tests-migrate').catch((e) => {
+      console.error(e)
+    })
+  })
+
+  test('without datasource property `schemas` it should error with P4001, empty database', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
+    await expect(result).rejects.toThrowError(`P4001`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+      Schema validation error - Error (get-config wasm)
+      Error code: P1012
+      error: If provided, the schemas array can not be empty.
+        -->  schema.prisma:4
+         | 
+       3 |   url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+       4 |   schemas  = []
+         | 
+
+      Validation Error Count: 1
+      [Context: getConfig]
+
+      Prisma CLI Version : 0.0.0
     `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(sanitizeSQLServerIdName(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["base"]` should succeed', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(sanitizeSQLServerIdName(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
+    await expect(result).rejects.toThrowError(`P4001`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
+    ctx.fixture('introspection/sqlserver-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse([
+      '--print',
+      '--schema',
+      'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma',
+    ])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(sanitizeSQLServerIdName(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
+    const introspect = new DbPull()
+    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`
+    const result = introspect.parse(['--print', '--url', connectionString])
+    await expect(result).rejects.toThrowError(`P4001`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url with `?schema=base` should succeed', async () => {
+    const introspect = new DbPull()
+    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`
+    const result = introspect.parse(['--print', '--url', connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(sanitizeSQLServerIdName(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
+
+describe('postgresql-multi-schema', () => {
+  const setupParams: SetupParams = {
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multi-schema'),
+  }
+
+  beforeAll(async () => {
+    await tearDownPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  beforeEach(async () => {
+    await setupPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  afterEach(async () => {
+    await tearDownPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  test('without datasource property `schemas` it should error with P4001, empty database', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
+    await expect(result).rejects.toThrowError(`P4001`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+      Schema validation error - Error (get-config wasm)
+      Error code: P1012
+      error: If provided, the schemas array can not be empty.
+        -->  schema.prisma:4
+         | 
+       3 |   url      = env("TEST_POSTGRES_URI_MIGRATE")
+       4 |   schemas  = []
+         | 
+
+      Validation Error Count: 1
+      [Context: getConfig]
+
+      Prisma CLI Version : 0.0.0
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test.failing('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["base"]` should succeed', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
+    await expect(result).rejects.toThrowError(`P4001`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+    const introspect = new DbPull()
+    const result = introspect.parse([
+      '--print',
+      '--schema',
+      'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma',
+    ])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
+    const introspect = new DbPull()
+    // postgres://prisma:prisma@localhost:5432/tests-migrate?schema=does-not-exist
+    const connectionString = `${setupParams.connectionString}?schema=does-not-exist`
+    const result = introspect.parse(['--print', '--url', connectionString])
+    await expect(result).rejects.toThrowError(`P4001`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url with `?schema=base` should succeed', async () => {
+    const introspect = new DbPull()
+    // postgres://prisma:prisma@localhost:5432/tests-migrate?schema=base
+    const connectionString = `${setupParams.connectionString}?schema=base`
+    const result = introspect.parse(['--print', '--url', connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
@@ -517,58 +825,6 @@ describe('postgresql-extensions', () => {
       console.error(e)
     })
   })
-
-  // test('introspection should succeed and not add extensions property to the schema.prisma file', async () => {
-  //   ctx.fixture('introspection/postgresql-extensions-no-extension-installed')
-  //   const introspect = new DbPull()
-  //   const result = introspect.parse(['--print'])
-  //   await expect(result).resolves.toMatchInlineSnapshot(``)
-  //   const introspectedSchema = ctx.mocked['console.log'].mock.calls.join('\n')
-  //   expect(introspectedSchema).toMatchInlineSnapshot(`
-  //     generator client {
-  //       provider        = "prisma-client-js"
-  //       previewFeatures = ["postgresqlExtensions"]
-  //     }
-
-  //     datasource db {
-  //       provider = "postgresql"
-  //       url      = env("TEST_POSTGRES_URI_MIGRATE")
-  //     }
-
-  //     model Post {
-  //       id        String    @id
-  //       createdAt DateTime  @default(now())
-  //       updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
-  //       published Boolean   @default(false)
-  //       title     String
-  //       content   String?
-  //       authorId  String?
-  //       jsonData  Json?
-  //       coinflips Boolean[]
-  //       User      User?     @relation(fields: [authorId], references: [id])
-  //     }
-
-  //     model User {
-  //       id    String  @id
-  //       email String  @unique(map: "User.email")
-  //       name  String?
-  //       Post  Post[]
-  //     }
-
-  //     enum Role {
-  //       USER
-  //       ADMIN
-  //     }
-
-
-  //     // introspectionSchemaVersion: NonPrisma,
-  //   `)
-  //   expect(introspectedSchema).not.toContain('extensions =')
-  //   expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  //   expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  //   expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  //   expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  // })
 
   test('introspection should succeed and add extensions property to the schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
@@ -622,7 +878,7 @@ describe('postgresql-extensions', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
-  
+
   test('re-introspection should succeed and keep defined extension in schema.prisma file', async () => {
     ctx.fixture('introspection/postgresql-extensions')
     const introspect = new DbPull()
@@ -871,8 +1127,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     })
   })
 
-  // describeIf is making eslint not happy about the names
-  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlserver')
     const introspect = new DbPull()
@@ -885,8 +1139,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // describeIf is making eslint not happy about the names
-  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', JDBC_URI])
@@ -906,8 +1158,6 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
   const MONGO_URI =
     process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
 
-  // describeIf is making eslint not happy about the names
-  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
     const introspect = new DbPull()
@@ -922,20 +1172,20 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-    - Introspecting based on datasource defined in prisma/no-model.prisma
+                                  - Introspecting based on datasource defined in prisma/no-model.prisma
 
-    ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
-          
-    *** WARNING ***
-    
-    The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-    - Model "users", field: "numberOrString1", chosen data type: "Json"
-    - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-    - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                  ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
+                                        
+                                  *** WARNING ***
+                                  
+                                  The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                  - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                  - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                  - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-    Run prisma generate to generate Prisma Client.
+                                  Run prisma generate to generate Prisma Client.
 
-  `)
+                      `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -953,20 +1203,20 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      - Introspecting based on datasource defined in prisma/schema.prisma
+                                    - Introspecting based on datasource defined in prisma/schema.prisma
 
-      ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
-            
-      *** WARNING ***
-      
-      The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      - Model "users", field: "numberOrString1", chosen data type: "Json"
-      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                    ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+                                          
+                                    *** WARNING ***
+                                    
+                                    The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                    - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                    - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                    - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-      Run prisma generate to generate Prisma Client.
+                                    Run prisma generate to generate Prisma Client.
 
-    `)
+                        `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1016,14 +1266,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-      // *** WARNING ***
-      // 
-      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Json"
-      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-      // 
-    `)
+                                    // *** WARNING ***
+                                    // 
+                                    // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                    // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                    // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                    // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                    // 
+                        `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1059,12 +1309,12 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-      // *** WARNING ***
-      // 
-      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Json"
-      // 
-    `)
+                                    // *** WARNING ***
+                                    // 
+                                    // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                    // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                    // 
+                        `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1108,13 +1358,13 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-      // *** WARNING ***
-      // 
-      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Json"
-      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      // 
-    `)
+                                    // *** WARNING ***
+                                    // 
+                                    // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                    // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                    // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                    // 
+                        `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1133,20 +1383,20 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      - Introspecting based on datasource defined in prisma/schema.prisma
+                                    - Introspecting based on datasource defined in prisma/schema.prisma
 
-      ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
-            
-      *** WARNING ***
-      
-      The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      - Model "users", field: "numberOrString1", chosen data type: "Json"
-      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                    ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+                                          
+                                    *** WARNING ***
+                                    
+                                    The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                    - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                    - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                    - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-      Run prisma generate to generate Prisma Client.
+                                    Run prisma generate to generate Prisma Client.
 
-    `)
+                        `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1196,14 +1446,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-      // *** WARNING ***
-      // 
-      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Json"
-      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-      // 
-    `)
+                                    // *** WARNING ***
+                                    // 
+                                    // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                    // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                    // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                    // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                    // 
+                        `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1218,14 +1468,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-      // *** WARNING ***
-      // 
-      // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      // - Model "users", field: "numberOrString1", chosen data type: "Json"
-      // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-      // 
-    `)
+                                    // *** WARNING ***
+                                    // 
+                                    // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                    // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                    // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                    // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                    // 
+                        `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1245,20 +1495,20 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      - Introspecting
+                                    - Introspecting
 
-      ✔ Introspected 1 model and 2 embedded documents and wrote them into schema.prisma in XXXms
-            
-      *** WARNING ***
-      
-      The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      - Model "users", field: "numberOrString1", chosen data type: "Json"
-      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                    ✔ Introspected 1 model and 2 embedded documents and wrote them into schema.prisma in XXXms
+                                          
+                                    *** WARNING ***
+                                    
+                                    The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                    - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                    - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                    - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-      Run prisma generate to generate Prisma Client.
+                                    Run prisma generate to generate Prisma Client.
 
-    `)
+                        `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1276,20 +1526,20 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-      - Introspecting based on datasource defined in prisma/schema.prisma
+                                    - Introspecting based on datasource defined in prisma/schema.prisma
 
-      ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
-            
-      *** WARNING ***
-      
-      The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-      - Model "users", field: "numberOrString1", chosen data type: "Json"
-      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                    ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+                                          
+                                    *** WARNING ***
+                                    
+                                    The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                    - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                    - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                    - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-      Run prisma generate to generate Prisma Client.
+                                    Run prisma generate to generate Prisma Client.
 
-    `)
+                        `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 

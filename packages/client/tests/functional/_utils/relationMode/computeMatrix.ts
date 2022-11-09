@@ -1,17 +1,19 @@
 import { Providers } from '../providers'
+import { getProviderFromFlavor, ProviderFlavor, ProviderFlavors } from './ProviderFlavor'
 
 type ComputeMatrix = {
   relationMode: 'prisma' | 'foreignKeys' | ''
-  providersDenyList?: Providers[]
+  providersDenyList?: ProviderFlavor[]
 }
 
 export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix) {
-  const providersBase = [
+  const providerFlavorsBase = [
     Providers.POSTGRESQL,
     Providers.COCKROACHDB,
     Providers.SQLSERVER,
-    Providers.MYSQL,
     Providers.SQLITE,
+    Providers.MYSQL,
+    ProviderFlavors.VITESS_8,
   ] as const
   // Note: SetDefault is not implemented in the emulation (relationMode="prisma")
 
@@ -22,16 +24,19 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
 
   const referentialActionsBase = ['DEFAULT', 'Cascade', 'NoAction', 'Restrict', 'SetNull'] as const
 
-  const providers = providersBase.filter((provider) => !(providersDenyList || []).includes(provider))
+  const providerFlavors = providerFlavorsBase.filter(
+    (provideFlavor) => !(providersDenyList || []).includes(provideFlavor),
+  )
 
   // "foreignKeys"
   //
   // 'Restrict' on SQL Server is not available and it triggers a schema parsing error.
   // See in our docs https://pris.ly/d/relationMode
   //
-  // `SetNull` with non-optional relations (= our 1:1, 1:n and m:n in this project) is invalid
-  // when using Foreign Keys fails with migration errors on MySQL, CockroachDB and SQL Server
-  // A schema validation error will be added, see https://github.com/prisma/prisma/issues/14673
+  // `SetNull` with non-optional relations is invalid
+  // Previously, when using Foreign Keys it failed with migration errors on MySQL, CockroachDB and SQL Server, and at runtime for PostgreSQL
+  // A schema validation error was added in 4.6.0 making the schema invalid in that case.
+  // see https://github.com/prisma/prisma/issues/14673
   //
   // "prisma"
   //
@@ -41,29 +46,30 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
   //
   // We skip these combinations in the matrix (= filtering them out)
 
-  const referentialActionsDenylistByProvider = {
+  const referentialActionsDenylistByProviderFlavor = {
     foreignKeys: {
-      [Providers.SQLSERVER]: ['Restrict', 'SetNull'],
-      [Providers.COCKROACHDB]: ['SetNull'],
-      [Providers.MYSQL]: ['SetNull'],
+      [Providers.SQLSERVER]: ['Restrict'],
+
+      // skip all actions for Vitess & relationMode="foreignKeys" as Foreign Keys are not supported by that provider
+      [ProviderFlavors.VITESS_8]: referentialActionsBase,
     },
     prisma: {
-      [Providers.SQLSERVER]: ['Restrict', 'SetNull'],
-      [Providers.COCKROACHDB]: ['SetNull'],
-      [Providers.MYSQL]: ['SetNull'],
+      [Providers.SQLSERVER]: ['Restrict'],
       [Providers.POSTGRESQL]: ['NoAction'],
       [Providers.SQLITE]: ['NoAction'],
     },
   }
 
-  const providersMatrix = providers.map((provider) => ({
-    provider,
+  const providersMatrix = providerFlavors.map((providerFlavor) => ({
+    provider: getProviderFromFlavor(providerFlavor),
+    providerFlavor,
     id: 'String @id',
     relationMode,
   }))
 
   const referentialActionsMatrix = providersMatrix.flatMap((entry) => {
-    const denyList = referentialActionsDenylistByProvider[relationMode || 'foreignKeys'][entry.provider] || []
+    const denyList =
+      referentialActionsDenylistByProviderFlavor[relationMode || 'foreignKeys'][entry.providerFlavor] || []
     const referentialActions = referentialActionsBase.filter((action) => !denyList.includes(action))
 
     const referentialActionMatrixForSQL = referentialActions.map((referentialAction) => ({
@@ -72,33 +78,43 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
       onDelete: referentialAction,
     }))
 
-    const mongoDBMatrixBase = {
-      provider: Providers.MONGODB,
-      id: 'String @id @map("_id")',
-      relationMode,
+    let referentialActionMatrixForMongoDB: any[] = []
+    // MongoDB
+    // Only has one mode that cannot be changed -> `relationMode = "prisma"`
+    // So we only run it
+    // when the datasource property relationMode is not set (default) or set to `prisma`.
+    // Which also matches the error expectations in our test suite
+    if (!relationMode || relationMode === 'prisma') {
+      const mongoDBMatrixBase = {
+        provider: Providers.MONGODB,
+        providerFlavor: getProviderFromFlavor(Providers.MONGODB),
+        id: 'String @id @map("_id")',
+        relationMode: 'prisma',
+      }
+
+      referentialActionMatrixForMongoDB = [
+        {
+          ...mongoDBMatrixBase,
+          onUpdate: 'DEFAULT',
+          onDelete: 'DEFAULT',
+        },
+        {
+          ...mongoDBMatrixBase,
+          onUpdate: 'Cascade',
+          onDelete: 'Cascade',
+        },
+        {
+          ...mongoDBMatrixBase,
+          onUpdate: 'NoAction',
+          onDelete: 'NoAction',
+        },
+        {
+          ...mongoDBMatrixBase,
+          onUpdate: 'SetNull',
+          onDelete: 'SetNull',
+        },
+      ]
     }
-    const referentialActionMatrixForMongoDB = [
-      {
-        ...mongoDBMatrixBase,
-        onUpdate: 'DEFAULT',
-        onDelete: 'DEFAULT',
-      },
-      {
-        ...mongoDBMatrixBase,
-        onUpdate: 'Cascade',
-        onDelete: 'Cascade',
-      },
-      {
-        ...mongoDBMatrixBase,
-        onUpdate: 'NoAction',
-        onDelete: 'NoAction',
-      },
-      {
-        ...mongoDBMatrixBase,
-        onUpdate: 'SetNull',
-        onDelete: 'SetNull',
-      },
-    ]
 
     return [...referentialActionMatrixForSQL, ...referentialActionMatrixForMongoDB]
   })
