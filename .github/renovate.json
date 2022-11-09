@@ -136,7 +136,7 @@
       "rangeStrategy": "widen"
     },
     {
-      "groupName": "vitess/vttestserver",
+      "groupName": "Weekly vitess docker image version update",
       "packageNames": ["vitess/vttestserver"],
       "schedule": ["before 7am on Wednesday"]
     }
