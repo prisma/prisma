@@ -560,7 +560,7 @@ ${indent(
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
 ${f.name}<T extends ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions(
-        '<ExtArgs> = {}>',
+        '<ExtArgs> = {}',
         '= {}',
       )}>(args?: Subset<T, ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions(
         '<ExtArgs>',

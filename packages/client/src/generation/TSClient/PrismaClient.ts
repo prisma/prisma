@@ -30,15 +30,19 @@ function clientExtensionsModelResultDefinition(this: PrismaClientClass) {
 
   const modelResultNeedsGenericParam = (modelName: string) => {
     return `R_${modelName}_Needs extends {
-      [K in keyof R_${modelName}_Fields]: Prisma.${modelName}SelectScalar
+      [K in keyof R_${modelName}_Fields]: Prisma.${modelName}SelectScalar & runtime.Types.Extensions.GetResultSelect<(ExtArgs['result'] & {})['${lowerCase(
+      modelName,
+    )}']>
     } & {
-      [K in string]: Prisma.${modelName}SelectScalar
+      [K in string]: Prisma.${modelName}SelectScalar & runtime.Types.Extensions.GetResultSelect<(ExtArgs['result'] & {})['${lowerCase(
+      modelName,
+    )}']>
     }`
   }
 
   const modelResultFieldsGenericParam = (modelName: string) => {
     return `R_${modelName}_Fields extends {
-      [K in keyof R_${modelName}_Needs]: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }>) => unknown
+      [K in keyof R_${modelName}_Needs]: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }, ExtArgs>) => unknown
     }`
   }
 
