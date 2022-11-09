@@ -33,7 +33,7 @@ export function desugarUserArgs(args: UserArgs = {}) {
  * @param args the user input
  * @returns
  */
-function desugarCountInUserArgs(args: UserArgs) {
+function desugarCountInUserArgs(args: UserArgs = {}) {
   if (typeof args['_count'] === 'boolean') {
     return { ...args, _count: { _all: args['_count'] } }
   }
@@ -47,9 +47,9 @@ function desugarCountInUserArgs(args: UserArgs) {
  * @param args the user input
  * @returns
  */
-export function createUnpacker(args?: UserArgs) {
+export function createUnpacker(args: UserArgs = {}) {
   return (data: object) => {
-    if (typeof args?.['_count'] === 'boolean') {
+    if (typeof args['_count'] === 'boolean') {
       data['_count'] = data['_count']['_all']
     }
 

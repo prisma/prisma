@@ -9,13 +9,13 @@ import { createUnpacker as createUnpackerAggregate, desugarUserArgs as desugarUs
  * @param args to transform
  * @returns
  */
-function desugarUserArgs(args?: UserArgs) {
-  const { select, ..._userArgs } = args ?? {} // exclude select
+function desugarUserArgs(args: UserArgs = {}) {
+  const { select, ..._args } = args // exclude select
 
   if (typeof select === 'object') {
-    return desugarUserArgsAggregate({ ..._userArgs, _count: select })
+    return desugarUserArgsAggregate({ ..._args, _count: select })
   } else {
-    return desugarUserArgsAggregate({ ..._userArgs, _count: { _all: true } })
+    return desugarUserArgsAggregate({ ..._args, _count: { _all: true } })
   }
 }
 
@@ -25,10 +25,8 @@ function desugarUserArgs(args?: UserArgs) {
  * @param args the user input
  * @returns
  */
-export function createUnpacker(args?: UserArgs) {
-  const { select } = args ?? {}
-
-  if (typeof select === 'object') {
+export function createUnpacker(args: UserArgs = {}) {
+  if (typeof args['select'] === 'object') {
     return (data: object) => createUnpackerAggregate(args)(data)['_count']
   } else {
     return (data: object) => createUnpackerAggregate(args)(data)['_count']['_all']

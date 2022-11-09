@@ -11,18 +11,18 @@ import { desugarUserArgs as desugarUserArgsAggregate } from './aggregate'
  * @returns
  */
 function desugarUserArgs(args: UserArgs = {}) {
-  const _userArgs = desugarUserArgsAggregate(args ?? {})
+  const _args = desugarUserArgsAggregate(args)
 
   // we desugar the array into { [key]: boolean }
-  if (Array.isArray(_userArgs.by)) {
-    for (const key of _userArgs.by) {
+  if (Array.isArray(_args['by'])) {
+    for (const key of _args['by']) {
       if (typeof key === 'string') {
-        _userArgs['select'][key] = true
+        _args['select'][key] = true
       }
     }
   }
 
-  return _userArgs
+  return _args
 }
 
 /**
@@ -31,7 +31,7 @@ function desugarUserArgs(args: UserArgs = {}) {
  * @param args the user input
  * @returns
  */
-export function createUnpacker(args?: UserArgs) {
+export function createUnpacker(args: UserArgs = {}) {
   return (data: object[]) => {
     if (typeof args?.['_count'] === 'boolean') {
       data.forEach((row) => {
