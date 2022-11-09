@@ -45,5 +45,5 @@ describe('connection-limit-mysql', () => {
         `Error querying the database: Server error: \`ERROR HY000 (1040): Too many connections'`,
       )
     }
-  }, 100_000)
+  }, 200_000)
 })
