@@ -212,6 +212,7 @@ describe('batching', () => {
           optional
         }
       },
+          transaction: undefined,
         },
         Object {
           clientMethod: findUnique,
@@ -237,6 +238,7 @@ describe('batching', () => {
           coinflips
         }
       },
+          transaction: undefined,
         },
       ]
     `)
@@ -329,6 +331,7 @@ describe('batching', () => {
           coinflips
         }
       },
+          transaction: undefined,
         },
         Object {
           clientMethod: findUnique,
@@ -354,6 +357,7 @@ describe('batching', () => {
           coinflips
         }
       },
+          transaction: undefined,
         },
       ]
     `)
