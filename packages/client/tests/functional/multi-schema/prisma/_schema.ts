@@ -2,8 +2,8 @@ import { idForProvider } from '../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, mapTable }) => {
-  const mapTableName1 = mapTable === 'IDENTICAL_NAMES' ? 'some_table' : 'some_table_a'
-  const mapTableName2 = mapTable === 'IDENTICAL_NAMES' ? 'some_table' : 'some_table_b'
+  const mapTableUser = mapTable === 'IDENTICAL_NAMES' ? 'some_table' : 'some_table_user'
+  const mapTablePost = mapTable === 'IDENTICAL_NAMES' ? 'some_table' : 'some_table_post'
 
   return /* Prisma */ `
 generator client {
@@ -23,7 +23,7 @@ model User {
   posts Post[]
 
   @@schema("base")
-  ${mapTable ? '@@map("some_table-1")' : ''}
+  ${mapTable ? `@@map("${mapTableUser}")` : ''}
 }
 
 model Post {
@@ -33,7 +33,7 @@ model Post {
   author    User?    @relation(fields: [authorId], references: [id])
 
   @@schema("transactional")
-  ${mapTable ? '@@map("some_table-2")' : ''}
+  ${mapTable ? `@@map("${mapTablePost}")` : ''}
 }
   `
 })
