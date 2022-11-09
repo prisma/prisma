@@ -12,10 +12,10 @@ type RequestCallback = (requestParams: InternalRequestParams) => Promise<unknown
  * `findUniqueOrThrow` and `findFirstOrThrow` are implemented in the engine, but before that,
  * they used to be implemented on the client side.
  *
- * If the above mentioned methods returned no result, and error of type NotFoundError
- * was thrown. This error is client-side and in order to not break existing code relying
- * on this error, we need to wrap the request callback in a function that catches the
- * error thrown by the server and rethrow it as a client side error.
+ * If the above mentioned methods returned no result, an error of type NotFoundError
+ * is thrown. This error is client-side and, in order to not break existing code relying on it, we
+ * need to wrap the request callback in a function that catches the error thrown by the Query Engine
+ * and rethrow it as a NotFoundError.
  *
  * @param action the action name to wrap, wrapping the request for actions other than
  *  findUniqueOrThrow and findFirstOrThrow is a noop
