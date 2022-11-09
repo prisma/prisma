@@ -1,7 +1,9 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
-describe('connection-limit-mysql', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
+describeIf(process.platform === 'linux')('connection-limit-mysql', () => {
   const clients: any[] = []
 
   afterAll(async () => {
