@@ -25,10 +25,10 @@ function Patch(O1: string, O2: string) {
   return `${Omit(O2, `keyof ${O1}`)} & ${O1}`
 }
 
-function clientExtensionsModelResultDefinition(this: PrismaClientClass) {
+function clientExtensionsResultDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
-  const modelResultNeedsGenericParam = (modelName: string) => {
+  const resultNeedsGenericParam = (modelName: string) => {
     return `R_${modelName}_Needs extends {
       [K in keyof R_${modelName}_Fields]: Prisma.${modelName}SelectScalar & runtime.Types.Extensions.GetResultSelect<(ExtArgs['result'] & {})['${lowerCase(
       modelName,
@@ -40,27 +40,28 @@ function clientExtensionsModelResultDefinition(this: PrismaClientClass) {
     }`
   }
 
-  const modelResultFieldsGenericParam = (modelName: string) => {
+  const resultFieldsGenericParam = (modelName: string) => {
     return `R_${modelName}_Fields extends {
       [K in keyof R_${modelName}_Needs]: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }, ExtArgs>) => unknown
     }`
   }
 
-  const modelResultGenericParams = (modelName: string) => {
-    return [modelResultNeedsGenericParam(modelName), modelResultFieldsGenericParam(modelName)]
+  const resultGenericParams = (modelName: string) => {
+    return [resultNeedsGenericParam(modelName), resultFieldsGenericParam(modelName)]
   }
 
   const genericParams = [
-    ...modelNames.flatMap(modelResultGenericParams),
+    ...modelNames.flatMap(resultGenericParams),
     `R extends runtime.Types.Extensions.Args['result'] = {}`,
   ].join(',\n    ')
 
-  const modelResultParam = (modelName: string) => {
+  const resultParam = (modelName: string) => {
     return `${lowerCase(modelName)}?: { needs: R_${modelName}_Needs, fields: R_${modelName}_Fields }`
   }
 
   const params = `{
-      ${modelNames.map(modelResultParam).join('\n      ')}
+      $allModels?: Record<string, unknown>
+      ${modelNames.map(resultParam).join('\n      ')}
     }`
 
   return {
@@ -72,14 +73,17 @@ function clientExtensionsModelResultDefinition(this: PrismaClientClass) {
 function clientExtensionsModelDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
-  const params = `{${modelNames.reduce((acc, modelName) => {
-    return `${acc}
-      ${lowerCase(
-        modelName,
-      )}?: Record<string, unknown> & Prisma.OptionalFlat<PrismaClient<never, never, false, ExtArgs>['${lowerCase(
+  const modelParam = (modelName: string) => {
+    return `${lowerCase(
+      modelName,
+    )}?: Record<string, unknown> & Prisma.OptionalFlat<PrismaClient<never, never, false, ExtArgs>['${lowerCase(
       modelName,
     )}']>`
-  }, '')}
+  }
+
+  const params = `{
+      $allModels?: Record<string, unknown>
+      ${modelNames.map(modelParam).join('\n      ')}
     }`
 
   return {
@@ -100,7 +104,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
         ${action}?: (args: { model: '${modelName}', operation: '${action}', args: Prisma.${getModelArgName(
         modelName,
         action,
-      )}<ExtArgs>, data: PrismaPromise<${modelName}> }) => PrismaPromise<${modelName}>`
+      )}<ExtArgs>, data: PrismaPromise<Prisma.OptionalFlat<${modelName}>> }) => PrismaPromise<Prisma.OptionalFlat<${modelName}>>`
     }, '')}
       }`
   }, '')}
@@ -120,7 +124,7 @@ function clientExtensionsClientDefinition(this: PrismaClientClass) {
 }
 
 function clientExtensionsDefinition(this: PrismaClientClass) {
-  const result = clientExtensionsModelResultDefinition.call(this)
+  const result = clientExtensionsResultDefinition.call(this)
   const model = clientExtensionsModelDefinition.call(this)
   const client = clientExtensionsClientDefinition.call(this)
   const query = clientExtensionsQueryDefinition.call(this)
@@ -340,7 +344,7 @@ export class PrismaClient<
     ? T['rejectOnNotFound']
     : false${ifExtensions(
       `,
-  ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: { $allModels: {} }, query: {}, client: {} }`,
+  ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: {}, query: {}, client: {} }`,
       '',
     )}
       > {
