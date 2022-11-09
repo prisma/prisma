@@ -1,7 +1,9 @@
 import { getTestClient } from '../../../../utils/getTestClient'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
-describe('connection-limit-postgres', () => {
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
+describeIf(process.platform === 'linux')('connection-limit-postgres', () => {
   const clients: any[] = []
 
   afterAll(async () => {
