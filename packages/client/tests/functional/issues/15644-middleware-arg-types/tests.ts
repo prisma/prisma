@@ -7,6 +7,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     test('middleware with count', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'count') {
           expect(params.args).toStrictEqual({ skip: 1 })
@@ -19,6 +20,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with aggregate', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'aggregate') {
           expect(params.args).toStrictEqual({ skip: 1, _count: true })
@@ -31,6 +33,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with groupBy', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === ('groupBy' as string)) {
           expect(params.args).toStrictEqual({ by: ['id'], orderBy: {} })
@@ -43,6 +46,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with findFirst', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'findFirst') {
           expect(params.args).toStrictEqual({ take: 1 })
@@ -55,6 +59,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with findUnique', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'findUnique') {
           expect(params.args).toStrictEqual({ where: { id: '0' } })
@@ -67,6 +72,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with findFirstOrThrow', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === ('findFirstOrThrow' as string)) {
           expect(params.args).toStrictEqual({ take: 1 })
@@ -79,6 +85,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with findUniqueOrThrow', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === ('findUniqueOrThrow' as string)) {
           expect(params.args).toStrictEqual({ where: { id: '0' } })
@@ -91,6 +98,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with create', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'create') {
           expect(params.args).toStrictEqual({ data: {} })
@@ -103,6 +111,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with delete', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'delete') {
           expect(params.args).toStrictEqual({ where: { id: '0' } })
@@ -115,6 +124,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with deleteMany', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'deleteMany') {
           expect(params.args).toStrictEqual({ where: { id: '0' } })
@@ -127,6 +137,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with findMany', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'findMany') {
           expect(params.args).toStrictEqual({ where: { id: '0' } })
@@ -139,6 +150,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with update', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'update') {
           expect(params.args).toStrictEqual({ where: { id: '0' }, data: {} })
@@ -151,6 +163,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with updateMany', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'updateMany') {
           expect(params.args).toStrictEqual({ where: { id: '0' }, data: {} })
@@ -163,6 +176,7 @@ testMatrix.setupTestSuite(
     })
 
     test('middleware with upsert', async () => {
+      expect.assertions(1)
       prisma.$use((params, next) => {
         if (params.action === 'upsert') {
           expect(params.args).toStrictEqual({ where: { id: '0' }, create: {}, update: {} })
