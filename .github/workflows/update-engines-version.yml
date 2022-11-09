@@ -174,7 +174,7 @@ jobs:
           committer: 'Prismo <prismabots@gmail.com>'
           author: 'Prismo <prismabots@gmail.com>'
           base: ${{ steps.extract-patch-branch-name.outputs.patchBranch }}
-          branch: ${{ steps.extract-patch-branch-name.outputs.patchBranch }}/${{ github.event.inputs.version }}
+          branch: patch/${{ github.event.inputs.version }}
           draft: true
           title: 'chore(deps): patch ${{ steps.extract-patch-branch-name.outputs.patchBranch }} ${{ github.event.inputs.version }}'
           body: |
