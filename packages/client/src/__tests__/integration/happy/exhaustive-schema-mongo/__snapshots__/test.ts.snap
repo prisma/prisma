@@ -2192,8 +2192,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Post'> extends True ? Prisma__PostClient<PostGetPayload<T>> : Prisma__PostClient<PostGetPayload<T> | null, null>
 
     /**
-     * Find one Post that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one Post that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {PostFindUniqueOrThrowArgs} args - Arguments to find a Post
      * @example
      * // Get one Post
@@ -3366,8 +3366,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'User'> extends True ? Prisma__UserClient<UserGetPayload<T>> : Prisma__UserClient<UserGetPayload<T> | null, null>
 
     /**
-     * Find one User that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one User that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {UserFindUniqueOrThrowArgs} args - Arguments to find a User
      * @example
      * // Get one User
@@ -4418,8 +4418,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'EmbedHolder'> extends True ? Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>> : Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null, null>
 
     /**
-     * Find one EmbedHolder that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one EmbedHolder that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {EmbedHolderFindUniqueOrThrowArgs} args - Arguments to find a EmbedHolder
      * @example
      * // Get one EmbedHolder
@@ -5582,8 +5582,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'M'> extends True ? Prisma__MClient<MGetPayload<T>> : Prisma__MClient<MGetPayload<T> | null, null>
 
     /**
-     * Find one M that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one M that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {MFindUniqueOrThrowArgs} args - Arguments to find a M
      * @example
      * // Get one M
@@ -6740,8 +6740,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'N'> extends True ? Prisma__NClient<NGetPayload<T>> : Prisma__NClient<NGetPayload<T> | null, null>
 
     /**
-     * Find one N that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one N that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {NFindUniqueOrThrowArgs} args - Arguments to find a N
      * @example
      * // Get one N
@@ -7894,8 +7894,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OneOptional'> extends True ? Prisma__OneOptionalClient<OneOptionalGetPayload<T>> : Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null, null>
 
     /**
-     * Find one OneOptional that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one OneOptional that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {OneOptionalFindUniqueOrThrowArgs} args - Arguments to find a OneOptional
      * @example
      * // Get one OneOptional
@@ -9052,8 +9052,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'ManyRequired'> extends True ? Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>> : Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null, null>
 
     /**
-     * Find one ManyRequired that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one ManyRequired that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {ManyRequiredFindUniqueOrThrowArgs} args - Arguments to find a ManyRequired
      * @example
      * // Get one ManyRequired
@@ -10210,8 +10210,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide1'> extends True ? Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>> : Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null, null>
 
     /**
-     * Find one OptionalSide1 that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one OptionalSide1 that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {OptionalSide1FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide1
      * @example
      * // Get one OptionalSide1
@@ -11360,8 +11360,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide2'> extends True ? Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>> : Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null, null>
 
     /**
-     * Find one OptionalSide2 that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one OptionalSide2 that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {OptionalSide2FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide2
      * @example
      * // Get one OptionalSide2
@@ -12450,8 +12450,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'A'> extends True ? Prisma__AClient<AGetPayload<T>> : Prisma__AClient<AGetPayload<T> | null, null>
 
     /**
-     * Find one A that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one A that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {AFindUniqueOrThrowArgs} args - Arguments to find a A
      * @example
      * // Get one A
@@ -13461,8 +13461,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'B'> extends True ? Prisma__BClient<BGetPayload<T>> : Prisma__BClient<BGetPayload<T> | null, null>
 
     /**
-     * Find one B that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one B that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {BFindUniqueOrThrowArgs} args - Arguments to find a B
      * @example
      * // Get one B
@@ -14466,8 +14466,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'C'> extends True ? Prisma__CClient<CGetPayload<T>> : Prisma__CClient<CGetPayload<T> | null, null>
 
     /**
-     * Find one C that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one C that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {CFindUniqueOrThrowArgs} args - Arguments to find a C
      * @example
      * // Get one C
@@ -15493,8 +15493,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'D'> extends True ? Prisma__DClient<DGetPayload<T>> : Prisma__DClient<DGetPayload<T> | null, null>
 
     /**
-     * Find one D that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one D that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {DFindUniqueOrThrowArgs} args - Arguments to find a D
      * @example
      * // Get one D
@@ -16474,8 +16474,8 @@ export namespace Prisma {
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'E'> extends True ? Prisma__EClient<EGetPayload<T>> : Prisma__EClient<EGetPayload<T> | null, null>
 
     /**
-     * Find one E that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
+     * Find one E that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
      * @param {EFindUniqueOrThrowArgs} args - Arguments to find a E
      * @example
      * // Get one E

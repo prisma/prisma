@@ -123,8 +123,8 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   },
   findUniqueOrThrow: {
     body: (ctx) =>
-      `Find one ${ctx.singular} that matches the filter or throw
-\`NotFoundError\` if no matches were found.
+      `Find one ${ctx.singular} that matches the filter or throw an error  with \`error.code='P2025'\` 
+    if no matches were found.
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example
 // Get one ${ctx.singular}
