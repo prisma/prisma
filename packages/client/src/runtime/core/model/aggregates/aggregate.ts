@@ -9,9 +9,9 @@ import { aggregateMap } from './utils/aggregateMap'
  * @param args to transform
  * @returns
  */
-export function desugarUserArgs(args?: UserArgs) {
-  const _userArgs = desugarCountInUserArgs(args ?? {})
-  const userArgsEntries = Object.entries(_userArgs)
+export function desugarUserArgs(args: UserArgs = {}) {
+  const _args = desugarCountInUserArgs(args)
+  const userArgsEntries = Object.entries(_args)
 
   return userArgsEntries.reduce(
     (aggregateArgs, [key, value]) => {

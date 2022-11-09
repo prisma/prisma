@@ -10,7 +10,7 @@ import { desugarUserArgs as desugarUserArgsAggregate } from './aggregate'
  * @param args to transform
  * @returns
  */
-function desugarUserArgs(args?: UserArgs) {
+function desugarUserArgs(args: UserArgs = {}) {
   const _userArgs = desugarUserArgsAggregate(args ?? {})
 
   // we desugar the array into { [key]: boolean }
