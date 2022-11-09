@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", ":disableRateLimiting"],
+  "extends": ["config:base", ":disableRateLimiting", ":noUnscheduledUpdates"],
   "schedule": [
     "before 7am every weekday",
     "every weekend"
