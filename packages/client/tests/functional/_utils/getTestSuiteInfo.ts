@@ -127,7 +127,8 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
       // For `relationMode` tests
       // we hardcode how it lookks like for test results
       if (config.relationMode !== undefined) {
-        return `relationMode=${config.relationMode},provider=${config.provider},onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
+        const providerFlavorStr = config.providerFlavor === undefined ? '' : `providerFlavor=${config.providerFlavor},`
+        return `relationMode=${config.relationMode},provider=${config.provider},${providerFlavorStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
       } else {
         const firstKey = Object.keys(config)[0]
         return `${firstKey}=${config[firstKey]}`

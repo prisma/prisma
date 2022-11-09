@@ -70,7 +70,7 @@ function getRequestInfo(request: Request) {
   }
 
   return {
-    batchTransaction: transaction?.kind === 'batch' ? transaction : undefined,
+    transaction,
     headers,
   }
 }
@@ -100,18 +100,26 @@ export class RequestHandler {
           }),
         )
 
+        const batchTransaction = info.transaction?.kind === 'batch' ? info.transaction : undefined
+
         return this.client._engine.requestBatch({
           queries,
           headers: info.headers,
-          transaction: info.batchTransaction,
+          transaction: batchTransaction,
           requestContainsWrite,
         })
       },
       singleLoader: (request) => {
         const info = getRequestInfo(request)
         const query = String(request.document)
+        const interactiveTransaction = info.transaction?.kind === 'itx' ? info.transaction : undefined
 
-        return this.client._engine.request({ query, headers: info.headers, clientMethod: request.clientMethod })
+        return this.client._engine.request({
+          query,
+          headers: info.headers,
+          clientMethod: request.clientMethod,
+          transaction: interactiveTransaction,
+        })
       },
       batchBy: (request) => {
         if (request.transaction?.id) {
