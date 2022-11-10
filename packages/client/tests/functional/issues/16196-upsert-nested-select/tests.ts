@@ -23,7 +23,7 @@ testMatrix.setupTestSuite(
 
     test('upsert (update) with nested select many relation', async () => {
       const data = await prisma.user.upsert({
-        where: { id },
+        where: { email: 'john@doe.io' },
         create: {
           email: 'john@doe.io',
         },
@@ -68,7 +68,7 @@ testMatrix.setupTestSuite(
 
     test('upsert (update) with nested select one relation', async () => {
       const data = await prisma.user.upsert({
-        where: { id },
+        where: { email: 'john@doe.io' },
         create: {
           email: 'john@doe.io',
         },
@@ -97,7 +97,7 @@ testMatrix.setupTestSuite(
 
     test('upsert (create) with nested select one relation', async () => {
       const data = await prisma.user.upsert({
-        where: { id: randomBytes(12).toString('hex') },
+        where: { email: 'jane@joe.io' },
         create: {
           email: 'jane@joe.io',
         },
