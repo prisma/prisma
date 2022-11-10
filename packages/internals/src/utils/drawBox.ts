@@ -26,7 +26,7 @@ function maxLineLength(str: string): number {
 
 export function drawBox({ title, width, height, str, horizontalPadding }: BoxOptions): string {
   horizontalPadding = horizontalPadding || 0
-  width = width || maxLineLength(str) + horizontalPadding * 2
+  width = Math.max(width, maxLineLength(str) + horizontalPadding * 2)
   const topLine = title
     ? chalk.grey(chars.topLeft + chars.horizontal) +
       ' ' +
