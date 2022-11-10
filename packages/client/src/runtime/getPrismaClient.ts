@@ -30,6 +30,7 @@ import { PrismaClientValidationError } from '.'
 import { $extends, Args as Extension } from './core/extensions/$extends'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
+import { UserArgs } from './core/model/UserArgs'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import type {
   InteractiveTransactionOptions,
@@ -181,6 +182,8 @@ export type InternalRequestParams = {
   unpacker?: Unpacker // TODO what is this
   lock?: PromiseLike<void>
   otelParentCtx?: Context
+  /** Used to "desugar" a user input into an "expanded" one */
+  argsMapper?: (args?: UserArgs) => UserArgs
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 // only used by the .use() hooks
@@ -285,7 +288,9 @@ export interface GetPrismaClientConfig {
 
 export const actionOperationMap = {
   findUnique: 'query',
+  findUniqueOrThrow: 'query',
   findFirst: 'query',
+  findFirstOrThrow: 'query',
   findMany: 'query',
   count: 'query',
   create: 'mutation',
@@ -1106,6 +1111,7 @@ new PrismaClient({
       action,
       model,
       headers,
+      argsMapper,
       transaction,
       lock,
       unpacker,
@@ -1114,6 +1120,9 @@ new PrismaClient({
       if (this._dmmf === undefined) {
         this._dmmf = await this._getDmmf({ clientMethod, callsite })
       }
+
+      // execute argument transformation before execution
+      args = argsMapper ? argsMapper(args) : args
 
       let rootField: string | undefined
       const operation = actionOperationMap[action]
