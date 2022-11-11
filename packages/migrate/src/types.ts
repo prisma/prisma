@@ -129,9 +129,10 @@ export namespace EngineArgs {
     tag: 'url'
     url: string
   }
+  export type DbExecuteDatasourceType = DbExecuteDatasourceTypeSchema | DbExecuteDatasourceTypeUrl
   export interface DbExecuteInput {
     // The location of the live database to connect to.
-    datasourceType: DbExecuteDatasourceTypeSchema | DbExecuteDatasourceTypeUrl
+    datasourceType: DbExecuteDatasourceType
     // The input script.
     script: string
   }
