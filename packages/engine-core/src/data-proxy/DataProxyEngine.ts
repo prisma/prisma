@@ -16,7 +16,6 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineBatchRequest, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
-import { runtimeHeadersToHttpHeaders } from '../common/utils/runtimeHeadersToHttpHeaders'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -422,4 +421,15 @@ export class DataProxyEngine extends Engine {
       throw error
     }
   }
+}
+
+/**
+ * Convert runtime headers to HTTP headers expected by the Data Proxy by removing the transactionId runtime header.
+ */
+function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
+  if (headers.transactionId) {
+    const { transactionId: _, ...httpHeaders } = headers
+    return httpHeaders
+  }
+  return headers
 }

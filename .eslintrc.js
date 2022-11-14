@@ -53,6 +53,12 @@ module.exports = {
     ],
     'jest/valid-title': 'off',
     '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'warn',
+      {
+        varsIgnorePattern: '^_$',
+      },
+    ],
     // low hanging fruits:
     // to unblock eslint dep update in https://github.com/prisma/prisma/pull/9692
     '@typescript-eslint/no-unsafe-argument': 'warn',
