@@ -1001,7 +1001,7 @@ new PrismaClient({
     $transaction(input: any, options?: any) {
       let callback: () => Promise<any>
 
-      if (typeof input === 'function' && this._hasPreviewFlag('interactiveTransactions')) {
+      if (typeof input === 'function') {
         callback = () => this._transactionWithCallback({ callback: input, options })
       } else {
         callback = () => this._transactionWithArray({ promises: input, options })
