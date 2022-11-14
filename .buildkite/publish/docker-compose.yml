@@ -187,4 +187,3 @@ services:
       MONGO_REPLICA_PORT: 27018
     ports:
       - '27018:27018'
-# TODO: investigate why isolated containers aren't used in the tests
