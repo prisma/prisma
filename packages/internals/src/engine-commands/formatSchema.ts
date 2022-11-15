@@ -3,6 +3,7 @@ import { match } from 'ts-pattern'
 
 import { ErrorArea, RustPanic } from '../panic'
 import { prismaFmt } from '../wasm'
+import { getLintWarnings, lintSchema, warningToString } from './lintSchema'
 
 type FormatSchemaParams = { schema: string; schemaPath?: never } | { schema?: never; schemaPath: string }
 
@@ -60,13 +61,45 @@ export async function formatSchema(
     },
   } as DocumentFormattingParams
 
-  const formattedSchema = handleFormatPanic(
+  /**
+   * Note:
+   * - Given an invalid schema, `formatWasm` returns a formatted schema regardless (when it doesn't panic).
+   * - Given an invalid schema, `lintWasm` returns a list of warnings/errors regardless (when it doesn't panic).
+   *   Warnings must be filtered out from the other diagnostics.
+   * - Validation errors aren't checked/shown here.
+   *   They appear when calling `getDmmf` on the formatted schema in Format.ts.
+   *   If we called `getConfig` instead, we wouldn't have any validation check.
+   */
+  const { formattedSchema, lintDiagnostics } = handleFormatPanic(
     () => {
       // the only possible error here is a Rust panic
-      return formatWasm(schemaContent, documentFormattingParams)
+      const formattedSchema = formatWasm(schemaContent, documentFormattingParams)
+      const lintDiagnostics = lintSchema(formattedSchema)
+      return { formattedSchema, lintDiagnostics }
     },
     { schemaPath, schema } as FormatSchemaParams,
   )
+
+  /*
+   * Display warnings, if any.
+   *
+   * Note:
+   * - We don't get a nice warning message output with colors and line numbers for free, as we would with errors detected by `getDmmf`.
+   *   I.e., there's not such thing for warnings out of the box as the following:
+   *     -->  schema.prisma:18
+   *      |
+   *   17 |   id     Int      @id
+   *   18 |   user   SomeUser @relation(fields: [userId], references: [id], onUpdate: SetNull, onDelete: SetNull)
+   *   19 |   userId Int      @unique
+   *      |
+   *
+   * Questions:
+   * 1) should warnings still be displayed in case of errors?
+   */
+  const lintWarnings = getLintWarnings(lintDiagnostics)
+  for (const warning of lintWarnings) {
+    console.warn(warningToString(warning))
+  }
 
   return Promise.resolve(formattedSchema)
 }
