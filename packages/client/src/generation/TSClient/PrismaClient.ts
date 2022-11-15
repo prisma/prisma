@@ -28,26 +28,10 @@ function Patch(O1: string, O2: string) {
 function clientExtensionsResultDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
-  const resultNeedsGenericParam = (modelName: string) => {
-    return `R_${modelName}_Needs extends {
-      [K in keyof R_${modelName}_Fields]: Prisma.${modelName}SelectScalar & runtime.Types.Extensions.GetResultSelect<(ExtArgs['result'] & {})['${lowerCase(
-      modelName,
-    )}']>
-    } & {
-      [K in string]: Prisma.${modelName}SelectScalar & runtime.Types.Extensions.GetResultSelect<(ExtArgs['result'] & {})['${lowerCase(
-      modelName,
-    )}']>
-    }`
-  }
-
-  const resultFieldsGenericParam = (modelName: string) => {
-    return `R_${modelName}_Fields extends {
-      [K in keyof R_${modelName}_Needs]: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }, ExtArgs>) => unknown
-    }`
-  }
-
   const resultGenericParams = (modelName: string) => {
-    return [resultNeedsGenericParam(modelName), resultFieldsGenericParam(modelName)]
+    return `R_${modelName}_Needs extends Record<string, Prisma.${modelName}SelectScalar & runtime.Types.Extensions.GetResultSelect<(ExtArgs['result'] & {})['${lowerCase(
+      modelName,
+    )}']>>`
   }
 
   const genericParams = [
@@ -56,7 +40,12 @@ function clientExtensionsResultDefinition(this: PrismaClientClass) {
   ].join(',\n    ')
 
   const resultParam = (modelName: string) => {
-    return `${lowerCase(modelName)}?: { needs: R_${modelName}_Needs, fields: R_${modelName}_Fields }`
+    return `${lowerCase(modelName)}?: {
+        [K in keyof R_${modelName}_Needs]: {
+          needs: R_${modelName}_Needs[K]
+          compute: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }, ExtArgs>) => unknown
+        }
+      }`
   }
 
   const params = `{
@@ -146,12 +135,7 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
     query?: ${query.params}
     client?: C & ${client.params}
   }): runtime.Types.Utils.Omit<PrismaClient<T, U, GlobalReject, {
-        result: ${Omit(`ExtArgs['result']`, 'keyof R')} & {
-          [K in keyof R & string]: {
-            fields: ${Patch(`(R & {})[K]['fields']`, `(ExtArgs['result'] & {})[K]['fields']`)},
-            needs: ${Patch(`(R & {})[K]['needs']`, `(ExtArgs['result'] & {})[K]['needs']`)},
-          }
-        },
+        result: { [K in keyof R & string]: ${Patch(`R[K]`, `(ExtArgs['result'] & {})[K]`)} },
         model: { [K in keyof M & string]: ${Patch(`M[K]`, `(ExtArgs['model'] & {})[K]`)} },
         client: ${Patch(Pick(`C`, '`$${string}`'), `ExtArgs['client']`)}
         query: {},

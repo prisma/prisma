@@ -10,13 +10,11 @@ export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 type ResultArgs = {
   result?: {
     [ModelName in string]: {
-      needs: {
-        [VirtPropName in string]: {
+      [VirtPropName in string]: {
+        needs: {
           [ModelPropName in string]: boolean
         }
-      }
-      fields: {
-        [VirtPropName in string]: (data: any) => unknown
+        compute: (data: any) => unknown
       }
     }
   }
