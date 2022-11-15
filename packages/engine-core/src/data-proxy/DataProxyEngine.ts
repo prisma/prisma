@@ -62,9 +62,7 @@ export class DataProxyEngine extends Engine {
     this.inlineDatasources = config.inlineDatasources ?? {}
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
     this.clientVersion = config.clientVersion ?? 'unknown'
-
-    this.logEmitter = new EventEmitter()
-    this.logEmitter.on('error', () => {})
+    this.logEmitter = config.logEmitter
 
     const [host, apiKey] = this.extractHostAndApiKey()
     this.remoteClientVersion = P.then(() => getClientVersion(this.config))

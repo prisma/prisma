@@ -20,6 +20,7 @@ import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
+import { EventEmitter } from 'events'
 import fs from 'fs'
 import path from 'path'
 import { RawValue, Sql } from 'sql-template-tag'
@@ -336,12 +337,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
     _extensions: Extension[]
+    _logEmitter: EventEmitter
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
 
+      this._logEmitter = new EventEmitter()
       this._extensions = []
       this._previewFeatures = config.generator?.previewFeatures ?? []
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
@@ -447,6 +450,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingConfig: this._tracingConfig,
+          logEmitter: this._logEmitter,
         }
 
         debug('clientVersion', config.clientVersion)
@@ -468,6 +472,16 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             if (level) {
               this.$on(level, (event) => {
                 logger.log(`${logger.tags[level] ?? ''}`, event.message || event.query)
+              })
+            }
+
+            // emit events for unhandled errors
+            if (typeof log === 'string' ? log === 'error' : log.level === 'error') {
+              this.$use((params, next) => {
+                return next(params).catch((e) => {
+                  this._logEmitter.emit('error', e)
+                  throw e
+                })
               })
             }
           }
