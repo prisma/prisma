@@ -1,4 +1,5 @@
-import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, DMMF, EnvVlue, GeneratorConfig } from '@prisma/generator-helper'
+import { EventEmitter } from 'events'
 
 import { TracingConfig } from '../tracing/getTracingConfig'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
@@ -6,7 +7,7 @@ import type { QueryEngineRequestHeaders, QueryEngineResult } from './types/Query
 import type * as Transaction from './types/Transaction'
 
 export interface FilterConstructor {
-  new (config: EngineConfig): Engine
+  new(config: EngineConfig): Engine
 }
 
 export type NullableEnvValue = {
@@ -97,6 +98,7 @@ export interface EngineConfig {
   previewFeatures?: string[]
   engineEndpoint?: string
   activeProvider?: string
+  logEmitter: EventEmitter
 
   /**
    * The contents of the schema encoded into a string
