@@ -8,7 +8,7 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "4.7.0-10.1545b76828e10ec7b4630c6ef889b07e389d12b2",
+    "@prisma/engines-version": "4.7.0-17.integration-closed-itx-error-message-279c624b671dee4a1785e2f8597626b4bbe06083",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@swc/core": "1.3.14",
