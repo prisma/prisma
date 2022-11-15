@@ -109,7 +109,6 @@ export class LibraryEngine extends Engine {
     this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
-      // Debug.enable('*')
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
