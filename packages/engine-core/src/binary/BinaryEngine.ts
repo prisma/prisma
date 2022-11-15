@@ -149,6 +149,7 @@ export class BinaryEngine extends Engine {
     dirname,
     activeProvider,
     tracingConfig,
+    logEmitter,
   }: EngineConfig) {
     super()
 
@@ -162,10 +163,7 @@ export class BinaryEngine extends Engine {
     this.generator = generator
     this.datasources = datasources
     this.tracingConfig = tracingConfig
-    this.logEmitter = new EventEmitter()
-    this.logEmitter.on('error', () => {
-      // to prevent unhandled error events
-    })
+    this.logEmitter = logEmitter
     this.showColors = showColors ?? false
     this.logLevel = logLevel
     this.logQueries = logQueries ?? false

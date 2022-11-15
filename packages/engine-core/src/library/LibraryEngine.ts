@@ -101,11 +101,7 @@ export class LibraryEngine extends Engine {
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
     this.libraryLoader = loader
-    this.logEmitter = new EventEmitter()
-    this.logEmitter.on('error', (e) => {
-      // to prevent unhandled error events
-      // TODO: should we actually handle them instead of silently swallowing?
-    })
+    this.logEmitter = config.logEmitter
     this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
