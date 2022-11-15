@@ -94,9 +94,7 @@ export class RequestHandler {
 
         const writeWords = ['create', 'update', 'delete']
         const requestContainsWrite = requests.some((r) =>
-          writeWords.some((writeWord) => {
-            r.clientMethod.includes(writeWord)
-          }),
+          writeWords.some((writeWord) => r.clientMethod.includes(writeWord)),
         )
 
         const batchTransaction = info.transaction?.kind === 'batch' ? info.transaction : undefined
