@@ -17,8 +17,7 @@ import type { Document } from './query'
 import { Args, unpack } from './query'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
-import type { RejectOnNotFound } from './utils/rejectOnNotFound'
-import { throwIfNotFound } from './utils/rejectOnNotFound'
+import { NotFoundError, RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 
 const debug = Debug('prisma:client:request_handler')
 
@@ -208,6 +207,11 @@ export class RequestHandler {
 
   handleRequestError({ error, clientMethod, callsite }: HandleErrorParams): never {
     debug(error)
+    // TODO: This is a workaround to keep backwards compatibility with clients
+    // consuming NotFoundError
+    if (error instanceof NotFoundError) {
+      throw error
+    }
 
     let message = error.message
     if (callsite) {

@@ -1,6 +1,6 @@
+import { DMMF } from '@prisma/generator-helper'
 import type { O } from 'ts-toolbelt'
 
-import { type ClientModelAction, clientOnlyActions, getDmmfActionName, isClientOnlyAction } from '../../clientActions'
 import type { Client, InternalRequestParams } from '../../getPrismaClient'
 import { getCallSite } from '../../utils/CallSite'
 import {
@@ -13,9 +13,9 @@ import {
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import type { PrismaPromise } from '../request/PrismaPromise'
 import { applyAggregates } from './applyAggregates'
-import { wrapRequest } from './applyClientOnlyWrapper'
 import { applyFieldsProxy } from './applyFieldsProxy'
 import { applyFluent } from './applyFluent'
+import { adaptErrors } from './applyOrThrowErrorAdapter'
 import type { UserArgs } from './UserArgs'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 
@@ -23,7 +23,16 @@ export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,
 ) => (userArgs?: UserArgs) => PrismaPromise<unknown>
 
-const fluentProps = ['findUnique', 'findFirst', 'create', 'update', 'upsert', 'delete'] as const
+const fluentProps = [
+  'findUnique',
+  'findUniqueOrThrow',
+  'findFirst',
+  'findFirstOrThrow',
+  'create',
+  'update',
+  'upsert',
+  'delete',
+] as const
 const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
 
 /**
@@ -73,12 +82,11 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
     },
 
     getPropertyValue(key) {
-      const dmmfActionName = getDmmfActionName(key as ClientModelAction)
+      const dmmfActionName = key as DMMF.ModelAction
 
       let requestFn = (params: InternalRequestParams) => client._request(params)
-      if (isClientOnlyAction(key)) {
-        requestFn = wrapRequest(key, dmmfModelName, requestFn)
-      }
+      requestFn = adaptErrors(dmmfActionName, dmmfModelName, requestFn)
+
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
@@ -129,14 +137,9 @@ function getOwnKeys(client: Client, dmmfModelName: string) {
   const actionKeys = Object.keys(client._baseDmmf.mappingsMap[dmmfModelName]).filter(
     (key) => key !== 'model' && key !== 'plural',
   )
-
   actionKeys.push('count')
 
-  const clientOnlyActionKeys = Object.keys(clientOnlyActions).filter((actionKey) =>
-    actionKeys.includes(clientOnlyActions[actionKey].wrappedAction),
-  )
-
-  return actionKeys.concat(clientOnlyActionKeys)
+  return actionKeys
 }
 
 function isValidAggregateName(action: string): action is typeof aggregateProps[number] {
