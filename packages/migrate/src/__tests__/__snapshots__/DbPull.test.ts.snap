@@ -718,6 +718,56 @@ model some_table {
 
 exports[`postgresql-multi-schema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
 
+exports[`postgresql-multi-schema datasource property \`schemas=["base", "transactional"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  schemas  = ["base", "transactional"]
+}
+
+model User {
+  id    String @id
+  email String
+  Post  Post[]
+
+  @@schema("base")
+}
+
+model some_table {
+  id    String @id(map: "User_pkey2")
+  email String
+
+  @@schema("base")
+}
+
+model Post {
+  id       String @id
+  title    String
+  authorId String
+  User     User   @relation(fields: [authorId], references: [id])
+
+  @@schema("transactional")
+}
+
+model some_table {
+  id         String       @id(map: "Post_pkey2")
+  title      String
+  authorId   String
+  some_table some_table   @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
+  some_table some_table[]
+
+  @@schema("transactional")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
 exports[`postgresql-multi-schema datasource property \`schemas=["base"]\` should succeed 2`] = `
 generator client {
   provider        = "prisma-client-js"
