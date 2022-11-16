@@ -1,6 +1,6 @@
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, id }) => {
+export default testMatrix.setupSchema(({ provider }) => {
   const schemaHeader = /* Prisma */ `
 generator client {
   provider = "prisma-client-js"
