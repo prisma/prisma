@@ -345,6 +345,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
 
       this._logEmitter = new EventEmitter()
+      this._logEmitter.on('error', () => {
+        // to prevent unhandled error events
+      })
       this._extensions = []
       this._previewFeatures = config.generator?.previewFeatures ?? []
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
