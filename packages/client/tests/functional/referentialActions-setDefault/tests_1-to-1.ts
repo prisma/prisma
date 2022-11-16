@@ -11,7 +11,7 @@ declare let prisma: import('@prisma/client').PrismaClient
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 /**
- * 1:n relation
+ * 1:1 relation
  */
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
