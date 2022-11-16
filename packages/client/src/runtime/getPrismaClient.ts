@@ -204,8 +204,8 @@ export type LogDefinition = {
 
 export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition
   ? T['emit'] extends 'event'
-    ? T['level']
-    : never
+  ? T['level']
+  : never
   : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
@@ -472,16 +472,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
             if (level) {
               this.$on(level, (event) => {
                 logger.log(`${logger.tags[level] ?? ''}`, event.message || event.query)
-              })
-            }
-
-            // emit events for unhandled errors
-            if (typeof log === 'string' ? log === 'error' : log.level === 'error') {
-              this.$use((params, next) => {
-                return next(params).catch((e) => {
-                  this._logEmitter.emit('error', e)
-                  throw e
-                })
               })
             }
           }
@@ -998,7 +988,7 @@ new PrismaClient({
         await this._engine.transaction('commit', headers, info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', headers, info).catch(() => {})
+        await this._engine.transaction('rollback', headers, info).catch(() => { })
 
         throw e // silent rollback, throw original error
       }
@@ -1229,6 +1219,7 @@ new PrismaClient({
         unpacker,
         otelParentCtx,
         otelChildCtx: context.active(),
+        logEmmiter: this._logEmitter,
       })
     }
 
@@ -1237,7 +1228,7 @@ new PrismaClient({
         const dmmf = await this._engine.getDmmf()
         return new DMMFHelper(getPrismaClientDMMF(dmmf))
       } catch (error) {
-        this._fetcher.handleRequestError({ ...params, error })
+        this._fetcher.handleAndLogRequestError({ ...params, error }, this._logEmitter)
       }
     })
 
