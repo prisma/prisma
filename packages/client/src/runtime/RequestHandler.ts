@@ -1,7 +1,7 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import { getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
-import { EventEmitter } from 'stream'
+import { EventEmitter } from 'events'
 import stripAnsi from 'strip-ansi'
 
 import {
