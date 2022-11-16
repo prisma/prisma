@@ -204,8 +204,8 @@ export type LogDefinition = {
 
 export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition
   ? T['emit'] extends 'event'
-  ? T['level']
-  : never
+    ? T['level']
+    : never
   : never
 export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
   | GetLogType<T[0]>
@@ -988,7 +988,7 @@ new PrismaClient({
         await this._engine.transaction('commit', headers, info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', headers, info).catch(() => { })
+        await this._engine.transaction('rollback', headers, info).catch(() => {})
 
         throw e // silent rollback, throw original error
       }
