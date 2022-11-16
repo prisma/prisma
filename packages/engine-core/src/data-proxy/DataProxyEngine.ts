@@ -428,7 +428,8 @@ export class DataProxyEngine extends Engine {
  */
 function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
   if (headers.transactionId) {
-    const { transactionId: _, ...httpHeaders } = headers
+    const httpHeaders = { ...headers }
+    delete httpHeaders.transactionId
     return httpHeaders
   }
   return headers
