@@ -217,23 +217,15 @@ export class RequestHandler {
   }
 
   /**
-   * Handles the error and logs it, logging the error is done asynchoronously rather than blocking
-   * waiting for the event handler to finish. This is because event handlers are provided by the user
-   * through client.$on('error', callback) and we don't want to block the request during the callback
-   * execution, as that would affect query runtime metrics.
+   * Handles the error and logs it, logging the error is done synchronously waiting for the event
+   * handlers to finish.
    */
   handleAndLogRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams, logEmmiter?: EventEmitter): never {
-    // eslint-disable-next-line
-    async function logAsync(l: EventEmitter, err: any) {
-      l.emit('error', err)
-    }
-
     try {
       this.handleRequestError({ error, clientMethod, callsite, transaction })
     } catch (err) {
       if (logEmmiter) {
-        // fire and forget
-        logAsync(logEmmiter, err).catch(() => { })
+        logEmmiter.emit('error', err)
       }
       throw err
     }
