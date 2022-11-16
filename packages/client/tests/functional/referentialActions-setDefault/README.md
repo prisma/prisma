@@ -2,4 +2,4 @@
 
 Internal Notion pages
 
-- [Doc](https://www.notion.so/prismaio/Referential-Actions-TS-Test-Plan-52571af2aa6a48c1ae3a929880fd25aa)
+- [Doc](https://www.notion.so/SetDefault-referential-action-on-MySQL-68d7bdbe6fc947cf8829d7ca7dc2b001)
