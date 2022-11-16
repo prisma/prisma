@@ -149,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.7.0-16.59141a40487d94bf2ab7bb42ad81abbab5772a2d"
+    "@prisma/engines-version": "4.7.0-20.integration-closed-itx-error-message-a07aa517fd2298a2f12569fb2e07a1fd1f40879c"
   },
   "sideEffects": false
 }
