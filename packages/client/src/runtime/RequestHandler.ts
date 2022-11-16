@@ -1,6 +1,7 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import { getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
+import { EventEmitter } from 'stream'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -37,6 +38,7 @@ export type RequestParams = {
   unpacker?: Unpacker
   otelParentCtx?: Context
   otelChildCtx?: Context
+  logEmmiter?: EventEmitter
 }
 
 export type HandleErrorParams = {
@@ -141,6 +143,7 @@ export class RequestHandler {
     unpacker,
     otelParentCtx,
     otelChildCtx,
+    logEmmiter,
   }: RequestParams) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -195,7 +198,30 @@ export class RequestHandler {
       }
       return unpackResult
     } catch (error) {
+      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction })
+    }
+  }
+
+  /**
+   * Handles the error and logs it, logging the error is done asynchoronously rather than blocking
+   * waiting for the event handler to finish. This is because event handlers are provided by the user
+   * through client.$on('error', callback) and we don't want to block the request during the callback
+   * execution, as that would affect query runtime metrics.
+   */
+  handleAndLogRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams, logEmmiter?: EventEmitter): never {
+    // eslint-disable-next-line
+    async function logAsync(l: EventEmitter, err: any) {
+      l.emit('error', err)
+    }
+
+    try {
       this.handleRequestError({ error, clientMethod, callsite, transaction })
+    } catch (err) {
+      if (logEmmiter) {
+        // fire and forget
+        logAsync(logEmmiter, err).catch(() => { })
+      }
+      throw err
     }
   }
 
