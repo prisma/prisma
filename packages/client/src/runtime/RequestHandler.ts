@@ -43,7 +43,6 @@ export type RequestParams = {
   unpacker?: Unpacker
   otelParentCtx?: Context
   otelChildCtx?: Context
-  logEmmiter?: EventEmitter
 }
 
 export type HandleErrorParams = {
@@ -92,8 +91,10 @@ export class RequestHandler {
   client: Client
   hooks: any
   dataloader: DataLoader<Request>
+  private logEmmitter?: EventEmitter
 
-  constructor(client: Client, hooks?: any) {
+  constructor(client: Client, hooks?: any, logEmitter?: EventEmitter) {
+    this.logEmmitter = logEmitter
     this.client = client
     this.hooks = hooks
     this.dataloader = new DataLoader({
@@ -156,7 +157,6 @@ export class RequestHandler {
     extensions,
     otelParentCtx,
     otelChildCtx,
-    logEmmiter,
   }: RequestParams) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -220,12 +220,12 @@ export class RequestHandler {
    * Handles the error and logs it, logging the error is done synchronously waiting for the event
    * handlers to finish.
    */
-  handleAndLogRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams, logEmmiter?: EventEmitter): never {
+  handleAndLogRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams): never {
     try {
       this.handleRequestError({ error, clientMethod, callsite, transaction })
     } catch (err) {
-      if (logEmmiter) {
-        logEmmiter.emit('error', err)
+      if (this.logEmmitter) {
+        this.logEmmitter.emit('error', err)
       }
       throw err
     }
