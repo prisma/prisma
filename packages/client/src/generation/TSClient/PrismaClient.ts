@@ -83,7 +83,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
         ${action}?: (args: { model: '${modelName}', operation: '${action}', args: Prisma.${getModelArgName(
         modelName,
         action,
-      )}<ExtArgs>, data: PrismaPromise<Prisma.OptionalFlat<${modelName}>> }) => Promise<Prisma.OptionalFlat<${modelName}>>`
+      )}<ExtArgs>, data: Promise<Prisma.OptionalFlat<${modelName}>> }) => Promise<Prisma.OptionalFlat<${modelName}>>`
     }, '')}
       }`
   }, '')}
