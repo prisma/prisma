@@ -1,5 +1,5 @@
 export { BinaryEngine } from './binary/BinaryEngine'
-export type { EngineConfig } from './common/Engine'
+export type { EngineConfig, LogEmitter } from './common/Engine'
 export type { EngineEventType } from './common/Engine'
 export type { DatasourceOverwrite } from './common/Engine'
 export type { BatchTransactionOptions } from './common/Engine'

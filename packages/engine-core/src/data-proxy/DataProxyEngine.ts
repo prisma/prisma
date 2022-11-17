@@ -1,6 +1,5 @@
 import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
-import EventEmitter from 'events'
 
 import type {
   EngineConfig,
@@ -10,6 +9,7 @@ import type {
   InteractiveTransactionOptions,
   RequestBatchOptions,
   RequestOptions,
+  LogEmitter
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
@@ -45,7 +45,7 @@ export class DataProxyEngine extends Engine {
   readonly inlineSchemaHash: string
   private inlineDatasources: Record<string, InlineDatasource>
   private config: EngineConfig
-  private logEmitter: EventEmitter
+  private logEmitter: LogEmitter
   private env: { [k in string]?: string }
 
   private clientVersion: string
@@ -77,8 +77,8 @@ export class DataProxyEngine extends Engine {
     return 'unknown'
   }
 
-  async start() {}
-  async stop() {}
+  async start() { }
+  async stop() { }
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
