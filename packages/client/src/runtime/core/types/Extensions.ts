@@ -1,12 +1,31 @@
 import { Args } from '../extensions/$extends'
-import * as Utils from './Utils'
+import { Omit, PatchFlat } from './Utils'
 
-export type GetResultTypes<T extends (Args['result'] & {})[string], F extends T['fields'] = T['fields']> =
-  // if not a concrete type, return unknown otherwise return the value type
-  [T] extends [never] ? unknown : { [K in keyof F]: ReturnType<F[K]> }
+export type GetResultPayload<
+  Base extends object,
+  ExtArgs extends Args,
+  P extends keyof R,
+  R extends Args['result'] & {} = ExtArgs['result'] & {},
+  RP extends (Args['result'] & {})[string] = R[P],
+> =
+  // we force TypeScript to evaluate RP so that it can appear nicely to the user
+  // the we override the default Base properties with the properties of `result`
+  RP extends unknown ? Omit<Base, keyof RP> & { [K in keyof RP]: ReturnType<RP[K]['compute']> } : never
 
-export type GetResultSelect<T extends (Args['result'] & {})[string], F extends T['fields'] = T['fields']> =
-  // if not a concrete type, return unknown otherwise return the value type
-  [T] extends [never] ? unknown : { [K in keyof Utils.EmptyToUnknown<F>]?: true }
+export type GetResultSelect<
+  Base extends object,
+  ExtArgs extends Args,
+  P extends keyof R,
+  R extends Args['result'] & {} = ExtArgs['result'] & {},
+  RP extends (Args['result'] & {})[string] = PatchFlat<R[P], R['$allModels']>,
+> = Base & { [K in keyof RP]?: true }
+
+export type GetModel<
+  Base extends object,
+  ExtArgs extends Args,
+  P extends keyof M,
+  M extends Args['model'] & {} = ExtArgs['model'] & {},
+  MP extends (Args['model'] & {})[string] = M[P],
+> = Omit<Base, keyof MP> & MP
 
 export type { Args }

@@ -1530,7 +1530,7 @@ export namespace Prisma {
     posts?: boolean
   }
 
-  export type UserCountOutputTypeGetPayload<S extends boolean | null | undefined | UserCountOutputTypeArgs, U = keyof S> =
+  export type UserCountOutputTypeGetPayload<S extends boolean | null | undefined | UserCountOutputTypeArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? UserCountOutputType :
     S extends undefined ? never :
@@ -1574,7 +1574,7 @@ export namespace Prisma {
     User?: boolean
   }
 
-  export type EmbedHolderCountOutputTypeGetPayload<S extends boolean | null | undefined | EmbedHolderCountOutputTypeArgs, U = keyof S> =
+  export type EmbedHolderCountOutputTypeGetPayload<S extends boolean | null | undefined | EmbedHolderCountOutputTypeArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? EmbedHolderCountOutputType :
     S extends undefined ? never :
@@ -1618,7 +1618,7 @@ export namespace Prisma {
     n?: boolean
   }
 
-  export type MCountOutputTypeGetPayload<S extends boolean | null | undefined | MCountOutputTypeArgs, U = keyof S> =
+  export type MCountOutputTypeGetPayload<S extends boolean | null | undefined | MCountOutputTypeArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? MCountOutputType :
     S extends undefined ? never :
@@ -1662,7 +1662,7 @@ export namespace Prisma {
     m?: boolean
   }
 
-  export type NCountOutputTypeGetPayload<S extends boolean | null | undefined | NCountOutputTypeArgs, U = keyof S> =
+  export type NCountOutputTypeGetPayload<S extends boolean | null | undefined | NCountOutputTypeArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? NCountOutputType :
     S extends undefined ? never :
@@ -1706,7 +1706,7 @@ export namespace Prisma {
     many?: boolean
   }
 
-  export type OneOptionalCountOutputTypeGetPayload<S extends boolean | null | undefined | OneOptionalCountOutputTypeArgs, U = keyof S> =
+  export type OneOptionalCountOutputTypeGetPayload<S extends boolean | null | undefined | OneOptionalCountOutputTypeArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? OneOptionalCountOutputType :
     S extends undefined ? never :
@@ -1763,7 +1763,7 @@ export namespace Prisma {
 
   } 
 
-  export type EmbedGetPayload<S extends boolean | null | undefined | EmbedArgs, U = keyof S> =
+  export type EmbedGetPayload<S extends boolean | null | undefined | EmbedArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? Embed :
     S extends undefined ? never :
@@ -1877,7 +1877,7 @@ export namespace Prisma {
   }
 
 
-  export type EmbedEmbedGetPayload<S extends boolean | null | undefined | EmbedEmbedArgs, U = keyof S> =
+  export type EmbedEmbedGetPayload<S extends boolean | null | undefined | EmbedEmbedArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? EmbedEmbed :
     S extends undefined ? never :
@@ -2152,7 +2152,7 @@ export namespace Prisma {
     author?: boolean | UserArgs
   } 
 
-  export type PostGetPayload<S extends boolean | null | undefined | PostArgs, U = keyof S> =
+  export type PostGetPayload<S extends boolean | null | undefined | PostArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? Post :
     S extends undefined ? never :
@@ -3322,7 +3322,7 @@ export namespace Prisma {
     _count?: boolean | UserCountOutputTypeArgs
   } 
 
-  export type UserGetPayload<S extends boolean | null | undefined | UserArgs, U = keyof S> =
+  export type UserGetPayload<S extends boolean | null | undefined | UserArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? User :
     S extends undefined ? never :
@@ -4373,7 +4373,7 @@ export namespace Prisma {
     _count?: boolean | EmbedHolderCountOutputTypeArgs
   } 
 
-  export type EmbedHolderGetPayload<S extends boolean | null | undefined | EmbedHolderArgs, U = keyof S> =
+  export type EmbedHolderGetPayload<S extends boolean | null | undefined | EmbedHolderArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? EmbedHolder :
     S extends undefined ? never :
@@ -5540,7 +5540,7 @@ export namespace Prisma {
     _count?: boolean | MCountOutputTypeArgs
   } 
 
-  export type MGetPayload<S extends boolean | null | undefined | MArgs, U = keyof S> =
+  export type MGetPayload<S extends boolean | null | undefined | MArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? M :
     S extends undefined ? never :
@@ -6698,7 +6698,7 @@ export namespace Prisma {
     _count?: boolean | NCountOutputTypeArgs
   } 
 
-  export type NGetPayload<S extends boolean | null | undefined | NArgs, U = keyof S> =
+  export type NGetPayload<S extends boolean | null | undefined | NArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? N :
     S extends undefined ? never :
@@ -7852,7 +7852,7 @@ export namespace Prisma {
     _count?: boolean | OneOptionalCountOutputTypeArgs
   } 
 
-  export type OneOptionalGetPayload<S extends boolean | null | undefined | OneOptionalArgs, U = keyof S> =
+  export type OneOptionalGetPayload<S extends boolean | null | undefined | OneOptionalArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? OneOptional :
     S extends undefined ? never :
@@ -9012,7 +9012,7 @@ export namespace Prisma {
     one?: boolean | OneOptionalArgs
   } 
 
-  export type ManyRequiredGetPayload<S extends boolean | null | undefined | ManyRequiredArgs, U = keyof S> =
+  export type ManyRequiredGetPayload<S extends boolean | null | undefined | ManyRequiredArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? ManyRequired :
     S extends undefined ? never :
@@ -10170,7 +10170,7 @@ export namespace Prisma {
     opti?: boolean | OptionalSide2Args
   } 
 
-  export type OptionalSide1GetPayload<S extends boolean | null | undefined | OptionalSide1Args, U = keyof S> =
+  export type OptionalSide1GetPayload<S extends boolean | null | undefined | OptionalSide1Args> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? OptionalSide1 :
     S extends undefined ? never :
@@ -11320,7 +11320,7 @@ export namespace Prisma {
     opti?: boolean | OptionalSide1Args
   } 
 
-  export type OptionalSide2GetPayload<S extends boolean | null | undefined | OptionalSide2Args, U = keyof S> =
+  export type OptionalSide2GetPayload<S extends boolean | null | undefined | OptionalSide2Args> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? OptionalSide2 :
     S extends undefined ? never :
@@ -12413,7 +12413,7 @@ export namespace Prisma {
   }
 
 
-  export type AGetPayload<S extends boolean | null | undefined | AArgs, U = keyof S> =
+  export type AGetPayload<S extends boolean | null | undefined | AArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? A :
     S extends undefined ? never :
@@ -13424,7 +13424,7 @@ export namespace Prisma {
   }
 
 
-  export type BGetPayload<S extends boolean | null | undefined | BArgs, U = keyof S> =
+  export type BGetPayload<S extends boolean | null | undefined | BArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? B :
     S extends undefined ? never :
@@ -14429,7 +14429,7 @@ export namespace Prisma {
   }
 
 
-  export type CGetPayload<S extends boolean | null | undefined | CArgs, U = keyof S> =
+  export type CGetPayload<S extends boolean | null | undefined | CArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? C :
     S extends undefined ? never :
@@ -15456,7 +15456,7 @@ export namespace Prisma {
   }
 
 
-  export type DGetPayload<S extends boolean | null | undefined | DArgs, U = keyof S> =
+  export type DGetPayload<S extends boolean | null | undefined | DArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? D :
     S extends undefined ? never :
@@ -16437,7 +16437,7 @@ export namespace Prisma {
   }
 
 
-  export type EGetPayload<S extends boolean | null | undefined | EArgs, U = keyof S> =
+  export type EGetPayload<S extends boolean | null | undefined | EArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
     S extends true ? E :
     S extends undefined ? never :
