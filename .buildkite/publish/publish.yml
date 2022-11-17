@@ -2,7 +2,7 @@ steps:
   - label: ':llama: Publish'
     timeout_in_minutes: 45
     plugins:
-      - docker-compose#v4.5.0:
+      - docker-compose#v4.6.0:
           config: .buildkite/publish/docker-compose.yml
           run: app
   - wait
