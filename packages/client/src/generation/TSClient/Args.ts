@@ -84,7 +84,7 @@ export class ArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${modelArgName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
+export type ${modelArgName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = {}>', '')} = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
@@ -106,7 +106,7 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.gene
 /**
  * ${name} base type for ${action} actions
  */
-export type ${baseTypeName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
+export type ${baseTypeName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = {}>', '')} = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 
@@ -114,7 +114,7 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.gene
  * ${name}: ${action}
  */
 export interface ${modelArgName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = never>',
+      '<ExtArgs extends runtime.Types.Extensions.Args = {}>',
       '',
     )} extends ${baseTypeName}${ifExtensions('<ExtArgs>', '')} {
  /**
@@ -140,7 +140,7 @@ export interface ${modelArgName}${ifExtensions(
  * ${name}: ${action}
  */
 export type ${modelArgName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = never>',
+      '<ExtArgs extends runtime.Types.Extensions.Args = {}>',
       '',
     )} = ${baseTypeName}${ifExtensions('<ExtArgs>', '')}
       `
@@ -167,7 +167,7 @@ export class MinimalArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${this.generatedTypeName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = never>', '')} = {
+export type ${this.generatedTypeName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = {}>', '')} = {
 ${indent(
   args
     .map((arg) => {

@@ -11,7 +11,7 @@ type ResultArgs = {
   result?: {
     [ModelName in string]: {
       [VirtPropName in string]: {
-        needs: {
+        needs?: {
           [ModelPropName in string]: boolean
         }
         compute: (data: any) => unknown
