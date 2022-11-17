@@ -337,17 +337,16 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
     _extensions: Extension[]
-    _logEmitter: EventEmitter
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
 
-      this._logEmitter = new EventEmitter()
-      this._logEmitter.on('error', () => {
+      const logEmitter = new EventEmitter().on('error', () => {
         // to prevent unhandled error events
       })
+
       this._extensions = []
       this._previewFeatures = config.generator?.previewFeatures ?? []
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
@@ -453,7 +452,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingConfig: this._tracingConfig,
-          logEmitter: this._logEmitter,
+          logEmitter: logEmitter,
         }
 
         debug('clientVersion', config.clientVersion)
@@ -467,7 +466,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._engine = this.getEngine()
         void this._getActiveProvider()
 
-        this._fetcher = new RequestHandler(this, this._hooks) as any
+        this._fetcher = new RequestHandler(this, this._hooks, logEmitter) as any
 
         if (options.log) {
           for (const log of options.log) {
@@ -1220,7 +1219,6 @@ new PrismaClient({
         unpacker,
         otelParentCtx,
         otelChildCtx: context.active(),
-        logEmmiter: this._logEmitter,
       })
     }
 
@@ -1229,7 +1227,7 @@ new PrismaClient({
         const dmmf = await this._engine.getDmmf()
         return new DMMFHelper(getPrismaClientDMMF(dmmf))
       } catch (error) {
-        this._fetcher.handleAndLogRequestError({ ...params, error }, this._logEmitter)
+        this._fetcher.handleAndLogRequestError({ ...params, error })
       }
     })
 
