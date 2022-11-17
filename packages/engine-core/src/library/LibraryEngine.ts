@@ -270,13 +270,13 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
         target: event.module_path,
       })
     } else if (isPanicEvent(event)) {
+      // The error built is saved to be thrown later
       this.loggerRustPanic = new PrismaClientRustPanicError(
         this.getErrorMessageWithLink(
           `${event.message}: ${event.reason} in ${event.file}:${event.line}:${event.column}`,
         ),
         this.config.clientVersion!,
       )
-      this.logEmitter.emit('error', this.loggerRustPanic)
     } else {
       this.logEmitter.emit(event.level, {
         timestamp: new Date(),
