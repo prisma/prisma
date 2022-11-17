@@ -1,6 +1,6 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import { getTraceParent, TracingConfig } from '@prisma/engine-core'
+import { getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -43,6 +43,7 @@ export type HandleErrorParams = {
   error: any
   clientMethod: string
   callsite?: CallSite
+  transaction?: PrismaPromiseTransaction
 }
 
 export type Request = {
@@ -199,15 +200,22 @@ export class RequestHandler {
       }
       return unpackResult
     } catch (error) {
-      this.handleRequestError({ error, clientMethod, callsite })
+      this.handleRequestError({ error, clientMethod, callsite, transaction })
     }
   }
 
-  handleRequestError({ error, clientMethod, callsite }: HandleErrorParams): never {
+  handleRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams): never {
     debug(error)
-    // TODO: This is a workaround to keep backwards compatibility with clients
-    // consuming NotFoundError
+
+    if (isMismatchingBatchIndex(error, transaction)) {
+      // if this is batch error and current request was not it's cause, we don't add
+      // context information to the error: this wasn't a request that caused batch to fail
+      throw error
+    }
+
     if (error instanceof NotFoundError) {
+      // TODO: This is a workaround to keep backwards compatibility with clients
+      // consuming NotFoundError
       throw error
     }
 
@@ -225,11 +233,19 @@ export class RequestHandler {
     message = this.sanitizeMessage(message)
     // TODO: Do request with callsite instead, so we don't need to rethrow
     if (error.code) {
-      throw new PrismaClientKnownRequestError(message, error.code, this.client._clientVersion, error.meta)
+      throw new PrismaClientKnownRequestError(message, {
+        code: error.code,
+        clientVersion: this.client._clientVersion,
+        meta: error.meta,
+        batchRequestIdx: error.batchRequestIdx,
+      })
     } else if (error.isPanic) {
       throw new PrismaClientRustPanicError(message, this.client._clientVersion)
     } else if (error instanceof PrismaClientUnknownRequestError) {
-      throw new PrismaClientUnknownRequestError(message, this.client._clientVersion)
+      throw new PrismaClientUnknownRequestError(message, {
+        clientVersion: this.client._clientVersion,
+        batchRequestIdx: error.batchRequestIdx,
+      })
     } else if (error instanceof PrismaClientInitializationError) {
       throw new PrismaClientInitializationError(message, this.client._clientVersion)
     } else if (error instanceof PrismaClientRustPanicError) {
@@ -267,6 +283,10 @@ export class RequestHandler {
   get [Symbol.toStringTag]() {
     return 'RequestHandler'
   }
+}
+
+function isMismatchingBatchIndex(error: any, transaction: PrismaPromiseTransaction | undefined) {
+  return hasBatchIndex(error) && transaction?.kind === 'batch' && error.batchRequestIdx !== transaction.index
 }
 
 /**
