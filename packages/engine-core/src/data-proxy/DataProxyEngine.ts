@@ -380,10 +380,6 @@ export class DataProxyEngine extends Engine {
       try {
         return await args.callback({ logHttpCall })
       } catch (e) {
-        this.logEmitter.emit('error', {
-          message: `Error while ${args.actionGerund}: ${e.message ?? '(unknown)'}`,
-        })
-
         if (!(e instanceof DataProxyError)) throw e
         if (!e.isRetryable) throw e
         if (attempt >= MAX_RETRIES) {
@@ -394,7 +390,9 @@ export class DataProxyEngine extends Engine {
           }
         }
 
-        this.logEmitter.emit('warn', { message: 'This request can be retried' })
+        this.logEmitter.emit('warn', {
+          message: `Attempt ${attempt + 1}/${MAX_RETRIES} failed for ${args.actionGerund}: ${e.message ?? '(unknown)'}`,
+        })
         const delay = await backOff(attempt)
         this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
       }
