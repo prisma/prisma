@@ -32,11 +32,7 @@ import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { UserArgs } from './core/model/UserArgs'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
-import type {
-  InteractiveTransactionOptions,
-  PrismaPromise,
-  PrismaPromiseTransaction,
-} from './core/request/PrismaPromise'
+import { InteractiveTransactionOptions, PrismaPromise, PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { BaseDMMFHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
@@ -56,6 +52,7 @@ import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectO
 import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
+import { waitForBatch } from './utils/waitForBatch'
 
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
@@ -947,17 +944,19 @@ new PrismaClient({
       const txId = this._transactionId++
       const lock = getLockCountPromise(promises.length)
 
-      const requests = promises.map((request) => {
+      const requests = promises.map((request, index) => {
         if (request?.[Symbol.toStringTag] !== 'PrismaPromise') {
           throw new Error(
             `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
           )
         }
 
-        return request.requestTransaction?.({ id: txId, isolationLevel: options?.isolationLevel }, lock)
+        return (
+          request.requestTransaction?.({ id: txId, index, isolationLevel: options?.isolationLevel }, lock) ?? request
+        )
       })
 
-      return Promise.all(requests)
+      return waitForBatch(requests)
     }
 
     /**

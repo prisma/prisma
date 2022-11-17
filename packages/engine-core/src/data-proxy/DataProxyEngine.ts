@@ -208,7 +208,7 @@ export class DataProxyEngine extends Engine {
           if (data.errors.length === 1) {
             throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
           } else {
-            throw new PrismaClientUnknownRequestError(data.errors, this.config.clientVersion!)
+            throw new PrismaClientUnknownRequestError(data.errors, { clientVersion: this.config.clientVersion! })
           }
         }
 

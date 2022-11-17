@@ -146,12 +146,11 @@ export class LibraryEngine extends Engine {
     const response = this.parseEngineResponse<{ [K: string]: unknown }>(result)
 
     if (response.error_code) {
-      throw new PrismaClientKnownRequestError(
-        response.message as string,
-        response.error_code as string,
-        this.config.clientVersion as string,
-        response.meta,
-      )
+      throw new PrismaClientKnownRequestError(response.message as string, {
+        code: response.error_code as string,
+        clientVersion: this.config.clientVersion as string,
+        meta: response.meta as Record<string, unknown>,
+      })
     }
 
     return response as Tx.Info<undefined> | undefined
@@ -188,13 +187,17 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
   private parseEngineResponse<T>(response?: string): T {
     if (!response) {
-      throw new PrismaClientUnknownRequestError(`Response from the Engine was empty`, this.config.clientVersion!)
+      throw new PrismaClientUnknownRequestError(`Response from the Engine was empty`, {
+        clientVersion: this.config.clientVersion!,
+      })
     }
     try {
       const config = JSON.parse(response)
       return config as T
     } catch (err) {
-      throw new PrismaClientUnknownRequestError(`Unable to JSON.parse response from engine`, this.config.clientVersion!)
+      throw new PrismaClientUnknownRequestError(`Unable to JSON.parse response from engine`, {
+        clientVersion: this.config.clientVersion!,
+      })
     }
   }
 
@@ -460,7 +463,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
           throw this.buildQueryError(data.errors[0])
         }
         // this case should not happen, as the query engine only returns one error
-        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
+        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
+          clientVersion: this.config.clientVersion!,
+        })
       } else if (this.loggerRustPanic) {
         throw this.loggerRustPanic
       }
@@ -477,7 +482,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       if (typeof error === 'string') {
         throw e
       } else {
-        throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, this.config.clientVersion!)
+        throw new PrismaClientUnknownRequestError(`${error.message}\n${error.backtrace}`, {
+          clientVersion: this.config.clientVersion!,
+        })
       }
     }
   }
@@ -505,7 +512,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
         throw this.buildQueryError(data.errors[0])
       }
       // this case should not happen, as the query engine only returns one error
-      throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.config.clientVersion!)
+      throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), {
+        clientVersion: this.config.clientVersion!,
+      })
     }
 
     const { batchResult, errors } = data
