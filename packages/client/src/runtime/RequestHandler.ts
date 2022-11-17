@@ -93,7 +93,7 @@ export class RequestHandler {
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        const writeWords = ['create', 'update', 'delete']
+        const writeWords = ['create', 'update', 'delete', 'executeRaw', 'queryRaw']
         const requestContainsWrite = requests.some((r) =>
           writeWords.some((writeWord) => r.clientMethod.includes(writeWord)),
         )

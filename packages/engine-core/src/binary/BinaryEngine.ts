@@ -975,7 +975,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       const { error, shouldRetry } = await this.handleRequestError(e)
 
-      const isWrite = ['create', 'update', 'delete'].some((method) => clientMethod.includes(method))
+      const isWrite = ['create', 'update', 'delete', 'executeRaw', 'queryRaw'].some((method) =>
+        clientMethod.includes(method),
+      )
 
       // retry
       if (numTry <= MAX_REQUEST_RETRIES && shouldRetry && !isWrite) {
