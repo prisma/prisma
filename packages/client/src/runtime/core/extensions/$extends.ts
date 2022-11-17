@@ -30,7 +30,7 @@ type ModelArgs = {
 
 type ClientArgs = {
   client?: {
-    [MethodName: `$${string}`]: (...args: any) => unknown
+    [MethodName: `$${string}`]: unknown
   }
 }
 

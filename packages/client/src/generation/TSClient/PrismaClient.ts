@@ -12,7 +12,6 @@ import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
 import { ifExtensions } from './utils/ifExtensions'
-import { Omit } from './utils/Omit'
 import { Patch } from './utils/Patch'
 import { Pick } from './utils/Pick'
 
@@ -56,11 +55,9 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const modelParam = (modelName: string) => {
-    return `${lowerCase(
+    return `${lowerCase(modelName)}?: { [K: symbol]: PrismaClient<never, never, false, ExtArgs>['${lowerCase(
       modelName,
-    )}?: Record<string, unknown> & Prisma.OptionalFlat<PrismaClient<never, never, false, ExtArgs>['${lowerCase(
-      modelName,
-    )}']>`
+    )}'] }`
   }
 
   const params = `{
@@ -110,8 +107,7 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
   const model = clientExtensionsModelDefinition.call(this)
   const client = clientExtensionsClientDefinition.call(this)
   const query = clientExtensionsQueryDefinition.call(this)
-  const modelNames = Object.keys(this.dmmf.getModelMap()).map(lowerCase)
-  const modelUnion = modelNames.map((modelName) => `'${modelName}'`).join(' | ')
+  const lcModelNames = Object.keys(this.dmmf.getModelMap()).map(lowerCase)
 
   const definition = () => `
   /**
@@ -130,7 +126,7 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
     query?: ${query.params}
     client?: C & ${client.params}
   }): runtime.Types.Utils.Omit<PrismaClient<T, U, GlobalReject, {
-        result: {${modelNames.reduce((acc, modelName) => {
+        result: {${lcModelNames.reduce((acc, modelName) => {
           return `${acc}
           ${modelName}: ${Patch(
             Patch(`(R & {})['$allModels']`, `(R & {})['${modelName}']`),
@@ -138,7 +134,7 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
           )}`
         }, '')}
         }
-        model: {${modelNames.reduce((acc, modelName) => {
+        model: {${lcModelNames.reduce((acc, modelName) => {
           return `${acc}
           ${modelName}: ${Patch(
             Patch(`(M & {})['$allModels']`, `(M & {})['${modelName}']`),
