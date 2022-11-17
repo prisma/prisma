@@ -493,10 +493,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       await this.startPromise
 
       if (!this.child && !this.engineEndpoint) {
-        throw new PrismaClientUnknownRequestError(
-          `Can't perform request, as the Engine has already been stopped`,
-          this.clientVersion!,
-        )
+        throw new PrismaClientUnknownRequestError(`Can't perform request, as the Engine has already been stopped`, {
+          clientVersion: this.clientVersion!,
+        })
       }
     }
 
@@ -951,7 +950,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
         }
         // this case should not happen, as the query engine only returns one error
-        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.clientVersion!)
+        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), { clientVersion: this.clientVersion! })
       }
 
       // Rust engine returns time in microseconds and we want it in milliseconds
@@ -1095,10 +1094,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     }
 
     if (this.lastErrorLog && isRustErrorLog(this.lastErrorLog)) {
-      const err = new PrismaClientUnknownRequestError(
-        this.getErrorMessageWithLink(getMessage(this.lastErrorLog)),
-        this.clientVersion!,
-      )
+      const err = new PrismaClientUnknownRequestError(this.getErrorMessageWithLink(getMessage(this.lastErrorLog)), {
+        clientVersion: this.clientVersion!,
+      })
 
       if (this.lastErrorLog?.fields?.message === 'PANIC') {
         this.lastPanic = err
@@ -1157,7 +1155,7 @@ and your request can't be processed.
 You probably have some open handle that prevents your process from exiting.
 It could be an open http server or stream that didn't close yet.
 We recommend using the \`wtfnode\` package to debug open handles.`,
-          this.clientVersion!,
+          { clientVersion: this.clientVersion! },
         )
       }
 
@@ -1203,12 +1201,11 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
    */
   transactionHttpErrorHandler<R>(result: Result<R>): never {
     const response = result.data as { [K: string]: unknown }
-    throw new PrismaClientKnownRequestError(
-      response.message as string,
-      response.error_code as string,
-      this.clientVersion as string,
-      response.meta,
-    )
+    throw new PrismaClientKnownRequestError(response.message as string, {
+      code: response.error_code as string,
+      clientVersion: this.clientVersion as string,
+      meta: response.meta as Record<string, unknown>,
+    })
   }
 }
 
