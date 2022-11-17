@@ -337,7 +337,6 @@ export class PrismaClient<
       '',
     )}
       > {
-        extArgs: ExtArgs
       /**
        * @private
        */
