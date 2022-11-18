@@ -1,3 +1,4 @@
+import os from 'os'
 import path from 'path'
 
 import { matrix } from '../../../../../helpers/blaze/matrix'
@@ -66,7 +67,7 @@ export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: Na
   const prismaFolder = getTestSuitePrismaPath(suiteMeta, suiteConfig)
   const schemaPath = path.join(prismaFolder, 'schema.prisma')
 
-  return schemaPath
+  return os.platform() === 'win32' ? `\\\\?\\${schemaPath}` : schemaPath
 }
 
 /**
