@@ -144,7 +144,7 @@ services:
       VT_DIALECT: 'mysql80'
 
   mariadb:
-    image: mariadb:10.7.3
+    image: mariadb:10.10.2
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=root
