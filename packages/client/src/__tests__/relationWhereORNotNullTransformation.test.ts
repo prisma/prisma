@@ -48,6 +48,7 @@ function getDocument(select) {
     select,
     rootTypeName: 'query',
     rootField: 'findManySale',
+    extensions: [],
   })
   return String(document)
 }

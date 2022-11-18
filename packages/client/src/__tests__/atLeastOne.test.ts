@@ -21,6 +21,7 @@ describe('at least one validation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     expect(String(document)).toMatchInlineSnapshot(`
       query {
@@ -85,6 +86,7 @@ describe('at least one validation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     expect(String(document)).toMatchSnapshot()
     expect(() => document.validate(select, false, 'users')).not.toThrow()

@@ -24,6 +24,7 @@ describe('getField', () => {
       },
       rootTypeName: 'query',
       rootField: 'findUniqueUser',
+      extensions: [],
     })
 
     expect(getField(document, ['findUniqueUser']).name).toMatchInlineSnapshot(`findUniqueUser`)
@@ -40,6 +41,7 @@ describe('unpack', () => {
       select: {},
       rootTypeName: 'query',
       rootField: 'findUniquePost',
+      extensions: [],
     })
 
     const path = ['findUniquePost']
@@ -80,6 +82,7 @@ describe('unpack', () => {
       select: {},
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: [],
     })
 
     const path = ['findManyPost']
@@ -156,6 +159,7 @@ describe('unpack', () => {
       },
       rootTypeName: 'query',
       rootField: 'findUniqueUser',
+      extensions: [],
     })
 
     const path = ['findUniqueUser']
