@@ -12,16 +12,14 @@ import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
 import { ifExtensions } from './utils/ifExtensions'
-import { Patch } from './utils/Patch'
-import { Pick } from './utils/Pick'
 
 function clientExtensionsResultDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const resultGenericParams = (modelName: string) => {
-    return `R_${modelName}_Needs extends Record<string, runtime.Types.Extensions.GetResultSelect<Prisma.${modelName}SelectScalar, ExtArgs, '${lowerCase(
+    return `R_${modelName}_Needs extends Record<string, runtime.Types.Extensions.GetResultSelect<Prisma.${modelName}SelectScalar, ExtArgs['result']['${lowerCase(
       modelName,
-    )}'>>`
+    )}']>>`
   }
 
   const genericParams = [
@@ -108,6 +106,7 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
   const client = clientExtensionsClientDefinition.call(this)
   const query = clientExtensionsQueryDefinition.call(this)
   const lcModelNames = Object.keys(this.dmmf.getModelMap()).map(lowerCase)
+  const modelNameUnion = lcModelNames.map((m) => `'${m}'`).join(' | ')
 
   const definition = () => `
   /**
@@ -123,29 +122,13 @@ function clientExtensionsDefinition(this: PrismaClientClass) {
   >(extension: {
     result?: R & ${result.params}
     model?: M & ${model.params}
-    query?: ${query.params}
     client?: C & ${client.params}
-  }): runtime.Types.Utils.Omit<PrismaClient<T, U, GlobalReject, {
-        result: {${lcModelNames.reduce((acc, modelName) => {
-          return `${acc}
-          ${modelName}: ${Patch(
-            Patch(`(R & {})['$allModels']`, `(R & {})['${modelName}']`),
-            `(ExtArgs['result'] & {})['${modelName}']`,
-          )}`
-        }, '')}
-        }
-        model: {${lcModelNames.reduce((acc, modelName) => {
-          return `${acc}
-          ${modelName}: ${Patch(
-            Patch(`(M & {})['$allModels']`, `(M & {})['${modelName}']`),
-            `(ExtArgs['model'] & {})['${modelName}']`,
-          )}`
-        }, '')}
-        }
-        client: ${Patch(Pick(`C`, '`$${string}`'), `ExtArgs['client']`)}
-        query: {},
-      }>, keyof C & \`\$\${string}\`> & ${Patch(Pick(`C`, '`$${string}`'), `ExtArgs['client']`)}
-`
+  }): runtime.Types.Utils.Merge<PrismaClient<T, U, GlobalReject, {
+        result: { [K in ${modelNameUnion}]: runtime.Types.Utils.Merge<R['$allModels'], R[K], ExtArgs['result'][K]> } 
+        model: { [K in ${modelNameUnion}]: runtime.Types.Utils.Merge<R['$allModels'], M[K], ExtArgs['model'][K]> } 
+        client: runtime.Types.Utils.Merge<{}, C, ExtArgs['client']>
+        query: {}
+      }>, C, ExtArgs['client']>`
 
   return ifExtensions(definition, '')
 }
@@ -409,9 +392,9 @@ ${[
   * \`\`\`
   */
 get ${methodName}(): ${ifExtensions(
-            `runtime.Types.Extensions.GetModel<Prisma.${m.model}Delegate<GlobalReject, ExtArgs>, ExtArgs, '${lowerCase(
-              m.model,
-            )}'>`,
+            `runtime.Types.Extensions.GetModel<Prisma.${
+              m.model
+            }Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['${lowerCase(m.model)}']>`,
             `Prisma.${m.model}Delegate<GlobalReject>`,
           )};`
         })

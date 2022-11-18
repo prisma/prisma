@@ -8,7 +8,7 @@ import {
 export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
 type ResultArgs = {
-  result?: {
+  result: {
     [ModelName in string]: {
       [VirtPropName in string]: {
         needs?: {
@@ -21,7 +21,7 @@ type ResultArgs = {
 }
 
 type ModelArgs = {
-  model?: {
+  model: {
     [ModelName in string]: {
       [MethodName in string]: unknown
     }
@@ -29,7 +29,7 @@ type ModelArgs = {
 }
 
 type ClientArgs = {
-  client?: {
+  client: {
     [MethodName: `$${string}`]: unknown
   }
 }
@@ -46,7 +46,7 @@ type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
 }
 
 type QueryOptions = {
-  query?: {
+  query: {
     [ModelName in string]:
       | {
           [ModelAction in string]: (args: QueryOptionsCbArgs) => Promise<any>

@@ -51,9 +51,12 @@ export class Count implements Generatable {
  * Count Type ${name}
  */
 
-${outputType.toTS()}
+${outputType.toTS()} 
 
-export type ${getSelectName(name)}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = {}>', '')} = {
+export type ${getSelectName(name)}${ifExtensions(
+      '<ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: {}, query: {}, client: {} }>',
+      '',
+    )} = {
 ${indent(
   type.fields
     .map((field) => {
