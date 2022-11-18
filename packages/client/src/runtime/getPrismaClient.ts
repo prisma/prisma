@@ -1251,7 +1251,7 @@ new PrismaClient({
   return PrismaClient
 }
 
-const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends']
+const forbidden: Array<string | symbol> = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends']
 
 /**
  * Proxy that takes over the client promises to pass `txId`
@@ -1285,6 +1285,13 @@ function transactionProxy<T>(thing: T, transaction: InteractiveTransactionOption
 
       // if it's an object prop, then we keep on making it proxied
       return transactionProxy(target[prop], transaction)
+    },
+
+    has(target, prop) {
+      if (forbidden.includes(prop)) {
+        return false
+      }
+      return Reflect.has(target, prop)
     },
   }) as any as T
 }
