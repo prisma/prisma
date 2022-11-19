@@ -1,9 +1,8 @@
+import { faker } from '@faker-js/faker'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 import type { SetupParams } from '../../../../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres'
-
-import { faker } from '@faker-js/faker'
-
 // @ts-ignore trick to get typings at dev time
 import type { Prisma, PrismaClient } from './node_modules/.prisma/client'
 
