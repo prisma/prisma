@@ -12,6 +12,7 @@ export { PrismaClientUnknownRequestError } from './common/errors/PrismaClientUnk
 export type { Metric, MetricHistogram, MetricHistogramBucket, Metrics } from './common/types/Metrics'
 export type { IsolationLevel, Options, TransactionHeaders } from './common/types/Transaction'
 export { getInternalDatamodelJson } from './common/utils/getInternalDatamodelJson'
+export { isWriteRequest } from './common/utils/is-write-request'
 export { getOriginalBinaryTargetsValue, printGeneratorConfig } from './common/utils/printGeneratorConfig'
 export { fixBinaryTargets } from './common/utils/util'
 export { plusX } from './common/utils/util'

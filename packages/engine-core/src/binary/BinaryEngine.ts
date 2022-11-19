@@ -42,6 +42,7 @@ import type {
   QueryEngineResult,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
+import { isWriteRequest } from '../common/utils/is-write-request'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { runtimeHeadersToHttpHeaders } from '../common/utils/runtimeHeadersToHttpHeaders'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
@@ -975,9 +976,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       const { error, shouldRetry } = await this.handleRequestError(e)
 
-      const isWrite = ['create', 'update', 'delete', 'executeRaw', 'queryRaw'].some((method) =>
-        clientMethod.includes(method),
-      )
+      const isWrite = isWriteRequest(clientMethod)
 
       // retry
       if (numTry <= MAX_REQUEST_RETRIES && shouldRetry && !isWrite) {

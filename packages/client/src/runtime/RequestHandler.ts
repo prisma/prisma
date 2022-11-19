@@ -1,6 +1,6 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import { getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
+import { getTraceParent, hasBatchIndex, isWriteRequest, TracingConfig } from '@prisma/engine-core'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -93,10 +93,7 @@ export class RequestHandler {
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        const writeWords = ['create', 'update', 'delete', 'executeRaw', 'queryRaw']
-        const requestContainsWrite = requests.some((r) =>
-          writeWords.some((writeWord) => r.clientMethod.includes(writeWord)),
-        )
+        const isWrite = requests.some((r) => isWriteRequest(r.clientMethod))
 
         const batchTransaction = info.transaction?.kind === 'batch' ? info.transaction : undefined
 
@@ -104,7 +101,7 @@ export class RequestHandler {
           queries,
           headers: info.headers,
           transaction: batchTransaction,
-          requestContainsWrite,
+          requestContainsWrite: isWrite,
         })
       },
       singleLoader: (request) => {
