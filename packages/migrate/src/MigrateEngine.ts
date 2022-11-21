@@ -189,7 +189,6 @@ export class MigrateEngine {
           args.push(...['--enabled-preview-features', this.enabledPreviewFeatures.join(',')])
         }
         this.child = spawn(binaryPath, args, {
-          cwd: this.projectDir,
           stdio: ['pipe', 'pipe', this.debug ? process.stderr : 'pipe'],
           env: {
             // The following environment variables can be overridden by the user.
