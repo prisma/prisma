@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.7.0-39.9ca8f751df5741bb4f8eac010bd8f2ad7927ba28",
+    "@prisma/engines-version": "4.7.0-45.integration-closed-itx-error-message-a3aebd958a91eadee3f46bd16c3235df3f042982",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.14",
