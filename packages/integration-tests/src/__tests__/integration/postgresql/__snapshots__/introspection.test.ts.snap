@@ -307,7 +307,7 @@ Array [
   Object {
     affected: Array [
       Object {
-        field: ,
+        field: 12345,
         model: column_name_that_becomes_empty_string,
       },
     ],
