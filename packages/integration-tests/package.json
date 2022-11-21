@@ -42,14 +42,14 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "test:integration": "jest integration --maxConcurrency=8 --verbose",
-    "test:sqlite": "jest integration.sqlite --maxConcurrency=8 --verbose",
-    "test:postgresql": "jest integration.postgresql --maxConcurrency=8 --verbose",
-    "test:mysql": "jest integration.mysql --maxConcurrency=8 --verbose",
-    "test:mariadb": "jest integration.mariadb --maxConcurrency=8 --verbose",
-    "test:mssql": "jest integration.mssql --maxConcurrency=8 --verbose",
+    "test:integration": "jest integration --maxWorkers=1 --verbose",
+    "test:sqlite": "jest integration.sqlite --verbose",
+    "test:postgresql": "jest integration.postgresql --maxWorkers=1 --verbose",
+    "test:mysql": "jest integration.mysql --maxWorkers=1 --verbose",
+    "test:mariadb": "jest integration.mariadb --maxWorkers=1 --verbose",
+    "test:mssql": "jest integration.mssql --maxWorkers=1 --verbose",
     "jest": "jest",
-    "test": "jest --maxConcurrency=8 --verbose"
+    "test": "jest --maxWorkers=1 --verbose"
   },
   "files": [
     "README.md",
