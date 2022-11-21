@@ -43,7 +43,6 @@ import type {
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { runtimeHeadersToHttpHeaders } from '../common/utils/runtimeHeadersToHttpHeaders'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
@@ -1212,6 +1211,18 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
 // faster than creating a new object and JSON.stringify it all the time
 function stringifyQuery(q: string) {
   return `{"variables":{},"query":${JSON.stringify(q)}}`
+}
+
+/**
+ * Convert runtime headers to HTTP headers expected by the Query Engine.
+ */
+function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
+  if (headers.transactionId) {
+    const { transactionId, ...httpHeaders } = headers
+    httpHeaders['X-transaction-id'] = transactionId
+    return httpHeaders
+  }
+  return headers
 }
 
 function hookProcess(handler: string, exit = false) {
