@@ -261,7 +261,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
   private emitError(err: any) {
     const message = err.message ?? err
-    this.logEmitter.emit('error', { message: message, timestamp: new Date() })
+    this.logEmitter.emit('error', {
+      message: message,
+      timestamp: new Date(),
+      target: 'binary engine lifecycle management',
+    })
   }
 
   private checkForTooManyEngines() {
