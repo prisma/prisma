@@ -1,5 +1,5 @@
 import type { PrismaClientRustErrorArgs } from './types/PrismaClientRustErrorArgs'
-import { getBacktraceFromLog, getBacktraceFromRustError } from './utils/log'
+import { getBacktrace, isPanic } from './utils/log'
 
 /**
  * A generic Prisma Client Rust error.
@@ -7,22 +7,21 @@ import { getBacktraceFromLog, getBacktraceFromRustError } from './utils/log'
  */
 export class PrismaClientRustError extends Error {
   clientVersion: string
+  private _isPanic: boolean
 
-  constructor({ clientVersion, log, error }: PrismaClientRustErrorArgs) {
-    if (log) {
-      const backtrace = getBacktraceFromLog(log)
-      super(backtrace ?? 'Unknown error')
-    } else if (error) {
-      const backtrace = getBacktraceFromRustError(error)
-      super(backtrace)
-    } else {
-      // this should never happen
-      super(`Unknown error`)
-    }
+  constructor({ clientVersion, error }: PrismaClientRustErrorArgs) {
+    const backtrace = getBacktrace(error)
+    super(backtrace ?? 'Unknown error')
 
+    this._isPanic = isPanic(error)
     this.clientVersion = clientVersion
   }
+
   get [Symbol.toStringTag]() {
     return 'PrismaClientRustPanicError'
+  }
+
+  public isPanic(): boolean {
+    return this._isPanic
   }
 }

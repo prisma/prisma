@@ -22,7 +22,6 @@ import type {
   GetConfigResult,
   RequestBatchOptions,
   RequestOptions,
-  LogEmitter,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -34,6 +33,7 @@ import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageW
 import type { RustError, RustLog } from '../common/errors/utils/log'
 import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   EngineSpanEvent,
@@ -82,7 +82,7 @@ const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
 export class BinaryEngine extends Engine {
-  private logEmitter: LogEmitter
+  private logEmitter: EventEmitter
   private showColors: boolean
   private logQueries: boolean
   private logLevel?: 'info' | 'warn'
@@ -234,34 +234,34 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     this.checkForTooManyEngines()
   }
 
-  private setError(err: Error | RustLog | RustError) {
+  /**
+   * @deprecated do not rely on this
+   */
+  private setError(err: any) {
     if (isRustError(err)) {
-      this.lastRustError = err
-      this.logEmitter.emit(
-        'error',
-        new PrismaClientRustError({
-          clientVersion: this.clientVersion!,
-          error: err,
-        }),
-      )
-      if (err.is_panic) {
-        this.handlePanic()
-      }
+      this.handleRustError(err)
     } else if (isRustErrorLog(err)) {
       this.lastErrorLog = err
-      this.logEmitter.emit(
-        'error',
-        new PrismaClientRustError({
-          clientVersion: this.clientVersion!,
-          log: err,
-        }),
-      )
-      if (err.fields?.message === 'PANIC') {
-        this.handlePanic()
-      }
+      this.handleRustError(err)
     } else {
-      this.logEmitter.emit('error', err)
+      this.emitError(err)
     }
+  }
+
+  private handleRustError(err: RustLog | RustError) {
+    const wrappedError = new PrismaClientRustError({
+      clientVersion: this.clientVersion!,
+      error: err,
+    })
+    this.emitError(wrappedError)
+    if (wrappedError.isPanic()) {
+      this.handlePanic()
+    }
+  }
+
+  private emitError(err: any) {
+    const message = err.message ?? err
+    this.logEmitter.emit('error', { message: message, timestamp: new Date() })
   }
 
   private checkForTooManyEngines() {
