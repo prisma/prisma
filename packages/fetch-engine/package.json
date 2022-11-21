@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.7.0-39.9ca8f751df5741bb4f8eac010bd8f2ad7927ba28",
+    "@prisma/engines-version": "4.7.0-42.integration-closed-itx-error-message-d97372b40e5afd6b01339694ab663d3921ccacdd",
     "@swc/core": "1.3.14",
     "@swc/jest": "0.2.23",
     "@types/jest": "28.1.8",
