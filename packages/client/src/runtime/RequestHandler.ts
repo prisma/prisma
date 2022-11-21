@@ -15,7 +15,7 @@ import { IncludeSelect, visitQueryResult } from './core/extensions/visitQueryRes
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { DataLoader } from './DataLoader'
-import type { Client, Unpacker } from './getPrismaClient'
+import type { Client, LogEvent, Unpacker } from './getPrismaClient'
 import type { EngineMiddleware } from './MiddlewareHandler'
 import type { Document } from './query'
 import { Args, unpack } from './query'
@@ -224,7 +224,7 @@ export class RequestHandler {
       this.handleRequestError({ error, clientMethod, callsite, transaction })
     } catch (err) {
       if (this.logEmmitter) {
-        this.logEmmitter.emit('error', err)
+        this.logEmmitter.emit('error', { message: err.message, target: clientMethod, timestamp: new Date() })
       }
       throw err
     }
