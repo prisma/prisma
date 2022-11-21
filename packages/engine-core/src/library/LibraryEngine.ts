@@ -11,7 +11,6 @@ import type {
   EngineEventType,
   RequestBatchOptions,
   RequestOptions,
-  LogEmitter,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -21,6 +20,7 @@ import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUn
 import { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   ConfigMetaFormat,
@@ -69,7 +69,7 @@ export class LibraryEngine extends Engine {
   private QueryEngineConstructor?: QueryEngineConstructor
   private libraryLoader: LibraryLoader
   private library?: Library
-  private logEmitter: LogEmitter
+  private logEmitter: EventEmitter
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>

@@ -1,5 +1,4 @@
 export type LogLevel = 'info' | 'trace' | 'debug' | 'warn' | 'error' | 'query'
-
 export interface RawRustLog {
   timestamp: string
   level: LogLevel
@@ -33,7 +32,14 @@ export function getMessage(log: string | RustLog | RustError | any): string {
   return JSON.stringify(log)
 }
 
-export function getBacktraceFromLog(log: RustLog): string {
+export function getBacktrace(err: RustError | RustLog): string {
+  if (isRustError(err)) {
+    return getBacktraceFromRustError(err)
+  }
+  return getBacktraceFromLog(err)
+}
+
+function getBacktraceFromLog(log: RustLog): string {
   if (log.fields?.message) {
     let str = log.fields?.message
     if (log.fields?.file) {
@@ -54,7 +60,7 @@ export function getBacktraceFromLog(log: RustLog): string {
   return 'Unknown error'
 }
 
-export function getBacktraceFromRustError(err: RustError): string {
+function getBacktraceFromRustError(err: RustError): string {
   let str = ''
   if (err.is_panic) {
     str += `PANIC`
@@ -66,6 +72,13 @@ export function getBacktraceFromRustError(err: RustError): string {
     str += `\n${err.message}`
   }
   return str
+}
+
+export function isPanic(err: RustError | RustLog): boolean {
+  if (isRustError(err)) {
+    return err.is_panic
+  }
+  return err.fields?.message === 'PANIC'
 }
 
 export function isRustLog(e: any): e is RustLog {

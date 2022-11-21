@@ -1,6 +1,6 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import { getTraceParent, hasBatchIndex, LogEmitter, TracingConfig } from '@prisma/engine-core'
+import { EventEmitter, getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -90,9 +90,9 @@ export class RequestHandler {
   client: Client
   hooks: any
   dataloader: DataLoader<Request>
-  private logEmmitter?: LogEmitter
+  private logEmmitter?: EventEmitter
 
-  constructor(client: Client, hooks?: any, logEmitter?: LogEmitter) {
+  constructor(client: Client, hooks?: any, logEmitter?: EventEmitter) {
     this.logEmmitter = logEmitter
     this.client = client
     this.hooks = hooks
