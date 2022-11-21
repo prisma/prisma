@@ -185,7 +185,7 @@ Array [
   Object {
     affected: Array [
       Object {
-        field: 12345,
+        field: ,
         model: column_name_that_becomes_empty_string,
       },
     ],
