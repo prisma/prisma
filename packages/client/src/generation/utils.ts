@@ -276,7 +276,10 @@ export function getReturnType({
         isList,
       )} | Null${ifExtensions(', never, ExtArgs', '')}>`
     }
-    return `Prisma__${name}Client<${getType(
+    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? Prisma__${name}Client<${getType(
+      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
+      isList,
+    )}${ifExtensions(', never, ExtArgs', '')}> : Prisma__${name}Client<${getType(
       getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
       isList,
     )} | null, null${ifExtensions(', ExtArgs', '')}>`
