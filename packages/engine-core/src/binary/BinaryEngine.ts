@@ -943,7 +943,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     headers: QueryEngineRequestHeaders
     numTry: number
     clientMethod: string
-    _transaction?: InteractiveTransactionOptions<undefined>
+    transaction?: InteractiveTransactionOptions<undefined>
   }): Promise<QueryEngineResult<T>> {
     await this.start()
 
