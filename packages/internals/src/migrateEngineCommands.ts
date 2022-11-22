@@ -187,13 +187,16 @@ export async function execaCommand({
   migrationEnginePath = migrationEnginePath || (await resolveBinary(BinaryType.migrationEngine))
 
   try {
-    return await execa(migrationEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {
-      cwd,
-      env: {
-        RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
-        RUST_LOG: process.env.RUST_LOG ?? 'info',
+    return await execa(
+      migrationEnginePath,
+      ['--cwd', cwd, 'cli', '--datasource', connectionString, engineCommandName],
+      {
+        env: {
+          RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
+          RUST_LOG: process.env.RUST_LOG ?? 'info',
+        },
       },
-    })
+    )
   } catch (_e) {
     const e = _e as execa.ExecaError
 

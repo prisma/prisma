@@ -175,7 +175,7 @@ export class MigrateEngine {
         const { PWD, ...processEnv } = process.env
         const binaryPath = await resolveBinary(BinaryType.migrationEngine)
         debugRpc('starting migration engine with binary: ' + binaryPath)
-        const args: string[] = []
+        const args: string[] = ['--cwd', this.projectDir]
 
         if (this.schemaPath) {
           args.push(...['-d', this.schemaPath])

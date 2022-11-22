@@ -121,7 +121,7 @@ ${chalk.bold('Examples')}
       }
     }
 
-    if (await dropDatabase(dbInfo.url)) {
+    if (await dropDatabase(dbInfo.url, schemaDir)) {
       return `${process.platform === 'win32' ? '' : '🚀  '}The ${dbInfo.dbType} ${dbInfo.schemaWord} "${
         dbInfo.dbName
       }" from "${dbInfo.dbLocation}" was successfully dropped.\n`
