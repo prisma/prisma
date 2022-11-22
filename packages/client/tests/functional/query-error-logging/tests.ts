@@ -2,7 +2,6 @@ import { faker } from '@faker-js/faker'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
-import { NotFoundError } from '../../../src/runtime'
 import { LogEvent } from '../../../src/runtime/getPrismaClient'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -32,7 +31,7 @@ testMatrix.setupTestSuite(
             email,
           },
         }),
-      ).rejects.toThrowError(new NotFoundError('No User found'))
+      ).rejects.toThrowError('No User found')
 
       expect(errors).toHaveLength(1)
 
@@ -50,7 +49,7 @@ testMatrix.setupTestSuite(
             email,
           },
         }),
-      ).rejects.toThrowError(new NotFoundError('No User found'))
+      ).rejects.toThrowError('No User found')
 
       expect(errors).toHaveLength(1)
 
