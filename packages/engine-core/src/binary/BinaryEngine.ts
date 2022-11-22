@@ -937,7 +937,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     headers = {},
     numTry = 1,
     clientMethod,
-    _transaction,
+    transaction,
   }: {
     query: string
     headers: QueryEngineRequestHeaders
