@@ -981,7 +981,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       // retry
       if (numTry <= MAX_REQUEST_RETRIES && shouldRetry && !isWrite) {
         logger('trying a retry now')
-        return this.request({ query, headers, numTry: numTry + 1, clientMethod, _transaction })
+        return this.request({ query, headers, numTry: numTry + 1, clientMethod, transaction })
       }
 
       throw error
