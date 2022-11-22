@@ -4,8 +4,11 @@ import {
   applyModelsAndClientExtensions,
   unapplyModelsAndClientExtensions,
 } from '../model/applyModelsAndClientExtensions'
+import { OptionalFlat } from '../types/Utils'
 
 export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
+
+export type Extension = OptionalFlat<Args>
 
 type ResultArgs = {
   result: {
@@ -35,10 +38,10 @@ type ClientArgs = {
 }
 
 type QueryOptionsCbArgs = {
-  model: string
+  model?: string
   operation: string
   args: { [K in string]: {} | undefined | null | QueryOptionsCbArgs['args'] }
-  data: Promise<unknown>
+  result: Promise<unknown>
 }
 
 type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
@@ -62,12 +65,14 @@ type QueryOptions = {
  * TODO
  * @param this
  */
-export function $extends(this: Client, extension: Args | (() => Args)): Client {
+export function $extends(this: Client, extension: Extension | (() => Extension)): Client {
   // this preview flag is hidden until implementation is ready for preview release
   if (!this._hasPreviewFlag('clientExtensions')) {
     // TODO: when we are ready for preview release, change error message to
     // ask users to enable 'clientExtensions' preview feature
-    throw new PrismaClientValidationError('Extensions are not yet available')
+    throw new PrismaClientValidationError(
+      'Extensions are not yet generally available, please add `clientExtensions` to the `previewFeatures` field in the `generator` block in the `schema.prisma` file.',
+    )
   }
   // we need to re-apply models to the extend client:
   // they always capture specific instance of the client and without

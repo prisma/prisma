@@ -27,7 +27,8 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
-import { $extends, Args as Extension } from './core/extensions/$extends'
+import { $extends, Extension } from './core/extensions/$extends'
+import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { UserArgs } from './core/model/UserArgs'
@@ -1083,7 +1084,8 @@ new PrismaClient({
           if (!runInTransaction) {
             requestParams.transaction = undefined
           }
-          return this._executeRequest(requestParams)
+
+          return applyQueryExtensions(this, requestParams) // also executes the query
         }
 
         return await runInChildSpan(spanOptions.operation, () => {
@@ -1116,6 +1118,8 @@ new PrismaClient({
       unpacker,
       otelParentCtx,
     }: InternalRequestParams) {
+      console.log('tx', transaction)
+      console.log('args', args)
       if (this._dmmf === undefined) {
         this._dmmf = await this._getDmmf({ clientMethod, callsite })
       }
