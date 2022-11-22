@@ -179,8 +179,8 @@ function clientExtensionsDefinitions(this: PrismaClientClass) {
       query?: ${query.params}
       client?: C & ${client.params}
     }): runtime.Types.Utils.PatchFlat3<PrismaClient<T, U, GlobalReject, {
-          result: { [K in ${modelNameUnion}]: runtime.Types.Utils.PatchFlat3<R['$allModels'], R[K], ExtArgs['result'][K]> } 
-          model: { [K in ${modelNameUnion}]: runtime.Types.Utils.PatchFlat3<R['$allModels'], M[K], ExtArgs['model'][K]> } 
+          result: { [K in ${modelNameUnion}]: runtime.Types.Utils.PatchFlat3<R[K], R['$allModels'], ExtArgs['result'][K]> } 
+          model: { [K in ${modelNameUnion}]: runtime.Types.Utils.PatchFlat3<M[K], M['$allModels'], ExtArgs['model'][K]> } 
           client: runtime.Types.Utils.PatchFlat3<{}, C, ExtArgs['client']>
           query: {}
         }> & { $use: never }, C, ExtArgs['client']>`,
