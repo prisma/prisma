@@ -739,8 +739,9 @@ model User {
 }
 
 model some_table {
-  id    String @id(map: "User_pkey2")
-  email String
+  id         String       @id(map: "User_pkey2")
+  email      String
+  some_table some_table[]
 
   @@schema("base")
 }
@@ -755,11 +756,10 @@ model Post {
 }
 
 model some_table {
-  id         String       @id(map: "Post_pkey2")
+  id         String     @id(map: "Post_pkey2")
   title      String
   authorId   String
-  some_table some_table   @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
-  some_table some_table[]
+  some_table some_table @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
 
   @@schema("transactional")
 }
