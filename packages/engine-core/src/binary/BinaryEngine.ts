@@ -44,7 +44,6 @@ import type {
 import type * as Tx from '../common/types/Transaction'
 import { isWriteRequest } from '../common/utils/is-write-request'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { runtimeHeadersToHttpHeaders } from '../common/utils/runtimeHeadersToHttpHeaders'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
@@ -1234,6 +1233,18 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 // faster than creating a new object and JSON.stringify it all the time
 function stringifyQuery(q: string) {
   return `{"variables":{},"query":${JSON.stringify(q)}}`
+}
+
+/**
+ * Convert runtime headers to HTTP headers expected by the Query Engine.
+ */
+function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
+  if (headers.transactionId) {
+    const { transactionId, ...httpHeaders } = headers
+    httpHeaders['X-transaction-id'] = transactionId
+    return httpHeaders
+  }
+  return headers
 }
 
 function hookProcess(handler: string, exit = false) {
