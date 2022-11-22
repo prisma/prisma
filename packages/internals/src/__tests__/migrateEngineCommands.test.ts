@@ -65,9 +65,10 @@ describe('createDatabase', () => {
   })
 
   test('sqlite - invalid cwd (file path instead of directory)', async () => {
-    await expect(createDatabase('file:./doesnotexist.db', tempy.file())).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Migration engine exited."`,
-    )
+    await expect(createDatabase('file:./doesnotexist.db', tempy.file())).rejects.toThrowErrorMatchingInlineSnapshot(`
+      "Migration engine error:
+      "
+    `)
   })
 
   test('postgresql - create database', async () => {
