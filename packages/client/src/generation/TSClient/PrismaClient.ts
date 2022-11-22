@@ -370,9 +370,7 @@ export class PrismaClientClass implements Generatable {
   }
   public toTSWithoutNamespace(): string {
     const { dmmf } = this
-    return `
-    
-    ${this.jsDoc}
+    return `${this.jsDoc}
 export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
@@ -470,7 +468,6 @@ get ${methodName}(): ${ifExtensions(
   public toTS(): string {
     return `${new Datasources(this.internalDatasources).toTS()}
 ${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
-
 export type RejectOnNotFound = boolean | ((error: Error) => Error)
 export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
 export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
