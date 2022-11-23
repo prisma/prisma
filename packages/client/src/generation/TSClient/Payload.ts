@@ -33,7 +33,7 @@ export class PayloadType implements Generatable {
 
     return `\
 export type ${getPayloadName(name)}<S extends boolean | null | undefined | ${argsName}${ifExtensions(
-      `, ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: {}, query: {}, client: {} }, _${name} = runtime.Types.Extensions.GetResultPayload<${name}, ExtArgs['result']['${lowerCase(
+      `, ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs, _${name} = runtime.Types.Extensions.GetResultPayload<${name}, ExtArgs['result']['${lowerCase(
         name,
       )}']>`,
       '',
@@ -41,11 +41,11 @@ export type ${getPayloadName(name)}<S extends boolean | null | undefined | ${arg
   S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
   S extends true ? ${ifExtensions(`_${name}`, name)} :
   S extends undefined ? never :
-  S extends { include: any } & (${argsName}${findManyArg})
+  S extends { include: any }
   ? ${ifExtensions(`_${name}`, name)} ${
       include.length > 0 ? ifExtensions(`& runtime.Types.Utils.EmptyToUnknown<${include}>`, ` & ${include}`) : ''
     }
-  : S extends { select: any } & (${argsName}${findManyArg})
+  : S extends { select: any }
     ? ${select}
     : ${ifExtensions(`_${name}`, name)}
 `
