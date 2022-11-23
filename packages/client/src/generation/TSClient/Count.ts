@@ -54,7 +54,7 @@ export class Count implements Generatable {
 ${outputType.toTS()}
 
 export type ${getSelectName(name)}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: {}, query: {}, client: {} }>',
+      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
       '',
     )} = {
 ${indent(

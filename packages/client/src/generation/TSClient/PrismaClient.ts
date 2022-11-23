@@ -72,7 +72,7 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
 function clientExtensionsQueryDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
-  const prismaNamespaceTypes = `type QueryExtensionArgs<ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: {}, query: {}, client: {} }> = {${modelNames.reduce(
+  const prismaNamespaceTypes = `type QueryExtensionArgs<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {${modelNames.reduce(
     (acc, modelName) => {
       const actions = getModelActions(this.dmmf, modelName)
 
@@ -378,7 +378,7 @@ export class PrismaClient<
     ? T['rejectOnNotFound']
     : false${ifExtensions(
       `,
-  ExtArgs extends runtime.Types.Extensions.Args = { result: {}, model: {}, query: {}, client: {} }`,
+  ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs`,
       '',
     )}
       > {
