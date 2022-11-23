@@ -1298,13 +1298,15 @@ function warnAboutRejectOnNotFound(
   action: string,
 ): void {
   if (rejectOnNotFound) {
-    const replacementAction = rejectOnNotFoundReplacements[action]
-    const replacementCall = model ? `prisma.${model}.${replacementAction}` : `prisma.${replacementAction}`
     const key = `rejectOnNotFound.${model ?? ''}.${action}`
 
-    warnOnce(
-      key,
-      `\`rejectOnNotFound\` option is deprecated and will be removed in Prisma 5. Please use \`${replacementCall}\` method instead`,
-    )
+    let warningMessage = '`rejectOnNotFound` option is deprecated and will be removed in Prisma 5'
+    const replacementAction = rejectOnNotFoundReplacements[action]
+    if (replacementAction) {
+      const replacementCall = model ? `prisma.${model}.${replacementAction}` : `prisma.${replacementAction}`
+      warningMessage += `. Please use \`${replacementCall}\` method instead`
+    }
+
+    warnOnce(key, warningMessage)
   }
 }
