@@ -42,9 +42,9 @@ jobs:
           echo 'Checking that @prisma/engines-version have the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
 
+      # Note: @prisma/prisma-fmt-wasm might take a few minutes before it's available
+      # So expect to see a few automated retries happening in logs before it succeeds
       - name: Check if version of @prisma/prisma-fmt-wasm is available on npm
-        # Only run for `latest` and `patch` npm tag, as @prisma/prisma-fmt-wasm doesn't currently release on the `integration` tag
-        if: github.event.inputs.npmDistTag == 'latest' || github.event.inputs.npmDistTag == 'patch'
         run: |
           echo 'Checking that @prisma/prisma-fmt-wasm have the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/prisma-fmt-wasm -u ${{ github.event.inputs.version }}
@@ -59,8 +59,6 @@ jobs:
             pnpm update -r @prisma/engines-version@${{ github.event.inputs.version }}
 
       - name: Update the dependencies (@prisma/prisma-fmt-wasm)
-        # Only run for `latest` and `patch` npm tag, as @prisma/prisma-fmt-wasm doesn't currently release on the `integration` tag
-        if: github.event.inputs.npmDistTag == 'latest' || github.event.inputs.npmDistTag == 'patch'
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 7
@@ -95,7 +93,10 @@ jobs:
           labels: automerge
           title: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
           body: |
-            This automatic PR updates the engines to version `${{ github.event.inputs.version }}`. This will get automatically merged if all the tests pass.
+            The base branch for this PR is: main
+            This automatic PR updates the engines to version `${{ github.event.inputs.version }}`.
+            This will get automatically merged if all the tests pass.
+            :warning! If this PR needs to be updated, first remove the `automerge` label before pushing to avoid automerge to merge without waiting for tests.
             ## Packages
             | Package | NPM URL |
             |---------|---------|
@@ -138,7 +139,9 @@ jobs:
           draft: true
           title: 'chore(Automated Integration PR): update engines to ${{ github.event.inputs.version }}'
           body: |
-            This automatic integration PR updates the engines to version `${{ github.event.inputs.version }}`. This PR should normally not be merged.
+            The base branch for this PR is: main
+            This automatic integration PR updates the engines to version `${{ github.event.inputs.version }}`.
+            :warning: This PR should normally not be merged.
             ## Packages
             | Package | NPM URL |
             |---------|---------|
@@ -153,7 +156,7 @@ jobs:
 
       #
       # Patch Engine PR, from a prisma-engines patch branch (e.g. "4.6.x")
-      # This will create a draft PR as we don't want to merge it automatically
+      # This will create a PR that will need to be manually merged
       #
       - name: Extract patch branch name from version
         id: extract-patch-branch-name
@@ -175,10 +178,11 @@ jobs:
           author: 'Prismo <prismabots@gmail.com>'
           base: ${{ steps.extract-patch-branch-name.outputs.patchBranch }}
           branch: patch/${{ github.event.inputs.version }}
-          draft: true
           title: 'chore(deps): patch ${{ steps.extract-patch-branch-name.outputs.patchBranch }} ${{ github.event.inputs.version }}'
           body: |
-            This automatic PR updates the engines to version `${{ github.event.inputs.version }}`. This needs to be manually merged.
+            The base branch for this PR is: ${{ steps.extract-patch-branch-name.outputs.patchBranch }}
+            This automatic PR updates the engines to version `${{ github.event.inputs.version }}`.
+            This PR will need to be manually merged (no auto-merge).
             ## Packages
             | Package | NPM URL |
             |---------|---------|

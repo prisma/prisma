@@ -43,7 +43,6 @@ import type {
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { runtimeHeadersToHttpHeaders } from '../common/utils/runtimeHeadersToHttpHeaders'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
@@ -493,10 +492,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       await this.startPromise
 
       if (!this.child && !this.engineEndpoint) {
-        throw new PrismaClientUnknownRequestError(
-          `Can't perform request, as the Engine has already been stopped`,
-          this.clientVersion!,
-        )
+        throw new PrismaClientUnknownRequestError(`Can't perform request, as the Engine has already been stopped`, {
+          clientVersion: this.clientVersion!,
+        })
       }
     }
 
@@ -951,7 +949,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
         }
         // this case should not happen, as the query engine only returns one error
-        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.clientVersion!)
+        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), { clientVersion: this.clientVersion! })
       }
 
       // Rust engine returns time in microseconds and we want it in milliseconds
@@ -1095,10 +1093,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     }
 
     if (this.lastErrorLog && isRustErrorLog(this.lastErrorLog)) {
-      const err = new PrismaClientUnknownRequestError(
-        this.getErrorMessageWithLink(getMessage(this.lastErrorLog)),
-        this.clientVersion!,
-      )
+      const err = new PrismaClientUnknownRequestError(this.getErrorMessageWithLink(getMessage(this.lastErrorLog)), {
+        clientVersion: this.clientVersion!,
+      })
 
       if (this.lastErrorLog?.fields?.message === 'PANIC') {
         this.lastPanic = err
@@ -1157,7 +1154,7 @@ and your request can't be processed.
 You probably have some open handle that prevents your process from exiting.
 It could be an open http server or stream that didn't close yet.
 We recommend using the \`wtfnode\` package to debug open handles.`,
-          this.clientVersion!,
+          { clientVersion: this.clientVersion! },
         )
       }
 
@@ -1203,18 +1200,29 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
    */
   transactionHttpErrorHandler<R>(result: Result<R>): never {
     const response = result.data as { [K: string]: unknown }
-    throw new PrismaClientKnownRequestError(
-      response.message as string,
-      response.error_code as string,
-      this.clientVersion as string,
-      response.meta,
-    )
+    throw new PrismaClientKnownRequestError(response.message as string, {
+      code: response.error_code as string,
+      clientVersion: this.clientVersion as string,
+      meta: response.meta as Record<string, unknown>,
+    })
   }
 }
 
 // faster than creating a new object and JSON.stringify it all the time
 function stringifyQuery(q: string) {
   return `{"variables":{},"query":${JSON.stringify(q)}}`
+}
+
+/**
+ * Convert runtime headers to HTTP headers expected by the Query Engine.
+ */
+function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
+  if (headers.transactionId) {
+    const { transactionId, ...httpHeaders } = headers
+    httpHeaders['X-transaction-id'] = transactionId
+    return httpHeaders
+  }
+  return headers
 }
 
 function hookProcess(handler: string, exit = false) {

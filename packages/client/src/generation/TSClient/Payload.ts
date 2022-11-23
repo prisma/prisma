@@ -33,10 +33,10 @@ export class PayloadType implements Generatable {
 
     return `\
 export type ${getPayloadName(name)}<S extends boolean | null | undefined | ${argsName}${ifExtensions(
-      `, ExtArgs extends runtime.Types.Extensions.Args = never, U = keyof S, _${name} = ${name} & runtime.Types.Extensions.GetResultTypes<(ExtArgs['result'] & {})['${lowerCase(
+      `, ExtArgs extends runtime.Types.Extensions.Args = {}, _${name} = runtime.Types.Extensions.GetResultPayload<${name}, ExtArgs, '${lowerCase(
         name,
-      )}']>`,
-      ', U = keyof S',
+      )}'>`,
+      '',
     )}> =
   S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
   S extends true ? ${ifExtensions(`_${name}`, name)} :

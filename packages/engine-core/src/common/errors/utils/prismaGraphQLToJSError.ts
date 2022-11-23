@@ -3,17 +3,20 @@ import { PrismaClientUnknownRequestError } from '../PrismaClientUnknownRequestEr
 import type { RequestError } from '../types/RequestError'
 
 export function prismaGraphQLToJSError(
-  error: RequestError,
+  { error, user_facing_error }: RequestError,
   clientVersion: string,
 ): PrismaClientKnownRequestError | PrismaClientUnknownRequestError {
-  if (error.user_facing_error.error_code) {
-    return new PrismaClientKnownRequestError(
-      error.user_facing_error.message,
-      error.user_facing_error.error_code,
+  if (user_facing_error.error_code) {
+    return new PrismaClientKnownRequestError(user_facing_error.message, {
+      code: user_facing_error.error_code,
       clientVersion,
-      error.user_facing_error.meta,
-    )
+      meta: user_facing_error.meta,
+      batchRequestIdx: user_facing_error.batch_request_idx,
+    })
   }
 
-  return new PrismaClientUnknownRequestError(error.error, clientVersion)
+  return new PrismaClientUnknownRequestError(error, {
+    clientVersion,
+    batchRequestIdx: user_facing_error.batch_request_idx,
+  })
 }
