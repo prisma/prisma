@@ -11,7 +11,7 @@ it('validate should succeed if schema is valid', async () => {
 
 it('validate should throw if schema is invalid', async () => {
   ctx.fixture('example-project/prisma')
-  await expect(Validate.new().parse(['--schema=broken.prisma'])).rejects.toThrowError('Schema validation error')
+  await expect(Validate.new().parse(['--schema=broken.prisma'])).rejects.toThrowError('Prisma schema validation')
 })
 
 it('validate should throw if env var is not set', async () => {
@@ -33,8 +33,8 @@ describe('referential actions', () => {
       await Validate.new().parse(['--schema', './prisma/postgres.prisma'])
     } catch (e) {
       expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
-        Schema validation error - Error (query-engine-NORMALIZED)
-        Error code: P1012
+        Prisma schema validation - (query-engine-NORMALIZED)
+        Code: P1012
         error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
           -->  schema.prisma:21
            | 
@@ -63,8 +63,8 @@ describe('referential actions', () => {
       await Validate.new().parse(['--schema', './prisma/postgres.prisma'])
     } catch (e) {
       expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
-        Schema validation error - Error (query-engine-NORMALIZED)
-        Error code: P1012
+        Prisma schema validation - (query-engine-NORMALIZED)
+        Code: P1012
         error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
           -->  schema.prisma:21
            | 

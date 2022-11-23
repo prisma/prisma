@@ -1,8 +1,8 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid db pull: 
- Schema validation error - Error (get-config wasm)
- Error code: P1012
+ Prisma schema validation - (get-config wasm)
+ Code: P1012
  error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
    -->  schema.prisma:5
     | 
@@ -15,8 +15,8 @@ exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid db pull:
  
  Prisma CLI Version : 0.0.0
     1`] = `
-Schema validation error - Error (get-config wasm)
-Error code: P1012
+Prisma schema validation - (get-config wasm)
+Code: P1012
 error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
   -->  schema.prisma:5
    | 
@@ -31,8 +31,8 @@ Prisma CLI Version : 0.0.0
 `;
 
 exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid db push: 
- Schema validation error - Error (get-config wasm)
- Error code: P1012
+ Prisma schema validation - (get-config wasm)
+ Code: P1012
  error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
    -->  schema.prisma:5
     | 
@@ -45,8 +45,8 @@ exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid db push:
  
  Prisma CLI Version : 0.0.0
     1`] = `
-Schema validation error - Error (get-config wasm)
-Error code: P1012
+Prisma schema validation - (get-config wasm)
+Code: P1012
 error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
   -->  schema.prisma:5
    | 
@@ -61,8 +61,8 @@ Prisma CLI Version : 0.0.0
 `;
 
 exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid validate: 
- Schema validation error - Error (get-config wasm)
- Error code: P1012
+ Prisma schema validation - (get-config wasm)
+ Code: P1012
  error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
    -->  schema.prisma:5
     | 
@@ -75,8 +75,8 @@ exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid validate
  
  Prisma CLI Version : 0.0.0
     1`] = `
-Schema validation error - Error (get-config wasm)
-Error code: P1012
+Prisma schema validation - (get-config wasm)
+Code: P1012
 error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
   -->  schema.prisma:5
    | 

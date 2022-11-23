@@ -186,7 +186,7 @@ describe('format', () => {
     expect(formatted).toMatchSnapshot()
   })
 
-  test('valid schema with warnings', async () => {
+  test('valid schema with 1 preview feature flag warning', async () => {
     const schema = /* prisma */ `
       generator client {
         provider = "prisma-client-js"
@@ -206,9 +206,41 @@ describe('format', () => {
     expect(formattedSchema).toMatchSnapshot()
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `"[33mWarning: Preview feature \\"cockroachdb\\" is deprecated. The functionality can be used without specifying it as a preview feature.[39m"`,
-    )
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      "[33m[39m
+      [33mPrisma schema warning:[39m
+      [33m   - Preview feature \\"cockroachdb\\" is deprecated. The functionality can be used without specifying it as a preview feature.[39m"
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  test('valid schema with 3 preview feature flag warnings', async () => {
+    const schema = /* prisma */ `
+      generator client {
+        provider = "prisma-client-js"
+        previewFeatures = ["cockroachdb", "mongoDb", "microsoftSqlServer"]
+      }
+
+      datasource db {
+        provider = "cockroachdb"
+        url = env("TEST_POSTGRES_URI")
+      }
+
+      model SomeUser {
+        id   Int    @id
+      }
+    `
+    const formattedSchema = await formatSchema({ schema })
+    expect(formattedSchema).toMatchSnapshot()
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      "[33m[39m
+      [33mPrisma schema warnings:[39m
+      [33m   - Preview feature \\"cockroachdb\\" is deprecated. The functionality can be used without specifying it as a preview feature.[39m
+      [33m   - Preview feature \\"mongoDb\\" is deprecated. The functionality can be used without specifying it as a preview feature.[39m
+      [33m   - Preview feature \\"microsoftSqlServer\\" is deprecated. The functionality can be used without specifying it as a preview feature.[39m"
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 

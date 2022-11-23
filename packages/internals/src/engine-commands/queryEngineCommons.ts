@@ -140,5 +140,5 @@ export const createDebugErrorType =
   }
 
 export function createSchemaValidationError(reason: string) {
-  return `${chalk.redBright.bold('Schema validation error')} - ${reason}`
+  return `${chalk.redBright.bold('Prisma schema validation')} - ${reason}`
 }

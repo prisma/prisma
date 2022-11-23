@@ -64,7 +64,7 @@ export class GetConfigError extends Error {
   constructor(params: GetConfigErrorInit) {
     const constructedErrorMessage = match(params)
       .with({ _tag: 'parsed' }, ({ errorCode, message, reason }) => {
-        const errorCodeMessage = errorCode ? `Error code: ${errorCode}` : ''
+        const errorCodeMessage = errorCode ? `Code: ${errorCode}` : ''
         return `${reason}
 ${errorCodeMessage}
 ${message}`
@@ -132,7 +132,7 @@ async function getConfigWasm(options: GetConfigOptions) {
       },
       (e) => ({
         type: 'wasm-error' as const,
-        reason: 'Error (get-config wasm)',
+        reason: '(get-config wasm)',
         error: e as Error,
       }),
     ),
@@ -233,7 +233,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
         },
         (e) => ({
           type: 'node-api' as const,
-          reason: 'Error (query-engine-node-api library)',
+          reason: '(query-engine-node-api library)',
           error: e as Error,
         }),
       )
@@ -357,7 +357,7 @@ async function getConfigBinary(options: GetConfigOptions) {
         },
         (e) => ({
           type: 'execa' as const,
-          reason: 'Error (query-engine binary)',
+          reason: '(query-engine binary)',
           error: e as execa.ExecaError,
         }),
       )

@@ -1,3 +1,4 @@
+import chalk from 'chalk'
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
@@ -64,7 +65,7 @@ export async function formatSchema(
   /**
    * Note:
    * - Given an invalid schema, `formatWasm` returns a formatted schema regardless (when it doesn't panic).
-   * - Given an invalid schema, `lintWasm` returns a list of warnings/errors regardless (when it doesn't panic).
+   * - Given an invalid schema, `lintSchema` returns a list of warnings/errors regardless (when it doesn't panic).
    *   Warnings must be filtered out from the other diagnostics.
    * - Validation errors aren't checked/shown here.
    *   They appear when calling `getDmmf` on the formatted schema in Format.ts.
@@ -97,8 +98,12 @@ export async function formatSchema(
    * 1) should warnings still be displayed in case of errors?
    */
   const lintWarnings = getLintWarnings(lintDiagnostics)
-  for (const warning of lintWarnings) {
-    console.warn(warningToString(warning))
+
+  if (lintWarnings.length > 0) {
+    console.warn(chalk.yellow(`\nPrisma schema warning${lintWarnings.length > 1 ? 's' : ''}:`))
+    for (const warning of lintWarnings) {
+      console.warn(warningToString(warning))
+    }
   }
 
   return Promise.resolve(formattedSchema)
@@ -140,7 +145,6 @@ type DocumentFormattingParams = {
     // and be compatible with the LSP spec.
     // The Wasm formatter may fail silently on unmarshaling errors (a `warn!` macro is used in the Rust code, but that's not propagated to Wasm land).
     tabSize: number
-
     insertSpaces: boolean
   }
 }

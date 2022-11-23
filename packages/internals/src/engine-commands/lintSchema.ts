@@ -28,7 +28,7 @@ export function getLintWarnings(lintDiagnostics: LintDiagnostic[]): LintWarning[
 }
 
 export function warningToString(warning: LintDiagnostic): string {
-  return chalk.yellow(`Warning: ${warning.text}`)
+  return chalk.yellow(`   - ${warning.text}`)
 }
 
 function isWarning(diagnostic: LintDiagnostic): diagnostic is LintWarning {
