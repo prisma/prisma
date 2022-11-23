@@ -53,7 +53,6 @@ export type Request = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   tracingConfig?: TracingConfig
-  clientMethod: string
 }
 
 function getRequestInfo(request: Request) {
@@ -168,7 +167,7 @@ export class RequestHandler {
             runInTransaction: Boolean(transaction),
           },
           (params) => {
-            return this.dataloader.request({ ...params, tracingConfig: this.client._tracingConfig, clientMethod })
+            return this.dataloader.request({ ...params, tracingConfig: this.client._tracingConfig })
           },
         )
         data = result.data
@@ -181,7 +180,6 @@ export class RequestHandler {
           otelParentCtx,
           otelChildCtx,
           tracingConfig: this.client._tracingConfig,
-          clientMethod,
         })
         data = result?.data
         elapsed = result?.elapsed
