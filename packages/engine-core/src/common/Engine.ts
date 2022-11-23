@@ -1,4 +1,4 @@
-import type { DataSource, DMMF, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 
 import { TracingConfig } from '../tracing/getTracingConfig'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
@@ -28,8 +28,8 @@ export type RequestOptions<InteractiveTransactionPayload> = {
   query: string
   headers?: QueryEngineRequestHeaders
   numTry?: number
-  clientMethod: string
   transaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
+  isWrite: boolean
 }
 
 export type RequestBatchOptions = {
@@ -37,7 +37,7 @@ export type RequestBatchOptions = {
   headers?: QueryEngineRequestHeaders
   transaction?: BatchTransactionOptions
   numTry?: number
-  requestContainsWrite: boolean
+  containsWrite: boolean
 }
 
 // TODO Move shared logic in here

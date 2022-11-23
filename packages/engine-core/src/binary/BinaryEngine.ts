@@ -42,7 +42,6 @@ import type {
   QueryEngineResult,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
-import { isWriteRequest } from '../common/utils/is-write-request'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
@@ -935,7 +934,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     query,
     headers = {},
     numTry = 1,
-    clientMethod,
+    isWrite,
     transaction,
   }: RequestOptions<undefined>): Promise<QueryEngineResult<T>> {
     await this.start()
@@ -969,12 +968,10 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
       const { error, shouldRetry } = await this.handleRequestError(e)
 
-      const isWrite = isWriteRequest(clientMethod)
-
       // retry
       if (numTry <= MAX_REQUEST_RETRIES && shouldRetry && !isWrite) {
         logger('trying a retry now')
-        return this.request({ query, headers, numTry: numTry + 1, clientMethod, transaction })
+        return this.request({ query, headers, numTry: numTry + 1, isWrite, transaction })
       }
 
       throw error
@@ -986,7 +983,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     headers = {},
     transaction,
     numTry = 1,
-    requestContainsWrite,
+    containsWrite,
   }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
     await this.start()
 
@@ -1020,10 +1017,16 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       })
       .catch(async (e) => {
         const { error, shouldRetry } = await this.handleRequestError(e)
-        if (shouldRetry && !requestContainsWrite) {
+        if (shouldRetry && !containsWrite) {
           // retry
           if (numTry <= MAX_REQUEST_RETRIES) {
-            return this.requestBatch({ queries, headers, transaction, numTry: numTry + 1, requestContainsWrite })
+            return this.requestBatch({
+              queries,
+              headers,
+              transaction,
+              numTry: numTry + 1,
+              containsWrite,
+            })
           }
         }
 
