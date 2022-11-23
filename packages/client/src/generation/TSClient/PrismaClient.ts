@@ -25,23 +25,23 @@ function clientExtensionsResultDefinition(this: PrismaClientClass) {
   const genericParams = [
     ...modelNames.flatMap(resultGenericParams),
     `R extends runtime.Types.Extensions.Args['result'] = {}`,
-  ].join(',\n      ')
+  ].join(',\n    ')
 
   const resultParam = (modelName: string) => {
     return `${lowerCase(modelName)}?: {
-          [K in keyof R_${modelName}_Needs]: {
-            needs: R_${modelName}_Needs[K]
-            compute: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }, ExtArgs>) => unknown
-          }
-        }`
+        [K in keyof R_${modelName}_Needs]: {
+          needs: R_${modelName}_Needs[K]
+          compute: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }, ExtArgs>) => unknown
+        }
+      }`
   }
 
   const params = `{
-        $allModels?: Record<string, {
-          compute: (data: unknown) => unknown
-        }>
-        ${modelNames.map(resultParam).join('\n        ')}
-      }`
+      $allModels?: Record<string, {
+        compute: (data: unknown) => unknown
+      }>
+      ${modelNames.map(resultParam).join('\n      ')}
+    }`
 
   return {
     genericParams,
@@ -59,9 +59,9 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
   }
 
   const params = `{
-        $allModels?: Record<string, unknown>
-        ${modelNames.map(modelParam).join('\n        ')}
-      }`
+      $allModels?: Record<string, unknown>
+      ${modelNames.map(modelParam).join('\n      ')}
+    }`
 
   return {
     genericParams: `M extends runtime.Types.Extensions.Args['model'] = {}`,
@@ -162,28 +162,33 @@ function clientExtensionsDefinitions(this: PrismaClientClass) {
   return {
     prismaNamespaceDefinitions: ifExtensions(query.prismaNamespaceDefinitions, ''),
     prismaClientDefinitions: ifExtensions(
-      `
-    /**
-     * Allows you to extend the Prisma Client with custom logic.
-     * 
-     * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/extends).
-     */
-    $extends<
-      ${result.genericParams},
-      ${model.genericParams},
-      ${query.genericParams},
-      ${client.genericParams},
-    >(extension: {
-      result?: R & ${result.params}
-      model?: M & ${model.params}
-      query?: ${query.params}
-      client?: C & ${client.params}
-    }): runtime.Types.Utils.PatchFlat3<C, PrismaClient<T, U, GlobalReject, {
-          result: { [K in ${modelNameUnion}]: runtime.Types.Utils.PatchFlat3<R[K], R['$allModels'], ExtArgs['result'][K]> } 
-          model: { [K in ${modelNameUnion}]: runtime.Types.Utils.PatchFlat3<M[K], M['$allModels'], ExtArgs['model'][K]> } 
-          client: runtime.Types.Utils.PatchFlat3<{}, C, ExtArgs['client']>
-          query: {}
-        }> & { $use: never }, ExtArgs['client']>`,
+      `  /**
+   * Allows you to extend the Prisma Client with custom logic.
+   * 
+   * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/extends).
+   */
+  $extends<
+    ${result.genericParams},
+    ${model.genericParams},
+    ${query.genericParams},
+    ${client.genericParams},
+    PC = runtime.Types.Utils.PatchFlat3<C, PrismaClient<T, U, GlobalReject, {
+      result: '$allModels' extends keyof R
+      ? { [K in ${modelNameUnion}]: runtime.Types.Utils.PatchFlat3<R[K], R['$allModels'], ExtArgs['result'][K]> }
+      : { [K in keyof R & string]: runtime.Types.Utils.PatchFlat3<{}, R[K], ExtArgs['result'][K]> },
+      model: '$allModels' extends keyof M
+      ? { [K in ${modelNameUnion}]: runtime.Types.Utils.PatchFlat3<M[K], M['$allModels'], ExtArgs['model'][K]> }
+      : { [K in keyof M & string]: runtime.Types.Utils.PatchFlat3<{}, M[K], ExtArgs['model'][K]> },
+      client: runtime.Types.Utils.PatchFlat3<{}, C, ExtArgs['client']>
+      query: {}
+    }> & { $use: never }, ExtArgs['client']>
+  >(extension: ((client: this) => PC) | {
+    result?: R & ${result.params}
+    model?: M & ${model.params}
+    query?: ${query.params}
+    client?: C & ${client.params}
+  }): PC
+`,
       '',
     ),
   }
