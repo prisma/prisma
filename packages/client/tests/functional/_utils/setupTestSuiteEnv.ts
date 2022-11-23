@@ -7,13 +7,14 @@ import { match } from 'ts-pattern'
 import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
+import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import { Providers } from './providers'
 import { ProviderFlavor, ProviderFlavors } from './relationMode/ProviderFlavor'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta } from './types'
+import { AlterStatementCallback, ClientMeta } from './types'
 
 const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
@@ -108,12 +109,34 @@ export async function setupTestSuiteDatabase(
   suiteMeta: TestSuiteMeta,
   suiteConfig: NamedTestSuiteConfig,
   errors: Error[] = [],
+  alterStatementCallback?: AlterStatementCallback,
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
+
+    if (alterStatementCallback) {
+      const prismaDir = path.dirname(schemaPath)
+      const timestamp = new Date().getTime()
+      const provider = suiteConfig.matrixOptions['provider'] as Providers
+
+      await fs.promises.mkdir(`${prismaDir}/migrations/${timestamp}`, { recursive: true })
+      await fs.promises.writeFile(`${prismaDir}/migrations/migration_lock.toml`, `provider = "${provider}"`)
+      await fs.promises.writeFile(
+        `${prismaDir}/migrations/${timestamp}/migration.sql`,
+        alterStatementCallback(provider),
+      )
+
+      await DbExecute.new().parse([
+        '--file',
+        `${prismaDir}/migrations/${timestamp}/migration.sql`,
+        '--schema',
+        `${schemaPath}`,
+      ])
+    }
+
     consoleInfoMock.mockRestore()
   } catch (e) {
     errors.push(e as Error)

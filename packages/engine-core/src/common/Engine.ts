@@ -1,4 +1,4 @@
-import type { DataSource, DMMF, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 
 import { TracingConfig } from '../tracing/getTracingConfig'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
@@ -24,6 +24,22 @@ export type BatchTransactionOptions = {
 
 export type InteractiveTransactionOptions<Payload> = Transaction.Info<Payload>
 
+export type RequestOptions<InteractiveTransactionPayload> = {
+  query: string
+  headers?: QueryEngineRequestHeaders
+  numTry?: number
+  transaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
+  isWrite: boolean
+}
+
+export type RequestBatchOptions = {
+  queries: string[]
+  headers?: QueryEngineRequestHeaders
+  transaction?: BatchTransactionOptions
+  numTry?: number
+  containsWrite: boolean
+}
+
 // TODO Move shared logic in here
 export abstract class Engine {
   abstract on(event: EngineEventType, listener: (args?: any) => any): void
@@ -32,18 +48,8 @@ export abstract class Engine {
   abstract getConfig(): Promise<GetConfigResult>
   abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
-  abstract request<T>(
-    query: string,
-    headers?: QueryEngineRequestHeaders,
-    transaction?: InteractiveTransactionOptions<unknown>,
-    numTry?: number,
-  ): Promise<QueryEngineResult<T>>
-  abstract requestBatch<T>(
-    queries: string[],
-    headers?: QueryEngineRequestHeaders,
-    transaction?: BatchTransactionOptions,
-    numTry?: number,
-  ): Promise<QueryEngineResult<T>[]>
+  abstract request<T>(options: RequestOptions<unknown>): Promise<QueryEngineResult<T>>
+  abstract requestBatch<T>(options: RequestBatchOptions): Promise<QueryEngineResult<T>[]>
   abstract transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,
