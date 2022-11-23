@@ -4,7 +4,7 @@ import { getLintWarnings, LintError, LintWarning } from '../../engine-commands/l
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-describe('lint valid schema with warnings', () => {
+describe('lint valid schema with a deprecated preview feature', () => {
   const schema = /* prisma */ `
     generator client {
       provider        = "prisma-client-js"
@@ -28,7 +28,7 @@ describe('lint valid schema with warnings', () => {
     text: `Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature.`,
   }
 
-  test('catch warnings', () => {
+  test('should return a deprecated preview feature warning', () => {
     const lintDiagnostics = lintSchema(schema)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -42,7 +42,7 @@ describe('lint valid schema with warnings', () => {
   })
 })
 
-describe('lint invalid schema with warnings', () => {
+describe('lint invalid schema with a deprecated preview feature', () => {
   const schema = /* prisma */ `
     generator client {
       provider        = "prisma-client-js"
@@ -82,7 +82,7 @@ Either choose another referential action, or make the referenced fields optional
 `,
   }
 
-  test('catch warnings', () => {
+  test('should return a parsing error and a deprecated preview feature warning', () => {
     const lintDiagnostics = lintSchema(schema)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
