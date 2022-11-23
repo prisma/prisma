@@ -1,6 +1,7 @@
 import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
+import stripAnsi from 'strip-ansi'
 
 import { BinaryType, jestConsoleContext, jestContext, resolveBinary } from '../..'
 import { formatSchema } from '../../engine-commands'
@@ -206,10 +207,10 @@ describe('format', () => {
     expect(formattedSchema).toMatchSnapshot()
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      "[33m[39m
-      [33mPrisma schema warning:[39m
-      [33m   - Preview feature \\"cockroachdb\\" is deprecated. The functionality can be used without specifying it as a preview feature.[39m"
+    expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+      "
+      Prisma schema warning:
+         - Preview feature \\"cockroachdb\\" is deprecated. The functionality can be used without specifying it as a preview feature."
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -234,12 +235,12 @@ describe('format', () => {
     expect(formattedSchema).toMatchSnapshot()
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      "[33m[39m
-      [33mPrisma schema warnings:[39m
-      [33m   - Preview feature \\"cockroachdb\\" is deprecated. The functionality can be used without specifying it as a preview feature.[39m
-      [33m   - Preview feature \\"mongoDb\\" is deprecated. The functionality can be used without specifying it as a preview feature.[39m
-      [33m   - Preview feature \\"microsoftSqlServer\\" is deprecated. The functionality can be used without specifying it as a preview feature.[39m"
+    expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+      "
+      Prisma schema warnings:
+         - Preview feature \\"cockroachdb\\" is deprecated. The functionality can be used without specifying it as a preview feature.
+         - Preview feature \\"mongoDb\\" is deprecated. The functionality can be used without specifying it as a preview feature.
+         - Preview feature \\"microsoftSqlServer\\" is deprecated. The functionality can be used without specifying it as a preview feature."
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
