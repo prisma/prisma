@@ -17,12 +17,12 @@ import { URL } from 'url'
 import { promisify } from 'util'
 
 import type {
-  BatchTransactionOptions,
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
   GetConfigResult,
-  InteractiveTransactionOptions,
+  RequestBatchOptions,
+  RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -937,13 +937,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     numTry = 1,
     clientMethod,
     transaction,
-  }: {
-    query: string
-    headers: QueryEngineRequestHeaders
-    numTry: number
-    clientMethod: string
-    transaction?: InteractiveTransactionOptions<undefined>
-  }): Promise<QueryEngineResult<T>> {
+  }: RequestOptions<undefined>): Promise<QueryEngineResult<T>> {
     await this.start()
 
     // TODO: we don't need the transactionId "runtime header" anymore, we can use the txInfo object here
@@ -993,13 +987,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     transaction,
     numTry = 1,
     requestContainsWrite,
-  }: {
-    queries: string[]
-    headers: QueryEngineRequestHeaders
-    transaction?: BatchTransactionOptions
-    numTry: number
-    requestContainsWrite: boolean
-  }): Promise<QueryEngineResult<T>[]> {
+  }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
     await this.start()
 
     const request: QueryEngineBatchRequest = {

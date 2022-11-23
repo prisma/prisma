@@ -24,6 +24,22 @@ export type BatchTransactionOptions = {
 
 export type InteractiveTransactionOptions<Payload> = Transaction.Info<Payload>
 
+export type RequestOptions<InteractiveTransactionPayload> = {
+  query: string
+  headers?: QueryEngineRequestHeaders
+  numTry?: number
+  clientMethod: string
+  transaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
+}
+
+export type RequestBatchOptions = {
+  queries: string[]
+  headers?: QueryEngineRequestHeaders
+  transaction?: BatchTransactionOptions
+  numTry?: number
+  requestContainsWrite: boolean
+}
+
 // TODO Move shared logic in here
 export abstract class Engine {
   abstract on(event: EngineEventType, listener: (args?: any) => any): void
@@ -32,20 +48,8 @@ export abstract class Engine {
   abstract getConfig(): Promise<GetConfigResult>
   abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
-  abstract request<T>(options: {
-    query: string
-    headers?: QueryEngineRequestHeaders
-    numTry?: number
-    clientMethod: string
-    transaction?: InteractiveTransactionOptions<unknown>
-  }): Promise<QueryEngineResult<T>>
-  abstract requestBatch<T>(options: {
-    queries: string[]
-    headers?: QueryEngineRequestHeaders
-    transaction?: BatchTransactionOptions
-    numTry?: number
-    requestContainsWrite: boolean
-  }): Promise<QueryEngineResult<T>[]>
+  abstract request<T>(options: RequestOptions<unknown>): Promise<QueryEngineResult<T>>
+  abstract requestBatch<T>(options: RequestBatchOptions): Promise<QueryEngineResult<T>[]>
   abstract transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,
