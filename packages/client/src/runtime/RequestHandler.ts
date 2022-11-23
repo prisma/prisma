@@ -92,16 +92,28 @@ export class RequestHandler {
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
+        const containsWrite = requests.some((r) => r.document.type === 'mutation')
+
         const batchTransaction = info.transaction?.kind === 'batch' ? info.transaction : undefined
 
-        return this.client._engine.requestBatch(queries, info.headers, batchTransaction)
+        return this.client._engine.requestBatch({
+          queries,
+          headers: info.headers,
+          transaction: batchTransaction,
+          containsWrite,
+        })
       },
       singleLoader: (request) => {
         const info = getRequestInfo(request)
         const query = String(request.document)
         const interactiveTransaction = info.transaction?.kind === 'itx' ? info.transaction : undefined
 
-        return this.client._engine.request(query, info.headers, interactiveTransaction)
+        return this.client._engine.request({
+          query,
+          headers: info.headers,
+          transaction: interactiveTransaction,
+          isWrite: request.document.type === 'mutation',
+        })
       },
       batchBy: (request) => {
         if (request.transaction?.id) {

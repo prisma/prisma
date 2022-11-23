@@ -1,5 +1,3 @@
-import { TracingConfig } from '@prisma/engine-core'
-
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
@@ -17,7 +15,7 @@ describe('batching', () => {
         // @ts-expect-error
         requestBatch: (batch) => {
           batches.push(batch)
-          return Promise.resolve(batch.map(() => ({ data: { data: null }, elapsed: 0.2 })))
+          return Promise.resolve(batch.queries.map(() => ({ data: { data: null }, elapsed: 0.2 })))
         },
         // @ts-expect-error
         request: (request) => {
@@ -76,8 +74,13 @@ describe('batching', () => {
 
     expect(batches).toMatchInlineSnapshot(`
       Array [
-        Array [
-          query {
+        Object {
+          containsWrite: false,
+          headers: Object {
+            traceparent: 00-10-10-00,
+          },
+          queries: Array [
+            query {
         findUniqueUser(where: {
           id: "1"
         }) {
@@ -96,7 +99,7 @@ describe('batching', () => {
           coinflips
         }
       },
-          query {
+            query {
         findUniqueUser(where: {
           id: "2"
         }) {
@@ -115,7 +118,9 @@ describe('batching', () => {
           coinflips
         }
       },
-        ],
+          ],
+          transaction: undefined,
+        },
       ]
     `)
     expect(requests).toMatchInlineSnapshot(`Array []`)
@@ -132,7 +137,7 @@ describe('batching', () => {
         // @ts-expect-error
         requestBatch: (batch) => {
           batches.push(batch)
-          return Promise.resolve(batch.map(() => ({ data: { data: null }, elapsed: 0.2 })))
+          return Promise.resolve(batch.queries.map(() => ({ data: { data: null }, elapsed: 0.2 })))
         },
         // @ts-expect-error
         request: (request) => {
@@ -188,7 +193,12 @@ describe('batching', () => {
     expect(batches).toMatchInlineSnapshot(`Array []`)
     expect(requests).toMatchInlineSnapshot(`
       Array [
-        query {
+        Object {
+          headers: Object {
+            traceparent: 00-10-10-00,
+          },
+          isWrite: false,
+          query: query {
         findUniquePost(where: {
           id: "1"
         }) {
@@ -202,7 +212,14 @@ describe('batching', () => {
           optional
         }
       },
-        query {
+          transaction: undefined,
+        },
+        Object {
+          headers: Object {
+            traceparent: 00-10-10-00,
+          },
+          isWrite: false,
+          query: query {
         findUniqueUser(where: {
           id: "2"
         }) {
@@ -221,6 +238,8 @@ describe('batching', () => {
           coinflips
         }
       },
+          transaction: undefined,
+        },
       ]
     `)
   })
@@ -236,7 +255,7 @@ describe('batching', () => {
         // @ts-expect-error
         requestBatch: (batch) => {
           batches.push(batch)
-          return Promise.resolve(batch.map(() => ({ data: { data: null }, elapsed: 0.2 })))
+          return Promise.resolve(batch.queries.map(() => ({ data: { data: null }, elapsed: 0.2 })))
         },
         // @ts-expect-error
         request: (request) => {
@@ -288,7 +307,12 @@ describe('batching', () => {
     expect(batches).toMatchInlineSnapshot(`Array []`)
     expect(requests).toMatchInlineSnapshot(`
       Array [
-        query {
+        Object {
+          headers: Object {
+            traceparent: 00-10-10-00,
+          },
+          isWrite: false,
+          query: query {
         findUniqueUser(where: {
           email: "a@a.de"
         }) {
@@ -307,7 +331,14 @@ describe('batching', () => {
           coinflips
         }
       },
-        query {
+          transaction: undefined,
+        },
+        Object {
+          headers: Object {
+            traceparent: 00-10-10-00,
+          },
+          isWrite: false,
+          query: query {
         findUniqueUser(where: {
           id: "2"
         }) {
@@ -326,6 +357,8 @@ describe('batching', () => {
           coinflips
         }
       },
+          transaction: undefined,
+        },
       ]
     `)
   })

@@ -6,7 +6,13 @@ import chalk from 'chalk'
 import EventEmitter from 'events'
 import fs from 'fs'
 
-import type { BatchTransactionOptions, DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
+import type {
+  DatasourceOverwrite,
+  EngineConfig,
+  EngineEventType,
+  RequestBatchOptions,
+  RequestOptions,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
@@ -25,7 +31,6 @@ import type {
   QueryEnginePanicEvent,
   QueryEngineQueryEvent,
   QueryEngineRequest,
-  QueryEngineRequestHeaders,
   QueryEngineResult,
   RustRequestError,
   SyncRustError,
@@ -445,7 +450,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.library?.debugPanic(message) as Promise<never>
   }
 
-  async request<T>(query: string, headers: QueryEngineRequestHeaders = {}): Promise<{ data: T; elapsed: number }> {
+  async request<T>({ query, headers = {} }: RequestOptions<undefined>): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const request: QueryEngineRequest = { query, variables: {} }
     const headerStr = JSON.stringify(headers) // object equivalent to http headers for the library
@@ -489,11 +494,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: QueryEngineRequestHeaders = {},
-    transaction?: BatchTransactionOptions,
-  ): Promise<QueryEngineResult<T>[]> {
+  async requestBatch<T>({ queries, headers = {}, transaction }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
     debug('requestBatch')
     const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),
