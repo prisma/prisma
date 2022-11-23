@@ -75,6 +75,7 @@ describe('batching', () => {
     expect(batches).toMatchInlineSnapshot(`
       Array [
         Object {
+          containsWrite: false,
           headers: Object {
             traceparent: 00-10-10-00,
           },
@@ -118,7 +119,6 @@ describe('batching', () => {
         }
       },
           ],
-          requestContainsWrite: false,
           transaction: undefined,
         },
       ]
@@ -194,10 +194,10 @@ describe('batching', () => {
     expect(requests).toMatchInlineSnapshot(`
       Array [
         Object {
-          clientMethod: findUnique,
           headers: Object {
             traceparent: 00-10-10-00,
           },
+          isWrite: false,
           query: query {
         findUniquePost(where: {
           id: "1"
@@ -215,10 +215,10 @@ describe('batching', () => {
           transaction: undefined,
         },
         Object {
-          clientMethod: findUnique,
           headers: Object {
             traceparent: 00-10-10-00,
           },
+          isWrite: false,
           query: query {
         findUniqueUser(where: {
           id: "2"
@@ -308,10 +308,10 @@ describe('batching', () => {
     expect(requests).toMatchInlineSnapshot(`
       Array [
         Object {
-          clientMethod: findUnique,
           headers: Object {
             traceparent: 00-10-10-00,
           },
+          isWrite: false,
           query: query {
         findUniqueUser(where: {
           email: "a@a.de"
@@ -334,10 +334,10 @@ describe('batching', () => {
           transaction: undefined,
         },
         Object {
-          clientMethod: findUnique,
           headers: Object {
             traceparent: 00-10-10-00,
           },
+          isWrite: false,
           query: query {
         findUniqueUser(where: {
           id: "2"
