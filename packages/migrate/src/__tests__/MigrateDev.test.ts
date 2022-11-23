@@ -29,8 +29,8 @@ describe('common', () => {
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(error.message).toMatchInlineSnapshot(`
-        Schema validation error - Error (get-config wasm)
-        Error code: P1012
+        Prisma schema validation - (get-config wasm)
+        Code: P1012
         error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
           -->  schema.prisma:10
            | 
@@ -61,8 +61,8 @@ describe('common', () => {
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(error.message).toMatchInlineSnapshot(`
-        Schema validation error - Error (get-config wasm)
-        Error code: P1012
+        Prisma schema validation - (get-config wasm)
+        Code: P1012
         error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
           -->  schema.prisma:2
            | 
