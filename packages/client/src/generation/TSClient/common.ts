@@ -101,6 +101,7 @@ ${ifExtensions(
 * Extensions
 */
 Prisma.getExtensionContext = ${notSupportOnBrowser('Extensions.getExtensionContext', browser)}
+Prisma.defineExtension = ${notSupportOnBrowser('Extensions.defineExtension', browser)}
 
 `,
   '',

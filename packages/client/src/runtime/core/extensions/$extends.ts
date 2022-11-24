@@ -4,11 +4,13 @@ import {
   applyModelsAndClientExtensions,
   unapplyModelsAndClientExtensions,
 } from '../model/applyModelsAndClientExtensions'
+import { OptionalFlat } from '../types/Utils'
 
-export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
+export type Args = OptionalFlat<RequiredArgs>
+export type RequiredArgs = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
 type ResultArgs = {
-  result?: {
+  result: {
     [modelName: string]: ResultModelArgs
   }
 }
@@ -25,7 +27,7 @@ export type ResultFieldDefinition = {
 }
 
 type ModelArgs = {
-  model?: {
+  model: {
     [ModelName in string]: {
       [MethodName in string]: unknown
     }
@@ -33,7 +35,7 @@ type ModelArgs = {
 }
 
 type ClientArgs = {
-  client?: {
+  client: {
     [MethodName: `$${string}`]: unknown
   }
 }
@@ -50,7 +52,7 @@ type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
 }
 
 type QueryOptions = {
-  query?: {
+  query: {
     [ModelName in string]:
       | {
           [ModelAction in string]: (args: QueryOptionsCbArgs) => Promise<any>
