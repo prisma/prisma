@@ -9,6 +9,10 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
+import { Args as ExtensionArgs } from './core/extensions/$extends'
+import { applyResultExtensions } from './core/extensions/applyResultExtensions'
+import { IncludeSelect, visitQueryResult } from './core/extensions/visitQueryResult'
+import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
@@ -32,7 +36,8 @@ export type RequestParams = {
   rejectOnNotFound?: RejectOnNotFound
   transaction?: PrismaPromiseTransaction
   engineHook?: EngineMiddleware
-  args: any
+  extensions: ExtensionArgs[]
+  args?: any
   headers?: Record<string, string>
   unpacker?: Unpacker
   otelParentCtx?: Context
@@ -53,6 +58,13 @@ export type Request = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   tracingConfig?: TracingConfig
+}
+
+type ApplyExtensionsParams = {
+  result: object
+  modelName: string
+  args: IncludeSelect
+  extensions: ExtensionArgs[]
 }
 
 function getRequestInfo(request: Request) {
@@ -139,6 +151,7 @@ export class RequestHandler {
     headers,
     transaction,
     unpacker,
+    extensions,
     otelParentCtx,
     otelChildCtx,
   }: RequestParams) {
@@ -190,10 +203,11 @@ export class RequestHandler {
        */
       const unpackResult = this.unpack(document, data, dataPath, rootField, unpacker)
       throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
+      const extendedResult = this.applyResultExtensions({ result: unpackResult, modelName: typeName, args, extensions })
       if (process.env.PRISMA_CLIENT_GET_TIME) {
-        return { data: unpackResult, elapsed }
+        return { data: extendedResult, elapsed }
       }
-      return unpackResult
+      return extendedResult
     } catch (error) {
       this.handleRequestError({ error, clientMethod, callsite, transaction })
     }
@@ -273,6 +287,26 @@ export class RequestHandler {
     }
     getPath.push(...path.filter((p) => p !== 'select' && p !== 'include'))
     return unpack({ document, data, path: getPath })
+  }
+
+  applyResultExtensions({ result, modelName, args, extensions }: ApplyExtensionsParams) {
+    if (extensions.length === 0) {
+      return result
+    }
+    const model = this.client._baseDmmf.getModelMap()[modelName]
+    if (!model) {
+      return result
+    }
+    return visitQueryResult({
+      result,
+      args: args ?? {},
+      model,
+      dmmf: this.client._baseDmmf,
+      visitor(value, model, args) {
+        const modelName = dmmfToJSModelName(model.name)
+        return applyResultExtensions({ result: value, modelName, select: args.select, extensions })
+      },
+    })
   }
 
   get [Symbol.toStringTag]() {

@@ -58,6 +58,7 @@ describe('scalar where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     expect(String(document)).toMatchInlineSnapshot(`
       query {
@@ -208,6 +209,7 @@ describe('scalar where transformation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'updateManyPost',
+      extensions: [],
     })
 
     expect(() => document.validate(select)).toThrowErrorMatchingInlineSnapshot(`
@@ -347,6 +349,7 @@ describe('scalar where transformation', () => {
         select,
         rootTypeName: 'query',
         rootField: 'findManyTest',
+        extensions: [],
       }),
     )
 
@@ -377,6 +380,7 @@ describe('scalar where transformation', () => {
         select,
         rootTypeName: 'query',
         rootField: 'findManyTest',
+        extensions: [],
       }),
     )
 
@@ -438,6 +442,7 @@ describe('scalar where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
 
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`

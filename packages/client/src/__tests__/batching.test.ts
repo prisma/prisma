@@ -38,6 +38,7 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniqueUser',
+          extensions: [],
         }),
         isList: false,
         rootField: 'query',
@@ -47,6 +48,7 @@ describe('batching', () => {
             id: '1',
           },
         },
+        extensions: [],
       }),
       fetcher.request({
         clientMethod: 'findUnique',
@@ -60,6 +62,7 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniqueUser',
+          extensions: [],
         }),
         isList: false,
         rootField: 'query',
@@ -69,6 +72,7 @@ describe('batching', () => {
             id: '2',
           },
         },
+        extensions: [],
       }),
     ])
 
@@ -160,6 +164,7 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniquePost',
+          extensions: [],
         }),
         isList: false,
         rootField: 'query',
@@ -167,6 +172,7 @@ describe('batching', () => {
         args: {
           where: { id: '1' },
         },
+        extensions: [],
       }),
       fetcher.request({
         clientMethod: 'findUnique',
@@ -180,6 +186,7 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniqueUser',
+          extensions: [],
         }),
         isList: false,
         rootField: 'query',
@@ -187,6 +194,7 @@ describe('batching', () => {
         args: {
           where: { id: '2' },
         },
+        extensions: [],
       }),
     ])
 
@@ -278,11 +286,13 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniqueUser',
+          extensions: [],
         }),
         isList: false,
         rootField: 'query',
         typeName: 'User',
         args: { where: { email: 'a@a.de' } },
+        extensions: [],
       }),
       fetcher.request({
         clientMethod: 'findUnique',
@@ -296,11 +306,13 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniqueUser',
+          extensions: [],
         }),
         isList: false,
         rootField: 'query',
         typeName: 'User',
         args: { where: { id: '2' } },
+        extensions: [],
       }),
     ])
 

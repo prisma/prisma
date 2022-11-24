@@ -372,6 +372,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'query',
     rootField: 'findManyUser',
+    extensions: [],
   })
   return String(transformDocument(document))
 }

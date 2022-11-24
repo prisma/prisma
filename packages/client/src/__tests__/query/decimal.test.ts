@@ -26,6 +26,7 @@ test('allows to pass it decimal instance', () => {
     rootTypeName: 'query',
     rootField: 'findManyUser',
     select: { where: { money: new Decimal('123456789.12334') } },
+    extensions: [],
   })
 
   expect(document.toString()).toMatchInlineSnapshot(`
@@ -47,6 +48,7 @@ test('allows to pass it a string', () => {
     rootTypeName: 'query',
     rootField: 'findManyUser',
     select: { where: { money: '123456789.12334' } },
+    extensions: [],
   })
 
   expect(document.toString()).toMatchInlineSnapshot(`
@@ -68,6 +70,7 @@ test('allows to pass it a number', () => {
     rootTypeName: 'query',
     rootField: 'findManyUser',
     select: { where: { money: 12.3456 } },
+    extensions: [],
   })
 
   expect(document.toString()).toMatchInlineSnapshot(`
@@ -97,6 +100,7 @@ test('allows to pass it decimal-like object', () => {
         },
       },
     },
+    extensions: [],
   })
 
   expect(document.toString()).toMatchInlineSnapshot(`
@@ -118,6 +122,7 @@ test('allows to pass it decimal array', () => {
     rootTypeName: 'query',
     rootField: 'findManyUser',
     select: { where: { money: { in: [new Decimal('12.34'), new Decimal('56.78')] } } },
+    extensions: [],
   })
 
   expect(document.toString()).toMatchInlineSnapshot(`
@@ -144,6 +149,7 @@ test('allows to pass it decimal-like objects array', () => {
     dmmf,
     rootTypeName: 'query',
     rootField: 'findManyUser',
+    extensions: [],
     select: {
       where: {
         money: {
@@ -189,6 +195,7 @@ test('allows to pass it string array', () => {
     dmmf,
     rootTypeName: 'query',
     rootField: 'findManyUser',
+    extensions: [],
     select: { where: { money: { in: ['12.34', '56.78'] } } },
   })
 
@@ -213,6 +220,7 @@ test('allows to pass it number array', () => {
     dmmf,
     rootTypeName: 'query',
     rootField: 'findManyUser',
+    extensions: [],
     select: { where: { money: { in: [12.34, 56.78] } } },
   })
 
