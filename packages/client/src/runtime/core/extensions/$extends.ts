@@ -38,7 +38,7 @@ type QueryOptionsCbArgs = {
   model: string
   operation: string
   args: { [K in string]: {} | undefined | null | QueryOptionsCbArgs['args'] }
-  result: Promise<unknown>
+  data: Promise<unknown>
 }
 
 type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
