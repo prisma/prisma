@@ -1,4 +1,4 @@
-## Testing `SetDefault` referential action with `relationMode = "prisma"` on all databases
+## Testing `SetDefault` referential action (`relationMode = "foreignKeys"`) on relational databases
 
 Internal Notion pages
 
