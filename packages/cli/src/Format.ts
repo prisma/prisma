@@ -56,10 +56,15 @@ Or specify a Prisma schema path
 
     const output = await formatSchema({ schemaPath })
 
-    // Validate whether the formatted output is a valid schema
-    await getDMMF({
-      datamodel: output,
-    })
+    try {
+      // Validate whether the formatted output is a valid schema
+      await getDMMF({
+        datamodel: output,
+      })
+    } catch (e) {
+      console.error('') // empty line for better readability
+      throw new Error(`${e.message}`)
+    }
 
     fs.writeFileSync(schemaPath, output)
     const after = Date.now()
