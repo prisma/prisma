@@ -41,11 +41,11 @@ export type ${getPayloadName(name)}<S extends boolean | null | undefined | ${arg
   S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
   S extends true ? ${ifExtensions(`_${name}`, name)} :
   S extends undefined ? never :
-  S extends { include: any }
+  S extends { include: any } & (${argsName}${findManyArg})
   ? ${ifExtensions(`_${name}`, name)} ${
       include.length > 0 ? ifExtensions(`& runtime.Types.Utils.EmptyToUnknown<${include}>`, ` & ${include}`) : ''
     }
-  : S extends { select: any }
+  : S extends { select: any } & (${argsName}${findManyArg})
     ? ${select}
     : ${ifExtensions(`_${name}`, name)}
 `

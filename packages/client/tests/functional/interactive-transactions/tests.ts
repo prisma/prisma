@@ -88,7 +88,9 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
     )
 
     await expect(result).rejects.toMatchObject({
-      message: expect.stringContaining('Transaction API error: Transaction already closed'),
+      message: expect.stringMatching(
+        /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+      ),
     })
 
     expect(await prisma.user.findMany()).toHaveLength(0)
@@ -235,7 +237,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
           XX 
           XX const result = prisma.$transaction(async () => {
         → XX   await transactionBoundPrisma.user.create(
-        Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
+        Transaction API error: Transaction already closed: A query cannot be executed on a committed transaction.
       `)
     }
 

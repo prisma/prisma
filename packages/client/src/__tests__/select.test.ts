@@ -58,6 +58,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     expect(String(document)).toMatchSnapshot()
 
@@ -89,6 +90,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -108,6 +110,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -146,6 +149,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -169,6 +173,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -194,6 +199,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -215,6 +221,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -237,6 +244,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -259,6 +267,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -281,6 +290,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -302,6 +312,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -325,6 +336,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -349,6 +361,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -375,6 +388,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -399,6 +413,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findUniquePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -429,6 +444,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findUniquePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -461,6 +477,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -489,6 +506,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -510,6 +528,7 @@ describe('select validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()

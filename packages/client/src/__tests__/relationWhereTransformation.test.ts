@@ -45,6 +45,7 @@ describe('relation where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyArtist',
+      extensions: [],
     })
 
     expect(() => document.validate(select, false, 'users')).toThrowErrorMatchingSnapshot()
@@ -83,6 +84,7 @@ describe('relation where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyArtist',
+      extensions: [],
     })
     expect(() => document.validate(select, false, 'users')).toThrowErrorMatchingSnapshot()
   })
@@ -117,6 +119,7 @@ describe('relation where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyArtist',
+      extensions: [],
     })
     expect(() => document.validate(select, false, 'artists')).toThrowErrorMatchingSnapshot()
   })

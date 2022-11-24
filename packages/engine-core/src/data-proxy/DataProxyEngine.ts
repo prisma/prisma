@@ -3,12 +3,13 @@ import { DMMF } from '@prisma/generator-helper'
 import EventEmitter from 'events'
 
 import type {
-  BatchTransactionOptions,
   EngineConfig,
   EngineEventType,
   GetConfigResult,
   InlineDatasource,
   InteractiveTransactionOptions,
+  RequestBatchOptions,
+  RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
@@ -139,22 +140,14 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>(
-    query: string,
-    headers: QueryEngineRequestHeaders = {},
-    transaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>,
-  ): Promise<QueryEngineResult<T>> {
+  request<T>({ query, headers = {}, transaction }: RequestOptions<DataProxyTxInfoPayload>) {
     this.logEmitter.emit('query', { query })
 
     // TODO: `elapsed`?
     return this.requestInternal<T>({ query, variables: {} }, headers, transaction)
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: QueryEngineRequestHeaders = {},
-    transaction?: BatchTransactionOptions,
-  ): Promise<QueryEngineResult<T>[]> {
+  async requestBatch<T>({ queries, headers = {}, transaction }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
       query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,

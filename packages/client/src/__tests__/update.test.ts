@@ -14,6 +14,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'mutation',
     rootField: 'updateOneUser',
+    extensions: [],
   })
   return String(transformDocument(document))
 }

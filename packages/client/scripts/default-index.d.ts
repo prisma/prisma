@@ -41,3 +41,7 @@ export declare type PromiseType<T extends PromiseLike<any>> = T extends PromiseL
  * Get the return type of a function which returns a Promise.
  */
 export declare type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
+
+export namespace Prisma {
+  export type TransactionClient = any
+}

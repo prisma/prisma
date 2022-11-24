@@ -1,4 +1,4 @@
-import { Args } from '../extensions/$extends'
+import { RequiredArgs as Args } from '../extensions/$extends'
 import { PatchFlat3 } from './Utils'
 
 export type DefaultArgs = { result: {}; model: {}; query: {}; client: {} }
@@ -14,9 +14,5 @@ export type GetResultSelect<Base extends object, R extends Args['result'][string
 export type GetModel<Base extends object, M extends Args['model'][string]> =
   //
   PatchFlat3<{}, Base, M>
-
-export type CallableArgs<PrevClient, ExtArgs> =
-  //
-  ((client: PrevClient) => ExtArgs) | ExtArgs
 
 export type { Args }

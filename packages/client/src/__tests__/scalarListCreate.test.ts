@@ -37,6 +37,7 @@ describe('scalar where transformation', () => {
         select,
         rootTypeName: 'mutation',
         rootField: 'createOneUser',
+        extensions: [],
       }),
     )
 
@@ -96,6 +97,7 @@ describe('scalar where transformation', () => {
         select,
         rootTypeName: 'mutation',
         rootField: 'createOneUser',
+        extensions: [],
       }),
     )
 

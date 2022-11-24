@@ -38,6 +38,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'query',
     rootField: 'findManyLocation',
+    extensions: [],
   })
   return String(transformDocument(document))
 }
