@@ -47,11 +47,11 @@ describe('modify-client', () => {
     expect(Object.keys(client).filter((k) => !k.startsWith('_'))).toMatchInlineSnapshot(`
       Array [
         $extends,
+        prop,
+        prop2,
         user,
         profile,
         post,
-        prop,
-        prop2,
       ]
     `)
 

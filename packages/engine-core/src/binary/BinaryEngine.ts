@@ -17,12 +17,12 @@ import { URL } from 'url'
 import { promisify } from 'util'
 
 import type {
-  BatchTransactionOptions,
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
   GetConfigResult,
-  InteractiveTransactionOptions,
+  RequestBatchOptions,
+  RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -43,7 +43,6 @@ import type {
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
-import { runtimeHeadersToHttpHeaders } from '../common/utils/runtimeHeadersToHttpHeaders'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
@@ -931,12 +930,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return this.lastVersion
   }
 
-  async request<T>(
-    query: string,
-    headers: QueryEngineRequestHeaders = {},
-    _transaction?: InteractiveTransactionOptions<undefined>,
+  async request<T>({
+    query,
+    headers = {},
     numTry = 1,
-  ): Promise<QueryEngineResult<T>> {
+    isWrite,
+    transaction,
+  }: RequestOptions<undefined>): Promise<QueryEngineResult<T>> {
     await this.start()
 
     // TODO: we don't need the transactionId "runtime header" anymore, we can use the txInfo object here
@@ -966,23 +966,25 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     } catch (e: any) {
       logger('req - e', e)
 
-      await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
-      // retry
-      if (numTry <= MAX_REQUEST_RETRIES) {
-        logger('trying a retry now')
-        return this.request(query, headers, _transaction, numTry + 1)
-      }
-    }
+      const { error, shouldRetry } = await this.handleRequestError(e)
 
-    return null as any // needed to make TS happy
+      // retry
+      if (numTry <= MAX_REQUEST_RETRIES && shouldRetry && !isWrite) {
+        logger('trying a retry now')
+        return this.request({ query, headers, numTry: numTry + 1, isWrite, transaction })
+      }
+
+      throw error
+    }
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: QueryEngineRequestHeaders = {},
-    transaction?: BatchTransactionOptions,
+  async requestBatch<T>({
+    queries,
+    headers = {},
+    transaction,
     numTry = 1,
-  ): Promise<QueryEngineResult<T>[]> {
+    containsWrite,
+  }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
     await this.start()
 
     const request: QueryEngineBatchRequest = {
@@ -1014,15 +1016,21 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         }
       })
       .catch(async (e) => {
-        const isError = await this.handleRequestError(e, numTry < 3)
-        if (!isError) {
+        const { error, shouldRetry } = await this.handleRequestError(e)
+        if (shouldRetry && !containsWrite) {
           // retry
           if (numTry <= MAX_REQUEST_RETRIES) {
-            return this.requestBatch(queries, headers, transaction, numTry + 1)
+            return this.requestBatch({
+              queries,
+              headers,
+              transaction,
+              numTry: numTry + 1,
+              containsWrite,
+            })
           }
         }
 
-        throw isError
+        throw error
       })
   }
 
@@ -1119,66 +1127,70 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
-  private handleRequestError = async (error: Error & { code?: string }, graceful = false) => {
+  private handleRequestError = async (
+    error: Error & { code?: string },
+  ): Promise<{ error: Error & { code?: string }; shouldRetry: boolean }> => {
     debug({ error })
+
     // if we are starting, wait for it before we handle any error
     if (this.startPromise) {
       await this.startPromise
     }
 
+    // matching on all relevant error codes from
+    // https://github.com/nodejs/undici/blob/2.x/lib/core/errors.js
+    const isNetworkError = [
+      'ECONNRESET',
+      'ECONNREFUSED',
+      'UND_ERR_CLOSED',
+      'UND_ERR_SOCKET',
+      'UND_ERR_DESTROYED',
+      'UND_ERR_ABORTED',
+    ].includes(error.code as string)
+
     if (error instanceof PrismaClientKnownRequestError) {
-      throw error
+      return { error, shouldRetry: false }
     }
 
-    this.throwAsyncErrorIfExists()
-
-    // A currentRequestPromise is only being canceled by the sendPanic function
-    if (this.currentRequestPromise?.isCanceled) {
-      this.throwAsyncErrorIfExists()
-    } else if (
-      // matching on all relevant error codes from
-      // https://github.com/nodejs/undici/blob/2.x/lib/core/errors.js
-      error.code === 'ECONNRESET' ||
-      error.code === 'ECONNREFUSED' ||
-      error.code === 'UND_ERR_CLOSED' ||
-      error.code === 'UND_ERR_SOCKET' ||
-      error.code === 'UND_ERR_DESTROYED' ||
-      error.code === 'UND_ERR_ABORTED' ||
-      error.message.toLowerCase().includes('client is destroyed') ||
-      error.message.toLowerCase().includes('other side closed') ||
-      error.message.toLowerCase().includes('the client is closed')
-    ) {
-      if (this.globalKillSignalReceived && !this.child?.connected) {
-        throw new PrismaClientUnknownRequestError(
-          `The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
-and your request can't be processed.
-You probably have some open handle that prevents your process from exiting.
-It could be an open http server or stream that didn't close yet.
-We recommend using the \`wtfnode\` package to debug open handles.`,
-          { clientVersion: this.clientVersion! },
-        )
-      }
-
+    try {
       this.throwAsyncErrorIfExists()
 
-      if (this.startCount > MAX_STARTS) {
-        // if we didn't throw yet, which is unlikely, we want to poll on stderr / stdout here
-        // to get an error first
-        for (let i = 0; i < 5; i++) {
-          await new Promise((r) => setTimeout(r, 50))
-          this.throwAsyncErrorIfExists(true)
+      // A currentRequestPromise is only being canceled by the sendPanic function
+      if (this.currentRequestPromise?.isCanceled) {
+        this.throwAsyncErrorIfExists()
+      } else if (isNetworkError) {
+        if (this.globalKillSignalReceived && !this.child?.connected) {
+          throw new PrismaClientUnknownRequestError(
+            `The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
+  and your request can't be processed.
+  You probably have some open handle that prevents your process from exiting.
+  It could be an open http server or stream that didn't close yet.
+  We recommend using the \`wtfnode\` package to debug open handles.`,
+            { clientVersion: this.clientVersion! },
+          )
         }
-        throw new Error(`Query engine is trying to restart, but can't.
-Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
+
+        this.throwAsyncErrorIfExists()
+
+        if (this.startCount > MAX_STARTS) {
+          // if we didn't throw yet, which is unlikely, we want to poll on stderr / stdout here
+          // to get an error first
+          for (let i = 0; i < 5; i++) {
+            await new Promise((r) => setTimeout(r, 50))
+            this.throwAsyncErrorIfExists(true)
+          }
+
+          throw new Error(`Query engine is trying to restart, but can't.
+  Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
+        }
       }
-    }
 
-    if (!graceful) {
       this.throwAsyncErrorIfExists(true)
-      throw error
-    }
 
-    return false
+      throw error
+    } catch (e) {
+      return { error: e, shouldRetry: isNetworkError }
+    }
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>
@@ -1212,6 +1224,18 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
 // faster than creating a new object and JSON.stringify it all the time
 function stringifyQuery(q: string) {
   return `{"variables":{},"query":${JSON.stringify(q)}}`
+}
+
+/**
+ * Convert runtime headers to HTTP headers expected by the Query Engine.
+ */
+function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
+  if (headers.transactionId) {
+    const { transactionId, ...httpHeaders } = headers
+    httpHeaders['X-transaction-id'] = transactionId
+    return httpHeaders
+  }
+  return headers
 }
 
 function hookProcess(handler: string, exit = false) {

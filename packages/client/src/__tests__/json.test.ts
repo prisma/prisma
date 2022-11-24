@@ -64,6 +64,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
+      extensions: [],
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
@@ -83,6 +84,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
@@ -100,6 +102,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyOptionalUser',
+      extensions: [],
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
@@ -117,6 +120,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyOptionalUser',
+      extensions: [],
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
@@ -134,6 +138,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyOptionalUser',
+      extensions: [],
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
@@ -151,6 +156,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -162,6 +168,7 @@ describeIf(process.platform !== 'win32')('json', () => {
         select,
         rootTypeName: 'mutation',
         rootField: 'updateOneUser',
+        extensions: [],
       })
       return String(transformDocument(document))
     }

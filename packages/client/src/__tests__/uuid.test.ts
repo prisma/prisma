@@ -38,6 +38,7 @@ describe('at least one validation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
+      extensions: [],
     })
     expect(() => document.validate(select, false)).not.toThrow()
   })
@@ -60,6 +61,7 @@ describe('at least one validation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
+      extensions: [],
     })
     expect(() => document.validate(select, false)).not.toThrow()
   })

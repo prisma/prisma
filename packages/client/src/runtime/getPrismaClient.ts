@@ -1001,7 +1001,7 @@ new PrismaClient({
     $transaction(input: any, options?: any) {
       let callback: () => Promise<any>
 
-      if (typeof input === 'function' && this._hasPreviewFlag('interactiveTransactions')) {
+      if (typeof input === 'function') {
         callback = () => this._transactionWithCallback({ callback: input, options })
       } else {
         callback = () => this._transactionWithArray({ promises: input, options })
@@ -1164,6 +1164,7 @@ new PrismaClient({
           rootTypeName: operation,
           select: args,
           modelName: model,
+          extensions: this._extensions,
         })
 
         document.validate(args, false, clientMethod, this._errorFormat, callsite)
@@ -1208,6 +1209,7 @@ new PrismaClient({
         callsite,
         args,
         engineHook: this._middlewares.engine.get(0),
+        extensions: this._extensions,
         headers,
         transaction,
         unpacker,
@@ -1249,7 +1251,7 @@ new PrismaClient({
   return PrismaClient
 }
 
-const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends']
+const forbidden: Array<string | symbol> = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends']
 
 /**
  * Proxy that takes over the client promises to pass `txId`
@@ -1283,6 +1285,13 @@ function transactionProxy<T>(thing: T, transaction: InteractiveTransactionOption
 
       // if it's an object prop, then we keep on making it proxied
       return transactionProxy(target[prop], transaction)
+    },
+
+    has(target, prop) {
+      if (forbidden.includes(prop)) {
+        return false
+      }
+      return Reflect.has(target, prop)
     },
   }) as any as T
 }

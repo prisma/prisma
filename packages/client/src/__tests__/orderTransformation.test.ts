@@ -21,6 +21,7 @@ describe('where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     document.validate(select, false)
     expect(String(document)).toMatchInlineSnapshot(`
@@ -75,6 +76,7 @@ describe('where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     expect(String(document)).toMatchInlineSnapshot(`
       query {
@@ -171,6 +173,7 @@ type UserOrderByWithRelationInput {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       query {
@@ -198,6 +201,7 @@ type UserOrderByWithRelationInput {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       query {

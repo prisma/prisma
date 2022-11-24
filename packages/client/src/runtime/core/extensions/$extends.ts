@@ -9,15 +9,19 @@ export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
 type ResultArgs = {
   result: {
-    [ModelName in string]: {
-      [VirtPropName in string]: {
-        needs?: {
-          [ModelPropName in string]: boolean
-        }
-        compute: (data: any) => unknown
-      }
-    }
+    [modelName: string]: ResultModelArgs
   }
+}
+
+export type ResultArgsFieldCompute = (model: any) => unknown
+
+export type ResultModelArgs = {
+  [FieldName in string]: ResultFieldDefinition
+}
+
+export type ResultFieldDefinition = {
+  needs?: Record<string, boolean>
+  compute: ResultArgsFieldCompute
 }
 
 type ModelArgs = {
