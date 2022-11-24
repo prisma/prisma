@@ -15,8 +15,4 @@ export type GetModel<Base extends object, M extends Args['model'][string]> =
   //
   PatchFlat3<{}, Base, M>
 
-export type CallableArgs<PrevClient, ExtArgs> =
-  //
-  ((client: PrevClient) => ExtArgs) | ExtArgs
-
 export type { Args }
