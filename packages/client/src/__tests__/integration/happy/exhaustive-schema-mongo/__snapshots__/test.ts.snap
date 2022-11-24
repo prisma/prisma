@@ -706,6 +706,7 @@ export class PrismaClient<
    */
   $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>;
 
+  $transaction<R>(fn: (prisma: Prisma.TransactionClient) => Promise<R>, options?: {maxWait?: number, timeout?: number}): Promise<R>;
 
   /**
    * Executes a raw MongoDB command and returns the result of it.
@@ -1507,6 +1508,11 @@ export namespace Prisma {
 
   // tested in getLogLevel.test.ts
   export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
+
+  /**
+   * \`PrismaClient\` proxy available in interactive transactions.
+   */
+  export type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>
 
   export type Datasource = {
     url?: string

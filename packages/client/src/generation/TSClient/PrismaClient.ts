@@ -174,10 +174,6 @@ function batchingTransactionDefinition(this: PrismaClientClass) {
 }
 
 function interactiveTransactionDefinition(this: PrismaClientClass) {
-  if (!this.generator?.previewFeatures.includes('interactiveTransactions')) {
-    return ''
-  }
-
   const txOptions = ['maxWait?: number', 'timeout?: number']
 
   if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
@@ -562,16 +558,11 @@ export type Middleware<T = any> = (
 
 // tested in getLogLevel.test.ts
 export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
-${
-  this.generator?.previewFeatures.includes('interactiveTransactions')
-    ? `
 
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
 export type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>
 `
-    : ''
-}`
   }
 }
