@@ -35,10 +35,10 @@ export default defineMatrix(() => [
   ],
   [
     {
-      previewFeatures: '"previewFeatureFlag1"',
+      previewFeatures: '"mongoDb"',
     },
     {
-      previewFeatures: '"previewFeatureFlag2"',
+      previewFeatures: '"mongoDb"',
     },
   ],
 ])
