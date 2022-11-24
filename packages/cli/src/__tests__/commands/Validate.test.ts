@@ -34,7 +34,7 @@ describe('referential actions', () => {
     } catch (e) {
       expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
         Prisma schema validation - (query-engine-NORMALIZED)
-        Code: P1012
+        Error code: P1012
         error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
           -->  schema.prisma:21
            | 
@@ -64,7 +64,7 @@ describe('referential actions', () => {
     } catch (e) {
       expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
         Prisma schema validation - (query-engine-NORMALIZED)
-        Code: P1012
+        Error code: P1012
         error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
           -->  schema.prisma:21
            | 

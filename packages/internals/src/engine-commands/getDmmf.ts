@@ -64,7 +64,7 @@ export class GetDmmfError extends Error {
   constructor(params: GetDmmfErrorInit) {
     const constructedErrorMessage = match(params)
       .with({ _tag: 'parsed' }, ({ errorCode, message, reason }) => {
-        const errorCodeMessage = errorCode ? `Code: ${errorCode}` : ''
+        const errorCodeMessage = errorCode ? `Error code: ${errorCode}` : ''
         return `${reason}
 ${errorCodeMessage}
 ${message}`

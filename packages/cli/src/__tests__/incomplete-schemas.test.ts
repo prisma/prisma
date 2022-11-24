@@ -32,7 +32,7 @@ function urlIsMissingValidationError(source: 'getDmmf' | 'getConfig') {
   const header = source === 'getDmmf' ? 'query-engine-NORMALIZED' : 'get-config wasm'
   return `
   Prisma schema validation - (${header})
-  Code: P1012
+  Error code: P1012
   error: Argument "url" is missing in data source block "db".
     -->  schema.prisma:3
      | 
@@ -51,7 +51,7 @@ function urlIsMissingValidationError(source: 'getDmmf' | 'getConfig') {
 
 const envVarNotFoundValidationError = `
   Prisma schema validation - (get-config wasm)
-  Code: P1012
+  Error code: P1012
   error: Environment variable not found: SOME_UNDEFINED_DB.
     -->  schema.prisma:5
      | 
@@ -67,7 +67,7 @@ const envVarNotFoundValidationError = `
 
 const urlMustStartWithProtocolValidationError = `
  Prisma schema validation - (get-config wasm)
- Code: P1012
+ Error code: P1012
  error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
    -->  schema.prisma:5
     | 

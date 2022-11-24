@@ -127,7 +127,7 @@ describe('generator', () => {
     } catch (e) {
       expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
         Prisma schema validation - (query-engine-NORMALIZED)
-        Code: P1012
+        Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:10
            | 

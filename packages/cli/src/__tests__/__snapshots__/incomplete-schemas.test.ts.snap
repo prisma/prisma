@@ -2,7 +2,7 @@
 
 exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid db pull: 
  Prisma schema validation - (get-config wasm)
- Code: P1012
+ Error code: P1012
  error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
    -->  schema.prisma:5
     | 
@@ -16,7 +16,7 @@ exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid db pull:
  Prisma CLI Version : 0.0.0
     1`] = `
 Prisma schema validation - (get-config wasm)
-Code: P1012
+Error code: P1012
 error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
   -->  schema.prisma:5
    | 
@@ -32,7 +32,7 @@ Prisma CLI Version : 0.0.0
 
 exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid db push: 
  Prisma schema validation - (get-config wasm)
- Code: P1012
+ Error code: P1012
  error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
    -->  schema.prisma:5
     | 
@@ -46,7 +46,7 @@ exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid db push:
  Prisma CLI Version : 0.0.0
     1`] = `
 Prisma schema validation - (get-config wasm)
-Code: P1012
+Error code: P1012
 error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
   -->  schema.prisma:5
    | 
@@ -62,7 +62,7 @@ Prisma CLI Version : 0.0.0
 
 exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid validate: 
  Prisma schema validation - (get-config wasm)
- Code: P1012
+ Error code: P1012
  error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
    -->  schema.prisma:5
     | 
@@ -76,7 +76,7 @@ exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid validate
  Prisma CLI Version : 0.0.0
     1`] = `
 Prisma schema validation - (get-config wasm)
-Code: P1012
+Error code: P1012
 error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
   -->  schema.prisma:5
    | 
