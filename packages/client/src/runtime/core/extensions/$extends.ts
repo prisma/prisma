@@ -35,9 +35,7 @@ type ModelArgs = {
 }
 
 type ClientArgs = {
-  client: {
-    [MethodName: `$${string}`]: unknown
-  }
+  client: Record<`$${string}`, unknown>
 }
 
 type QueryOptionsCbArgs = {
@@ -64,16 +62,22 @@ type QueryOptions = {
   }
 }
 
+export type ExtendsInput = Args | ((client: Client) => Client)
+
 /**
  * TODO
  * @param this
  */
-export function $extends(this: Client, extension: Args | (() => Args)): Client {
+export function $extends(this: Client, extension: ExtendsInput): Client {
   // this preview flag is hidden until implementation is ready for preview release
   if (!this._hasPreviewFlag('clientExtensions')) {
     // TODO: when we are ready for preview release, change error message to
     // ask users to enable 'clientExtensions' preview feature
     throw new PrismaClientValidationError('Extensions are not yet available')
+  }
+
+  if (typeof extension === 'function') {
+    return extension(this)
   }
   // we need to re-apply models to the extend client:
   // they always capture specific instance of the client and without
@@ -82,10 +86,6 @@ export function $extends(this: Client, extension: Args | (() => Args)): Client {
   const newClient = Object.create(oldClient, {
     _extensions: {
       get: () => {
-        if (typeof extension === 'function') {
-          return this._extensions.concat(extension())
-        }
-
         return this._extensions.concat(extension)
       },
     },

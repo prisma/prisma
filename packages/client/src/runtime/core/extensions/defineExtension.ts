@@ -1,3 +1,5 @@
-export function defineExtension(cb: (client: any) => unknown) {
-  return cb
+import { ExtendsInput } from './$extends'
+
+export function defineExtension<Input extends ExtendsInput>(ext: Input): Input {
+  return ext
 }

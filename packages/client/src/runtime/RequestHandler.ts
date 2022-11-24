@@ -290,7 +290,7 @@ export class RequestHandler {
   }
 
   applyResultExtensions({ result, modelName, args, extensions }: ApplyExtensionsParams) {
-    if (extensions.length === 0) {
+    if (extensions.length === 0 || result == null) {
       return result
     }
     const model = this.client._baseDmmf.getModelMap()[modelName]
