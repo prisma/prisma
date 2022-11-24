@@ -9,11 +9,9 @@ import { OptionalFlat } from '../types/Utils'
 export type Args = OptionalFlat<RequiredArgs>
 export type RequiredArgs = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
-export type Extension = OptionalFlat<Args>
-
 type ResultArgs = {
   result: {
-    [modelName: string]: ResultModelArgs
+    [ModelName in string]: ResultModelArgs
   }
 }
 
@@ -24,7 +22,7 @@ export type ResultModelArgs = {
 }
 
 export type ResultFieldDefinition = {
-  needs?: Record<string, boolean>
+  needs?: { [FieldName in string]: boolean }
   compute: ResultArgsFieldCompute
 }
 
@@ -38,7 +36,7 @@ type ModelArgs = {
 
 type ClientArgs = {
   client: {
-    [MethodName: `$${string}`]: unknown
+    [MethodName in `$${string}`]: unknown
   }
 }
 
@@ -70,7 +68,7 @@ type QueryOptions = {
  * TODO
  * @param this
  */
-export function $extends(this: Client, extension: Extension | (() => Extension)): Client {
+export function $extends(this: Client, extension: Args | (() => Args)): Client {
   // this preview flag is hidden until implementation is ready for preview release
   if (!this._hasPreviewFlag('clientExtensions')) {
     // TODO: when we are ready for preview release, change error message to

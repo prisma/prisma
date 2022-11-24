@@ -2,12 +2,12 @@ import { klona } from 'klona'
 
 import { Client, InternalRequestParams } from '../../getPrismaClient'
 import { createPrismaPromise } from '../request/createPrismaPromise'
-import { Args } from './$extends'
+import { RequiredArgs } from './$extends'
 
 function iterateAndCallQueryCallbacks(
   client: Client,
   params: InternalRequestParams,
-  queryCbs: Args['query'][string][string][],
+  queryCbs: RequiredArgs['query'][string][string][],
   i = 0,
 ) {
   return createPrismaPromise((transaction, lock) => {
@@ -65,7 +65,7 @@ export function applyQueryExtensions(client: Client, params: InternalRequestPara
       }
     }
     return acc
-  }, [] as Args['query'][string][string][])
+  }, [] as RequiredArgs['query'][string][string][])
 
   // we clone the args here because we don't want to mutate the original
   return iterateAndCallQueryCallbacks(client, params, queryCbs)
