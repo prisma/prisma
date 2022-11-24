@@ -242,6 +242,9 @@ testMatrix.setupTestSuite(
 
       // ... the pivot table entry is still there!
       // This is a bug in the relationMode="prisma" emulation
+      //
+      // TODO once the bug is fixed: remove conditional
+      // pivot table should be empty
       if (suiteConfig.relationMode === 'prisma') {
         expect(pivotTableAfterDelete).toStrictEqual([
           {
