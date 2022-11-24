@@ -35,7 +35,7 @@ export default defineMatrix(() => [
   ],
   [
     {
-      previewFeatures: '"referentialIntegrity"',
+      previewFeatures: '"interactiveTransactions"',
     },
     {
       previewFeatures: '"referentialIntegrity"',
