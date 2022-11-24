@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.7.0-57.c987dc4121f6967287d18e7b5263a607fb6571ae",
+    "@prisma/engines-version": "4.7.0-58.integration-itx-remove-preview-feature-fc5a26ee02b3d43c0637d6a961d47a5996aac307",
     "@swc/core": "1.3.14",
     "@swc/jest": "0.2.23",
     "@types/jest": "28.1.8",
