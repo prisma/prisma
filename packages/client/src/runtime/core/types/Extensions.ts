@@ -1,4 +1,4 @@
-import { Args } from '../extensions/$extends'
+import { RequiredArgs as Args } from '../extensions/$extends'
 import { PatchFlat3 } from './Utils'
 
 export type DefaultArgs = { result: {}; model: {}; query: {}; client: {} }

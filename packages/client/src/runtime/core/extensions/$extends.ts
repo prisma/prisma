@@ -4,8 +4,10 @@ import {
   applyModelsAndClientExtensions,
   unapplyModelsAndClientExtensions,
 } from '../model/applyModelsAndClientExtensions'
+import { OptionalFlat } from '../types/Utils'
 
-export type Args = ResultArgs & ModelArgs & ClientArgs & QueryOptions
+export type Args = OptionalFlat<RequiredArgs>
+export type RequiredArgs = ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
 type ResultArgs = {
   result: {
