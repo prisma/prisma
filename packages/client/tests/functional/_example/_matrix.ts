@@ -35,10 +35,10 @@ export default defineMatrix(() => [
   ],
   [
     {
-      previewFeatures: '"mongoDb"',
+      previewFeatures: '"referentialIntegrity"',
     },
     {
-      previewFeatures: '"mongoDb"',
+      previewFeatures: '"referentialIntegrity"',
     },
   ],
 ])
