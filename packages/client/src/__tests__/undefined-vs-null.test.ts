@@ -27,6 +27,7 @@ describe('select validation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'updateOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -66,6 +67,7 @@ describe('select validation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: [],
     })
 
     expect(String(document)).toMatchSnapshot()

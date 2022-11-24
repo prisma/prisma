@@ -81,6 +81,28 @@ test('allows to set property descriptor via layer', () => {
   expect(proxy).toHaveProperty('second', 123)
 })
 
+test('allows to hide properties via layers', () => {
+  const proxy = createCompositeProxy({ prop: 1, secret: "It's a secret to everybody" }, [
+    {
+      getKeys() {
+        return ['secret']
+      },
+
+      getPropertyValue() {
+        return undefined
+      },
+
+      has() {
+        return false
+      },
+    },
+  ])
+
+  expect(Object.keys(proxy)).toEqual(['prop'])
+  expect(proxy).not.toHaveProperty('secret')
+  expect(proxy['secret']).toBeUndefined()
+})
+
 test('does not add layers for undeclared keys', () => {
   const getPropertyValue = jest.fn()
   const proxy = createCompositeProxy({} as Record<string, unknown>, [

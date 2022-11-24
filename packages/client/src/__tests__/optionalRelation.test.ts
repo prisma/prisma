@@ -23,6 +23,7 @@ describe('optional to one relation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: [],
     })
 
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
