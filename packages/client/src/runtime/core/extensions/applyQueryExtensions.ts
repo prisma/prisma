@@ -40,6 +40,8 @@ function iterateAndCallQueryCallbacks(
 export function applyQueryExtensions(client: Client, params: InternalRequestParams) {
   const { jsModelName, action } = params
 
+  if (client._extensions.length === 0) return client._executeRequest(params)
+
   // query extensions only apply to model-bound operations (for now)
   if (jsModelName === undefined) return client._executeRequest(params)
 
@@ -73,7 +75,7 @@ export function applyQueryExtensions(client: Client, params: InternalRequestPara
     return acc
   }, [] as RequiredArgs['query'][string][string][])
 
-  // the last extension is added by us and will execute the actual query
+  // the last "extension" is added by us and will execute the actual query
   queryCbs.push(({ args }) => client._executeRequest({ ...params, args }))
 
   // we clone the args here because we don't want to mutate the original

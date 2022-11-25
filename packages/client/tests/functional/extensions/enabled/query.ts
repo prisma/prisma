@@ -443,10 +443,12 @@ testMatrix.setupTestSuite(
       emitter.removeAllListeners('query')
     })
 
-    test('transforming a simple query into a batch transaction', async () => {
+    test.skip('transforming a simple query into a batch transaction', async () => {
       const fnEmitter = jest.fn()
 
-      emitter.on('query', fnEmitter)
+      emitter.on('query', (e) => {
+        console.log(e)
+      })
 
       const xprisma = prisma.$extends({
         query: {
