@@ -7,6 +7,13 @@ In case this error is unexpected for you, please report it in https://github.com
   }
 }
 
+function defineExtension(config) {
+  return config
+}
+
 module.exports = {
   PrismaClient,
+  Prisma: {
+    defineExtension,
+  },
 }

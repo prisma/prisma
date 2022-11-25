@@ -29,6 +29,8 @@ export declare const PrismaClient: any
  */
 export declare type PrismaClient = any
 
+export declare type GenericPrismaClient = {}
+
 export declare const dmmf: any
 export declare type dmmf = any
 
@@ -44,4 +46,30 @@ export declare type PromiseReturnType<T extends (...args: any) => Promise<any>> 
 
 export namespace Prisma {
   export type TransactionClient = any
+
+  export type ExtensionConfig = {
+    client?: Record<`$${string}`, unknown>
+    model?: {
+      [ModelName in string]: {
+        [MethodName in string]: (...args: unknown[]) => unknown
+      }
+    }
+    result?: {
+      [ModelName in string]: {
+        [FieldName in string]: {
+          needs: Record<string, boolean>
+          compute: (value: object) => unknown
+        }
+      }
+    }
+    query?: {
+      [ModelName in string]: {
+        // TODO:
+      }
+    }
+  }
+
+  export function defineExtension<Ext extends ExtensionConfig | ((client: PrismaClient) => PrismaClient)>(
+    extension: Ext,
+  ): Ext
 }

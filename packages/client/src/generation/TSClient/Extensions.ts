@@ -217,11 +217,13 @@ ${stringifyGenericParameters(genericParams, 4, defaultGetNeedsValueType)},
 }
 
 export function extensionsPrismaNamespaceTypesDefinition(genericParams: ExtensionGenericParam[], dmmf: DMMFHelper) {
-  const extensionConfigType = extensionConfigTypeDefinition(genericParams, dmmf)
-  const queryExtensionArgsType = queryExtensionsArgsTypeDefinition(dmmf)
-  const defineExtension = defineExtensionDefinition(genericParams)
+  return ifExtensions(() => {
+    const extensionConfigType = extensionConfigTypeDefinition(genericParams, dmmf)
+    const queryExtensionArgsType = queryExtensionsArgsTypeDefinition(dmmf)
+    const defineExtension = defineExtensionDefinition(genericParams)
 
-  return [extensionConfigType, queryExtensionArgsType, defineExtension].join('\n\n')
+    return [extensionConfigType, queryExtensionArgsType, defineExtension].join('\n\n')
+  }, '')
 }
 
 export function extensionConfigType(currentArgs: string, genericParameters: ExtensionGenericParam[]) {
