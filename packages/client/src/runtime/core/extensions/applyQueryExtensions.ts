@@ -11,29 +11,32 @@ function iterateAndCallQueryCallbacks(
   queryCbs: RequiredArgs['query'][string][string][],
   i = 0,
 ) {
+  if (queryCbs.length === 0) return client._executeRequest(params)
+
   return createPrismaPromise((transaction, lock) => {
     // allow query extensions to re-wrap in transactions
     // this will automatically discard the prev batch tx
     if (transaction !== undefined) {
+      void params.lock?.then() // discard previous lock
       params.transaction = transaction
       params.lock = lock
     }
 
+    // if we are done recursing, we execute the request
+    if (i === queryCbs.length) {
+      return client._executeRequest(params)
+    }
+
     // if not, call the next query cb and recurse query
-    const result = queryCbs[i]({
+    return queryCbs[i]({
       model: params.model,
       operation: params.action,
       args: klona(params.args),
-      query: (args) => iterateAndCallQueryCallbacks(client, { ...params, args }, queryCbs, i + 1),
+      query: (args) => {
+        params.args = args
+        return iterateAndCallQueryCallbacks(client, params, queryCbs, i + 1)
+      },
     })
-
-    // if a query cb returns a value/skips `await query`
-    // we can end up with a batch tx locking the process
-    if ((result as PrismaPromise<any>).requestTransaction === undefined) {
-      void lock?.then() // unlock this query in batch tx
-    }
-
-    return result
   })
 }
 
@@ -74,9 +77,6 @@ export function applyQueryExtensions(client: Client, params: InternalRequestPara
     }
     return acc
   }, [] as RequiredArgs['query'][string][string][])
-
-  // the last "extension" is added by us and will execute the actual query
-  queryCbs.push(({ args }) => client._executeRequest({ ...params, args }))
 
   // we clone the args here because we don't want to mutate the original
   return iterateAndCallQueryCallbacks(client, params, queryCbs)

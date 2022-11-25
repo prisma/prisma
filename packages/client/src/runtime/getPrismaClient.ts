@@ -309,6 +309,13 @@ export const actionOperationMap = {
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
+const BatchTxIdCounter = {
+  id: 0,
+  nextId() {
+    return ++this.id
+  },
+}
+
 export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
@@ -333,7 +340,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _middlewares: Middlewares = new Middlewares()
     _previewFeatures: string[]
     _activeProvider: string
-    _transactionId = 1
     _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
     _extensions: Extension[]
@@ -942,7 +948,8 @@ new PrismaClient({
       promises: Array<PrismaPromise<any>>
       options?: BatchTransactionOptions
     }): Promise<any> {
-      const txId = Math.random()
+      const id = BatchTxIdCounter.nextId()
+      console.log('$transaction', promises.length, id)
       const lock = getLockCountPromise(promises.length)
 
       const requests = promises.map((request, index) => {
@@ -952,9 +959,7 @@ new PrismaClient({
           )
         }
 
-        return (
-          request.requestTransaction?.({ id: txId, index, isolationLevel: options?.isolationLevel }, lock) ?? request
-        )
+        return request.requestTransaction?.({ id, index, isolationLevel: options?.isolationLevel }, lock) ?? request
       })
 
       return waitForBatch(requests)
@@ -1198,6 +1203,7 @@ new PrismaClient({
         debug(query + '\n')
       }
 
+      console.log('executeRequest', transaction?.id, clientMethod)
       await lock /** @see {@link getLockCountPromise} */
 
       return this._fetcher.request({
