@@ -31,7 +31,7 @@ function clientExtensionsDefinitions(this: PrismaClientClass) {
   $extends<
   ${stringifyGenericParameters(this.extensionsGenericParams, 4)},
     Args extends runtime.Types.Extensions.Args = { result: R, model: M, query: Q, client: C },
-  >(extension: ((client: this) => PrismaClient<any, any, any, Args>) | ${extensionConfigType(
+  >(extension: ((client: this) => runtime.Types.Extensions.ExtArgsContainer<Args>) | ((client: runtime.Types.Extensions.GenericPrismaClient<Args>) => runtime.Types.Extensions.ExtArgsContainer<Args>)  | ${extensionConfigType(
     'ExtArgs',
     this.extensionsGenericParams,
   )}): runtime.Types.Utils.PatchFlat3<Args['client'], PrismaClient<T, U, GlobalReject, {
@@ -44,6 +44,8 @@ function clientExtensionsDefinitions(this: PrismaClientClass) {
     client: runtime.Types.Utils.PatchFlat3<{}, Args['client'], ExtArgs['client']>
     query: {}
   }> & { $use: never }, ExtArgs['client']>
+
+  [runtime.Extensions.ExtArgsSymbol]: ExtArgs
 `,
     '',
   )
@@ -234,7 +236,7 @@ export class PrismaClient<
   ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs`,
       '',
     )}
-      > {
+      > implements runtime.Types.Extensions.GenericPrismaClient<ExtArgs> {
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
