@@ -151,6 +151,30 @@ describe('--schema from parent directory', () => {
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
     await expect(result).rejects.toThrowError(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
   })
+
+  it('--generator: should work - valid generator names', async () => {
+    ctx.fixture('example-project')
+    const result = await Generate.new().parse([
+      '--schema=./prisma/multiple-generator.prisma',
+      '--generator=client',
+      '--generator=client_3',
+    ])
+    const output = stripAnsi(replaceEngineType(result))
+
+    expect(output).toMatchSnapshot()
+  })
+
+  it('--generator: should fail - invalid generator name', async () => {
+    ctx.fixture('example-project')
+
+    await expect(
+      Generate.new().parse([
+        '--schema=./prisma/multiple-generator.prisma',
+        '--generator=client',
+        '--generator=invalid_client',
+      ]),
+    ).rejects.toThrow('not found')
+  })
 })
 
 function replaceEngineType(result: string | Error) {
