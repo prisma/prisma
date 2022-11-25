@@ -1,9 +1,7 @@
-import type { Command } from '@prisma/internals'
-import { arg, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/internals'
+import { arg, Command, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import fs from 'fs'
-import os from 'os'
 
 /**
  * $ prisma format
