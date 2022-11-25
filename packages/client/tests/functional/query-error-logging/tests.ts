@@ -59,6 +59,45 @@ testMatrix.setupTestSuite(
       )
       expect(errorEvent.target).toContain('user.findFirstOrThrow')
     })
+
+    // Test for https://github.com/prisma/prisma/issues/16354
+    test('middleware captures errors', async () => {
+      prisma = newPrismaClient()
+      prisma.$use(async (params, next) => {
+        try {
+          return await next(params)
+        } catch (error) {
+          expect(params.action).toEqual('findFirstOrThrow')
+          throw new Error('Middleware error')
+        }
+      })
+
+      await expect(() =>
+        prisma.user.findFirstOrThrow({
+          where: {
+            email,
+          },
+        }),
+      ).rejects.toThrowError('Middleware error')
+
+      prisma = newPrismaClient()
+      prisma.$use(async (params, next) => {
+        try {
+          return await next(params)
+        } catch (error) {
+          expect(params.action).toEqual('findUniqueOrThrow')
+          throw new Error('Middleware error')
+        }
+      })
+
+      await expect(() =>
+        prisma.user.findUniqueOrThrow({
+          where: {
+            email,
+          },
+        }),
+      ).rejects.toThrowError('Middleware error')
+    })
   },
   {
     skipDefaultClientInstance: true,
