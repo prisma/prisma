@@ -942,7 +942,7 @@ new PrismaClient({
       promises: Array<PrismaPromise<any>>
       options?: BatchTransactionOptions
     }): Promise<any> {
-      const txId = this._transactionId++
+      const txId = Math.random()
       const lock = getLockCountPromise(promises.length)
 
       const requests = promises.map((request, index) => {
@@ -1118,8 +1118,6 @@ new PrismaClient({
       unpacker,
       otelParentCtx,
     }: InternalRequestParams) {
-      console.log('tx', transaction)
-      console.log('args', args)
       if (this._dmmf === undefined) {
         this._dmmf = await this._getDmmf({ clientMethod, callsite })
       }

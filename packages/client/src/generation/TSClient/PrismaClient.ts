@@ -83,7 +83,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
       args: { model: '${modelName}', operation: '${action}', args: Prisma.${getModelArgName(
           modelName,
           action,
-        )}<ExtArgs>, data: PrismaPromise<runtime.Types.Utils.OptionalFlat<${modelName}>> },
+        )}<ExtArgs>, query: (args: object) => PrismaPromise<runtime.Types.Utils.OptionalFlat<${modelName}>> },
       result: Promise<runtime.Types.Utils.OptionalFlat<${modelName}>>
     }`
       }, '')}

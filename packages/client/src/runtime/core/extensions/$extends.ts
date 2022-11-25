@@ -43,8 +43,8 @@ type ClientArgs = {
 type QueryOptionsCbArgs = {
   model?: string
   operation: string
-  args: { [K in string]: {} | undefined | null | QueryOptionsCbArgs['args'] }
-  result: Promise<unknown>
+  args: object
+  query: (args: object) => Promise<unknown>
 }
 
 type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
@@ -68,7 +68,7 @@ type QueryOptions = {
  * TODO
  * @param this
  */
-export function $extends(this: Client, extension: Args | (() => Args)): Client {
+export function $extends(this: Client, extension: Args | ((client: Client) => Args)): Client {
   // this preview flag is hidden until implementation is ready for preview release
   if (!this._hasPreviewFlag('clientExtensions')) {
     // TODO: when we are ready for preview release, change error message to
@@ -85,7 +85,7 @@ export function $extends(this: Client, extension: Args | (() => Args)): Client {
     _extensions: {
       get: () => {
         if (typeof extension === 'function') {
-          return this._extensions.concat(extension())
+          return this._extensions.concat(extension(oldClient))
         }
 
         return this._extensions.concat(extension)
