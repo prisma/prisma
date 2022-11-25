@@ -61,7 +61,7 @@ Or specify a Prisma schema path
       })
     } catch (e) {
       console.error('') // empty line for better readability
-      throw new Error(`${e.message}`)
+      throw e
     }
 
     fs.writeFileSync(schemaPath, output)

@@ -88,7 +88,7 @@ ${chalk.bold('Examples')}
       })
     } catch (e) {
       console.error('') // empty line for better readability
-      throw new Error(`${e.message}`)
+      throw e
     }
 
     // We could have a CLI flag to ignore env var validation
