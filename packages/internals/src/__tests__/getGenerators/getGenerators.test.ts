@@ -613,6 +613,38 @@ describe('getGenerators', () => {
     generators.forEach((g) => g.stop())
   })
 
+  test('filter generator names', async () => {
+    const aliases = {
+      'predefined-generator-1': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-2': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-3': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'multiple-generators-schema.prisma'),
+      dataProxy: false,
+      providerAliases: aliases,
+      generatorNames: ['client_1', 'client_3'],
+    })
+
+    expect(generators).toHaveLength(2)
+    expect(generators[0].config.name).toEqual('client_1')
+    expect(generators[0].getProvider()).toEqual('predefined-generator-1')
+    expect(generators[1].config.name).toEqual('client_3')
+    expect(generators[1].getProvider()).toEqual('predefined-generator-3')
+
+    generators.forEach((g) => g.stop())
+  })
+
   test('fail on platforms', async () => {
     const aliases = {
       'predefined-generator': {
@@ -799,5 +831,31 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  test('fail if generator not found', async () => {
+    const aliases = {
+      'predefined-generator-1': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-2': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-3': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    await expect(
+      getGenerators({
+        schemaPath: path.join(__dirname, 'multiple-generators-schema.prisma'),
+        dataProxy: false,
+        providerAliases: aliases,
+        generatorNames: ['predefined-generator-1', 'invalid_generator'],
+      }),
+    ).rejects.toThrow('not found')
   })
 })
