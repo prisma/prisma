@@ -51,6 +51,7 @@ export type GetGeneratorOptions = {
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
   dataProxy: boolean
+  generatorNames?: string[]
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -71,6 +72,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     skipDownload,
     binaryPathsOverride,
     dataProxy,
+    generatorNames = [],
   } = options
 
   if (!schemaPath) {
@@ -143,7 +145,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   checkFeatureFlags(config, options)
 
-  const generatorConfigs = overrideGenerators || config.generators
+  const generatorConfigs = filterGenerators(overrideGenerators || config.generators, generatorNames)
 
   await validateGenerators(generatorConfigs)
 
@@ -494,4 +496,19 @@ In case you want to fix this, you can provide ${chalk.greenBright(
       }
     }
   }
+}
+
+function filterGenerators(generators: GeneratorConfig[], generatorNames: string[]) {
+  if (generatorNames.length < 1) {
+    return generators
+  }
+
+  const filtered = generators.filter((generator) => generatorNames.includes(generator.name))
+
+  if (filtered.length !== generatorNames.length) {
+    const missing = generatorNames.find((name) => filtered.find((generator) => generator.name === name) == null)
+    throw new Error(`Generator ${chalk.bold(missing)} is not found.`)
+  }
+
+  return filtered
 }

@@ -103,6 +103,7 @@ ${chalk.bold('Examples')}
       '--watch': Boolean,
       '--schema': String,
       '--data-proxy': Boolean,
+      '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
@@ -139,6 +140,7 @@ ${chalk.bold('Examples')}
         version: enginesVersion,
         cliVersion: pkg.version,
         dataProxy: !!args['--data-proxy'] || !!process.env.PRISMA_GENERATE_DATAPROXY,
+        generatorNames: args['--generator'],
       })
 
       if (!generators || generators.length === 0) {
@@ -289,6 +291,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               version: enginesVersion,
               cliVersion: pkg.version,
               dataProxy: !!args['--data-proxy'] || !!process.env.PRISMA_GENERATE_DATAPROXY,
+              generatorNames: args['--generator'],
             })
 
             if (!generatorsWatch || generatorsWatch.length === 0) {
