@@ -13,6 +13,6 @@ export type GetResultSelect<Base extends object, R extends Args['result'][string
 
 export type GetModel<Base extends object, M extends Args['model'][string]> =
   //
-  PatchFlat3<{}, Base, M>
+  PatchFlat3<M, Base, {}>
 
 export type { Args }

@@ -2,7 +2,6 @@ import { klona } from 'klona'
 
 import { Client, InternalRequestParams } from '../../getPrismaClient'
 import { createPrismaPromise } from '../request/createPrismaPromise'
-import { PrismaPromise } from '../request/PrismaPromise'
 import { RequiredArgs } from './$extends'
 
 function iterateAndCallQueryCallbacks(
@@ -19,7 +18,7 @@ function iterateAndCallQueryCallbacks(
     if (transaction !== undefined) {
       void params.lock?.then() // discard previous lock
       params.transaction = transaction
-      params.lock = lock
+      params.lock = lock // assign newly acquired lock
     }
 
     // if we are done recursing, we execute the request
@@ -43,10 +42,10 @@ function iterateAndCallQueryCallbacks(
 export function applyQueryExtensions(client: Client, params: InternalRequestParams) {
   const { jsModelName, action } = params
 
-  if (client._extensions.length === 0) return client._executeRequest(params)
-
   // query extensions only apply to model-bound operations (for now)
-  if (jsModelName === undefined) return client._executeRequest(params)
+  if (jsModelName === undefined || client._extensions.length === 0) {
+    return client._executeRequest(params)
+  }
 
   // iterate, filter, and process all the relevant query extensions
   const queryCbs = client._extensions.reduce((acc, extension) => {

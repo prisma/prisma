@@ -72,19 +72,17 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
 function clientExtensionsQueryDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
-  const prismaNamespaceDefinitions = `export type QueryExtensionArgs<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {${modelNames.reduce(
+  const prismaNamespaceDefinitions = `export type TypeMap<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {${modelNames.reduce(
     (acc, modelName) => {
       const actions = getModelActions(this.dmmf, modelName)
 
       return `${acc}
-  ${lowerCase(modelName)}: {${actions.reduce((acc, action) => {
+  ${modelName}: {${actions.reduce((acc, action) => {
         return `${acc}
     ${action}: {
-      args: { model: '${modelName}', operation: '${action}', args: Prisma.${getModelArgName(
-          modelName,
-          action,
-        )}<ExtArgs>, query: (args: object) => PrismaPromise<runtime.Types.Utils.OptionalFlat<${modelName}>> },
+      args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
       result: Promise<runtime.Types.Utils.OptionalFlat<${modelName}>>
+      queryExtCbArgs: { model: '${modelName}', operation: '${action}', args: TypeMap<ExtArgs>['${modelName}']['${action}']['args'], query: (args: object) => PrismaPromise<runtime.Types.Utils.OptionalFlat<${modelName}>> },
     }`
       }, '')}
   }`
@@ -92,54 +90,35 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     '',
   )}
 }`
-  const allOperationsSubParam = (modelNames: string[], indent: string) => {
+  const allOperationsParam = (modelNames: string[], indent: string) => {
+    const key = modelNames.length > 1 ? `keyof Prisma.TypeMap<ExtArgs>` : `'${modelNames[0]}'`
+
     return `{
-    ${indent}$allOperations?: {${modelNames.reduce((acc, modelName) => {
-      const actions = getModelActions(this.dmmf, modelName)
-      return `${acc}${actions.reduce((acc, action) => {
-        return `${acc}
-      ${indent}(args: Prisma.QueryExtensionArgs<ExtArgs>['${lowerCase(
-          modelName,
-        )}']['${action}']['args']): Prisma.QueryExtensionArgs<ExtArgs>['${lowerCase(
-          modelName,
-        )}']['${action}']['result']`
-      }, '')}`
-    }, '')}
-    ${indent}}
+    ${indent}$allOperations?: (args: Prisma.TypeMap<ExtArgs>[${key}][keyof Prisma.TypeMap<ExtArgs>[${key}]]['queryExtCbArgs']) => Prisma.TypeMap<ExtArgs>[${key}][keyof Prisma.TypeMap<ExtArgs>[${key}]]['result']
   ${indent}}`
   }
 
+  const modelParam = (propName: string, modelNames: string[]) => {
+    const key = modelNames.length > 1 ? `keyof Prisma.TypeMap<ExtArgs>` : `'${modelNames[0]}'`
+
+    return `${propName}?: {
+          [K in keyof Prisma.TypeMap<ExtArgs>[${key}]]?: (args: Prisma.TypeMap<ExtArgs>[${key}][K]['queryExtCbArgs']) => Prisma.TypeMap<ExtArgs>[${key}][K]['result']
+        } & ${allOperationsParam(modelNames, '      ')}`
+  }
+
   const allModelsParam = `{
-        $allModels?: {${modelNames.reduce((acc, modelName) => {
-          const actions = getModelActions(this.dmmf, modelName)
-          return `${acc}${actions.reduce((acc, action) => {
-            return `${acc}
-          ${action}?(args: Prisma.QueryExtensionArgs<ExtArgs>['${lowerCase(
-              modelName,
-            )}']['${action}']['args']): Prisma.QueryExtensionArgs<ExtArgs>['${lowerCase(
-              modelName,
-            )}']['${action}']['result']`
-          }, '')}`
-        }, '')}
-        } & ${allOperationsSubParam(modelNames, '      ')}
+      ${modelParam('$allModels', modelNames)}
       }`
 
-  const concreteModelParam = `{${modelNames.reduce((acc, modelName) => {
-    const actions = getModelActions(this.dmmf, modelName)
+  const concreteModelParams = `{${modelNames.reduce((acc, modelName) => {
     return `${acc}
-        ${lowerCase(modelName)}?: {${actions.reduce((acc, action) => {
-      return `${acc}
-          ${action}?(args: Prisma.QueryExtensionArgs<ExtArgs>['${lowerCase(
-        modelName,
-      )}']['${action}']['args']): Prisma.QueryExtensionArgs<ExtArgs>['${lowerCase(modelName)}']['${action}']['result']`
-    }, '')}
-        } & ${allOperationsSubParam([modelName], '      ')}`
+        ${modelParam(lowerCase(modelName), [modelName])}`
   }, '')}
       }`
 
   return {
     genericParams: `Q extends runtime.Types.Extensions.Args['query'] = {}`,
-    params: `${allModelsParam} & ${concreteModelParam}`,
+    params: `${allModelsParam} & ${concreteModelParams}`,
     prismaNamespaceDefinitions,
   }
 }
