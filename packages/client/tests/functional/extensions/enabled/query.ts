@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto'
 import { expectTypeOf } from 'expect-type'
 
 import { wait } from '../../_utils/tests/wait'
@@ -10,8 +11,12 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
+const randomId1 = randomBytes(12).toString('hex')
+const randomId2 = randomBytes(12).toString('hex')
+const randomId3 = randomBytes(12).toString('hex')
+
 testMatrix.setupTestSuite(
-  () => {
+  ({ provider }) => {
     beforeEach(async () => {
       prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -67,7 +72,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      const args = { where: { id: '1' } }
+      const args = { where: { id: randomId1 } }
       const cbArgs = { args, operation: 'findFirst', model: 'User' }
 
       const data = await xprisma.user.findFirst(args)
@@ -109,7 +114,7 @@ testMatrix.setupTestSuite(
           },
         })
 
-      const args = { where: { id: '1' } }
+      const args = { where: { id: randomId1 } }
 
       const data = await xprisma.user.findFirst(args)
 
@@ -132,7 +137,7 @@ testMatrix.setupTestSuite(
           query: {
             user: {
               findFirst({ args, query, operation, model }) {
-                args.where = { id: '1' }
+                args.where = { id: randomId2 }
 
                 return query(args)
               },
@@ -143,7 +148,7 @@ testMatrix.setupTestSuite(
           query: {
             user: {
               findFirst({ args, query, operation, model }) {
-                args.where = { id: '2' }
+                args.where = { id: randomId3 }
 
                 return query(args)
               },
@@ -162,13 +167,13 @@ testMatrix.setupTestSuite(
           },
         })
 
-      const args = { where: { id: '0' } }
+      const args = { where: { id: randomId1 } }
 
       const data = await xprisma.user.findFirst(args)
 
       expect(data).toMatchInlineSnapshot(`null`)
-      expect(args).toEqual({ where: { id: '0' } })
-      expect(fnUser).toHaveBeenCalledWith({ where: { id: '2' } })
+      expect(args).toEqual({ where: { id: randomId1 } })
+      expect(fnUser).toHaveBeenCalledWith({ where: { id: randomId3 } })
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
@@ -183,7 +188,7 @@ testMatrix.setupTestSuite(
           query: {
             user: {
               findFirst({ args, query, operation, model }) {
-                args.where = { id: '1', ...args.where }
+                args.where = { id: randomId1, ...args.where }
 
                 return query(args)
               },
@@ -216,7 +221,7 @@ testMatrix.setupTestSuite(
       const data = await xprisma.user.findFirst({ skip: 1 })
 
       expect(data).toMatchInlineSnapshot(`null`)
-      expect(fnUser).toHaveBeenCalledWith({ where: { id: '1', email: 'john@doe.io' }, skip: 1 })
+      expect(fnUser).toHaveBeenCalledWith({ where: { id: randomId1, email: 'john@doe.io' }, skip: 1 })
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
@@ -392,7 +397,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    test('query result mutations with batch transactions', async () => {
+    testIf(provider !== 'mongodb')('query result mutations with batch transactions', async () => {
       const fnEmitter = jest.fn()
 
       prisma.$on('query', fnEmitter)
@@ -449,7 +454,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('transforming a simple query into a batch transaction', async () => {
+    testIf(provider !== 'mongodb')('transforming a simple query into a batch transaction', async () => {
       const fnEmitter = jest.fn()
 
       prisma.$on('query', fnEmitter)
@@ -458,6 +463,7 @@ testMatrix.setupTestSuite(
         query: {
           user: {
             async findFirst({ args, query, operation, model }) {
+              // @ts-test-if: provider !== 'mongodb'
               return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
             },
           },
@@ -486,7 +492,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('hijacking a batch transaction into another one with a simple call', async () => {
+    testIf(provider !== 'mongodb')('hijacking a batch transaction into another one with a simple call', async () => {
       const fnEmitter = jest.fn()
 
       prisma.$on('query', fnEmitter)
@@ -495,6 +501,7 @@ testMatrix.setupTestSuite(
         query: {
           user: {
             async findFirst({ args, query, operation, model }) {
+              // @ts-test-if: provider !== 'mongodb'
               return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
             },
           },
@@ -539,7 +546,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    test('hijacking a batch transaction into another one with multiple calls', async () => {
+    testIf(provider !== 'mongodb')('hijacking a batch transaction into another one with multiple calls', async () => {
       const fnEmitter = jest.fn()
 
       prisma.$on('query', fnEmitter)
@@ -562,6 +569,7 @@ testMatrix.setupTestSuite(
           query: {
             user: {
               async findFirst({ args, query, operation, model }) {
+                // @ts-test-if: provider !== 'mongodb'
                 return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
               },
             },
@@ -613,12 +621,14 @@ testMatrix.setupTestSuite(
           calls.pop()
         }
 
-        expect(calls).toMatchObject([
-          [{ query: expect.stringContaining('BEGIN') }],
-          [{ query: expect.stringContaining('SELECT') }],
-          [{ query: expect.stringContaining('SELECT') }],
-          [{ query: expect.stringContaining('COMMIT') }],
-        ])
+        if (provider !== 'mongodb') {
+          expect(calls).toMatchObject([
+            [{ query: expect.stringContaining('BEGIN') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('COMMIT') }],
+          ])
+        }
       })
     })
 
@@ -650,7 +660,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      const args = { where: { id: '1' } }
+      const args = { where: { id: randomId1 } }
       const cbArgsUser = { args, operation: 'findFirst', model: 'User' }
       const cbArgsPost = { args, operation: 'findFirst', model: 'Post' }
 
@@ -677,6 +687,7 @@ testMatrix.setupTestSuite(
             async $allOperations({ args, query, operation, model }) {
               expectTypeOf(args).not.toBeAny
               expectTypeOf(query).toBeFunction()
+              // @ts-test-if: provider !== 'sqlite' && provider !== 'mongodb'
               expectTypeOf(operation).toEqualTypeOf<
                 | 'findUnique'
                 | 'findUniqueOrThrow'
@@ -709,7 +720,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      const args = { where: { id: '1' } }
+      const args = { where: { id: randomId1 } }
       const cbArgsUser = { args, operation: 'findFirst', model: 'User' }
       const cbArgsPost = { args, operation: 'findFirst', model: 'Post' }
       const cbArgsPosts = { args, operation: 'findMany', model: 'Post' }
@@ -740,6 +751,7 @@ testMatrix.setupTestSuite(
             async $allOperations({ args, query, operation, model }) {
               expectTypeOf(args).not.toBeAny
               expectTypeOf(query).toBeFunction()
+              // @ts-test-if: provider !== 'sqlite' && provider !== 'mongodb'
               expectTypeOf(operation).toEqualTypeOf<
                 | 'findUnique'
                 | 'findUniqueOrThrow'
@@ -773,7 +785,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      const args = { where: { id: '1' } }
+      const args = { where: { id: randomId1 } }
       const cbArgsPost = { args, operation: 'findFirst', model: 'Post' }
       const cbArgsPosts = { args, operation: 'findMany', model: 'Post' }
 
