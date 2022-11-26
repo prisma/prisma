@@ -15,6 +15,8 @@ const randomId1 = randomBytes(12).toString('hex')
 const randomId2 = randomBytes(12).toString('hex')
 const randomId3 = randomBytes(12).toString('hex')
 
+jest.retryTimes(3)
+
 testMatrix.setupTestSuite(
   ({ provider }) => {
     beforeEach(async () => {
