@@ -15,4 +15,10 @@ export type GetModel<Base extends object, M extends Args['model'][string]> =
   //
   PatchFlat3<M, Base, {}>
 
+export type ReadonlySelector<T> = {
+  readonly [K in keyof T as K extends 'include' | 'select' ? K : never]: ReadonlySelector<T[K]>
+} & {
+  [K in keyof T as K extends 'include' | 'select' ? never : K]: T[K]
+}
+
 export type { Args }

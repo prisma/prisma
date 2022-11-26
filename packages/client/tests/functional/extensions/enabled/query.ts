@@ -44,6 +44,10 @@ testMatrix.setupTestSuite(
         query: {
           user: {
             findFirst({ args, query, operation, model }) {
+              // @ts-expect-error
+              args.include = {}
+              // @ts-expect-error
+              args.select = {}
               expectTypeOf(args).not.toBeAny
               expectTypeOf(query).toBeFunction()
               expectTypeOf(operation).toEqualTypeOf<'findFirst'>()

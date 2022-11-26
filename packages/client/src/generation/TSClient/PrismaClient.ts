@@ -82,7 +82,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     ${action}: {
       args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
       result: Promise<runtime.Types.Utils.OptionalFlat<${modelName}>>
-      queryExtCbArgs: { model: '${modelName}', operation: '${action}', args: TypeMap<ExtArgs>['${modelName}']['${action}']['args'], query: (args: object) => PrismaPromise<runtime.Types.Utils.OptionalFlat<${modelName}>> },
+      queryExtCbArgs: { model: '${modelName}', operation: '${action}', args: runtime.Types.Extensions.ReadonlySelector<TypeMap<ExtArgs>['${modelName}']['${action}']['args']>, query: (args: object) => PrismaPromise<runtime.Types.Utils.OptionalFlat<${modelName}>> },
     }`
       }, '')}
   }`
