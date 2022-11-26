@@ -29,6 +29,7 @@ import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
 import { $extends, Args as Extension } from './core/extensions/$extends'
+import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { UserArgs } from './core/model/UserArgs'
@@ -309,6 +310,13 @@ export const actionOperationMap = {
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
+const BatchTxIdCounter = {
+  id: 0,
+  nextId() {
+    return ++this.id
+  },
+}
+
 export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
@@ -333,7 +341,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _middlewares: Middlewares = new Middlewares()
     _previewFeatures: string[]
     _activeProvider: string
-    _transactionId = 1
     _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
     _extensions: Extension[]
@@ -952,7 +959,7 @@ new PrismaClient({
       promises: Array<PrismaPromise<any>>
       options?: BatchTransactionOptions
     }): Promise<any> {
-      const txId = this._transactionId++
+      const id = BatchTxIdCounter.nextId()
       const lock = getLockCountPromise(promises.length)
 
       const requests = promises.map((request, index) => {
@@ -962,9 +969,7 @@ new PrismaClient({
           )
         }
 
-        return (
-          request.requestTransaction?.({ id: txId, index, isolationLevel: options?.isolationLevel }, lock) ?? request
-        )
+        return request.requestTransaction?.({ id, index, isolationLevel: options?.isolationLevel }, lock) ?? request
       })
 
       return waitForBatch(requests)
@@ -1094,7 +1099,8 @@ new PrismaClient({
           if (!runInTransaction) {
             requestParams.transaction = undefined
           }
-          return this._executeRequest(requestParams)
+
+          return applyQueryExtensions(this, requestParams) // also executes the query
         }
 
         return await runInChildSpan(spanOptions.operation, () => {

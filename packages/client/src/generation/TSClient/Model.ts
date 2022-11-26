@@ -319,9 +319,10 @@ ${!this.dmmf.typeMap[model.name] ? this.getGroupByTypes() : ''}
 export type ${getSelectName(model.name)}${ifExtensions(
       '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
       '',
-    )} = {
+    )} = ${ifExtensions(() => `runtime.Types.Extensions.GetResultSelect<`, '')}{
 ${indent(
   outputType.fields
+    .filter((field) => ifExtensions(field.outputType.location === 'outputObjectTypes', true))
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return (
@@ -334,10 +335,7 @@ ${indent(
     .join('\n'),
   TAB_SIZE,
 )}
-}${ifExtensions(
-      () => ` & runtime.Types.Extensions.GetResultSelect<{}, ExtArgs['result']['${lowerCase(model.name)}']>`,
-      '',
-    )}
+}${ifExtensions(() => ` & ${getSelectName(model.name)}Scalar, ExtArgs['result']['${lowerCase(model.name)}']>`, '')}
 ${ifExtensions(() => {
   return `
 export type ${getSelectName(model.name)}Scalar = {
