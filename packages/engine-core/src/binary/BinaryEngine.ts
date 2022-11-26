@@ -6,7 +6,6 @@ import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
-import EventEmitter from 'events'
 import execa from 'execa'
 import fs from 'fs'
 import net from 'net'
@@ -31,9 +30,10 @@ import { PrismaClientRustError } from '../common/errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
-import type { RustError, RustLog } from '../common/errors/utils/log'
-import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
+import type { RustLog } from '../common/errors/utils/log'
+import { convertLog, getMessage, isRustErrorLog } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   EngineSpanEvent,
@@ -85,7 +85,6 @@ export class BinaryEngine extends Engine {
   private logEmitter: EventEmitter
   private showColors: boolean
   private logQueries: boolean
-  private logLevel?: 'info' | 'warn'
   private env?: Record<string, string>
   private flags: string[]
   private port?: number
@@ -93,14 +92,11 @@ export class BinaryEngine extends Engine {
   private allowTriggerPanic: boolean
   private child?: ChildProcessByStdio<null, Readable, Readable>
   private clientVersion?: string
-  private lastPanic?: Error
   private globalKillSignalReceived?: string
   private startCount = 0
   private previewFeatures: string[] = []
   private engineEndpoint?: string
-  private lastErrorLog?: RustLog
-  private lastRustError?: RustError
-  private socketPath?: string
+  private lastError?: PrismaClientRustError
   private getConfigPromise?: Promise<GetConfigResult>
   private getDmmfPromise?: Promise<DMMF.Document>
   private stopPromise?: Promise<void>
@@ -137,7 +133,6 @@ export class BinaryEngine extends Engine {
     generator,
     datasources,
     showColors,
-    logLevel,
     logQueries,
     env,
     flags,
@@ -149,6 +144,7 @@ export class BinaryEngine extends Engine {
     dirname,
     activeProvider,
     tracingConfig,
+    logEmitter,
   }: EngineConfig) {
     super()
 
@@ -162,12 +158,8 @@ export class BinaryEngine extends Engine {
     this.generator = generator
     this.datasources = datasources
     this.tracingConfig = tracingConfig
-    this.logEmitter = new EventEmitter()
-    this.logEmitter.on('error', () => {
-      // to prevent unhandled error events
-    })
+    this.logEmitter = logEmitter
     this.showColors = showColors ?? false
-    this.logLevel = logLevel
     this.logQueries = logQueries ?? false
     this.clientVersion = clientVersion
     this.flags = flags ?? []
@@ -236,33 +228,24 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     this.checkForTooManyEngines()
   }
 
-  private setError(err: Error | RustLog | RustError) {
-    if (isRustError(err)) {
-      this.lastRustError = err
-      this.logEmitter.emit(
-        'error',
-        new PrismaClientRustError({
-          clientVersion: this.clientVersion!,
-          error: err,
-        }),
-      )
-      if (err.is_panic) {
-        this.handlePanic()
+  // Set error sets an error for async processing, when this doesn't happen in the span of a request
+  // lifecycle, and is instead reported through STDOUT/STDERR of the server.
+  //
+  // See `throwAsyncErrorIfExists` for more information
+  private setError(err: RustLog): void {
+    if (isRustErrorLog(err)) {
+      this.lastError = new PrismaClientRustError({
+        clientVersion: this.clientVersion!,
+        error: err,
+      })
+      if (this.lastError.isPanic()) {
+        if (this.child) {
+          this.stopPromise = killProcessAndWait(this.child)
+        }
+        if (this.currentRequestPromise?.cancel) {
+          this.currentRequestPromise.cancel()
+        }
       }
-    } else if (isRustErrorLog(err)) {
-      this.lastErrorLog = err
-      this.logEmitter.emit(
-        'error',
-        new PrismaClientRustError({
-          clientVersion: this.clientVersion!,
-          log: err,
-        }),
-      )
-      if (err.fields?.message === 'PANIC') {
-        this.handlePanic()
-      }
-    } else {
-      this.logEmitter.emit('error', err)
     }
   }
 
@@ -322,15 +305,6 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
 
     return queryEnginePath
-  }
-
-  private handlePanic(): void {
-    if (this.child) {
-      this.stopPromise = killProcessAndWait(this.child)
-    }
-    if (this.currentRequestPromise?.cancel) {
-      this.currentRequestPromise.cancel()
-    }
   }
 
   private async resolvePrismaPath(): Promise<{
@@ -399,15 +373,15 @@ This probably happens, because you built Prisma Client on a different platform.
 Searched Locations:
 
 ${searchedLocations
-  .map((f) => {
-    let msg = `  ${f}`
-    if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
-      const dir = fs.readdirSync(f)
-      msg += dir.map((d) => `    ${d}`).join('\n')
-    }
-    return msg
-  })
-  .join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
+          .map((f) => {
+            let msg = `  ${f}`
+            if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
+              const dir = fs.readdirSync(f)
+              msg += dir.map((d) => `    ${d}`).join('\n')
+            }
+            return msg
+          })
+          .join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
       // The generator should always be there during normal usage
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
@@ -418,8 +392,8 @@ ${searchedLocations
         ) {
           errorText += `
 You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''} ${this.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t.value)}"`)
-            .join(', ')} to the "${chalk.underline('generator')}" block
+              .map((t) => `"${chalk.bold(t.value)}"`)
+              .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
@@ -556,10 +530,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           debug(`There is a child that still runs and we want to start again`)
         }
 
-        // reset last panic
-        this.lastRustError = undefined
-        this.lastErrorLog = undefined
-        this.lastPanic = undefined
+        // reset last error
+        this.lastError = undefined
         logger('startin & resettin')
         this.globalKillSignalReceived = undefined
 
@@ -671,10 +643,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           if (code !== 0 && this.engineStartDeferred && this.startCount === 1) {
             let err
             let msg = this.stderrLogs
-            if (this.lastRustError) {
-              msg = getMessage(this.lastRustError)
-            } else if (this.lastErrorLog) {
-              msg = getMessage(this.lastErrorLog)
+            // get the message from the last error
+            if (this.lastError) {
+              msg = getMessage(this.lastError)
             }
             if (code !== null) {
               err = new PrismaClientInitializationError(
@@ -696,13 +667,13 @@ Make sure that the engine binary at ${prismaPath} is not corrupt.\n` + msg,
           if (!this.child) {
             return
           }
-          if (this.lastRustError) {
+          if (this.lastError) {
             return
           }
           if (code === 126) {
             this.setError({
               timestamp: new Date(),
-              target: 'exit',
+              target: 'binary engine process exit',
               level: 'error',
               fields: {
                 message: `Couldn't start query engine as it's not executable on this operating system.
@@ -714,45 +685,41 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
         this.child.on('error', (err): void => {
           this.setError({
-            message: err.message,
-            backtrace: 'Could not start query engine',
-            is_panic: false,
+            timestamp: new Date(),
+            target: 'binary engine process error',
+            level: 'error',
+            fields: {
+              message: `Couldn't start query engine: ${err}`,
+            },
           })
           reject(err)
         })
 
         this.child.on('close', (code, signal): void => {
           this.connection.close()
+
+          let toEmit: { message: string } | undefined
+
           if (code === null && signal === 'SIGABRT' && this.child) {
-            const error = new PrismaClientRustPanicError(
+            toEmit = new PrismaClientRustPanicError(
               this.getErrorMessageWithLink('Panic in Query Engine with SIGABRT signal'),
               this.clientVersion!,
             )
-            this.logEmitter.emit('error', error)
-          } else if (
-            code === 255 &&
-            signal === null &&
-            // if there is a "this.lastPanic", the panic has already been handled, so we don't need
-            // to look into it anymore
-            this.lastErrorLog?.fields.message === 'PANIC' &&
-            !this.lastPanic
-          ) {
-            const error = new PrismaClientRustPanicError(
-              this.getErrorMessageWithLink(
-                `${this.lastErrorLog.fields.message}: ${this.lastErrorLog.fields.reason} in ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErrorLog.fields.column}`,
-              ),
-              this.clientVersion!,
-            )
-            this.setError(error)
+          } else if (code === 255 && signal === null && this.lastError) {
+            toEmit = this.lastError
+          }
+
+          if (toEmit) {
+            this.logEmitter.emit('error', {
+              message: toEmit.message,
+              timestamp: new Date(),
+              target: 'binary engine process close',
+            })
           }
         })
 
-        if (this.lastRustError) {
-          return reject(new PrismaClientInitializationError(getMessage(this.lastRustError), this.clientVersion!))
-        }
-
-        if (this.lastErrorLog) {
-          return reject(new PrismaClientInitializationError(getMessage(this.lastErrorLog), this.clientVersion!))
+        if (this.lastError) {
+          return reject(new PrismaClientInitializationError(getMessage(this.lastError), this.clientVersion!))
         }
 
         try {
@@ -1082,36 +1049,23 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   /**
-   * If we have request errors like "ECONNRESET", we need to get the error from a
-   * different place, not the request itself. This different place can either be
-   * this.lastRustError or this.lastErrorLog
+   * This processes errors that didn't ocur synchronously during a request, and were instead inferred
+   * from the STDOUT/STDERR streams of the Query Engine process.
+   *
+   * See `setError` for more information.
    */
   private throwAsyncErrorIfExists(forceThrow = false) {
     logger('throwAsyncErrorIfExists', this.startCount, this.hasMaxRestarts)
-    if (this.lastRustError) {
-      const err = new PrismaClientRustPanicError(
-        this.getErrorMessageWithLink(getMessage(this.lastRustError)),
-        this.clientVersion!,
-      )
-      if (this.lastRustError.is_panic) {
-        this.lastPanic = err
-      }
-      if (this.hasMaxRestarts || forceThrow) {
-        throw err
-      }
-    }
-
-    if (this.lastErrorLog && isRustErrorLog(this.lastErrorLog)) {
-      const err = new PrismaClientUnknownRequestError(this.getErrorMessageWithLink(getMessage(this.lastErrorLog)), {
-        clientVersion: this.clientVersion!,
-      })
-
-      if (this.lastErrorLog?.fields?.message === 'PANIC') {
-        this.lastPanic = err
-      }
-
-      if (this.hasMaxRestarts || forceThrow) {
-        throw err
+    if (this.lastError && (this.hasMaxRestarts || forceThrow)) {
+      const lastError = this.lastError
+      // reset error, as we are throwing it now
+      this.lastError = undefined
+      if (lastError.isPanic()) {
+        throw new PrismaClientRustPanicError(this.getErrorMessageWithLink(getMessage(lastError)), this.clientVersion!)
+      } else {
+        throw new PrismaClientUnknownRequestError(this.getErrorMessageWithLink(getMessage(lastError)), {
+          clientVersion: this.clientVersion!,
+        })
       }
     }
   }
@@ -1127,6 +1081,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
+  /**
+   * handleRequestError will process existing errors coming from the request, or else look
+   * for the last error happening in the Query Engine process and processed from the STDOUT/STEDERR
+   * streams.
+   *
+   * See `setError` and `throwAsyncErrorIfExists` for more information.
+   */
   private handleRequestError = async (
     error: Error & { code?: string },
   ): Promise<{ error: Error & { code?: string }; shouldRetry: boolean }> => {

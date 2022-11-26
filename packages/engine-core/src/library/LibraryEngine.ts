@@ -3,7 +3,6 @@ import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
-import EventEmitter from 'events'
 import fs from 'fs'
 
 import type {
@@ -21,6 +20,7 @@ import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUn
 import { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   ConfigMetaFormat,
@@ -101,15 +101,10 @@ export class LibraryEngine extends Engine {
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
     this.libraryLoader = loader
-    this.logEmitter = new EventEmitter()
-    this.logEmitter.on('error', (e) => {
-      // to prevent unhandled error events
-      // TODO: should we actually handle them instead of silently swallowing?
-    })
+    this.logEmitter = config.logEmitter
     this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
-      // Debug.enable('*')
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
@@ -275,13 +270,13 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
         target: event.module_path,
       })
     } else if (isPanicEvent(event)) {
+      // The error built is saved to be thrown later
       this.loggerRustPanic = new PrismaClientRustPanicError(
         this.getErrorMessageWithLink(
           `${event.message}: ${event.reason} in ${event.file}:${event.line}:${event.column}`,
         ),
         this.config.clientVersion!,
       )
-      this.logEmitter.emit('error', this.loggerRustPanic)
     } else {
       this.logEmitter.emit(event.level, {
         timestamp: new Date(),

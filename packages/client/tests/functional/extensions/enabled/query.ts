@@ -15,6 +15,8 @@ const randomId1 = randomBytes(12).toString('hex')
 const randomId2 = randomBytes(12).toString('hex')
 const randomId3 = randomBytes(12).toString('hex')
 
+jest.retryTimes(3)
+
 testMatrix.setupTestSuite(
   ({ provider }) => {
     beforeEach(async () => {
@@ -33,7 +35,11 @@ testMatrix.setupTestSuite(
       }
     })
 
-    test('extending a specific model query', async () => {
+    afterEach(async () => {
+      await prisma.$disconnect()
+    })
+
+    testIf(process.platform !== 'win32')('extending a specific model query', async () => {
       const fnUser = jest.fn()
       const fnPost = jest.fn()
       const fnEmitter = jest.fn()
@@ -88,7 +94,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    test('top to bottom execution order', async () => {
+    testIf(process.platform !== 'win32')('top to bottom execution order', async () => {
       let i = 0
       const fnUser1 = jest.fn()
       const fnUser2 = jest.fn()
@@ -130,7 +136,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    test('args mutation isolation', async () => {
+    testIf(process.platform !== 'win32')('args mutation isolation', async () => {
       const fnEmitter = jest.fn()
       const fnUser = jest.fn()
 
@@ -181,7 +187,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    test('args mutation accumulation', async () => {
+    testIf(process.platform !== 'win32')('args mutation accumulation', async () => {
       const fnUser = jest.fn()
       const fnEmitter = jest.fn()
 
@@ -229,7 +235,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    test('query result override with a simple call', async () => {
+    testIf(process.platform !== 'win32')('query result override with a simple call', async () => {
       const fnEmitter = jest.fn()
 
       prisma.$on('query', fnEmitter)
@@ -287,7 +293,7 @@ testMatrix.setupTestSuite(
       await wait(() => expect(fnEmitter).not.toHaveBeenCalled())
     })
 
-    test('query result override with extra extension before', async () => {
+    testIf(process.platform !== 'win32')('query result override with extra extension before', async () => {
       const fnEmitter = jest.fn()
       const fnUser = jest.fn()
 
@@ -323,7 +329,7 @@ testMatrix.setupTestSuite(
       await wait(() => expect(fnEmitter).not.toHaveBeenCalled())
     })
 
-    test('query result mutation with a simple call', async () => {
+    testIf(process.platform !== 'win32')('query result mutation with a simple call', async () => {
       const fnEmitter = jest.fn()
 
       prisma.$on('query', fnEmitter)
@@ -355,7 +361,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    test('query result mutation with multiple calls', async () => {
+    testIf(process.platform !== 'win32')('query result mutation with multiple calls', async () => {
       const fnEmitter = jest.fn()
 
       prisma.$on('query', fnEmitter)
@@ -401,42 +407,44 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    testIf(provider !== 'mongodb')('query result mutations with batch transactions', async () => {
-      const fnEmitter = jest.fn()
+    testIf(provider !== 'mongodb' && process.platform !== 'win32')(
+      'query result mutations with batch transactions',
+      async () => {
+        const fnEmitter = jest.fn()
 
-      prisma.$on('query', fnEmitter)
+        prisma.$on('query', fnEmitter)
 
-      const xprisma = prisma
-        .$extends({
-          query: {
-            user: {
-              async findFirst({ args, query, operation, model }) {
-                const data = await query(args)
+        const xprisma = prisma
+          .$extends({
+            query: {
+              user: {
+                async findFirst({ args, query, operation, model }) {
+                  const data = await query(args)
 
-                data.id = '<redacted>'
+                  data.id = '<redacted>'
 
-                return data
+                  return data
+                },
               },
             },
-          },
-        })
-        .$extends({
-          query: {
-            user: {
-              async findFirst({ args, query, operation, model }) {
-                const data = await query(args)
+          })
+          .$extends({
+            query: {
+              user: {
+                async findFirst({ args, query, operation, model }) {
+                  const data = await query(args)
 
-                data.email = '<redacted>'
+                  data.email = '<redacted>'
 
-                return data
+                  return data
+                },
               },
             },
-          },
-        })
+          })
 
-      const data = await xprisma.$transaction([xprisma.user.findFirst(), xprisma.post.findFirst()])
+        const data = await xprisma.$transaction([xprisma.user.findFirst(), xprisma.post.findFirst()])
 
-      expect(data).toMatchInlineSnapshot(`
+        expect(data).toMatchInlineSnapshot(`
         Array [
           Object {
             email: <redacted>,
@@ -447,129 +455,26 @@ testMatrix.setupTestSuite(
           null,
         ]
       `)
-      await waitFor(() => {
-        expect(fnEmitter).toHaveBeenCalledTimes(4)
-        expect(fnEmitter.mock.calls).toMatchObject([
-          [{ query: expect.stringContaining('BEGIN') }],
-          [{ query: expect.stringContaining('SELECT') }],
-          [{ query: expect.stringContaining('SELECT') }],
-          [{ query: expect.stringContaining('COMMIT') }],
-        ])
-      })
-    })
-
-    testIf(provider !== 'mongodb')('transforming a simple query into a batch transaction', async () => {
-      const fnEmitter = jest.fn()
-
-      prisma.$on('query', fnEmitter)
-
-      const xprisma = prisma.$extends({
-        query: {
-          user: {
-            async findFirst({ args, query, operation, model }) {
-              // @ts-test-if: provider !== 'mongodb'
-              return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
-            },
-          },
-        },
-      })
-
-      const data = await xprisma.user.findFirst({
-        select: {
-          lastName: true,
-        },
-      })
-
-      expect(data).toMatchInlineSnapshot(`
-        Object {
-          lastName: Doe,
-        }
-      `)
-      await waitFor(() => {
-        expect(fnEmitter).toHaveBeenCalledTimes(4)
-        expect(fnEmitter.mock.calls).toMatchObject([
-          [{ query: expect.stringContaining('BEGIN') }],
-          [{ query: expect.stringContaining('SELECT') }],
-          [{ query: expect.stringContaining('SELECT') }],
-          [{ query: expect.stringContaining('COMMIT') }],
-        ])
-      })
-    })
-
-    testIf(provider !== 'mongodb')('hijacking a batch transaction into another one with a simple call', async () => {
-      const fnEmitter = jest.fn()
-
-      prisma.$on('query', fnEmitter)
-
-      const xprisma = prisma.$extends({
-        query: {
-          user: {
-            async findFirst({ args, query, operation, model }) {
-              // @ts-test-if: provider !== 'mongodb'
-              return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
-            },
-          },
-        },
-      })
-
-      const data = await xprisma.$transaction([
-        xprisma.user.findFirst({
-          select: {
-            lastName: true,
-          },
-        }),
-        xprisma.post.findFirst(),
-      ])
-
-      expect(data).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            lastName: Doe,
-          },
-          null,
-        ]
-      `)
-      await waitFor(() => {
-        // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(5)
-        const calls = [...fnEmitter.mock.calls]
-
-        // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
-          calls.shift()
-        } else {
-          calls.pop()
-        }
-
-        expect(calls).toMatchObject([
-          [{ query: expect.stringContaining('BEGIN') }],
-          [{ query: expect.stringContaining('SELECT') }],
-          [{ query: expect.stringContaining('SELECT') }],
-          [{ query: expect.stringContaining('COMMIT') }],
-        ])
-      })
-    })
-
-    testIf(provider !== 'mongodb')('hijacking a batch transaction into another one with multiple calls', async () => {
-      const fnEmitter = jest.fn()
-
-      prisma.$on('query', fnEmitter)
-
-      const xprisma = prisma
-        .$extends({
-          query: {
-            user: {
-              async findFirst({ args, query, operation, model }) {
-                const data = await query(args)
-
-                data.firstName = '<redacted>'
-
-                return data
-              },
-            },
-          },
+        await waitFor(() => {
+          expect(fnEmitter).toHaveBeenCalledTimes(4)
+          expect(fnEmitter.mock.calls).toMatchObject([
+            [{ query: expect.stringContaining('BEGIN') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('COMMIT') }],
+          ])
         })
-        .$extends({
+      },
+    )
+
+    testIf(provider !== 'mongodb' && process.platform !== 'win32')(
+      'transforming a simple query into a batch transaction',
+      async () => {
+        const fnEmitter = jest.fn()
+
+        prisma.$on('query', fnEmitter)
+
+        const xprisma = prisma.$extends({
           query: {
             user: {
               async findFirst({ args, query, operation, model }) {
@@ -579,31 +484,143 @@ testMatrix.setupTestSuite(
             },
           },
         })
-        .$extends({
+
+        const data = await xprisma.user.findFirst({
+          select: {
+            lastName: true,
+          },
+        })
+
+        expect(data).toMatchInlineSnapshot(`
+        Object {
+          lastName: Doe,
+        }
+      `)
+        await waitFor(() => {
+          expect(fnEmitter).toHaveBeenCalledTimes(4)
+          expect(fnEmitter.mock.calls).toMatchObject([
+            [{ query: expect.stringContaining('BEGIN') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('COMMIT') }],
+          ])
+        })
+      },
+    )
+
+    testIf(provider !== 'mongodb' && process.platform !== 'win32')(
+      'hijacking a batch transaction into another one with a simple call',
+      async () => {
+        const fnEmitter = jest.fn()
+
+        prisma.$on('query', fnEmitter)
+
+        const xprisma = prisma.$extends({
           query: {
             user: {
               async findFirst({ args, query, operation, model }) {
-                const data = await query(args)
-
-                data.lastName = '<redacted>'
-
-                return data
+                // @ts-test-if: provider !== 'mongodb'
+                return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
               },
             },
           },
         })
 
-      const data = await xprisma.$transaction([
-        xprisma.user.findFirst({
-          select: {
-            firstName: true,
-            lastName: true,
-          },
-        }),
-        xprisma.post.findFirst(),
-      ])
+        const data = await xprisma.$transaction([
+          xprisma.user.findFirst({
+            select: {
+              lastName: true,
+            },
+          }),
+          xprisma.post.findFirst(),
+        ])
 
-      expect(data).toMatchInlineSnapshot(`
+        expect(data).toMatchInlineSnapshot(`
+        Array [
+          Object {
+            lastName: Doe,
+          },
+          null,
+        ]
+      `)
+        await waitFor(() => {
+          // user.findFirst 4 queries + post.findFirst 1 query
+          expect(fnEmitter).toHaveBeenCalledTimes(5)
+          const calls = [...fnEmitter.mock.calls]
+
+          // get rid of dandling post.findFirst query
+          if (calls[0][0]['query'].includes('SELECT')) {
+            calls.shift()
+          } else {
+            calls.pop()
+          }
+
+          expect(calls).toMatchObject([
+            [{ query: expect.stringContaining('BEGIN') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('COMMIT') }],
+          ])
+        })
+      },
+    )
+
+    testIf(provider !== 'mongodb' && process.platform !== 'win32')(
+      'hijacking a batch transaction into another one with multiple calls',
+      async () => {
+        const fnEmitter = jest.fn()
+
+        prisma.$on('query', fnEmitter)
+
+        const xprisma = prisma
+          .$extends({
+            query: {
+              user: {
+                async findFirst({ args, query, operation, model }) {
+                  const data = await query(args)
+
+                  data.firstName = '<redacted>'
+
+                  return data
+                },
+              },
+            },
+          })
+          .$extends({
+            query: {
+              user: {
+                async findFirst({ args, query, operation, model }) {
+                  // @ts-test-if: provider !== 'mongodb'
+                  return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
+                },
+              },
+            },
+          })
+          .$extends({
+            query: {
+              user: {
+                async findFirst({ args, query, operation, model }) {
+                  const data = await query(args)
+
+                  data.lastName = '<redacted>'
+
+                  return data
+                },
+              },
+            },
+          })
+
+        const data = await xprisma.$transaction([
+          xprisma.user.findFirst({
+            select: {
+              firstName: true,
+              lastName: true,
+            },
+          }),
+          xprisma.post.findFirst(),
+        ])
+
+        expect(data).toMatchInlineSnapshot(`
         Array [
           Object {
             firstName: <redacted>,
@@ -613,30 +630,31 @@ testMatrix.setupTestSuite(
         ]
       `)
 
-      await waitFor(() => {
-        // user.findFirst 4 queries + post.findFirst 1 query
-        expect(fnEmitter).toHaveBeenCalledTimes(5)
-        const calls = [...fnEmitter.mock.calls]
+        await waitFor(() => {
+          // user.findFirst 4 queries + post.findFirst 1 query
+          expect(fnEmitter).toHaveBeenCalledTimes(5)
+          const calls = [...fnEmitter.mock.calls]
 
-        // get rid of dandling post.findFirst query
-        if (calls[0][0]['query'].includes('SELECT')) {
-          calls.shift()
-        } else {
-          calls.pop()
-        }
+          // get rid of dandling post.findFirst query
+          if (calls[0][0]['query'].includes('SELECT')) {
+            calls.shift()
+          } else {
+            calls.pop()
+          }
 
-        if (provider !== 'mongodb') {
-          expect(calls).toMatchObject([
-            [{ query: expect.stringContaining('BEGIN') }],
-            [{ query: expect.stringContaining('SELECT') }],
-            [{ query: expect.stringContaining('SELECT') }],
-            [{ query: expect.stringContaining('COMMIT') }],
-          ])
-        }
-      })
-    })
+          if (provider !== 'mongodb') {
+            expect(calls).toMatchObject([
+              [{ query: expect.stringContaining('BEGIN') }],
+              [{ query: expect.stringContaining('SELECT') }],
+              [{ query: expect.stringContaining('SELECT') }],
+              [{ query: expect.stringContaining('COMMIT') }],
+            ])
+          }
+        })
+      },
+    )
 
-    test('extending with $allModels and a specific query', async () => {
+    testIf(process.platform !== 'win32')('extending with $allModels and a specific query', async () => {
       const fnModel = jest.fn()
       const fnEmitter = jest.fn()
 
@@ -679,7 +697,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(2))
     })
 
-    test('extending with $allModels and $allOperations', async () => {
+    testIf(process.platform !== 'win32')('extending with $allModels and $allOperations', async () => {
       const fnModel = jest.fn()
       const fnEmitter = jest.fn()
 
@@ -743,7 +761,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(3))
     })
 
-    test('extending with specific model and $allOperations', async () => {
+    testIf(process.platform !== 'win32')('extending with specific model and $allOperations', async () => {
       const fnModel = jest.fn()
       const fnEmitter = jest.fn()
 

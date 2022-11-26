@@ -20,6 +20,7 @@ import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
+import { EventEmitter } from 'events'
 import fs from 'fs'
 import path from 'path'
 import { RawValue, Sql } from 'sql-template-tag'
@@ -349,6 +350,15 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
 
+      const logEmitter = new EventEmitter().on('error', (e) => {
+        // this is a no-op to prevent unhandled error events
+        //
+        // If the user enabled error logging this would never be executed. If the user did not
+        // enabled error logging, this would be executed, and a trace for the error would be logged
+        // in debug mode, which is like going in the opposite direction than what the user wanted by
+        // not enabling error logging in the first place.
+      })
+
       this._extensions = []
       this._previewFeatures = config.generator?.previewFeatures ?? []
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
@@ -454,6 +464,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingConfig: this._tracingConfig,
+          logEmitter: logEmitter,
         }
 
         debug('clientVersion', config.clientVersion)
@@ -467,7 +478,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._engine = this.getEngine()
         void this._getActiveProvider()
 
-        this._fetcher = new RequestHandler(this, this._hooks) as any
+        this._fetcher = new RequestHandler(this, this._hooks, logEmitter) as any
 
         if (options.log) {
           for (const log of options.log) {
@@ -1229,7 +1240,7 @@ new PrismaClient({
         const dmmf = await this._engine.getDmmf()
         return new DMMFHelper(getPrismaClientDMMF(dmmf))
       } catch (error) {
-        this._fetcher.handleRequestError({ ...params, error })
+        this._fetcher.handleAndLogRequestError({ ...params, error })
       }
     })
 
