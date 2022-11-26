@@ -1037,7 +1037,7 @@ jobs:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-          NODE_OPTIONS: '--max-old-space-size=12288' # allow Node.js to allocate at most 12gb of heap
+          NODE_OPTIONS: '--max-old-space-size=6656' # allow Node.js to allocate at most 6.5gb of heap
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
