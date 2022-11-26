@@ -949,7 +949,6 @@ new PrismaClient({
       options?: BatchTransactionOptions
     }): Promise<any> {
       const id = BatchTxIdCounter.nextId()
-      console.log('$transaction', promises.length, id)
       const lock = getLockCountPromise(promises.length)
 
       const requests = promises.map((request, index) => {
@@ -1203,7 +1202,6 @@ new PrismaClient({
         debug(query + '\n')
       }
 
-      console.log('executeRequest', transaction?.id, clientMethod)
       await lock /** @see {@link getLockCountPromise} */
 
       return this._fetcher.request({
