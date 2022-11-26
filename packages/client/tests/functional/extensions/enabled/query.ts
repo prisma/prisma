@@ -35,6 +35,10 @@ testMatrix.setupTestSuite(
       }
     })
 
+    afterEach(async () => {
+      await prisma.$disconnect()
+    })
+
     test('extending a specific model query', async () => {
       const fnUser = jest.fn()
       const fnPost = jest.fn()
