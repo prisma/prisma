@@ -1,6 +1,6 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import { getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
+import { EventEmitter, getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -15,7 +15,7 @@ import { IncludeSelect, visitQueryResult } from './core/extensions/visitQueryRes
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { DataLoader } from './DataLoader'
-import type { Client, Unpacker } from './getPrismaClient'
+import type { Client, LogEvent, Unpacker } from './getPrismaClient'
 import type { EngineMiddleware } from './MiddlewareHandler'
 import type { Document } from './query'
 import { Args, unpack } from './query'
@@ -90,8 +90,10 @@ export class RequestHandler {
   client: Client
   hooks: any
   dataloader: DataLoader<Request>
+  private logEmmitter?: EventEmitter
 
-  constructor(client: Client, hooks?: any) {
+  constructor(client: Client, hooks?: any, logEmitter?: EventEmitter) {
+    this.logEmmitter = logEmitter
     this.client = client
     this.hooks = hooks
     this.dataloader = new DataLoader({
@@ -209,7 +211,22 @@ export class RequestHandler {
       }
       return extendedResult
     } catch (error) {
+      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction })
+    }
+  }
+
+  /**
+   * Handles the error and logs it, logging the error is done synchronously waiting for the event
+   * handlers to finish.
+   */
+  handleAndLogRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams): never {
+    try {
       this.handleRequestError({ error, clientMethod, callsite, transaction })
+    } catch (err) {
+      if (this.logEmmitter) {
+        this.logEmmitter.emit('error', { message: err.message, target: clientMethod, timestamp: new Date() })
+      }
+      throw err
     }
   }
 
