@@ -5,7 +5,7 @@ export type DefaultArgs = { result: {}; model: {}; query: {}; client: {} }
 
 export type GetResultPayload<Base extends object, R extends Args['result'][string]> =
   //
-  PatchFlat3<{}, Base, { [K in keyof R]: ReturnType<R[K]['compute']> }>
+  PatchFlat3<{}, { [K in keyof R]: ReturnType<R[K]['compute']> }, Base>
 
 export type GetResultSelect<Base extends object, R extends Args['result'][string]> =
   //

@@ -321,7 +321,7 @@ export type RequiredKeys<T> = {
 }[keyof T]
 
 export type TruthyKeys<T> = {
-  [key in keyof T]: T[key] extends false | undefined | null ? never : key
+  [K in keyof T]: T[K] extends false | undefined | null ? never : K
 }[keyof T]
 
 export type TrueKeys<T> = TruthyKeys<Prisma__Pick<T, RequiredKeys<T>>>
