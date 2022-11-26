@@ -1,4 +1,4 @@
-import { EventEmitter } from 'events'
+import { expectTypeOf } from 'expect-type'
 
 import { wait } from '../../_utils/tests/wait'
 import { waitFor } from '../../_utils/tests/waitFor'
@@ -39,14 +39,29 @@ testMatrix.setupTestSuite(
         query: {
           user: {
             findFirst({ args, query, operation, model }) {
+              expectTypeOf(args).not.toBeAny
+              expectTypeOf(query).toBeFunction()
+              expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
+              expectTypeOf(model).toEqualTypeOf<'User'>()
               fnUser({ args, operation, model })
               return query(args)
             },
           },
           post: {
-            findFirst({ args, query, operation, model }) {
+            async findFirst({ args, query, operation, model }) {
+              expectTypeOf(args).not.toBeAny
+              expectTypeOf(query).toBeFunction()
+              expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
+              expectTypeOf(model).toEqualTypeOf<'Post'>()
+
               fnPost({ args, operation, model })
-              return query(args)
+
+              const data = await query(args)
+
+              expectTypeOf(data).not.toBeAny
+              expectTypeOf(data).toHaveProperty('id')
+
+              return data
             },
           },
         },
@@ -605,6 +620,172 @@ testMatrix.setupTestSuite(
           [{ query: expect.stringContaining('COMMIT') }],
         ])
       })
+    })
+
+    test('extending with $allModels and a specific query', async () => {
+      const fnModel = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          $allModels: {
+            async findFirst({ args, query, operation, model }) {
+              expectTypeOf(args).not.toBeAny
+              expectTypeOf(query).toBeFunction()
+              expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
+              expectTypeOf(model).toEqualTypeOf<'Post' | 'User'>()
+
+              fnModel({ args, operation, model })
+
+              const data = await query(args)
+
+              expectTypeOf(data).not.toBeAny
+              expectTypeOf(data).toHaveProperty('id')
+
+              return data
+            },
+          },
+        },
+      })
+
+      const args = { where: { id: '1' } }
+      const cbArgsUser = { args, operation: 'findFirst', model: 'User' }
+      const cbArgsPost = { args, operation: 'findFirst', model: 'Post' }
+
+      const dataUser = await xprisma.user.findFirst(args)
+      const dataPost = await xprisma.post.findFirst(args)
+
+      expect(dataUser).toMatchInlineSnapshot(`null`)
+      expect(dataPost).toMatchInlineSnapshot(`null`)
+      expect(fnModel).toHaveBeenCalledTimes(2)
+      expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
+      expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPost)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(2))
+    })
+
+    test('extending with $allModels and $allOperations', async () => {
+      const fnModel = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          $allModels: {
+            async $allOperations({ args, query, operation, model }) {
+              expectTypeOf(args).not.toBeAny
+              expectTypeOf(query).toBeFunction()
+              expectTypeOf(operation).toEqualTypeOf<
+                | 'findUnique'
+                | 'findUniqueOrThrow'
+                | 'findFirst'
+                | 'findFirstOrThrow'
+                | 'findMany'
+                | 'create'
+                | 'createMany'
+                | 'delete'
+                | 'update'
+                | 'deleteMany'
+                | 'updateMany'
+                | 'upsert'
+                | 'aggregate'
+                | 'groupBy'
+                | 'count'
+              >()
+              expectTypeOf(model).toEqualTypeOf<'Post' | 'User'>()
+
+              fnModel({ args, operation, model })
+
+              const data = await query(args)
+
+              expectTypeOf(data).not.toBeAny
+              expectTypeOf(data).toHaveProperty('id')
+
+              return data
+            },
+          },
+        },
+      })
+
+      const args = { where: { id: '1' } }
+      const cbArgsUser = { args, operation: 'findFirst', model: 'User' }
+      const cbArgsPost = { args, operation: 'findFirst', model: 'Post' }
+      const cbArgsPosts = { args, operation: 'findMany', model: 'Post' }
+
+      const dataUser = await xprisma.user.findFirst(args)
+      const dataPost = await xprisma.post.findFirst(args)
+      const dataPosts = await xprisma.post.findMany(args)
+
+      expect(dataUser).toMatchInlineSnapshot(`null`)
+      expect(dataPost).toMatchInlineSnapshot(`null`)
+      expect(dataPosts).toMatchInlineSnapshot(`Array []`)
+      expect(fnModel).toHaveBeenCalledTimes(3)
+      expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
+      expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPost)
+      expect(fnModel).toHaveBeenNthCalledWith(3, cbArgsPosts)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(3))
+    })
+
+    test('extending with specific model and $allOperations', async () => {
+      const fnModel = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          post: {
+            async $allOperations({ args, query, operation, model }) {
+              expectTypeOf(args).not.toBeAny
+              expectTypeOf(query).toBeFunction()
+              expectTypeOf(operation).toEqualTypeOf<
+                | 'findUnique'
+                | 'findUniqueOrThrow'
+                | 'findFirst'
+                | 'findFirstOrThrow'
+                | 'findMany'
+                | 'create'
+                | 'createMany'
+                | 'delete'
+                | 'update'
+                | 'deleteMany'
+                | 'updateMany'
+                | 'upsert'
+                | 'aggregate'
+                | 'groupBy'
+                | 'count'
+              >()
+              expectTypeOf(model).toEqualTypeOf<'Post'>()
+
+              fnModel({ args, operation, model })
+
+              const data = await query(args)
+
+              expectTypeOf(data).not.toBeAny
+              expectTypeOf(data).toHaveProperty('id')
+              expectTypeOf(data).toHaveProperty('userId')
+
+              return data
+            },
+          },
+        },
+      })
+
+      const args = { where: { id: '1' } }
+      const cbArgsPost = { args, operation: 'findFirst', model: 'Post' }
+      const cbArgsPosts = { args, operation: 'findMany', model: 'Post' }
+
+      const dataPost = await xprisma.post.findFirst(args)
+      const dataPosts = await xprisma.post.findMany(args)
+
+      expect(dataPost).toMatchInlineSnapshot(`null`)
+      expect(dataPosts).toMatchInlineSnapshot(`Array []`)
+      expect(fnModel).toHaveBeenCalledTimes(2)
+      expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsPost)
+      expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPosts)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(2))
     })
   },
   {
