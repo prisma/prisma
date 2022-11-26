@@ -21,4 +21,6 @@ export type ReadonlySelector<T> = {
   [K in keyof T as K extends 'include' | 'select' ? never : K]: T[K]
 }
 
+export const EXT_ARGS = Symbol()
+
 export type { Args }

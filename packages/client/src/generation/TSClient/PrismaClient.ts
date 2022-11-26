@@ -132,7 +132,16 @@ function clientExtensionsClientDefinition(this: PrismaClientClass) {
 
 function clientExtensionsPrismaDefineExtensionDefinition() {
   return {
-    prismaNamespaceDefinitions: `function defineExtension<PC extends PrismaClient>(cb: (client: PrismaClient) => PC): (client: PrismaClient) => PC`,
+    prismaNamespaceDefinitions: `export function defineExtension<
+    R extends runtime.Types.Extensions.Args['result'] = {},
+    M extends runtime.Types.Extensions.Args['model'] = {},
+    Q extends runtime.Types.Extensions.Args['query'] = {},
+    C extends runtime.Types.Extensions.Args['client'] = {},
+    Args extends runtime.Types.Extensions.Args = { result: R; model: M; query: Q; client: C }
+  >(args: ((client: PrismaClient) => { [runtime.Types.Extensions.EXT_ARGS]: Args }) | {
+    result?: R; model?: M; query?: Q; client?: C
+  }): (client: any) => PrismaClient<any, any, any, Args>
+`,
   }
 }
 
@@ -153,7 +162,8 @@ ${query.prismaNamespaceDefinitions}`,
       '',
     ),
     prismaClientDefinitions: ifExtensions(
-      `  /**
+      `[runtime.Types.Extensions.EXT_ARGS]: ExtArgs
+  /**
    * Allows you to extend the Prisma Client with custom logic.
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/extends).
@@ -164,7 +174,7 @@ ${query.prismaNamespaceDefinitions}`,
     ${query.genericParams},
     ${client.genericParams},
     Args extends runtime.Types.Extensions.Args = { result: R, model: M, query: Q, client: C },
-  >(extension: ((client: this) => PrismaClient<any, any, any, Args>) | {
+  >(extension: ((client: this) => { [runtime.Types.Extensions.EXT_ARGS]: Args }) | {
     result?: R & ${result.params}
     model?: M & ${model.params}
     query?: ${query.params}
