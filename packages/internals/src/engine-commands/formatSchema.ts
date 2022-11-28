@@ -1,6 +1,7 @@
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
+import { logger } from '..'
 import { ErrorArea, RustPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 import { getLintWarningsAsText, lintSchema } from './lintSchema'
@@ -81,7 +82,7 @@ export async function formatSchema(
   )
 
   const lintWarnings = getLintWarningsAsText(lintDiagnostics)
-  if (lintWarnings) {
+  if (lintWarnings && logger.should.warn()) {
     // Output warnings to stderr
     console.warn(lintWarnings)
   }
