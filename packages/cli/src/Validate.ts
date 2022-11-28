@@ -1,6 +1,6 @@
-import type { Command } from '@prisma/internals'
 import {
   arg,
+  Command,
   format,
   getConfig,
   getDMMF,
@@ -9,6 +9,7 @@ import {
   HelpError,
   lintSchema,
   loadEnvFile,
+  logger,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
@@ -76,7 +77,7 @@ ${chalk.bold('Examples')}
     )
 
     const lintWarnings = getLintWarningsAsText(lintDiagnostics)
-    if (lintWarnings) {
+    if (lintWarnings && logger.should.warn()) {
       // Output warnings to stderr
       console.warn(lintWarnings)
     }
