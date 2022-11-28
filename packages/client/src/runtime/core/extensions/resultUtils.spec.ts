@@ -1,20 +1,19 @@
-import { applyComputedFieldsToSelection, getAllComputedFields } from './resultUtils'
+import { applyComputedFieldsToSelection, getComputedFields } from './resultUtils'
 
 describe('getAllComputedFields', () => {
   test('returns all dependencies of an extension', () => {
-    const result = getAllComputedFields(
-      [
-        {
-          result: {
-            user: {
-              fullName: {
-                needs: { firstName: true, lastName: true },
-                compute: jest.fn(),
-              },
+    const result = getComputedFields(
+      undefined,
+      {
+        result: {
+          user: {
+            fullName: {
+              needs: { firstName: true, lastName: true },
+              compute: jest.fn(),
             },
           },
         },
-      ],
+      },
       'User',
     )
 
@@ -24,19 +23,18 @@ describe('getAllComputedFields', () => {
   })
 
   test('filter out the fields with needs=false', () => {
-    const result = getAllComputedFields(
-      [
-        {
-          result: {
-            user: {
-              fullName: {
-                needs: { firstName: true, lastName: false },
-                compute: jest.fn(),
-              },
+    const result = getComputedFields(
+      undefined,
+      {
+        result: {
+          user: {
+            fullName: {
+              needs: { firstName: true, lastName: false },
+              compute: jest.fn(),
             },
           },
         },
-      ],
+      },
       'User',
     )
 
@@ -44,19 +42,18 @@ describe('getAllComputedFields', () => {
   })
 
   test('filter out the extensions without matching model', () => {
-    const result = getAllComputedFields(
-      [
-        {
-          result: {
-            user: {
-              fullName: {
-                needs: { firstName: true, lastName: true },
-                compute: jest.fn(),
-              },
+    const result = getComputedFields(
+      {},
+      {
+        result: {
+          user: {
+            fullName: {
+              needs: { firstName: true, lastName: true },
+              compute: jest.fn(),
             },
           },
         },
-      ],
+      },
       'Post',
     )
 
@@ -64,18 +61,17 @@ describe('getAllComputedFields', () => {
   })
 
   test('$allModels matches every model', () => {
-    const result = getAllComputedFields(
-      [
-        {
-          result: {
-            $allModels: {
-              fullName: {
-                compute: jest.fn(),
-              },
+    const result = getComputedFields(
+      undefined,
+      {
+        result: {
+          $allModels: {
+            fullName: {
+              compute: jest.fn(),
             },
           },
         },
-      ],
+      },
       'Post',
     )
 
@@ -83,22 +79,21 @@ describe('getAllComputedFields', () => {
   })
 
   test('specific extension takes precedence over $allModels', () => {
-    const result = getAllComputedFields(
-      [
-        {
-          result: {
-            $allModels: {
-              fullName: { needs: { firstName: true, lastName: true }, compute: jest.fn() },
-            },
+    const result = getComputedFields(
+      undefined,
+      {
+        result: {
+          $allModels: {
+            fullName: { needs: { firstName: true, lastName: true }, compute: jest.fn() },
+          },
 
-            user: {
-              fullName: {
-                compute: jest.fn(),
-              },
+          user: {
+            fullName: {
+              compute: jest.fn(),
             },
           },
         },
-      ],
+      },
       'User',
     )
 
@@ -107,28 +102,22 @@ describe('getAllComputedFields', () => {
     })
   })
 
-  test('in case of multiple extensions, last one wins', () => {
-    const result = getAllComputedFields(
-      [
-        {
-          result: {
-            user: {
-              fullName: { needs: { firstName: true, lastName: true }, compute: jest.fn() },
-            },
-          },
-        },
+  test('in case of previous field exists, new one wins', () => {
+    const result = getComputedFields(
+      {
+        fullName: { name: 'fullName', needs: ['firstName', 'lastName'], compute: jest.fn() },
+      },
 
-        {
-          result: {
-            user: {
-              fullName: {
-                needs: { middleName: true, patronymic: true },
-                compute: jest.fn(),
-              },
+      {
+        result: {
+          user: {
+            fullName: {
+              needs: { middleName: true, patronymic: true },
+              compute: jest.fn(),
             },
           },
         },
-      ],
+      },
       'User',
     )
 
@@ -138,33 +127,21 @@ describe('getAllComputedFields', () => {
   })
 
   test('resolves dependencies between computed fields', () => {
-    const result = getAllComputedFields(
-      [
-        {
-          result: {
-            user: {
-              fullName: {
-                needs: {
-                  firstName: true,
-                  lastName: true,
-                },
-                compute: jest.fn(),
-              },
-            },
-          },
-        },
+    const result = getComputedFields(
+      {
+        fullName: { name: 'fullName', needs: ['firstName', 'lastName'], compute: jest.fn() },
+      },
 
-        {
-          result: {
-            user: {
-              nameAndAge: {
-                needs: { fullName: true, age: true },
-                compute: jest.fn(),
-              },
+      {
+        result: {
+          user: {
+            nameAndAge: {
+              needs: { fullName: true, age: true },
+              compute: jest.fn(),
             },
           },
         },
-      ],
+      },
       'User',
     )
 
