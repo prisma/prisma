@@ -88,7 +88,7 @@ export function maybePrintValidationWarnings({ schema }: LintSchemaParams) {
     { schema },
   )
   const lintWarnings = getLintWarningsAsText(lintDiagnostics)
-  if (logger.should.warn() && lintWarnings) {
+  if (logger.should.warn() && lintWarnings.length > 0) {
     // Output warnings to stderr
     console.warn(lintWarnings)
   }
