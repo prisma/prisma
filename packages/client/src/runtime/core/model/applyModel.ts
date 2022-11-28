@@ -48,20 +48,11 @@ export function applyModel(client: Client, dmmfModelName: string) {
     layers.push(fieldsPropertyLayer(client, dmmfModelName))
   }
 
-  const jsModelName = dmmfToJSModelName(dmmfModelName)
-  for (const { model } of client._extensions) {
-    if (!model) {
-      continue
-    }
-
-    if (model.$allModels) {
-      layers.push(addObjectProperties(model.$allModels))
-    }
-
-    if (model[jsModelName]) {
-      layers.push(addObjectProperties(model[jsModelName]))
-    }
+  const modelExtensions = client._extensions.getAllModelExtensions(dmmfModelName)
+  if (modelExtensions) {
+    layers.push(addObjectProperties(modelExtensions))
   }
+
   return createCompositeProxy({}, layers)
 }
 

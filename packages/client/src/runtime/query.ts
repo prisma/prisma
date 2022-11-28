@@ -3,8 +3,8 @@ import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import stripAnsi from 'strip-ansi'
 
-import { Args as ExtensionArgs } from './core/extensions/$extends'
-import { applyComputedFieldsToSelection, getAllComputedFields } from './core/extensions/resultUtils'
+import { MergedExtensionsList } from './core/extensions/ExtensionsList'
+import { applyComputedFieldsToSelection } from './core/extensions/resultUtils'
 import { FieldRefImpl } from './core/model/FieldRef'
 import type { /*dmmf, */ DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
@@ -784,7 +784,7 @@ export interface DocumentInput {
   rootField: string
   select?: any
   modelName?: string
-  extensions: ExtensionArgs[]
+  extensions: MergedExtensionsList
 }
 
 export function makeDocument({
@@ -834,7 +834,7 @@ type SelectionToFieldsArgs = {
   schemaField: DMMF.SchemaField
   path: string[]
   context: MakeDocumentContext
-  extensions: ExtensionArgs[]
+  extensions: MergedExtensionsList
 }
 
 export function selectionToFields({
@@ -846,12 +846,12 @@ export function selectionToFields({
   extensions,
 }: SelectionToFieldsArgs): Field[] {
   const outputType = schemaField.outputType.type as DMMF.OutputType
-  const computedFields = context.modelName ? getAllComputedFields(extensions, context.modelName) : {}
+  const computedFields = context.modelName ? extensions.getAllComputedFields(context.modelName) : {}
   selection = applyComputedFieldsToSelection(selection, computedFields)
   return Object.entries(selection).reduce((acc, [name, value]: any) => {
     const field = outputType.fieldMap ? outputType.fieldMap[name] : outputType.fields.find((f) => f.name === name)
 
-    if (computedFields[name]) {
+    if (computedFields?.[name]) {
       return acc
     }
 
@@ -866,7 +866,10 @@ export function selectionToFields({
             type: 'invalidFieldName',
             modelName: outputType.name,
             providedName: name,
-            didYouMean: getSuggestion(name, outputType.fields.map((f) => f.name).concat(Object.keys(computedFields))),
+            didYouMean: getSuggestion(
+              name,
+              outputType.fields.map((f) => f.name).concat(Object.keys(computedFields ?? {})),
+            ),
             outputType,
           },
         }),

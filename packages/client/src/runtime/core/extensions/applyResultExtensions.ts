@@ -7,15 +7,15 @@ import {
   createCompositeProxy,
   removeProperties,
 } from '../compositeProxy'
-import { Args } from './$extends'
-import { ComputedField, getAllComputedFields } from './resultUtils'
+import { MergedExtensionsList } from './ExtensionsList'
+import { ComputedField } from './resultUtils'
 import { Selection } from './visitQueryResult'
 
 type ApplyExtensionsArgs = {
   result: object
   select?: Selection
   modelName: string
-  extensions: Args[]
+  extensions: MergedExtensionsList
 }
 
 /**
@@ -31,7 +31,10 @@ type ApplyExtensionsArgs = {
  * @returns
  */
 export function applyResultExtensions({ result, modelName, select, extensions }: ApplyExtensionsArgs) {
-  const computedFields = getAllComputedFields(extensions, modelName)
+  const computedFields = extensions.getAllComputedFields(modelName)
+  if (!computedFields) {
+    return result
+  }
 
   const computedPropertiesLayers: CompositeProxyLayer[] = []
   const maskingLayers: CompositeProxyLayer[] = []

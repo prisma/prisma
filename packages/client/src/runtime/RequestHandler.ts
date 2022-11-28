@@ -11,6 +11,7 @@ import {
 } from '.'
 import { Args as ExtensionArgs } from './core/extensions/$extends'
 import { applyResultExtensions } from './core/extensions/applyResultExtensions'
+import { MergedExtensionsList } from './core/extensions/ExtensionsList'
 import { IncludeSelect, visitQueryResult } from './core/extensions/visitQueryResult'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { PrismaPromiseTransaction } from './core/request/PrismaPromise'
@@ -36,7 +37,7 @@ export type RequestParams = {
   rejectOnNotFound?: RejectOnNotFound
   transaction?: PrismaPromiseTransaction
   engineHook?: EngineMiddleware
-  extensions: ExtensionArgs[]
+  extensions: MergedExtensionsList
   args?: any
   headers?: Record<string, string>
   unpacker?: Unpacker
@@ -64,7 +65,7 @@ type ApplyExtensionsParams = {
   result: object
   modelName: string
   args: IncludeSelect
-  extensions: ExtensionArgs[]
+  extensions: MergedExtensionsList
 }
 
 function getRequestInfo(request: Request) {
@@ -307,7 +308,7 @@ export class RequestHandler {
   }
 
   applyResultExtensions({ result, modelName, args, extensions }: ApplyExtensionsParams) {
-    if (extensions.length === 0 || result == null) {
+    if (extensions.isEmpty() || result == null) {
       return result
     }
     const model = this.client._baseDmmf.getModelMap()[modelName]
