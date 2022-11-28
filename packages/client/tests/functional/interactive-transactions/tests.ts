@@ -838,39 +838,43 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
         )
       })
 
-      test('should log queries that are executed inside an interactive transaction', async () => {
-        const client = newPrismaClient({
-          log: [
-            {
-              emit: 'event',
-              level: 'query',
-            },
-          ],
-        })
-
-        const didLogCommit = new Promise((resolve) => {
-          client.$on('query', () => {
-            // If any query is emmited we know that we are logging
-            resolve(true)
-          })
-        })
-
-        await client.$transaction(async (tx) => {
-          const user = await tx.user.create({
-            data: {
-              email: faker.internet.email(),
-            },
+      // Skip on dataproxy because lack of logging here yet
+      testIf(!clientMeta.dataProxy)(
+        'should log queries that are executed inside an interactive transaction',
+        async () => {
+          const client = newPrismaClient({
+            log: [
+              {
+                emit: 'event',
+                level: 'query',
+              },
+            ],
           })
 
-          await tx.user.findFirst({
-            where: {
-              id: user.id,
-            },
+          const didLogCommit = new Promise((resolve) => {
+            client.$on('query', () => {
+              // If any query is emmited we know that we are logging
+              resolve(true)
+            })
           })
-        })
 
-        expect(await didLogCommit).toEqual(true)
-      })
+          await client.$transaction(async (tx) => {
+            const user = await tx.user.create({
+              data: {
+                email: faker.internet.email(),
+              },
+            })
+
+            await tx.user.findFirst({
+              where: {
+                id: user.id,
+              },
+            })
+          })
+
+          expect(await didLogCommit).toEqual(true)
+        },
+      )
     })
   })
 })
