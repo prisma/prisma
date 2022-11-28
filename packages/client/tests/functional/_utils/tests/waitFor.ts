@@ -1,5 +1,7 @@
 import { performance } from 'perf_hooks'
 
+import { delay } from './delay'
+
 const MAX_WAIT = 5000
 
 /**
@@ -25,8 +27,4 @@ export async function waitFor(cb: () => void | Promise<void>) {
   }
 
   throw error
-}
-
-function delay(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
 }
