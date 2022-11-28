@@ -101,6 +101,7 @@ ${ifExtensions(
 * Extensions
 */
 Prisma.getExtensionContext = ${notSupportOnBrowser('Extensions.getExtensionContext', browser)}
+Prisma.defineExtension = ${notSupportOnBrowser('Extensions.defineExtension', browser)}
 
 `,
   '',
@@ -319,9 +320,9 @@ export type RequiredKeys<T> = {
   [K in keyof T]-?: {} extends Prisma__Pick<T, K> ? never : K
 }[keyof T]
 
-export type TruthyKeys<T> = {
-  [key in keyof T]: T[key] extends false | undefined | null ? never : key
-}[keyof T]
+export type TruthyKeys<T> = keyof {
+  [K in keyof T as T[K] extends false | undefined | null ? never : K]: K
+}
 
 export type TrueKeys<T> = TruthyKeys<Prisma__Pick<T, RequiredKeys<T>>>
 

@@ -1,18 +1,19 @@
 import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
-import EventEmitter from 'events'
 
 import type {
-  BatchTransactionOptions,
   EngineConfig,
   EngineEventType,
   GetConfigResult,
   InlineDatasource,
-  InteractiveTransactionOptions,
+  RequestOptions,
+  RequestBatchOptions,
+  InteractiveTransactionOptions
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineBatchRequest, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
@@ -61,9 +62,7 @@ export class DataProxyEngine extends Engine {
     this.inlineDatasources = config.inlineDatasources ?? {}
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
     this.clientVersion = config.clientVersion ?? 'unknown'
-
-    this.logEmitter = new EventEmitter()
-    this.logEmitter.on('error', () => {})
+    this.logEmitter = config.logEmitter
 
     const [host, apiKey] = this.extractHostAndApiKey()
     this.remoteClientVersion = P.then(() => getClientVersion(this.config))
@@ -78,8 +77,8 @@ export class DataProxyEngine extends Engine {
     return 'unknown'
   }
 
-  async start() {}
-  async stop() {}
+  async start() { }
+  async stop() { }
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
@@ -139,22 +138,14 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>(
-    query: string,
-    headers: QueryEngineRequestHeaders = {},
-    transaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>,
-  ): Promise<QueryEngineResult<T>> {
+  request<T>({ query, headers = {}, transaction }: RequestOptions<DataProxyTxInfoPayload>) {
     this.logEmitter.emit('query', { query })
 
     // TODO: `elapsed`?
     return this.requestInternal<T>({ query, variables: {} }, headers, transaction)
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: QueryEngineRequestHeaders = {},
-    transaction?: BatchTransactionOptions,
-  ): Promise<QueryEngineResult<T>[]> {
+  async requestBatch<T>({ queries, headers = {}, transaction }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
       query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,
@@ -389,10 +380,6 @@ export class DataProxyEngine extends Engine {
       try {
         return await args.callback({ logHttpCall })
       } catch (e) {
-        this.logEmitter.emit('error', {
-          message: `Error while ${args.actionGerund}: ${e.message ?? '(unknown)'}`,
-        })
-
         if (!(e instanceof DataProxyError)) throw e
         if (!e.isRetryable) throw e
         if (attempt >= MAX_RETRIES) {
@@ -403,7 +390,9 @@ export class DataProxyEngine extends Engine {
           }
         }
 
-        this.logEmitter.emit('warn', { message: 'This request can be retried' })
+        this.logEmitter.emit('warn', {
+          message: `Attempt ${attempt + 1}/${MAX_RETRIES} failed for ${args.actionGerund}: ${e.message ?? '(unknown)'}`,
+        })
         const delay = await backOff(attempt)
         this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
       }

@@ -3,10 +3,15 @@ import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
-import EventEmitter from 'events'
 import fs from 'fs'
 
-import type { BatchTransactionOptions, DatasourceOverwrite, EngineConfig, EngineEventType } from '../common/Engine'
+import type {
+  DatasourceOverwrite,
+  EngineConfig,
+  EngineEventType,
+  RequestBatchOptions,
+  RequestOptions,
+} from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
@@ -15,6 +20,7 @@ import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUn
 import { RequestError } from '../common/errors/types/RequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   ConfigMetaFormat,
@@ -25,7 +31,6 @@ import type {
   QueryEnginePanicEvent,
   QueryEngineQueryEvent,
   QueryEngineRequest,
-  QueryEngineRequestHeaders,
   QueryEngineResult,
   RustRequestError,
   SyncRustError,
@@ -96,15 +101,10 @@ export class LibraryEngine extends Engine {
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
     this.libraryLoader = loader
-    this.logEmitter = new EventEmitter()
-    this.logEmitter.on('error', (e) => {
-      // to prevent unhandled error events
-      // TODO: should we actually handle them instead of silently swallowing?
-    })
+    this.logEmitter = config.logEmitter
     this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
-      // Debug.enable('*')
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
@@ -270,13 +270,13 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
         target: event.module_path,
       })
     } else if (isPanicEvent(event)) {
+      // The error built is saved to be thrown later
       this.loggerRustPanic = new PrismaClientRustPanicError(
         this.getErrorMessageWithLink(
           `${event.message}: ${event.reason} in ${event.file}:${event.line}:${event.column}`,
         ),
         this.config.clientVersion!,
       )
-      this.logEmitter.emit('error', this.loggerRustPanic)
     } else {
       this.logEmitter.emit(event.level, {
         timestamp: new Date(),
@@ -445,7 +445,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.library?.debugPanic(message) as Promise<never>
   }
 
-  async request<T>(query: string, headers: QueryEngineRequestHeaders = {}): Promise<{ data: T; elapsed: number }> {
+  async request<T>({ query, headers = {} }: RequestOptions<undefined>): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const request: QueryEngineRequest = { query, variables: {} }
     const headerStr = JSON.stringify(headers) // object equivalent to http headers for the library
@@ -489,11 +489,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: QueryEngineRequestHeaders = {},
-    transaction?: BatchTransactionOptions,
-  ): Promise<QueryEngineResult<T>[]> {
+  async requestBatch<T>({ queries, headers = {}, transaction }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
     debug('requestBatch')
     const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),

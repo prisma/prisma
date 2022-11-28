@@ -563,7 +563,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-      Schema validation error - Error (get-config wasm)
+      Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: If provided, the schemas array can not be empty.
         -->  schema.prisma:4
@@ -702,7 +702,7 @@ describe('postgresql-multi-schema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
-      Schema validation error - Error (get-config wasm)
+      Prisma schema validation - (get-config wasm)
       Error code: P1012
       error: If provided, the schemas array can not be empty.
         -->  schema.prisma:4

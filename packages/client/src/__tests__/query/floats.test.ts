@@ -21,6 +21,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'mutation',
     rootField: 'createOneFloats',
+    extensions: [],
   })
   return String(transformDocument(document))
 }

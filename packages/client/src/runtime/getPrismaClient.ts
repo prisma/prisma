@@ -20,6 +20,7 @@ import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
+import { EventEmitter } from 'events'
 import fs from 'fs'
 import path from 'path'
 import { RawValue, Sql } from 'sql-template-tag'
@@ -28,6 +29,7 @@ import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
 import { $extends, Args as Extension } from './core/extensions/$extends'
+import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { UserArgs } from './core/model/UserArgs'
@@ -308,6 +310,13 @@ export const actionOperationMap = {
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
+const BatchTxIdCounter = {
+  id: 0,
+  nextId() {
+    return ++this.id
+  },
+}
+
 export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
@@ -332,7 +341,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _middlewares: Middlewares = new Middlewares()
     _previewFeatures: string[]
     _activeProvider: string
-    _transactionId = 1
     _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
     _extensions: Extension[]
@@ -341,6 +349,15 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
+
+      const logEmitter = new EventEmitter().on('error', (e) => {
+        // this is a no-op to prevent unhandled error events
+        //
+        // If the user enabled error logging this would never be executed. If the user did not
+        // enabled error logging, this would be executed, and a trace for the error would be logged
+        // in debug mode, which is like going in the opposite direction than what the user wanted by
+        // not enabling error logging in the first place.
+      })
 
       this._extensions = []
       this._previewFeatures = config.generator?.previewFeatures ?? []
@@ -447,6 +464,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingConfig: this._tracingConfig,
+          logEmitter: logEmitter,
         }
 
         debug('clientVersion', config.clientVersion)
@@ -460,7 +478,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._engine = this.getEngine()
         void this._getActiveProvider()
 
-        this._fetcher = new RequestHandler(this, this._hooks) as any
+        this._fetcher = new RequestHandler(this, this._hooks, logEmitter) as any
 
         if (options.log) {
           for (const log of options.log) {
@@ -941,7 +959,7 @@ new PrismaClient({
       promises: Array<PrismaPromise<any>>
       options?: BatchTransactionOptions
     }): Promise<any> {
-      const txId = this._transactionId++
+      const id = BatchTxIdCounter.nextId()
       const lock = getLockCountPromise(promises.length)
 
       const requests = promises.map((request, index) => {
@@ -951,9 +969,7 @@ new PrismaClient({
           )
         }
 
-        return (
-          request.requestTransaction?.({ id: txId, index, isolationLevel: options?.isolationLevel }, lock) ?? request
-        )
+        return request.requestTransaction?.({ id, index, isolationLevel: options?.isolationLevel }, lock) ?? request
       })
 
       return waitForBatch(requests)
@@ -1001,7 +1017,7 @@ new PrismaClient({
     $transaction(input: any, options?: any) {
       let callback: () => Promise<any>
 
-      if (typeof input === 'function' && this._hasPreviewFlag('interactiveTransactions')) {
+      if (typeof input === 'function') {
         callback = () => this._transactionWithCallback({ callback: input, options })
       } else {
         callback = () => this._transactionWithArray({ promises: input, options })
@@ -1083,7 +1099,8 @@ new PrismaClient({
           if (!runInTransaction) {
             requestParams.transaction = undefined
           }
-          return this._executeRequest(requestParams)
+
+          return applyQueryExtensions(this, requestParams) // also executes the query
         }
 
         return await runInChildSpan(spanOptions.operation, () => {
@@ -1164,6 +1181,7 @@ new PrismaClient({
           rootTypeName: operation,
           select: args,
           modelName: model,
+          extensions: this._extensions,
         })
 
         document.validate(args, false, clientMethod, this._errorFormat, callsite)
@@ -1208,6 +1226,7 @@ new PrismaClient({
         callsite,
         args,
         engineHook: this._middlewares.engine.get(0),
+        extensions: this._extensions,
         headers,
         transaction,
         unpacker,
@@ -1221,7 +1240,7 @@ new PrismaClient({
         const dmmf = await this._engine.getDmmf()
         return new DMMFHelper(getPrismaClientDMMF(dmmf))
       } catch (error) {
-        this._fetcher.handleRequestError({ ...params, error })
+        this._fetcher.handleAndLogRequestError({ ...params, error })
       }
     })
 
@@ -1249,7 +1268,7 @@ new PrismaClient({
   return PrismaClient
 }
 
-const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends']
+const forbidden: Array<string | symbol> = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends']
 
 /**
  * Proxy that takes over the client promises to pass `txId`
@@ -1283,6 +1302,13 @@ function transactionProxy<T>(thing: T, transaction: InteractiveTransactionOption
 
       // if it's an object prop, then we keep on making it proxied
       return transactionProxy(target[prop], transaction)
+    },
+
+    has(target, prop) {
+      if (forbidden.includes(prop)) {
+        return false
+      }
+      return Reflect.has(target, prop)
     },
   }) as any as T
 }

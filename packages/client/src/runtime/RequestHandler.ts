@@ -1,6 +1,6 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import { getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
+import { EventEmitter, getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -9,9 +9,13 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
+import { Args as ExtensionArgs } from './core/extensions/$extends'
+import { applyResultExtensions } from './core/extensions/applyResultExtensions'
+import { IncludeSelect, visitQueryResult } from './core/extensions/visitQueryResult'
+import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { DataLoader } from './DataLoader'
-import type { Client, Unpacker } from './getPrismaClient'
+import type { Client, LogEvent, Unpacker } from './getPrismaClient'
 import type { EngineMiddleware } from './MiddlewareHandler'
 import type { Document } from './query'
 import { Args, unpack } from './query'
@@ -32,7 +36,8 @@ export type RequestParams = {
   rejectOnNotFound?: RejectOnNotFound
   transaction?: PrismaPromiseTransaction
   engineHook?: EngineMiddleware
-  args: any
+  extensions: ExtensionArgs[]
+  args?: any
   headers?: Record<string, string>
   unpacker?: Unpacker
   otelParentCtx?: Context
@@ -53,6 +58,13 @@ export type Request = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   tracingConfig?: TracingConfig
+}
+
+type ApplyExtensionsParams = {
+  result: object
+  modelName: string
+  args: IncludeSelect
+  extensions: ExtensionArgs[]
 }
 
 function getRequestInfo(request: Request) {
@@ -78,8 +90,10 @@ export class RequestHandler {
   client: Client
   hooks: any
   dataloader: DataLoader<Request>
+  private logEmmitter?: EventEmitter
 
-  constructor(client: Client, hooks?: any) {
+  constructor(client: Client, hooks?: any, logEmitter?: EventEmitter) {
+    this.logEmmitter = logEmitter
     this.client = client
     this.hooks = hooks
     this.dataloader = new DataLoader({
@@ -92,16 +106,28 @@ export class RequestHandler {
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
+        const containsWrite = requests.some((r) => r.document.type === 'mutation')
+
         const batchTransaction = info.transaction?.kind === 'batch' ? info.transaction : undefined
 
-        return this.client._engine.requestBatch(queries, info.headers, batchTransaction)
+        return this.client._engine.requestBatch({
+          queries,
+          headers: info.headers,
+          transaction: batchTransaction,
+          containsWrite,
+        })
       },
       singleLoader: (request) => {
         const info = getRequestInfo(request)
         const query = String(request.document)
         const interactiveTransaction = info.transaction?.kind === 'itx' ? info.transaction : undefined
 
-        return this.client._engine.request(query, info.headers, interactiveTransaction)
+        return this.client._engine.request({
+          query,
+          headers: info.headers,
+          transaction: interactiveTransaction,
+          isWrite: request.document.type === 'mutation',
+        })
       },
       batchBy: (request) => {
         if (request.transaction?.id) {
@@ -127,6 +153,7 @@ export class RequestHandler {
     headers,
     transaction,
     unpacker,
+    extensions,
     otelParentCtx,
     otelChildCtx,
   }: RequestParams) {
@@ -178,12 +205,28 @@ export class RequestHandler {
        */
       const unpackResult = this.unpack(document, data, dataPath, rootField, unpacker)
       throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
+      const extendedResult = this.applyResultExtensions({ result: unpackResult, modelName: typeName, args, extensions })
       if (process.env.PRISMA_CLIENT_GET_TIME) {
-        return { data: unpackResult, elapsed }
+        return { data: extendedResult, elapsed }
       }
-      return unpackResult
+      return extendedResult
     } catch (error) {
+      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction })
+    }
+  }
+
+  /**
+   * Handles the error and logs it, logging the error is done synchronously waiting for the event
+   * handlers to finish.
+   */
+  handleAndLogRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams): never {
+    try {
       this.handleRequestError({ error, clientMethod, callsite, transaction })
+    } catch (err) {
+      if (this.logEmmitter) {
+        this.logEmmitter.emit('error', { message: err.message, target: clientMethod, timestamp: new Date() })
+      }
+      throw err
     }
   }
 
@@ -261,6 +304,26 @@ export class RequestHandler {
     }
     getPath.push(...path.filter((p) => p !== 'select' && p !== 'include'))
     return unpack({ document, data, path: getPath })
+  }
+
+  applyResultExtensions({ result, modelName, args, extensions }: ApplyExtensionsParams) {
+    if (extensions.length === 0 || result == null) {
+      return result
+    }
+    const model = this.client._baseDmmf.getModelMap()[modelName]
+    if (!model) {
+      return result
+    }
+    return visitQueryResult({
+      result,
+      args: args ?? {},
+      model,
+      dmmf: this.client._baseDmmf,
+      visitor(value, model, args) {
+        const modelName = dmmfToJSModelName(model.name)
+        return applyResultExtensions({ result: value, modelName, select: args.select, extensions })
+      },
+    })
   }
 
   get [Symbol.toStringTag]() {

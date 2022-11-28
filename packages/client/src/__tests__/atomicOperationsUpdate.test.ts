@@ -14,6 +14,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'mutation',
     rootField: 'updateOneUser',
+    extensions: [],
   })
   return String(transformDocument(document))
 }
@@ -97,6 +98,7 @@ describe('minimal atomic update transformation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'updateOneUser',
+      extensions: [],
     })
 
     expect(String(document)).toMatchInlineSnapshot(`

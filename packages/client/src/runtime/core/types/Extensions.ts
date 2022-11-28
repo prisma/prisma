@@ -1,31 +1,24 @@
-import { Args } from '../extensions/$extends'
-import { Omit, PatchFlat } from './Utils'
+import { RequiredArgs as Args } from '../extensions/$extends'
+import { PatchFlat3 } from './Utils'
 
-export type GetResultPayload<
-  Base extends object,
-  ExtArgs extends Args,
-  P extends keyof R,
-  R extends Args['result'] & {} = ExtArgs['result'] & {},
-  RP extends (Args['result'] & {})[string] = R[P],
-> =
-  // we force TypeScript to evaluate RP so that it can appear nicely to the user
-  // the we override the default Base properties with the properties of `result`
-  RP extends unknown ? Omit<Base, keyof RP> & { [K in keyof RP]: ReturnType<RP[K]['compute']> } : never
+export type DefaultArgs = { result: {}; model: {}; query: {}; client: {} }
 
-export type GetResultSelect<
-  Base extends object,
-  ExtArgs extends Args,
-  P extends keyof R,
-  R extends Args['result'] & {} = ExtArgs['result'] & {},
-  RP extends (Args['result'] & {})[string] = PatchFlat<R[P], R['$allModels']>,
-> = Base & { [K in keyof RP]?: true }
+export type GetResultPayload<Base extends object, R extends Args['result'][string]> =
+  //
+  PatchFlat3<{}, { [K in keyof R]: ReturnType<R[K]['compute']> }, Base>
 
-export type GetModel<
-  Base extends object,
-  ExtArgs extends Args,
-  P extends keyof M,
-  M extends Args['model'] & {} = ExtArgs['model'] & {},
-  MP extends (Args['model'] & {})[string] = M[P],
-> = Omit<Base, keyof MP> & MP
+export type GetResultSelect<Base extends object, R extends Args['result'][string]> =
+  //
+  Base & { [K in keyof R]?: true }
+
+export type GetModel<Base extends object, M extends Args['model'][string]> =
+  //
+  PatchFlat3<M, Base, {}>
+
+export type ReadonlySelector<T> = {
+  readonly [K in keyof T as K extends 'include' | 'select' ? K : never]: ReadonlySelector<T[K]>
+} & {
+  [K in keyof T as K extends 'include' | 'select' ? never : K]: T[K]
+}
 
 export type { Args }
