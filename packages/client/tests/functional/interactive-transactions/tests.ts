@@ -12,22 +12,22 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-testMatrix.setupTestSuite(
-  ({ provider }, _suiteMeta, clientMeta) => {
-    // TODO: Technically, only "high concurrency" test requires larger timeout
-    // but `jest.setTimeout` does not work inside of the test at the moment
-    //  https://github.com/facebook/jest/issues/11543
-    jest.setTimeout(60_000)
+testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
+  // TODO: Technically, only "high concurrency" test requires larger timeout
+  // but `jest.setTimeout` does not work inside of the test at the moment
+  //  https://github.com/facebook/jest/issues/11543
+  jest.setTimeout(60_000)
 
-    beforeEach(async () => {
-      await prisma.user.deleteMany()
-    })
+  beforeEach(async () => {
+    await prisma.user.deleteMany()
+  })
 
-    /**
-     * Minimal example of an interactive transaction
-     */
-    test('basic', async () => {
-      const result = await prisma.$transaction(async (prisma) => {
+  /**
+   * Minimal example of an interactive transaction
+   */
+  test('basic', async () => {
+    const result = await prisma.$transaction(
+      async (prisma) => {
         await prisma.user.create({
           data: {
             email: 'user_1@website.com',
@@ -872,11 +872,5 @@ testMatrix.setupTestSuite(
         expect(await didLogCommit).toEqual(true)
       })
     })
-  },
-  {
-    skipDataProxy: {
-      runtimes: ['node', 'edge'],
-      reason: 'Interactive transactions are not supported with Data Proxy yet',
-    },
-  },
-)
+  })
+})
