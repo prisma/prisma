@@ -29,7 +29,7 @@ describe('lint valid schema with a deprecated preview feature', () => {
   }
 
   test('should return a deprecated preview feature warning', () => {
-    const lintDiagnostics = lintSchema(schema)
+    const lintDiagnostics = lintSchema({ schema })
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
@@ -83,7 +83,7 @@ Either choose another referential action, or make the referenced fields optional
   }
 
   test('should return a parsing error and a deprecated preview feature warning', () => {
-    const lintDiagnostics = lintSchema(schema)
+    const lintDiagnostics = lintSchema({ schema })
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)

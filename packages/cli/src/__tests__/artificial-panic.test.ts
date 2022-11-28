@@ -130,12 +130,44 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
     process.env = { ...OLD_ENV }
   })
 
-  it('query-engine get-dmmf library', async () => {
+  it('query-engine get-dmmf library - validate', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(5)
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
 
     const command = new Validate()
+    try {
+      await command.parse([])
+    } catch (e) {
+      expect(e).toMatchInlineSnapshot(`FORCE_PANIC_QUERY_ENGINE_GET_DMMF`)
+      expect(isRustPanic(e)).toBe(true)
+      expect(e.rustStack).toBeTruthy()
+      expect(e.schema).toMatchInlineSnapshot(`
+        // This is your Prisma schema file,
+        // learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+        generator client {
+          provider = "prisma-client-js"
+        }
+
+        datasource db {
+          provider = "postgresql"
+          url      = env("DATABASE_URL")
+        }
+
+      `)
+      expect(e).toMatchObject({
+        schemaPath: undefined,
+      })
+    }
+  })
+
+  it('query-engine get-dmmf library - format', async () => {
+    ctx.fixture('artificial-panic')
+    expect.assertions(5)
+    process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
+
+    const command = new Format()
     try {
       await command.parse([])
     } catch (e) {
@@ -170,12 +202,33 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'binary')('artificial-pan
     process.env = { ...OLD_ENV }
   })
 
-  it('query-engine get-dmmf binary', async () => {
+  it('query-engine get-dmmf binary - validate', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(5)
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
 
     const command = new Validate()
+    try {
+      await command.parse([])
+    } catch (e) {
+      expect(e).toMatchInlineSnapshot(
+        `Command failed with exit code 101: prisma-engines-path FORCE_PANIC_QUERY_ENGINE_GET_DMMF`,
+      )
+      expect(isRustPanic(e)).toBe(true)
+      expect(e.rustStack).toBeTruthy()
+      expect(e.schemaPath).toBeTruthy()
+      expect(e).toMatchObject({
+        schema: undefined,
+      })
+    }
+  })
+
+  it('query-engine get-dmmf binary - format', async () => {
+    ctx.fixture('artificial-panic')
+    expect.assertions(5)
+    process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
+
+    const command = new Format()
     try {
       await command.parse([])
     } catch (e) {

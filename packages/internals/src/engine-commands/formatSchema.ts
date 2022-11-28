@@ -1,10 +1,9 @@
-import chalk from 'chalk'
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, RustPanic } from '../panic'
 import { prismaFmt } from '../wasm'
-import { getLintWarnings, lintSchema, warningToString } from './lintSchema'
+import { getLintWarningsAsText, lintSchema } from './lintSchema'
 
 type FormatSchemaParams = { schema: string; schemaPath?: never } | { schema?: never; schemaPath: string }
 
@@ -75,35 +74,16 @@ export async function formatSchema(
     () => {
       // the only possible error here is a Rust panic
       const formattedSchema = formatWasm(schemaContent, documentFormattingParams)
-      const lintDiagnostics = lintSchema(formattedSchema)
+      const lintDiagnostics = lintSchema({ schema: formattedSchema })
       return { formattedSchema, lintDiagnostics }
     },
     { schemaPath, schema } as FormatSchemaParams,
   )
 
-  /*
-   * Display warnings, if any.
-   *
-   * Note:
-   * - We don't get a nice warning message output with colors and line numbers for free, as we would with errors detected by `getDmmf`.
-   *   I.e., there's not such thing for warnings out of the box as the following:
-   *     -->  schema.prisma:18
-   *      |
-   *   17 |   id     Int      @id
-   *   18 |   user   SomeUser @relation(fields: [userId], references: [id], onUpdate: SetNull, onDelete: SetNull)
-   *   19 |   userId Int      @unique
-   *      |
-   *
-   * Questions:
-   * 1) should warnings still be displayed in case of errors?
-   */
-  const lintWarnings = getLintWarnings(lintDiagnostics)
-
-  if (lintWarnings.length > 0) {
-    console.warn(chalk.yellow(`\nPrisma schema warning${lintWarnings.length > 1 ? 's' : ''}:`))
-    for (const warning of lintWarnings) {
-      console.warn(warningToString(warning))
-    }
+  const lintWarnings = getLintWarningsAsText(lintDiagnostics)
+  if (lintWarnings) {
+    // Output warnings to stderr
+    console.warn(lintWarnings)
   }
 
   return Promise.resolve(formattedSchema)
