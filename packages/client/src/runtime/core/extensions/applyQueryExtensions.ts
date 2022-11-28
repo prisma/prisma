@@ -43,40 +43,9 @@ export function applyQueryExtensions(client: Client, params: InternalRequestPara
   const { jsModelName, action } = params
 
   // query extensions only apply to model-bound operations (for now)
-  if (jsModelName === undefined || client._extensions.length === 0) {
+  if (jsModelName === undefined || client._extensions.isEmpty()) {
     return client._executeRequest(params)
   }
 
-  // iterate, filter, and process all the relevant query extensions
-  const queryCbs = client._extensions.reduce((acc, extension) => {
-    if (extension.query === undefined) return acc
-
-    // when the extension is model-bound and the model name matches
-    if (extension.query[jsModelName] !== undefined) {
-      if (extension.query[jsModelName][action] !== undefined) {
-        acc = [...acc, extension.query[jsModelName!][action]]
-      }
-
-      // when the model-bound extension has a wildcard for the operation
-      if (extension.query[jsModelName]['$allOperations'] !== undefined) {
-        acc = [...acc, extension.query[jsModelName]['$allOperations']]
-      }
-    }
-
-    // when the extension isn't model-bound, apply it to all models
-    if (extension.query['$allModels'] !== undefined) {
-      if (extension.query['$allModels'][action] !== undefined) {
-        acc = [...acc, extension.query['$allModels'][action]]
-      }
-
-      // when the non-model-bound extension has a wildcard for the operation
-      if (extension.query['$allModels']['$allOperations'] !== undefined) {
-        acc = [...acc, extension.query['$allModels']['$allOperations']]
-      }
-    }
-    return acc
-  }, [] as RequiredArgs['query'][string][string][])
-
-  // we clone the args here because we don't want to mutate the original
-  return iterateAndCallQueryCallbacks(client, params, queryCbs)
+  return iterateAndCallQueryCallbacks(client, params, client._extensions.getAllQueryCallbacks(jsModelName, action))
 }

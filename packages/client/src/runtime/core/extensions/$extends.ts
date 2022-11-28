@@ -28,16 +28,20 @@ export type ResultFieldDefinition = {
 
 type ModelArgs = {
   model: {
-    [ModelName in string]: {
-      [MethodName in string]: unknown
-    }
+    [ModelName in string]: ModelExtensionDefinition
   }
 }
 
+export type ModelExtensionDefinition = {
+  [MethodName in string]: unknown
+}
+
 type ClientArgs = {
-  client: {
-    [MethodName in `$${string}`]: unknown
-  }
+  client: ClientExtensionDefinition
+}
+
+export type ClientExtensionDefinition = {
+  [MethodName in `$${string}`]: unknown
 }
 
 type QueryOptionsCbArgs = {
@@ -47,6 +51,8 @@ type QueryOptionsCbArgs = {
   query: (args: object) => Promise<unknown>
 }
 
+export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>
+
 type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
   path: string
 }
@@ -55,7 +61,7 @@ type QueryOptions = {
   query: {
     [ModelName in string]:
       | {
-          [ModelAction in string]: (args: QueryOptionsCbArgs) => Promise<any>
+          [ModelAction in string]: QueryOptionsCb
         } & {
           // $nestedOperations?: {
           //   [K in string]: (args: QueryOptionsCbArgsNested) => unknown
@@ -81,15 +87,11 @@ export function $extends(this: Client, extension: Args | ((client: Client) => Ar
   // they always capture specific instance of the client and without
   // re-application would never see new extensions
   const oldClient = unapplyModelsAndClientExtensions(this)
+  const newExtensions =
+    typeof extension === 'function' ? this._extensions.append(extension(this)) : this._extensions.append(extension)
   const newClient = Object.create(oldClient, {
     _extensions: {
-      get: () => {
-        if (typeof extension === 'function') {
-          return this._extensions.concat(extension(oldClient))
-        }
-
-        return this._extensions.concat(extension)
-      },
+      get: () => newExtensions,
     },
   })
   return applyModelsAndClientExtensions(newClient)

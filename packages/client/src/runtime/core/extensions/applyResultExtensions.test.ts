@@ -1,4 +1,5 @@
 import { applyResultExtensions } from './applyResultExtensions'
+import { MergedExtensionsList } from './MergedExtensionsList'
 
 test('does not add fields if some dependencies are not met', () => {
   const result = {
@@ -17,7 +18,11 @@ test('does not add fields if some dependencies are not met', () => {
     },
   }
 
-  const extended = applyResultExtensions({ result, modelName: 'user', extensions: [extension] })
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension),
+  })
   expect(fullName).not.toBeCalled()
   expect(extended).not.toHaveProperty('fullName')
 })
@@ -41,7 +46,11 @@ test('adds a field if all dependencies are met', () => {
     },
   }
 
-  const extended = applyResultExtensions({ result, modelName: 'user', extensions: [extension] })
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension),
+  })
   expect(extended).toHaveProperty('fullName', 'John Smith')
 })
 
@@ -68,7 +77,7 @@ test('does not add a field if it is not present in select', () => {
     result,
     modelName: 'user',
     select: { firstName: true, lastName: true },
-    extensions: [extension],
+    extensions: MergedExtensionsList.single(extension),
   })
   expect(extended).not.toHaveProperty('fullName')
 })
@@ -96,7 +105,7 @@ test('adds a field if it is present in select', () => {
     result,
     modelName: 'user',
     select: { firstName: true, lastName: true, fullName: true },
-    extensions: [extension],
+    extensions: MergedExtensionsList.single(extension),
   })
   expect(extended).toHaveProperty('fullName', 'John Smith')
   expect(extended).toHaveProperty('firstName')
@@ -126,7 +135,7 @@ test('masks dependencies if they are not present in select', () => {
     result,
     modelName: 'user',
     select: { fullName: true },
-    extensions: [extension],
+    extensions: MergedExtensionsList.single(extension),
   })
   expect(extended).toHaveProperty('fullName', 'John Smith')
   expect(extended).not.toHaveProperty('firstName')
@@ -152,7 +161,11 @@ test('counts falsy values as met dependencies', () => {
     },
   }
 
-  const extended = applyResultExtensions({ result, modelName: 'user', extensions: [extension] })
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension),
+  })
   expect(extended).toHaveProperty('fullName', 'John ')
 })
 
@@ -181,7 +194,11 @@ test('can add multiple fields', () => {
     },
   }
 
-  const extended = applyResultExtensions({ result, modelName: 'user', extensions: [extension] })
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension),
+  })
   expect(extended).toHaveProperty('fullName', 'John Smith')
   expect(extended).toHaveProperty('loudName', 'JOHN!')
 })
@@ -218,7 +235,11 @@ test('allows fields to use other fields', () => {
     },
   }
 
-  const extended = applyResultExtensions({ result, modelName: 'user', extensions: [extA, extB] })
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extA).append(extB),
+  })
   expect(extended).toHaveProperty('loudFullName', 'JOHN SMITH')
 })
 
@@ -241,7 +262,11 @@ test('does not add a field if model does not match', () => {
     },
   }
 
-  const extended = applyResultExtensions({ result, modelName: 'post', extensions: [extension] })
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'post',
+    extensions: MergedExtensionsList.single(extension),
+  })
   expect(extended).not.toHaveProperty('fullName')
 })
 
@@ -258,7 +283,11 @@ test('adds a field if it is specified in $allModels', () => {
     },
   }
 
-  const extended = applyResultExtensions({ result, modelName: 'user', extensions: [extension] })
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension),
+  })
   expect(extended).toHaveProperty('computedField', 1)
 })
 
@@ -282,7 +311,11 @@ test('specific model field takes precedence over $allModels', () => {
     },
   }
 
-  const extended = applyResultExtensions({ result, modelName: 'user', extensions: [extension] })
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension),
+  })
   expect(extended).toHaveProperty('computedField', 'override')
 })
 
@@ -307,7 +340,11 @@ test('non-conflicting fields from $allModels and specific model co-exist', () =>
     },
   }
 
-  const extended = applyResultExtensions({ result, modelName: 'user', extensions: [extension] })
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension),
+  })
   expect(extended).toHaveProperty('allModelsField', 'all')
   expect(extended).toHaveProperty('userModelField', 'user')
 })
@@ -330,7 +367,11 @@ test('caches the result', () => {
     },
   }
 
-  const extended = applyResultExtensions({ result, modelName: 'user', extensions: [extension] })
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension),
+  })
   extended['computed']
   extended['computed']
 

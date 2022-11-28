@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import { singularRelation } from '../fixtures/singularRelation'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 chalk.level = 0
 
@@ -38,7 +39,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'query',
     rootField: 'findManyLocation',
-    extensions: [],
+    extensions: MergedExtensionsList.empty(),
   })
   return String(transformDocument(document))
 }
