@@ -20,9 +20,4 @@ export default defineMatrix(() => [
       relationMode,
     },
   ],
-  [
-    {
-      previewFeatures: '"referentialIntegrity"',
-    },
-  ],
 ])

@@ -14,6 +14,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'query',
       rootField: 'findUniqueUser',
+      extensions: [],
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -24,6 +25,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchInlineSnapshot(`
@@ -48,6 +50,7 @@ describe('no args', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: [],
     })
     expect(() => document.validate(select, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
     expect(String(document)).toMatchInlineSnapshot(`
@@ -69,6 +72,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
+      extensions: [],
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -78,6 +82,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'mutation',
       rootField: 'deleteManyUser',
+      extensions: [],
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchInlineSnapshot(`
@@ -94,6 +99,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'mutation',
       rootField: 'deleteOneUser',
+      extensions: [],
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -103,6 +109,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'mutation',
       rootField: 'updateManyUser',
+      extensions: [],
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -112,6 +119,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'mutation',
       rootField: 'upsertOneUser',
+      extensions: [],
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -136,6 +144,7 @@ describe('no args', () => {
       },
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
+      extensions: [],
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })

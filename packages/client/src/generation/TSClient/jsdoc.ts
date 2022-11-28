@@ -1,6 +1,5 @@
 import type { DMMF } from '@prisma/generator-helper'
 
-import { ClientModelAction } from '../../runtime/clientActions'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getGroupByArgsName, getModelArgName } from '../utils'
 
@@ -10,7 +9,7 @@ export interface JSDocMethodBodyCtx {
   firstScalar: DMMF.Field | undefined
   method: string
   model: DMMF.Model
-  action: ClientModelAction
+  action: DMMF.ModelAction
   mapping: DMMF.ModelMapping
 }
 
@@ -23,7 +22,7 @@ const Docs = {
 }
 
 type JSDocsType = {
-  [action in ClientModelAction]: {
+  [action in DMMF.ModelAction]: {
     body: (ctx: JSDocMethodBodyCtx) => string
     fields: {
       [field: string]: (singular: string, plural: string) => string
@@ -124,8 +123,8 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   },
   findUniqueOrThrow: {
     body: (ctx) =>
-      `Find one ${ctx.singular} that matches the filter or throw
-\`NotFoundError\` if no matches were found.
+      `Find one ${ctx.singular} that matches the filter or throw an error  with \`error.code='P2025'\` 
+    if no matches were found.
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example
 // Get one ${ctx.singular}

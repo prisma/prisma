@@ -1,6 +1,8 @@
+import { PrismaClientKnownRequestError } from '@prisma/engine-core'
 import { isError } from '@prisma/internals'
 
 import type { Action } from '../getPrismaClient'
+import { clientVersion } from './clientVersion'
 
 export type RejectOnNotFound = boolean | ((error: Error) => Error) | undefined
 export type InstanceRejectOnNotFound =
@@ -8,9 +10,14 @@ export type InstanceRejectOnNotFound =
   | Record<string, RejectOnNotFound> // { findFirst: RejectOnNotFound }
   | Record<string, Record<string, RejectOnNotFound>> // { findFirst: {User: RejectOnNotFound} }
 
-export class NotFoundError extends Error {
+/**
+ * @deprecated please don´t rely on type checks to this error anymore.
+ * This will become a PrismaClientKnownRequestError with code P2025
+ * in the future major version of the client
+ */
+export class NotFoundError extends PrismaClientKnownRequestError {
   constructor(message: string) {
-    super(message)
+    super(message, { code: 'P2025', clientVersion })
     this.name = 'NotFoundError'
   }
 }

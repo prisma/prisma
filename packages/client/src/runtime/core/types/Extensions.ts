@@ -1,12 +1,24 @@
-import { Args } from '../extensions/$extends'
-import * as Utils from './Utils'
+import { RequiredArgs as Args } from '../extensions/$extends'
+import { PatchFlat3 } from './Utils'
 
-export type GetResultTypes<T extends (Args['result'] & {})[string], F extends T['fields'] = T['fields']> =
-  // if not a concrete type, return unknown otherwise return the value type
-  [T] extends [never] ? unknown : { [K in keyof F]: ReturnType<F[K]> }
+export type DefaultArgs = { result: {}; model: {}; query: {}; client: {} }
 
-export type GetResultSelect<T extends (Args['result'] & {})[string], F extends T['fields'] = T['fields']> =
-  // if not a concrete type, return unknown otherwise return the value type
-  [T] extends [never] ? unknown : { [K in keyof Utils.EmptyToUnknown<F>]?: true }
+export type GetResultPayload<Base extends object, R extends Args['result'][string]> =
+  //
+  PatchFlat3<{}, { [K in keyof R]: ReturnType<R[K]['compute']> }, Base>
+
+export type GetResultSelect<Base extends object, R extends Args['result'][string]> =
+  //
+  Base & { [K in keyof R]?: true }
+
+export type GetModel<Base extends object, M extends Args['model'][string]> =
+  //
+  PatchFlat3<M, Base, {}>
+
+export type ReadonlySelector<T> = {
+  readonly [K in keyof T as K extends 'include' | 'select' ? K : never]: ReadonlySelector<T[K]>
+} & {
+  [K in keyof T as K extends 'include' | 'select' ? never : K]: T[K]
+}
 
 export type { Args }

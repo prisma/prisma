@@ -11,6 +11,8 @@ export type MatrixOptions = {
     runtimes: ClientRuntime[]
     reason: string
   }
+  // SQL Migraiton to apply after inital generated migration
+  alterStatementCallback?: AlterStatementCallback
 }
 
 export type NewPrismaClient<T extends new (...args: any) => any> = (
@@ -23,3 +25,5 @@ export type ClientMeta = {
   dataProxy: boolean
   runtime: 'node' | 'edge'
 }
+
+export type AlterStatementCallback = (provider: Providers) => string

@@ -160,7 +160,7 @@ async function getDmmfNodeAPI(options: GetDMMFOptions) {
           },
           (e) => ({
             type: 'node-api' as const,
-            reason: 'Error (query-engine-node-api library)',
+            reason: '(query-engine-node-api library)',
             error: e as Error,
             datamodel,
           }),
@@ -302,7 +302,7 @@ async function getDmmfBinary(options: GetDMMFOptions): Promise<DMMF.Document> {
         },
         (e) => ({
           type: 'execa' as const,
-          reason: 'Error (query-engine binary)',
+          reason: '(query-engine binary)',
           error: e as execa.ExecaError,
         }),
       )

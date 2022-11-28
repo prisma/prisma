@@ -34,7 +34,79 @@ testMatrix.setupTestSuite(
           },
         })
 
-        await prisma.user.create({
+        await delay(600)
+      },
+      {
+        maxWait: 200,
+        timeout: 500,
+      },
+    )
+
+    await expect(result).rejects.toMatchObject({
+      message: expect.stringMatching(
+        /Transaction API error: Transaction already closed: A commit cannot be executed on an expired transaction. The timeout for this transaction was 500 ms, however \d+ ms passed since the start of the transaction. Consider increasing the interactive transaction timeout or doing less work in the transaction./,
+      ),
+    })
+
+    expect(await prisma.user.findMany()).toHaveLength(0)
+  })
+
+  /**
+   * Transactions should fail and rollback if thrown within
+   */
+  test('rollback throw', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+
+      throw new Error('you better rollback now')
+    })
+
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`you better rollback now`)
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+
+  /**
+   * Transactions should fail and rollback if a value is thrown within
+   */
+  test('rollback throw value', async () => {
+    const result = prisma.$transaction(async (prisma) => {
+      await prisma.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+
+      throw 'you better rollback now'
+    })
+
+    await expect(result).rejects.toBe(`you better rollback now`)
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+
+  /**
+   * A transaction might fail if it's called inside another transaction
+   * //! this works only for postgresql
+   */
+  testIf(provider === 'postgresql')('postgresql: nested create', async () => {
+    const result = prisma.$transaction(async (tx) => {
+      await tx.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+
+      await prisma.$transaction(async (tx) => {
+        await tx.user.create({
           data: {
             email: 'user_2@website.com',
           },
@@ -237,7 +309,7 @@ testMatrix.setupTestSuite(
           XX 
           XX const result = prisma.$transaction(async () => {
         → XX   await transactionBoundPrisma.user.create(
-        Transaction API error: Transaction already closed: A query cannot be executed on a closed transaction..
+        Transaction API error: Transaction already closed: A query cannot be executed on a committed transaction.
       `)
       }
 

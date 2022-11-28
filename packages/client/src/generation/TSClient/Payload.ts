@@ -20,31 +20,27 @@ export class PayloadType implements Generatable {
     const { type } = this
     const { name } = type
 
-    const argsName = `${getArgName(name, false)}${ifExtensions('<ExtArgs>', '')}`
+    const argsName = `${getArgName(name, false)}${ifExtensions('', '')}`
 
     const include = this.renderRelations(Projection.include)
     const select = this.renderRelations(Projection.select)
 
     const isModel = !this.dmmf.typeMap[name]
     const findManyArg =
-      isModel && this.findMany
-        ? ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}${ifExtensions('<ExtArgs>', '')}`
-        : ''
+      isModel && this.findMany ? ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}${ifExtensions('', '')}` : ''
 
     return `\
 export type ${getPayloadName(name)}<S extends boolean | null | undefined | ${argsName}${ifExtensions(
-      `, ExtArgs extends runtime.Types.Extensions.Args = never, U = keyof S, _${name} = ${name} & runtime.Types.Extensions.GetResultTypes<(ExtArgs['result'] & {})['${lowerCase(
+      `, ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs, _${name} = runtime.Types.Extensions.GetResultPayload<${name}, ExtArgs['result']['${lowerCase(
         name,
       )}']>`,
-      ', U = keyof S',
+      '',
     )}> =
   S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
   S extends true ? ${ifExtensions(`_${name}`, name)} :
   S extends undefined ? never :
   S extends { include: any } & (${argsName}${findManyArg})
-  ? ${ifExtensions(`_${name}`, name)} ${
-      include.length > 0 ? ifExtensions(`& runtime.Types.Utils.EmptyToUnknown<${include}>`, ` & ${include}`) : ''
-    }
+  ? ${ifExtensions(`_${name}`, name)} ${include.length > 0 ? ifExtensions(`& ${include}`, ` & ${include}`) : ''}
   : S extends { select: any } & (${argsName}${findManyArg})
     ? ${select}
     : ${ifExtensions(`_${name}`, name)}
@@ -84,16 +80,17 @@ export type ${getPayloadName(name)}<S extends boolean | null | undefined | ${arg
     const selectPrefix = projection === Projection.select ? ` P extends keyof ${typeName} ? ${typeName}[P] :` : ''
 
     return `{
-  [P in TrueKeys<S['${projection}']>]:
+  [P in TruthyKeys<S['${projection}']>]:
 ${indent(
   relations
     .map(
       (f) =>
         `P extends '${f.name}' ? ${this.wrapType(
           f,
-          `${getPayloadName(
-            (f.outputType.type as DMMF.OutputType).name,
-          )}<Exclude<S['${projection}'], undefined | null>[P]${ifExtensions(', ExtArgs', '')}>`,
+          `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]${ifExtensions(
+            ', ExtArgs',
+            '',
+          )}>`,
         )} :`,
     )
     .join('\n'),
