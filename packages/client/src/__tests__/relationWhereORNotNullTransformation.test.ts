@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import { saleBuyers } from '../fixtures/saleBuyers'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
 
 chalk.level = 0
 
@@ -48,7 +49,7 @@ function getDocument(select) {
     select,
     rootTypeName: 'query',
     rootField: 'findManySale',
-    extensions: [],
+    extensions: MergedExtensionsList.empty(),
   })
   return String(document)
 }

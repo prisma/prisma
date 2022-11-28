@@ -1,5 +1,6 @@
 import { getDMMF } from '../../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../../runtime'
+import { MergedExtensionsList } from '../../runtime/core/extensions/ExtensionsList'
 
 const datamodel = /* Prisma */ `
     datasource my_db {
@@ -21,7 +22,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'mutation',
     rootField: 'createOneFloats',
-    extensions: [],
+    extensions: MergedExtensionsList.empty(),
   })
   return String(transformDocument(document))
 }

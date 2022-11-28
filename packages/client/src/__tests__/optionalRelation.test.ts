@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
 
 chalk.level = 0
 
@@ -23,7 +24,7 @@ describe('optional to one relation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyPost',
-      extensions: [],
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`

@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
 
 chalk.level = 0
 
@@ -372,7 +373,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'query',
     rootField: 'findManyUser',
-    extensions: [],
+    extensions: MergedExtensionsList.empty(),
   })
   return String(transformDocument(document))
 }

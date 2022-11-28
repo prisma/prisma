@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import { enums } from '../fixtures/enums'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
 
 chalk.level = 0
 
@@ -37,7 +38,7 @@ describe('scalar where transformation', () => {
         select,
         rootTypeName: 'mutation',
         rootField: 'createOneUser',
-        extensions: [],
+        extensions: MergedExtensionsList.empty(),
       }),
     )
 
@@ -97,7 +98,7 @@ describe('scalar where transformation', () => {
         select,
         rootTypeName: 'mutation',
         rootField: 'createOneUser',
-        extensions: [],
+        extensions: MergedExtensionsList.empty(),
       }),
     )
 

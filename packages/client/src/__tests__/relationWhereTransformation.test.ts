@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import { chinook } from '../fixtures/chinook'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
 
 chalk.level = 0
 
@@ -45,7 +46,7 @@ describe('relation where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyArtist',
-      extensions: [],
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(() => document.validate(select, false, 'users')).toThrowErrorMatchingSnapshot()
@@ -84,7 +85,7 @@ describe('relation where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyArtist',
-      extensions: [],
+      extensions: MergedExtensionsList.empty(),
     })
     expect(() => document.validate(select, false, 'users')).toThrowErrorMatchingSnapshot()
   })
@@ -119,7 +120,7 @@ describe('relation where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyArtist',
-      extensions: [],
+      extensions: MergedExtensionsList.empty(),
     })
     expect(() => document.validate(select, false, 'artists')).toThrowErrorMatchingSnapshot()
   })
