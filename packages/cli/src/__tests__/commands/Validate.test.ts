@@ -1,8 +1,8 @@
-import { jestContext, serializeQueryEngineName } from '@prisma/internals'
+import { jestConsoleContext, jestContext, serializeQueryEngineName } from '@prisma/internals'
 
 import { Validate } from '../../Validate'
 
-const ctx = jestContext.new().assemble()
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 it('validate should succeed if schema is valid', async () => {
   ctx.fixture('example-project/prisma')
@@ -19,6 +19,34 @@ it('validate should throw if env var is not set', async () => {
   await expect(Validate.new().parse(['--schema=env-does-not-exists.prisma'])).rejects.toThrowError(
     'Environment variable not found',
   )
+})
+
+it('validate should succeed and show a warning on stderr (preview feature deprecated)', async () => {
+  ctx.fixture('lint-warnings')
+  await expect(Validate.new().parse(['--schema=preview-feature-deprecated.prisma'])).resolves.toBeTruthy()
+
+  // stderr
+  expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+            Prisma schema warning:
+            - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
+      `)
+  expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+})
+
+it('validate should throw with an error and show a warning on stderr (preview feature deprecated)', async () => {
+  ctx.fixture('lint-warnings')
+  await expect(Validate.new().parse(['--schema=preview-feature-deprecated-and-error.prisma'])).rejects.toThrowError(
+    'P1012',
+  )
+
+  // stderr
+  expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+            Prisma schema warning:
+            - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
+      `)
+  expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 })
 
 describe('referential actions', () => {

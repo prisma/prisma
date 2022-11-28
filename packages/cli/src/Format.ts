@@ -1,9 +1,7 @@
-import type { Command } from '@prisma/internals'
-import { arg, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/internals'
+import { arg, Command, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import fs from 'fs'
-import os from 'os'
 
 /**
  * $ prisma format
@@ -63,7 +61,7 @@ Or specify a Prisma schema path
       })
     } catch (e) {
       console.error('') // empty line for better readability
-      throw new Error(`${e.message}`)
+      throw e
     }
 
     fs.writeFileSync(schemaPath, output)
