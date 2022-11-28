@@ -273,20 +273,6 @@ Array [
   Object {
     affected: Array [
       Object {
-        enm: invalid_enum,
-        value: 123,
-      },
-      Object {
-        enm: invalid_enum,
-        value: $§!,
-      },
-    ],
-    code: 10,
-    message: These enum values were enriched with \`@map\` information taken from the previous Prisma schema.,
-  },
-  Object {
-    affected: Array [
-      Object {
         model: no_unique_identifier,
       },
     ],
@@ -303,6 +289,20 @@ Array [
     ],
     code: 3,
     message: These fields are not supported by the Prisma Client, because Prisma currently does not support their types.,
+  },
+  Object {
+    affected: Array [
+      Object {
+        enm: invalid_enum,
+        value: 123,
+      },
+      Object {
+        enm: invalid_enum,
+        value: $§!,
+      },
+    ],
+    code: 4,
+    message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` attribute.,
   },
   Object {
     affected: Array [
