@@ -7,7 +7,11 @@ import {
 import { OptionalFlat } from '../types/Utils'
 
 export type Args = OptionalFlat<RequiredArgs>
-export type RequiredArgs = ResultArgs & ModelArgs & ClientArgs & QueryOptions
+export type RequiredArgs = NameArgs & ResultArgs & ModelArgs & ClientArgs & QueryOptions
+
+type NameArgs = {
+  name?: string
+}
 
 type ResultArgs = {
   result: {

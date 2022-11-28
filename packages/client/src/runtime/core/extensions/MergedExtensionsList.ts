@@ -1,8 +1,11 @@
+import { mapObjectValues } from '@prisma/internals'
+
 import { Cache } from '../../../generation/Cache'
 import { lazyProperty } from '../../../generation/lazyProperty'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
 import { Args, ClientExtensionDefinition, ModelExtensionDefinition, QueryOptionsCb } from './$extends'
 import { ComputedFieldsMap, getComputedFields } from './resultUtils'
+import { wrapAllExtensionCallbacks, wrapExtensionCallback } from './wrapExtensionCallback'
 
 class MergedExtensionsListNode {
   private computedFieldsCache = new Cache<string, ComputedFieldsMap | undefined>()
@@ -16,7 +19,7 @@ class MergedExtensionsListNode {
 
     return {
       ...this.previous?.getAllClientExtensions(),
-      ...this.extension.client,
+      ...wrapAllExtensionCallbacks(this.extension.name, this.extension.client),
     }
   })
 
@@ -41,8 +44,8 @@ class MergedExtensionsListNode {
 
       return {
         ...this.previous?.getAllModelExtensions(dmmfModelName),
-        ...this.extension.model.$allModels,
-        ...this.extension.model[jsModelName],
+        ...wrapAllExtensionCallbacks(this.extension.name, this.extension.model.$allModels),
+        ...wrapAllExtensionCallbacks(this.extension.name, this.extension.model[jsModelName]),
       }
     })
   }
@@ -79,7 +82,7 @@ class MergedExtensionsListNode {
           newCallbacks.push(query['$allModels']['$allOperations'])
         }
       }
-      return previous.concat(newCallbacks)
+      return previous.concat(newCallbacks.map((callback) => wrapExtensionCallback(this.extension.name, callback)))
     })
   }
 }
