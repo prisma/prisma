@@ -203,4 +203,11 @@ testMatrix.setupTestSuite(() => {
     const user = await xprisma.user.findFirst()
     expect(user?.loudName).toBe('JOHN SMITH')
   })
+
+  test('with null result', async () => {
+    const xprisma = prismaWithExtension()
+
+    const user = await prisma.user.findUnique({ where: { email: 'nothere@example.com' } })
+    expect(user).toBeNull()
+  })
 })
