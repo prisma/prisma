@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import { chinook } from '../fixtures/chinook'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
-import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 chalk.level = 0
 

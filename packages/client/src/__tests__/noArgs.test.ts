@@ -1,7 +1,7 @@
 import { recommender } from '../fixtures/recommender'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
-import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 let dmmf
 describe('no args', () => {

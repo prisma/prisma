@@ -1,7 +1,7 @@
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass } from '../runtime'
-import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 import { getField, makeDocument, unpack } from '../runtime/query'
 
 let dmmf

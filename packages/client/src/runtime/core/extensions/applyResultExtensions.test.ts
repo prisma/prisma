@@ -1,5 +1,5 @@
 import { applyResultExtensions } from './applyResultExtensions'
-import { MergedExtensionsList } from './ExtensionsList'
+import { MergedExtensionsList } from './MergedExtensionsList'
 
 test('does not add fields if some dependencies are not met', () => {
   const result = {

@@ -1,6 +1,6 @@
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
-import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 const datamodel = `datasource my_db {
   provider = "postgres"

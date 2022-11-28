@@ -3,7 +3,7 @@ import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import stripAnsi from 'strip-ansi'
 
-import { MergedExtensionsList } from './core/extensions/ExtensionsList'
+import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { applyComputedFieldsToSelection } from './core/extensions/resultUtils'
 import { FieldRefImpl } from './core/model/FieldRef'
 import type { /*dmmf, */ DMMFHelper } from './dmmf'

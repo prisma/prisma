@@ -4,7 +4,7 @@ import stripAnsi from 'strip-ansi'
 import { enums } from '../fixtures/enums'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
-import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 chalk.level = 0
 

@@ -11,7 +11,7 @@ import {
 } from '.'
 import { Args as ExtensionArgs } from './core/extensions/$extends'
 import { applyResultExtensions } from './core/extensions/applyResultExtensions'
-import { MergedExtensionsList } from './core/extensions/ExtensionsList'
+import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { IncludeSelect, visitQueryResult } from './core/extensions/visitQueryResult'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { PrismaPromiseTransaction } from './core/request/PrismaPromise'

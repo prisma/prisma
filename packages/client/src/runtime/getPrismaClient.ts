@@ -30,7 +30,7 @@ import type { InlineDatasources } from '../generation/utils/buildInlineDatasourc
 import { PrismaClientValidationError } from '.'
 import { $extends, Args as Extension } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
-import { MergedExtensionsList } from './core/extensions/ExtensionsList'
+import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { UserArgs } from './core/model/UserArgs'

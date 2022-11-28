@@ -2,7 +2,7 @@ import chalk from 'chalk'
 
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, objectEnumValues, transformDocument } from '../runtime'
-import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 

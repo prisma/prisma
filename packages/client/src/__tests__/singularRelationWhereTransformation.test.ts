@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import { singularRelation } from '../fixtures/singularRelation'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
-import { MergedExtensionsList } from '../runtime/core/extensions/ExtensionsList'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 chalk.level = 0
 

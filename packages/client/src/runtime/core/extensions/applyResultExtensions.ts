@@ -7,7 +7,7 @@ import {
   createCompositeProxy,
   removeProperties,
 } from '../compositeProxy'
-import { MergedExtensionsList } from './ExtensionsList'
+import { MergedExtensionsList } from './MergedExtensionsList'
 import { ComputedField } from './resultUtils'
 import { Selection } from './visitQueryResult'
 

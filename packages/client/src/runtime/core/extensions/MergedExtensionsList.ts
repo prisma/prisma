@@ -84,6 +84,14 @@ class MergedExtensionsListNode {
   }
 }
 
+/**
+ * Class that holds the list of all extensions, applied to particular instance, as well
+ * as resolved versions of the components that need to apply on different levels. Main idea
+ * of this class: avoid re-resolving as much of the stuff as possible when new extensions are added while also
+ * delaying the resolve until the point it is actually needed. For example, computed fields of the model won't be resolved unless
+ * the model is actually queried. Neither adding extensions with `client` component only cause other components to
+ * recompute.
+ */
 export class MergedExtensionsList {
   private constructor(private head?: MergedExtensionsListNode) {}
 
