@@ -6,7 +6,6 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   test('extended extension functions normally', async () => {
-    // TODO: new syntax
     const xprisma = prisma.$extends({})
     expect(xprisma).not.toBe(prisma)
 

@@ -1,6 +1,5 @@
 /* eslint-disable prettier/prettier */
 
-// import runtime from '../declaration/runtime'
 import runtime from '@prisma/client/runtime'
 
 /**
@@ -32,17 +31,18 @@ export declare const PrismaClient: any
  *
  * Read more in our [docs](https://github.com/prisma/prisma/blob/main/docs/prisma-client-js/api.md).
  */
-export declare type PrismaClient<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
-  [runtime.Types.Extensions.EXT_ARGS]: ExtArgs
-  $extends<
+export declare type PrismaClient = any
+
+export declare type PrismaClientExtends<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
+  $extends: { extArgs: ExtArgs } & (<
     R extends runtime.Types.Extensions.Args['result'] = {},
     M extends runtime.Types.Extensions.Args['model'] = {},
     Q extends runtime.Types.Extensions.Args['query'] = {},
     C extends runtime.Types.Extensions.Args['client'] = {},
     Args extends runtime.Types.Extensions.Args = { result: R; model: M; query: Q; client: C }
-  >(args: ((client: PrismaClient<ExtArgs>) => { [runtime.Types.Extensions.EXT_ARGS]: Args }) | {
+  >(args: ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } }) | {
     result?: R; model?: M; query?: Q; client?: C
-  }): PrismaClient<Args> // TODO merging logic // and TODO make types common in runtime.Types
+  }) => PrismaClientExtends<runtime.Types.Extensions.MergeArgs<Args, ExtArgs, string, false>>)
 }
 
 export declare const dmmf: any
@@ -67,7 +67,7 @@ export namespace Prisma {
     Q extends runtime.Types.Extensions.Args['query'] = {},
     C extends runtime.Types.Extensions.Args['client'] = {},
     Args extends runtime.Types.Extensions.Args = { result: R; model: M; query: Q; client: C }
-  >(args: ((client: PrismaClient) => { [runtime.Types.Extensions.EXT_ARGS]: Args }) | {
+  >(args: ((client: PrismaClientExtends) => { $extends: { extArgs: Args } }) | {
     result?: R; model?: M; query?: Q; client?: C
-  }): (client: any) => PrismaClient<Args>
+  }): (client: any) => PrismaClientExtends<Args>
 }
