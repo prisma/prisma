@@ -50,7 +50,10 @@ export function wrapExtensionCallback<ResultT, ThisT, Args extends unknown[]>(
   }
 }
 
-export function wrapAllExtensionCallbacks(name: string | undefined, object: Record<string, unknown> | undefined) {
+export function wrapAllExtensionCallbacks(
+  name: string | undefined,
+  object: Record<string, (...args: unknown[]) => unknown> | undefined,
+) {
   if (!object) {
     return object
   }
