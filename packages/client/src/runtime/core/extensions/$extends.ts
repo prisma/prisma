@@ -94,7 +94,7 @@ export function $extends(this: Client, extension: Args | ((client: Client) => Cl
   const oldClient = unapplyModelsAndClientExtensions(this)
   const newClient = Object.create(oldClient, {
     _extensions: {
-      get: () => this._extensions.append(extension),
+      value: this._extensions.append(extension),
     },
   })
 
