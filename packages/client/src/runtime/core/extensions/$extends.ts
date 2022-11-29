@@ -29,14 +29,14 @@ export type ResultFieldDefinition = {
 type ModelArgs = {
   model: {
     [ModelName in string]: {
-      [MethodName in string]: unknown
+      [MethodName in string]: (...args: any) => any
     }
   }
 }
 
 type ClientArgs = {
   client: {
-    [MethodName in `$${string}`]: unknown
+    [MethodName in string]: (...args: any) => any
   }
 }
 

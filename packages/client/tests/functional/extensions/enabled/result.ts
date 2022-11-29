@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -193,6 +194,7 @@ testMatrix.setupTestSuite(() => {
           loudName: {
             needs: { fullName: true },
             compute(user) {
+              expectTypeOf(user.fullName).toEqualTypeOf<string>()
               return user.fullName.toUpperCase()
             },
           },
@@ -202,5 +204,20 @@ testMatrix.setupTestSuite(() => {
 
     const user = await xprisma.user.findFirst()
     expect(user?.loudName).toBe('JOHN SMITH')
+  })
+
+  test('empty extension does nothing', async () => {
+    const xprisma = prismaWithExtension()
+      .$extends({
+        result: {},
+      })
+      .$extends({
+        result: {
+          user: {},
+        },
+      })
+
+    const user = await xprisma.user.findFirst({})
+    expect(user?.fullName).toBe('John Smith')
   })
 })

@@ -176,6 +176,14 @@ testMatrix.setupTestSuite(
             },
           },
         })
+        .$extends({
+          query: {},
+        })
+        .$extends({
+          query: {
+            user: {},
+          },
+        })
 
       const args = { where: { id: randomId1 } }
 

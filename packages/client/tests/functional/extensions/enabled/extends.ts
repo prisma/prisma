@@ -1,3 +1,5 @@
+import { expectTypeOf } from 'expect-type'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -9,6 +11,7 @@ testMatrix.setupTestSuite(() => {
     const xprisma = prisma.$extends({})
     expect(xprisma).not.toBe(prisma)
 
+    expectTypeOf(xprisma).not.toHaveProperty('$use')
     expect(await xprisma.user.findMany()).toEqual([])
   })
 })

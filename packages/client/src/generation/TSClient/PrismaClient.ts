@@ -126,7 +126,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
 function clientExtensionsClientDefinition(this: PrismaClientClass) {
   return {
     genericParams: `C extends runtime.Types.Extensions.Args['client'] = {}`,
-    params: `Record<\`\$\${string}\`, unknown>`,
+    params: `{ [K: symbol]: runtime.Types.Extensions.GetClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client'], {}> }`,
   }
 }
 
