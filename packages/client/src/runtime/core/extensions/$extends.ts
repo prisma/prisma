@@ -37,7 +37,7 @@ type ModelArgs = {
 }
 
 export type ModelExtensionDefinition = {
-  [MethodName in string]: unknown
+  [MethodName in string]: (...args: any[]) => any
 }
 
 type ClientArgs = {
@@ -45,7 +45,7 @@ type ClientArgs = {
 }
 
 export type ClientExtensionDefinition = {
-  [MethodName in `$${string}`]: unknown
+  [MethodName in string]: (...args: any[]) => any
 }
 
 type QueryOptionsCbArgs = {
@@ -78,25 +78,25 @@ type QueryOptions = {
  * TODO
  * @param this
  */
-export function $extends(this: Client, extension: Args | ((client: Client) => Args)): Client {
-  // this preview flag is hidden until implementation is ready for preview release
+export function $extends(this: Client, extension: Args | ((client: Client) => Client)): Client {
   if (!this._hasPreviewFlag('clientExtensions')) {
-    // TODO: when we are ready for preview release, change error message to
-    // ask users to enable 'clientExtensions' preview feature
     throw new PrismaClientValidationError(
       'Extensions are not yet generally available, please add `clientExtensions` to the `previewFeatures` field in the `generator` block in the `schema.prisma` file.',
     )
   }
-  // we need to re-apply models to the extend client:
-  // they always capture specific instance of the client and without
-  // re-application would never see new extensions
+
+  if (typeof extension === 'function') {
+    return extension(this)
+  }
+
+  // re-apply models to the extend client: they always capture specific instance
+  // of the client and without re-application they would not see new extensions
   const oldClient = unapplyModelsAndClientExtensions(this)
-  const newExtensions =
-    typeof extension === 'function' ? this._extensions.append(extension(this)) : this._extensions.append(extension)
   const newClient = Object.create(oldClient, {
     _extensions: {
-      get: () => newExtensions,
+      get: () => this._extensions.append(extension),
     },
   })
+
   return applyModelsAndClientExtensions(newClient)
 }
