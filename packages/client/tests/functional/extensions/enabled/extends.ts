@@ -14,4 +14,10 @@ testMatrix.setupTestSuite(() => {
     expectTypeOf(xprisma).not.toHaveProperty('$use')
     expect(await xprisma.user.findMany()).toEqual([])
   })
+
+  test('does not recompute extensions property on every access', () => {
+    const xprisma = prisma.$extends({})
+
+    expect((xprisma as any)._extensions).toBe((xprisma as any)._extensions)
+  })
 })
