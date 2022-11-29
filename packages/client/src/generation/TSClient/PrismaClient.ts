@@ -165,6 +165,7 @@ ${query.prismaNamespaceDefinitions}`,
     ${client.genericParams},
     Args extends runtime.Types.Extensions.Args = { result: R, model: M, query: Q, client: C },
   >(extension: ((client: this) => PrismaClient<any, any, any, Args>) | {
+    name?: string,
     result?: R & ${result.params}
     model?: M & ${model.params}
     query?: ${query.params}

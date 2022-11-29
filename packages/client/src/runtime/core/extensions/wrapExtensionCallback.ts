@@ -1,3 +1,5 @@
+import { isPromiseLike, mapObjectValues } from '@prisma/internals'
+
 export class PrismaClientExtensionError extends Error {
   constructor(public extensionName: string | undefined, cause: unknown) {
     super(`${getTitleFromExtensionName(extensionName)}: ${getMessageFromCause(cause)}`, { cause })
@@ -31,15 +33,28 @@ function getMessageFromCause(cause: unknown) {
   return `${cause}`
 }
 
-export function wrapExtensionFn<R, Args extends unknown[]>(
+export function wrapExtensionCallback<ResultT, ThisT, Args extends unknown[]>(
   name: string | undefined,
-  fn: (...args: Args) => R,
-): (...args: Args) => R {
-  return (...args) => {
+  fn: (this: ThisT, ...args: Args) => ResultT,
+): (this: ThisT, ...args: Args) => ResultT {
+  return function (...args) {
     try {
-      return fn(...args)
+      const result = fn.apply(this, args)
+      if (isPromiseLike(result)) {
+        return result.then(undefined, (error) => Promise.reject(new PrismaClientExtensionError(name, error))) as ResultT
+      }
+      return result
     } catch (error) {
       throw new PrismaClientExtensionError(name, error)
     }
   }
+}
+
+export function wrapAllExtensionCallbacks(name: string | undefined, object: Record<string, unknown> | undefined) {
+  if (!object) {
+    return object
+  }
+  return mapObjectValues(object, (prop) =>
+    typeof prop === 'function' ? wrapExtensionCallback(name, prop as (...args: unknown[]) => unknown) : prop,
+  )
 }
