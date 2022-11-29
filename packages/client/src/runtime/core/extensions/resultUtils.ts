@@ -4,6 +4,7 @@ import { Cache } from '../../../generation/Cache'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
 import { Args, ResultArgsFieldCompute, ResultModelArgs } from './$extends'
 import { Selection } from './visitQueryResult'
+import { wrapExtensionCallback } from './wrapExtensionCallback'
 
 export type ComputedField = {
   name: string
@@ -44,8 +45,8 @@ export function getComputedFields(
 
   return resolveDependencies({
     ...previousComputedFields,
-    ...getComputedFieldsFromModel(extension.result.$allModels),
-    ...getComputedFieldsFromModel(extension.result[jsName]),
+    ...getComputedFieldsFromModel(extension.name, extension.result.$allModels),
+    ...getComputedFieldsFromModel(extension.name, extension.result[jsName]),
   })
 }
 
@@ -68,7 +69,10 @@ export function resolveDependencies(computedFields: ComputedFieldsMap): Computed
   })
 }
 
-function getComputedFieldsFromModel(modelResult: ResultModelArgs | undefined): ComputedFieldsMap {
+function getComputedFieldsFromModel(
+  name: string | undefined,
+  modelResult: ResultModelArgs | undefined,
+): ComputedFieldsMap {
   if (!modelResult) {
     return {}
   }
@@ -76,7 +80,7 @@ function getComputedFieldsFromModel(modelResult: ResultModelArgs | undefined): C
   return mapObjectValues(modelResult, ({ needs, compute }, fieldName) => ({
     name: fieldName,
     needs: needs ? Object.keys(needs).filter((key) => needs[key]) : [],
-    compute,
+    compute: wrapExtensionCallback(name, compute),
   }))
 }
 
