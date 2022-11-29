@@ -7,7 +7,7 @@ In case this error is unexpected for you, please report it in https://github.com
   }
 }
 
-export function defineExtension(ext) {
+function defineExtension(ext) {
   if (typeof ext === 'function') {
     return ext
   }
