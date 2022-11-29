@@ -7,7 +7,11 @@ import {
 import { OptionalFlat } from '../types/Utils'
 
 export type Args = OptionalFlat<RequiredArgs>
-export type RequiredArgs = ResultArgs & ModelArgs & ClientArgs & QueryOptions
+export type RequiredArgs = NameArgs & ResultArgs & ModelArgs & ClientArgs & QueryOptions
+
+type NameArgs = {
+  name?: string
+}
 
 type ResultArgs = {
   result: {
@@ -28,16 +32,20 @@ export type ResultFieldDefinition = {
 
 type ModelArgs = {
   model: {
-    [ModelName in string]: {
-      [MethodName in string]: (...args: any) => any
-    }
+    [ModelName in string]: ModelExtensionDefinition
   }
 }
 
+export type ModelExtensionDefinition = {
+  [MethodName in string]: (...args: any[]) => any
+}
+
 type ClientArgs = {
-  client: {
-    [MethodName in string]: (...args: any) => any
-  }
+  client: ClientExtensionDefinition
+}
+
+export type ClientExtensionDefinition = {
+  [MethodName in string]: (...args: any[]) => any
 }
 
 type QueryOptionsCbArgs = {
@@ -47,6 +55,8 @@ type QueryOptionsCbArgs = {
   query: (args: object) => Promise<unknown>
 }
 
+export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>
+
 type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
   path: string
 }
@@ -55,7 +65,7 @@ type QueryOptions = {
   query: {
     [ModelName in string]:
       | {
-          [ModelAction in string]: (args: QueryOptionsCbArgs) => Promise<any>
+          [ModelAction in string]: QueryOptionsCb
         } & {
           // $nestedOperations?: {
           //   [K in string]: (args: QueryOptionsCbArgsNested) => unknown
@@ -84,9 +94,7 @@ export function $extends(this: Client, extension: Args | ((client: Client) => Cl
   const oldClient = unapplyModelsAndClientExtensions(this)
   const newClient = Object.create(oldClient, {
     _extensions: {
-      get: () => {
-        return this._extensions.concat(extension)
-      },
+      get: () => this._extensions.append(extension),
     },
   })
 

@@ -153,6 +153,7 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
   >(extension: ((client: ${
     name === 'defineExtension' ? 'PrismaClient' : 'this'
   }) => { $extends: { extArgs: Args } }) | {
+    name?: string,
     result?: R & ${result.params}
     model?: M & ${model.params}
     query?: ${query.params}

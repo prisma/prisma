@@ -1,5 +1,16 @@
-import type { Command } from '@prisma/internals'
-import { arg, format, getConfig, getDMMF, HelpError, loadEnvFile } from '@prisma/internals'
+import {
+  arg,
+  Command,
+  format,
+  getConfig,
+  getDMMF,
+  getLintWarningsAsText,
+  handleLintPanic,
+  HelpError,
+  lintSchema,
+  loadEnvFile,
+  logger,
+} from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -56,13 +67,35 @@ ${chalk.bold('Examples')}
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
-    // TODO is the order of getDMMF / getConfig important
-    await getDMMF({
-      datamodel: schema,
-    })
+    const { lintDiagnostics } = handleLintPanic(
+      () => {
+        // the only possible error here is a Rust panic
+        const lintDiagnostics = lintSchema({ schema })
+        return { lintDiagnostics }
+      },
+      { schema },
+    )
 
+    const lintWarnings = getLintWarningsAsText(lintDiagnostics)
+    if (lintWarnings && logger.should.warn()) {
+      // Output warnings to stderr
+      console.warn(lintWarnings)
+    }
+
+    try {
+      // Validate whether the formatted output is a valid schema
+      await getDMMF({
+        datamodel: schema,
+      })
+    } catch (e) {
+      console.error('') // empty line for better readability
+      throw e
+    }
+
+    // We could have a CLI flag to ignore env var validation
     await getConfig({
       datamodel: schema,
+      ignoreEnvVarErrors: false,
     })
 
     return `The schema at ${chalk.underline(schemaPath)} is valid 🚀`

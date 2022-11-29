@@ -829,6 +829,39 @@ testMatrix.setupTestSuite(
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPosts)
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(2))
     })
+
+    testIf(process.platform !== 'win32')('errors in callback', async () => {
+      const xprisma = prisma.$extends({
+        name: 'Faulty query ext',
+        query: {
+          user: {
+            findFirst() {
+              return Promise.reject('All is lost!')
+            },
+          },
+        },
+      })
+
+      await expect(xprisma.user.findFirst({})).rejects.toThrowErrorMatchingInlineSnapshot(
+        `Error caused by extension "Faulty query ext": All is lost!`,
+      )
+    })
+
+    testIf(process.platform !== 'win32')('errors in with no extension name', async () => {
+      const xprisma = prisma.$extends({
+        query: {
+          user: {
+            findFirst() {
+              return Promise.reject('All is lost!')
+            },
+          },
+        },
+      })
+
+      await expect(xprisma.user.findFirst({})).rejects.toThrowErrorMatchingInlineSnapshot(
+        `Error caused by an extension: All is lost!`,
+      )
+    })
   },
   {
     skipDefaultClientInstance: true,

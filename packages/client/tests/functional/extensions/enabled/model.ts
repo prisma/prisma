@@ -244,4 +244,52 @@ testMatrix.setupTestSuite(() => {
       },
     })
   })
+
+  test('error in extension methods', () => {
+    const xprisma = prisma.$extends({
+      name: 'Faulty model',
+      model: {
+        user: {
+          fail() {
+            throw new Error('Fail!')
+          },
+        },
+      },
+    })
+
+    expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(
+      `Error caused by extension "Faulty model": Fail!`,
+    )
+  })
+
+  test('error in async methods', async () => {
+    const xprisma = prisma.$extends({
+      name: 'Faulty model',
+      model: {
+        user: {
+          fail() {
+            return Promise.reject(new Error('Fail!'))
+          },
+        },
+      },
+    })
+
+    await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(
+      `Error caused by extension "Faulty model": Fail!`,
+    )
+  })
+
+  test('error in extension methods without name', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        user: {
+          fail() {
+            throw new Error('Fail!')
+          },
+        },
+      },
+    })
+
+    expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(`Error caused by an extension: Fail!`)
+  })
 })

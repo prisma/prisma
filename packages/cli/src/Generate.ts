@@ -192,7 +192,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
       }
     }
 
-    if (isPostinstall && printBreakingChangesMessage && logger.should.warn) {
+    if (isPostinstall && printBreakingChangesMessage && logger.should.warn()) {
       // skipping generate
       return `There have been breaking changes in Prisma Client since you updated last time.
 Please run \`prisma generate\` manually.`
@@ -230,7 +230,7 @@ ${breakingChangesMessage}`
 
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning =
-          versionsOutOfSync && logger.should.warn
+          versionsOutOfSync && logger.should.warn()
             ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(`prisma@${pkg.version}`)} and ${chalk.bold(
                 `@prisma/client@${clientGeneratorVersion}`,
               )} don't match.

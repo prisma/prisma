@@ -220,4 +220,50 @@ testMatrix.setupTestSuite(() => {
     const user = await xprisma.user.findFirst({})
     expect(user?.fullName).toBe('John Smith')
   })
+
+  test('with null result', async () => {
+    const xprisma = prismaWithExtension()
+
+    const user = await xprisma.user.findUnique({ where: { email: 'nothere@example.com' } })
+    expect(user).toBeNull()
+  })
+
+  test('error in computed field', async () => {
+    const xprisma = prisma.$extends({
+      name: 'Faulty extension',
+      result: {
+        user: {
+          fullName: {
+            needs: { firstName: true, lastName: true },
+            compute() {
+              throw new Error('oops!')
+            },
+          },
+        },
+      },
+    })
+
+    const user = await xprisma.user.findFirstOrThrow({})
+    expect(() => user.fullName).toThrowErrorMatchingInlineSnapshot(
+      `Error caused by extension "Faulty extension": oops!`,
+    )
+  })
+
+  test('error in computed field with no name', async () => {
+    const xprisma = prisma.$extends({
+      result: {
+        user: {
+          fullName: {
+            needs: { firstName: true, lastName: true },
+            compute() {
+              throw new Error('oops!')
+            },
+          },
+        },
+      },
+    })
+
+    const user = await xprisma.user.findFirstOrThrow({})
+    expect(() => user.fullName).toThrowErrorMatchingInlineSnapshot(`Error caused by an extension: oops!`)
+  })
 })
