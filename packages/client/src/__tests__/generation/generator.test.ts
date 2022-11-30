@@ -52,11 +52,11 @@ describe('generator', () => {
 
     if (getClientEngineType() === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
-        Object {
+        {
           defaultOutput: .prisma/client,
           prettyName: Prisma Client,
           requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: Array [
+          requiresEngines: [
             libqueryEngine,
           ],
         }
@@ -75,12 +75,12 @@ describe('generator', () => {
     }
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        binaryTargets: Array [],
-        config: Object {},
+      {
+        binaryTargets: [],
+        config: {},
         name: client,
-        previewFeatures: Array [],
-        provider: Object {
+        previewFeatures: [],
+        provider: {
           fromEnvVar: null,
           value: prisma-client-js,
         },
@@ -245,11 +245,11 @@ describe('generator', () => {
 
     if (getClientEngineType(generator.config) === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
-        Object {
+        {
           defaultOutput: .prisma/client,
           prettyName: Prisma Client,
           requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: Array [
+          requiresEngines: [
             libqueryEngine,
           ],
         }
@@ -268,12 +268,12 @@ describe('generator', () => {
     }
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        binaryTargets: Array [],
-        config: Object {},
+      {
+        binaryTargets: [],
+        config: {},
         name: client,
-        previewFeatures: Array [],
-        provider: Object {
+        previewFeatures: [],
+        provider: {
           fromEnvVar: null,
           value: prisma-client-js,
         },

@@ -78,13 +78,13 @@ describe('batching', () => {
     ])
 
     expect(batches).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           containsWrite: false,
-          headers: Object {
+          headers: {
             traceparent: 00-10-10-00,
           },
-          queries: Array [
+          queries: [
             query {
         findUniqueUser(where: {
           id: "1"
@@ -128,7 +128,7 @@ describe('batching', () => {
         },
       ]
     `)
-    expect(requests).toMatchInlineSnapshot(`Array []`)
+    expect(requests).toMatchInlineSnapshot(`[]`)
   })
 
   test('dont batch different models', async () => {
@@ -199,11 +199,11 @@ describe('batching', () => {
       }),
     ])
 
-    expect(batches).toMatchInlineSnapshot(`Array []`)
+    expect(batches).toMatchInlineSnapshot(`[]`)
     expect(requests).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          headers: Object {
+      [
+        {
+          headers: {
             traceparent: 00-10-10-00,
           },
           isWrite: false,
@@ -223,8 +223,8 @@ describe('batching', () => {
       },
           transaction: undefined,
         },
-        Object {
-          headers: Object {
+        {
+          headers: {
             traceparent: 00-10-10-00,
           },
           isWrite: false,
@@ -317,11 +317,11 @@ describe('batching', () => {
       }),
     ])
 
-    expect(batches).toMatchInlineSnapshot(`Array []`)
+    expect(batches).toMatchInlineSnapshot(`[]`)
     expect(requests).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          headers: Object {
+      [
+        {
+          headers: {
             traceparent: 00-10-10-00,
           },
           isWrite: false,
@@ -346,8 +346,8 @@ describe('batching', () => {
       },
           transaction: undefined,
         },
-        Object {
-          headers: Object {
+        {
+          headers: {
             traceparent: 00-10-10-00,
           },
           isWrite: false,

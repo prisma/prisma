@@ -1,20 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`middleware basic 1`] = `
-Object {
+{
   action: findMany,
   args: undefined,
-  dataPath: Array [],
+  dataPath: [],
   model: User,
   runInTransaction: false,
 }
 `;
 
 exports[`middleware basic 2`] = `
-Object {
+{
   action: findMany,
   args: undefined,
-  dataPath: Array [],
+  dataPath: [],
   model: Post,
   runInTransaction: false,
 }
