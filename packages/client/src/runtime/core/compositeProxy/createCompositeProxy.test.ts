@@ -1,3 +1,5 @@
+import util from 'util'
+
 import { createCompositeProxy } from './createCompositeProxy'
 
 test('forwards properties to the target', () => {
@@ -50,6 +52,22 @@ test('allows to add multiple properties via single layer', () => {
   expect(Object.keys(proxy)).toEqual(['first', 'second'])
   expect(proxy).toHaveProperty('first', 1)
   expect(proxy).toHaveProperty('second', 2)
+})
+
+test('logs proxy properties if used in console.log/util.inspect', () => {
+  const proxy = createCompositeProxy({}, [
+    {
+      getKeys() {
+        return ['first', 'second']
+      },
+
+      getPropertyValue(key) {
+        return key === 'first' ? 1 : 2
+      },
+    },
+  ])
+
+  expect(util.inspect(proxy)).toMatchInlineSnapshot(`{ first: 1, second: 2 }`)
 })
 
 test('allows to set property descriptor via layer', () => {
