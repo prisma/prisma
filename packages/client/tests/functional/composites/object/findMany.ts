@@ -1,5 +1,3 @@
-import { faker } from '@faker-js/faker'
-
 import { setupTestSuite } from './_matrix'
 import { commentDataA, commentDataB } from './_testData'
 // @ts-ignore
@@ -24,7 +22,6 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
       `
       [
         {
@@ -38,7 +35,7 @@ setupTestSuite(() => {
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -81,7 +78,6 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }, { id: expect.any(String) }],
       `
       [
         {
@@ -99,7 +95,7 @@ setupTestSuite(() => {
             ],
           },
           country: France,
-          id: Any<String>,
+          id: 1ddddddddddddddddddddddd,
         },
         {
           content: {
@@ -112,7 +108,7 @@ setupTestSuite(() => {
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -128,7 +124,6 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
       `
       [
         {
@@ -142,7 +137,7 @@ setupTestSuite(() => {
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -158,7 +153,6 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
       `
       [
         {
@@ -172,7 +166,7 @@ setupTestSuite(() => {
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -188,7 +182,6 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }, { id: expect.any(String) }],
       `
       [
         {
@@ -206,7 +199,7 @@ setupTestSuite(() => {
             ],
           },
           country: France,
-          id: Any<String>,
+          id: 1ddddddddddddddddddddddd,
         },
         {
           content: {
@@ -219,7 +212,7 @@ setupTestSuite(() => {
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -235,7 +228,6 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
       `
       [
         {
@@ -249,7 +241,7 @@ setupTestSuite(() => {
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -265,7 +257,6 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
       `
       [
         {
@@ -283,7 +274,7 @@ setupTestSuite(() => {
             ],
           },
           country: France,
-          id: Any<String>,
+          id: 1ddddddddddddddddddddddd,
         },
       ]
     `,
