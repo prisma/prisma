@@ -208,7 +208,16 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
       return { envVarName, newURI }
     })
 
-  const databaseUrl = newURI.replace(DB_NAME_VAR, dbId)
+  let databaseUrl = newURI
+  // Vitess takes about 1 minute to create a database the first time
+  // So we can reuse the same database for all tests
+  // It has a significant impact on the test runtime
+  // Example: 60s -> 3s
+  if (providerFlavor === ProviderFlavors.VITESS_8) {
+    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
+  } else {
+    databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
+  }
   let dataProxyUrl: string | undefined
 
   if (clientMeta.dataProxy) {
