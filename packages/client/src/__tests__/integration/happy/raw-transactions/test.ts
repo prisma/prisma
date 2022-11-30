@@ -360,38 +360,38 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-          Array [
-            Object {
+          [
+            {
               duration: 0,
               params: [],
               query: BEGIN,
               target: quaint::connector::metrics,
             },
-            Object {
+            {
               duration: 0,
               params: [],
               query: SELECT * FROM "Post",
               target: quaint::connector::metrics,
             },
-            Object {
+            {
               duration: 0,
               params: ["blub1","THIS_DOES_NOT_EXIT1"],
               query: UPDATE User SET name = ? WHERE id = ?;,
               target: quaint::connector::metrics,
             },
-            Object {
+            {
               duration: 0,
               params: [],
               query: SELECT * FROM "User",
               target: quaint::connector::metrics,
             },
-            Object {
+            {
               duration: 0,
               params: ["blub2","THIS_DOES_NOT_EXIT2"],
               query: UPDATE User SET name = ? WHERE id = ?;,
               target: quaint::connector::metrics,
             },
-            Object {
+            {
               duration: 0,
               params: [],
               query: COMMIT,
@@ -401,11 +401,11 @@ describe('transaction', () => {
       `)
 
     expect(res).toMatchInlineSnapshot(`
-          Array [
-            Array [],
+          [
+            [],
             0,
-            Array [
-              Object {
+            [
+              {
                 email: a@a.de,
                 id: 576eddf9-2434-421f-9a86-58bede16fd95,
                 name: Alice,
