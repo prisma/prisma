@@ -1009,7 +1009,6 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Test packages/client
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
         run: pnpm run test:functional:code --shard=${{matrix.shard}}/2
         working-directory: packages/client
         env:
