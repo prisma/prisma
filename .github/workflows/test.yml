@@ -1024,7 +1024,7 @@ jobs:
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
+          name: client-functional-${{ matrix.os }}-${{ matrix.queryEngine }}
 
   no-docker:
     timeout-minutes: 40
