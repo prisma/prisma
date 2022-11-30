@@ -27,12 +27,12 @@ it('evaluateDataLoss - schema-only-sqlite', async () => {
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            migrationSteps: 1,
-            unexecutableSteps: Array [],
-            warnings: Array [],
-          }
-        `)
+    {
+      migrationSteps: 1,
+      unexecutableSteps: [],
+      warnings: [],
+    }
+  `)
   migrate.stop()
 })
 
@@ -48,12 +48,12 @@ it('evaluateDataLoss - existing-db-1-migration', async () => {
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            migrationSteps: 0,
-            unexecutableSteps: Array [],
-            warnings: Array [],
-          }
-        `)
+    {
+      migrationSteps: 0,
+      unexecutableSteps: [],
+      warnings: [],
+    }
+  `)
   migrate.stop()
 })
 
@@ -70,10 +70,10 @@ it('createMigration - existing-db-1-migration', async () => {
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            generatedMigrationName: 20201231000000_my_migration,
-          }
-        `)
+    {
+      generatedMigrationName: 20201231000000_my_migration,
+    }
+  `)
   migrate.stop()
 })
 
@@ -90,10 +90,10 @@ it('createMigration draft - existing-db-1-migration', async () => {
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            generatedMigrationName: 20201231000000_draft_123,
-          }
-        `)
+    {
+      generatedMigrationName: 20201231000000_draft_123,
+    }
+  `)
   migrate.stop()
 })
 
@@ -107,13 +107,13 @@ it('diagnoseMigrationHistory - optInToShadowDatabase true - existing-db-1-migrat
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            editedMigrationNames: Array [],
-            failedMigrationNames: Array [],
-            hasMigrationsTable: true,
-            history: null,
-          }
-        `)
+    {
+      editedMigrationNames: [],
+      failedMigrationNames: [],
+      hasMigrationsTable: true,
+      history: null,
+    }
+  `)
   migrate.stop()
 })
 
@@ -127,13 +127,13 @@ it('diagnoseMigrationHistory - optInToShadowDatabase false - existing-db-1-migra
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            editedMigrationNames: Array [],
-            failedMigrationNames: Array [],
-            hasMigrationsTable: true,
-            history: null,
-          }
-        `)
+    {
+      editedMigrationNames: [],
+      failedMigrationNames: [],
+      hasMigrationsTable: true,
+      history: null,
+    }
+  `)
   migrate.stop()
 })
 
@@ -146,10 +146,10 @@ it('applyMigrations', async () => {
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            appliedMigrationNames: Array [],
-          }
-        `)
+    {
+      appliedMigrationNames: [],
+    }
+  `)
   migrate.stop()
 })
 
@@ -201,10 +201,10 @@ it('schemaPush should succeed without warning', async () => {
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-    Object {
+    {
       executedSteps: 1,
-      unexecutable: Array [],
-      warnings: Array [],
+      unexecutable: [],
+      warnings: [],
     }
   `)
   migrate.stop()
@@ -222,14 +222,14 @@ it('schemaPush should return executedSteps 0 with warning if dataloss detected',
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            executedSteps: 0,
-            unexecutable: Array [],
-            warnings: Array [
-              You are about to drop the \`Blog\` table, which is not empty (1 rows).,
-            ],
-          }
-        `)
+    {
+      executedSteps: 0,
+      unexecutable: [],
+      warnings: [
+        You are about to drop the \`Blog\` table, which is not empty (1 rows).,
+      ],
+    }
+  `)
   migrate.stop()
 })
 
@@ -245,14 +245,14 @@ it('schemaPush force should accept dataloss', async () => {
   })
 
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            executedSteps: 2,
-            unexecutable: Array [],
-            warnings: Array [
-              You are about to drop the \`Blog\` table, which is not empty (1 rows).,
-            ],
-          }
-        `)
+    {
+      executedSteps: 2,
+      unexecutable: [],
+      warnings: [
+        You are about to drop the \`Blog\` table, which is not empty (1 rows).,
+      ],
+    }
+  `)
   migrate.stop()
 })
 
@@ -290,10 +290,10 @@ it('markMigrationRolledBack - existing-db-1-migration', async () => {
   })
 
   expect(result).toMatchInlineSnapshot(`
-          Object {
-            generatedMigrationName: 20201231000000_draft_123,
-          }
-        `)
+    {
+      generatedMigrationName: 20201231000000_draft_123,
+    }
+  `)
 
   fs.write(
     path.join(migrate.migrationsDirectoryPath!, result.generatedMigrationName!, 'migration.sql'),
@@ -349,17 +349,17 @@ it('markMigrationApplied - existing-db-1-migration', async () => {
   })
 
   expect(result).toMatchInlineSnapshot(`
-          Object {
-            generatedMigrationName: 20201231000000_draft_123,
-          }
-        `)
+    {
+      generatedMigrationName: 20201231000000_draft_123,
+    }
+  `)
 
   const resultMarkApplied = migrate.engine.markMigrationApplied({
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     migrationName: result.generatedMigrationName!,
   })
 
-  await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`Object {}`)
+  await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`{}`)
 
   migrate.stop()
 })
@@ -372,12 +372,12 @@ it('listMigrationDirectories - existing-db-1-migration', async () => {
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
   })
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            migrations: Array [
-              20201231000000_init,
-            ],
-          }
-        `)
+    {
+      migrations: [
+        20201231000000_init,
+      ],
+    }
+  `)
 
   migrate.stop()
 })
@@ -390,10 +390,10 @@ it('listMigrationDirectories - schema-only-sqlite', async () => {
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
   })
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            migrations: Array [],
-          }
-        `)
+    {
+      migrations: [],
+    }
+  `)
 
   migrate.stop()
 })
@@ -406,12 +406,12 @@ it('devDiagnostic - createMigration', async () => {
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
   })
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            action: Object {
-              tag: createMigration,
-            },
-          }
-        `)
+    {
+      action: {
+        tag: createMigration,
+      },
+    }
+  `)
 
   migrate.stop()
 })
@@ -424,25 +424,25 @@ it('devDiagnostic - reset because drift', async () => {
     migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
   })
   await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            action: Object {
-              reason: Drift detected: Your database schema is not in sync with your migration history.
+    {
+      action: {
+        reason: Drift detected: Your database schema is not in sync with your migration history.
 
-          The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+    The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
 
-          It should be understood as the set of changes to get from the expected schema to the actual schema.
+    It should be understood as the set of changes to get from the expected schema to the actual schema.
 
-          If you are running this the first time on an existing database, please make sure to read this documentation page:
-          https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/troubleshooting-development
+    If you are running this the first time on an existing database, please make sure to read this documentation page:
+    https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/troubleshooting-development
 
-          [+] Added tables
-            - Blog
-            - _Migration
-          ,
-              tag: reset,
-            },
-          }
-        `)
+    [+] Added tables
+      - Blog
+      - _Migration
+    ,
+        tag: reset,
+      },
+    }
+  `)
 
   migrate.stop()
 })

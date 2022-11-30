@@ -112,36 +112,36 @@ describe('getConfig', () => {
     })
 
     expect(binaryConfig).toMatchInlineSnapshot(`
-Object {
-  "datasources": Array [
-    Object {
-      "activeProvider": "sqlite",
-      "name": "db",
-      "provider": "sqlite",
-      "url": Object {
-        "fromEnvVar": null,
-        "value": "file:../hello.db",
-      },
-    },
-  ],
-  "generators": Array [
-    Object {
-      "binaryTargets": Array [],
-      "config": Object {
-        "engineType": "binary",
-      },
-      "name": "gen",
-      "output": null,
-      "previewFeatures": Array [],
-      "provider": Object {
-        "fromEnvVar": null,
-        "value": "fancy-provider",
-      },
-    },
-  ],
-  "warnings": Array [],
-}
-`)
+      {
+        "datasources": [
+          {
+            "activeProvider": "sqlite",
+            "name": "db",
+            "provider": "sqlite",
+            "url": {
+              "fromEnvVar": null,
+              "value": "file:../hello.db",
+            },
+          },
+        ],
+        "generators": [
+          {
+            "binaryTargets": [],
+            "config": {
+              "engineType": "binary",
+            },
+            "name": "gen",
+            "output": null,
+            "previewFeatures": [],
+            "provider": {
+              "fromEnvVar": null,
+              "value": "fancy-provider",
+            },
+          },
+        ],
+        "warnings": [],
+      }
+    `)
   })
   test('with engineType="library"', async () => {
     const libraryConfig = await getConfig({
@@ -164,35 +164,35 @@ Object {
     })
 
     expect(libraryConfig).toMatchInlineSnapshot(`
-Object {
-  "datasources": Array [
-    Object {
-      "activeProvider": "sqlite",
-      "name": "db",
-      "provider": "sqlite",
-      "url": Object {
-        "fromEnvVar": null,
-        "value": "file:../hello.db",
-      },
-    },
-  ],
-  "generators": Array [
-    Object {
-      "binaryTargets": Array [],
-      "config": Object {
-        "engineType": "library",
-      },
-      "name": "gen",
-      "output": null,
-      "previewFeatures": Array [],
-      "provider": Object {
-        "fromEnvVar": null,
-        "value": "fancy-provider",
-      },
-    },
-  ],
-  "warnings": Array [],
-}
-`)
+      {
+        "datasources": [
+          {
+            "activeProvider": "sqlite",
+            "name": "db",
+            "provider": "sqlite",
+            "url": {
+              "fromEnvVar": null,
+              "value": "file:../hello.db",
+            },
+          },
+        ],
+        "generators": [
+          {
+            "binaryTargets": [],
+            "config": {
+              "engineType": "library",
+            },
+            "name": "gen",
+            "output": null,
+            "previewFeatures": [],
+            "provider": {
+              "fromEnvVar": null,
+              "value": "fancy-provider",
+            },
+          },
+        ],
+        "warnings": [],
+      }
+    `)
   })
 })

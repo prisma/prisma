@@ -58,9 +58,9 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Hello World,
           },
         },

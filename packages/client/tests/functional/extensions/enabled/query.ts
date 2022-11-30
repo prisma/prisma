@@ -359,7 +359,7 @@ testMatrix.setupTestSuite(
       const data = await xprisma.user.findFirst()
 
       expect(data).toMatchInlineSnapshot(`
-        Object {
+        {
           email: jane@doe.io,
           firstName: Jane,
           id: <redacted>,
@@ -405,7 +405,7 @@ testMatrix.setupTestSuite(
       const data = await xprisma.user.findFirst()
 
       expect(data).toMatchInlineSnapshot(`
-        Object {
+        {
           email: <redacted>,
           firstName: Jane,
           id: <redacted>,
@@ -453,16 +453,16 @@ testMatrix.setupTestSuite(
         const data = await xprisma.$transaction([xprisma.user.findFirst(), xprisma.post.findFirst()])
 
         expect(data).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            email: <redacted>,
-            firstName: Jane,
-            id: <redacted>,
-            lastName: Doe,
-          },
-          null,
-        ]
-      `)
+          [
+            {
+              email: <redacted>,
+              firstName: Jane,
+              id: <redacted>,
+              lastName: Doe,
+            },
+            null,
+          ]
+        `)
         await waitFor(() => {
           expect(fnEmitter).toHaveBeenCalledTimes(4)
           expect(fnEmitter.mock.calls).toMatchObject([
@@ -500,10 +500,10 @@ testMatrix.setupTestSuite(
         })
 
         expect(data).toMatchInlineSnapshot(`
-        Object {
-          lastName: Doe,
-        }
-      `)
+          {
+            lastName: Doe,
+          }
+        `)
         await waitFor(() => {
           expect(fnEmitter).toHaveBeenCalledTimes(4)
           expect(fnEmitter.mock.calls).toMatchObject([
@@ -544,13 +544,13 @@ testMatrix.setupTestSuite(
         ])
 
         expect(data).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            lastName: Doe,
-          },
-          null,
-        ]
-      `)
+          [
+            {
+              lastName: Doe,
+            },
+            null,
+          ]
+        `)
         await waitFor(() => {
           // user.findFirst 4 queries + post.findFirst 1 query
           expect(fnEmitter).toHaveBeenCalledTimes(5)
@@ -629,14 +629,14 @@ testMatrix.setupTestSuite(
         ])
 
         expect(data).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            firstName: <redacted>,
-            lastName: <redacted>,
-          },
-          null,
-        ]
-      `)
+          [
+            {
+              firstName: <redacted>,
+              lastName: <redacted>,
+            },
+            null,
+          ]
+        `)
 
         await waitFor(() => {
           // user.findFirst 4 queries + post.findFirst 1 query
@@ -761,7 +761,7 @@ testMatrix.setupTestSuite(
 
       expect(dataUser).toMatchInlineSnapshot(`null`)
       expect(dataPost).toMatchInlineSnapshot(`null`)
-      expect(dataPosts).toMatchInlineSnapshot(`Array []`)
+      expect(dataPosts).toMatchInlineSnapshot(`[]`)
       expect(fnModel).toHaveBeenCalledTimes(3)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPost)
@@ -823,7 +823,7 @@ testMatrix.setupTestSuite(
       const dataPosts = await xprisma.post.findMany(args)
 
       expect(dataPost).toMatchInlineSnapshot(`null`)
-      expect(dataPosts).toMatchInlineSnapshot(`Array []`)
+      expect(dataPosts).toMatchInlineSnapshot(`[]`)
       expect(fnModel).toHaveBeenCalledTimes(2)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsPost)
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPosts)
