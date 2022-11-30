@@ -957,6 +957,75 @@ jobs:
   # (PostgreSQL and MongoDB are provided by GitHub Actions out of the box), and
   # minimize the time spent waiting for a free runner.
   #
+  no-docker-client-functional:
+    timeout-minutes: 40
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest]
+        node: [14]
+        queryEngine: ['library', 'binary']
+        shard: ['1', '2']
+
+    needs: detect_jobs_to_run
+    if: |
+      ${{
+        contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') ||
+        contains(needs.detect_jobs_to_run.outputs.jobs, '-client-')
+      }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Prerequisites
+        shell: bash
+        run: |
+          echo "TEST_SKIP_MSSQL=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_MONGODB=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_COCKROACHDB=true" >> $GITHUB_ENV
+          echo "TEST_MONGO_URI_MIGRATE=mongodb://localhost:27017/tests-migrate" >> $GITHUB_ENV
+          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - name: Set up PostgreSQL
+        run: bash .github/workflows/scripts/setup-postgres.sh
+
+      - name: Set up MySQL
+        run: bash .github/workflows/scripts/setup-mysql.sh
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/scripts/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - name: Test packages/client
+        run: pnpm run test:functional:code --shard=${{matrix.shard}}/2
+        working-directory: packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          # allow Node.js to allocate at most 14GB of heap on macOS and 7GB on Windows
+          # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
+          NODE_OPTIONS: "${{ matrix.os == 'macos-latest' && '--max-old-space-size=14336' || '--max-old-space-size=7168' }}"
+          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+
+      - uses: codecov/codecov-action@v3
+        with:
+          files: ./packages/client/src/__tests__/coverage/clover.xml
+          flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
+          name: client-functional-${{ matrix.os }}-${{ matrix.queryEngine }}
+
   no-docker:
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
@@ -1029,9 +1098,9 @@ jobs:
           flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
           name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
 
-      - name: Test packages/client
+      - name: Test packages/client (old suite)
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-        run: pnpm run test:functional:code && pnpm run test-notypes --testTimeout=40000
+        run: pnpm run test-notypes --testTimeout=40000
         working-directory: packages/client
         env:
           CI: true
