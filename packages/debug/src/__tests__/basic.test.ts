@@ -38,8 +38,8 @@ describe('debug', () => {
 
     expect(removeISODate(JSON.stringify(logs, null, 2))).toMatchInlineSnapshot(`
       "[
-        \\" a-namespace Does it even log?\\",
-        \\" a-namespace I dont know\\"
+        " a-namespace Does it even log?",
+        " a-namespace I dont know"
       ]"
     `)
 

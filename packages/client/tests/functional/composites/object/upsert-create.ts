@@ -106,7 +106,7 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
+        {
           content: null,
           country: France,
           id: Any<String>,
@@ -138,7 +138,7 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
+        {
           content: null,
           country: France,
           id: Any<String>,

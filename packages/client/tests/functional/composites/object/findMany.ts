@@ -26,12 +26,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       [{ id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -83,16 +83,16 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       [{ id: expect.any(String) }, { id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: false,
               },
-              Object {
+              {
                 userId: 12,
                 vote: true,
               },
@@ -101,11 +101,11 @@ setupTestSuite(() => {
           country: France,
           id: Any<String>,
         },
-        Object {
-          content: Object {
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -130,12 +130,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       [{ id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -160,12 +160,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       [{ id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -190,16 +190,16 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       [{ id: expect.any(String) }, { id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: false,
               },
-              Object {
+              {
                 userId: 12,
                 vote: true,
               },
@@ -208,11 +208,11 @@ setupTestSuite(() => {
           country: France,
           id: Any<String>,
         },
-        Object {
-          content: Object {
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -237,12 +237,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       [{ id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -267,16 +267,16 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       [{ id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: false,
               },
-              Object {
+              {
                 userId: 12,
                 vote: true,
               },
