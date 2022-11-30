@@ -470,17 +470,7 @@ describe('getGenerators', () => {
       }
     `)
 
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      "[33mWarning:[39m Your current platform \`[1mdarwin-arm64[22m\` is not included in your generator's \`binaryTargets\` configuration "env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")".
-      To fix it, use this generator config in your [1mschema.prisma[22m:
-      [92mgenerator gen_env {[39m
-      [92m  provider      = "predefined-generator"[39m
-      [92m  binaryTargets = "env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")"[39m
-      [92m}[39m
-      [90mNote, that by providing \`native\`, Prisma Client automatically resolves \`darwin-arm64\`.[39m
-      [90mRead more about deploying Prisma Client: [4mhttps://github.com/prisma/prisma/blob/main/docs/core/generators/prisma-client-js.md[24m[39m
-      "
-    `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
