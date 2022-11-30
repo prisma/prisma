@@ -1021,7 +1021,6 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
