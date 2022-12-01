@@ -2,7 +2,6 @@ import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 import path from 'path'
 
-import { ClientModelAction } from '../runtime/clientActions'
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
 import { GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
@@ -107,7 +106,7 @@ export function getArgName(name: string, findMany: boolean): string {
 
 // we need names for all top level args,
 // as GraphQL doesn't have the concept of unnamed args
-export function getModelArgName(modelName: string, action?: ClientModelAction): string {
+export function getModelArgName(modelName: string, action?: DMMF.ModelAction): string {
   if (!action) {
     return `${modelName}Args`
   }
@@ -116,8 +115,12 @@ export function getModelArgName(modelName: string, action?: ClientModelAction): 
       return `${modelName}FindManyArgs`
     case DMMF.ModelAction.findUnique:
       return `${modelName}FindUniqueArgs`
+    case DMMF.ModelAction.findUniqueOrThrow:
+      return `${modelName}FindUniqueOrThrowArgs`
     case DMMF.ModelAction.findFirst:
       return `${modelName}FindFirstArgs`
+    case DMMF.ModelAction.findFirstOrThrow:
+      return `${modelName}FindFirstOrThrowArgs`
     case DMMF.ModelAction.upsert:
       return `${modelName}UpsertArgs`
     case DMMF.ModelAction.update:
@@ -142,10 +145,6 @@ export function getModelArgName(modelName: string, action?: ClientModelAction): 
       return `${modelName}FindRawArgs`
     case DMMF.ModelAction.aggregateRaw:
       return `${modelName}AggregateRawArgs`
-    case 'findFirstOrThrow':
-      return `${modelName}FindFirstOrThrowArgs`
-    case 'findUniqueOrThrow':
-      return `${modelName}FindUniqueOrThrowArgs`
     default:
       assertNever(action, 'Unknown action')
   }
@@ -213,7 +212,7 @@ export function getFieldType(field: DMMF.SchemaField): string {
 
 interface SelectReturnTypeOptions {
   name: string
-  actionName: ClientModelAction
+  actionName: DMMF.ModelAction
   renderPromise?: boolean
   hideCondition?: boolean
   isField?: boolean

@@ -1,7 +1,7 @@
+import { DMMF } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import indentString from 'indent-string'
 
-import { allClientModelActions } from '../clientActions'
 import { CallSite, LocationInFile } from './CallSite'
 import { SourceFileSlice } from './SourceFileSlice'
 
@@ -110,7 +110,7 @@ function getTemplateParameters(
 }
 
 function findPrismaActionCall(str: string): { code: string; openingBraceIndex: number } | null {
-  const allActions = allClientModelActions.join('|')
+  const allActions = Object.keys(DMMF.ModelAction).join('|')
   const regexp = new RegExp(String.raw`\S+(${allActions})\(`)
   const match = regexp.exec(str)
   if (match) {

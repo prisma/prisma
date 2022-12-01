@@ -12,6 +12,7 @@ To run tests requiring a database, start the test databases using Docker, see [D
   # PostgreSQL
   export TEST_POSTGRES_BASE_URI="postgres://prisma:prisma@localhost:5432"
   export TEST_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/tests"
+  # Note: the isolated instance is only needed for one test (client/src/__tests__/integration/errors/connection-limit-postgres/test.ts)
   export TEST_POSTGRES_ISOLATED_URI="postgres://prisma:prisma@localhost:5435/tests"
   export TEST_POSTGRES_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate"
   export TEST_POSTGRES_SHADOWDB_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb"
@@ -19,6 +20,7 @@ To run tests requiring a database, start the test databases using Docker, see [D
   # MySQL
   export TEST_MYSQL_BASE_URI="mysql://root:root@localhost:3306"
   export TEST_MYSQL_URI="mysql://root:root@localhost:3306/tests"
+  # Note: the isolated instance is only needed for one test (client/src/__tests__/integration/errors/connection-limit-mysql/test.ts)
   export TEST_MYSQL_ISOLATED_URI="mysql://root:root@localhost:3307/tests"
   export TEST_MYSQL_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate"
   export TEST_MYSQL_SHADOWDB_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate-shadowdb"

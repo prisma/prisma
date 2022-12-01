@@ -3,6 +3,7 @@ import stripAnsi from 'strip-ansi'
 import { enums } from '../fixtures/enums'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 describe('at least one validation', () => {
   let dmmf
@@ -21,6 +22,7 @@ describe('at least one validation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(String(document)).toMatchInlineSnapshot(`
       query {
@@ -85,6 +87,7 @@ describe('at least one validation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(String(document)).toMatchSnapshot()
     expect(() => document.validate(select, false, 'users')).not.toThrow()

@@ -4,6 +4,7 @@ import stripAnsi from 'strip-ansi'
 import { enums } from '../fixtures/enums'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 chalk.level = 0
 
@@ -58,6 +59,7 @@ describe('scalar where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(String(document)).toMatchInlineSnapshot(`
       query {
@@ -208,6 +210,7 @@ describe('scalar where transformation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'updateManyPost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(() => document.validate(select)).toThrowErrorMatchingInlineSnapshot(`
@@ -347,6 +350,7 @@ describe('scalar where transformation', () => {
         select,
         rootTypeName: 'query',
         rootField: 'findManyTest',
+        extensions: MergedExtensionsList.empty(),
       }),
     )
 
@@ -377,6 +381,7 @@ describe('scalar where transformation', () => {
         select,
         rootTypeName: 'query',
         rootField: 'findManyTest',
+        extensions: MergedExtensionsList.empty(),
       }),
     )
 
@@ -438,6 +443,7 @@ describe('scalar where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`

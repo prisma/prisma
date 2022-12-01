@@ -25,3 +25,13 @@ export function idForProvider(provider: string, options: Options = { includeDefa
 
   return strs.join(' ')
 }
+
+export function foreignKeyForProvider(provider: string): string {
+  const strs = ['String']
+
+  if (provider === 'mongodb') {
+    strs.push('@db.ObjectId')
+  }
+
+  return strs.join(' ')
+}

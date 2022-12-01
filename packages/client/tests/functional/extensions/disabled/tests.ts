@@ -9,6 +9,8 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     expect(() => {
       // @ts-expect-error
       prisma.$extends({})
-    }).toThrowErrorMatchingInlineSnapshot(`Extensions are not yet available`)
+    }).toThrowErrorMatchingInlineSnapshot(
+      `Extensions are not yet generally available, please add \`clientExtensions\` to the \`previewFeatures\` field in the \`generator\` block in the \`schema.prisma\` file.`,
+    )
   })
 })

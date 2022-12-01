@@ -1,6 +1,7 @@
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 import { getField, makeDocument, unpack } from '../runtime/query'
 
 let dmmf
@@ -24,6 +25,7 @@ describe('getField', () => {
       },
       rootTypeName: 'query',
       rootField: 'findUniqueUser',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(getField(document, ['findUniqueUser']).name).toMatchInlineSnapshot(`findUniqueUser`)
@@ -40,6 +42,7 @@ describe('unpack', () => {
       select: {},
       rootTypeName: 'query',
       rootField: 'findUniquePost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     const path = ['findUniquePost']
@@ -80,6 +83,7 @@ describe('unpack', () => {
       select: {},
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     const path = ['findManyPost']
@@ -156,6 +160,7 @@ describe('unpack', () => {
       },
       rootTypeName: 'query',
       rootField: 'findUniqueUser',
+      extensions: MergedExtensionsList.empty(),
     })
 
     const path = ['findUniqueUser']

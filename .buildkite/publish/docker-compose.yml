@@ -130,7 +130,7 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:9412e3d51bde38e09c3039090b5c68808e299579f12c79178a4ec316f7831889
+    image: vitess/vttestserver:mysql80@sha256:1f8c98f716649ac095bae78ead88f522eaf236e9e03baa770b6690d61cbbe29a
     restart: always
     ports:
       - 33807:33807
@@ -187,4 +187,3 @@ services:
       MONGO_REPLICA_PORT: 27018
     ports:
       - '27018:27018'
-# TODO: investigate why isolated containers aren't used in the tests
