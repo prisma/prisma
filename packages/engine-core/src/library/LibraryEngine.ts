@@ -516,8 +516,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     const { batchResult, errors } = data
     if (Array.isArray(batchResult)) {
       return batchResult.map((result) => {
-        if (result.errors) {
-          return this.loggerRustPanic ?? this.buildQueryError(data.errors[0])
+        if (result.errors && result.errors.length > 0) {
+          return this.loggerRustPanic ?? this.buildQueryError(result.errors[0])
         }
         return {
           data: result,
