@@ -115,7 +115,17 @@ export async function setupTestSuiteDatabase(
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-    await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
+    const dbpushParams = ['--schema', schemaPath, '--skip-generate']
+    const providerFlavor = suiteConfig['providerFlavor'] as ProviderFlavor | undefined
+    // `--force-reset` is great but only using it where necessary makes the tests faster
+    // Since we have full isolation of tests / database,
+    // we do not need to force reset
+    // But we currently break isolation for Vitess (for faster tests),
+    // so it's good to force reset in this case
+    if (providerFlavor === ProviderFlavors.VITESS_8) {
+      dbpushParams.push('--force-reset')
+    }
+    await DbPush.new().parse(dbpushParams)
 
     if (alterStatementCallback) {
       const prismaDir = path.dirname(schemaPath)
