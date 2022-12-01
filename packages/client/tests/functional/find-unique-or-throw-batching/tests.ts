@@ -4,16 +4,15 @@ import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
 
-class NotFoundError extends Error {}
 declare let prisma: PrismaClient
-const missing = faker.random.alphaNumeric(11)
+const missing = faker.database.mongodbObjectId()
 
 testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
   beforeEach(async () => {
     await prisma.user.deleteMany()
   })
 
-  testIf(!clientMeta.dataProxy)('batched errors are serialized properly', async () => {
+  test('batched errors are serialized properly', async () => {
     const id = await prisma.user
       .create({
         data: {},
@@ -36,11 +35,11 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
 
     await prisma.user.delete({ where: { id: id2 } })
 
-    const notFound = prisma.user.findUniqueOrThrow({ where: { id: id2 } })
+    const notFound = prisma.user.findUniqueOrThrow({ where: { id: missing } })
     const newResult = await Promise.allSettled([found, notFound])
     expect(newResult).toEqual([
       { status: 'fulfilled', value: { id: id } },
-      { reason: new NotFoundError('No User found'), status: 'rejected' },
+      { status: 'rejected', reason: expect.objectContaining({ code: 'P2025' }) },
     ])
   })
 }, {})
