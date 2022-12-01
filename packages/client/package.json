@@ -149,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.8.0-1.9527a3198d4c79724fcff67194e5e83038cd9bbe"
+    "@prisma/engines-version": "4.8.0-3.integration-test-pipeline-f1d969cc9112a5bbf1091f758616c2be1e42752b"
   },
   "sideEffects": false
 }
