@@ -381,7 +381,8 @@ describe('getGenerators', () => {
   })
 
   it('basic - binaryTargets as env var - darwin, windows, debian', async () => {
-    process.env.BINARY_TARGETS_ENV_VAR_TEST = '["darwin", "windows", "debian-openssl-1.1.x"]'
+    process.env.BINARY_TARGETS_ENV_VAR_TEST =
+      '["darwin", "darwin-arm64", "windows", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]'
 
     const aliases = {
       'predefined-generator': {
@@ -453,11 +454,19 @@ describe('getGenerators', () => {
           },
           Object {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "value": "darwin-arm64",
+          },
+          Object {
+            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "windows",
           },
           Object {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "debian-openssl-1.1.x",
+          },
+          Object {
+            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "value": "debian-openssl-3.0.x",
           },
         ],
         "config": Object {},
