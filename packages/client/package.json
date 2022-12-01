@@ -101,7 +101,7 @@
     "execa": "5.1.1",
     "expect-type": "0.15.0",
     "flat-map-polyfill": "0.3.8",
-    "fs-extra": "10.1.0",
+    "fs-extra": "11.1.0",
     "fs-monkey": "1.0.3",
     "get-own-enumerable-property-symbols": "3.0.2",
     "globby": "11.1.0",
@@ -149,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.7.0-74.39190b250ebc338586e25e6da45e5e783bc8a635"
+    "@prisma/engines-version": "4.8.0-1.9527a3198d4c79724fcff67194e5e83038cd9bbe"
   },
   "sideEffects": false
 }
