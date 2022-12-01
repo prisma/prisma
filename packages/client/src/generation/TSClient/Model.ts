@@ -341,7 +341,7 @@ ${ifExtensions(() => {
 export type ${getSelectName(model.name)}Scalar = {
 ${indent(
   outputType.fields
-    .filter((field) => field.outputType.location === 'scalar')
+    .filter((field) => field.outputType.location === 'scalar' || field.outputType.location === 'enumTypes')
     .map((f) => `${f.name}?: boolean`)
     .join('\n'),
   TAB_SIZE,
