@@ -35,7 +35,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['postgresql', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
+      from: ['mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
       reason:
         'This proves a regresion in the way client handles graphql information coming from the engine, and does not depend on backends',
     },
