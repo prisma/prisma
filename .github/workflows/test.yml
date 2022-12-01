@@ -52,7 +52,7 @@ env:
 jobs:
   detect_jobs_to_run:
     name: Detect jobs to run
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       jobs: ${{ steps.detect.outputs.jobs }}
     steps:
@@ -71,7 +71,7 @@ jobs:
   # which is a common feature in most CI systems but currently not possible with GitHub actions.
   cleanup-runs:
     continue-on-error: true
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' && !contains(github.actor, 'renovate')"
     steps:
       - uses: fkirc/skip-duplicate-actions@v5
@@ -83,7 +83,7 @@ jobs:
   #
   lint:
     timeout-minutes: 7
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -129,7 +129,7 @@ jobs:
       matrix:
         # os: [buildjet-4vcpu-ubuntu-2004]
         relationMode: ['', 'foreignKeys', 'prisma']
-        os: [ubuntu-20.04]
+        os: [ubuntu-latest]
         node: [16]
 
     env:
@@ -530,7 +530,7 @@ jobs:
   #
   integration-tests:
     timeout-minutes: 20
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-integration-tests-') }}
@@ -613,7 +613,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-20.04]
+        os: [ubuntu-latest]
         node: [16, 18]
 
     steps:
@@ -685,7 +685,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-20.04]
+        os: [ubuntu-latest]
         node: [16, 18]
 
     steps:
@@ -767,7 +767,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [ubuntu-20.04]
+        os: [ubuntu-latest]
         node: [16, 18]
 
     env:
@@ -826,7 +826,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04]
+        os: [ubuntu-latest]
         node: [16, 18]
 
     steps:
