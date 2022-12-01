@@ -6,6 +6,7 @@ import chalk from 'chalk'
 import fs from 'fs'
 
 import type {
+  BatchQueryEngineResult,
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
@@ -489,7 +490,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  async requestBatch<T>({ queries, headers = {}, transaction }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
+  async requestBatch<T>({
+    queries,
+    headers = {},
+    transaction,
+  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
     debug('requestBatch')
     const request: QueryEngineBatchRequest = {
       batch: queries.map((query) => ({ query, variables: {} })),

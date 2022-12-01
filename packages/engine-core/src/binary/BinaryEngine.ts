@@ -16,6 +16,7 @@ import { URL } from 'url'
 import { promisify } from 'util'
 
 import type {
+  BatchQueryEngineResult,
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
@@ -40,6 +41,7 @@ import type {
   QueryEngineBatchRequest,
   QueryEngineRequestHeaders,
   QueryEngineResult,
+  QueryEngineResultBatchQueryResult,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
@@ -951,7 +953,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     transaction,
     numTry = 1,
     containsWrite,
-  }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
+  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
     await this.start()
 
     const request: QueryEngineBatchRequest = {
