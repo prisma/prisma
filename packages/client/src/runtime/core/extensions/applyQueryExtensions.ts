@@ -30,7 +30,7 @@ function iterateAndCallQueryCallbacks(
     return queryCbs[i]({
       model: params.model,
       operation: params.action,
-      args: klona(params.args),
+      args: klona(params.args ?? {}),
       query: (args) => {
         params.args = args
         return iterateAndCallQueryCallbacks(client, params, queryCbs, i + 1)
