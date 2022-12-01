@@ -10,7 +10,7 @@ import packageJson from '../../../package.json'
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.libqueryEngine
-const version = '5a2e5869b69a983e279380ec68596b71beae9eff'
+const version = '39190b250ebc338586e25e6da45e5e783bc8a635'
 
 describe('version', () => {
   // Node-API Tests
