@@ -10,7 +10,7 @@ declare let prisma: PrismaClient
 const id = faker.random.alphaNumeric(11)
 const missing = faker.random.alphaNumeric(11)
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
+testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
   beforeEach(async () => {
     await prisma.user.deleteMany()
     await prisma.user.create({
@@ -20,7 +20,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
     })
   })
 
-  test('batched errors are serialized properly', async () => {
+  testIf(!clientMeta.dataProxy)('batched errors are serialized properly', async () => {
     const found = prisma.user.findUniqueOrThrow({ where: { id } })
     const foundToo = prisma.user.findUnique({ where: { id } })
     const notFound = prisma.user.findUniqueOrThrow({ where: { id: missing } })
