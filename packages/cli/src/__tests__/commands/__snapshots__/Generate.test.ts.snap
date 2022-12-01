@@ -1,5 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`--schema from parent directory --generator: should fail - invalid generator name 1`] = `The specified generator(s) invalid_client, invalid_client_2 do not exist in your Prisma schema`;
+
 exports[`--schema from parent directory --generator: should work - valid generator names 1`] = `
 
 ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./generated/client in XXXms

@@ -172,8 +172,9 @@ describe('--schema from parent directory', () => {
         '--schema=./prisma/multiple-generator.prisma',
         '--generator=client',
         '--generator=invalid_client',
+        '--generator=invalid_client_2',
       ]),
-    ).rejects.toThrow('not found')
+    ).rejects.toMatchSnapshot()
   })
 })
 
