@@ -81,8 +81,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
         return `${acc}
     ${action}: {
       args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
-      result: Promise<runtime.Types.Utils.OptionalFlat<${modelName}>>
-      queryExtCbArgs: { model: '${modelName}', operation: '${action}', args: runtime.Types.Extensions.ReadonlySelector<TypeMap<ExtArgs>['${modelName}']['${action}']['args']>, query: (args: object) => PrismaPromise<runtime.Types.Utils.OptionalFlat<${modelName}>> },
+      result: runtime.Types.Utils.OptionalFlat<${modelName}>
     }`
       }, '')}
   }`
@@ -90,11 +89,20 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     '',
   )}
 }`
+  const queryCbDefinition = (modelName: string, operationName: string) => {
+    const queryArgs = `runtime.Types.Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>[${modelName}][${operationName}]['args']>`
+    const queryResult = `Prisma.TypeMap<ExtArgs>[${modelName}][${operationName}]['result']`
+    const inputQuery = `{ model: ${modelName}, operation: ${operationName}, args: ${queryArgs} }`
+    const inputQueryCb = `${inputQuery} & { query: (args: ${queryArgs}) => PrismaPromise<${queryResult}> }`
+
+    return `(args: ${inputQueryCb}) => Promise<${queryResult}>`
+  }
+
   const allOperationsParam = (modelNames: string[], indent: string) => {
     const key = modelNames.length > 1 ? `keyof Prisma.TypeMap<ExtArgs>` : `'${modelNames[0]}'`
 
     return `{
-    ${indent}$allOperations?: (args: Prisma.TypeMap<ExtArgs>[${key}][keyof Prisma.TypeMap<ExtArgs>[${key}]]['queryExtCbArgs']) => Prisma.TypeMap<ExtArgs>[${key}][keyof Prisma.TypeMap<ExtArgs>[${key}]]['result']
+    ${indent}$allOperations?: ${queryCbDefinition(key, `keyof Prisma.TypeMap<ExtArgs>[${key}]`)}
   ${indent}}`
   }
 
@@ -102,7 +110,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     const key = modelNames.length > 1 ? `keyof Prisma.TypeMap<ExtArgs>` : `'${modelNames[0]}'`
 
     return `${propName}?: {
-        [K in keyof Prisma.TypeMap<ExtArgs>[${key}]]?: (args: Prisma.TypeMap<ExtArgs>[${key}][K]['queryExtCbArgs']) => Prisma.TypeMap<ExtArgs>[${key}][K]['result']
+        [K in keyof Prisma.TypeMap<ExtArgs>[${key}]]?: ${queryCbDefinition(key, `K`)}
       } & ${allOperationsParam(modelNames, '    ')}`
   }
 

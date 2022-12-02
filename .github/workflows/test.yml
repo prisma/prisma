@@ -966,7 +966,9 @@ jobs:
         os: [macos-latest, windows-latest]
         node: [14]
         queryEngine: ['library', 'binary']
-        shard: ['1', '2']
+        # Commented out as we still have limited capacity for macOS runners
+        # When we have more capacity we can shard again
+        # shard: ['1', '2']
 
     needs: detect_jobs_to_run
     if: |
@@ -1009,7 +1011,11 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Test packages/client
-        run: pnpm run test:functional:code --shard=${{matrix.shard}}/2
+        # Commented out as we still have limited capacity for macOS runners
+        # When we have more capacity we can shard again
+        # run: pnpm run test:functional:code --shard=${{matrix.shard}}/2
+        # No shard:
+        run: pnpm run test:functional:code
         working-directory: packages/client
         env:
           CI: true

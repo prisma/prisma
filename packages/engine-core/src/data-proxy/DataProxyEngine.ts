@@ -2,20 +2,26 @@ import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 
 import type {
+  BatchQueryEngineResult,
   EngineConfig,
   EngineEventType,
   GetConfigResult,
   InlineDatasource,
-  RequestOptions,
+  InteractiveTransactionOptions,
   RequestBatchOptions,
-  InteractiveTransactionOptions
+  RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import { QueryEngineBatchRequest, QueryEngineRequestHeaders, QueryEngineResult } from '../common/types/QueryEngine'
+import {
+  QueryEngineBatchRequest,
+  QueryEngineRequestHeaders,
+  QueryEngineResult,
+  QueryEngineResultBatchQueryResult,
+} from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
@@ -77,8 +83,8 @@ export class DataProxyEngine extends Engine {
     return 'unknown'
   }
 
-  async start() { }
-  async stop() { }
+  async start() {}
+  async stop() {}
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
@@ -145,7 +151,11 @@ export class DataProxyEngine extends Engine {
     return this.requestInternal<T>({ query, variables: {} }, headers, transaction)
   }
 
-  async requestBatch<T>({ queries, headers = {}, transaction }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
+  async requestBatch<T>({
+    queries,
+    headers = {},
+    transaction,
+  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
       query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,
@@ -157,18 +167,26 @@ export class DataProxyEngine extends Engine {
       isolationLevel: transaction?.isolationLevel,
     }
 
-    const { batchResult } = await this.requestInternal<T, true>(body, headers)
+    const { batchResult, elapsed } = await this.requestInternal<T, true>(body, headers)
 
-    // TODO: add elapsed to each result similar to BinaryEngine
-    // also check that the error handling is correct for batch
-    return batchResult
+    return batchResult.map((result) => {
+      if ('errors' in result && result.errors.length > 0) {
+        return prismaGraphQLToJSError(result.errors[0], this.clientVersion!)
+      }
+      return {
+        data: result as T,
+        elapsed,
+      }
+    })
   }
 
   private requestInternal<T, Batch extends boolean = false>(
     body: Record<string, any>,
     headers: QueryEngineRequestHeaders,
     itx?: InteractiveTransactionOptions<DataProxyTxInfoPayload>,
-  ): Promise<Batch extends true ? { batchResult: QueryEngineResult<T>[] } : QueryEngineResult<T>> {
+  ): Promise<
+    Batch extends true ? { batchResult: QueryEngineResultBatchQueryResult<T>[]; elapsed: number } : QueryEngineResult<T>
+  > {
     return this.withRetry({
       actionGerund: 'querying',
       callback: async ({ logHttpCall }) => {
