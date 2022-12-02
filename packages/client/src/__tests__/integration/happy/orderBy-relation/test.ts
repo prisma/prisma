@@ -21,9 +21,9 @@ test('orderBy relation', async () => {
     include: { author: true },
   })
   expect(users).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        author: Object {
+    [
+      {
+        author: {
           age: 1,
           email: 1@prisma.com,
           id: 607e7d2d-70ae-4926-be52-c1d378bb12b3,
@@ -37,8 +37,8 @@ test('orderBy relation', async () => {
         title: D,
         updatedAt: 2021-02-01T00:00:00.000Z,
       },
-      Object {
-        author: Object {
+      {
+        author: {
           age: 2,
           email: 2@prisma.com,
           id: b319b9bf-c5b8-44ae-934a-f4b2c76bfc1b,
@@ -52,8 +52,8 @@ test('orderBy relation', async () => {
         title: A,
         updatedAt: 2021-02-01T00:00:00.000Z,
       },
-      Object {
-        author: Object {
+      {
+        author: {
           age: 3,
           email: 3@prisma.com,
           id: cbafc0ac-2d6b-4ef3-bfaf-0102276f938f,
@@ -67,8 +67,8 @@ test('orderBy relation', async () => {
         title: B,
         updatedAt: 2021-02-01T00:00:00.000Z,
       },
-      Object {
-        author: Object {
+      {
+        author: {
           age: 4,
           email: 4@prisma.com,
           id: 2dcc5637-dd89-4d3f-89ab-198cfcda3aae,

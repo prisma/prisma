@@ -69,7 +69,7 @@ test('returns keys', () => {
 
 test('returns values', () => {
   expect(Object.values(fields)).toMatchInlineSnapshot(`
-    Array [
+    [
       FieldRefImpl {
         isList: false,
         modelName: MyModel,

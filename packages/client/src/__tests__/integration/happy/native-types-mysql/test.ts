@@ -75,7 +75,7 @@ test('native-types-mysql B: Float, Double, Decimal, Numeric', async () => {
   expect(Decimal.isDecimal(b.numFloat)).toBe(true)
 
   expect(b).toMatchInlineSnapshot(`
-    Object {
+    {
       dFloat: 10.2,
       decFloat: 1.1,
       float: 12.2,
@@ -165,7 +165,7 @@ test('native-types-mysql D: Date, Time, DateTime, Timestamp, Year', async () => 
   })
 
   expect(data).toMatchInlineSnapshot(`
-    Object {
+    {
       date: 2020-05-05T16:28:33.983Z,
       dtime: 2020-05-02T16:28:33.983Z,
       time: 2020-05-02T16:28:33.983Z,
