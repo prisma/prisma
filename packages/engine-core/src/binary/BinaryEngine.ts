@@ -16,6 +16,7 @@ import { URL } from 'url'
 import { promisify } from 'util'
 
 import type {
+  BatchQueryEngineResult,
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
@@ -40,6 +41,7 @@ import type {
   QueryEngineBatchRequest,
   QueryEngineRequestHeaders,
   QueryEngineResult,
+  QueryEngineResultBatchQueryResult,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
@@ -373,15 +375,15 @@ This probably happens, because you built Prisma Client on a different platform.
 Searched Locations:
 
 ${searchedLocations
-          .map((f) => {
-            let msg = `  ${f}`
-            if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
-              const dir = fs.readdirSync(f)
-              msg += dir.map((d) => `    ${d}`).join('\n')
-            }
-            return msg
-          })
-          .join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
+  .map((f) => {
+    let msg = `  ${f}`
+    if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
+      const dir = fs.readdirSync(f)
+      msg += dir.map((d) => `    ${d}`).join('\n')
+    }
+    return msg
+  })
+  .join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
       // The generator should always be there during normal usage
       if (this.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
@@ -392,8 +394,8 @@ ${searchedLocations
         ) {
           errorText += `
 You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''} ${this.generator.binaryTargets
-              .map((t) => `"${chalk.bold(t.value)}"`)
-              .join(', ')} to the "${chalk.underline('generator')}" block
+            .map((t) => `"${chalk.bold(t.value)}"`)
+            .join(', ')} to the "${chalk.underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
@@ -951,7 +953,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     transaction,
     numTry = 1,
     containsWrite,
-  }: RequestBatchOptions): Promise<QueryEngineResult<T>[]> {
+  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
     await this.start()
 
     const request: QueryEngineBatchRequest = {
@@ -970,8 +972,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         const { batchResult, errors } = data
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
-            if (result.errors) {
-              throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
+            if (result.errors && result.errors.length > 0) {
+              return prismaGraphQLToJSError(result.errors[0], this.clientVersion!)
             }
             return {
               data: result,
