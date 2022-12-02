@@ -856,6 +856,6 @@ describe('getGenerators', () => {
         providerAliases: aliases,
         generatorNames: ['predefined-generator-1', 'invalid_generator'],
       }),
-    ).rejects.toThrow('not found')
+    ).rejects.toThrow('do not exist')
   })
 })
