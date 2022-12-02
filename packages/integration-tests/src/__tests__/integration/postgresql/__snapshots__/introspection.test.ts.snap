@@ -304,16 +304,6 @@ exports[`introspection: findMany on column_name_that_becomes_empty_string: warni
     code: 4,
     message: These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` attribute.,
   },
-  {
-    affected: [
-      {
-        field: 12345,
-        model: column_name_that_becomes_empty_string,
-      },
-    ],
-    code: 2,
-    message: These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` attribute.,
-  },
 ]
 `;
 
