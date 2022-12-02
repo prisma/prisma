@@ -456,7 +456,7 @@ describe('getGenerators', () => {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "darwin-arm64",
           },
-          Object {
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "windows",
           },
@@ -464,7 +464,7 @@ describe('getGenerators', () => {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "debian-openssl-1.1.x",
           },
-          Object {
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "debian-openssl-3.0.x",
           },
