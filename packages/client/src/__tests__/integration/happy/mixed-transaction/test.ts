@@ -28,12 +28,12 @@ test('mixed transaction', async () => {
   await new Promise<void>((r) => r())
 
   let users = await prisma.user.findMany()
-  expect(users).toMatchInlineSnapshot(`Array []`)
+  expect(users).toMatchInlineSnapshot(`[]`)
 
   await new Promise<void>((r) => r())
 
   users = await prisma.user.findMany()
-  expect(users).toMatchInlineSnapshot(`Array []`)
+  expect(users).toMatchInlineSnapshot(`[]`)
 
   await prisma.$disconnect()
 })

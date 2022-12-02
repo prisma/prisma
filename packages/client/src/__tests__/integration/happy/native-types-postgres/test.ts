@@ -158,7 +158,7 @@ test('native-types-postgres C: Char, VarChar, Text, Bit, VarBit, Uuid', async ()
   })
 
   expect(c).toMatchInlineSnapshot(`
-    Object {
+    {
       bit: 1001,
       char: hello     ,
       text: a text,
@@ -229,7 +229,7 @@ test('native-types-postgres E: Date, Time, Timestamp', async () => {
   })
 
   expect(e).toMatchInlineSnapshot(`
-    Object {
+    {
       date: 2020-05-05T00:00:00.000Z,
       time: 1970-01-01T16:28:33.983Z,
       ts: 2020-05-05T13:28:33.983Z,

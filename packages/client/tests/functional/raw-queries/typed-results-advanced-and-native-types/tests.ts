@@ -27,16 +27,14 @@ testMatrix.setupTestSuite(
           string_list: ['1', 'a', '2', ''],
           // TODO: replace with exact values and remove next 2 asserts after
           // https://github.com/facebook/jest/issues/11617 is fixed
-          bInt_list: [expect.any(BigInt), expect.any(BigInt)],
+          bInt_list: [expect.anything(), expect.anything()],
           date: new Date('2022-05-04T00:00:00.000Z'),
           time: new Date('1970-01-01T14:40:06.617Z'),
         },
       ])
 
-      // @ts-test-if: false
-      expect(testModel[0].bInt_list[0] === BigInt('-1234')).toBe(true)
-      // @ts-test-if: false
-      expect(testModel[0].bInt_list[1] === BigInt('1234')).toBe(true)
+      expect(testModel![0].bInt_list[0] === BigInt('-1234')).toBe(true)
+      expect(testModel![0].bInt_list[1] === BigInt('1234')).toBe(true)
     })
   },
   {

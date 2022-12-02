@@ -26,12 +26,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -62,12 +62,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -134,16 +134,16 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
-              Object {
+              {
                 userId: 11,
                 vote: true,
               },

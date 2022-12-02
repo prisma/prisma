@@ -24,11 +24,11 @@ setupTestSuite(({ contentProperty }) => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        content: Object {
+      {
+        content: {
           text: Hello World,
-          upvotes: Array [
-            Object {
+          upvotes: [
+            {
               userId: 10,
               vote: true,
             },
@@ -58,11 +58,11 @@ setupTestSuite(({ contentProperty }) => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        content: Object {
+      {
+        content: {
           text: Hello World,
-          upvotes: Array [
-            Object {
+          upvotes: [
+            {
               userId: 10,
               vote: true,
             },
@@ -96,7 +96,7 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-              Object {
+              {
                 content: null,
                 country: France,
                 id: Any<String>,
@@ -125,7 +125,7 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-              Object {
+              {
                 content: null,
                 country: France,
                 id: Any<String>,
@@ -154,15 +154,15 @@ setupTestSuite(({ contentProperty }) => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        content: Object {
+      {
+        content: {
           text: Hello World,
-          upvotes: Array [
-            Object {
+          upvotes: [
+            {
               userId: 10,
               vote: true,
             },
-            Object {
+            {
               userId: 11,
               vote: true,
             },
