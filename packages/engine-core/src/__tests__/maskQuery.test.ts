@@ -44,23 +44,23 @@ test('big query', () => {
     "query {
       users(
         mirst: 5
-        skip: \\"X\\"
+        skip: "X"
         where: {
           age_gt: 5
           age_in: [5, 5, 5]
-          name_in: [\\"X\\"]
+          name_in: ["X"]
           OR: [
             {
               age_gt: 5
-              email_endsWith: \\"X\\"
+              email_endsWith: "X"
             },
             {
               age_gt: 5
-              email_endsWith: \\"X\\"
+              email_endsWith: "X"
               OR: [
                 {
                   age_gt: 5
-                  email_endsWith: \\"X\\"
+                  email_endsWith: "X"
                 }
               ]
             }

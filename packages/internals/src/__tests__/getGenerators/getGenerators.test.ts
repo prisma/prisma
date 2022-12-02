@@ -41,14 +41,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
           "prettyName": "This is a pretty name",
-          "requiresEngines": Array [
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -57,15 +57,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = [\\"darwin\\"]
+        provider      = "predefined-generator"
+        binaryTargets = ["darwin"]
       }
 
       model User {
@@ -73,33 +73,33 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
     expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        "binaryTargets": Array [
-          Object {
+      {
+        "binaryTargets": [
+          {
             "fromEnvVar": null,
             "value": "darwin",
           },
         ],
-        "config": Object {},
+        "config": {},
         "name": "gen",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -124,14 +124,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
           "prettyName": "This is a pretty name",
-          "requiresEngines": Array [
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -140,15 +140,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = \\"native\\"
+        provider      = "predefined-generator"
+        binaryTargets = "native"
       }
 
       model User {
@@ -156,18 +156,18 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
@@ -179,11 +179,11 @@ describe('getGenerators', () => {
     expect(generator.binaryTargets[0].fromEnvVar).toEqual(null)
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
-      Object {
-        "config": Object {},
+      {
+        "config": {},
         "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -215,14 +215,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
           "prettyName": "This is a pretty name",
-          "requiresEngines": Array [
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -231,15 +231,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+        provider      = "predefined-generator"
+        binaryTargets = env("BINARY_TARGETS_ENV_VAR_TEST")
       }
 
       model User {
@@ -247,18 +247,18 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
@@ -270,11 +270,11 @@ describe('getGenerators', () => {
     expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
-      Object {
-        "config": Object {},
+      {
+        "config": {},
         "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -306,14 +306,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
           "prettyName": "This is a pretty name",
-          "requiresEngines": Array [
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -322,15 +322,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+        provider      = "predefined-generator"
+        binaryTargets = env("BINARY_TARGETS_ENV_VAR_TEST")
       }
 
       model User {
@@ -338,18 +338,18 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
@@ -361,11 +361,11 @@ describe('getGenerators', () => {
     expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
-      Object {
-        "config": Object {},
+      {
+        "config": {},
         "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -398,14 +398,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
           "prettyName": "This is a pretty name",
-          "requiresEngines": Array [
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -414,15 +414,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+        provider      = "predefined-generator"
+        binaryTargets = env("BINARY_TARGETS_ENV_VAR_TEST")
       }
 
       model User {
@@ -430,49 +430,49 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
     expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        "binaryTargets": Array [
-          Object {
+      {
+        "binaryTargets": [
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "darwin",
           },
-          Object {
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "darwin-arm64",
           },
-          Object {
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "windows",
           },
-          Object {
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "debian-openssl-1.1.x",
           },
-          Object {
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "debian-openssl-3.0.x",
           },
         ],
-        "config": Object {},
+        "config": {},
         "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -504,14 +504,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
           "prettyName": "This is a pretty name",
-          "requiresEngines": Array [
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -520,15 +520,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+        provider      = "predefined-generator"
+        binaryTargets = env("BINARY_TARGETS_ENV_VAR_TEST")
       }
 
       model User {
@@ -536,33 +536,33 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
     expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        "binaryTargets": Array [
-          Object {
+      {
+        "binaryTargets": [
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "linux-musl",
           },
         ],
-        "config": Object {},
+        "config": {},
         "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -674,8 +674,8 @@ describe('getGenerators', () => {
         You can define a datasource like this:
 
         datasource db {
-          provider = \\"postgresql\\"
-          url      = env(\\"DB_URL\\")
+          provider = "postgresql"
+          url      = env("DB_URL")
         }
 
         More information in our documentation:
@@ -751,7 +751,7 @@ describe('getGenerators', () => {
         You can define a model like this:
 
         model User {
-          id    String  @id @default(auto()) @map(\\"_id\\") @db.ObjectId
+          id    String  @id @default(auto()) @map("_id") @db.ObjectId
           email String  @unique
           name  String?
         }

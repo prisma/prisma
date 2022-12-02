@@ -22,26 +22,25 @@ setupTestSuite(() => {
       where: { id: id1 },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
+    expect(comment).toHaveLength(1)
+    expect(comment[0]).toMatchInlineSnapshot(
+      { id: expect.any(String) },
       `
-      Array [
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: null,
-          id: Any<String>,
-        },
-      ]
+      {
+        contents: [
+          {
+            text: Hello World,
+            upvotes: [
+              {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+        ],
+        country: null,
+        id: Any<String>,
+      }
     `,
     )
   })
@@ -58,16 +57,15 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-            },
-          ],
-        },
-      ]
+    expect(comment).toHaveLength(1)
+    expect(comment[0]).toMatchInlineSnapshot(`
+      {
+        contents: [
+          {
+            text: Hello World,
+          },
+        ],
+      }
     `)
   })
 
@@ -81,55 +79,59 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }, { id: expect.any(String) }],
+    expect(comment).toHaveLength(2)
+    expect(comment[0]).toMatchInlineSnapshot(
+      { id: expect.any(String) },
       `
-      Array [
-        Object {
-          contents: Array [
-            Object {
-              text: Goodbye World,
-              upvotes: Array [
-                Object {
-                  userId: 11,
-                  vote: false,
-                },
-              ],
-            },
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-            Object {
-              text: Hello World,
-              upvotes: Array [],
-            },
-          ],
-          country: France,
-          id: Any<String>,
-        },
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: null,
-          id: Any<String>,
-        },
-      ]
+      {
+        contents: [
+          {
+            text: Goodbye World,
+            upvotes: [
+              {
+                userId: 11,
+                vote: false,
+              },
+            ],
+          },
+          {
+            text: Hello World,
+            upvotes: [
+              {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          {
+            text: Hello World,
+            upvotes: [],
+          },
+        ],
+        country: France,
+        id: Any<String>,
+      }
     `,
+    )
+    expect(comment[1]).toMatchInlineSnapshot(
+      { id: expect.any(String) },
+      `
+      {
+        contents: [
+          {
+            text: Hello World,
+            upvotes: [
+              {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+        ],
+        country: null,
+        id: Any<String>,
+      }
+  `,
     )
   })
 
@@ -141,26 +143,25 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
+    expect(comment).toHaveLength(1)
+    expect(comment[0]).toMatchInlineSnapshot(
+      { id: expect.any(String) },
       `
-      Array [
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: null,
-          id: Any<String>,
-        },
-      ]
+      {
+        contents: [
+          {
+            text: Hello World,
+            upvotes: [
+              {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+        ],
+        country: null,
+        id: Any<String>,
+      }
     `,
     )
   })
@@ -173,26 +174,25 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
+    expect(comment).toHaveLength(1)
+    expect(comment[0]).toMatchInlineSnapshot(
+      { id: expect.any(String) },
       `
-      Array [
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: null,
-          id: Any<String>,
-        },
-      ]
+      {
+        contents: [
+          {
+            text: Hello World,
+            upvotes: [
+              {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+        ],
+        country: null,
+        id: Any<String>,
+      }
     `,
     )
   })
@@ -205,26 +205,25 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
+    expect(comment).toHaveLength(1)
+    expect(comment[0]).toMatchInlineSnapshot(
+      { id: expect.any(String) },
       `
-      Array [
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: null,
-          id: Any<String>,
-        },
-      ]
+      {
+        contents: [
+          {
+            text: Hello World,
+            upvotes: [
+              {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+        ],
+        country: null,
+        id: Any<String>,
+      }
     `,
     )
   })
@@ -237,39 +236,38 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
+    expect(comment).toHaveLength(1)
+    expect(comment[0]).toMatchInlineSnapshot(
+      { id: expect.any(String) },
       `
-      Array [
-        Object {
-          contents: Array [
-            Object {
-              text: Goodbye World,
-              upvotes: Array [
-                Object {
-                  userId: 11,
-                  vote: false,
-                },
-              ],
-            },
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-            Object {
-              text: Hello World,
-              upvotes: Array [],
-            },
-          ],
-          country: France,
-          id: Any<String>,
-        },
-      ]
+      {
+        contents: [
+          {
+            text: Goodbye World,
+            upvotes: [
+              {
+                userId: 11,
+                vote: false,
+              },
+            ],
+          },
+          {
+            text: Hello World,
+            upvotes: [
+              {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          {
+            text: Hello World,
+            upvotes: [],
+          },
+        ],
+        country: France,
+        id: Any<String>,
+      }
     `,
     )
   })
@@ -282,39 +280,38 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
+    expect(comment).toHaveLength(1)
+    expect(comment[0]).toMatchInlineSnapshot(
+      { id: expect.any(String) },
       `
-      Array [
-        Object {
-          contents: Array [
-            Object {
-              text: Goodbye World,
-              upvotes: Array [
-                Object {
-                  userId: 11,
-                  vote: false,
-                },
-              ],
-            },
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-            Object {
-              text: Hello World,
-              upvotes: Array [],
-            },
-          ],
-          country: France,
-          id: Any<String>,
-        },
-      ]
+      {
+        contents: [
+          {
+            text: Goodbye World,
+            upvotes: [
+              {
+                userId: 11,
+                vote: false,
+              },
+            ],
+          },
+          {
+            text: Hello World,
+            upvotes: [
+              {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+          {
+            text: Hello World,
+            upvotes: [],
+          },
+        ],
+        country: France,
+        id: Any<String>,
+      }
     `,
     )
   })
@@ -327,26 +324,25 @@ setupTestSuite(() => {
       },
     })
 
-    expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
+    expect(comment).toHaveLength(1)
+    expect(comment[0]).toMatchInlineSnapshot(
+      { id: expect.any(String) },
       `
-      Array [
-        Object {
-          contents: Array [
-            Object {
-              text: Hello World,
-              upvotes: Array [
-                Object {
-                  userId: 10,
-                  vote: true,
-                },
-              ],
-            },
-          ],
-          country: null,
-          id: Any<String>,
-        },
-      ]
+      {
+        contents: [
+          {
+            text: Hello World,
+            upvotes: [
+              {
+                userId: 10,
+                vote: true,
+              },
+            ],
+          },
+        ],
+        country: null,
+        id: Any<String>,
+      }
     `,
     )
   })

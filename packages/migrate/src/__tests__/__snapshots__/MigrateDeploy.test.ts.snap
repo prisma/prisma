@@ -1,13 +1,13 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`sqlite 1 unapplied migration 4`] = `Array []`;
+exports[`sqlite 1 unapplied migration 4`] = `[]`;
 
-exports[`sqlite 1 unapplied migration 5`] = `Array []`;
+exports[`sqlite 1 unapplied migration 5`] = `[]`;
 
-exports[`sqlite no unapplied migrations 3`] = `Array []`;
+exports[`sqlite no unapplied migrations 3`] = `[]`;
 
-exports[`sqlite no unapplied migrations 4`] = `Array []`;
+exports[`sqlite no unapplied migrations 4`] = `[]`;
 
-exports[`sqlite should throw if database is not empty 3`] = `Array []`;
+exports[`sqlite should throw if database is not empty 3`] = `[]`;
 
-exports[`sqlite should throw if database is not empty 4`] = `Array []`;
+exports[`sqlite should throw if database is not empty 4`] = `[]`;

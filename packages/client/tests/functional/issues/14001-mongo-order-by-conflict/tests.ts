@@ -29,7 +29,7 @@ testMatrix.setupTestSuite(
         distinct: ['OrderBy'],
       })
 
-      await expect(result).resolves.toMatchInlineSnapshot(`Array []`)
+      await expect(result).resolves.toMatchInlineSnapshot(`[]`)
     })
 
     test('aggregate', async () => {
@@ -41,7 +41,7 @@ testMatrix.setupTestSuite(
       })
 
       await expect(result).resolves.toMatchInlineSnapshot(`
-        Object {
+        {
           _count: 0,
         }
       `)
@@ -57,7 +57,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(result).resolves.toMatchInlineSnapshot(`Array []`)
+      await expect(result).resolves.toMatchInlineSnapshot(`[]`)
     })
   },
   {
