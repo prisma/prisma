@@ -52,13 +52,13 @@ testMatrix.setupTestSuite(() => {
     })
 
     expect(value).toMatchInlineSnapshot(`
-          Object {
-            _all: 1,
-            age: 1,
-            email: 1,
-            name: 1,
-          }
-        `)
+      {
+        _all: 1,
+        age: 1,
+        email: 1,
+        name: 1,
+      }
+    `)
   })
 
   test('select all true', async () => {
@@ -89,13 +89,13 @@ testMatrix.setupTestSuite(() => {
     })
 
     expect(value).toMatchInlineSnapshot(`
-          Object {
-            _all: 3,
-            age: 3,
-            email: 3,
-            name: 3,
-          }
-        `)
+      {
+        _all: 3,
+        age: 3,
+        email: 3,
+        name: 3,
+      }
+    `)
   })
 
   test('bad prop', async () => {
@@ -113,28 +113,28 @@ testMatrix.setupTestSuite(() => {
     } catch (err) {
       expect(err.message).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.user.count()\` invocation:
+                Invalid \`prisma.user.count()\` invocation:
 
-        {
-          select: {
-            _count: {
-              select: {
-        ?       _all?: true,
-        ?       email?: true,
-        ?       age?: true,
-        ?       name?: true,
-                posts: true,
-                ~~~~~
-        ?       id?: true
-              }
-            }
-          }
-        }
+                {
+                  select: {
+                    _count: {
+                      select: {
+                ?       _all?: true,
+                ?       email?: true,
+                ?       age?: true,
+                ?       name?: true,
+                        posts: true,
+                        ~~~~~
+                ?       id?: true
+                      }
+                    }
+                  }
+                }
 
 
-        Unknown field \`posts\` for select statement on model UserCountAggregateOutputType. Available options are listed in green. Did you mean \`id\`?
+                Unknown field \`posts\` for select statement on model UserCountAggregateOutputType. Available options are listed in green. Did you mean \`id\`?
 
-      `)
+            `)
     }
   })
 })

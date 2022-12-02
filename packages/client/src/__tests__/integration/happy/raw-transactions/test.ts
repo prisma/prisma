@@ -25,23 +25,23 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           params: [],
           query: BEGIN,
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: [],
           query: SELECT * FROM "User",
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: [],
           query: SELECT * FROM "Post",
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: [],
           query: COMMIT,
           target: quaint::connector::metrics,
@@ -50,17 +50,17 @@ describe('transaction', () => {
     `)
 
     expect(res).toMatchInlineSnapshot(`
-          Array [
-            Array [
-              Object {
-                email: a@a.de,
-                id: 576eddf9-2434-421f-9a86-58bede16fd95,
-                name: Alice,
-              },
-            ],
-            Array [],
-          ]
-      `)
+      [
+        [
+          {
+            email: a@a.de,
+            id: 576eddf9-2434-421f-9a86-58bede16fd95,
+            name: Alice,
+          },
+        ],
+        [],
+      ]
+    `)
   })
 
   test('queryRaw & updateMany 1', async () => {
@@ -95,28 +95,28 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           params: [],
           query: BEGIN,
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: [],
           query: SELECT * FROM "User",
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: ["B","A"],
           query: UPDATE \`main\`.\`User\` SET \`name\` = ? WHERE \`main\`.\`User\`.\`name\` = ?,
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: [],
           query: SELECT * FROM "Post",
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: [],
           query: COMMIT,
           target: quaint::connector::metrics,
@@ -125,20 +125,20 @@ describe('transaction', () => {
     `)
 
     expect(res).toMatchInlineSnapshot(`
-          Array [
-            Array [
-              Object {
-                email: a@a.de,
-                id: 576eddf9-2434-421f-9a86-58bede16fd95,
-                name: Alice,
-              },
-            ],
-            Object {
-              count: 0,
-            },
-            Array [],
-          ]
-      `)
+      [
+        [
+          {
+            email: a@a.de,
+            id: 576eddf9-2434-421f-9a86-58bede16fd95,
+            name: Alice,
+          },
+        ],
+        {
+          count: 0,
+        },
+        [],
+      ]
+    `)
   })
 
   test('queryRaw & updateMany 2', async () => {
@@ -173,28 +173,28 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           params: [],
           query: BEGIN,
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: ["B","A"],
           query: UPDATE \`main\`.\`User\` SET \`name\` = ? WHERE \`main\`.\`User\`.\`name\` = ?,
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: [],
           query: SELECT * FROM "User",
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: [],
           query: SELECT * FROM "Post",
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: [],
           query: COMMIT,
           target: quaint::connector::metrics,
@@ -203,20 +203,20 @@ describe('transaction', () => {
     `)
 
     expect(res).toMatchInlineSnapshot(`
-          Array [
-            Object {
-              count: 0,
-            },
-            Array [
-              Object {
-                email: a@a.de,
-                id: 576eddf9-2434-421f-9a86-58bede16fd95,
-                name: Alice,
-              },
-            ],
-            Array [],
-          ]
-      `)
+      [
+        {
+          count: 0,
+        },
+        [
+          {
+            email: a@a.de,
+            id: 576eddf9-2434-421f-9a86-58bede16fd95,
+            name: Alice,
+          },
+        ],
+        [],
+      ]
+    `)
   })
 
   test('executeRaw', async () => {
@@ -241,23 +241,23 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           params: [],
           query: BEGIN,
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: ["blub1","THIS_DOES_NOT_EXIT1"],
           query: UPDATE User SET name = ? WHERE id = ?;,
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: ["blub2","THIS_DOES_NOT_EXIT2"],
           query: UPDATE User SET name = ? WHERE id = ?;,
           target: quaint::connector::metrics,
         },
-        Object {
+        {
           params: [],
           query: COMMIT,
           target: quaint::connector::metrics,
@@ -266,11 +266,11 @@ describe('transaction', () => {
     `)
 
     expect(res).toMatchInlineSnapshot(`
-          Array [
-            0,
-            0,
-          ]
-      `)
+      [
+        0,
+        0,
+      ]
+    `)
   })
 
   test('queryRaw & executeRaw in separate transactions', async () => {
@@ -300,19 +300,19 @@ describe('transaction', () => {
     expect(queries.filter((q) => q.query === 'COMMIT').length).toBe(2)
 
     expect(res).toMatchInlineSnapshot(`
-      Array [
-        Array [
-          Array [
-            Object {
+      [
+        [
+          [
+            {
               email: a@a.de,
               id: 576eddf9-2434-421f-9a86-58bede16fd95,
               name: Alice,
             },
           ],
-          Array [],
+          [],
         ],
-        Array [
-          Object {
+        [
+          {
             email: a@a.de,
             id: 576eddf9-2434-421f-9a86-58bede16fd95,
             name: Alice,
@@ -360,38 +360,38 @@ describe('transaction', () => {
     await prisma.$disconnect()
 
     expect(sanitizeEvents(queries)).toMatchInlineSnapshot(`
-          Array [
-            Object {
+          [
+            {
               duration: 0,
               params: [],
               query: BEGIN,
               target: quaint::connector::metrics,
             },
-            Object {
+            {
               duration: 0,
               params: [],
               query: SELECT * FROM "Post",
               target: quaint::connector::metrics,
             },
-            Object {
+            {
               duration: 0,
               params: ["blub1","THIS_DOES_NOT_EXIT1"],
               query: UPDATE User SET name = ? WHERE id = ?;,
               target: quaint::connector::metrics,
             },
-            Object {
+            {
               duration: 0,
               params: [],
               query: SELECT * FROM "User",
               target: quaint::connector::metrics,
             },
-            Object {
+            {
               duration: 0,
               params: ["blub2","THIS_DOES_NOT_EXIT2"],
               query: UPDATE User SET name = ? WHERE id = ?;,
               target: quaint::connector::metrics,
             },
-            Object {
+            {
               duration: 0,
               params: [],
               query: COMMIT,
@@ -401,11 +401,11 @@ describe('transaction', () => {
       `)
 
     expect(res).toMatchInlineSnapshot(`
-          Array [
-            Array [],
+          [
+            [],
             0,
-            Array [
-              Object {
+            [
+              {
                 email: a@a.de,
                 id: 576eddf9-2434-421f-9a86-58bede16fd95,
                 name: Alice,

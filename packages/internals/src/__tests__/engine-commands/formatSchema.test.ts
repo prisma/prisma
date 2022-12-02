@@ -91,8 +91,8 @@ describe('format custom options', () => {
     const formatted = await formatSchema({ schema }, { tabSize: 2 })
     expect(formatted).toMatchInlineSnapshot(`
       "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:dev.db\\"
+        provider = "sqlite"
+        url      = "file:dev.db"
       }
 
       model User {
@@ -109,8 +109,8 @@ describe('format custom options', () => {
     const formatted = await formatSchema({ schema }, { tabSize: 4 })
     expect(formatted).toMatchInlineSnapshot(`
       "datasource db {
-          provider = \\"sqlite\\"
-          url      = \\"file:dev.db\\"
+          provider = "sqlite"
+          url      = "file:dev.db"
       }
 
       model User {
@@ -210,7 +210,7 @@ describe('format', () => {
     expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       "
       Prisma schema warning:
-      - Preview feature \\"cockroachdb\\" is deprecated. The functionality can be used without specifying it as a preview feature."
+      - Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature."
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -238,9 +238,9 @@ describe('format', () => {
     expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       "
       Prisma schema warnings:
-      - Preview feature \\"cockroachdb\\" is deprecated. The functionality can be used without specifying it as a preview feature.
-      - Preview feature \\"mongoDb\\" is deprecated. The functionality can be used without specifying it as a preview feature.
-      - Preview feature \\"microsoftSqlServer\\" is deprecated. The functionality can be used without specifying it as a preview feature."
+      - Preview feature "cockroachdb" is deprecated. The functionality can be used without specifying it as a preview feature.
+      - Preview feature "mongoDb" is deprecated. The functionality can be used without specifying it as a preview feature.
+      - Preview feature "microsoftSqlServer" is deprecated. The functionality can be used without specifying it as a preview feature."
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
@@ -270,12 +270,12 @@ describe('format', () => {
     const formattedSchema = await formatSchema({ schema })
     expect(formattedSchema).toMatchInlineSnapshot(`
       "generator client {
-        provider = \\"prisma-client-js\\"
+        provider = "prisma-client-js"
       }
 
       datasource db {
-        provider = \\"cockroachdb\\"
-        url      = env(\\"TEST_POSTGRES_URI\\")
+        provider = "cockroachdb"
+        url      = env("TEST_POSTGRES_URI")
       }
 
       model SomeUser {

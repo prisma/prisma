@@ -34,8 +34,8 @@ testMatrix.setupTestSuite(
       })
 
       expect(result).toMatchInlineSnapshot(`
-        Array [
-          Object {
+        [
+          {
             enumValue: A,
           },
         ]
@@ -50,9 +50,9 @@ testMatrix.setupTestSuite(
       })
 
       expect(result).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            enumArray: Array [
+        [
+          {
+            enumArray: [
               A,
             ],
           },

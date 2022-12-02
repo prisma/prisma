@@ -1,22 +1,22 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`studio with custom schema.prisma filename can respond to \`create\` queries 1`] = `
-Object {
+{
   action: clientRequest,
   channel: -prisma,
-  payload: Object {
-    data: Object {
+  payload: {
+    data: {
       datetime: 2020-08-03T00:00:00.000Z,
       float: 0,
       id: 3,
       int: 0,
-      relation: Object {
+      relation: {
         id: 3,
         name: Relation Target 003,
         waft_id: 3,
       },
-      relation_list: Array [
-        Object {
+      relation_list: [
+        {
           id: 3,
           name: Relation Target 003,
           waft_id: 3,
@@ -31,21 +31,21 @@ Object {
 `;
 
 exports[`studio with custom schema.prisma filename can respond to \`delete\` queries 1`] = `
-Object {
+{
   action: clientRequest,
   channel: -prisma,
-  payload: Object {
-    data: Object {
+  payload: {
+    data: {
       datetime: 1970-01-01T00:00:00.000Z,
       float: 0,
       id: 2,
       int: 0,
-      relation: Object {
+      relation: {
         id: 2,
         name: Relation Target 002,
         waft_id: 2,
       },
-      relation_list: Array [],
+      relation_list: [],
       string: Delete me,
     },
     error: null,
@@ -55,35 +55,35 @@ Object {
 `;
 
 exports[`studio with custom schema.prisma filename can respond to \`findMany\` queries 1`] = `
-Object {
+{
   action: clientRequest,
   channel: -prisma,
-  payload: Object {
-    data: Array [
-      Object {
+  payload: {
+    data: [
+      {
         datetime: 2020-08-03T00:00:00.000Z,
         float: 3.14,
         id: 1,
         int: 42,
-        relation: Object {
+        relation: {
           id: 1,
           name: Relation Target 001,
           waft_id: 1,
         },
-        relation_list: Array [],
+        relation_list: [],
         string: Some string,
       },
-      Object {
+      {
         datetime: 1970-01-01T00:00:00.000Z,
         float: 0,
         id: 2,
         int: 0,
-        relation: Object {
+        relation: {
           id: 2,
           name: Relation Target 002,
           waft_id: 2,
         },
-        relation_list: Array [],
+        relation_list: [],
         string: Delete me,
       },
     ],
@@ -94,22 +94,22 @@ Object {
 `;
 
 exports[`studio with custom schema.prisma filename can respond to \`update\` queries 1`] = `
-Object {
+{
   action: clientRequest,
   channel: -prisma,
-  payload: Object {
-    data: Object {
+  payload: {
+    data: {
       datetime: 2025-08-03T00:00:00.000Z,
       float: 100.5,
       id: 1,
       int: 100,
-      relation: Object {
+      relation: {
         id: 3,
         name: Relation Target 003,
         waft_id: 1,
       },
-      relation_list: Array [
-        Object {
+      relation_list: [
+        {
           id: 3,
           name: Relation Target 003,
           waft_id: 1,
@@ -124,22 +124,22 @@ Object {
 `;
 
 exports[`studio with default schema.prisma filename can respond to \`create\` queries 1`] = `
-Object {
+{
   action: clientRequest,
   channel: -prisma,
-  payload: Object {
-    data: Object {
+  payload: {
+    data: {
       datetime: 2020-08-03T00:00:00.000Z,
       float: 0,
       id: 3,
       int: 0,
-      relation: Object {
+      relation: {
         id: 3,
         name: Relation Target 003,
         waft_id: 3,
       },
-      relation_list: Array [
-        Object {
+      relation_list: [
+        {
           id: 3,
           name: Relation Target 003,
           waft_id: 3,
@@ -154,21 +154,21 @@ Object {
 `;
 
 exports[`studio with default schema.prisma filename can respond to \`delete\` queries 1`] = `
-Object {
+{
   action: clientRequest,
   channel: -prisma,
-  payload: Object {
-    data: Object {
+  payload: {
+    data: {
       datetime: 1970-01-01T00:00:00.000Z,
       float: 0,
       id: 2,
       int: 0,
-      relation: Object {
+      relation: {
         id: 2,
         name: Relation Target 002,
         waft_id: 2,
       },
-      relation_list: Array [],
+      relation_list: [],
       string: Delete me,
     },
     error: null,
@@ -178,35 +178,35 @@ Object {
 `;
 
 exports[`studio with default schema.prisma filename can respond to \`findMany\` queries 1`] = `
-Object {
+{
   action: clientRequest,
   channel: -prisma,
-  payload: Object {
-    data: Array [
-      Object {
+  payload: {
+    data: [
+      {
         datetime: 2020-08-03T00:00:00.000Z,
         float: 3.14,
         id: 1,
         int: 42,
-        relation: Object {
+        relation: {
           id: 1,
           name: Relation Target 001,
           waft_id: 1,
         },
-        relation_list: Array [],
+        relation_list: [],
         string: Some string,
       },
-      Object {
+      {
         datetime: 1970-01-01T00:00:00.000Z,
         float: 0,
         id: 2,
         int: 0,
-        relation: Object {
+        relation: {
           id: 2,
           name: Relation Target 002,
           waft_id: 2,
         },
-        relation_list: Array [],
+        relation_list: [],
         string: Delete me,
       },
     ],
@@ -217,22 +217,22 @@ Object {
 `;
 
 exports[`studio with default schema.prisma filename can respond to \`update\` queries 1`] = `
-Object {
+{
   action: clientRequest,
   channel: -prisma,
-  payload: Object {
-    data: Object {
+  payload: {
+    data: {
       datetime: 2025-08-03T00:00:00.000Z,
       float: 100.5,
       id: 1,
       int: 100,
-      relation: Object {
+      relation: {
         id: 3,
         name: Relation Target 003,
         waft_id: 1,
       },
-      relation_list: Array [
-        Object {
+      relation_list: [
+        {
           id: 3,
           name: Relation Target 003,
           waft_id: 1,
