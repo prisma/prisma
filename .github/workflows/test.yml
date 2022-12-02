@@ -78,41 +78,8 @@ jobs:
         with:
           cancel_others: 'true'
 
-  #
-  # Linting
-  #
   lint:
-    timeout-minutes: 7
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
-
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-          node-version: '16'
-
-      # https://github.com/actions/toolkit/blob/master/docs/commands.md#problem-matchers
-      # Matchers are added in setup-node
-      # https://github.com/actions/setup-node/blob/bacd6b4b3ac3127b28a1e1920c23bf1c2cadbb85/src/main.ts#L54-L60
-      - name: Disable GitHub annotations from linting
-        run: |
-          echo "::remove-matcher owner=eslint-compact::"
-          echo "::remove-matcher owner=eslint-stylish::"
-
-      - run: bash .github/workflows/scripts/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run lint && pnpm run check-engines-override
-        working-directory: ./
+    uses: ./.github/workflows/__lint.yaml
 
   #
   # CLIENT test:functional relationMode
