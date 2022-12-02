@@ -507,7 +507,12 @@ function filterGenerators(generators: GeneratorConfig[], generatorNames: string[
 
   if (filtered.length !== generatorNames.length) {
     const missings = generatorNames.filter((name) => filtered.find((generator) => generator.name === name) == null)
-    throw new Error(`The specified generator(s) ${chalk.bold(missings.join(', '))} do not exist in your Prisma schema`)
+    const isSingular = missings.length <= 1
+    throw new Error(
+      `The ${isSingular ? 'generator' : 'generators'} ${chalk.bold(missings.join(', '))} specified via ${chalk.bold(
+        '--generator',
+      )} ${isSingular ? 'does' : 'do'} not exist in your Prisma schema`,
+    )
   }
 
   return filtered

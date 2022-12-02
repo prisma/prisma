@@ -164,7 +164,19 @@ describe('--schema from parent directory', () => {
     expect(output).toMatchSnapshot()
   })
 
-  it('--generator: should fail - invalid generator name', async () => {
+  it('--generator: should fail - single invalid generator name', async () => {
+    ctx.fixture('example-project')
+
+    await expect(
+      Generate.new().parse([
+        '--schema=./prisma/multiple-generator.prisma',
+        '--generator=client',
+        '--generator=invalid_client',
+      ]),
+    ).rejects.toMatchSnapshot()
+  })
+
+  it('--generator: should fail - multiple invalid generator names', async () => {
     ctx.fixture('example-project')
 
     await expect(
