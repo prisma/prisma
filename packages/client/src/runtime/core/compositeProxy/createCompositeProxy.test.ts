@@ -247,6 +247,29 @@ test('allows to override a property from a layer', () => {
   expect(proxy.prop).toBe('override')
 })
 
+test('allows to override a property from a layer using defineProperty', () => {
+  const target = {} as Record<string, unknown>
+
+  const proxy = createCompositeProxy(target, [
+    {
+      getKeys() {
+        return ['prop']
+      },
+
+      getPropertyValue() {
+        return 'from proxy'
+      },
+    },
+  ])
+
+  Object.defineProperty(proxy, 'prop', {
+    value: 'override',
+  })
+
+  expect(target.prop).toBe('override')
+  expect(proxy.prop).toBe('override')
+})
+
 test('does not allow to overriding property from a layer if it is non writable', () => {
   const target = {} as Record<string, unknown>
 

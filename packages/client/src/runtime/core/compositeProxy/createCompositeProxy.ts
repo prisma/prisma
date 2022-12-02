@@ -99,6 +99,11 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
       }
       return defaultPropertyDescriptor
     },
+
+    defineProperty(target, property, attributes) {
+      overwrittenKeys.add(property)
+      return Reflect.defineProperty(target, property, attributes)
+    },
   })
 
   proxy[customInspect] = function (depth: number, options: InspectOptions, defaultInspect: typeof inspect = inspect) {
