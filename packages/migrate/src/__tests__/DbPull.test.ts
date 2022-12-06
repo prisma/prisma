@@ -528,33 +528,35 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
   }
   // Backup env vars
   const OLD_ENV = { ...process.env }
+  // Isolated database
   const multiSchemaDatabaseName = 'tests-migrate-multi-schema'
 
   beforeAll(async () => {
     await tearDownMSSQL(setupParams, multiSchemaDatabaseName).catch((e) => {
       console.error(e)
     })
-  })
-
-  beforeEach(async () => {
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
-      'tests-migrate',
-      multiSchemaDatabaseName,
-    )
-
     await setupMSSQL(setupParams, multiSchemaDatabaseName).catch((e) => {
       console.error(e)
     })
   })
 
-  afterEach(async () => {
-    // Restore env vars to backup state
-    process.env = { ...OLD_ENV }
-
+  afterAll(async () => {
     await tearDownMSSQL(setupParams, multiSchemaDatabaseName).catch((e) => {
       console.error(e)
     })
+  })
+
+  beforeEach(async () => {
+    // Set the env var used in the schema.prisma
+    process.env.TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
+      'tests-migrate',
+      multiSchemaDatabaseName,
+    )
+  })
+
+  afterEach(() => {
+    // Restore env vars to backup state
+    process.env = { ...OLD_ENV }
   })
 
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
@@ -597,7 +599,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
 
   test('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
     ctx.fixture('introspection/sqlserver-multi-schema')
-
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -650,7 +651,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
 
   test('--url with `?schema=does-not-exist` should error with with P4001, empty database', async () => {
     const introspect = new DbPull()
-    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`
+    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA}schema=does-not-exist`
     const result = introspect.parse(['--print', '--url', connectionString])
     await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
@@ -662,7 +663,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
 
   test('--url with `?schema=base` should succeed', async () => {
     const introspect = new DbPull()
-    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=base`
+    const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA}schema=base`
     const result = introspect.parse(['--print', '--url', connectionString])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(sanitizeSQLServerIdName(ctx.mocked['console.log'].mock.calls.join('\n'))).toMatchSnapshot()
