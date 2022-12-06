@@ -22,6 +22,8 @@
   "files": [
     "README.md",
     "dist",
+    "!**/libquery_engine*",
+    "!dist/get-generators/engines/*",
     "scripts"
   ],
   "devDependencies": {
