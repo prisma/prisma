@@ -833,7 +833,7 @@ exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist"
 exports[`sqlserver-multi-schema --url with \`?schema=base\` should succeed 2`] = `
 datasource db {
   provider = "sqlserver"
-  url      = "sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
+  url      = "sqlserver://localhost:1433;database=tests-migrate-multi-schema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
 }
 
 model some_table {
