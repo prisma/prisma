@@ -864,14 +864,34 @@ datasource db {
   schemas  = ["base", "transactional"]
 }
 
+model Post {
+  id       String   @id(clustered: false, map: "PK__Post__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  title    String   @db.NVarChar(1)
+  authorId String   @db.NVarChar(1)
+  SomeUser SomeUser @relation(fields: [authorId], references: [id])
+
+  @@schema("transactional")
+}
+
+model some_table {
+  id String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+
+  @@schema("base")
+}
+
 model some_table {
   id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
-  email String @db.NVarChar(1)
+  title String @db.NVarChar(1)
+
+  @@schema("transactional")
 }
 
 model SomeUser {
   id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
+  Post  Post[]
+
+  @@schema("base")
 }
 
 
@@ -893,11 +913,15 @@ datasource db {
 model some_table {
   id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
+
+  @@schema("base")
 }
 
 model SomeUser {
   id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
+
+  @@schema("base")
 }
 
 
@@ -919,11 +943,15 @@ datasource db {
 model some_table {
   id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
+
+  @@schema("base")
 }
 
 model SomeUser {
   id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
+
+  @@schema("base")
 }
 
 
