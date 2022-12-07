@@ -879,12 +879,10 @@ model some_table {
   @@schema("base")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
 model some_table {
-  id    String @db.NVarChar(1)
+  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   title String @db.NVarChar(1)
 
-  @@ignore
   @@schema("transactional")
 }
 
