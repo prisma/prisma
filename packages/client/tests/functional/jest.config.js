@@ -1,10 +1,21 @@
 'use strict'
 const os = require('os')
+const path = require('path')
+
+const runtimeDir = path.dirname(require.resolve('../../runtime'))
+const packagesDir = path.resolve('..', '..', '..')
 
 module.exports = () => {
   const configCommon = {
     testMatch: ['**/*.ts', '!(**/*.d.ts)', '!(**/_utils/**)', '!(**/_*.ts)', '!(**/.generated/**)'],
-    transformIgnorePatterns: [],
+    // By default, jest passes every file it loads thorough a transform and caches result both on disk and in memory
+    // That includes all generated clients as well. So, unless we ignore them, they'd be kept in memory until test process
+    // is finished, even though they are needed for 1 test only
+    transformIgnorePatterns: [
+      '[\\/]node_modules[\\/]',
+      escapeRegex(runtimeDir),
+      `${escapeRegex(packagesDir)}[\\/][^\\/]+[\\/]dist[\\/]`,
+    ],
     reporters: [
       'default',
       [
@@ -46,4 +57,13 @@ module.exports = () => {
       '^.+\\.(m?j|t)s$': '@swc/jest',
     },
   }
+}
+
+/**
+ * https://stackoverflow.com/a/6969486
+ * @param {string} str
+ * @returns {string}
+ */
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
