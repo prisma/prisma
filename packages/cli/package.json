@@ -74,7 +74,7 @@
     "@swc/jest": "0.2.23",
     "@types/debug": "4.1.7",
     "@types/fs-extra": "9.0.13",
-    "@types/jest": "29.2.3",
+    "@types/jest": "29.2.4",
     "@types/rimraf": "3.0.2",
     "@types/ws": "8.5.3",
     "chalk": "4.1.2",
