@@ -45,6 +45,9 @@ function isMatched(string: string, regexs: (RegExp | string)[]) {
 
 /**
  * Find paths that match a set of regexes
+ * 
+ * The search is done breadth-first to have a bias towards shorter paths.
+ *
  * @param root to start from
  * @param match to match against
  * @param types to select files, folders, links
@@ -68,36 +71,44 @@ export function findSync(
   try {
     const realRoot = realpathSync(root)
 
-    // we make sure not to loop infinitely
-    if (seen[realRoot]) {
-      return found
-    }
-
-    // we stop if we found enough results
-    if (limit - found.length <= 0) {
-      return found
-    }
-
     // we check that the root is a directory
     if (direntToType(statSync(realRoot)) !== 'd') {
       return found
     }
+    
+    // we list the items in the search root
+    const items = readdirSync(realRoot, { withFileTypes: true });
+    let stack = [...items.map((i) => ({ item: i, dir: root }))];
+    
+    while (true) {
+      // We stop if the search is complete
+      if (stack.length == 0){
+        return found;
+      }
 
-    // we list the items in the current root
-    const items = readdirSync(root, { withFileTypes: true })
+      // we stop if we found enough results
+      if (limit - found.length <= 0) {
+        return found;
+      }
+      
+      const { item, dir } = stack.shift();
+      const itemName = item.name;
+      const itemType = direntToType(item);
+      const itemPath = path.join(dir, itemName)
+      
+      const realItemPath = realpathSync(itemPath)
 
-    seen[realRoot] = true
-    for (const item of items) {
-      // we get the file info for each item
-      const itemName = item.name
-      const itemType = direntToType(item)
-      const itemPath = path.join(root, item.name)
-
-      // if the item is one of the selected
+      // we make sure not to loop infinitely
+      if (seen[realItemPath]) {
+        continue;
+      }
+      
+      seen[realItemPath] = true;
+      
       if (itemType && types.includes(itemType)) {
         // if the path of an item has matched
         if (isMatched(itemPath, match)) {
-          const value = handler(root, itemName, itemType)
+          const value = handler(dir, itemName, itemType)
 
           // if we changed the path value
           if (typeof value === 'string') {
@@ -111,10 +122,21 @@ export function findSync(
       }
 
       // dive within the directory tree
-      if (deep.includes(itemType as any)) {
-        // we recurse and continue mutating `found`
-        findSync(itemPath, match, types, deep, limit, handler, found, seen)
+      if (deep.includes(itemType)) {
+        // If link doesn't point to a directory, continue
+        if (direntToType(statSync(realItemPath)) !== 'd') {
+          continue
+        }	    
+        
+        // Push contents of directory to the end of the stack
+        stack.push(
+          ...readdirSync(itemPath, { withFileTypes: true }).map((i) => ({
+            item: i,
+            dir: itemPath,
+          }))
+        );
       }
+      
     }
   } catch {}
 
