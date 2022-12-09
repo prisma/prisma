@@ -1,5 +1,5 @@
 import { Context, context } from '@opentelemetry/api'
-import Debug from '@prisma/debug'
+import Debug, { clearLogs } from '@prisma/debug'
 import {
   BatchTransactionOptions,
   BinaryEngine,
@@ -20,6 +20,7 @@ import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
+import { EventEmitter } from 'events'
 import fs from 'fs'
 import path from 'path'
 import { RawValue, Sql } from 'sql-template-tag'
@@ -27,15 +28,14 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
-import { $extends, Extension } from './core/extensions/$extends'
+import { $extends, Args as Extension } from './core/extensions/$extends'
+import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
+import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { MetricsClient } from './core/metrics/MetricsClient'
-import { applyModels } from './core/model/applyModels'
+import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
+import { UserArgs } from './core/model/UserArgs'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
-import type {
-  InteractiveTransactionOptions,
-  PrismaPromise,
-  PrismaPromiseTransaction,
-} from './core/request/PrismaPromise'
+import { InteractiveTransactionOptions, PrismaPromise, PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { BaseDMMFHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
@@ -55,6 +55,7 @@ import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectO
 import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
+import { waitForBatch } from './utils/waitForBatch'
 
 const debug = Debug('prisma:client')
 const ALTER_RE = /^(\s*alter\s)/i
@@ -181,6 +182,8 @@ export type InternalRequestParams = {
   unpacker?: Unpacker // TODO what is this
   lock?: PromiseLike<void>
   otelParentCtx?: Context
+  /** Used to "desugar" a user input into an "expanded" one */
+  argsMapper?: (args?: UserArgs) => UserArgs
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 // only used by the .use() hooks
@@ -285,7 +288,9 @@ export interface GetPrismaClientConfig {
 
 export const actionOperationMap = {
   findUnique: 'query',
+  findUniqueOrThrow: 'query',
   findFirst: 'query',
+  findFirstOrThrow: 'query',
   findMany: 'query',
   count: 'query',
   create: 'mutation',
@@ -305,6 +310,13 @@ export const actionOperationMap = {
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
+
+const BatchTxIdCounter = {
+  id: 0,
+  nextId() {
+    return ++this.id
+  },
+}
 
 export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
 
@@ -330,17 +342,25 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _middlewares: Middlewares = new Middlewares()
     _previewFeatures: string[]
     _activeProvider: string
-    _transactionId = 1
     _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
-    _extensions: Extension[]
+    _extensions: MergedExtensionsList
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
 
-      this._extensions = []
+      const logEmitter = new EventEmitter().on('error', (e) => {
+        // this is a no-op to prevent unhandled error events
+        //
+        // If the user enabled error logging this would never be executed. If the user did not
+        // enabled error logging, this would be executed, and a trace for the error would be logged
+        // in debug mode, which is like going in the opposite direction than what the user wanted by
+        // not enabling error logging in the first place.
+      })
+
+      this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = config.generator?.previewFeatures ?? []
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
@@ -445,6 +465,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingConfig: this._tracingConfig,
+          logEmitter: logEmitter,
         }
 
         debug('clientVersion', config.clientVersion)
@@ -458,7 +479,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._engine = this.getEngine()
         void this._getActiveProvider()
 
-        this._fetcher = new RequestHandler(this, this._hooks) as any
+        this._fetcher = new RequestHandler(this, this._hooks, logEmitter) as any
 
         if (options.log) {
           for (const log of options.log) {
@@ -477,7 +498,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         throw e
       }
 
-      return applyModels(this) // custom constructor return value
+      return applyModelsAndClientExtensions(this) // custom constructor return value
     }
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
@@ -570,6 +591,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         e.clientVersion = this._clientVersion
         throw e
       } finally {
+        // Debug module keeps a list of last 100 logs regardless of environment variables.
+        // This can cause a memory leak. It's especially bad in jest environment where keeping an
+        // error in this list will prevent jest sandbox from being GCed. Clearing logs on disconnect
+        // helps to avoid that
+        clearLogs()
         if (!this._dataProxy) {
           this._dmmf = undefined
         }
@@ -939,20 +965,20 @@ new PrismaClient({
       promises: Array<PrismaPromise<any>>
       options?: BatchTransactionOptions
     }): Promise<any> {
-      const txId = this._transactionId++
+      const id = BatchTxIdCounter.nextId()
       const lock = getLockCountPromise(promises.length)
 
-      const requests = promises.map((request) => {
+      const requests = promises.map((request, index) => {
         if (request?.[Symbol.toStringTag] !== 'PrismaPromise') {
           throw new Error(
             `All elements of the array need to be Prisma Client promises. Hint: Please make sure you are not awaiting the Prisma client calls you intended to pass in the $transaction function.`,
           )
         }
 
-        return request.requestTransaction?.({ id: txId, isolationLevel: options?.isolationLevel }, lock)
+        return request.requestTransaction?.({ id, index, isolationLevel: options?.isolationLevel }, lock) ?? request
       })
 
-      return Promise.all(requests)
+      return waitForBatch(requests)
     }
 
     /**
@@ -974,7 +1000,7 @@ new PrismaClient({
       let result: unknown
       try {
         // execute user logic with a proxied the client
-        result = await callback(transactionProxy(this, { id: info.id }))
+        result = await callback(transactionProxy(this, { id: info.id, payload: info.payload }))
 
         // it went well, then we commit the transaction
         await this._engine.transaction('commit', headers, info)
@@ -997,7 +1023,7 @@ new PrismaClient({
     $transaction(input: any, options?: any) {
       let callback: () => Promise<any>
 
-      if (typeof input === 'function' && this._hasPreviewFlag('interactiveTransactions')) {
+      if (typeof input === 'function') {
         callback = () => this._transactionWithCallback({ callback: input, options })
       } else {
         callback = () => this._transactionWithArray({ promises: input, options })
@@ -1079,7 +1105,8 @@ new PrismaClient({
           if (!runInTransaction) {
             requestParams.transaction = undefined
           }
-          return this._executeRequest(requestParams)
+
+          return applyQueryExtensions(this, requestParams) // also executes the query
         }
 
         return await runInChildSpan(spanOptions.operation, () => {
@@ -1106,6 +1133,7 @@ new PrismaClient({
       action,
       model,
       headers,
+      argsMapper,
       transaction,
       lock,
       unpacker,
@@ -1114,6 +1142,9 @@ new PrismaClient({
       if (this._dmmf === undefined) {
         this._dmmf = await this._getDmmf({ clientMethod, callsite })
       }
+
+      // execute argument transformation before execution
+      args = argsMapper ? argsMapper(args) : args
 
       let rootField: string | undefined
       const operation = actionOperationMap[action]
@@ -1156,6 +1187,7 @@ new PrismaClient({
           rootTypeName: operation,
           select: args,
           modelName: model,
+          extensions: this._extensions,
         })
 
         document.validate(args, false, clientMethod, this._errorFormat, callsite)
@@ -1200,6 +1232,7 @@ new PrismaClient({
         callsite,
         args,
         engineHook: this._middlewares.engine.get(0),
+        extensions: this._extensions,
         headers,
         transaction,
         unpacker,
@@ -1213,7 +1246,7 @@ new PrismaClient({
         const dmmf = await this._engine.getDmmf()
         return new DMMFHelper(getPrismaClientDMMF(dmmf))
       } catch (error) {
-        this._fetcher.handleRequestError({ ...params, error })
+        this._fetcher.handleAndLogRequestError({ ...params, error })
       }
     })
 
@@ -1241,7 +1274,7 @@ new PrismaClient({
   return PrismaClient
 }
 
-const forbidden = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends']
+const forbidden: Array<string | symbol> = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends']
 
 /**
  * Proxy that takes over the client promises to pass `txId`
@@ -1275,6 +1308,13 @@ function transactionProxy<T>(thing: T, transaction: InteractiveTransactionOption
 
       // if it's an object prop, then we keep on making it proxied
       return transactionProxy(target[prop], transaction)
+    },
+
+    has(target, prop) {
+      if (forbidden.includes(prop)) {
+        return false
+      }
+      return Reflect.has(target, prop)
     },
   }) as any as T
 }

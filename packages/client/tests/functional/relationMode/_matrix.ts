@@ -15,7 +15,10 @@ export default defineMatrix(() => [
   [...defaultMatrix],
   [
     {
-      previewFeatures: '"referentialIntegrity"',
+      isSchemaUsingMap: false,
+    },
+    {
+      isSchemaUsingMap: true,
     },
   ],
 ])

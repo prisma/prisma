@@ -2,6 +2,7 @@ import { Decimal } from 'decimal.js'
 
 import { getDMMF } from '../../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../../runtime'
+import { MergedExtensionsList } from '../../runtime/core/extensions/MergedExtensionsList'
 
 const datamodel = /* Prisma */ `
     datasource my_db {
@@ -26,6 +27,7 @@ test('allows to pass it decimal instance', () => {
     rootTypeName: 'query',
     rootField: 'findManyUser',
     select: { where: { money: new Decimal('123456789.12334') } },
+    extensions: MergedExtensionsList.empty(),
   })
 
   expect(document.toString()).toMatchInlineSnapshot(`
@@ -47,6 +49,7 @@ test('allows to pass it a string', () => {
     rootTypeName: 'query',
     rootField: 'findManyUser',
     select: { where: { money: '123456789.12334' } },
+    extensions: MergedExtensionsList.empty(),
   })
 
   expect(document.toString()).toMatchInlineSnapshot(`
@@ -68,6 +71,7 @@ test('allows to pass it a number', () => {
     rootTypeName: 'query',
     rootField: 'findManyUser',
     select: { where: { money: 12.3456 } },
+    extensions: MergedExtensionsList.empty(),
   })
 
   expect(document.toString()).toMatchInlineSnapshot(`
@@ -97,6 +101,7 @@ test('allows to pass it decimal-like object', () => {
         },
       },
     },
+    extensions: MergedExtensionsList.empty(),
   })
 
   expect(document.toString()).toMatchInlineSnapshot(`
@@ -118,6 +123,7 @@ test('allows to pass it decimal array', () => {
     rootTypeName: 'query',
     rootField: 'findManyUser',
     select: { where: { money: { in: [new Decimal('12.34'), new Decimal('56.78')] } } },
+    extensions: MergedExtensionsList.empty(),
   })
 
   expect(document.toString()).toMatchInlineSnapshot(`
@@ -144,6 +150,7 @@ test('allows to pass it decimal-like objects array', () => {
     dmmf,
     rootTypeName: 'query',
     rootField: 'findManyUser',
+    extensions: MergedExtensionsList.empty(),
     select: {
       where: {
         money: {
@@ -189,6 +196,7 @@ test('allows to pass it string array', () => {
     dmmf,
     rootTypeName: 'query',
     rootField: 'findManyUser',
+    extensions: MergedExtensionsList.empty(),
     select: { where: { money: { in: ['12.34', '56.78'] } } },
   })
 
@@ -213,6 +221,7 @@ test('allows to pass it number array', () => {
     dmmf,
     rootTypeName: 'query',
     rootField: 'findManyUser',
+    extensions: MergedExtensionsList.empty(),
     select: { where: { money: { in: [12.34, 56.78] } } },
   })
 

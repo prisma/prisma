@@ -1,17 +1,17 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`json-filtering(mysql) array_contains([1, 2, 3]) 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         1,
         2,
         3,
         4,
       ],
       number: 1,
-      object: Object {
+      object: {
         a: 1,
         b: 2,
         c: 3,
@@ -23,17 +23,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) array_ends_with(12) 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         9,
         10,
         11,
         12,
       ],
       number: 3,
-      object: Object {
+      object: {
         a: 7,
         b: 8,
         c: 9,
@@ -45,17 +45,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) array_starts_with(5) 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         5,
         6,
         7,
         8,
       ],
       number: 2,
-      object: Object {
+      object: {
         a: 4,
         b: 5,
         c: 6,
@@ -67,17 +67,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) filter with Prisma.AnyNull 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         9,
         10,
         11,
         12,
       ],
       number: 3,
-      object: Object {
+      object: {
         a: 7,
         b: 8,
         c: 9,
@@ -85,16 +85,16 @@ Array [
       string: cd,
     },
   },
-  Object {
-    json: Object {
-      array: Array [
+  {
+    json: {
+      array: [
         5,
         6,
         7,
         8,
       ],
       number: 2,
-      object: Object {
+      object: {
         a: 4,
         b: 5,
         c: 6,
@@ -102,16 +102,16 @@ Array [
       string: bc,
     },
   },
-  Object {
-    json: Object {
-      array: Array [
+  {
+    json: {
+      array: [
         1,
         2,
         3,
         4,
       ],
       number: 1,
-      object: Object {
+      object: {
         a: 1,
         b: 2,
         c: 3,
@@ -123,17 +123,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) filter with Prisma.DbNull 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         9,
         10,
         11,
         12,
       ],
       number: 3,
-      object: Object {
+      object: {
         a: 7,
         b: 8,
         c: 9,
@@ -141,16 +141,16 @@ Array [
       string: cd,
     },
   },
-  Object {
-    json: Object {
-      array: Array [
+  {
+    json: {
+      array: [
         1,
         2,
         3,
         4,
       ],
       number: 1,
-      object: Object {
+      object: {
         a: 1,
         b: 2,
         c: 3,
@@ -162,17 +162,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) filter with Prisma.JsonNull 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         5,
         6,
         7,
         8,
       ],
       number: 2,
-      object: Object {
+      object: {
         a: 4,
         b: 5,
         c: 6,
@@ -184,17 +184,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) gt(2) 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         9,
         10,
         11,
         12,
       ],
       number: 3,
-      object: Object {
+      object: {
         a: 7,
         b: 8,
         c: 9,
@@ -206,17 +206,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) gte(2) 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         9,
         10,
         11,
         12,
       ],
       number: 3,
-      object: Object {
+      object: {
         a: 7,
         b: 8,
         c: 9,
@@ -224,16 +224,16 @@ Array [
       string: cd,
     },
   },
-  Object {
-    json: Object {
-      array: Array [
+  {
+    json: {
+      array: [
         5,
         6,
         7,
         8,
       ],
       number: 2,
-      object: Object {
+      object: {
         a: 4,
         b: 5,
         c: 6,
@@ -245,17 +245,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) lt(2) 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         1,
         2,
         3,
         4,
       ],
       number: 1,
-      object: Object {
+      object: {
         a: 1,
         b: 2,
         c: 3,
@@ -267,17 +267,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) lt(2) 2`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         1,
         2,
         3,
         4,
       ],
       number: 1,
-      object: Object {
+      object: {
         a: 1,
         b: 2,
         c: 3,
@@ -289,17 +289,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) lte(2) 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         5,
         6,
         7,
         8,
       ],
       number: 2,
-      object: Object {
+      object: {
         a: 4,
         b: 5,
         c: 6,
@@ -307,16 +307,16 @@ Array [
       string: bc,
     },
   },
-  Object {
-    json: Object {
-      array: Array [
+  {
+    json: {
+      array: [
         1,
         2,
         3,
         4,
       ],
       number: 1,
-      object: Object {
+      object: {
         a: 1,
         b: 2,
         c: 3,
@@ -328,17 +328,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) string_contains(bc) 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         5,
         6,
         7,
         8,
       ],
       number: 2,
-      object: Object {
+      object: {
         a: 4,
         b: 5,
         c: 6,
@@ -350,17 +350,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) string_ends_with(c) 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         5,
         6,
         7,
         8,
       ],
       number: 2,
-      object: Object {
+      object: {
         a: 4,
         b: 5,
         c: 6,
@@ -372,17 +372,17 @@ Array [
 `;
 
 exports[`json-filtering(mysql) string_starts_with(a) 1`] = `
-Array [
-  Object {
-    json: Object {
-      array: Array [
+[
+  {
+    json: {
+      array: [
         1,
         2,
         3,
         4,
       ],
       number: 1,
-      object: Object {
+      object: {
         a: 1,
         b: 2,
         c: 3,

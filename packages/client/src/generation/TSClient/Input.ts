@@ -7,6 +7,7 @@ import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { wrapComment } from './helpers'
+import { ifExtensions } from './utils/ifExtensions'
 
 export class InputField implements Generatable {
   constructor(
@@ -55,6 +56,12 @@ function stringifyInputType(
   if (type === 'Null') {
     return 'null'
   }
+
+  ifExtensions(() => {
+    if (typeof type === 'string' && (type.endsWith('Select') || type.endsWith('Include'))) {
+      type = `${type}<ExtArgs>`
+    }
+  }, undefined)
 
   if (genericsInfo.needsGenericModelArg(t)) {
     if (source) {
@@ -171,7 +178,7 @@ ${indent(
 )}
 }`
     return `
-export type ${this.getTypeName()} = ${body}`
+export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
   }
 
   private getTypeName() {
@@ -180,4 +187,19 @@ export type ${this.getTypeName()} = ${body}`
     }
     return this.type.name
   }
+}
+
+/**
+ * Wraps an input type with `Prisma.AtLeast`
+ * @param body type string to wrap
+ * @param input original input type
+ * @returns
+ */
+function wrapWithAtLeast(body: string, input: DMMF.InputType) {
+  if (input.constraints?.fields && input.constraints.fields.length > 0) {
+    const fields = input.constraints.fields.map((f) => `"${f}"`).join(' | ')
+    return `Prisma.AtLeast<${body}, ${fields}>`
+  }
+
+  return body
 }

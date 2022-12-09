@@ -1,5 +1,9 @@
 import * as lzString from 'lz-string'
 
+import * as Extensions from './core/extensions'
+import * as Types from './core/types'
+
+export { PrismaClientExtensionError } from './core/extensions/wrapExtensionCallback'
 export {
   type Metric,
   type MetricHistogram,
@@ -33,4 +37,6 @@ export { empty, join, raw, Sql, default as sqltag } from 'sql-template-tag'
 // ! export bundling fails for this dep, we work around it
 const decompressFromBase64 = lzString.decompressFromBase64
 export { decompressFromBase64 }
-export type { Extension } from './core/extensions/$extends'
+
+export { Types }
+export { Extensions }

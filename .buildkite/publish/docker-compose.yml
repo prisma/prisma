@@ -38,12 +38,15 @@ services:
       # Functional test URLS
       - TEST_FUNCTIONAL_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/PRISMA_DB_NAME
       - TEST_FUNCTIONAL_MYSQL_URI=mysql://root:root@mysql:3306/PRISMA_DB_NAME
+      - TEST_FUNCTIONAL_VITESS_8_URI=mysql://root:root@localhost:33807/PRISMA_DB_NAME
       - TEST_FUNCTIONAL_MSSQL_URI=sqlserver://mssql:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_FUNCTIONAL_MONGO_URI=mongodb://root:prisma@mongo:27018/PRISMA_DB_NAME?authSource=admin
       - TEST_FUNCTIONAL_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/PRISMA_DB_NAME
       # Other vars !\ If not defined, they cannot be accessed
       # TODO: do an env var cleanup?
       - NPM_TOKEN
+      # Used to create a tag the prisma-engines repository
+      # After packages are published on npm
       - GITHUB_TOKEN
       - UPDATE_STUDIO
       - BUILDKITE
@@ -74,6 +77,9 @@ services:
       - mongodb_migrate
       - mongodb_migrate_seed
       - cockroachdb
+  # TODO: uncomment when we test vitess in client functional test suite
+  # Currently we only test `relationMode` tests in GitHub Actions
+  #      - vitess-8
 
   postgres:
     image: postgres:10
@@ -125,6 +131,20 @@ services:
     ports:
       - '3307:3306'
 
+  vitess-8:
+    image: vitess/vttestserver:mysql80@sha256:b045d7586131a2360a5023a1a4a09baaba5d84cead6a5c826647d1a89b3eb652
+    restart: always
+    ports:
+      - 33807:33807
+    environment:
+      PORT: '33804' # unused in testing, but required by vttestserver
+      KEYSPACES: 'keyspace' # unused in testing, but required by vttestserver
+      NUM_SHARDS: '1' # unused in testing, but required by vttestserver
+
+      MYSQL_BIND_HOST: '0.0.0.0'
+      FOREIGN_KEY_MODE: 'disallow'
+      VT_DIALECT: 'mysql80'
+
   mariadb:
     image: mariadb:10.7.3
     restart: always
@@ -169,4 +189,3 @@ services:
       MONGO_REPLICA_PORT: 27018
     ports:
       - '27018:27018'
-# TODO: investigate why isolated containers aren't used in the tests

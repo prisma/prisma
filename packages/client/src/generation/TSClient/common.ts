@@ -2,6 +2,7 @@ import indent from 'indent-string'
 
 import { TAB_SIZE } from './constants'
 import type { TSClientOptions } from './TSClient'
+import { ifExtensions } from './utils/ifExtensions'
 
 export const commonCodeJS = ({
   runtimeDir,
@@ -9,10 +10,32 @@ export const commonCodeJS = ({
   browser,
   clientVersion,
   engineVersion,
-}: TSClientOptions): string => `
+  deno,
+}: TSClientOptions): string => `${deno ? 'const exports = {}' : ''}
 Object.defineProperty(exports, "__esModule", { value: true });
 ${
-  browser
+  deno
+    ? `
+import {
+  PrismaClientKnownRequestError,
+  PrismaClientUnknownRequestError,
+  PrismaClientRustPanicError,
+  PrismaClientInitializationError,
+  PrismaClientValidationError,
+  NotFoundError,
+  decompressFromBase64,
+  getPrismaClient,
+  sqltag,
+  empty,
+  join,
+  raw,
+  Decimal,
+  Debug,
+  objectEnumValues,
+  makeStrictEnum,
+  Extensions
+} from '${runtimeDir}/edge-esm.js'`
+    : browser
     ? `
 const {
   Decimal,
@@ -37,7 +60,8 @@ const {
   Decimal,
   Debug,
   objectEnumValues,
-  makeStrictEnum
+  makeStrictEnum,
+  Extensions
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -72,6 +96,16 @@ Prisma.join = ${notSupportOnBrowser('join', browser)}
 Prisma.raw = ${notSupportOnBrowser('raw', browser)}
 Prisma.validator = () => (val) => val
 
+${ifExtensions(
+  `/**
+* Extensions
+*/
+Prisma.getExtensionContext = ${notSupportOnBrowser('Extensions.getExtensionContext', browser)}
+Prisma.defineExtension = ${notSupportOnBrowser('Extensions.defineExtension', browser)}
+
+`,
+  '',
+)}
 /**
  * Shorthand utilities for JSON filtering
  */
@@ -135,16 +169,21 @@ export type DecimalJsLike = runtime.DecimalJsLike
 /**
  * Metrics 
  */
-export import Metrics = runtime.Metrics
-export import Metric = runtime.Metric
-export import MetricHistogram = runtime.MetricHistogram
-export import MetricHistogramBucket = runtime.MetricHistogramBucket
+export type Metrics = runtime.Metrics
+export type Metric<T> = runtime.Metric<T>
+export type MetricHistogram = runtime.MetricHistogram
+export type MetricHistogramBucket = runtime.MetricHistogramBucket
 
-/**
- * Extensions
- */
-export type Extension = runtime.Extension 
+${ifExtensions(
+  `/**
+* Extensions
+*/
+export type Extension = runtime.Types.Extensions.Args
+export import getExtensionContext = runtime.Extensions.getExtensionContext
 
+`,
+  '',
+)}
 /**
  * Prisma Client JS version: ${clientVersion}
  * Query Engine version: ${engineVersion}
@@ -281,9 +320,9 @@ export type RequiredKeys<T> = {
   [K in keyof T]-?: {} extends Prisma__Pick<T, K> ? never : K
 }[keyof T]
 
-export type TruthyKeys<T> = {
-  [key in keyof T]: T[key] extends false | undefined | null ? never : key
-}[keyof T]
+export type TruthyKeys<T> = keyof {
+  [K in keyof T as T[K] extends false | undefined | null ? never : K]: K
+}
 
 export type TrueKeys<T> = TruthyKeys<Prisma__Pick<T, RequiredKeys<T>>>
 
@@ -421,6 +460,16 @@ type _Record<K extends keyof any, T> = {
   [P in K]: T;
 };
 
+// cause typescript not to expand types and preserve names
+type NoExpand<T> = T extends unknown ? T : never;
+
+// this type assumes the passed object is entirely optional
+type AtLeast<O extends object, K extends string> = NoExpand<
+  O extends unknown
+  ? | (K extends keyof O ? { [P in K]: O[P] } & O : O)
+    | {[P in keyof O as P extends K ? K : never]-?: O[P]} & O
+  : never>;
+
 type _Strict<U, _U = U> = U extends unknown ? U & OptionalFlat<_Record<Exclude<Keys<_U>, keyof U>, never>> : never;
 
 export type Strict<U extends object> = ComputeRaw<_Strict<U>>;
@@ -534,7 +583,7 @@ type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
 type ExcludeUnderscoreKeys<T extends string> = T extends \`_$\{string}\` ? never : T
 
 
-export import FieldRef = runtime.FieldRef
+export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
 
 type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 

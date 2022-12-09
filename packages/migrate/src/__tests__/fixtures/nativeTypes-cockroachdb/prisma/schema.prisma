@@ -145,9 +145,9 @@ model with_compound_unique {
 }
 
 model with_native_types {
-  id              Int      @id
-  text            String   @db.String
-  char            String   @db.Char(256)
+  id   Int    @id
+  text String @db.String
+  char String @db.Char(256)
 
   // TODO: this is not supported, but it's still suggested by the VSCode extension
   // varchar         String   @db.VarChar(5)
@@ -156,6 +156,7 @@ model with_native_types {
   varbit          String   @db.VarBit(5)
   uuid            String   @db.Uuid
   inet            String   @db.Inet
+  // Native type Citext is not supported for cockroachdb connector.
   // citext          String   @db.Citext
   boolean         Boolean  @db.Bool
   integer         Int      @db.Int4

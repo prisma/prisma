@@ -1,0 +1,9 @@
+datasource db {
+  provider = "sqlserver"
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}

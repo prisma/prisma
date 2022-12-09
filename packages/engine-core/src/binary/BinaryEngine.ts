@@ -6,10 +6,8 @@ import { getPlatform, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
-import EventEmitter from 'events'
 import execa from 'execa'
 import fs from 'fs'
-import type { IncomingHttpHeaders } from 'http'
 import net from 'net'
 import pRetry from 'p-retry'
 import path from 'path'
@@ -18,11 +16,13 @@ import { URL } from 'url'
 import { promisify } from 'util'
 
 import type {
-  BatchTransactionOptions,
+  BatchQueryEngineResult,
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
   GetConfigResult,
+  RequestBatchOptions,
+  RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -31,22 +31,24 @@ import { PrismaClientRustError } from '../common/errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { getErrorMessageWithLink } from '../common/errors/utils/getErrorMessageWithLink'
-import type { RustError, RustLog } from '../common/errors/utils/log'
-import { convertLog, getMessage, isRustError, isRustErrorLog } from '../common/errors/utils/log'
+import type { RustLog } from '../common/errors/utils/log'
+import { convertLog, getMessage, isRustErrorLog } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   EngineSpanEvent,
   QueryEngineBatchRequest,
   QueryEngineRequestHeaders,
   QueryEngineResult,
+  QueryEngineResultBatchQueryResult,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
 import { omit } from '../tools/omit'
-import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
+import { createSpan, runInChildSpan } from '../tracing'
 import { TracingConfig } from '../tracing/getTracingConfig'
 import type { Result } from './Connection'
 import { Connection } from './Connection'
@@ -85,7 +87,6 @@ export class BinaryEngine extends Engine {
   private logEmitter: EventEmitter
   private showColors: boolean
   private logQueries: boolean
-  private logLevel?: 'info' | 'warn'
   private env?: Record<string, string>
   private flags: string[]
   private port?: number
@@ -93,14 +94,11 @@ export class BinaryEngine extends Engine {
   private allowTriggerPanic: boolean
   private child?: ChildProcessByStdio<null, Readable, Readable>
   private clientVersion?: string
-  private lastPanic?: Error
   private globalKillSignalReceived?: string
   private startCount = 0
   private previewFeatures: string[] = []
   private engineEndpoint?: string
-  private lastErrorLog?: RustLog
-  private lastRustError?: RustError
-  private socketPath?: string
+  private lastError?: PrismaClientRustError
   private getConfigPromise?: Promise<GetConfigResult>
   private getDmmfPromise?: Promise<DMMF.Document>
   private stopPromise?: Promise<void>
@@ -137,7 +135,6 @@ export class BinaryEngine extends Engine {
     generator,
     datasources,
     showColors,
-    logLevel,
     logQueries,
     env,
     flags,
@@ -149,6 +146,7 @@ export class BinaryEngine extends Engine {
     dirname,
     activeProvider,
     tracingConfig,
+    logEmitter,
   }: EngineConfig) {
     super()
 
@@ -162,12 +160,8 @@ export class BinaryEngine extends Engine {
     this.generator = generator
     this.datasources = datasources
     this.tracingConfig = tracingConfig
-    this.logEmitter = new EventEmitter()
-    this.logEmitter.on('error', () => {
-      // to prevent unhandled error events
-    })
+    this.logEmitter = logEmitter
     this.showColors = showColors ?? false
-    this.logLevel = logLevel
     this.logQueries = logQueries ?? false
     this.clientVersion = clientVersion
     this.flags = flags ?? []
@@ -236,33 +230,24 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     this.checkForTooManyEngines()
   }
 
-  private setError(err: Error | RustLog | RustError) {
-    if (isRustError(err)) {
-      this.lastRustError = err
-      this.logEmitter.emit(
-        'error',
-        new PrismaClientRustError({
-          clientVersion: this.clientVersion!,
-          error: err,
-        }),
-      )
-      if (err.is_panic) {
-        this.handlePanic()
+  // Set error sets an error for async processing, when this doesn't happen in the span of a request
+  // lifecycle, and is instead reported through STDOUT/STDERR of the server.
+  //
+  // See `throwAsyncErrorIfExists` for more information
+  private setError(err: RustLog): void {
+    if (isRustErrorLog(err)) {
+      this.lastError = new PrismaClientRustError({
+        clientVersion: this.clientVersion!,
+        error: err,
+      })
+      if (this.lastError.isPanic()) {
+        if (this.child) {
+          this.stopPromise = killProcessAndWait(this.child)
+        }
+        if (this.currentRequestPromise?.cancel) {
+          this.currentRequestPromise.cancel()
+        }
       }
-    } else if (isRustErrorLog(err)) {
-      this.lastErrorLog = err
-      this.logEmitter.emit(
-        'error',
-        new PrismaClientRustError({
-          clientVersion: this.clientVersion!,
-          log: err,
-        }),
-      )
-      if (err.fields?.message === 'PANIC') {
-        this.handlePanic()
-      }
-    } else {
-      this.logEmitter.emit('error', err)
     }
   }
 
@@ -322,15 +307,6 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
 
     return queryEnginePath
-  }
-
-  private handlePanic(): void {
-    if (this.child) {
-      this.stopPromise = killProcessAndWait(this.child)
-    }
-    if (this.currentRequestPromise?.cancel) {
-      this.currentRequestPromise.cancel()
-    }
   }
 
   private async resolvePrismaPath(): Promise<{
@@ -492,10 +468,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       await this.startPromise
 
       if (!this.child && !this.engineEndpoint) {
-        throw new PrismaClientUnknownRequestError(
-          `Can't perform request, as the Engine has already been stopped`,
-          this.clientVersion!,
-        )
+        throw new PrismaClientUnknownRequestError(`Can't perform request, as the Engine has already been stopped`, {
+          clientVersion: this.clientVersion!,
+        })
       }
     }
 
@@ -512,10 +487,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       PRISMA_DML_PATH: this.datamodelPath,
     }
 
-    if (this.logQueries || this.logLevel === 'info') {
-      if (this.logQueries) {
-        env.LOG_QUERIES = 'true'
-      }
+    if (this.logQueries) {
+      env.LOG_QUERIES = 'true'
     }
 
     if (this.datasources) {
@@ -559,10 +532,8 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           debug(`There is a child that still runs and we want to start again`)
         }
 
-        // reset last panic
-        this.lastRustError = undefined
-        this.lastErrorLog = undefined
-        this.lastPanic = undefined
+        // reset last error
+        this.lastError = undefined
         logger('startin & resettin')
         this.globalKillSignalReceived = undefined
 
@@ -674,10 +645,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
           if (code !== 0 && this.engineStartDeferred && this.startCount === 1) {
             let err
             let msg = this.stderrLogs
-            if (this.lastRustError) {
-              msg = getMessage(this.lastRustError)
-            } else if (this.lastErrorLog) {
-              msg = getMessage(this.lastErrorLog)
+            // get the message from the last error
+            if (this.lastError) {
+              msg = getMessage(this.lastError)
             }
             if (code !== null) {
               err = new PrismaClientInitializationError(
@@ -699,13 +669,13 @@ Make sure that the engine binary at ${prismaPath} is not corrupt.\n` + msg,
           if (!this.child) {
             return
           }
-          if (this.lastRustError) {
+          if (this.lastError) {
             return
           }
           if (code === 126) {
             this.setError({
               timestamp: new Date(),
-              target: 'exit',
+              target: 'binary engine process exit',
               level: 'error',
               fields: {
                 message: `Couldn't start query engine as it's not executable on this operating system.
@@ -717,45 +687,41 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 
         this.child.on('error', (err): void => {
           this.setError({
-            message: err.message,
-            backtrace: 'Could not start query engine',
-            is_panic: false,
+            timestamp: new Date(),
+            target: 'binary engine process error',
+            level: 'error',
+            fields: {
+              message: `Couldn't start query engine: ${err}`,
+            },
           })
           reject(err)
         })
 
         this.child.on('close', (code, signal): void => {
           this.connection.close()
+
+          let toEmit: { message: string } | undefined
+
           if (code === null && signal === 'SIGABRT' && this.child) {
-            const error = new PrismaClientRustPanicError(
+            toEmit = new PrismaClientRustPanicError(
               this.getErrorMessageWithLink('Panic in Query Engine with SIGABRT signal'),
               this.clientVersion!,
             )
-            this.logEmitter.emit('error', error)
-          } else if (
-            code === 255 &&
-            signal === null &&
-            // if there is a "this.lastPanic", the panic has already been handled, so we don't need
-            // to look into it anymore
-            this.lastErrorLog?.fields.message === 'PANIC' &&
-            !this.lastPanic
-          ) {
-            const error = new PrismaClientRustPanicError(
-              this.getErrorMessageWithLink(
-                `${this.lastErrorLog.fields.message}: ${this.lastErrorLog.fields.reason} in ${this.lastErrorLog.fields.file}:${this.lastErrorLog.fields.line}:${this.lastErrorLog.fields.column}`,
-              ),
-              this.clientVersion!,
-            )
-            this.setError(error)
+          } else if (code === 255 && signal === null && this.lastError) {
+            toEmit = this.lastError
+          }
+
+          if (toEmit) {
+            this.logEmitter.emit('error', {
+              message: toEmit.message,
+              timestamp: new Date(),
+              target: 'binary engine process close',
+            })
           }
         })
 
-        if (this.lastRustError) {
-          return reject(new PrismaClientInitializationError(getMessage(this.lastRustError), this.clientVersion!))
-        }
-
-        if (this.lastErrorLog) {
-          return reject(new PrismaClientInitializationError(getMessage(this.lastErrorLog), this.clientVersion!))
+        if (this.lastError) {
+          return reject(new PrismaClientInitializationError(getMessage(this.lastError), this.clientVersion!))
         }
 
         try {
@@ -933,9 +899,16 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return this.lastVersion
   }
 
-  async request<T>(query: string, headers: QueryEngineRequestHeaders = {}, numTry = 1): Promise<QueryEngineResult<T>> {
+  async request<T>({
+    query,
+    headers = {},
+    numTry = 1,
+    isWrite,
+    transaction,
+  }: RequestOptions<undefined>): Promise<QueryEngineResult<T>> {
     await this.start()
 
+    // TODO: we don't need the transactionId "runtime header" anymore, we can use the txInfo object here
     this.currentRequestPromise = this.connection.post('/', stringifyQuery(query), runtimeHeadersToHttpHeaders(headers))
     this.lastQuery = query
 
@@ -946,7 +919,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
           throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
         }
         // this case should not happen, as the query engine only returns one error
-        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), this.clientVersion!)
+        throw new PrismaClientUnknownRequestError(JSON.stringify(data.errors), { clientVersion: this.clientVersion! })
       }
 
       // Rust engine returns time in microseconds and we want it in milliseconds
@@ -962,23 +935,25 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     } catch (e: any) {
       logger('req - e', e)
 
-      await this.handleRequestError(e, numTry <= MAX_REQUEST_RETRIES)
-      // retry
-      if (numTry <= MAX_REQUEST_RETRIES) {
-        logger('trying a retry now')
-        return this.request(query, headers, numTry + 1)
-      }
-    }
+      const { error, shouldRetry } = await this.handleRequestError(e)
 
-    return null as any // needed to make TS happy
+      // retry
+      if (numTry <= MAX_REQUEST_RETRIES && shouldRetry && !isWrite) {
+        logger('trying a retry now')
+        return this.request({ query, headers, numTry: numTry + 1, isWrite, transaction })
+      }
+
+      throw error
+    }
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: QueryEngineRequestHeaders = {},
-    transaction?: BatchTransactionOptions,
+  async requestBatch<T>({
+    queries,
+    headers = {},
+    transaction,
     numTry = 1,
-  ): Promise<QueryEngineResult<T>[]> {
+    containsWrite,
+  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
     await this.start()
 
     const request: QueryEngineBatchRequest = {
@@ -997,8 +972,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         const { batchResult, errors } = data
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
-            if (result.errors) {
-              throw prismaGraphQLToJSError(data.errors[0], this.clientVersion!)
+            if (result.errors && result.errors.length > 0) {
+              return prismaGraphQLToJSError(result.errors[0], this.clientVersion!)
             }
             return {
               data: result,
@@ -1010,15 +985,21 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         }
       })
       .catch(async (e) => {
-        const isError = await this.handleRequestError(e, numTry < 3)
-        if (!isError) {
+        const { error, shouldRetry } = await this.handleRequestError(e)
+        if (shouldRetry && !containsWrite) {
           // retry
           if (numTry <= MAX_REQUEST_RETRIES) {
-            return this.requestBatch(queries, headers, transaction, numTry + 1)
+            return this.requestBatch({
+              queries,
+              headers,
+              transaction,
+              numTry: numTry + 1,
+              containsWrite,
+            })
           }
         }
 
-        throw isError
+        throw error
       })
   }
 
@@ -1029,9 +1010,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info>
-  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
-  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info): Promise<undefined>
+  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info<undefined>>
+  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
+  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
@@ -1043,7 +1024,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       })
 
       const result = await Connection.onHttpError(
-        this.connection.post<Tx.Info>('/transaction/start', jsonOptions, runtimeHeadersToHttpHeaders(headers)),
+        this.connection.post<Tx.Info<undefined>>(
+          '/transaction/start',
+          jsonOptions,
+          runtimeHeadersToHttpHeaders(headers),
+        ),
         (result) => this.transactionHttpErrorHandler(result),
       )
 
@@ -1066,37 +1051,23 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   /**
-   * If we have request errors like "ECONNRESET", we need to get the error from a
-   * different place, not the request itself. This different place can either be
-   * this.lastRustError or this.lastErrorLog
+   * This processes errors that didn't ocur synchronously during a request, and were instead inferred
+   * from the STDOUT/STDERR streams of the Query Engine process.
+   *
+   * See `setError` for more information.
    */
   private throwAsyncErrorIfExists(forceThrow = false) {
     logger('throwAsyncErrorIfExists', this.startCount, this.hasMaxRestarts)
-    if (this.lastRustError) {
-      const err = new PrismaClientRustPanicError(
-        this.getErrorMessageWithLink(getMessage(this.lastRustError)),
-        this.clientVersion!,
-      )
-      if (this.lastRustError.is_panic) {
-        this.lastPanic = err
-      }
-      if (this.hasMaxRestarts || forceThrow) {
-        throw err
-      }
-    }
-
-    if (this.lastErrorLog && isRustErrorLog(this.lastErrorLog)) {
-      const err = new PrismaClientUnknownRequestError(
-        this.getErrorMessageWithLink(getMessage(this.lastErrorLog)),
-        this.clientVersion!,
-      )
-
-      if (this.lastErrorLog?.fields?.message === 'PANIC') {
-        this.lastPanic = err
-      }
-
-      if (this.hasMaxRestarts || forceThrow) {
-        throw err
+    if (this.lastError && (this.hasMaxRestarts || forceThrow)) {
+      const lastError = this.lastError
+      // reset error, as we are throwing it now
+      this.lastError = undefined
+      if (lastError.isPanic()) {
+        throw new PrismaClientRustPanicError(this.getErrorMessageWithLink(getMessage(lastError)), this.clientVersion!)
+      } else {
+        throw new PrismaClientUnknownRequestError(this.getErrorMessageWithLink(getMessage(lastError)), {
+          clientVersion: this.clientVersion!,
+        })
       }
     }
   }
@@ -1112,66 +1083,77 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
-  private handleRequestError = async (error: Error & { code?: string }, graceful = false) => {
+  /**
+   * handleRequestError will process existing errors coming from the request, or else look
+   * for the last error happening in the Query Engine process and processed from the STDOUT/STEDERR
+   * streams.
+   *
+   * See `setError` and `throwAsyncErrorIfExists` for more information.
+   */
+  private handleRequestError = async (
+    error: Error & { code?: string },
+  ): Promise<{ error: Error & { code?: string }; shouldRetry: boolean }> => {
     debug({ error })
+
     // if we are starting, wait for it before we handle any error
     if (this.startPromise) {
       await this.startPromise
     }
 
+    // matching on all relevant error codes from
+    // https://github.com/nodejs/undici/blob/2.x/lib/core/errors.js
+    const isNetworkError = [
+      'ECONNRESET',
+      'ECONNREFUSED',
+      'UND_ERR_CLOSED',
+      'UND_ERR_SOCKET',
+      'UND_ERR_DESTROYED',
+      'UND_ERR_ABORTED',
+    ].includes(error.code as string)
+
     if (error instanceof PrismaClientKnownRequestError) {
-      throw error
+      return { error, shouldRetry: false }
     }
 
-    this.throwAsyncErrorIfExists()
-
-    // A currentRequestPromise is only being canceled by the sendPanic function
-    if (this.currentRequestPromise?.isCanceled) {
-      this.throwAsyncErrorIfExists()
-    } else if (
-      // matching on all relevant error codes from
-      // https://github.com/nodejs/undici/blob/2.x/lib/core/errors.js
-      error.code === 'ECONNRESET' ||
-      error.code === 'ECONNREFUSED' ||
-      error.code === 'UND_ERR_CLOSED' ||
-      error.code === 'UND_ERR_SOCKET' ||
-      error.code === 'UND_ERR_DESTROYED' ||
-      error.code === 'UND_ERR_ABORTED' ||
-      error.message.toLowerCase().includes('client is destroyed') ||
-      error.message.toLowerCase().includes('other side closed') ||
-      error.message.toLowerCase().includes('the client is closed')
-    ) {
-      if (this.globalKillSignalReceived && !this.child?.connected) {
-        throw new PrismaClientUnknownRequestError(
-          `The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
-and your request can't be processed.
-You probably have some open handle that prevents your process from exiting.
-It could be an open http server or stream that didn't close yet.
-We recommend using the \`wtfnode\` package to debug open handles.`,
-          this.clientVersion!,
-        )
-      }
-
+    try {
       this.throwAsyncErrorIfExists()
 
-      if (this.startCount > MAX_STARTS) {
-        // if we didn't throw yet, which is unlikely, we want to poll on stderr / stdout here
-        // to get an error first
-        for (let i = 0; i < 5; i++) {
-          await new Promise((r) => setTimeout(r, 50))
-          this.throwAsyncErrorIfExists(true)
+      // A currentRequestPromise is only being canceled by the sendPanic function
+      if (this.currentRequestPromise?.isCanceled) {
+        this.throwAsyncErrorIfExists()
+      } else if (isNetworkError) {
+        if (this.globalKillSignalReceived && !this.child?.connected) {
+          throw new PrismaClientUnknownRequestError(
+            `The Node.js process already received a ${this.globalKillSignalReceived} signal, therefore the Prisma query engine exited
+  and your request can't be processed.
+  You probably have some open handle that prevents your process from exiting.
+  It could be an open http server or stream that didn't close yet.
+  We recommend using the \`wtfnode\` package to debug open handles.`,
+            { clientVersion: this.clientVersion! },
+          )
         }
-        throw new Error(`Query engine is trying to restart, but can't.
-Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
+
+        this.throwAsyncErrorIfExists()
+
+        if (this.startCount > MAX_STARTS) {
+          // if we didn't throw yet, which is unlikely, we want to poll on stderr / stdout here
+          // to get an error first
+          for (let i = 0; i < 5; i++) {
+            await new Promise((r) => setTimeout(r, 50))
+            this.throwAsyncErrorIfExists(true)
+          }
+
+          throw new Error(`Query engine is trying to restart, but can't.
+  Please look into the logs or turn on the env var DEBUG=* to debug the constantly restarting query engine.`)
+        }
       }
-    }
 
-    if (!graceful) {
       this.throwAsyncErrorIfExists(true)
-      throw error
-    }
 
-    return false
+      throw error
+    } catch (e) {
+      return { error: e, shouldRetry: isNetworkError }
+    }
   }
 
   async metrics(options: MetricsOptionsJson): Promise<Metrics>
@@ -1194,18 +1176,29 @@ Please look into the logs or turn on the env var DEBUG=* to debug the constantly
    */
   transactionHttpErrorHandler<R>(result: Result<R>): never {
     const response = result.data as { [K: string]: unknown }
-    throw new PrismaClientKnownRequestError(
-      response.message as string,
-      response.error_code as string,
-      this.clientVersion as string,
-      response.meta,
-    )
+    throw new PrismaClientKnownRequestError(response.message as string, {
+      code: response.error_code as string,
+      clientVersion: this.clientVersion as string,
+      meta: response.meta as Record<string, unknown>,
+    })
   }
 }
 
 // faster than creating a new object and JSON.stringify it all the time
 function stringifyQuery(q: string) {
   return `{"variables":{},"query":${JSON.stringify(q)}}`
+}
+
+/**
+ * Convert runtime headers to HTTP headers expected by the Query Engine.
+ */
+function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
+  if (headers.transactionId) {
+    const { transactionId, ...httpHeaders } = headers
+    httpHeaders['X-transaction-id'] = transactionId
+    return httpHeaders
+  }
+  return headers
 }
 
 function hookProcess(handler: string, exit = false) {
@@ -1244,26 +1237,6 @@ function initHooks() {
     hookProcess('SIGTERM', true)
     hooksInitialized = true
   }
-}
-
-/**
- * Takes runtime data headers and turns it into QE HTTP headers
- * @param headers to transform
- * @returns
- */
-function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): IncomingHttpHeaders {
-  return Object.keys(headers).reduce((acc, runtimeHeaderKey) => {
-    let httpHeaderKey = runtimeHeaderKey
-
-    if (runtimeHeaderKey === 'transactionId') {
-      httpHeaderKey = 'X-transaction-id'
-    }
-
-    // if header key isn't changed, a copy happens
-    acc[httpHeaderKey] = headers[runtimeHeaderKey]
-
-    return acc
-  }, {} as IncomingHttpHeaders)
 }
 
 function killProcessAndWait(childProcess: ChildProcess): Promise<void> {

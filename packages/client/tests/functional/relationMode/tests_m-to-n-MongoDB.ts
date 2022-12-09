@@ -81,11 +81,16 @@ testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
     // @ts-expect-error
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
+    const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
     /**
      * m:n relationship
      */
-    describeIf(isMongoDB)('m:n mandatory (explicit) - MongoDB', () => {
+
+    // We need to skip when isSchemaUsingMap is true because of
+    // https://github.com/prisma/prisma/issues/15776
+    // The tests are duplicated and running in ../relationMode-m-n-mongodb-failing-with-at-map
+    describeIf(isMongoDB && isSchemaUsingMap === false)('m:n mandatory (explicit) - MongoDB', () => {
       const postModel = 'PostManyToMany'
       const categoryModel = 'CategoryManyToMany'
 
@@ -95,7 +100,7 @@ testMatrix.setupTestSuite(
       })
 
       describe('[create]', () => {
-        test('[create] catgegory alone should succeed', async () => {
+        test('[create] category alone should succeed', async () => {
           await prisma[categoryModel].create({
             data: {
               id: '1',

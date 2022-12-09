@@ -3,6 +3,8 @@ import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import stripAnsi from 'strip-ansi'
 
+import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
+import { applyComputedFieldsToSelection } from './core/extensions/resultUtils'
 import { FieldRefImpl } from './core/model/FieldRef'
 import type { /*dmmf, */ DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
@@ -404,9 +406,12 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
 
     if (error.type === 'atLeastOne') {
       const additional = minimal ? '' : ` Available args are listed in ${chalk.dim.green('green')}.`
+      const atLeastFieldsError = error.atLeastFields
+        ? ` and at least one argument for ${error.atLeastFields.map((field) => chalk.bold(field)).join(', or ')}`
+        : ''
       return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
         error.inputType.name,
-      )} needs ${chalk.greenBright('at least one')} argument.${additional}`
+      )} needs ${chalk.greenBright('at least one')} argument${chalk.bold(atLeastFieldsError)}.${additional}`
     }
 
     if (error.type === 'atMostOne') {
@@ -648,6 +653,10 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
     return value
   }
 
+  if (typeof value === 'number' && inputType?.type === 'Float') {
+    return value.toExponential()
+  }
+
   return JSON.stringify(value, null, 2)
 }
 
@@ -775,9 +784,17 @@ export interface DocumentInput {
   rootField: string
   select?: any
   modelName?: string
+  extensions: MergedExtensionsList
 }
 
-export function makeDocument({ dmmf, rootTypeName, rootField, select, modelName }: DocumentInput): Document {
+export function makeDocument({
+  dmmf,
+  rootTypeName,
+  rootField,
+  select,
+  modelName,
+  extensions,
+}: DocumentInput): Document {
   if (!select) {
     select = {}
   }
@@ -795,7 +812,14 @@ export function makeDocument({ dmmf, rootTypeName, rootField, select, modelName 
   const context = {
     modelName,
   }
-  const children = selectionToFields(dmmf, { [rootField]: select }, fakeRootField, [rootTypeName], context)
+  const children = selectionToFields({
+    dmmf,
+    selection: { [rootField]: select },
+    schemaField: fakeRootField,
+    path: [rootTypeName],
+    context,
+    extensions,
+  })
   return new Document(rootTypeName, children) as any
 }
 
@@ -804,16 +828,32 @@ export function transformDocument(document: Document): Document {
   return document
 }
 
-export function selectionToFields(
-  dmmf: DMMFHelper,
-  selection: any,
-  schemaField: DMMF.SchemaField,
-  path: string[],
-  context: MakeDocumentContext,
-): Field[] {
+type SelectionToFieldsArgs = {
+  dmmf: DMMFHelper
+  selection: any
+  schemaField: DMMF.SchemaField
+  path: string[]
+  context: MakeDocumentContext
+  extensions: MergedExtensionsList
+}
+
+export function selectionToFields({
+  dmmf,
+  selection,
+  schemaField,
+  path,
+  context,
+  extensions,
+}: SelectionToFieldsArgs): Field[] {
   const outputType = schemaField.outputType.type as DMMF.OutputType
+  const computedFields = context.modelName ? extensions.getAllComputedFields(context.modelName) : {}
+  selection = applyComputedFieldsToSelection(selection, computedFields)
   return Object.entries(selection).reduce((acc, [name, value]: any) => {
     const field = outputType.fieldMap ? outputType.fieldMap[name] : outputType.fields.find((f) => f.name === name)
+
+    if (computedFields?.[name]) {
+      return acc
+    }
 
     if (!field) {
       // if the field name is incorrect, we ignore the args and child fields altogether
@@ -828,7 +868,7 @@ export function selectionToFields(
             providedName: name,
             didYouMean: getSuggestion(
               name,
-              outputType.fields.map((f) => f.name),
+              outputType.fields.map((f) => f.name).concat(Object.keys(computedFields ?? {})),
             ),
             outputType,
           },
@@ -1033,8 +1073,25 @@ export function selectionToFields(
       }
     }
 
-    const children =
-      select !== false && isRelation ? selectionToFields(dmmf, select, field, [...path, name], context) : undefined
+    let children: Field[] | undefined
+    if (select !== false && isRelation) {
+      let modelName = context.modelName
+      if (
+        typeof field.outputType.type === 'object' &&
+        field.outputType.namespace === 'model' &&
+        field.outputType.location === 'outputObjectTypes'
+      ) {
+        modelName = field.outputType.type.name
+      }
+      children = selectionToFields({
+        dmmf,
+        selection: select,
+        schemaField: field,
+        path: [...path, name],
+        context: { modelName },
+        extensions,
+      })
+    }
 
     acc.push(new Field({ name, args, children, schemaField: field }))
 
@@ -1343,15 +1400,17 @@ function tryInferArgs(
         const numKeys = keys.length
 
         if (
-          numKeys === 0 &&
-          typeof inputType.type.constraints.minNumFields === 'number' &&
-          inputType.type.constraints.minNumFields > 0
+          (numKeys === 0 &&
+            typeof inputType.type.constraints.minNumFields === 'number' &&
+            inputType.type.constraints.minNumFields > 0) ||
+          inputType.type.constraints.fields?.some((field) => keys.includes(field)) === false
         ) {
           // continue here
           error = {
             type: 'atLeastOne',
             key,
             inputType: inputType.type,
+            atLeastFields: inputType.type.constraints.fields,
           }
         } else if (
           numKeys > 1 &&

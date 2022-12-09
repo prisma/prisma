@@ -12,6 +12,7 @@ To run tests requiring a database, start the test databases using Docker, see [D
   # PostgreSQL
   export TEST_POSTGRES_BASE_URI="postgres://prisma:prisma@localhost:5432"
   export TEST_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/tests"
+  # Note: the isolated instance is only needed for one test (client/src/__tests__/integration/errors/connection-limit-postgres/test.ts)
   export TEST_POSTGRES_ISOLATED_URI="postgres://prisma:prisma@localhost:5435/tests"
   export TEST_POSTGRES_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate"
   export TEST_POSTGRES_SHADOWDB_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb"
@@ -19,6 +20,7 @@ To run tests requiring a database, start the test databases using Docker, see [D
   # MySQL
   export TEST_MYSQL_BASE_URI="mysql://root:root@localhost:3306"
   export TEST_MYSQL_URI="mysql://root:root@localhost:3306/tests"
+  # Note: the isolated instance is only needed for one test (client/src/__tests__/integration/errors/connection-limit-mysql/test.ts)
   export TEST_MYSQL_ISOLATED_URI="mysql://root:root@localhost:3307/tests"
   export TEST_MYSQL_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate"
   export TEST_MYSQL_SHADOWDB_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate-shadowdb"
@@ -46,6 +48,7 @@ To run tests requiring a database, start the test databases using Docker, see [D
   # Prisma Client - Functional test suite
   export TEST_FUNCTIONAL_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME"
   export TEST_FUNCTIONAL_MYSQL_URI="mysql://root:root@localhost:3306/PRISMA_DB_NAME"
+  export TEST_FUNCTIONAL_VITESS_8_URI="mysql://root:root@localhost:33807/PRISMA_DB_NAME"
   export TEST_FUNCTIONAL_MSSQL_URI="sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
   export TEST_FUNCTIONAL_MONGO_URI="mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin"
   export TEST_FUNCTIONAL_COCKROACH_URI="postgresql://prisma@localhost:26257/PRISMA_DB_NAME"
@@ -62,6 +65,12 @@ To run tests requiring a database, start the test databases using Docker, see [D
 
 ## Jest tips
 
+1. Install/update the dependencies, run the following command in the root directory:
+
+   ```sh
+   pnpm i
+   ```
+
 1. We use the [Jest test framework](https://jestjs.io/). Its CLI is powerful and removes the need for npm scripts mostly. For most cases this is what you need to know:
 
    Note: the following command `pnpm run test` can be used inside the packages folders like `packages/client`. In the base folder you can only run `pnpm run test` without extra arguments.
@@ -70,10 +79,10 @@ To run tests requiring a database, start the test databases using Docker, see [D
    pnpm run test <fileNamePattern> -t <testNamePattern>
    ```
 
-   and to update snapshots use the -u option like this (the `--` are required, anything after the dashes will be passed to Jest):
+   and to update snapshots use the -u option
 
    ```sh
-   pnpm run test <fileNamePattern> -- -u
+   pnpm run test <fileNamePattern> -u
    ```
 
 1. In `integration-tests` [Jest's `each` feature](https://jestjs.io/docs/en/api#testeachtablename-fn-timeout) is used. If you only want to run a subset of the test cases, simply leverage the `-t` flag on the command line (see above point). For example in `packages/cli` here is how you would run Just the `findOne where PK` cases for sqlite integration:

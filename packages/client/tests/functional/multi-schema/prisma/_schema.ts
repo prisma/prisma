@@ -2,35 +2,38 @@ import { idForProvider } from '../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, mapTable }) => {
+  const mapTableUser = mapTable === 'IDENTICAL_NAMES' ? 'some_table' : 'some_table_user'
+  const mapTablePost = mapTable === 'IDENTICAL_NAMES' ? 'some_table' : 'some_table_post'
+
   return /* Prisma */ `
-    generator client {
-      provider = "prisma-client-js"
-      previewFeatures = ["multiSchema"]
-    }
-    
-    datasource db {
-      provider = "${provider}"
-      url      = env("DATABASE_URI_${provider}")
-      schemas  = ["base", "transactional"]
-    }
-    
-    model User {
-      id ${idForProvider(provider)}
-      email String
-      posts Post[]
+generator client {
+  provider = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
 
-      @@schema("base")
-      ${mapTable ? '@@map("some_table-1")' : ''}
-    }
+datasource db {
+  provider = "${provider}"
+  url      = env("DATABASE_URI_${provider}")
+  schemas  = ["base", "transactional"]
+}
 
-    model Post {
-      id ${idForProvider(provider)}
-      title     String
-      authorId  String
-      author    User?    @relation(fields: [authorId], references: [id])
+model User {
+  id ${idForProvider(provider)}
+  email String
+  posts Post[]
 
-      @@schema("transactional")
-      ${mapTable ? '@@map("some_table-2")' : ''}
-    }
+  @@schema("base")
+  ${mapTable ? `@@map("${mapTableUser}")` : ''}
+}
+
+model Post {
+  id ${idForProvider(provider)}
+  title     String
+  authorId  String
+  author    User?    @relation(fields: [authorId], references: [id])
+
+  @@schema("transactional")
+  ${mapTable ? `@@map("${mapTablePost}")` : ''}
+}
   `
 })

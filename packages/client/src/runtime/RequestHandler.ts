@@ -1,6 +1,6 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import { getTraceParent, TracingConfig } from '@prisma/engine-core'
+import { EventEmitter, getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -9,16 +9,20 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
+import { Args as ExtensionArgs } from './core/extensions/$extends'
+import { applyResultExtensions } from './core/extensions/applyResultExtensions'
+import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
+import { IncludeSelect, visitQueryResult } from './core/extensions/visitQueryResult'
+import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { DataLoader } from './DataLoader'
-import type { Client, Unpacker } from './getPrismaClient'
+import type { Client, LogEvent, Unpacker } from './getPrismaClient'
 import type { EngineMiddleware } from './MiddlewareHandler'
 import type { Document } from './query'
 import { Args, unpack } from './query'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
-import type { RejectOnNotFound } from './utils/rejectOnNotFound'
-import { throwIfNotFound } from './utils/rejectOnNotFound'
+import { NotFoundError, RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 
 const debug = Debug('prisma:client:request_handler')
 
@@ -33,7 +37,8 @@ export type RequestParams = {
   rejectOnNotFound?: RejectOnNotFound
   transaction?: PrismaPromiseTransaction
   engineHook?: EngineMiddleware
-  args: any
+  extensions: MergedExtensionsList
+  args?: any
   headers?: Record<string, string>
   unpacker?: Unpacker
   otelParentCtx?: Context
@@ -44,6 +49,7 @@ export type HandleErrorParams = {
   error: any
   clientMethod: string
   callsite?: CallSite
+  transaction?: PrismaPromiseTransaction
 }
 
 export type Request = {
@@ -53,6 +59,13 @@ export type Request = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   tracingConfig?: TracingConfig
+}
+
+type ApplyExtensionsParams = {
+  result: object
+  modelName: string
+  args: IncludeSelect
+  extensions: MergedExtensionsList
 }
 
 function getRequestInfo(request: Request) {
@@ -69,7 +82,7 @@ function getRequestInfo(request: Request) {
   }
 
   return {
-    batchTransaction: transaction?.kind === 'batch' ? transaction : undefined,
+    transaction,
     headers,
   }
 }
@@ -78,8 +91,10 @@ export class RequestHandler {
   client: Client
   hooks: any
   dataloader: DataLoader<Request>
+  private logEmmitter?: EventEmitter
 
-  constructor(client: Client, hooks?: any) {
+  constructor(client: Client, hooks?: any, logEmitter?: EventEmitter) {
+    this.logEmmitter = logEmitter
     this.client = client
     this.hooks = hooks
     this.dataloader = new DataLoader({
@@ -92,13 +107,28 @@ export class RequestHandler {
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        return this.client._engine.requestBatch(queries, info.headers, info.batchTransaction)
+        const containsWrite = requests.some((r) => r.document.type === 'mutation')
+
+        const batchTransaction = info.transaction?.kind === 'batch' ? info.transaction : undefined
+
+        return this.client._engine.requestBatch({
+          queries,
+          headers: info.headers,
+          transaction: batchTransaction,
+          containsWrite,
+        })
       },
       singleLoader: (request) => {
         const info = getRequestInfo(request)
         const query = String(request.document)
+        const interactiveTransaction = info.transaction?.kind === 'itx' ? info.transaction : undefined
 
-        return this.client._engine.request(query, info.headers)
+        return this.client._engine.request({
+          query,
+          headers: info.headers,
+          transaction: interactiveTransaction,
+          isWrite: request.document.type === 'mutation',
+        })
       },
       batchBy: (request) => {
         if (request.transaction?.id) {
@@ -124,6 +154,7 @@ export class RequestHandler {
     headers,
     transaction,
     unpacker,
+    extensions,
     otelParentCtx,
     otelChildCtx,
   }: RequestParams) {
@@ -175,17 +206,45 @@ export class RequestHandler {
        */
       const unpackResult = this.unpack(document, data, dataPath, rootField, unpacker)
       throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
+      const extendedResult = this.applyResultExtensions({ result: unpackResult, modelName: typeName, args, extensions })
       if (process.env.PRISMA_CLIENT_GET_TIME) {
-        return { data: unpackResult, elapsed }
+        return { data: extendedResult, elapsed }
       }
-      return unpackResult
+      return extendedResult
     } catch (error) {
-      this.handleRequestError({ error, clientMethod, callsite })
+      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction })
     }
   }
 
-  handleRequestError({ error, clientMethod, callsite }: HandleErrorParams): never {
+  /**
+   * Handles the error and logs it, logging the error is done synchronously waiting for the event
+   * handlers to finish.
+   */
+  handleAndLogRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams): never {
+    try {
+      this.handleRequestError({ error, clientMethod, callsite, transaction })
+    } catch (err) {
+      if (this.logEmmitter) {
+        this.logEmmitter.emit('error', { message: err.message, target: clientMethod, timestamp: new Date() })
+      }
+      throw err
+    }
+  }
+
+  handleRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams): never {
     debug(error)
+
+    if (isMismatchingBatchIndex(error, transaction)) {
+      // if this is batch error and current request was not it's cause, we don't add
+      // context information to the error: this wasn't a request that caused batch to fail
+      throw error
+    }
+
+    if (error instanceof NotFoundError) {
+      // TODO: This is a workaround to keep backwards compatibility with clients
+      // consuming NotFoundError
+      throw error
+    }
 
     let message = error.message
     if (callsite) {
@@ -201,11 +260,19 @@ export class RequestHandler {
     message = this.sanitizeMessage(message)
     // TODO: Do request with callsite instead, so we don't need to rethrow
     if (error.code) {
-      throw new PrismaClientKnownRequestError(message, error.code, this.client._clientVersion, error.meta)
+      throw new PrismaClientKnownRequestError(message, {
+        code: error.code,
+        clientVersion: this.client._clientVersion,
+        meta: error.meta,
+        batchRequestIdx: error.batchRequestIdx,
+      })
     } else if (error.isPanic) {
       throw new PrismaClientRustPanicError(message, this.client._clientVersion)
     } else if (error instanceof PrismaClientUnknownRequestError) {
-      throw new PrismaClientUnknownRequestError(message, this.client._clientVersion)
+      throw new PrismaClientUnknownRequestError(message, {
+        clientVersion: this.client._clientVersion,
+        batchRequestIdx: error.batchRequestIdx,
+      })
     } else if (error instanceof PrismaClientInitializationError) {
       throw new PrismaClientInitializationError(message, this.client._clientVersion)
     } else if (error instanceof PrismaClientRustPanicError) {
@@ -240,9 +307,33 @@ export class RequestHandler {
     return unpack({ document, data, path: getPath })
   }
 
+  applyResultExtensions({ result, modelName, args, extensions }: ApplyExtensionsParams) {
+    if (extensions.isEmpty() || result == null) {
+      return result
+    }
+    const model = this.client._baseDmmf.getModelMap()[modelName]
+    if (!model) {
+      return result
+    }
+    return visitQueryResult({
+      result,
+      args: args ?? {},
+      model,
+      dmmf: this.client._baseDmmf,
+      visitor(value, model, args) {
+        const modelName = dmmfToJSModelName(model.name)
+        return applyResultExtensions({ result: value, modelName, select: args.select, extensions })
+      },
+    })
+  }
+
   get [Symbol.toStringTag]() {
     return 'RequestHandler'
   }
+}
+
+function isMismatchingBatchIndex(error: any, transaction: PrismaPromiseTransaction | undefined) {
+  return hasBatchIndex(error) && transaction?.kind === 'batch' && error.batchRequestIdx !== transaction.index
 }
 
 /**

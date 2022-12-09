@@ -9,7 +9,8 @@ import { identity, pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import { match, P } from 'ts-pattern'
 
-import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
+import { ErrorArea, isExecaErrorCausedByRustPanic, isWasmPanic, RustPanic } from '../panic'
+import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
   createDebugErrorType,
@@ -84,7 +85,19 @@ ${detailsHeader} ${message}`
 
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
+
+  // always use Wasm for now. At some point we'll get rid of the node-api and binary getConfig
   const data: ConfigMetaFormat = await match(cliEngineBinaryType)
+    .when(
+      () => true,
+      () => {
+        return getConfigWasm(options)
+      },
+    )
+
+    /**
+     * @deprecated
+     */
     .with(BinaryType.libqueryEngine, () => {
       return getConfigNodeAPI(options)
     })
@@ -93,6 +106,88 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     })
     .exhaustive()
   return data
+}
+
+async function getConfigWasm(options: GetConfigOptions) {
+  const debugErrorType = createDebugErrorType(debug, 'getConfigWasm')
+  debug(`Using getConfig Wasm`)
+
+  const configEither = pipe(
+    E.tryCatch(
+      () => {
+        if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
+          debug('Triggering a Rust panic...')
+          prismaFmt.debug_panic()
+        }
+
+        const params = JSON.stringify({
+          prismaSchema: options.datamodel,
+          datasourceOverrides: {},
+          ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
+          env: process.env,
+        })
+
+        const data = prismaFmt.get_config(params)
+        return data
+      },
+      (e) => ({
+        type: 'wasm-error' as const,
+        reason: '(get-config wasm)',
+        error: e as Error,
+      }),
+    ),
+    E.map((result) => ({ result })),
+    E.chainW(({ result }) =>
+      // NOTE: this should never fail, as we expect returned values to be valid JSON-serializable strings
+      E.tryCatch(
+        () => JSON.parse(result) as ConfigMetaFormat,
+        (e) => ({
+          type: 'parse-json' as const,
+          reason: 'Unable to parse JSON',
+          error: e as Error,
+        }),
+      ),
+    ),
+  )
+
+  if (E.isRight(configEither)) {
+    debug('config data retrieved without errors in getConfig Wasm')
+    const { right: data } = configEither
+    return Promise.resolve(data)
+  }
+
+  /**
+   * Check which error to throw.
+   */
+  const error = match(configEither.left)
+    .with({ type: 'wasm-error' }, (e) => {
+      debugErrorType(e)
+
+      /**
+       * Capture and propagate possible Wasm panics.
+       */
+      if (isWasmPanic(e.error)) {
+        const wasmError = e.error as Error
+        const panic = new RustPanic(
+          /* message */ wasmError.message,
+          /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
+          /* request */ '@prisma/prisma-fmt-wasm get_config',
+          ErrorArea.FMT_CLI,
+          /* schemaPath */ options.prismaPath,
+          /* schema */ options.datamodel,
+        )
+        return panic
+      }
+
+      const errorOutput = e.error.message
+      return parseConfigError({ errorOutput, reason: e.reason })
+    })
+    .otherwise((e) => {
+      debugErrorType(e)
+      return new GetConfigError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
+    })
+
+  throw error
 }
 
 async function getConfigNodeAPI(options: GetConfigOptions) {
@@ -138,7 +233,7 @@ async function getConfigNodeAPI(options: GetConfigOptions) {
         },
         (e) => ({
           type: 'node-api' as const,
-          reason: 'Error (query-engine-node-api library)',
+          reason: '(query-engine-node-api library)',
           error: e as Error,
         }),
       )
@@ -262,7 +357,7 @@ async function getConfigBinary(options: GetConfigOptions) {
         },
         (e) => ({
           type: 'execa' as const,
-          reason: 'Error (query-engine binary)',
+          reason: '(query-engine binary)',
           error: e as execa.ExecaError,
         }),
       )
@@ -301,6 +396,7 @@ async function getConfigBinary(options: GetConfigOptions) {
   const error: RustPanic | GetConfigError = match(configEither.left)
     .with({ type: 'execa' }, (e) => {
       debugErrorType(e)
+
       /**
        * Capture and propagate possible Rust panics.
        */
@@ -321,40 +417,7 @@ async function getConfigBinary(options: GetConfigOptions) {
        * Extract the actual error by attempting to JSON-parse the output of the query-engine binary.
        */
       const errorOutput = e.error.stderr ?? e.error.stdout
-      const actualError = pipe(
-        E.tryCatch(
-          () => JSON.parse(errorOutput),
-          () => {
-            debug(`Couldn't apply JSON.parse to "${errorOutput}"`)
-            return new GetConfigError({ _tag: 'unparsed', message: errorOutput, reason: e.reason })
-          },
-        ),
-        E.map((errorOutputAsJSON: Record<string, string>) => {
-          const defaultMessage = chalk.redBright(errorOutputAsJSON.message)
-          const getConfigErrorInit = match(errorOutputAsJSON)
-            .with({ error_code: 'P1012' }, (eJSON) => {
-              return {
-                reason: createSchemaValidationError(e.reason),
-                errorCode: eJSON.error_code,
-              }
-            })
-            .with({ error_code: P.string }, (eJSON) => {
-              return {
-                reason: e.reason,
-                errorCode: eJSON.error_code,
-              }
-            })
-            .otherwise(() => {
-              return {
-                reason: e.reason,
-              }
-            })
-
-          return new GetConfigError({ _tag: 'parsed', message: defaultMessage, ...getConfigErrorInit })
-        }),
-        E.getOrElse(identity),
-      )
-      return actualError
+      return parseConfigError({ errorOutput, reason: e.reason })
     })
     .otherwise((e) => {
       debugErrorType(e)
@@ -362,4 +425,46 @@ async function getConfigBinary(options: GetConfigOptions) {
     })
 
   throw error
+}
+
+type ParseConfigError = {
+  errorOutput: string
+  reason: string
+}
+
+function parseConfigError({ errorOutput, reason }: ParseConfigError): GetConfigError {
+  const actualError = pipe(
+    E.tryCatch(
+      () => JSON.parse(errorOutput),
+      () => {
+        debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
+        return new GetConfigError({ _tag: 'unparsed', message: errorOutput, reason })
+      },
+    ),
+    E.map((errorOutputAsJSON: Record<string, string>) => {
+      const defaultMessage = chalk.redBright(errorOutputAsJSON.message)
+      const getConfigErrorInit = match(errorOutputAsJSON)
+        .with({ error_code: 'P1012' }, (eJSON) => {
+          return {
+            reason: createSchemaValidationError(reason),
+            errorCode: eJSON.error_code,
+          }
+        })
+        .with({ error_code: P.string }, (eJSON) => {
+          return {
+            reason,
+            errorCode: eJSON.error_code,
+          }
+        })
+        .otherwise(() => {
+          return {
+            reason,
+          }
+        })
+
+      return new GetConfigError({ _tag: 'parsed', message: defaultMessage, ...getConfigErrorInit })
+    }),
+    E.getOrElse(identity),
+  )
+  return actualError
 }

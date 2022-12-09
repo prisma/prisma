@@ -12,7 +12,7 @@ import {
 } from './getTestSuiteInfo'
 import { DatasourceInfo, setupTestSuiteDatabase, setupTestSuiteFiles, setupTestSuiteSchema } from './setupTestSuiteEnv'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta, ClientRuntime } from './types'
+import { AlterStatementCallback, ClientMeta, ClientRuntime } from './types'
 
 /**
  * Does the necessary setup to get a test suite client ready to run.
@@ -26,16 +26,18 @@ export async function setupTestSuiteClient({
   skipDb,
   datasourceInfo,
   clientMeta,
+  alterStatementCallback,
 }: {
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
   skipDb?: boolean
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
+  alterStatementCallback?: AlterStatementCallback
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig.matrixOptions)
-  const schema = await getTestSuiteSchema(suiteMeta, suiteConfig.matrixOptions)
+  const schema = getTestSuiteSchema(suiteMeta, suiteConfig.matrixOptions)
   const dmmf = await getDMMF({ datamodel: schema, previewFeatures })
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
@@ -44,7 +46,7 @@ export async function setupTestSuiteClient({
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
   if (!skipDb) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig)
+    await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
   }
 
   process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl ?? datasourceInfo.databaseUrl

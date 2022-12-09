@@ -192,7 +192,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
       }
     }
 
-    if (isPostinstall && printBreakingChangesMessage && logger.should.warn) {
+    if (isPostinstall && printBreakingChangesMessage && logger.should.warn()) {
       // skipping generate
       return `There have been breaking changes in Prisma Client since you updated last time.
 Please run \`prisma generate\` manually.`
@@ -206,6 +206,15 @@ Please run \`prisma generate\` manually.`
       )
       let hint = ''
       if (prismaClientJSGenerator) {
+        const generator = prismaClientJSGenerator.options?.generator
+        const isDeno = generator?.previewFeatures.includes('deno') && !!globalThis.Deno
+        if (isDeno && !generator?.isCustomOutput) {
+          throw new Error(`Can't find output dir for generator ${chalk.bold(
+            generator?.name,
+          )} with provider ${chalk.bold(generator?.provider.value)}.
+When using Deno, you need to define \`output\` in the client generator section of your schema.prisma file.`)
+        }
+
         const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
           ? prefixRelativePathIfNecessary(
               replacePathSeparatorsIfNecessary(
@@ -221,7 +230,7 @@ ${breakingChangesMessage}`
 
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning =
-          versionsOutOfSync && logger.should.warn
+          versionsOutOfSync && logger.should.warn()
             ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(`prisma@${pkg.version}`)} and ${chalk.bold(
                 `@prisma/client@${clientGeneratorVersion}`,
               )} don't match.
@@ -238,10 +247,14 @@ ${chalk.dim('```')}${
           prismaClientJSGenerator.options?.dataProxy
             ? `
 
-To use Prisma Client in edge runtimes like Cloudflare Workers or Vercel Edge Functions, import it like this:
-${chalk.dim('```')}
+${
+  isDeno
+    ? 'To use Prisma Client with Deno and the Data Proxy, import it like this:'
+    : 'To use Prisma Client in edge runtimes like Cloudflare Workers or Vercel Edge Functions, import it like this:'
+}
+${chalk.dim('```')} 
 ${highlightTS(`\
-import { PrismaClient } from '${importPath}/edge'`)}
+import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'`)}
 ${chalk.dim('```')}
 
 You will need a Prisma Data Proxy connection string. See documentation: ${link('https://pris.ly/d/data-proxy')}

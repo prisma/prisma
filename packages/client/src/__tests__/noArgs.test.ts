@@ -1,6 +1,7 @@
 import { recommender } from '../fixtures/recommender'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 let dmmf
 describe('no args', () => {
@@ -14,6 +15,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'query',
       rootField: 'findUniqueUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -24,6 +26,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchInlineSnapshot(`
@@ -48,6 +51,7 @@ describe('no args', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(() => document.validate(select, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
     expect(String(document)).toMatchInlineSnapshot(`
@@ -69,6 +73,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -78,6 +83,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'mutation',
       rootField: 'deleteManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchInlineSnapshot(`
@@ -94,6 +100,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'mutation',
       rootField: 'deleteOneUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -103,6 +110,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'mutation',
       rootField: 'updateManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -112,6 +120,7 @@ describe('no args', () => {
       select: undefined,
       rootTypeName: 'mutation',
       rootField: 'upsertOneUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -136,6 +145,7 @@ describe('no args', () => {
       },
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })

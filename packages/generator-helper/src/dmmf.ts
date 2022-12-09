@@ -199,6 +199,7 @@ export namespace DMMF {
     constraints: {
       maxNumFields: number | null
       minNumFields: number | null
+      fields?: string[]
     }
     meta?: {
       source?: string
@@ -219,7 +220,9 @@ export namespace DMMF {
     model: string
     plural: string
     findUnique?: string | null
+    findUniqueOrThrow?: string | null
     findFirst?: string | null
+    findFirstOrThrow?: string | null
     findMany?: string | null
     create?: string | null
     createMany?: string | null
@@ -237,7 +240,9 @@ export namespace DMMF {
 
   export enum ModelAction {
     findUnique = 'findUnique',
+    findUniqueOrThrow = 'findUniqueOrThrow',
     findFirst = 'findFirst',
+    findFirstOrThrow = 'findFirstOrThrow',
     findMany = 'findMany',
     create = 'create',
     createMany = 'createMany',

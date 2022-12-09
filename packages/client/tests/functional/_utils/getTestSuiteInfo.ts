@@ -127,7 +127,8 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
       // For `relationMode` tests
       // we hardcode how it lookks like for test results
       if (config.relationMode !== undefined) {
-        return `relationMode=${config.relationMode},provider=${config.provider},onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
+        const providerFlavorStr = config.providerFlavor === undefined ? '' : `providerFlavor=${config.providerFlavor},`
+        return `relationMode=${config.relationMode},provider=${config.provider},${providerFlavorStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
       } else {
         const firstKey = Object.keys(config)[0]
         return `${firstKey}=${config[firstKey]}`
@@ -143,7 +144,15 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
  * @returns
  */
 export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Record<string, string>) {
-  return require(suiteMeta._schemaPath).default(matrixOptions)
+  const schemaStr = require(suiteMeta._schemaPath).default(matrixOptions)
+
+  // By default, mini-proxy distiguishes different engine instances using inline schema hash
+  // In case 2 tests are running in parallel with identical schema, this can cause all kinds of problems
+  // Adding a unique comment at the top of schema file forces them to have different hash and avoids
+  // those problems
+  const header = `// ${JSON.stringify({ test: suiteMeta.testPath, matrixOptions })}`
+
+  return `${header}\n${schemaStr}`
 }
 
 /**

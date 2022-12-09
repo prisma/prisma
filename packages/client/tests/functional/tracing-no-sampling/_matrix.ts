@@ -5,10 +5,10 @@ export default defineMatrix(() => [
   allProviders,
   [
     {
-      previewFeatures: '"tracing", "interactiveTransactions"',
+      previewFeatures: '"tracing"',
     },
     {
-      previewFeatures: '"interactiveTransactions"',
+      previewFeatures: '',
     },
   ],
 ])

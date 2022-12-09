@@ -1,3 +1,4 @@
+import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -39,8 +40,10 @@ testMatrix.setupTestSuite(
           isolationLevel: level(),
         })
 
-        // eslint-disable-next-line jest/no-standalone-expect
-        expect(queries).toContain(expectSql)
+        await waitFor(() => {
+          // eslint-disable-next-line jest/no-standalone-expect
+          expect(queries).toContain(expectSql)
+        })
       })
     }
 
@@ -71,8 +74,8 @@ testMatrix.setupTestSuite(
     })
 
     test('invalid level generates run- and compile- time error', async () => {
+      // @ts-expect-error
       const result = prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})], {
-        // @ts-expect-error
         isolationLevel: 'yes',
       })
 
@@ -81,9 +84,9 @@ testMatrix.setupTestSuite(
         Invalid \`prisma.$transaction([prisma.user.findFirst()\` invocation in
         /client/tests/functional/batch-transaction-isolation-level/tests.ts:0:0
 
-          XX })
           XX 
           XX test('invalid level generates run- and compile- time error', async () => {
+          XX   // @ts-expect-error
         → XX   const result = prisma.$transaction([prisma.user.findFirst(
         Inconsistent column data: Conversion failed: Invalid isolation level \`yes\`
       `)

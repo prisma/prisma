@@ -4,7 +4,7 @@ import { setRetryable } from './utils/setRetryable'
 
 export interface ServerErrorInfo extends DataProxyAPIErrorInfo {}
 
-const SERVER_ERROR_DEFAULT_MESSAGE = 'Unknown server error'
+export const SERVER_ERROR_DEFAULT_MESSAGE = 'Unknown server error'
 
 export class ServerError extends DataProxyAPIError {
   public name = 'ServerError'

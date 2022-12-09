@@ -76,6 +76,7 @@ function setupTestSuiteMatrix(
           skipDb: options?.skipDb,
           datasourceInfo,
           clientMeta,
+          alterStatementCallback: options?.alterStatementCallback,
         })
 
         globalThis['newPrismaClient'] = (...args) => {
@@ -128,7 +129,7 @@ function setupTestSuiteMatrix(
         delete globalThis['prisma']
         delete globalThis['Prisma']
         delete globalThis['newPrismaClient']
-      })
+      }, 120_000)
 
       tests(suiteConfig.matrixOptions, suiteMeta, clientMeta)
     })

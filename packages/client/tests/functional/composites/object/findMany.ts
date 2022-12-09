@@ -1,5 +1,3 @@
-import { faker } from '@faker-js/faker'
-
 import { setupTestSuite } from './_matrix'
 import { commentDataA, commentDataB } from './_testData'
 // @ts-ignore
@@ -24,21 +22,20 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -58,9 +55,9 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Hello World,
           },
         },
@@ -81,38 +78,37 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }, { id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: false,
               },
-              Object {
+              {
                 userId: 12,
                 vote: true,
               },
             ],
           },
           country: France,
-          id: Any<String>,
+          id: 1ddddddddddddddddddddddd,
         },
-        Object {
-          content: Object {
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -128,21 +124,20 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -158,21 +153,20 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -188,38 +182,37 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }, { id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: false,
               },
-              Object {
+              {
                 userId: 12,
                 vote: true,
               },
             ],
           },
           country: France,
-          id: Any<String>,
+          id: 1ddddddddddddddddddddddd,
         },
-        Object {
-          content: Object {
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -235,21 +228,20 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
             ],
           },
           country: null,
-          id: Any<String>,
+          id: 8aaaaaaaaaaaaaaaaaaaaaaa,
         },
       ]
     `,
@@ -265,25 +257,24 @@ setupTestSuite(() => {
     })
 
     expect(comment).toMatchInlineSnapshot(
-      [{ id: expect.any(String) }],
       `
-      Array [
-        Object {
-          content: Object {
+      [
+        {
+          content: {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: false,
               },
-              Object {
+              {
                 userId: 12,
                 vote: true,
               },
             ],
           },
           country: France,
-          id: Any<String>,
+          id: 1ddddddddddddddddddddddd,
         },
       ]
     `,

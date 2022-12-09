@@ -695,3 +695,269 @@ enum Role {
 
 // introspectionSchemaVersion: NonPrisma,
 `;
+
+exports[`postgresql-multi-schema --url with \`?schema=base\` should succeed 2`] = `
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate?schema=base"
+}
+
+model User {
+  id    String @id
+  email String
+}
+
+model some_table {
+  id    String @id(map: "User_pkey2")
+  email String
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql-multi-schema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
+
+exports[`postgresql-multi-schema datasource property \`schemas=["base", "transactional"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  schemas  = ["base", "transactional"]
+}
+
+model User {
+  id    String @id
+  email String
+  Post  Post[]
+
+  @@schema("base")
+}
+
+model some_table {
+  id         String       @id(map: "User_pkey2")
+  email      String
+  some_table some_table[]
+
+  @@schema("base")
+}
+
+model Post {
+  id       String @id
+  title    String
+  authorId String
+  User     User   @relation(fields: [authorId], references: [id])
+
+  @@schema("transactional")
+}
+
+model some_table {
+  id         String     @id(map: "Post_pkey2")
+  title      String
+  authorId   String
+  some_table some_table @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
+
+  @@schema("transactional")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql-multi-schema datasource property \`schemas=["base"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  schemas  = ["base"]
+}
+
+model User {
+  id    String @id
+  email String
+
+  @@schema("base")
+}
+
+model some_table {
+  id    String @id(map: "User_pkey2")
+  email String
+
+  @@schema("base")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  schemas  = ["base", "does-not-exist"]
+}
+
+model User {
+  id    String @id
+  email String
+
+  @@schema("base")
+}
+
+model some_table {
+  id    String @id(map: "User_pkey2")
+  email String
+
+  @@schema("base")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;
+
+exports[`sqlserver-multi-schema --url with \`?schema=base\` should succeed 2`] = `
+datasource db {
+  provider = "sqlserver"
+  url      = "sqlserver://localhost:1433;database=tests-migrate-multi-schema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
+}
+
+model some_table {
+  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+}
+
+model SomeUser {
+  id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`sqlserver-multi-schema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
+
+exports[`sqlserver-multi-schema datasource property \`schemas=["base", "transactional"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
+  schemas  = ["base", "transactional"]
+}
+
+model Post {
+  id       String   @id(clustered: false, map: "PK__Post__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  title    String   @db.NVarChar(1)
+  authorId String   @db.NVarChar(1)
+  SomeUser SomeUser @relation(fields: [authorId], references: [id])
+
+  @@schema("transactional")
+}
+
+model some_table {
+  id String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+
+  @@schema("base")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model some_table {
+  id    String @db.NVarChar(1)
+  title String @db.NVarChar(1)
+
+  @@ignore
+  @@schema("transactional")
+}
+
+model SomeUser {
+  id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+  Post  Post[]
+
+  @@schema("base")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`sqlserver-multi-schema datasource property \`schemas=["base"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
+  schemas  = ["base"]
+}
+
+model some_table {
+  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+
+  @@schema("base")
+}
+
+model SomeUser {
+  id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+
+  @@schema("base")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`sqlserver-multi-schema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
+  schemas  = ["base", "does-not-exist"]
+}
+
+model some_table {
+  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+
+  @@schema("base")
+}
+
+model SomeUser {
+  id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  email String @db.NVarChar(1)
+
+  @@schema("base")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`sqlserver-multi-schema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;
