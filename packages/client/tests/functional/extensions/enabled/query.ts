@@ -39,7 +39,7 @@ testMatrix.setupTestSuite(
       await prisma.$disconnect()
     })
 
-    testIf(process.platform !== 'win32')('extending a specific model query', async () => {
+    test('extending a specific model query', async () => {
       const fnUser = jest.fn()
       const fnPost = jest.fn()
       const fnEmitter = jest.fn()
@@ -94,7 +94,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    testIf(process.platform !== 'win32')('top to bottom execution order', async () => {
+    test('top to bottom execution order', async () => {
       let i = 0
       const fnUser1 = jest.fn()
       const fnUser2 = jest.fn()
@@ -136,7 +136,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    testIf(process.platform !== 'win32')('args mutation isolation', async () => {
+    test('args mutation isolation', async () => {
       const fnEmitter = jest.fn()
       const fnUser = jest.fn()
 
@@ -195,7 +195,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    testIf(process.platform !== 'win32')('args mutation accumulation', async () => {
+    test('args mutation accumulation', async () => {
       const fnUser = jest.fn()
       const fnEmitter = jest.fn()
 
@@ -243,7 +243,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    testIf(process.platform !== 'win32')('query result override with a simple call', async () => {
+    test('query result override with a simple call', async () => {
       const fnEmitter = jest.fn()
 
       prisma.$on('query', fnEmitter)
@@ -301,7 +301,7 @@ testMatrix.setupTestSuite(
       await wait(() => expect(fnEmitter).not.toHaveBeenCalled())
     })
 
-    testIf(process.platform !== 'win32')('query result override with extra extension before', async () => {
+    test('query result override with extra extension before', async () => {
       const fnEmitter = jest.fn()
       const fnUser = jest.fn()
 
@@ -337,7 +337,7 @@ testMatrix.setupTestSuite(
       await wait(() => expect(fnEmitter).not.toHaveBeenCalled())
     })
 
-    testIf(process.platform !== 'win32')('query result mutation with a simple call', async () => {
+    test('query result mutation with a simple call', async () => {
       const fnEmitter = jest.fn()
 
       prisma.$on('query', fnEmitter)
@@ -359,7 +359,7 @@ testMatrix.setupTestSuite(
       const data = await xprisma.user.findFirst()
 
       expect(data).toMatchInlineSnapshot(`
-        Object {
+        {
           email: jane@doe.io,
           firstName: Jane,
           id: <redacted>,
@@ -369,7 +369,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
 
-    testIf(process.platform !== 'win32')('query result mutation with multiple calls', async () => {
+    test('query result mutation with multiple calls', async () => {
       const fnEmitter = jest.fn()
 
       prisma.$on('query', fnEmitter)
@@ -405,7 +405,7 @@ testMatrix.setupTestSuite(
       const data = await xprisma.user.findFirst()
 
       expect(data).toMatchInlineSnapshot(`
-        Object {
+        {
           email: <redacted>,
           firstName: Jane,
           id: <redacted>,
@@ -453,16 +453,16 @@ testMatrix.setupTestSuite(
         const data = await xprisma.$transaction([xprisma.user.findFirst(), xprisma.post.findFirst()])
 
         expect(data).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            email: <redacted>,
-            firstName: Jane,
-            id: <redacted>,
-            lastName: Doe,
-          },
-          null,
-        ]
-      `)
+          [
+            {
+              email: <redacted>,
+              firstName: Jane,
+              id: <redacted>,
+              lastName: Doe,
+            },
+            null,
+          ]
+        `)
         await waitFor(() => {
           expect(fnEmitter).toHaveBeenCalledTimes(4)
           expect(fnEmitter.mock.calls).toMatchObject([
@@ -500,10 +500,10 @@ testMatrix.setupTestSuite(
         })
 
         expect(data).toMatchInlineSnapshot(`
-        Object {
-          lastName: Doe,
-        }
-      `)
+          {
+            lastName: Doe,
+          }
+        `)
         await waitFor(() => {
           expect(fnEmitter).toHaveBeenCalledTimes(4)
           expect(fnEmitter.mock.calls).toMatchObject([
@@ -544,13 +544,13 @@ testMatrix.setupTestSuite(
         ])
 
         expect(data).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            lastName: Doe,
-          },
-          null,
-        ]
-      `)
+          [
+            {
+              lastName: Doe,
+            },
+            null,
+          ]
+        `)
         await waitFor(() => {
           // user.findFirst 4 queries + post.findFirst 1 query
           expect(fnEmitter).toHaveBeenCalledTimes(5)
@@ -629,14 +629,14 @@ testMatrix.setupTestSuite(
         ])
 
         expect(data).toMatchInlineSnapshot(`
-        Array [
-          Object {
-            firstName: <redacted>,
-            lastName: <redacted>,
-          },
-          null,
-        ]
-      `)
+          [
+            {
+              firstName: <redacted>,
+              lastName: <redacted>,
+            },
+            null,
+          ]
+        `)
 
         await waitFor(() => {
           // user.findFirst 4 queries + post.findFirst 1 query
@@ -662,7 +662,7 @@ testMatrix.setupTestSuite(
       },
     )
 
-    testIf(process.platform !== 'win32')('extending with $allModels and a specific query', async () => {
+    test('extending with $allModels and a specific query', async () => {
       const fnModel = jest.fn()
       const fnEmitter = jest.fn()
 
@@ -705,7 +705,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(2))
     })
 
-    testIf(process.platform !== 'win32')('extending with $allModels and $allOperations', async () => {
+    test('extending with $allModels and $allOperations', async () => {
       const fnModel = jest.fn()
       const fnEmitter = jest.fn()
 
@@ -761,7 +761,7 @@ testMatrix.setupTestSuite(
 
       expect(dataUser).toMatchInlineSnapshot(`null`)
       expect(dataPost).toMatchInlineSnapshot(`null`)
-      expect(dataPosts).toMatchInlineSnapshot(`Array []`)
+      expect(dataPosts).toMatchInlineSnapshot(`[]`)
       expect(fnModel).toHaveBeenCalledTimes(3)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPost)
@@ -769,7 +769,7 @@ testMatrix.setupTestSuite(
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(3))
     })
 
-    testIf(process.platform !== 'win32')('extending with specific model and $allOperations', async () => {
+    test('extending with specific model and $allOperations', async () => {
       const fnModel = jest.fn()
       const fnEmitter = jest.fn()
 
@@ -823,14 +823,14 @@ testMatrix.setupTestSuite(
       const dataPosts = await xprisma.post.findMany(args)
 
       expect(dataPost).toMatchInlineSnapshot(`null`)
-      expect(dataPosts).toMatchInlineSnapshot(`Array []`)
+      expect(dataPosts).toMatchInlineSnapshot(`[]`)
       expect(fnModel).toHaveBeenCalledTimes(2)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsPost)
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsPosts)
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(2))
     })
 
-    testIf(process.platform !== 'win32')('errors in callback', async () => {
+    test('errors in callback', async () => {
       const xprisma = prisma.$extends({
         name: 'Faulty query ext',
         query: {
@@ -847,7 +847,7 @@ testMatrix.setupTestSuite(
       )
     })
 
-    testIf(process.platform !== 'win32')('errors in with no extension name', async () => {
+    test('errors in with no extension name', async () => {
       const xprisma = prisma.$extends({
         query: {
           user: {
@@ -861,6 +861,47 @@ testMatrix.setupTestSuite(
       await expect(xprisma.user.findFirst({})).rejects.toThrowErrorMatchingInlineSnapshot(
         `Error caused by an extension: All is lost!`,
       )
+    })
+
+    test('empty args becomes an empty object', async () => {
+      const fnUser1 = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          user: {
+            findFirst({ args, query, operation, model }) {
+              fnUser1(args)
+              return query(args)
+            },
+          },
+        },
+      })
+
+      const args = undefined
+
+      const data = await xprisma.user.findFirst(args)
+
+      expect(data).not.toBe(null)
+      expect(fnUser1).toHaveBeenCalledWith({})
+      expect(fnUser1).toHaveBeenCalledTimes(1)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
+    })
+
+    test('passing incorrect argument errors', () => {
+      prisma.$extends({
+        query: {
+          user: {
+            async findFirst({ args, query, operation, model }) {
+              const user = await query(args)
+              // @ts-expect-error
+              return query(user)
+            },
+          },
+        },
+      })
     })
   },
   {

@@ -1,5 +1,5 @@
 import { Context, context } from '@opentelemetry/api'
-import Debug from '@prisma/debug'
+import Debug, { clearLogs } from '@prisma/debug'
 import {
   BatchTransactionOptions,
   BinaryEngine,
@@ -591,6 +591,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         e.clientVersion = this._clientVersion
         throw e
       } finally {
+        // Debug module keeps a list of last 100 logs regardless of environment variables.
+        // This can cause a memory leak. It's especially bad in jest environment where keeping an
+        // error in this list will prevent jest sandbox from being GCed. Clearing logs on disconnect
+        // helps to avoid that
+        clearLogs()
         if (!this._dataProxy) {
           this._dmmf = undefined
         }

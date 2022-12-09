@@ -833,7 +833,7 @@ exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist"
 exports[`sqlserver-multi-schema --url with \`?schema=base\` should succeed 2`] = `
 datasource db {
   provider = "sqlserver"
-  url      = "sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
+  url      = "sqlserver://localhost:1433;database=tests-migrate-multi-schema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
 }
 
 model some_table {
@@ -860,18 +860,40 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
   schemas  = ["base", "transactional"]
 }
 
+model Post {
+  id       String   @id(clustered: false, map: "PK__Post__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  title    String   @db.NVarChar(1)
+  authorId String   @db.NVarChar(1)
+  SomeUser SomeUser @relation(fields: [authorId], references: [id])
+
+  @@schema("transactional")
+}
+
 model some_table {
-  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
-  email String @db.NVarChar(1)
+  id String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+
+  @@schema("base")
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+model some_table {
+  id    String @db.NVarChar(1)
+  title String @db.NVarChar(1)
+
+  @@ignore
+  @@schema("transactional")
 }
 
 model SomeUser {
   id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
+  Post  Post[]
+
+  @@schema("base")
 }
 
 
@@ -886,18 +908,22 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
   schemas  = ["base"]
 }
 
 model some_table {
   id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
+
+  @@schema("base")
 }
 
 model SomeUser {
   id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
+
+  @@schema("base")
 }
 
 
@@ -912,18 +938,22 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
   schemas  = ["base", "does-not-exist"]
 }
 
 model some_table {
   id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
+
+  @@schema("base")
 }
 
 model SomeUser {
   id    String @id(clustered: false, map: "PK__SomeUser__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   email String @db.NVarChar(1)
+
+  @@schema("base")
 }
 
 

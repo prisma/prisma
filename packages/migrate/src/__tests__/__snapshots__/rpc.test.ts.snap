@@ -1,5 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`markMigrationRolledBack existing-db-1-migration 2`] = `Object {}`;
+exports[`markMigrationRolledBack existing-db-1-migration 2`] = `{}`;
 
-exports[`markMigrationRolledBack existing-db-1-migration 3`] = `Object {}`;
+exports[`markMigrationRolledBack existing-db-1-migration 3`] = `{}`;

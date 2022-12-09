@@ -1,90 +1,90 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`getConfig datasource with env var - ignoreEnvVarErrors 1`] = `
-Object {
-  "datasources": Array [
-    Object {
+{
+  "datasources": [
+    {
       "activeProvider": "postgresql",
       "name": "db",
       "provider": "postgresql",
-      "url": Object {
+      "url": {
         "fromEnvVar": "SOMETHING-SOMETHING-1234",
         "value": null,
       },
     },
   ],
-  "generators": Array [],
-  "warnings": Array [],
+  "generators": [],
+  "warnings": [],
 }
 `;
 
 exports[`getConfig datasource with env var 1`] = `
-Object {
-  "datasources": Array [
-    Object {
+{
+  "datasources": [
+    {
       "activeProvider": "postgresql",
       "name": "db",
       "provider": "postgresql",
-      "url": Object {
+      "url": {
         "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
         "value": "postgres://user:password@something:5432/db",
       },
     },
   ],
-  "generators": Array [],
-  "warnings": Array [],
+  "generators": [],
+  "warnings": [],
 }
 `;
 
 exports[`getConfig empty config 1`] = `
-Object {
-  "datasources": Array [
-    Object {
+{
+  "datasources": [
+    {
       "activeProvider": "sqlite",
       "name": "db",
       "provider": "sqlite",
-      "url": Object {
+      "url": {
         "fromEnvVar": null,
         "value": "file:../hello.db",
       },
     },
   ],
-  "generators": Array [],
-  "warnings": Array [],
+  "generators": [],
+  "warnings": [],
 }
 `;
 
 exports[`getConfig with generator and datasource 1`] = `
-Object {
-  "datasources": Array [
-    Object {
+{
+  "datasources": [
+    {
       "activeProvider": "sqlite",
       "name": "db",
       "provider": "sqlite",
-      "url": Object {
+      "url": {
         "fromEnvVar": null,
         "value": "file:dev.db",
       },
     },
   ],
-  "generators": Array [
-    Object {
-      "binaryTargets": Array [
-        Object {
+  "generators": [
+    {
+      "binaryTargets": [
+        {
           "fromEnvVar": null,
           "value": "native",
         },
       ],
-      "config": Object {},
+      "config": {},
       "name": "gen",
       "output": null,
-      "previewFeatures": Array [],
-      "provider": Object {
+      "previewFeatures": [],
+      "provider": {
         "fromEnvVar": null,
         "value": "fancy-provider",
       },
     },
   ],
-  "warnings": Array [],
+  "warnings": [],
 }
 `;

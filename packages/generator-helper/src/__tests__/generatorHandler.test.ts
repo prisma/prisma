@@ -86,19 +86,19 @@ describe('generatorHandler', () => {
     await generator.init()
     const manifest = await generator.getManifest(stubOptions.generator)
     expect(manifest).toMatchInlineSnapshot(`
-      Object {
+      {
         "defaultOutput": "default-output",
-        "denylists": Object {
-          "models": Array [
+        "denylists": {
+          "models": [
             "SomeForbiddenModel",
           ],
         },
         "prettyName": "This is a pretty name",
-        "requiresEngines": Array [
+        "requiresEngines": [
           "introspection-engine",
           "query-engine",
         ],
-        "requiresGenerators": Array [
+        "requiresGenerators": [
           "prisma-client-js",
         ],
       }

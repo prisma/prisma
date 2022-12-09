@@ -1,3 +1,5 @@
+import util from 'util'
+
 import { createCompositeProxy } from './createCompositeProxy'
 
 test('forwards properties to the target', () => {
@@ -50,6 +52,22 @@ test('allows to add multiple properties via single layer', () => {
   expect(Object.keys(proxy)).toEqual(['first', 'second'])
   expect(proxy).toHaveProperty('first', 1)
   expect(proxy).toHaveProperty('second', 2)
+})
+
+test('logs proxy properties if used in console.log/util.inspect', () => {
+  const proxy = createCompositeProxy({}, [
+    {
+      getKeys() {
+        return ['first', 'second']
+      },
+
+      getPropertyValue(key) {
+        return key === 'first' ? 1 : 2
+      },
+    },
+  ])
+
+  expect(util.inspect(proxy)).toMatchInlineSnapshot(`{ first: 1, second: 2 }`)
 })
 
 test('allows to set property descriptor via layer', () => {
@@ -224,6 +242,29 @@ test('allows to override a property from a layer', () => {
   ])
 
   proxy.prop = 'override'
+
+  expect(target.prop).toBe('override')
+  expect(proxy.prop).toBe('override')
+})
+
+test('allows to override a property from a layer using defineProperty', () => {
+  const target = {} as Record<string, unknown>
+
+  const proxy = createCompositeProxy(target, [
+    {
+      getKeys() {
+        return ['prop']
+      },
+
+      getPropertyValue() {
+        return 'from proxy'
+      },
+    },
+  ])
+
+  Object.defineProperty(proxy, 'prop', {
+    value: 'override',
+  })
 
   expect(target.prop).toBe('override')
   expect(proxy.prop).toBe('override')

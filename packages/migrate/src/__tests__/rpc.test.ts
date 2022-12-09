@@ -16,10 +16,10 @@ describe('applyMigrations', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-            Object {
-              appliedMigrationNames: Array [],
-            }
-          `)
+      {
+        appliedMigrationNames: [],
+      }
+    `)
     migrate.stop()
   })
 
@@ -53,7 +53,7 @@ describe('createDatabase', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-      Object {
+      {
         databaseName: dev.db,
       }
     `)
@@ -95,10 +95,10 @@ describe('createMigration', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-            Object {
-              generatedMigrationName: 20201231000000_my_migration,
-            }
-          `)
+      {
+        generatedMigrationName: 20201231000000_my_migration,
+      }
+    `)
     migrate.stop()
   })
 
@@ -115,10 +115,10 @@ describe('createMigration', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-            Object {
-              generatedMigrationName: 20201231000000_draft_123,
-            }
-          `)
+      {
+        generatedMigrationName: 20201231000000_draft_123,
+      }
+    `)
     migrate.stop()
   })
 })
@@ -151,12 +151,12 @@ describe('devDiagnostic', () => {
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            action: Object {
-              tag: createMigration,
-            },
-          }
-        `)
+      {
+        action: {
+          tag: createMigration,
+        },
+      }
+    `)
 
     migrate.stop()
   })
@@ -169,25 +169,25 @@ describe('devDiagnostic', () => {
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            action: Object {
-              reason: Drift detected: Your database schema is not in sync with your migration history.
+      {
+        action: {
+          reason: Drift detected: Your database schema is not in sync with your migration history.
 
-          The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
 
-          It should be understood as the set of changes to get from the expected schema to the actual schema.
+      It should be understood as the set of changes to get from the expected schema to the actual schema.
 
-          If you are running this the first time on an existing database, please make sure to read this documentation page:
-          https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/troubleshooting-development
+      If you are running this the first time on an existing database, please make sure to read this documentation page:
+      https://www.prisma.io/docs/guides/database/developing-with-prisma-migrate/troubleshooting-development
 
-          [+] Added tables
-            - Blog
-            - _Migration
-          ,
-              tag: reset,
-            },
-          }
-        `)
+      [+] Added tables
+        - Blog
+        - _Migration
+      ,
+          tag: reset,
+        },
+      }
+    `)
 
     migrate.stop()
   })
@@ -204,13 +204,13 @@ describe('diagnoseMigrationHistory', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            editedMigrationNames: Array [],
-            failedMigrationNames: Array [],
-            hasMigrationsTable: true,
-            history: null,
-          }
-        `)
+      {
+        editedMigrationNames: [],
+        failedMigrationNames: [],
+        hasMigrationsTable: true,
+        history: null,
+      }
+    `)
     migrate.stop()
   })
 
@@ -224,13 +224,13 @@ describe('diagnoseMigrationHistory', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            editedMigrationNames: Array [],
-            failedMigrationNames: Array [],
-            hasMigrationsTable: true,
-            history: null,
-          }
-        `)
+      {
+        editedMigrationNames: [],
+        failedMigrationNames: [],
+        hasMigrationsTable: true,
+        history: null,
+      }
+    `)
     migrate.stop()
   })
 })
@@ -247,7 +247,7 @@ describe('ensureConnectionValidity', () => {
       },
     })
 
-    await expect(result).resolves.toMatchInlineSnapshot(`Object {}`)
+    await expect(result).resolves.toMatchInlineSnapshot(`{}`)
     migrate.stop()
   })
 
@@ -262,7 +262,7 @@ describe('ensureConnectionValidity', () => {
       },
     })
 
-    await expect(result).resolves.toMatchInlineSnapshot(`Object {}`)
+    await expect(result).resolves.toMatchInlineSnapshot(`{}`)
     migrate.stop()
   })
 
@@ -320,12 +320,12 @@ describe('evaluateDataLoss', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            migrationSteps: 1,
-            unexecutableSteps: Array [],
-            warnings: Array [],
-          }
-        `)
+      {
+        migrationSteps: 1,
+        unexecutableSteps: [],
+        warnings: [],
+      }
+    `)
     migrate.stop()
   })
 
@@ -341,12 +341,12 @@ describe('evaluateDataLoss', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            migrationSteps: 0,
-            unexecutableSteps: Array [],
-            warnings: Array [],
-          }
-        `)
+      {
+        migrationSteps: 0,
+        unexecutableSteps: [],
+        warnings: [],
+      }
+    `)
     migrate.stop()
   })
 })
@@ -371,12 +371,12 @@ describe('listMigrationDirectories', () => {
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
-            Object {
-              migrations: Array [
-                20201231000000_init,
-              ],
-            }
-          `)
+      {
+        migrations: [
+          20201231000000_init,
+        ],
+      }
+    `)
 
     migrate.stop()
   })
@@ -389,10 +389,10 @@ describe('listMigrationDirectories', () => {
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
     })
     await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            migrations: Array [],
-          }
-        `)
+      {
+        migrations: [],
+      }
+    `)
 
     migrate.stop()
   })
@@ -433,10 +433,10 @@ describe('markMigrationRolledBack', () => {
     })
 
     expect(result).toMatchInlineSnapshot(`
-          Object {
-            generatedMigrationName: 20201231000000_draft_123,
-          }
-        `)
+      {
+        generatedMigrationName: 20201231000000_draft_123,
+      }
+    `)
 
     fs.write(
       path.join(migrate.migrationsDirectoryPath!, result.generatedMigrationName!, 'migration.sql'),
@@ -494,17 +494,17 @@ describe('markMigrationApplied', () => {
     })
 
     expect(result).toMatchInlineSnapshot(`
-          Object {
-            generatedMigrationName: 20201231000000_draft_123,
-          }
-        `)
+      {
+        generatedMigrationName: 20201231000000_draft_123,
+      }
+    `)
 
     const resultMarkApplied = migrate.engine.markMigrationApplied({
       migrationsDirectoryPath: migrate.migrationsDirectoryPath!,
       migrationName: result.generatedMigrationName!,
     })
 
-    await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`Object {}`)
+    await expect(resultMarkApplied).resolves.toMatchInlineSnapshot(`{}`)
 
     migrate.stop()
   })
@@ -542,12 +542,12 @@ describe('schemaPush', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            executedSteps: 1,
-            unexecutable: Array [],
-            warnings: Array [],
-          }
-      `)
+      {
+        executedSteps: 1,
+        unexecutable: [],
+        warnings: [],
+      }
+    `)
     migrate.stop()
   })
 
@@ -563,14 +563,14 @@ describe('schemaPush', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            executedSteps: 0,
-            unexecutable: Array [],
-            warnings: Array [
-              You are about to drop the \`Blog\` table, which is not empty (1 rows).,
-            ],
-          }
-        `)
+      {
+        executedSteps: 0,
+        unexecutable: [],
+        warnings: [
+          You are about to drop the \`Blog\` table, which is not empty (1 rows).,
+        ],
+      }
+    `)
     migrate.stop()
   })
 
@@ -586,14 +586,14 @@ describe('schemaPush', () => {
     })
 
     await expect(result).resolves.toMatchInlineSnapshot(`
-          Object {
-            executedSteps: 2,
-            unexecutable: Array [],
-            warnings: Array [
-              You are about to drop the \`Blog\` table, which is not empty (1 rows).,
-            ],
-          }
-        `)
+      {
+        executedSteps: 2,
+        unexecutable: [],
+        warnings: [
+          You are about to drop the \`Blog\` table, which is not empty (1 rows).,
+        ],
+      }
+    `)
     migrate.stop()
   })
 })

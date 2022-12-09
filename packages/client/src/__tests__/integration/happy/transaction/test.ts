@@ -47,33 +47,33 @@ test('transaction', async () => {
     db.user.delete({ where: { email: 'test@hey.com' } }),
   ])
   expect(clean(result)).toMatchInlineSnapshot(`
-    Array [
-      Array [
-        Object {
+    [
+      [
+        {
           email: a@a.de,
           id: REMOVED,
           name: Alice,
         },
       ],
-      Object {
+      {
         email: test@hey.com,
         id: REMOVED,
         name: null,
       },
-      Array [
-        Object {
+      [
+        {
           email: a@a.de,
           id: REMOVED,
           name: Alice,
         },
-        Object {
+        {
           email: test@hey.com,
           id: REMOVED,
           name: null,
         },
       ],
       2,
-      Object {
+      {
         email: test@hey.com,
         id: REMOVED,
         name: null,
