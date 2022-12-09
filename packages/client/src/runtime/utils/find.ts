@@ -78,7 +78,7 @@ export function findSync(
 
     // we list the items in the search root
     const items = readdirSync(realRoot, { withFileTypes: true })
-    const stack = [...items.map((i) => ({ item: i, dir: root }))]
+    const queue = [...items.map((i) => ({ item: i, dir: root }))]
 
     for (;;) {
       // we stop if we found enough results
@@ -86,13 +86,13 @@ export function findSync(
         return found
       }
 
-      const nextStackItem = stack.shift()
+      const nextQueueItem = queue.shift()
       // We stop if the search is complete
-      if (nextStackItem === undefined) {
+      if (nextQueueItem === undefined) {
         return found
       }
 
-      const { item, dir } = nextStackItem
+      const { item, dir } = nextQueueItem
       const itemName = item.name
       const itemType = direntToType(item)
       const itemPath = path.join(dir, itemName)
@@ -129,8 +129,8 @@ export function findSync(
           continue
         }
 
-        // Push contents of directory to the end of the stack
-        stack.push(
+        // Push contents of directory to the end of the queue
+        queue.push(
           ...readdirSync(itemPath, { withFileTypes: true }).map((i) => ({
             item: i,
             dir: itemPath,
