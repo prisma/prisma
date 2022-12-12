@@ -73,7 +73,7 @@ export function parseDistro(input: string): GetOSResult['distro'] {
   }
 
   if (idLike.includes('debian') || idLike.includes('ubuntu') || id === 'debian') {
-    return 'debian'
+    return 'rhel'
   }
 
   return
@@ -197,7 +197,7 @@ export async function getPlatform(): Promise<Platform> {
 
   // if just OpenSSL is known, fallback to debian with a specific libssl version
   if (libssl) {
-    return ('debian-openssl-' + libssl) as Platform
+    return ('rhel-openssl-' + libssl) as Platform
   }
 
   // if just the distro is known, fallback to latest OpenSSL 1.1
@@ -206,5 +206,5 @@ export async function getPlatform(): Promise<Platform> {
   }
 
   // use the debian build with OpenSSL 1.1 as a last resort
-  return 'debian-openssl-1.1.x'
+  return 'rhel-openssl-1.1.x'
 }
