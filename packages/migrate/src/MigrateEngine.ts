@@ -148,7 +148,7 @@ export class MigrateEngine {
    * or an executable script that can be passed to dbExecute.
    * Connection to a shadow database is only necessary when either the from or the to params is a migrations directory.
    * Diffs have a direction. Which source is from and which is to matters.
-   * The resulting diff should be thought as a migration from the schema in from to the schema in to.
+   * The resulting diff should be thought of as a migration from the schema in `args.from` to the schema in `args.to`.
    * By default, we output a human-readable diff. If you want an executable script, pass the "script": true param.
    */
   public migrateDiff(args: EngineArgs.MigrateDiffInput): Promise<EngineResults.MigrateDiffOutput> {
