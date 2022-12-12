@@ -45,6 +45,8 @@ services:
       # Other vars !\ If not defined, they cannot be accessed
       # TODO: do an env var cleanup?
       - NPM_TOKEN
+      # Used to create a tag the prisma-engines repository
+      # After packages are published on npm
       - GITHUB_TOKEN
       - UPDATE_STUDIO
       - BUILDKITE
@@ -130,7 +132,7 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:4ffef09870e55574187e78dfd1c719c79b12c17b6d1e911852728d549a5cf022
+    image: vitess/vttestserver:mysql80@sha256:b045d7586131a2360a5023a1a4a09baaba5d84cead6a5c826647d1a89b3eb652
     restart: always
     ports:
       - 33807:33807

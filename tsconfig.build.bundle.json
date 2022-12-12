@@ -4,6 +4,7 @@
   "compilerOptions": {
     "paths": {
       "@prisma/client": ["./packages/client/src"],
+      "@prisma/client/runtime": ["./packages/client/runtime"],
       "@prisma/internals": ["./packages/internals/src"],
       "@prisma/internals/dist/*": ["./packages/internals/src/*"],
       "@prisma/migrate": ["./packages/migrate/src"],

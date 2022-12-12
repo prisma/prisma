@@ -1,5 +1,5 @@
 import { Context, context } from '@opentelemetry/api'
-import Debug from '@prisma/debug'
+import Debug, { clearLogs } from '@prisma/debug'
 import {
   BatchTransactionOptions,
   BinaryEngine,
@@ -30,6 +30,7 @@ import type { InlineDatasources } from '../generation/utils/buildInlineDatasourc
 import { PrismaClientValidationError } from '.'
 import { $extends, Args as Extension } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
+import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { UserArgs } from './core/model/UserArgs'
@@ -343,7 +344,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _activeProvider: string
     _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
-    _extensions: Extension[]
+    _extensions: MergedExtensionsList
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
@@ -359,7 +360,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         // not enabling error logging in the first place.
       })
 
-      this._extensions = []
+      this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = config.generator?.previewFeatures ?? []
       this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
@@ -590,6 +591,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         e.clientVersion = this._clientVersion
         throw e
       } finally {
+        // Debug module keeps a list of last 100 logs regardless of environment variables.
+        // This can cause a memory leak. It's especially bad in jest environment where keeping an
+        // error in this list will prevent jest sandbox from being GCed. Clearing logs on disconnect
+        // helps to avoid that
+        clearLogs()
         if (!this._dataProxy) {
           this._dmmf = undefined
         }

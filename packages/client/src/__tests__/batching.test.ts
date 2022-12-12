@@ -1,6 +1,7 @@
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 import { RequestHandler } from '../runtime/RequestHandler'
 
 describe('batching', () => {
@@ -38,7 +39,7 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniqueUser',
-          extensions: [],
+          extensions: MergedExtensionsList.empty(),
         }),
         isList: false,
         rootField: 'query',
@@ -48,7 +49,7 @@ describe('batching', () => {
             id: '1',
           },
         },
-        extensions: [],
+        extensions: MergedExtensionsList.empty(),
       }),
       fetcher.request({
         clientMethod: 'findUnique',
@@ -62,7 +63,7 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniqueUser',
-          extensions: [],
+          extensions: MergedExtensionsList.empty(),
         }),
         isList: false,
         rootField: 'query',
@@ -72,18 +73,18 @@ describe('batching', () => {
             id: '2',
           },
         },
-        extensions: [],
+        extensions: MergedExtensionsList.empty(),
       }),
     ])
 
     expect(batches).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           containsWrite: false,
-          headers: Object {
+          headers: {
             traceparent: 00-10-10-00,
           },
-          queries: Array [
+          queries: [
             query {
         findUniqueUser(where: {
           id: "1"
@@ -127,7 +128,7 @@ describe('batching', () => {
         },
       ]
     `)
-    expect(requests).toMatchInlineSnapshot(`Array []`)
+    expect(requests).toMatchInlineSnapshot(`[]`)
   })
 
   test('dont batch different models', async () => {
@@ -164,7 +165,7 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniquePost',
-          extensions: [],
+          extensions: MergedExtensionsList.empty(),
         }),
         isList: false,
         rootField: 'query',
@@ -172,7 +173,7 @@ describe('batching', () => {
         args: {
           where: { id: '1' },
         },
-        extensions: [],
+        extensions: MergedExtensionsList.empty(),
       }),
       fetcher.request({
         clientMethod: 'findUnique',
@@ -186,7 +187,7 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniqueUser',
-          extensions: [],
+          extensions: MergedExtensionsList.empty(),
         }),
         isList: false,
         rootField: 'query',
@@ -194,15 +195,15 @@ describe('batching', () => {
         args: {
           where: { id: '2' },
         },
-        extensions: [],
+        extensions: MergedExtensionsList.empty(),
       }),
     ])
 
-    expect(batches).toMatchInlineSnapshot(`Array []`)
+    expect(batches).toMatchInlineSnapshot(`[]`)
     expect(requests).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          headers: Object {
+      [
+        {
+          headers: {
             traceparent: 00-10-10-00,
           },
           isWrite: false,
@@ -222,8 +223,8 @@ describe('batching', () => {
       },
           transaction: undefined,
         },
-        Object {
-          headers: Object {
+        {
+          headers: {
             traceparent: 00-10-10-00,
           },
           isWrite: false,
@@ -286,13 +287,13 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniqueUser',
-          extensions: [],
+          extensions: MergedExtensionsList.empty(),
         }),
         isList: false,
         rootField: 'query',
         typeName: 'User',
         args: { where: { email: 'a@a.de' } },
-        extensions: [],
+        extensions: MergedExtensionsList.empty(),
       }),
       fetcher.request({
         clientMethod: 'findUnique',
@@ -306,21 +307,21 @@ describe('batching', () => {
           },
           rootTypeName: 'query',
           rootField: 'findUniqueUser',
-          extensions: [],
+          extensions: MergedExtensionsList.empty(),
         }),
         isList: false,
         rootField: 'query',
         typeName: 'User',
         args: { where: { id: '2' } },
-        extensions: [],
+        extensions: MergedExtensionsList.empty(),
       }),
     ])
 
-    expect(batches).toMatchInlineSnapshot(`Array []`)
+    expect(batches).toMatchInlineSnapshot(`[]`)
     expect(requests).toMatchInlineSnapshot(`
-      Array [
-        Object {
-          headers: Object {
+      [
+        {
+          headers: {
             traceparent: 00-10-10-00,
           },
           isWrite: false,
@@ -345,8 +346,8 @@ describe('batching', () => {
       },
           transaction: undefined,
         },
-        Object {
-          headers: Object {
+        {
+          headers: {
             traceparent: 00-10-10-00,
           },
           isWrite: false,

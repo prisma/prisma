@@ -7,7 +7,7 @@ import type { QueryEngineRequestHeaders, QueryEngineResult } from './types/Query
 import type * as Transaction from './types/Transaction'
 
 export interface FilterConstructor {
-  new(config: EngineConfig): Engine
+  new (config: EngineConfig): Engine
 }
 
 export type NullableEnvValue = {
@@ -41,6 +41,8 @@ export type RequestBatchOptions = {
   containsWrite: boolean
 }
 
+export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error
+
 // TODO Move shared logic in here
 export abstract class Engine {
   abstract on(event: EngineEventType, listener: (args?: any) => any): void
@@ -50,7 +52,7 @@ export abstract class Engine {
   abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
   abstract request<T>(options: RequestOptions<unknown>): Promise<QueryEngineResult<T>>
-  abstract requestBatch<T>(options: RequestBatchOptions): Promise<QueryEngineResult<T>[]>
+  abstract requestBatch<T>(options: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]>
   abstract transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,

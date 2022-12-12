@@ -3,6 +3,7 @@ import chalk from 'chalk'
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 chalk.level = 0
 
@@ -14,7 +15,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'mutation',
     rootField: 'updateOneUser',
-    extensions: [],
+    extensions: MergedExtensionsList.empty(),
   })
   return String(transformDocument(document))
 }
@@ -98,7 +99,7 @@ describe('minimal atomic update transformation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'updateOneUser',
-      extensions: [],
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchInlineSnapshot(`

@@ -1,6 +1,7 @@
 import { blog } from '../fixtures/blog'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 import { getField, makeDocument, unpack } from '../runtime/query'
 
 let dmmf
@@ -24,7 +25,7 @@ describe('getField', () => {
       },
       rootTypeName: 'query',
       rootField: 'findUniqueUser',
-      extensions: [],
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(getField(document, ['findUniqueUser']).name).toMatchInlineSnapshot(`findUniqueUser`)
@@ -41,7 +42,7 @@ describe('unpack', () => {
       select: {},
       rootTypeName: 'query',
       rootField: 'findUniquePost',
-      extensions: [],
+      extensions: MergedExtensionsList.empty(),
     })
 
     const path = ['findUniquePost']
@@ -66,7 +67,7 @@ describe('unpack', () => {
     expect(result.updatedAt).toBeInstanceOf(Date)
 
     expect(result).toMatchInlineSnapshot(`
-      Object {
+      {
         createdAt: 2019-10-17T09:56:37.690Z,
         id: some-id,
         published: false,
@@ -82,7 +83,7 @@ describe('unpack', () => {
       select: {},
       rootTypeName: 'query',
       rootField: 'findManyPost',
-      extensions: [],
+      extensions: MergedExtensionsList.empty(),
     })
 
     const path = ['findManyPost']
@@ -123,22 +124,22 @@ describe('unpack', () => {
     expect(result[0].updatedAt).toBeInstanceOf(Date)
 
     expect(result).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           createdAt: 2019-10-17T09:56:37.690Z,
           id: some-id,
           published: false,
           title: Some mighty hightly title,
           updatedAt: 2019-10-17T09:56:37.690Z,
         },
-        Object {
+        {
           createdAt: 2019-11-17T09:56:37.690Z,
           id: some-id2,
           published: true,
           title: Having a title that is recital is just vital,
           updatedAt: 2019-11-17T09:56:37.690Z,
         },
-        Object {
+        {
           createdAt: 2019-11-17T09:56:37.690Z,
           id: some-id3,
           published: true,
@@ -159,7 +160,7 @@ describe('unpack', () => {
       },
       rootTypeName: 'query',
       rootField: 'findUniqueUser',
-      extensions: [],
+      extensions: MergedExtensionsList.empty(),
     })
 
     const path = ['findUniqueUser']
@@ -202,28 +203,28 @@ describe('unpack', () => {
     })
 
     expect(result).toMatchInlineSnapshot(`
-      Object {
+      {
         email: a@a.com,
         id: some-id,
-        json: Object {
+        json: {
           hello: world,
         },
-        posts: Array [
-          Object {
+        posts: [
+          {
             createdAt: 2019-10-17T09:56:37.690Z,
             id: some-id,
             published: false,
             title: Some mighty hightly title,
             updatedAt: 2019-10-17T09:56:37.690Z,
           },
-          Object {
+          {
             createdAt: 2019-11-17T09:56:37.690Z,
             id: some-id2,
             published: true,
             title: Having a title that is recital is just vital,
             updatedAt: 2019-11-17T09:56:37.690Z,
           },
-          Object {
+          {
             createdAt: 2019-11-17T09:56:37.690Z,
             id: some-id3,
             published: true,
