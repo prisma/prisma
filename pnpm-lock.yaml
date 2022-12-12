@@ -679,7 +679,7 @@ importers:
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
-      '@prisma/prisma-fmt-wasm': 4.8.0-30.integration-debian-is-now-rhel-244a31f37b9c296665177aca58dd7d2d1e2b0071
+      '@prisma/prisma-fmt-wasm': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.23
       '@types/jest': 29.2.4
@@ -736,7 +736,7 @@ importers:
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
-      '@prisma/prisma-fmt-wasm': 4.8.0-30.integration-debian-is-now-rhel-244a31f37b9c296665177aca58dd7d2d1e2b0071
+      '@prisma/prisma-fmt-wasm': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
       archiver: 5.3.1
       arg: 5.0.2
       chalk: 4.1.2
@@ -3218,8 +3218,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-fmt-wasm/4.8.0-30.integration-debian-is-now-rhel-244a31f37b9c296665177aca58dd7d2d1e2b0071:
-    resolution: {integrity: sha512-1WCdLKjlDX+6IH+ZH9KuOPXPJaEn3GTKiq/J0qm+AhCGyfbz52o/fXoPrhwlOBoiPZJJOwIWnqlEvXUle5RsuQ==}
+  /@prisma/prisma-fmt-wasm/4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2:
+    resolution: {integrity: sha512-VMVGop7AccIcACnYGpNC475rl85O91C8D+xwBbY0ZX4jOd/idDImM/xk9/eaAnCUFh5MleE+26VQtuiv73SF4g==}
     dev: false
 
   /@prisma/studio-common/0.479.0:
