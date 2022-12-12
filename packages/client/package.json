@@ -149,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.8.0-29.integration-debian-is-now-rhel-171d29628e84ffa45793f80672686f4f6dd38e2d"
+    "@prisma/engines-version": "4.8.0-30.integration-debian-is-now-rhel-244a31f37b9c296665177aca58dd7d2d1e2b0071"
   },
   "sideEffects": false
 }
