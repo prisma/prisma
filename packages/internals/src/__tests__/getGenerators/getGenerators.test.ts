@@ -382,7 +382,7 @@ describe('getGenerators', () => {
 
   it('basic - binaryTargets as env var - darwin, windows, debian', async () => {
     process.env.BINARY_TARGETS_ENV_VAR_TEST =
-      '["darwin", "darwin-arm64", "windows", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]'
+      '["darwin", "darwin-arm64", "windows", "rhel-openssl-1.1.x", "rhel-openssl-3.0.x"]'
 
     const aliases = {
       'predefined-generator': {

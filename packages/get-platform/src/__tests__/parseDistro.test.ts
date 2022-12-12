@@ -6,14 +6,14 @@ const tests = [
     content: `
 ID=debian
   `,
-    expect: 'debian',
+    expect: 'rhel',
   },
   {
     name: 'simple with quotes',
     content: `
 ID="debian"
   `,
-    expect: 'debian',
+    expect: 'rhel',
   },
   {
     name: 'debian',
@@ -25,7 +25,7 @@ VERSION="10 (buster)"
 VERSION_CODENAME=buster
 ID=debian
   `,
-    expect: 'debian',
+    expect: 'rhel',
   },
   {
     name: 'ubuntu',
@@ -39,7 +39,7 @@ VERSION_ID="18.04"
 VERSION_CODENAME=bionic
 UBUNTU_CODENAME=bionic
   `,
-    expect: 'debian',
+    expect: 'rhel',
   },
   {
     name: 'amazon linux 1',
@@ -120,7 +120,7 @@ VERSION_ID="18.2"
 VERSION_CODENAME=sonya
 UBUNTU_CODENAME=xenial
   `,
-    expect: 'debian',
+    expect: 'rhel',
   },
 ]
 
