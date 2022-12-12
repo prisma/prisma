@@ -462,11 +462,11 @@ describe('getGenerators', () => {
           },
           {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
-            "value": "debian-openssl-1.1.x",
+            "value": "rhel-openssl-1.1.x",
           },
           {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
-            "value": "debian-openssl-3.0.x",
+            "value": "rhel-openssl-3.0.x",
           },
         ],
         "config": {},
