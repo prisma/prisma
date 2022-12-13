@@ -233,7 +233,7 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
-      '@prisma/engines-version': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
+      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -301,7 +301,7 @@ importers:
       yeoman-generator: 5.7.0
       yo: 4.3.1
     dependencies:
-      '@prisma/engines-version': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
+      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
     devDependencies:
       '@faker-js/faker': 7.6.0
       '@fast-check/jest': 1.4.0_@jest+globals@29.3.1
@@ -458,7 +458,7 @@ importers:
   packages/engines:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
+      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
       '@prisma/fetch-engine': workspace:*
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.14
@@ -470,7 +470,7 @@ importers:
       typescript: 4.8.4
     devDependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engines-version': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
+      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/get-platform': link:../get-platform
       '@swc/core': 1.3.14
@@ -484,7 +484,7 @@ importers:
   packages/fetch-engine:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
+      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23
@@ -530,7 +530,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.1
     devDependencies:
-      '@prisma/engines-version': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
+      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23_@swc+core@1.3.14
       '@types/jest': 29.2.4
@@ -679,7 +679,7 @@ importers:
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
-      '@prisma/prisma-fmt-wasm': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
+      '@prisma/prisma-fmt-wasm': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.23
       '@types/jest': 29.2.4
@@ -736,7 +736,7 @@ importers:
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
-      '@prisma/prisma-fmt-wasm': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
+      '@prisma/prisma-fmt-wasm': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
       archiver: 5.3.1
       arg: 5.0.2
       chalk: 4.1.2
@@ -791,7 +791,7 @@ importers:
   packages/migrate:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
+      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
@@ -846,7 +846,7 @@ importers:
       strip-indent: 3.0.0
       ts-pattern: 4.0.5
     devDependencies:
-      '@prisma/engines-version': 4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2
+      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.3.14
@@ -959,15 +959,15 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/client-cognito-identity/3.226.0:
-    resolution: {integrity: sha512-f97yYtFN2YyVLCkDM51yLakb5NKy9gTSSXWe9mA9rgynLPfgsJbIHXv3zr1Qg0Ay0p4j1eLYukLaVw1MKlHDgw==}
+  /@aws-sdk/client-cognito-identity/3.229.0:
+    resolution: {integrity: sha512-t2WIJ/6SdLQOoahhY+mze8BFY3Cny+1qmo8AVRsdU9Y0aDU4+3pW07j+hkoeFpnEtBEseJCxKuCCNFCD6qJD5Q==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 2.0.0
       '@aws-crypto/sha256-js': 2.0.0
-      '@aws-sdk/client-sts': 3.226.0
+      '@aws-sdk/client-sts': 3.229.0
       '@aws-sdk/config-resolver': 3.226.0
-      '@aws-sdk/credential-provider-node': 3.226.0
+      '@aws-sdk/credential-provider-node': 3.229.0
       '@aws-sdk/fetch-http-handler': 3.226.0
       '@aws-sdk/hash-node': 3.226.0
       '@aws-sdk/invalid-dependency': 3.226.0
@@ -976,7 +976,7 @@ packages:
       '@aws-sdk/middleware-host-header': 3.226.0
       '@aws-sdk/middleware-logger': 3.226.0
       '@aws-sdk/middleware-recursion-detection': 3.226.0
-      '@aws-sdk/middleware-retry': 3.226.0
+      '@aws-sdk/middleware-retry': 3.229.0
       '@aws-sdk/middleware-serde': 3.226.0
       '@aws-sdk/middleware-signing': 3.226.0
       '@aws-sdk/middleware-stack': 3.226.0
@@ -993,6 +993,7 @@ packages:
       '@aws-sdk/util-defaults-mode-browser': 3.226.0
       '@aws-sdk/util-defaults-mode-node': 3.226.0
       '@aws-sdk/util-endpoints': 3.226.0
+      '@aws-sdk/util-retry': 3.229.0
       '@aws-sdk/util-user-agent-browser': 3.226.0
       '@aws-sdk/util-user-agent-node': 3.226.0
       '@aws-sdk/util-utf8-browser': 3.188.0
@@ -1003,8 +1004,8 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/client-sso-oidc/3.226.0:
-    resolution: {integrity: sha512-IKzAhL6RoPs7IZ/rJvekjedQ4oesazCO+Aqh9l2Xct+XY0MFBdh4amgg4t/8fjksfIzmJH48BZoNv5gVak6yRw==}
+  /@aws-sdk/client-sso-oidc/3.229.0:
+    resolution: {integrity: sha512-sb9eRqnqMWVvdg4k9UTuC08IvRQOwpX2bT3XXoYioHYoy/ChUFPrNazrmuZwj6GFrIWkl0pIPCeqVfScZM3EYw==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 2.0.0
@@ -1018,7 +1019,7 @@ packages:
       '@aws-sdk/middleware-host-header': 3.226.0
       '@aws-sdk/middleware-logger': 3.226.0
       '@aws-sdk/middleware-recursion-detection': 3.226.0
-      '@aws-sdk/middleware-retry': 3.226.0
+      '@aws-sdk/middleware-retry': 3.229.0
       '@aws-sdk/middleware-serde': 3.226.0
       '@aws-sdk/middleware-stack': 3.226.0
       '@aws-sdk/middleware-user-agent': 3.226.0
@@ -1034,6 +1035,7 @@ packages:
       '@aws-sdk/util-defaults-mode-browser': 3.226.0
       '@aws-sdk/util-defaults-mode-node': 3.226.0
       '@aws-sdk/util-endpoints': 3.226.0
+      '@aws-sdk/util-retry': 3.229.0
       '@aws-sdk/util-user-agent-browser': 3.226.0
       '@aws-sdk/util-user-agent-node': 3.226.0
       '@aws-sdk/util-utf8-browser': 3.188.0
@@ -1044,8 +1046,8 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/client-sso/3.226.0:
-    resolution: {integrity: sha512-+Hl1YSLKrxPnQLijhWryI6uV8eKZIsUhvWlzFKx75kjxzjsC/jyk5zV59jnCu0SCCepXB8DKyLVa2WpH7iAHew==}
+  /@aws-sdk/client-sso/3.229.0:
+    resolution: {integrity: sha512-gcPitIBAxwwhkCPKtod02ZjaFD5UCdwFYq31XsCY0OQDV+CFalSd+3gjKyDQOMtfgegLYyOvMQvlIU+geUFRZg==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 2.0.0
@@ -1059,7 +1061,7 @@ packages:
       '@aws-sdk/middleware-host-header': 3.226.0
       '@aws-sdk/middleware-logger': 3.226.0
       '@aws-sdk/middleware-recursion-detection': 3.226.0
-      '@aws-sdk/middleware-retry': 3.226.0
+      '@aws-sdk/middleware-retry': 3.229.0
       '@aws-sdk/middleware-serde': 3.226.0
       '@aws-sdk/middleware-stack': 3.226.0
       '@aws-sdk/middleware-user-agent': 3.226.0
@@ -1075,6 +1077,7 @@ packages:
       '@aws-sdk/util-defaults-mode-browser': 3.226.0
       '@aws-sdk/util-defaults-mode-node': 3.226.0
       '@aws-sdk/util-endpoints': 3.226.0
+      '@aws-sdk/util-retry': 3.229.0
       '@aws-sdk/util-user-agent-browser': 3.226.0
       '@aws-sdk/util-user-agent-node': 3.226.0
       '@aws-sdk/util-utf8-browser': 3.188.0
@@ -1085,14 +1088,14 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/client-sts/3.226.0:
-    resolution: {integrity: sha512-ZBlqRVbnHvvbkN5g56+mXltNybHNzgV69+2ARubQ8ge9U2qF/LweCmGqZnZLWqdGXwaB9IOvz5ZW2npyJh1X/A==}
+  /@aws-sdk/client-sts/3.229.0:
+    resolution: {integrity: sha512-UjGVIzYouEu14YkDy4o+IkVUsx8kLEYNYX5vrymNAT67lNnN/gSyV3h0XgMNzNQHZvtso9c96C6ZGeGW/AVUqQ==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 2.0.0
       '@aws-crypto/sha256-js': 2.0.0
       '@aws-sdk/config-resolver': 3.226.0
-      '@aws-sdk/credential-provider-node': 3.226.0
+      '@aws-sdk/credential-provider-node': 3.229.0
       '@aws-sdk/fetch-http-handler': 3.226.0
       '@aws-sdk/hash-node': 3.226.0
       '@aws-sdk/invalid-dependency': 3.226.0
@@ -1101,7 +1104,7 @@ packages:
       '@aws-sdk/middleware-host-header': 3.226.0
       '@aws-sdk/middleware-logger': 3.226.0
       '@aws-sdk/middleware-recursion-detection': 3.226.0
-      '@aws-sdk/middleware-retry': 3.226.0
+      '@aws-sdk/middleware-retry': 3.229.0
       '@aws-sdk/middleware-sdk-sts': 3.226.0
       '@aws-sdk/middleware-serde': 3.226.0
       '@aws-sdk/middleware-signing': 3.226.0
@@ -1119,6 +1122,7 @@ packages:
       '@aws-sdk/util-defaults-mode-browser': 3.226.0
       '@aws-sdk/util-defaults-mode-node': 3.226.0
       '@aws-sdk/util-endpoints': 3.226.0
+      '@aws-sdk/util-retry': 3.229.0
       '@aws-sdk/util-user-agent-browser': 3.226.0
       '@aws-sdk/util-user-agent-node': 3.226.0
       '@aws-sdk/util-utf8-browser': 3.188.0
@@ -1142,11 +1146,11 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-provider-cognito-identity/3.226.0:
-    resolution: {integrity: sha512-ukueK6kgTxvUX89oQBoArj7Oh0dYfkToHypnin08SHRZry9VNnK5IfSMO+Q1tXmxCnDtai1ejaAOny900OjMyg==}
+  /@aws-sdk/credential-provider-cognito-identity/3.229.0:
+    resolution: {integrity: sha512-RvIrJ/jHCUhGtAjp1hIrbbZ/FyAgx5GZ1Tu708FK58LoCqfA5mKUEmv4cUpRTo/VP7w1Wf3qloK4rmqfkNjAkg==}
     engines: {node: '>=14.0.0'}
     dependencies:
-      '@aws-sdk/client-cognito-identity': 3.226.0
+      '@aws-sdk/client-cognito-identity': 3.229.0
       '@aws-sdk/property-provider': 3.226.0
       '@aws-sdk/types': 3.226.0
       tslib: 2.4.1
@@ -1177,13 +1181,13 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-provider-ini/3.226.0:
-    resolution: {integrity: sha512-Sj7SGl53qmKkD7wvgU0MSTyj8ho6A3tKVbadTHljVz60jiauTEM97Z1DIai6U3oPFVteaKqx7npc8ozeK6mKNg==}
+  /@aws-sdk/credential-provider-ini/3.229.0:
+    resolution: {integrity: sha512-DbzsaUXoBYvImlWaJ+gRL0HPelDFcQylIc+JnciYuSPLE+wwL3IZRdzkyIOBYz68JwMHd8jGJf+PycbkATOqOw==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-sdk/credential-provider-env': 3.226.0
       '@aws-sdk/credential-provider-imds': 3.226.0
-      '@aws-sdk/credential-provider-sso': 3.226.0
+      '@aws-sdk/credential-provider-sso': 3.229.0
       '@aws-sdk/credential-provider-web-identity': 3.226.0
       '@aws-sdk/property-provider': 3.226.0
       '@aws-sdk/shared-ini-file-loader': 3.226.0
@@ -1194,15 +1198,15 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-provider-node/3.226.0:
-    resolution: {integrity: sha512-kuOeiVmlhSyMC1Eix0pqHmb4EmpbMHrTw+9ObZbQ2bRXy05Q9fLA6SVBcI01bI1KVh7Qqz9i8ojOY3A2zscjyA==}
+  /@aws-sdk/credential-provider-node/3.229.0:
+    resolution: {integrity: sha512-VIQ+eamKDqJ9ps4McSJGI0Bx57/NQ8WaU5dz1EOeluwM8LTK1i6aQeSzOcy+A66/b+pni1oIjAF7PfSsdEqdpA==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-sdk/credential-provider-env': 3.226.0
       '@aws-sdk/credential-provider-imds': 3.226.0
-      '@aws-sdk/credential-provider-ini': 3.226.0
+      '@aws-sdk/credential-provider-ini': 3.229.0
       '@aws-sdk/credential-provider-process': 3.226.0
-      '@aws-sdk/credential-provider-sso': 3.226.0
+      '@aws-sdk/credential-provider-sso': 3.229.0
       '@aws-sdk/credential-provider-web-identity': 3.226.0
       '@aws-sdk/property-provider': 3.226.0
       '@aws-sdk/shared-ini-file-loader': 3.226.0
@@ -1224,14 +1228,14 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-provider-sso/3.226.0:
-    resolution: {integrity: sha512-QSBeyOIAus4/8u/DeAstE8w/zw+F7PQohdB8JFP/BPaCfc8uKue4UkqqvQWRfm4VSEnHeXt037MDopmCpd98Iw==}
+  /@aws-sdk/credential-provider-sso/3.229.0:
+    resolution: {integrity: sha512-RI9xjwp2NBJjm2bPOcTK7NwAxqzJxIZPjukVjidC2N3B1Ca5Gn+yUji2iYf7c9KavTROY80j/rieHMb14n7iSw==}
     engines: {node: '>=14.0.0'}
     dependencies:
-      '@aws-sdk/client-sso': 3.226.0
+      '@aws-sdk/client-sso': 3.229.0
       '@aws-sdk/property-provider': 3.226.0
       '@aws-sdk/shared-ini-file-loader': 3.226.0
-      '@aws-sdk/token-providers': 3.226.0
+      '@aws-sdk/token-providers': 3.229.0
       '@aws-sdk/types': 3.226.0
       tslib: 2.4.1
     transitivePeerDependencies:
@@ -1249,21 +1253,21 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-providers/3.226.0:
-    resolution: {integrity: sha512-oNkUBxlX0kmwt8jEyQAH7p5Tk1g9iWEKGGCTPPZ7A5RoZpmv83zT8ReZ/+QsSmJIWGb0zzraHMzKbmfMSeztZg==}
+  /@aws-sdk/credential-providers/3.229.0:
+    resolution: {integrity: sha512-AGpLZFScqqkP6qiHlmxBX5yq7AR1uYLxrty0hT91IgzZxeI1lo951q0ynsfLUl+NFXsPkVAImvzyXdLCVN6W5A==}
     engines: {node: '>=14.0.0'}
     requiresBuild: true
     dependencies:
-      '@aws-sdk/client-cognito-identity': 3.226.0
-      '@aws-sdk/client-sso': 3.226.0
-      '@aws-sdk/client-sts': 3.226.0
-      '@aws-sdk/credential-provider-cognito-identity': 3.226.0
+      '@aws-sdk/client-cognito-identity': 3.229.0
+      '@aws-sdk/client-sso': 3.229.0
+      '@aws-sdk/client-sts': 3.229.0
+      '@aws-sdk/credential-provider-cognito-identity': 3.229.0
       '@aws-sdk/credential-provider-env': 3.226.0
       '@aws-sdk/credential-provider-imds': 3.226.0
-      '@aws-sdk/credential-provider-ini': 3.226.0
-      '@aws-sdk/credential-provider-node': 3.226.0
+      '@aws-sdk/credential-provider-ini': 3.229.0
+      '@aws-sdk/credential-provider-node': 3.229.0
       '@aws-sdk/credential-provider-process': 3.226.0
-      '@aws-sdk/credential-provider-sso': 3.226.0
+      '@aws-sdk/credential-provider-sso': 3.229.0
       '@aws-sdk/credential-provider-web-identity': 3.226.0
       '@aws-sdk/property-provider': 3.226.0
       '@aws-sdk/shared-ini-file-loader': 3.226.0
@@ -1365,12 +1369,12 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/middleware-retry/3.226.0:
-    resolution: {integrity: sha512-uMn4dSkv9Na2uvt6K3HgTnVrCRAlGv1MBAtUDLXONqUv1L/Z1fp3CkFkLKQHKylfBwBhe6dXfYEo87i8LZFoqg==}
+  /@aws-sdk/middleware-retry/3.229.0:
+    resolution: {integrity: sha512-/y0BWio9b2RRH2QvRTohbuqE0vhH4IZKlc6k+JRbGV9aSwyOzACU/L/qkGftC/W0puvgNvZYjGxmB6cGHAEZaw==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-sdk/protocol-http': 3.226.0
-      '@aws-sdk/service-error-classification': 3.226.0
+      '@aws-sdk/service-error-classification': 3.229.0
       '@aws-sdk/types': 3.226.0
       '@aws-sdk/util-middleware': 3.226.0
       tslib: 2.4.1
@@ -1491,8 +1495,8 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/service-error-classification/3.226.0:
-    resolution: {integrity: sha512-9R01dBpE8JILe2CTft7YN2tMufT2mMWMTqxmHwPSmOpsxHTj8hEII7GTfvpb95ThHwW7XMNhg7pbHLbrTJZCVA==}
+  /@aws-sdk/service-error-classification/3.229.0:
+    resolution: {integrity: sha512-dnzWWQ0/NoWMUZ5C0DW3dPm0wC1O76Y/SpKbuJzWPkx1EYy6r8p32Ly4D9vUzrKDbRGf48YHIF2kOkBmu21CLg==}
     engines: {node: '>=14.0.0'}
     dev: false
     optional: true
@@ -1529,11 +1533,11 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/token-providers/3.226.0:
-    resolution: {integrity: sha512-3ouRt2i3ve8ivg54PxPhtOTcipzf6BoQsMw0EiO23yYKujhyeFH2IkxV4EYC687xFrUjheqJf8FWU/DD8EQ/ow==}
+  /@aws-sdk/token-providers/3.229.0:
+    resolution: {integrity: sha512-LmB40GDKch3LUfTOC6r2fWQoMYrvXoO9eN3TE0eVTWi/p8xCaROcnwb5pWe3mCCrKVygA4XZXSXkUO3DZhJL3w==}
     engines: {node: '>=14.0.0'}
     dependencies:
-      '@aws-sdk/client-sso-oidc': 3.226.0
+      '@aws-sdk/client-sso-oidc': 3.229.0
       '@aws-sdk/property-provider': 3.226.0
       '@aws-sdk/shared-ini-file-loader': 3.226.0
       '@aws-sdk/types': 3.226.0
@@ -1654,6 +1658,15 @@ packages:
     resolution: {integrity: sha512-B96CQnwX4gRvQdaQkdUtqvDPkrptV5+va6FVeJOocU/DbSYMAScLxtR3peMS8cnlOT6nL1Eoa42OI9AfZz1VwQ==}
     engines: {node: '>=14.0.0'}
     dependencies:
+      tslib: 2.4.1
+    dev: false
+    optional: true
+
+  /@aws-sdk/util-retry/3.229.0:
+    resolution: {integrity: sha512-0zKTqi0P1inD0LzIMuXRIYYQ/8c1lWMg/cfiqUcIAF1TpatlpZuN7umU0ierpBFud7S+zDgg0oemh+Nj8xliJw==}
+    engines: {node: '>= 14.0.0'}
+    dependencies:
+      '@aws-sdk/service-error-classification': 3.229.0
       tslib: 2.4.1
     dev: false
     optional: true
@@ -3209,8 +3222,8 @@ packages:
     resolution: {integrity: sha512-FGBx/Qd09lMaqQcogCHyYrFEpTx4cAjeS+48lMIR12z7LdH+zofGDVQSubN59nL6IpubfKqTeIDu9rNO28iHVA==}
     engines: {node: '>=14'}
 
-  /@prisma/engines-version/4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2:
-    resolution: {integrity: sha512-HwLCSnL5h6wqZXwXDTKtbaqm5hmp5SZ4yi/BrJJ+PPLNlHQYPbHSdsKFMuGJICwpNzT+m5Uw5Xv4AfSZl5v4wg==}
+  /@prisma/engines-version/4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6:
+    resolution: {integrity: sha512-jRnCg9mhMxt9MjL1vB97p5TJwIv4QrZaoYQrxK6yPPSXFeigzgHiR1Z9BON+4kzVQ7DtSs7N6Pn9YiOyZ6nYBA==}
 
   /@prisma/mini-proxy/0.3.0:
     resolution: {integrity: sha512-Vcp8L5S66qM9aUdolqzwF7FBZUSWSb+PzzOE8ikgCB58Sw8DVS1TZG2KbWNbmMre1e/naxwOIFdovJpO/Jg+Ww==}
@@ -3218,8 +3231,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-fmt-wasm/4.8.0-28.ddfde0aabd6544e4740cc1b4ef9a682c02b813d2:
-    resolution: {integrity: sha512-VMVGop7AccIcACnYGpNC475rl85O91C8D+xwBbY0ZX4jOd/idDImM/xk9/eaAnCUFh5MleE+26VQtuiv73SF4g==}
+  /@prisma/prisma-fmt-wasm/4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6:
+    resolution: {integrity: sha512-LejP6/6FxpdqzIK4dDZAlUAcI9zSOtwy6s1m+uttHNE0pcGVV+1KoSxgmrToRK2uKk26uw1kpCmQrHSU40BB2w==}
     dev: false
 
   /@prisma/studio-common/0.479.0:
@@ -9818,7 +9831,7 @@ packages:
       mongodb-connection-string-url: 2.5.4
       socks: 2.7.1
     optionalDependencies:
-      '@aws-sdk/credential-providers': 3.226.0
+      '@aws-sdk/credential-providers': 3.229.0
       saslprep: 1.0.3
     transitivePeerDependencies:
       - aws-crt
