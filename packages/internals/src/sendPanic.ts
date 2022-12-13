@@ -31,7 +31,6 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
 
     const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined
 
-    let sqlDump: string | undefined
     let dbVersion: string | undefined
     // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
     const schemaOrUrl = schema || error.introspectionUrl
@@ -39,7 +38,6 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
       let engine: undefined | IntrospectionEngine
       try {
         engine = new IntrospectionEngine()
-        sqlDump = await engine.getDatabaseDescription(schemaOrUrl)
         dbVersion = await engine.getDatabaseVersion(schemaOrUrl)
         engine.stop()
       } catch (e) {
@@ -74,7 +72,7 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
       liftRequest: migrateRequest,
       schemaFile: maskedSchema,
       fingerprint: await checkpoint.getSignature(),
-      sqlDump: sqlDump,
+      sqlDump: undefined,
       dbVersion: dbVersion,
     }
 
