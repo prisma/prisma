@@ -1,4 +1,4 @@
-import { IntrospectionEngine } from '@prisma/internals'
+import { MigrateEngine } from '@prisma/migrate'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
 import type { FSJetpack } from 'fs-jetpack/types'
@@ -12,7 +12,9 @@ process.setMaxListeners(200)
 
 process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = 'true'
 
-const engine = new IntrospectionEngine()
+const engine = new MigrateEngine({
+  projectDir: process.cwd(),
+})
 
 /**
  * A potentially async value
@@ -310,7 +312,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     ${datasourceBlock}
   `
 
-  const introspectionResult = await engine.introspect(schemaBase)
+  const introspectionResult = await engine.introspect({ schema: schemaBase })
   const prismaSchemaPath = ctx.fs.path('schema.prisma')
 
   await fs.writeAsync(prismaSchemaPath, introspectionResult.datamodel)
