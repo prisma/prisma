@@ -1,0 +1,11 @@
+services:
+  test:
+    build:
+      dockerfile: ./standard.dockerfile
+      args:
+        - NAME=_example
+    volumes:
+      - ../:/ecosystem
+      - ../.cache:/root/.cache
+      - ../.cache/pnpmcache:/root/.local/share/pnpm/store/v3
+      - ../.cache/npmcache:/root/.npm

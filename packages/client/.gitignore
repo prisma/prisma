@@ -9,4 +9,5 @@ pnpm-lock.yaml
 junit.xml
 .DS_Store
 .generated
+.cache
 *.db-journal

@@ -93,8 +93,11 @@ export const tscPlugin: (emitTypes?: boolean) => esbuild.Plugin = (emitTypes?: b
           // in watch mode, it wouldn't be viable to bundle the types every time
           // we haven't built any types with tsc at this stage, but we want types
           // we link the types locally by re-exporting them from the entry point
-          await fs.outputFile(`${bundlePath}.d.ts`, `export * from '${process.cwd()}/${entryPoint}'`)
+          const originalPath = path.relative(path.dirname(bundlePath), path.dirname(entryPoint))
+
+          await fs.outputFile(`${bundlePath}.d.ts`, `export * from '${originalPath}'`)
         }
+        return
       }
     })
   },

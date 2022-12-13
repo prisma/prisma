@@ -138,7 +138,8 @@
     "tsd": "0.21.0",
     "typescript": "4.8.4",
     "yeoman-generator": "5.7.0",
-    "yo": "4.3.1"
+    "yo": "4.3.1",
+    "zx": "7.1.1"
   },
   "peerDependencies": {
     "prisma": "*"

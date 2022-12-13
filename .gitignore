@@ -13,6 +13,7 @@ query-engine*
 migration-engine*
 prisma-fmt*
 libquery_engine*
+libquery-engine*
 query_engine-windows.dll.node
 
 *tmp.db
@@ -46,3 +47,8 @@ reproductions/*
 dev.db
 junit.xml
 /output.txt
+
+prisma-0.0.0.tgz
+prisma-client-0.0.0.tgz
+.logs.txt
+.logs.*.txt
