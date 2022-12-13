@@ -19,6 +19,7 @@ test('introspection basic', async () => {
       provider = "sqlite"
       url      = "file:./blog.db"
     }
+
     model Post {
       author    Int
       content   String?
@@ -30,6 +31,7 @@ test('introspection basic', async () => {
       uuid      String   @id @unique(map: "Post.uuid")
       User      User     @relation(fields: [author], references: [id], onUpdate: NoAction)
     }
+
     model User {
       age     Int     @default(0)
       amount  Float   @default(0)
