@@ -5,7 +5,7 @@ import path from 'path'
 
 async function main() {
   const packageJsonVersion = '0.0.0'
-  const engineVersion = 'prismaEngineVersionHash'
+  const enginesVersion = 'prismaEngineVersionHash'
   const command = 'something-test'
 
   try {
@@ -25,7 +25,14 @@ async function main() {
   } catch (err) {
     console.debug({ err })
 
-    handlePanic(err, packageJsonVersion, engineVersion, command)
+    const getDatabaseVersionSafe = () => Promise.resolve(undefined)
+    handlePanic({
+      error: err,
+      cliVersion: packageJsonVersion,
+      enginesVersion,
+      command,
+      getDatabaseVersionSafe,
+    })
       .catch((e) => {
         console.error('Error: ' + e.stack)
         console.error('Error: ' + e.message)

@@ -11,7 +11,6 @@ import tmp from 'tmp'
 import { match, P } from 'ts-pattern'
 
 import { createErrorReport, ErrorKind, makeErrorReportCompleted, uploadZip } from './errorReporting'
-import { IntrospectionEngine } from './IntrospectionEngine'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
 import { mapScalarValues, maskSchema } from './utils/maskSchema'
@@ -20,7 +19,20 @@ const debug = Debug('prisma:sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
-export async function sendPanic(error: RustPanic, cliVersion: string, engineVersion: string): Promise<number> {
+type SendPanic = {
+  error: RustPanic
+  cliVersion: string
+  enginesVersion: string
+
+  // retrieve the database version for the given schema or url, without throwing any error
+  getDatabaseVersionSafe: (schemaOrUrl: string) => Promise<string | undefined>
+}
+export async function sendPanic({
+  error,
+  cliVersion,
+  enginesVersion,
+  getDatabaseVersionSafe,
+}: SendPanic): Promise<number> {
   try {
     const schema: string | undefined = match(error)
       .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
@@ -34,18 +46,8 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
     let dbVersion: string | undefined
     // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
     const schemaOrUrl = schema || error.introspectionUrl
-    if (error.area === ErrorArea.INTROSPECTION_CLI && schemaOrUrl) {
-      let engine: undefined | IntrospectionEngine
-      try {
-        engine = new IntrospectionEngine()
-        dbVersion = await engine.getDatabaseVersion(schemaOrUrl)
-        engine.stop()
-      } catch (e) {
-        debug(e)
-        if (engine && engine.isRunning) {
-          engine.stop()
-        }
-      }
+    if (error.area === ErrorArea.LIFT_CLI && schemaOrUrl) {
+      dbVersion = await getDatabaseVersionSafe(schemaOrUrl)
     }
 
     const migrateRequest = error.request
@@ -63,7 +65,7 @@ export async function sendPanic(error: RustPanic, cliVersion: string, engineVers
       area: error.area,
       kind: ErrorKind.RUST_PANIC,
       cliVersion,
-      binaryVersion: engineVersion,
+      binaryVersion: enginesVersion,
       command: getCommand(),
       jsStackTrace: stripAnsi(error.stack || error.message),
       rustStackTrace: error.rustStack,

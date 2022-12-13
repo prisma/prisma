@@ -11,9 +11,16 @@ async function main() {
   )
 
   const packageJsonVersion = '0.0.0'
-  const engineVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
+  const enginesVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
+  const getDatabaseVersionSafe = () => Promise.resolve(undefined)
 
-  await handlePanic(error, packageJsonVersion, engineVersion, 'something-test')
+  await handlePanic({
+    error,
+    cliVersion: packageJsonVersion,
+    enginesVersion,
+    command: 'something-test',
+    getDatabaseVersionSafe,
+  })
     .catch((e) => {
       console.log(e)
     })

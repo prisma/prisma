@@ -35,6 +35,9 @@ describe('handlePanic', () => {
   // testing with env https://stackoverflow.com/a/48042799/1345244
   const OLD_ENV = process.env
 
+  // mock for retrieving the database version
+  const getDatabaseVersionSafe = () => Promise.resolve(undefined)
+
   beforeEach(async () => {
     jest.resetModules() // most important - it clears the cache
     process.env = { ...OLD_ENV, GITHUB_ACTIONS: 'true' } // make a copy and simulate CI environment
@@ -60,7 +63,7 @@ describe('handlePanic', () => {
     resolve(join('fixtures', 'blog', 'prisma', 'schema.prisma')),
   )
   const packageJsonVersion = '0.0.0'
-  const engineVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
+  const enginesVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
   const command = 'something-test'
 
   // Only works locally (not in CI)
@@ -74,7 +77,13 @@ describe('handlePanic', () => {
     setTimeout(() => sendKeystrokes(io).then(), 5)
 
     try {
-      await handlePanic(error, packageJsonVersion, engineVersion, command)
+      await handlePanic({
+        error,
+        cliVersion: packageJsonVersion,
+        enginesVersion: enginesVersion,
+        command,
+        getDatabaseVersionSafe,
+      })
     } catch (e) {
       /* eslint-disable-next-line @typescript-eslint/no-unsafe-member-access */
       expect(stripAnsi(e.message)).toMatchSnapshot()
@@ -86,7 +95,13 @@ describe('handlePanic', () => {
 
   it('no interactive mode in CI', async () => {
     try {
-      await handlePanic(error, packageJsonVersion, engineVersion, command)
+      await handlePanic({
+        error,
+        cliVersion: packageJsonVersion,
+        enginesVersion,
+        command,
+        getDatabaseVersionSafe,
+      })
     } catch (error) {
       error.schemaPath = 'Some Schema Path'
       expect(error).toMatchInlineSnapshot(`[Error: Some error message!]`)
@@ -98,7 +113,7 @@ describe('handlePanic', () => {
 
   it('when sendPanic fails, the user should be alerted by a reportFailedMessage', async () => {
     const cliVersion = 'test-cli-version'
-    const engineVersion = 'test-engine-version'
+    const enginesVersion = 'test-engine-version'
     const rustStackTrace = 'test-rustStack'
     const command = 'test-command'
     const sendPanicTag = 'send-panic-failed'
@@ -119,14 +134,20 @@ describe('handlePanic', () => {
       'test-message',
       rustStackTrace,
       'test-request',
-      ErrorArea.INTROSPECTION_CLI, // area
+      ErrorArea.LIFT_CLI, // area
       undefined, // schemaPath
       undefined, // schema
       undefined, // introspectionUrl
     )
 
     prompt.inject(['y']) // submit report
-    await handlePanic(rustPanic, cliVersion, engineVersion, command)
+    await handlePanic({
+      error: rustPanic,
+      cliVersion,
+      enginesVersion,
+      command,
+      getDatabaseVersionSafe,
+    })
 
     expect(spySendPanic).toHaveBeenCalledTimes(1)
     expect(spyWouldYouLikeToCreateANewIssue).toHaveBeenCalledTimes(1)
@@ -134,7 +155,7 @@ describe('handlePanic', () => {
     expect(stripAnsi(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
       new RegExp(`^Error report submission failed due to:?`),
     )
-    expect(mockExit).toBeCalledWith(1)
+    expect(mockExit).toHaveBeenCalledWith(1)
     spySendPanic.mockRestore()
   })
 })
