@@ -43,6 +43,13 @@ export class MigrateEngine {
   private lastError: MigrateEngineLogLine['fields'] | null = null
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
+
+  // `latestSchema` is set to the latest schema that was used in `introspect()`
+  private latestSchema?: string
+
+  // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
+  public isRunning = false
+
   constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: MigrateEngineOptions) {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
@@ -155,6 +162,7 @@ export class MigrateEngine {
     force = false,
     compositeTypeDepth = -1,
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
+    this.latestSchema = schema
     return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
   }
 
@@ -219,7 +227,10 @@ export class MigrateEngine {
   /* eslint-enable @typescript-eslint/no-unsafe-return */
 
   public stop(): void {
-    this.child!.kill()
+    if (this.child) {
+      this.child.kill()
+      this.isRunning = false
+    }
   }
 
   private rejectAll(err: any): void {
@@ -312,6 +323,8 @@ export class MigrateEngine {
           },
         })
 
+        this.isRunning = true
+
         this.child.on('error', (err) => {
           console.error('[migration-engine] error: %s', err)
           this.rejectAll(err)
@@ -332,7 +345,8 @@ export class MigrateEngine {
                 stackTrace,
                 this.lastRequest,
                 ErrorArea.LIFT_CLI,
-                this.schemaPath,
+                /* schemaPath */ this.schemaPath,
+                /* schema */ this.latestSchema,
               ),
             )
           }
@@ -420,7 +434,8 @@ export class MigrateEngine {
                   response.error.data.message,
                   this.lastRequest,
                   ErrorArea.LIFT_CLI,
-                  this.schemaPath,
+                  /* schemaPath */ this.schemaPath,
+                  /* schema */ this.latestSchema,
                 ),
               )
             } else if (response.error.data?.message) {
