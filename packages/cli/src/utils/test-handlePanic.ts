@@ -1,4 +1,5 @@
-import { handlePanic, IntrospectionEngine } from '@prisma/internals'
+import { handlePanic } from '@prisma/internals'
+import { MigrateEngine } from '@prisma/migrate'
 import fs from 'fs'
 import path from 'path'
 
@@ -15,11 +16,11 @@ async function main() {
     const schemaPath = path.join(dirPath, 'schema.prisma')
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
-    const engine = new IntrospectionEngine({
-      cwd: dirPath,
+    const engine = new MigrateEngine({
+      projectDir: dirPath,
     })
 
-    await engine.introspect(schema, false)
+    await engine.introspect({ schema, force: false })
     await engine.debugPanic()
   } catch (err) {
     console.debug({ err })

@@ -261,25 +261,22 @@ export class IntrospectionEngine {
   public getDatabaseVersion(schema: string): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema }))
   }
-  public introspect(
-    schema: string,
-    force?: Boolean,
-    compositeTypeDepth = -1, // optional, only for mongodb
-  ): Promise<{
-    datamodel: string
-    warnings: IntrospectionWarnings[]
-    version: IntrospectionSchemaVersion
-  }> {
-    this.lastUrl = schema
-    return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
-  }
+
+  // @deprecated
+  // public introspect(
+  //   schema: string,
+  //   force?: Boolean,
+  //   compositeTypeDepth = -1, // optional, only for mongodb
+  // ): Promise<{
+  //   datamodel: string
+  //   warnings: IntrospectionWarnings[]
+  //   version: IntrospectionSchemaVersion
+  // }> {
+  //   this.lastUrl = schema
+  //   return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
+  // }
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
-  }
-  // TODO Dead Code?
-  public listDatabases(schema: string): Promise<string[]> {
-    this.lastUrl = schema
-    return this.runCommand(this.getRPCPayload('listDatabases', { schema }))
   }
   public getDatabaseMetadata(schema: string): Promise<{ size_in_bytes: number; table_count: number }> {
     this.lastUrl = schema

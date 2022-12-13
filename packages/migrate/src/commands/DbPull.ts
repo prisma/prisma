@@ -11,7 +11,6 @@ import {
   getSchema,
   getSchemaPath,
   HelpError,
-  IntrospectionEngine,
   IntrospectionSchemaVersion,
   IntrospectionWarnings,
   link,
@@ -23,6 +22,7 @@ import fs from 'fs'
 import path from 'path'
 import { match } from 'ts-pattern'
 
+import { MigrateEngine } from '../MigrateEngine'
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import type { ConnectorType } from '../utils/printDatasources'
@@ -214,8 +214,9 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    const engine = new IntrospectionEngine({
-      cwd: schemaPath ? path.dirname(schemaPath) : undefined,
+    const engine = new MigrateEngine({
+      projectDir: schemaPath ? path.dirname(schemaPath) : process.cwd(),
+      schemaPath: schemaPath ?? undefined,
     })
 
     const basedOn =
@@ -229,7 +230,11 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     let introspectionWarnings: IntrospectionWarnings[]
     let introspectionSchemaVersion: IntrospectionSchemaVersion
     try {
-      const introspectionResult = await engine.introspect(schema, args['--force'], args['--composite-type-depth'])
+      const introspectionResult = await engine.introspect({
+        schema,
+        force: args['--force'],
+        compositeTypeDepth: args['--composite-type-depth'],
+      })
 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings

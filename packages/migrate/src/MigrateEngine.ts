@@ -135,11 +135,28 @@ export class MigrateEngine {
     return this.runCommand(this.getRPCPayload('evaluateDataLoss', args))
   }
 
+  public getDatabaseDescription(schema: string): Promise<string> {
+    return this.runCommand(this.getRPCPayload('getDatabaseDescription', { schema }))
+  }
+
   /**
    * Get the database version for error reporting.
    */
-  public getDatabaseVersion(): Promise<string> {
-    return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
+  public getDatabaseVersion({ schema }: EngineArgs.GetDatabaseVersionParams): Promise<string> {
+    return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema }))
+  }
+
+  /**
+   * Given a Prisma schema, introspect the database definitions and update the schema with the results.
+   * `compositeTypeDepth` is optional, and only required for MongoDB.
+   * TODO: change `compositeTypeDepth` to -1 once https://github.com/prisma/prisma-engines/pull/3487 is merged.
+   */
+  public introspect({
+    schema,
+    force = false,
+    compositeTypeDepth = 0,
+  }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
+    return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
   }
 
   /**
