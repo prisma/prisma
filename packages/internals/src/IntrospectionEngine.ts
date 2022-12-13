@@ -262,19 +262,21 @@ export class IntrospectionEngine {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema }))
   }
 
-  // @deprecated
-  // public introspect(
-  //   schema: string,
-  //   force?: Boolean,
-  //   compositeTypeDepth = -1, // optional, only for mongodb
-  // ): Promise<{
-  //   datamodel: string
-  //   warnings: IntrospectionWarnings[]
-  //   version: IntrospectionSchemaVersion
-  // }> {
-  //   this.lastUrl = schema
-  //   return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
-  // }
+  /**
+   * @deprecated Use `MigrateEngine.introspect()` instead
+   */
+  public introspect(
+    schema: string,
+    force?: Boolean,
+    compositeTypeDepth = -1, // optional, only for mongodb
+  ): Promise<{
+    datamodel: string
+    warnings: IntrospectionWarnings[]
+    version: IntrospectionSchemaVersion
+  }> {
+    this.lastUrl = schema
+    return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
+  }
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
   }
