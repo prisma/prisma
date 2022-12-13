@@ -144,6 +144,8 @@ export namespace EngineArgs {
   export interface IntrospectParams {
     schema: string
     force?: Boolean
+
+    // Note: this must be a non-negative integer
     compositeTypeDepth?: number
   }
   export interface IntrospectResult {

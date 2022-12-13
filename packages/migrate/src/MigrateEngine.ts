@@ -161,7 +161,7 @@ export class MigrateEngine {
   public introspect({
     schema,
     force = false,
-    compositeTypeDepth = 0,
+    compositeTypeDepth = 0, // cannot be undefined
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
     this.latestSchema = schema
     return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
