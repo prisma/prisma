@@ -156,11 +156,12 @@ export class MigrateEngine {
   /**
    * Given a Prisma schema, introspect the database definitions and update the schema with the results.
    * `compositeTypeDepth` is optional, and only required for MongoDB.
+   * TODO: change `compositeTypeDepth` to -1 once https://github.com/prisma/prisma-engines/pull/3487 is merged.
    */
   public introspect({
     schema,
     force = false,
-    compositeTypeDepth = -1,
+    compositeTypeDepth = 0,
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
     this.latestSchema = schema
     return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
