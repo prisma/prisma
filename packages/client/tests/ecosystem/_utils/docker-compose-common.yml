@@ -6,6 +6,7 @@ services:
         - NAME=_example
     volumes:
       - ../:/ecosystem
+      - ../../../:/client
       - ../.cache:/root/.cache
       - ../.cache/pnpmcache:/root/.local/share/pnpm/store/v3
       - ../.cache/npmcache:/root/.npm

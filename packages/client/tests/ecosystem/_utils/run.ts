@@ -9,6 +9,7 @@ async function main() {
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'prisma-build'))
   const cliPkgPath = path.join(__dirname, '..', '..', '..', '..', 'cli')
   const clientPkgPath = path.join(__dirname, '..', '..', '..', '..', 'client')
+  const clientRuntimeDtsPath = path.join(clientPkgPath, 'runtime', 'index.d.ts')
   const cliPkgJsonPath = path.join(cliPkgPath, 'package.json')
   const clientPkgJsonPath = path.join(clientPkgPath, 'package.json')
   const cliPkgJson = require(cliPkgJsonPath)
@@ -17,21 +18,18 @@ async function main() {
   // this process will need to modify some package.json, we save copies
   await $`cd ${tmpDir} && cp ${cliPkgJsonPath} cli.package.json`.quiet()
   await $`cd ${tmpDir} && cp ${clientPkgJsonPath} client.package.json`.quiet()
+  await $`cd ${tmpDir} && cp ${clientRuntimeDtsPath} client.runtime.d.ts`.quiet()
 
   // we provide a function that can revert modified package.json back
-  const restorePkgJson = async () => {
+  const restoreOriginal = async () => {
     await $`cd ${tmpDir} && cp cli.package.json ${cliPkgJsonPath}`.quiet()
     await $`cd ${tmpDir} && cp client.package.json ${clientPkgJsonPath}`.quiet()
+    await $`cd ${tmpDir} && cp client.runtime.d.ts ${clientRuntimeDtsPath}`.quiet()
   }
 
   // if process is killed by hand, ensure that package.json is restored
-  process.on('SIGINT', () => restorePkgJson().then(() => process.exit(0)))
+  process.on('SIGINT', () => restoreOriginal().then(() => process.exit(0)))
 
-  // prepare to modify package.json so that we can package them locally
-  // here we include src because we want to ship types without compiling
-  // TODO: have a fast mode (this one) and a full mode with type bundling
-  cliPkgJson.files = ['src/**', '!src/__tests__/**', ...cliPkgJson.files]
-  clientPkgJson.files = ['src/**', '!src/__tests__/**', ...clientPkgJson.files]
   // use bundleDependencies to directly include deps like @prisma/engines
   cliPkgJson.bundleDependencies = Object.keys(cliPkgJson.dependencies)
   clientPkgJson.bundleDependencies = Object.keys(clientPkgJson.dependencies)
@@ -39,6 +37,9 @@ async function main() {
   // write the modified package.json to overwrite the original package.json
   await fs.writeFile(cliPkgJsonPath, JSON.stringify(cliPkgJson, null, 2))
   await fs.writeFile(clientPkgJsonPath, JSON.stringify(clientPkgJson, null, 2))
+  // this is to avoid bundling types and locally link directly to the sources
+  await fs.writeFile(clientRuntimeDtsPath, `export * from '/client/src/runtime/index'`)
+  // TODO: have a fast mode (this one) and a full mode with type bundling
 
   try {
     console.log('📦 Packing package tarballs')
@@ -50,7 +51,7 @@ async function main() {
     console.log('🛑 Failed to pack one or more of the packages')
     console.log('💡 Make sure to run `watch`, `dev` or `build`')
   } finally {
-    await restorePkgJson() // when done, we restore the original package.json
+    await restoreOriginal() // when done, we restore the original package.json
   }
 
   console.log('🐳 Starting tests in docker')
