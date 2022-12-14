@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6",
+    "@prisma/engines-version": "4.8.0-34.feat-dmmf-connected-engine-ee487e70470b452b3350f1e15ce530ac3361cab9",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.14",
