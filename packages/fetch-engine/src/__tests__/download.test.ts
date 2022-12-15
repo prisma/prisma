@@ -238,6 +238,10 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
           "size": 34365712,
         },
         {
+          "name": "introspection-engine-linux-musl-openssl-3.0.x",
+          "size": 20719976,
+        },
+        {
           "name": "introspection-engine-rhel-openssl-1.0.x",
           "size": 35211280,
         },
@@ -290,6 +294,10 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
           "size": 40477248,
         },
         {
+          "name": "libquery_engine-linux-musl-openssl-3.0.x.so.nod",
+          "size": 26957176,
+        },
+        {
           "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
           "size": 43286256,
         },
@@ -336,6 +344,10 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         {
           "name": "migration-engine-linux-musl",
           "size": 37455896,
+        },
+        {
+          "name": "migration-engine-linux-musl-openssl-3.0.x",
+          "size": 25641368,
         },
         {
           "name": "migration-engine-rhel-openssl-1.0.x",
@@ -388,6 +400,10 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         {
           "name": "prisma-fmt-linux-musl",
           "size": 9215520,
+        },
+        {
+          "name": "prisma-fmt-linux-musl-openssl-3.0.x",
+          "size": 5128256,
         },
         {
           "name": "prisma-fmt-rhel-openssl-1.0.x",
