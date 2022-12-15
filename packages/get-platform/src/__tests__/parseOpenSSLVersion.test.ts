@@ -19,12 +19,12 @@ describe('parseOpenSSLVersion', () => {
     },
   ]
 
-  for (const t of tests) {
+  describe.each(tests)('$name', (t) => {
     test(t.name, () => {
       const actual = parseOpenSSLVersion(t.content)
       expect(actual).toBe(t.expect)
     })
-  }
+  })
 })
 
 describe('parseLibSSLVersion', () => {
@@ -46,10 +46,10 @@ describe('parseLibSSLVersion', () => {
     },
   ]
 
-  for (const t of tests) {
+  describe.each(tests)('$name', (t) => {
     test(t.name, () => {
       const actual = parseLibSSLVersion(t.content)
       expect(actual).toBe(t.expect)
     })
-  }
+  })
 })
