@@ -356,7 +356,7 @@ describe('getDatabaseVersion', () => {
     ctx.fixture('schema-only')
     const schemaPath = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
-    const result = migrate.engine.getDatabaseVersion()
+    const result = migrate.engine.getDatabaseVersion({ schema: schemaPath })
     await expect(result).resolves.toContain('PostgreSQL')
     migrate.stop()
   })
