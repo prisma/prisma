@@ -233,7 +233,10 @@ async function discardError<T>(runPromise: () => Promise<T>): Promise<T | undefi
  */
 function getFirstSuccessfulExec(commands: string[]) {
   return discardError(async () => {
-    const { stdout } = await Promise.race(commands.map(exec))
-    return String(stdout)
+    const results = await Promise.allSettled(commands.map((cmd) => exec(cmd)))
+    const { value } = results.find((result) => result.status === 'fulfilled') as PromiseFulfilledResult<{
+      stdout: string | Buffer
+    }>
+    return String(value.stdout)
   })
 }
