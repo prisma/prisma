@@ -583,9 +583,11 @@ importers:
       '@types/jest': 29.2.4
       '@types/node': 16.18.6
       jest: 29.3.1
+      ts-pattern: ^4.0.6
       typescript: 4.8.4
     dependencies:
       '@prisma/debug': link:../debug
+      ts-pattern: 4.0.6
     devDependencies:
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23_@swc+core@1.3.14
@@ -12337,6 +12339,10 @@ packages:
 
   /ts-pattern/4.0.5:
     resolution: {integrity: sha512-Bq44KCEt7JVaNLa148mBCJkcQf4l7jtLEBDuDdeuLynWDA+1a60P4D0rMkqSM9mOKLQbIWUddE9h3XKyKwBeqA==}
+
+  /ts-pattern/4.0.6:
+    resolution: {integrity: sha512-sFHQYD4KoysBi7e7a2mzDPvRBeqA4w+vEyRE+P5MU9VLq8eEYxgKCgD9RNEAT+itGRWUTYN+hry94GDPLb1/Yw==}
+    dev: false
 
   /ts-toolbelt/9.6.0:
     resolution: {integrity: sha512-nsZd8ZeNUzukXPlJmTBwUAuABDe/9qtVDelJeT/qW0ow3ZS3BsQJtNkan1802aM9Uf68/Y8ljw86Hu0h5IUW3w==}

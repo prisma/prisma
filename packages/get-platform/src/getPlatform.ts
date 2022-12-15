@@ -1,12 +1,14 @@
-import { exec } from 'child_process'
+import cp from 'child_process'
 import fs from 'fs'
 import os from 'os'
+import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
 import { Platform } from './platforms'
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
+const exec = promisify(cp.exec)
 
 // https://www.geeksforgeeks.org/node-js-process-arch-property/
 export type Arch = 'x32' | 'x64' | 'arm' | 'arm64' | 's390' | 's390x' | 'mipsel' | 'ia32' | 'mips' | 'ppc' | 'ppc64'
@@ -21,7 +23,7 @@ export async function getos(): Promise<GetOSResult> {
   const platform = os.platform()
   const arch = process.arch as Arch
   if (platform === 'freebsd') {
-    const version = await gracefulExec(`freebsd-version`)
+    const version = await getFirstSuccessfulExec([`freebsd-version`])
     if (version && version.trim().length > 0) {
       const regex = /^(\d+)\.?/
       const match = regex.exec(version)
@@ -42,10 +44,12 @@ export async function getos(): Promise<GetOSResult> {
     }
   }
 
+  const distro = await resolveDistro()
+
   return {
     platform: 'linux',
-    libssl: await getOpenSSLVersion(),
-    distro: await resolveDistro(),
+    libssl: await getSSLVersion({ arch, distro }),
+    distro,
     arch,
   }
 }
@@ -102,46 +106,47 @@ export function parseOpenSSLVersion(input: string): string | undefined {
   return
 }
 
-// getOpenSSLVersion returns the OpenSSL version excluding the patch version, e.g. "1.1.x"
-export async function getOpenSSLVersion(): Promise<string | undefined> {
-  const [version, ls] = await Promise.all([
-    gracefulExec(`openssl version -v`),
-    gracefulExec(`
-      ls -l /lib64 | grep ssl;
-      ls -l /usr/lib64 | grep ssl;
-    `),
-  ])
+type GetOpenSSLVersionParams = {
+  arch: Arch
+  distro: GetOSResult['distro']
+}
 
-  if (version) {
-    const v = parseOpenSSLVersion(version)
-    if (v) {
-      return v
-    }
-  }
+/**
+ * On Linux, returns the OpenSSL version excluding the patch version, e.g. "1.1.x".
+ * Reading the version from the libssl.so file is more reliable than reading it from the openssl binary.
+ * This function never throws.
+ */
+export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<string | undefined> {
+  const libsslVersion: string | undefined = await match(args)
+    .with({ distro: 'musl' }, () => {
+      /* Linux Alpine */
+      return getFirstSuccessfulExec(['ls -l /lib/libssl.so.3', 'ls -l /lib/libssl.so.1.1'])
+    })
+    .otherwise(() => {
+      return getFirstSuccessfulExec(['ls -l /lib64 | grep ssl', 'ls -l /usr/lib64 | grep ssl'])
+    })
 
-  if (ls) {
-    const match = /libssl\.so\.(\d+\.\d+)\.\d+/.exec(ls)
+  if (libsslVersion) {
+    const match = /libssl\.so\.(\d+\.\d+)\.\d+/.exec(libsslVersion)
     if (match) {
       return match[1] + '.x'
     }
   }
 
-  return undefined
-}
+  /* Reading the libssl.so version didn't work, fall back to openssl */
 
-async function gracefulExec(cmd: string): Promise<string | undefined> {
-  return new Promise((resolve) => {
-    try {
-      exec(cmd, (err, stdout) => {
-        resolve(String(stdout))
-      })
-    } catch (e) {
-      resolve(undefined)
-      return undefined
+  const openSSLVersion: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
+
+  if (openSSLVersion) {
+    const matchedVersion = parseOpenSSLVersion(openSSLVersion)
+    if (matchedVersion) {
+      return matchedVersion
     }
+  }
 
-    return undefined
-  })
+  /* Reading openssl didn't work */
+
+  return undefined
 }
 
 export async function getPlatform(): Promise<Platform> {
@@ -206,5 +211,29 @@ export async function getPlatform(): Promise<Platform> {
   }
 
   // use the debian build with OpenSSL 1.1 as a last resort
+  // TODO: perhaps we should default to 'debian-openssl-3.0.x'
   return 'debian-openssl-1.1.x'
+}
+
+/**
+ * Given a promise generator, returns the promise's result.
+ * If the promise throws, returns undefined.
+ */
+async function discardError<T>(runPromise: () => Promise<T>): Promise<T | undefined> {
+  try {
+    return await runPromise()
+  } catch (e) {
+    return undefined
+  }
+}
+
+/**
+ * Given a list of system commands, returns the first successful command's stdout.
+ * This function never throws.
+ */
+function getFirstSuccessfulExec(commands: string[]) {
+  return discardError(async () => {
+    const { stdout } = await Promise.race(commands.map(exec))
+    return String(stdout)
+  })
 }
