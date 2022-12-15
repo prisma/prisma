@@ -4,7 +4,6 @@ import path from 'path'
 
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
-import { GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 import { ifExtensions } from './TSClient/utils/ifExtensions'
 
 export enum Projection {
@@ -92,16 +91,19 @@ export function getDefaultName(modelName: string): string {
   return `${modelName}Default`
 }
 
-export function getFieldArgName(field: DMMF.SchemaField, findMany = true): string {
-  return getArgName((field.outputType.type as DMMF.OutputType).name, findMany && field.outputType.isList)
+export function getFieldArgName(field: DMMF.SchemaField, modelName: string): string {
+  if (field.args.length) {
+    return getModelFieldArgsName(field, modelName)
+  }
+  return getArgName((field.outputType.type as DMMF.OutputType).name)
 }
 
-export function getArgName(name: string, findMany: boolean): string {
-  if (!findMany) {
-    return `${name}Args`
-  }
+export function getModelFieldArgsName(field: DMMF.SchemaField, modelName: string) {
+  return `${modelName}${capitalize(field.name)}Args`
+}
 
-  return `${name}FindManyArgs`
+export function getArgName(name: string): string {
+  return `${name}Args`
 }
 
 // we need names for all top level args,

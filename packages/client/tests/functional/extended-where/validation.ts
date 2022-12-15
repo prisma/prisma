@@ -26,15 +26,17 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
                  where: {
                ?   id?: String,
                ?   referralId?: String,
+               ?   paymentId?: String,
                ?   AND?: UserWhereInput | UserWhereInput[],
                ?   OR?: UserWhereInput,
                ?   NOT?: UserWhereInput | UserWhereInput[],
                ?   posts?: PostListRelationFilter,
-               ?   profile?: ProfileRelationFilter | ProfileWhereInput | null
+               ?   profile?: ProfileRelationFilter | ProfileWhereInput | null,
+               ?   payment?: PaymentRelationFilter | PaymentWhereInput | null
                  }
                })
 
-      Argument where of type UserWhereUniqueInput needs at least one argument and at least one argument for id, or referralId. Available args are listed in green.
+      Argument where of type UserWhereUniqueInput needs at least one argument and at least one argument for id, or referralId, or paymentId. Available args are listed in green.
 
       Note: Lines with ? are optional.
 
@@ -63,7 +65,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
                }
              })
 
-      Argument where of type UserWhereUniqueInput needs at least one argument and at least one argument for id, or referralId. Available args are listed in green.
+      Argument where of type UserWhereUniqueInput needs at least one argument and at least one argument for id, or referralId, or paymentId. Available args are listed in green.
 
 
     `)
