@@ -211,7 +211,18 @@ export async function getPlatform(): Promise<Platform> {
   }
 
   if (platform === 'linux' && distro === 'musl') {
-    return 'linux-musl'
+    const base = 'linux-musl'
+    if (!libssl) {
+      return base
+    }
+
+    if (libssl.startsWith('1.')) {
+      // Alpine 3.16 or inferior linked with OpenSSL 1.1
+      return base
+    } else {
+      // Alpine 3.17 or superior linked with OpenSSL 3.0
+      return `${base}-openssl-${libssl}` as Platform
+    }
   }
 
   // when the platform is linux
