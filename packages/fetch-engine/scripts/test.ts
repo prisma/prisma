@@ -17,6 +17,7 @@ void download({
     'rhel-openssl-1.1.x',
     'rhel-openssl-3.0.x',
     'linux-musl',
+    'linux-musl-openssl-3.0.x',
   ],
   showProgress: true,
 })
