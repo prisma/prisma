@@ -10,6 +10,8 @@ const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 const exec = promisify(cp.exec)
 
+export type OpenSSL = '1.0.x' | '1.1.x' | '3.0.x'
+
 // https://www.geeksforgeeks.org/node-js-process-arch-property/
 export type Arch = 'x32' | 'x64' | 'arm' | 'arm64' | 's390' | 's390x' | 'mipsel' | 'ia32' | 'mips' | 'ppc' | 'ppc64'
 export type GetOSResult = {
@@ -97,13 +99,30 @@ export async function resolveDistro(): Promise<undefined | GetOSResult['distro']
   }
 }
 
-export function parseOpenSSLVersion(input: string): string | undefined {
+/**
+ * Parse the OpenSSL version from the output of the openssl binary, e.g.
+ * "OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)" -> "3.0.x"
+ */
+export function parseOpenSSLVersion(input: string): OpenSSL | undefined {
   const match = /^OpenSSL\s(\d+\.\d+)\.\d+/.exec(input)
   if (match) {
-    return match[1] + '.x'
+    return `${match[1]}.x` as OpenSSL
   }
 
-  return
+  return undefined
+}
+
+/**
+ * Parse the OpenSSL version from the output of the libssl.so file, e.g.
+ * "libssl.so.3" -> "3.0.x"
+ */
+export function parseLibSSLVersion(input: string): OpenSSL | undefined {
+  const match = /libssl\.so\.(\d)(\.\d)?/.exec(input)
+  if (match) {
+    return `${match[1]}${match[2] ?? '.0'}.x` as OpenSSL
+  }
+
+  return undefined
 }
 
 type GetOpenSSLVersionParams = {
@@ -127,9 +146,9 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<stri
     })
 
   if (libsslVersion) {
-    const match = /libssl\.so\.(\d+\.\d+)\.\d+/.exec(libsslVersion)
-    if (match) {
-      return match[1] + '.x'
+    const matchedVersion = parseLibSSLVersion(libsslVersion)
+    if (matchedVersion) {
+      return matchedVersion
     }
   }
 
