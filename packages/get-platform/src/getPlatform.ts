@@ -10,13 +10,11 @@ const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 const exec = promisify(cp.exec)
 
-export type OpenSSL = '1.0.x' | '1.1.x' | '3.0.x'
-
 // https://www.geeksforgeeks.org/node-js-process-arch-property/
 export type Arch = 'x32' | 'x64' | 'arm' | 'arm64' | 's390' | 's390x' | 'mipsel' | 'ia32' | 'mips' | 'ppc' | 'ppc64'
 export type GetOSResult = {
   platform: NodeJS.Platform
-  libssl?: string
+  libssl?: '1.0.x' | '1.1.x' | '3.0.x'
   arch: Arch
   distro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos' | 'freebsd11' | 'freebsd12' | 'freebsd13'
 }
@@ -103,10 +101,10 @@ export async function resolveDistro(): Promise<undefined | GetOSResult['distro']
  * Parse the OpenSSL version from the output of the openssl binary, e.g.
  * "OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)" -> "3.0.x"
  */
-export function parseOpenSSLVersion(input: string): OpenSSL | undefined {
+export function parseOpenSSLVersion(input: string): GetOSResult['libssl'] | undefined {
   const match = /^OpenSSL\s(\d+\.\d+)\.\d+/.exec(input)
   if (match) {
-    return `${match[1]}.x` as OpenSSL
+    return `${match[1]}.x` as GetOSResult['libssl']
   }
 
   return undefined
@@ -116,10 +114,10 @@ export function parseOpenSSLVersion(input: string): OpenSSL | undefined {
  * Parse the OpenSSL version from the output of the libssl.so file, e.g.
  * "libssl.so.3" -> "3.0.x"
  */
-export function parseLibSSLVersion(input: string): OpenSSL | undefined {
+export function parseLibSSLVersion(input: string): GetOSResult['libssl'] | undefined {
   const match = /libssl\.so\.(\d)(\.\d)?/.exec(input)
   if (match) {
-    return `${match[1]}${match[2] ?? '.0'}.x` as OpenSSL
+    return `${match[1]}${match[2] ?? '.0'}.x` as GetOSResult['libssl']
   }
 
   return undefined
@@ -135,7 +133,7 @@ type GetOpenSSLVersionParams = {
  * Reading the version from the libssl.so file is more reliable than reading it from the openssl binary.
  * This function never throws.
  */
-export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<string | undefined> {
+export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOSResult['libssl'] | undefined> {
   const libsslVersion: string | undefined = await match(args)
     .with({ distro: 'musl' }, () => {
       /* Linux Alpine */
@@ -216,12 +214,12 @@ export async function getPlatform(): Promise<Platform> {
       return base
     }
 
-    if (libssl.startsWith('1.')) {
+    if (isLibssl1x(libssl)) {
       // Alpine 3.16 or inferior linked with OpenSSL 1.1
       return base
     } else {
       // Alpine 3.17 or superior linked with OpenSSL 3.0
-      return `${base}-openssl-${libssl}` as Platform
+      return `${base}-openssl-${libssl}`
     }
   }
 
@@ -269,4 +267,8 @@ function getFirstSuccessfulExec(commands: string[]) {
     }>
     return String(value.stdout)
   })
+}
+
+function isLibssl1x(libssl: NonNullable<GetOSResult['libssl']>): libssl is '1.0.x' | '1.1.x' {
+  return libssl.startsWith('1.')
 }
