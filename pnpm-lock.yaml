@@ -233,7 +233,7 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
-      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
+      '@prisma/engines-version': 4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -301,7 +301,7 @@ importers:
       yeoman-generator: 5.7.0
       yo: 4.3.1
     dependencies:
-      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
+      '@prisma/engines-version': 4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84
     devDependencies:
       '@faker-js/faker': 7.6.0
       '@fast-check/jest': 1.4.0_@jest+globals@29.3.1
@@ -417,7 +417,7 @@ importers:
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23
       '@types/jest': 29.2.4
-      '@types/node': 16.18.6
+      '@types/node': 16.18.9
       chalk: 4.1.2
       esbuild: 0.15.13
       execa: 5.1.1
@@ -449,47 +449,47 @@ importers:
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23_@swc+core@1.3.14
       '@types/jest': 29.2.4
-      '@types/node': 16.18.6
+      '@types/node': 16.18.9
       esbuild: 0.15.13
-      jest: 29.3.1_@types+node@16.18.6
+      jest: 29.3.1_@types+node@16.18.9
       jest-junit: 15.0.0
       typescript: 4.8.4
 
   packages/engines:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
+      '@prisma/engines-version': 4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84
       '@prisma/fetch-engine': workspace:*
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23
       '@types/jest': 29.2.4
-      '@types/node': 16.18.6
+      '@types/node': 16.18.9
       execa: 5.1.1
       jest: 29.3.1
       typescript: 4.8.4
     devDependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
+      '@prisma/engines-version': 4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/get-platform': link:../get-platform
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23_@swc+core@1.3.14
       '@types/jest': 29.2.4
-      '@types/node': 16.18.6
+      '@types/node': 16.18.9
       execa: 5.1.1
-      jest: 29.3.1_@types+node@16.18.6
+      jest: 29.3.1_@types+node@16.18.9
       typescript: 4.8.4
 
   packages/fetch-engine:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
+      '@prisma/engines-version': 4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23
       '@types/jest': 29.2.4
-      '@types/node': 16.18.6
+      '@types/node': 16.18.9
       '@types/node-fetch': 2.6.2
       '@types/progress': 2.0.5
       chalk: 4.1.2
@@ -530,15 +530,15 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.1
     devDependencies:
-      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
+      '@prisma/engines-version': 4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23_@swc+core@1.3.14
       '@types/jest': 29.2.4
-      '@types/node': 16.18.6
+      '@types/node': 16.18.9
       '@types/node-fetch': 2.6.2
       '@types/progress': 2.0.5
       del: 6.1.1
-      jest: 29.3.1_@types+node@16.18.6
+      jest: 29.3.1_@types+node@16.18.9
       strip-ansi: 6.0.1
       typescript: 4.8.4
 
@@ -581,7 +581,7 @@ importers:
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23
       '@types/jest': 29.2.4
-      '@types/node': 16.18.6
+      '@types/node': 16.18.9
       jest: 29.3.1
       ts-pattern: ^4.0.6
       typescript: 4.8.4
@@ -592,8 +592,8 @@ importers:
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.23_@swc+core@1.3.14
       '@types/jest': 29.2.4
-      '@types/node': 16.18.6
-      jest: 29.3.1_@types+node@16.18.6
+      '@types/node': 16.18.9
+      jest: 29.3.1_@types+node@16.18.9
       typescript: 4.8.4
 
   packages/instrumentation:
@@ -602,7 +602,7 @@ importers:
       '@opentelemetry/instrumentation': ^0.33.0
       '@swc/core': 1.3.14
       '@types/jest': 29.2.4
-      '@types/node': 16.18.6
+      '@types/node': 16.18.9
       jest: 29.3.1
       jest-junit: 15.0.0
       typescript: 4.8.4
@@ -612,8 +612,8 @@ importers:
     devDependencies:
       '@swc/core': 1.3.14
       '@types/jest': 29.2.4
-      '@types/node': 16.18.6
-      jest: 29.3.1_@types+node@16.18.6
+      '@types/node': 16.18.9
+      jest: 29.3.1_@types+node@16.18.9
       jest-junit: 15.0.0
       typescript: 4.8.4
 
@@ -681,7 +681,7 @@ importers:
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
-      '@prisma/prisma-fmt-wasm': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
+      '@prisma/prisma-fmt-wasm': 4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.23
       '@types/jest': 29.2.4
@@ -738,7 +738,7 @@ importers:
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
-      '@prisma/prisma-fmt-wasm': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
+      '@prisma/prisma-fmt-wasm': 4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84
       archiver: 5.3.1
       arg: 5.0.2
       chalk: 4.1.2
@@ -793,7 +793,7 @@ importers:
   packages/migrate:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
+      '@prisma/engines-version': 4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
@@ -848,7 +848,7 @@ importers:
       strip-indent: 3.0.0
       ts-pattern: 4.0.5
     devDependencies:
-      '@prisma/engines-version': 4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6
+      '@prisma/engines-version': 4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.3.14
@@ -3224,8 +3224,8 @@ packages:
     resolution: {integrity: sha512-FGBx/Qd09lMaqQcogCHyYrFEpTx4cAjeS+48lMIR12z7LdH+zofGDVQSubN59nL6IpubfKqTeIDu9rNO28iHVA==}
     engines: {node: '>=14'}
 
-  /@prisma/engines-version/4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6:
-    resolution: {integrity: sha512-jRnCg9mhMxt9MjL1vB97p5TJwIv4QrZaoYQrxK6yPPSXFeigzgHiR1Z9BON+4kzVQ7DtSs7N6Pn9YiOyZ6nYBA==}
+  /@prisma/engines-version/4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84:
+    resolution: {integrity: sha512-0vGiUmypRPhm0mIhgTsoV38GJz4GEV9GMwyzMP5b7RV7IqY6dqy07QfYyw6DyKW6tKAxPUKXRSssw2iP2TlMqA==}
 
   /@prisma/mini-proxy/0.3.0:
     resolution: {integrity: sha512-Vcp8L5S66qM9aUdolqzwF7FBZUSWSb+PzzOE8ikgCB58Sw8DVS1TZG2KbWNbmMre1e/naxwOIFdovJpO/Jg+Ww==}
@@ -3233,8 +3233,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-fmt-wasm/4.8.0-32.78131205d71f48532f7a58a91144967f9e90e9b6:
-    resolution: {integrity: sha512-LejP6/6FxpdqzIK4dDZAlUAcI9zSOtwy6s1m+uttHNE0pcGVV+1KoSxgmrToRK2uKk26uw1kpCmQrHSU40BB2w==}
+  /@prisma/prisma-fmt-wasm/4.8.0-37.eaab5ffe5d8708d16a2b31e88a1f42bf62ec7d84:
+    resolution: {integrity: sha512-NraDtactwr3qlSDRj4SmISaFI0M+kMN4sSC+V7tr9eTx9RFgnAyBl4c6dijeUMU0RTM0swk71pR4R0EQslnf9w==}
     dev: false
 
   /@prisma/studio-common/0.479.0:
@@ -3903,7 +3903,7 @@ packages:
   /@types/cross-spawn/6.0.2:
     resolution: {integrity: sha512-KuwNhp3eza+Rhu8IFI5HUXRP0LIhqH5cAjubUvGXXthh4YYBuP2ntwEX+Cz8GJoZUHlKo247wPWOfA9LYEq4cw==}
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.15
     dev: false
 
   /@types/debug/4.1.7:
@@ -4062,7 +4062,7 @@ packages:
   /@types/node-fetch/2.6.2:
     resolution: {integrity: sha512-DHqhlq5jeESLy19TYhLakJ07kNumXWjcDdxXsLUMJZ6ue8VZJj4kLPQVE/2mdHh3xZziNF1xppu5lwmS53HR+A==}
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.15
       form-data: 3.0.1
     dev: true
 
@@ -4086,8 +4086,8 @@ packages:
     resolution: {integrity: sha512-qjd88DrCxupx/kJD5yQgZdcYKZKSIGBVDIBE1/LTGcNm3d2Np/jxojkdePDdfnBHJc5W7vSMpbJ1aB7p/Py69A==}
     dev: true
 
-  /@types/node/16.18.6:
-    resolution: {integrity: sha512-vmYJF0REqDyyU0gviezF/KHq/fYaUbFhkcNbQCuPGFQj6VTbXuHZoxs/Y7mutWe73C8AC6l9fFu8mSYiBAqkGA==}
+  /@types/node/16.18.9:
+    resolution: {integrity: sha512-nhrqXYxiQ+5B/tPorWum37VgAiefi/wmfJ1QZKGKKecC8/3HqcTTJD0O+VABSPwtseMMF7NCPVT9uGgwn0YqsQ==}
     dev: true
 
   /@types/node/17.0.45:
@@ -4102,6 +4102,7 @@ packages:
 
   /@types/node/18.11.9:
     resolution: {integrity: sha512-CRpX21/kGdzjOpFsZSkcrXMGIBWMGNIHXXBVFSH+ggkftxg+XYP20TESbh+zFvFj3EQOl5byk0HTRn1IL6hbqg==}
+    dev: true
 
   /@types/normalize-package-data/2.4.1:
     resolution: {integrity: sha512-Gj7cI7z+98M282Tqmp2K5EIsoouUEzbBJhQQzDE3jSIRk6r9gsz0oUokqIUR4u1R3dMHo0pDHM7sNOHyhulypw==}
@@ -4121,13 +4122,13 @@ packages:
   /@types/progress/2.0.5:
     resolution: {integrity: sha512-ZYYVc/kSMkhH9W/4dNK/sLNra3cnkfT2nJyOAIDY+C2u6w72wa0s1aXAezVtbTsnN8HID1uhXCrLwDE2ZXpplg==}
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.15
     dev: true
 
   /@types/prompts/2.4.2:
     resolution: {integrity: sha512-TwNx7qsjvRIUv/BCx583tqF5IINEVjCNqg9ofKHRlSoUHE62WBHrem4B1HGXcIrG511v29d1kJ9a/t2Esz7MIg==}
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.15
       kleur: 3.0.3
     dev: true
 
@@ -4164,7 +4165,7 @@ packages:
   /@types/sqlite3/3.1.8:
     resolution: {integrity: sha512-sQMt/qnyUWnqiTcJXm5ZfNPIBeJ/DVvJDwxw+0tAxPJvadzfiP1QhryO1JOR6t1yfb8NpzQb/Rud06mob5laIA==}
     dependencies:
-      '@types/node': 18.11.9
+      '@types/node': 18.11.15
     dev: true
 
   /@types/stack-utils/2.0.1:
@@ -8102,7 +8103,7 @@ packages:
       - ts-node
     dev: true
 
-  /jest-cli/29.3.1_@types+node@16.18.6:
+  /jest-cli/29.3.1_@types+node@16.18.9:
     resolution: {integrity: sha512-TO/ewvwyvPOiBBuWZ0gm04z3WWP8TIK8acgPzE4IxgsLKQgb377NYGrQLc3Wl/7ndWzIH2CDNNsUjGxwLL43VQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
@@ -8119,7 +8120,7 @@ packages:
       exit: 0.1.2
       graceful-fs: 4.2.10
       import-local: 3.1.0
-      jest-config: 29.3.1_@types+node@16.18.6
+      jest-config: 29.3.1_@types+node@16.18.9
       jest-util: 29.3.1
       jest-validate: 29.3.1
       prompts: 2.4.2
@@ -8331,7 +8332,7 @@ packages:
       - supports-color
     dev: true
 
-  /jest-config/29.3.1_@types+node@16.18.6:
+  /jest-config/29.3.1_@types+node@16.18.9:
     resolution: {integrity: sha512-y0tFHdj2WnTEhxmGUK1T7fgLen7YK4RtfvpLFBXfQkh2eMJAQq24Vx9472lvn5wg0MAO6B+iPfJfzdR9hJYalg==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
@@ -8346,7 +8347,7 @@ packages:
       '@babel/core': 7.19.6
       '@jest/test-sequencer': 29.3.1
       '@jest/types': 29.3.1
-      '@types/node': 16.18.6
+      '@types/node': 16.18.9
       babel-jest: 29.3.1_@babel+core@7.19.6
       chalk: 4.1.2
       ci-info: 3.5.0
@@ -8826,7 +8827,7 @@ packages:
       - ts-node
     dev: true
 
-  /jest/29.3.1_@types+node@16.18.6:
+  /jest/29.3.1_@types+node@16.18.9:
     resolution: {integrity: sha512-6iWfL5DTT0Np6UYs/y5Niu7WIfNv/wRTtN5RSXt2DIEft3dx3zPuw/3WJQBCJfmEzvDiEKwoqMbGD9n49+qLSA==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     hasBin: true
@@ -8839,7 +8840,7 @@ packages:
       '@jest/core': 29.3.1
       '@jest/types': 29.3.1
       import-local: 3.1.0
-      jest-cli: 29.3.1_@types+node@16.18.6
+      jest-cli: 29.3.1_@types+node@16.18.9
     transitivePeerDependencies:
       - '@types/node'
       - supports-color
