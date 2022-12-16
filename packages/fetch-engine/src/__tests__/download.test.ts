@@ -121,7 +121,7 @@ describe('download', () => {
         "prisma-fmt-linux-arm64-openssl-1.1.x",
         "prisma-fmt-linux-arm64-openssl-3.0.x",
         "prisma-fmt-linux-musl",
-        "prisma-fmt-linux-musl-openssl-3.0.x.so.node",
+        "prisma-fmt-linux-musl-openssl-3.0.x",
         "prisma-fmt-rhel-openssl-1.0.x",
         "prisma-fmt-rhel-openssl-1.1.x",
         "prisma-fmt-rhel-openssl-3.0.x",
