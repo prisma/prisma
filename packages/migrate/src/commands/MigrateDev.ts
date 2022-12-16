@@ -365,6 +365,8 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
   ): Promise<boolean> {
     const mssqlMessage = `We need to reset the database.
 Do you want to continue? ${chalk.red('All data will be lost')}.`
+    const postgresqlMessage = `We need to reset the schema(s).
+Do you want to continue? ${chalk.red('All data will be lost')}.`
 
     const message = `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".
 Do you want to continue? ${chalk.red('All data will be lost')}.`
@@ -374,7 +376,7 @@ Do you want to continue? ${chalk.red('All data will be lost')}.`
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
-      message: dbType === 'SQL Server' ? mssqlMessage : message,
+      message: dbType === 'SQL Server' ? mssqlMessage : (dbType === 'PostgreSQL' ? postgresqlMessage : message),
     })
 
     return confirmation.value
