@@ -21,6 +21,7 @@ import { match, P } from 'ts-pattern'
 
 import { filterDuplicatesOnProperty } from './utils/filterDuplicatesOnProperty'
 import { getGeneratedClientVersion, getInstalledPrismaClientVersion } from './utils/getClientVersion'
+import { normalizePath } from './utils/normalizePath'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -102,7 +103,10 @@ export class Version implements Command {
           await Promise.all(
             prismaClientJSGenerators.map(async (generatorData) => {
               const clientVersion = await getGeneratedClientVersion(schemaDir ?? process.cwd(), generatorData.output)
-              return [`Generator ${generatorData.name}`, `${clientVersion} (at ${generatorData.output})` ?? 'Not found']
+              return [
+                `Generator ${generatorData.name}`,
+                `${clientVersion} (at ${normalizePath(generatorData.output)})` ?? 'Not found',
+              ]
             }),
           )
         ).filter((entry) => entry[1] != 'Not found') as [string, string][])
