@@ -47,7 +47,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-fmt-wasm": "4.8.0-48.c9e863f2d8de6fa0c4bcd609df078ea2dde3c2b2",
+    "@prisma/prisma-fmt-wasm": "4.8.0-49.feat-to-one-read-where-filter-bdc11e554ded89befc229418635bf7e058d6ca9a",
     "archiver": "5.3.1",
     "arg": "5.0.2",
     "chalk": "4.1.2",
