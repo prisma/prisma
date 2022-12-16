@@ -46,22 +46,10 @@ test('introspection basic', async () => {
       warnings: [],
     }
   `)
-  // const metadata = await engine.getDatabaseMetadata(schema)
-  // expect(metadata).toMatchInlineSnapshot(`
-  //   {
-  //     "size_in_bytes": 53248,
-  //     "table_count": 3,
-  //   }
-  // `)
 
-  const dbVersion = await engine.getDatabaseVersion({ schema })
-  expect(dbVersion.length > 0).toBe(true)
-
-  // const description = await engine.getDatabaseDescription(schema)
-  // expect(typeof description).toBe('string')
-  // expect(description.length).toBeGreaterThan(1000)
-  // const json = JSON.parse(description)
-  // expect(typeof json).toBe('object')
+  // TODO: uncomment once https://github.com/prisma/prisma-private/issues/203 is closed.
+  // const dbVersion = await engine.getDatabaseVersion({ schema })
+  // expect(dbVersion.length > 0).toBe(true)
 
   engine.stop()
 })
