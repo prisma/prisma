@@ -107,7 +107,7 @@ describe('download', () => {
         "migration-engine-linux-arm64-openssl-1.1.x",
         "migration-engine-linux-arm64-openssl-3.0.x",
         "migration-engine-linux-musl",
-        "migration-engine-linux-musl-openssl-3.0.x.so.node",
+        "migration-engine-linux-musl-openssl-3.0.x",
         "migration-engine-rhel-openssl-1.0.x",
         "migration-engine-rhel-openssl-1.1.x",
         "migration-engine-rhel-openssl-3.0.x",
