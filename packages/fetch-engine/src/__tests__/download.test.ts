@@ -80,7 +80,7 @@ describe('download', () => {
         "introspection-engine-linux-arm64-openssl-1.1.x",
         "introspection-engine-linux-arm64-openssl-3.0.x",
         "introspection-engine-linux-musl",
-        "introspection-engine-linux-musl-openssl-3.0.x.so.node",
+        "introspection-engine-linux-musl-openssl-3.0.x",
         "introspection-engine-rhel-openssl-1.0.x",
         "introspection-engine-rhel-openssl-1.1.x",
         "introspection-engine-rhel-openssl-3.0.x",
