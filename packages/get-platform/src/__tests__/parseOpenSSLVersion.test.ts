@@ -19,11 +19,9 @@ describe('parseOpenSSLVersion', () => {
     },
   ]
 
-  describe.each(tests)('$name', (t) => {
-    test(t.name, () => {
-      const actual = parseOpenSSLVersion(t.content)
-      expect(actual).toBe(t.expect)
-    })
+  test.each(tests)('$name', (t) => {
+    const actual = parseOpenSSLVersion(t.content)
+    expect(actual).toBe(t.expect)
   })
 })
 
@@ -51,10 +49,8 @@ describe('parseLibSSLVersion', () => {
     },
   ]
 
-  describe.each(tests)('$name', (t) => {
-    test(t.name, () => {
-      const actual = parseLibSSLVersion(t.content)
-      expect(actual).toBe(t.expect)
-    })
+  test.each(tests)('$name', (t) => {
+    const actual = parseLibSSLVersion(t.content)
+    expect(actual).toBe(t.expect)
   })
 })
