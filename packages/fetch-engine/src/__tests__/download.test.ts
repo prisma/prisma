@@ -135,7 +135,7 @@ describe('download', () => {
         "query-engine-linux-arm64-openssl-1.1.x",
         "query-engine-linux-arm64-openssl-3.0.x",
         "query-engine-linux-musl",
-        "query-engine-linux-musl-openssl-3.0.x.so.node",
+        "query-engine-linux-musl-openssl-3.0.x",
         "query-engine-rhel-openssl-1.0.x",
         "query-engine-rhel-openssl-1.1.x",
         "query-engine-rhel-openssl-3.0.x",
