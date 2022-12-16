@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "ts-pattern": "^4.0.6"
+    "ts-pattern": "4.0.6"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
