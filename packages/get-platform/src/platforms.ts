@@ -10,7 +10,7 @@ export type Platform =
   | 'rhel-openssl-3.0.x'
   | 'linux-arm64-openssl-1.1.x'
   | 'linux-arm64-openssl-1.0.x'
-  | 'linux-arm64-openssl-3.0.x'
+  | 'linux-arm64-openssl-3.x.x'
   | 'linux-arm-openssl-1.1.x'
   | 'linux-arm-openssl-1.0.x'
   | 'linux-arm-openssl-3.0.x'
@@ -36,7 +36,7 @@ export const platforms: Array<Platform> = [
   'rhel-openssl-3.0.x',
   'linux-arm64-openssl-1.1.x',
   'linux-arm64-openssl-1.0.x',
-  'linux-arm64-openssl-3.0.x',
+  'linux-arm64-openssl-3.x.x',
   'linux-arm-openssl-1.1.x',
   'linux-arm-openssl-1.0.x',
   'linux-arm-openssl-3.0.x',
