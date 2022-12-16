@@ -294,7 +294,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
           "size": 40477248,
         },
         {
-          "name": "libquery_engine-linux-musl-openssl-3.0.x.so.nod",
+          "name": "libquery_engine-linux-musl-openssl-3.0.x.so.node",
           "size": 26957176,
         },
         {
