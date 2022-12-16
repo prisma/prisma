@@ -256,7 +256,8 @@ async function discardError<T>(runPromise: () => Promise<T>): Promise<T | undefi
 }
 
 /**
- * Given a list of system commands, runs them until they all resolve or reject, and returns the result of the first successful command.
+ * Given a list of system commands, runs them until they all resolve or reject, and returns the result of the first successful command
+ * in the order of the input list.
  * This function never throws.
  */
 function getFirstSuccessfulExec(commands: string[]) {
