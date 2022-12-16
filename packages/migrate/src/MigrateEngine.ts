@@ -148,9 +148,12 @@ export class MigrateEngine {
 
   /**
    * Get the database version for error reporting.
+   * TODO: this command currently requires the engine to be initialized with a schema path.
+   * The IntrospectionEngine supported reading a database version from an inline schema or URL instead,
+   * which if more flexible and fundamental for the error reporting use case. We should add that here too.
    */
   public getDatabaseVersion({ schema }: EngineArgs.GetDatabaseVersionParams): Promise<string> {
-    return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema }))
+    return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema: this.schemaPath }))
   }
 
   /**
@@ -161,7 +164,7 @@ export class MigrateEngine {
   public introspect({
     schema,
     force = false,
-    compositeTypeDepth = 0, // cannot be undefined
+    compositeTypeDepth = -1, // cannot be undefined
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
     this.latestSchema = schema
     return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))

@@ -1,18 +1,15 @@
+import fs from 'fs'
+import path from 'path'
+
 import { MigrateEngine } from '../../MigrateEngine'
 
 test('introspection basic', async () => {
   const engine = new MigrateEngine({
     projectDir: __dirname,
+    schemaPath: 'schema.prisma',
   })
 
-  const url = `file:./blog.db`
-
-  const schema = `
-    datasource db {
-      provider = "sqlite"
-      url      = "${url}"
-    }
-  `
+  const schema = await fs.promises.readFile(path.join(__dirname, 'schema.prisma'), { encoding: 'utf-8' })
 
   const result = await engine.introspect({ schema })
   expect(result).toMatchInlineSnapshot(`
