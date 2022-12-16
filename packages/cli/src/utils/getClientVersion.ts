@@ -1,5 +1,6 @@
 import fs from 'fs'
 import Module from 'module'
+import path from 'path'
 import pkgUp from 'pkg-up'
 import { promisify } from 'util'
 
@@ -10,6 +11,26 @@ const readFileAsync = promisify(fs.readFile)
  */
 export async function getInstalledPrismaClientVersion(cwd: string = process.cwd()): Promise<string | null> {
   return (await getPrismaClientVersionFromNodeModules(cwd)) ?? (await getPrismaClientVersionFromLocalPackageJson(cwd))
+}
+
+/**
+ * Try reading the version from the generated client.
+ * @param cwd The current working directory.
+ * @param clientPath The path to the generated client root.
+ * @returns The version of the generated client or null if it couldn't be found.
+ */
+export async function getGeneratedClientVersion(
+  cwd: string,
+  clientPath: string = path.join('node_modules', '.prisma', 'client'),
+): Promise<string | null> {
+  try {
+    const generatedClientPath = path.resolve(cwd, clientPath, 'index.js')
+    const generatedClientImport = await import(generatedClientPath)
+
+    return generatedClientImport.Prisma.prismaVersion.client
+  } catch {
+    return null
+  }
 }
 
 /**

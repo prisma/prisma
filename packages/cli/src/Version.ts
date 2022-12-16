@@ -1,14 +1,15 @@
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
-import type { Command } from '@prisma/internals'
 import {
   arg,
   BinaryType,
+  Command,
   format,
   formatTable,
   getConfig,
   getEnginesMetaInfo,
   getSchema,
+  getSchemaDir,
   getSchemaPath,
   HelpError,
   isError,
@@ -18,7 +19,8 @@ import {
 import chalk from 'chalk'
 import { match, P } from 'ts-pattern'
 
-import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
+import { filterDuplicatesOnProperty } from './utils/filterDuplicatesOnProperty'
+import { getGeneratedClientVersion, getInstalledPrismaClientVersion } from './utils/getClientVersion'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -90,10 +92,26 @@ export class Version implements Command {
     })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
+    const schemaPath = await getSchemaPath()
+    const schemaDir = await getSchemaDir(schemaPath ?? undefined)
 
-    const rows = [
+    const prismaClientJSGenerators = await this.getPrismaClientJSGenerators(schemaPath)
+
+    const generatedClientVersions: [string, string][] = schemaPath
+      ? ((
+          await Promise.all(
+            prismaClientJSGenerators.map(async (generatorData) => {
+              const clientVersion = await getGeneratedClientVersion(schemaDir ?? process.cwd(), generatorData.output)
+              return [`Generator ${generatorData.name}`, `${clientVersion} (at ${generatorData.output})` ?? 'Not found']
+            }),
+          )
+        ).filter((entry) => entry[1] != 'Not found') as [string, string][])
+      : []
+
+    const rows: string[][] = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
+
       ['Current platform', platform],
 
       ...enginesRows,
@@ -101,6 +119,8 @@ export class Version implements Command {
 
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
+
+      ...generatedClientVersions,
     ]
 
     /**
@@ -112,7 +132,6 @@ export class Version implements Command {
       enginesMetaInfoErrors.forEach((e) => console.error(e))
     }
 
-    const schemaPath = await getSchemaPath()
     const featureFlags = await this.getFeatureFlags(schemaPath)
 
     if (featureFlags && featureFlags.length > 0) {
@@ -141,6 +160,39 @@ export class Version implements Command {
       // console.error(e)
     }
     return []
+  }
+
+  private async getPrismaClientJSGenerators(schemaPath: string | null): Promise<
+    {
+      name: string
+      output: string
+    }[]
+  > {
+    if (!schemaPath) {
+      return []
+    }
+
+    const datamodel = await getSchema()
+    const config = await getConfig({
+      datamodel,
+      ignoreEnvVarErrors: false,
+    })
+
+    return filterDuplicatesOnProperty(
+      config.generators
+        .filter((generator) => generator.provider.value == 'prisma-client-js')
+        .map((generator) => {
+          return {
+            name: generator.name,
+            output: generator.output
+              ? typeof generator.output == 'string'
+                ? generator.output
+                : generator.output.value
+              : '../node_modules/.prisma/client',
+          }
+        }),
+      'output',
+    )
   }
 
   public help(error?: string): string | HelpError {
