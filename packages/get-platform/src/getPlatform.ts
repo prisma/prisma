@@ -215,10 +215,10 @@ export async function getPlatform(): Promise<Platform> {
     }
 
     if (isLibssl1x(libssl)) {
-      // Alpine 3.16 or inferior linked with OpenSSL 1.1
+      // Alpine 3.16 or below linked with OpenSSL 1.1
       return base
     } else {
-      // Alpine 3.17 or superior linked with OpenSSL 3.0
+      // Alpine 3.17 or above linked with OpenSSL 3.0
       return `${base}-openssl-${libssl}`
     }
   }
@@ -256,13 +256,13 @@ async function discardError<T>(runPromise: () => Promise<T>): Promise<T | undefi
 }
 
 /**
- * Given a list of system commands, returns the first successful command's stdout.
+ * Given a list of system commands, runs them until they all resolve or reject, and returns the result of the first successful command.
  * This function never throws.
  */
 function getFirstSuccessfulExec(commands: string[]) {
   return discardError(async () => {
     const results = await Promise.allSettled(commands.map((cmd) => exec(cmd)))
-    const { value } = results.find((result) => result.status === 'fulfilled') as PromiseFulfilledResult<{
+    const { value } = results.find(({ status }) => status === 'fulfilled') as PromiseFulfilledResult<{
       stdout: string | Buffer
     }>
     return String(value.stdout)
