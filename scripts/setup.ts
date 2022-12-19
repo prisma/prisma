@@ -36,14 +36,6 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     await execa.command('git rev-parse HEAD', {
       stdio: 'inherit',
     })
-    // TODO: can we remove this? probably
-  } else if (process.env.UPDATE_STUDIO) {
-    await execa.command(`git stash`, {
-      stdio: 'inherit',
-    })
-    await execa.command(`git checkout ${process.env.BUILDKITE_BRANCH}`, {
-      stdio: 'inherit',
-    })
   }
 
   // TODO: separate into utils shared between publish & setup
