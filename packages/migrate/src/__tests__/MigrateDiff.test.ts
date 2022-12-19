@@ -339,10 +339,10 @@ describe('migrate diff', () => {
   })
 
   describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-    if (!process.env.TEST_COCKROACH_URI_MIGRATE) {
+    if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
       throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
     }
-    const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE.replace('tests-migrate', 'tests-migrate-diff')
+    const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-diff')
 
     const setupParams = {
       connectionString,

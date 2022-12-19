@@ -521,10 +521,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     jest.setTimeout(20_000)
   }
 
-  if (!process.env.TEST_MSSQL_URI) {
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_URI) {
     throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
   }
-  const connectionString = process.env.TEST_MSSQL_URI
+  const connectionString = process.env.TEST_MSSQL_URI!
   const setupParams: SetupParams = {
     connectionString,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'sqlserver-multi-schema'),
