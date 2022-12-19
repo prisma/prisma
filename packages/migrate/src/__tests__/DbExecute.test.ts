@@ -812,7 +812,7 @@ COMMIT;`,
   })
 
   describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
-    if (!process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+    if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
       throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
     }
 
@@ -820,10 +820,8 @@ COMMIT;`,
       'tests-migrate',
       'tests-migrate-db-execute',
     )
-
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
-
     const setupParams: SetupParams = {
       connectionString: process.env.TEST_MSSQL_URI!,
       dirname: '',
