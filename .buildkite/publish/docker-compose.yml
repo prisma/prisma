@@ -48,7 +48,6 @@ services:
       # Used to create a tag the prisma-engines repository
       # After packages are published on npm
       - GITHUB_TOKEN
-      - UPDATE_STUDIO
       - BUILDKITE
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
@@ -57,7 +56,6 @@ services:
       - REDIS_URL
       - MIGRATE_COMMIT
       - PRISMA_CLIENT_JS_COMMIT
-      - PRISMA2_COMMIT
       - PATCH_BRANCH
       - DRY_RUN
       - CI
