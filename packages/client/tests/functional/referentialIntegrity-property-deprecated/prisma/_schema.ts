@@ -1,16 +1,15 @@
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, id }) => {
+export default testMatrix.setupSchema(({ provider }) => {
   const schemaHeader = /* Prisma */ `
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = ["referentialIntegrity"]
 }
 
 datasource db {
   provider = "${provider}"
   url      = env("DATABASE_URI_${provider}")
-  // We are testing that this is stil valid:
+  // We are testing that this is still valid:
   referentialIntegrity = "prisma"
 }
   `

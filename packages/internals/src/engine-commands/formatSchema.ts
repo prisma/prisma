@@ -1,8 +1,10 @@
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
+import { logger } from '..'
 import { ErrorArea, RustPanic } from '../panic'
 import { prismaFmt } from '../wasm'
+import { getLintWarningsAsText, lintSchema } from './lintSchema'
 
 type FormatSchemaParams = { schema: string; schemaPath?: never } | { schema?: never; schemaPath: string }
 
@@ -60,13 +62,30 @@ export async function formatSchema(
     },
   } as DocumentFormattingParams
 
-  const formattedSchema = handleFormatPanic(
+  /**
+   * Note:
+   * - Given an invalid schema, `formatWasm` returns a formatted schema regardless (when it doesn't panic).
+   * - Given an invalid schema, `lintSchema` returns a list of warnings/errors regardless (when it doesn't panic).
+   *   Warnings must be filtered out from the other diagnostics.
+   * - Validation errors aren't checked/shown here.
+   *   They appear when calling `getDmmf` on the formatted schema in Format.ts.
+   *   If we called `getConfig` instead, we wouldn't have any validation check.
+   */
+  const { formattedSchema, lintDiagnostics } = handleFormatPanic(
     () => {
       // the only possible error here is a Rust panic
-      return formatWasm(schemaContent, documentFormattingParams)
+      const formattedSchema = formatWasm(schemaContent, documentFormattingParams)
+      const lintDiagnostics = lintSchema({ schema: formattedSchema })
+      return { formattedSchema, lintDiagnostics }
     },
     { schemaPath, schema } as FormatSchemaParams,
   )
+
+  const lintWarnings = getLintWarningsAsText(lintDiagnostics)
+  if (lintWarnings && logger.should.warn()) {
+    // Output warnings to stderr
+    console.warn(lintWarnings)
+  }
 
   return Promise.resolve(formattedSchema)
 }
@@ -107,7 +126,6 @@ type DocumentFormattingParams = {
     // and be compatible with the LSP spec.
     // The Wasm formatter may fail silently on unmarshaling errors (a `warn!` macro is used in the Rust code, but that's not propagated to Wasm land).
     tabSize: number
-
     insertSpaces: boolean
   }
 }

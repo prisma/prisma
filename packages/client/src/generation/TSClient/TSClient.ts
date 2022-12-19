@@ -52,8 +52,12 @@ export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
   protected readonly genericsInfo: GenericArgsInfo = new GenericArgsInfo()
 
+  static enabledPreviewFeatures: string[]
+
   constructor(protected readonly options: TSClientOptions) {
     this.dmmf = new DMMFHelper(klona(options.document))
+
+    TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
   }
 
   public async toJS(edge = false): Promise<string> {

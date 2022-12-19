@@ -160,6 +160,7 @@ function isPatchBranch(version: string): boolean {
 
 async function getCommits(branch: string): Promise<string[] | object> {
   // A simple cache in front of GitHub API that was implemented to avoid a rate-limit error in the past
+  // This uses a GitHub token on the worker side for GithUb REST API, with repo:public_repo scope only
   // See https://dash.cloudflare.com/c72786e48b88e7492830a60584c2ac13/workers/services/view/github-cache/production
   const url = `https://github-cache.prisma.workers.dev/repos/prisma/prisma-engines/commits?sha=${branch}`
   const result = await fetch(url, {

@@ -12,7 +12,10 @@ export default defineMatrix(() => [
   ],
   [
     {
-      mapTable: true,
+      mapTable: 'IDENTICAL_NAMES',
+    },
+    {
+      mapTable: 'DIFFERENT_NAMES',
     },
     {
       mapTable: false,

@@ -71,6 +71,7 @@ In case this error is unexpected for you, please report it in https://github.com
 )}
 Prisma.validator = () => (val) => val
 
+
 /**
  * Shorthand utilities for JSON filtering
  */
@@ -632,31 +633,6 @@ export class PrismaClient<
     ? T['rejectOnNotFound']
     : false
       > {
-      /**
-       * @private
-       */
-      private fetcher;
-      /**
-       * @private
-       */
-      private readonly dmmf;
-      /**
-       * @private
-       */
-      private connectionPromise?;
-      /**
-       * @private
-       */
-      private disconnectionPromise?;
-      /**
-       * @private
-       */
-      private readonly engineConfig;
-      /**
-       * @private
-       */
-      private readonly measurePerformance;
-
     /**
    * ##  Prisma Client ʲˢ
    * 
@@ -705,6 +681,7 @@ export class PrismaClient<
    */
   $transaction<P extends PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>;
 
+  $transaction<R>(fn: (prisma: Prisma.TransactionClient) => Promise<R>, options?: {maxWait?: number, timeout?: number}): Promise<R>;
 
   /**
    * Executes a raw MongoDB command and returns the result of it.
@@ -894,15 +871,11 @@ export namespace Prisma {
   /**
    * Metrics 
    */
-  export import Metrics = runtime.Metrics
-  export import Metric = runtime.Metric
-  export import MetricHistogram = runtime.MetricHistogram
-  export import MetricHistogramBucket = runtime.MetricHistogramBucket
+  export type Metrics = runtime.Metrics
+  export type Metric<T> = runtime.Metric<T>
+  export type MetricHistogram = runtime.MetricHistogram
+  export type MetricHistogramBucket = runtime.MetricHistogramBucket
 
-  /**
-   * Extensions
-   */
-  export type Extension = runtime.Extension 
 
   /**
    * Prisma Client JS version: local
@@ -1070,9 +1043,9 @@ export namespace Prisma {
     [K in keyof T]-?: {} extends Prisma__Pick<T, K> ? never : K
   }[keyof T]
 
-  export type TruthyKeys<T> = {
-    [key in keyof T]: T[key] extends false | undefined | null ? never : key
-  }[keyof T]
+  export type TruthyKeys<T> = keyof {
+    [K in keyof T as T[K] extends false | undefined | null ? never : K]: K
+  }
 
   export type TrueKeys<T> = TruthyKeys<Prisma__Pick<T, RequiredKeys<T>>>
 
@@ -1333,7 +1306,7 @@ export namespace Prisma {
   type ExcludeUnderscoreKeys<T extends string> = T extends \`_\${string}\` ? never : T
 
 
-  export import FieldRef = runtime.FieldRef
+  export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
 
   type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
@@ -1511,6 +1484,11 @@ export namespace Prisma {
   // tested in getLogLevel.test.ts
   export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
 
+  /**
+   * \`PrismaClient\` proxy available in interactive transactions.
+   */
+  export type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>
+
   export type Datasource = {
     url?: string
   }
@@ -1533,23 +1511,18 @@ export namespace Prisma {
     posts?: boolean
   }
 
-  export type UserCountOutputTypeGetPayload<
-    S extends boolean | null | undefined | UserCountOutputTypeArgs,
-    U = keyof S
-      > = S extends true
-        ? UserCountOutputType
-    : S extends undefined
-    ? never
-    : S extends UserCountOutputTypeArgs
-    ?'include' extends U
+  export type UserCountOutputTypeGetPayload<S extends boolean | null | undefined | UserCountOutputTypeArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? UserCountOutputType :
+    S extends undefined ? never :
+    S extends { include: any } & (UserCountOutputTypeArgs)
     ? UserCountOutputType 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (UserCountOutputTypeArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof UserCountOutputType ? UserCountOutputType[P] : never
   } 
-    : UserCountOutputType
-  : UserCountOutputType
+      : UserCountOutputType
 
 
 
@@ -1582,23 +1555,18 @@ export namespace Prisma {
     User?: boolean
   }
 
-  export type EmbedHolderCountOutputTypeGetPayload<
-    S extends boolean | null | undefined | EmbedHolderCountOutputTypeArgs,
-    U = keyof S
-      > = S extends true
-        ? EmbedHolderCountOutputType
-    : S extends undefined
-    ? never
-    : S extends EmbedHolderCountOutputTypeArgs
-    ?'include' extends U
+  export type EmbedHolderCountOutputTypeGetPayload<S extends boolean | null | undefined | EmbedHolderCountOutputTypeArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? EmbedHolderCountOutputType :
+    S extends undefined ? never :
+    S extends { include: any } & (EmbedHolderCountOutputTypeArgs)
     ? EmbedHolderCountOutputType 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (EmbedHolderCountOutputTypeArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof EmbedHolderCountOutputType ? EmbedHolderCountOutputType[P] : never
   } 
-    : EmbedHolderCountOutputType
-  : EmbedHolderCountOutputType
+      : EmbedHolderCountOutputType
 
 
 
@@ -1631,23 +1599,18 @@ export namespace Prisma {
     n?: boolean
   }
 
-  export type MCountOutputTypeGetPayload<
-    S extends boolean | null | undefined | MCountOutputTypeArgs,
-    U = keyof S
-      > = S extends true
-        ? MCountOutputType
-    : S extends undefined
-    ? never
-    : S extends MCountOutputTypeArgs
-    ?'include' extends U
+  export type MCountOutputTypeGetPayload<S extends boolean | null | undefined | MCountOutputTypeArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? MCountOutputType :
+    S extends undefined ? never :
+    S extends { include: any } & (MCountOutputTypeArgs)
     ? MCountOutputType 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (MCountOutputTypeArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof MCountOutputType ? MCountOutputType[P] : never
   } 
-    : MCountOutputType
-  : MCountOutputType
+      : MCountOutputType
 
 
 
@@ -1680,23 +1643,18 @@ export namespace Prisma {
     m?: boolean
   }
 
-  export type NCountOutputTypeGetPayload<
-    S extends boolean | null | undefined | NCountOutputTypeArgs,
-    U = keyof S
-      > = S extends true
-        ? NCountOutputType
-    : S extends undefined
-    ? never
-    : S extends NCountOutputTypeArgs
-    ?'include' extends U
+  export type NCountOutputTypeGetPayload<S extends boolean | null | undefined | NCountOutputTypeArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? NCountOutputType :
+    S extends undefined ? never :
+    S extends { include: any } & (NCountOutputTypeArgs)
     ? NCountOutputType 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (NCountOutputTypeArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof NCountOutputType ? NCountOutputType[P] : never
   } 
-    : NCountOutputType
-  : NCountOutputType
+      : NCountOutputType
 
 
 
@@ -1729,23 +1687,18 @@ export namespace Prisma {
     many?: boolean
   }
 
-  export type OneOptionalCountOutputTypeGetPayload<
-    S extends boolean | null | undefined | OneOptionalCountOutputTypeArgs,
-    U = keyof S
-      > = S extends true
-        ? OneOptionalCountOutputType
-    : S extends undefined
-    ? never
-    : S extends OneOptionalCountOutputTypeArgs
-    ?'include' extends U
+  export type OneOptionalCountOutputTypeGetPayload<S extends boolean | null | undefined | OneOptionalCountOutputTypeArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? OneOptionalCountOutputType :
+    S extends undefined ? never :
+    S extends { include: any } & (OneOptionalCountOutputTypeArgs)
     ? OneOptionalCountOutputType 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (OneOptionalCountOutputTypeArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof OneOptionalCountOutputType ? OneOptionalCountOutputType[P] : never
   } 
-    : OneOptionalCountOutputType
-  : OneOptionalCountOutputType
+      : OneOptionalCountOutputType
 
 
 
@@ -1786,29 +1739,25 @@ export namespace Prisma {
     scalarList?: boolean
   }
 
+
   export type EmbedInclude = {
 
-  }
-
-  export type EmbedGetPayload<
-    S extends boolean | null | undefined | EmbedArgs,
-    U = keyof S
-      > = S extends true
-        ? Embed
-    : S extends undefined
-    ? never
-    : S extends EmbedArgs
-    ?'include' extends U
-    ? Embed 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'embedEmbedList' ? Array < EmbedEmbedGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends 'requiredEmbedEmbed' ? EmbedEmbedGetPayload<Exclude<S['select'], undefined | null>[P]> :
-        P extends 'optionalEmbedEmbed' ? EmbedEmbedGetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof Embed ? Embed[P] : never
   } 
-    : Embed
-  : Embed
+
+  export type EmbedGetPayload<S extends boolean | null | undefined | EmbedArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? Embed :
+    S extends undefined ? never :
+    S extends { include: any } & (EmbedArgs)
+    ? Embed 
+    : S extends { select: any } & (EmbedArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
+        P extends 'embedEmbedList' ? Array < EmbedEmbedGetPayload<S['select'][P]>>  :
+        P extends 'requiredEmbedEmbed' ? EmbedEmbedGetPayload<S['select'][P]> :
+        P extends 'optionalEmbedEmbed' ? EmbedEmbedGetPayload<S['select'][P]> | null :  P extends keyof Embed ? Embed[P] : never
+  } 
+      : Embed
 
 
 
@@ -1844,11 +1793,11 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    embedEmbedList<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, PrismaPromise<Array<EmbedEmbed>| Null>, PrismaPromise<Array<EmbedEmbedGetPayload<T>>| Null>>;
+    embedEmbedList<T extends EmbedEmbedArgs= {}>(args?: Subset<T, EmbedEmbedArgs>): PrismaPromise<Array<EmbedEmbedGetPayload<T>>| Null>;
 
-    requiredEmbedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | Null>, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | Null>>;
+    requiredEmbedEmbed<T extends EmbedEmbedArgs= {}>(args?: Subset<T, EmbedEmbedArgs>): Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | Null>;
 
-    optionalEmbedEmbed<T extends EmbedEmbedArgs = {}>(args?: Subset<T, EmbedEmbedArgs>): CheckSelect<T, Prisma__EmbedEmbedClient<EmbedEmbed | Null>, Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | Null>>;
+    optionalEmbedEmbed<T extends EmbedEmbedArgs= {}>(args?: Subset<T, EmbedEmbedArgs>): Prisma__EmbedEmbedClient<EmbedEmbedGetPayload<T> | Null>;
 
     private get _document();
     /**
@@ -1908,23 +1857,19 @@ export namespace Prisma {
     boolean?: boolean
   }
 
-  export type EmbedEmbedGetPayload<
-    S extends boolean | null | undefined | EmbedEmbedArgs,
-    U = keyof S
-      > = S extends true
-        ? EmbedEmbed
-    : S extends undefined
-    ? never
-    : S extends EmbedEmbedArgs
-    ?'include' extends U
+
+  export type EmbedEmbedGetPayload<S extends boolean | null | undefined | EmbedEmbedArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? EmbedEmbed :
+    S extends undefined ? never :
+    S extends { include: any } & (EmbedEmbedArgs)
     ? EmbedEmbed 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (EmbedEmbedArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof EmbedEmbed ? EmbedEmbed[P] : never
   } 
-    : EmbedEmbed
-  : EmbedEmbed
+      : EmbedEmbed
 
 
 
@@ -2183,30 +2128,26 @@ export namespace Prisma {
     authorId?: boolean
   }
 
+
   export type PostInclude = {
     author?: boolean | UserArgs
-  }
+  } 
 
-  export type PostGetPayload<
-    S extends boolean | null | undefined | PostArgs,
-    U = keyof S
-      > = S extends true
-        ? Post
-    : S extends undefined
-    ? never
-    : S extends PostArgs | PostFindManyArgs
-    ?'include' extends U
+  export type PostGetPayload<S extends boolean | null | undefined | PostArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? Post :
+    S extends undefined ? never :
+    S extends { include: any } & (PostArgs | PostFindManyArgs)
     ? Post  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'author' ? UserGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'author' ? UserGetPayload<S['include'][P]> :  never
   } 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'author' ? UserGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof Post ? Post[P] : never
+    : S extends { select: any } & (PostArgs | PostFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
+        P extends 'author' ? UserGetPayload<S['select'][P]> :  P extends keyof Post ? Post[P] : never
   } 
-    : Post
-  : Post
+      : Post
 
 
   type PostCountArgs = Merge<
@@ -2229,7 +2170,23 @@ export namespace Prisma {
     **/
     findUnique<T extends PostFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, PostFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null, null>, Prisma__PostClient<PostGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Post'> extends True ? Prisma__PostClient<PostGetPayload<T>> : Prisma__PostClient<PostGetPayload<T> | null, null>
+
+    /**
+     * Find one Post that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {PostFindUniqueOrThrowArgs} args - Arguments to find a Post
+     * @example
+     * // Get one Post
+     * const post = await prisma.post.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends PostFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, PostFindUniqueOrThrowArgs>
+    ): Prisma__PostClient<PostGetPayload<T>>
 
     /**
      * Find the first Post that matches the filter.
@@ -2246,7 +2203,25 @@ export namespace Prisma {
     **/
     findFirst<T extends PostFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, PostFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>> : CheckSelect<T, Prisma__PostClient<Post | null, null>, Prisma__PostClient<PostGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? Prisma__PostClient<PostGetPayload<T>> : Prisma__PostClient<PostGetPayload<T> | null, null>
+
+    /**
+     * Find the first Post that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PostFindFirstOrThrowArgs} args - Arguments to find a Post
+     * @example
+     * // Get one Post
+     * const post = await prisma.post.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends PostFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, PostFindFirstOrThrowArgs>
+    ): Prisma__PostClient<PostGetPayload<T>>
 
     /**
      * Find zero or more Posts that matches the filter.
@@ -2266,7 +2241,7 @@ export namespace Prisma {
     **/
     findMany<T extends PostFindManyArgs>(
       args?: SelectSubset<T, PostFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<Post>>, PrismaPromise<Array<PostGetPayload<T>>>>
+    ): PrismaPromise<Array<PostGetPayload<T>>>
 
     /**
      * Create a Post.
@@ -2282,7 +2257,7 @@ export namespace Prisma {
     **/
     create<T extends PostCreateArgs>(
       args: SelectSubset<T, PostCreateArgs>
-    ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+    ): Prisma__PostClient<PostGetPayload<T>>
 
     /**
      * Create many Posts.
@@ -2314,7 +2289,7 @@ export namespace Prisma {
     **/
     delete<T extends PostDeleteArgs>(
       args: SelectSubset<T, PostDeleteArgs>
-    ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+    ): Prisma__PostClient<PostGetPayload<T>>
 
     /**
      * Update one Post.
@@ -2333,7 +2308,7 @@ export namespace Prisma {
     **/
     update<T extends PostUpdateArgs>(
       args: SelectSubset<T, PostUpdateArgs>
-    ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+    ): Prisma__PostClient<PostGetPayload<T>>
 
     /**
      * Delete zero or more Posts.
@@ -2391,7 +2366,7 @@ export namespace Prisma {
     **/
     upsert<T extends PostUpsertArgs>(
       args: SelectSubset<T, PostUpsertArgs>
-    ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
+    ): Prisma__PostClient<PostGetPayload<T>>
 
     /**
      * Find zero or more Posts that matches the filter.
@@ -2419,40 +2394,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: PostAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one Post that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {PostFindUniqueOrThrowArgs} args - Arguments to find a Post
-     * @example
-     * // Get one Post
-     * const post = await prisma.post.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends PostFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, PostFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
-
-    /**
-     * Find the first Post that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {PostFindFirstOrThrowArgs} args - Arguments to find a Post
-     * @example
-     * // Get one Post
-     * const post = await prisma.post.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends PostFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, PostFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__PostClient<Post>, Prisma__PostClient<PostGetPayload<T>>>
 
     /**
      * Count the number of Posts.
@@ -2605,7 +2546,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    author<T extends UserArgs = {}>(args?: Subset<T, UserArgs>): CheckSelect<T, Prisma__UserClient<User | Null>, Prisma__UserClient<UserGetPayload<T> | Null>>;
+    author<T extends UserArgs= {}>(args?: Subset<T, UserArgs>): Prisma__UserClient<UserGetPayload<T> | Null>;
 
     private get _document();
     /**
@@ -2666,6 +2607,28 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * Post findUniqueOrThrow
+   */
+  export type PostFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the Post
+     * 
+    **/
+    select?: PostSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: PostInclude | null
+    /**
+     * Filter, which Post to fetch.
+     * 
+    **/
+    where: PostWhereUniqueInput
+  }
+
 
   /**
    * Post base type for findFirst actions
@@ -2734,6 +2697,63 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * Post findFirstOrThrow
+   */
+  export type PostFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the Post
+     * 
+    **/
+    select?: PostSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: PostInclude | null
+    /**
+     * Filter, which Post to fetch.
+     * 
+    **/
+    where?: PostWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Posts to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<PostOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Posts.
+     * 
+    **/
+    cursor?: PostWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` Posts from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` Posts.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Posts.
+     * 
+    **/
+    distinct?: Enumerable<PostScalarFieldEnum>
+  }
+
 
   /**
    * Post findMany
@@ -2963,18 +2983,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * Post: findUniqueOrThrow
-   */
-  export type PostFindUniqueOrThrowArgs = PostFindUniqueArgsBase
-      
-
-  /**
-   * Post: findFirstOrThrow
-   */
-  export type PostFindFirstOrThrowArgs = PostFindFirstArgsBase
-      
 
   /**
    * Post without action
@@ -3288,36 +3296,32 @@ export namespace Prisma {
     _count?: boolean | UserCountOutputTypeArgs
   }
 
+
   export type UserInclude = {
     posts?: boolean | PostFindManyArgs
     embedHolder?: boolean | EmbedHolderArgs
     _count?: boolean | UserCountOutputTypeArgs
-  }
+  } 
 
-  export type UserGetPayload<
-    S extends boolean | null | undefined | UserArgs,
-    U = keyof S
-      > = S extends true
-        ? User
-    : S extends undefined
-    ? never
-    : S extends UserArgs | UserFindManyArgs
-    ?'include' extends U
+  export type UserGetPayload<S extends boolean | null | undefined | UserArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? User :
+    S extends undefined ? never :
+    S extends { include: any } & (UserArgs | UserFindManyArgs)
     ? User  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'posts' ? Array < PostGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
-        P extends 'embedHolder' ? EmbedHolderGetPayload<Exclude<S['include'], undefined | null>[P]> :
-        P extends '_count' ? UserCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'posts' ? Array < PostGetPayload<S['include'][P]>>  :
+        P extends 'embedHolder' ? EmbedHolderGetPayload<S['include'][P]> :
+        P extends '_count' ? UserCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'posts' ? Array < PostGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends 'embedHolder' ? EmbedHolderGetPayload<Exclude<S['select'], undefined | null>[P]> :
-        P extends '_count' ? UserCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof User ? User[P] : never
+    : S extends { select: any } & (UserArgs | UserFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
+        P extends 'posts' ? Array < PostGetPayload<S['select'][P]>>  :
+        P extends 'embedHolder' ? EmbedHolderGetPayload<S['select'][P]> :
+        P extends '_count' ? UserCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof User ? User[P] : never
   } 
-    : User
-  : User
+      : User
 
 
   type UserCountArgs = Merge<
@@ -3340,7 +3344,23 @@ export namespace Prisma {
     **/
     findUnique<T extends UserFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, UserFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null, null>, Prisma__UserClient<UserGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'User'> extends True ? Prisma__UserClient<UserGetPayload<T>> : Prisma__UserClient<UserGetPayload<T> | null, null>
+
+    /**
+     * Find one User that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {UserFindUniqueOrThrowArgs} args - Arguments to find a User
+     * @example
+     * // Get one User
+     * const user = await prisma.user.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends UserFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, UserFindUniqueOrThrowArgs>
+    ): Prisma__UserClient<UserGetPayload<T>>
 
     /**
      * Find the first User that matches the filter.
@@ -3357,7 +3377,25 @@ export namespace Prisma {
     **/
     findFirst<T extends UserFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, UserFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>> : CheckSelect<T, Prisma__UserClient<User | null, null>, Prisma__UserClient<UserGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? Prisma__UserClient<UserGetPayload<T>> : Prisma__UserClient<UserGetPayload<T> | null, null>
+
+    /**
+     * Find the first User that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {UserFindFirstOrThrowArgs} args - Arguments to find a User
+     * @example
+     * // Get one User
+     * const user = await prisma.user.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends UserFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, UserFindFirstOrThrowArgs>
+    ): Prisma__UserClient<UserGetPayload<T>>
 
     /**
      * Find zero or more Users that matches the filter.
@@ -3377,7 +3415,7 @@ export namespace Prisma {
     **/
     findMany<T extends UserFindManyArgs>(
       args?: SelectSubset<T, UserFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<User>>, PrismaPromise<Array<UserGetPayload<T>>>>
+    ): PrismaPromise<Array<UserGetPayload<T>>>
 
     /**
      * Create a User.
@@ -3393,7 +3431,7 @@ export namespace Prisma {
     **/
     create<T extends UserCreateArgs>(
       args: SelectSubset<T, UserCreateArgs>
-    ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+    ): Prisma__UserClient<UserGetPayload<T>>
 
     /**
      * Create many Users.
@@ -3425,7 +3463,7 @@ export namespace Prisma {
     **/
     delete<T extends UserDeleteArgs>(
       args: SelectSubset<T, UserDeleteArgs>
-    ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+    ): Prisma__UserClient<UserGetPayload<T>>
 
     /**
      * Update one User.
@@ -3444,7 +3482,7 @@ export namespace Prisma {
     **/
     update<T extends UserUpdateArgs>(
       args: SelectSubset<T, UserUpdateArgs>
-    ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+    ): Prisma__UserClient<UserGetPayload<T>>
 
     /**
      * Delete zero or more Users.
@@ -3502,7 +3540,7 @@ export namespace Prisma {
     **/
     upsert<T extends UserUpsertArgs>(
       args: SelectSubset<T, UserUpsertArgs>
-    ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
+    ): Prisma__UserClient<UserGetPayload<T>>
 
     /**
      * Find zero or more Users that matches the filter.
@@ -3530,40 +3568,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: UserAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one User that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {UserFindUniqueOrThrowArgs} args - Arguments to find a User
-     * @example
-     * // Get one User
-     * const user = await prisma.user.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends UserFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, UserFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
-
-    /**
-     * Find the first User that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {UserFindFirstOrThrowArgs} args - Arguments to find a User
-     * @example
-     * // Get one User
-     * const user = await prisma.user.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends UserFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, UserFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__UserClient<User>, Prisma__UserClient<UserGetPayload<T>>>
 
     /**
      * Count the number of Users.
@@ -3716,9 +3720,9 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    posts<T extends PostFindManyArgs = {}>(args?: Subset<T, PostFindManyArgs>): CheckSelect<T, PrismaPromise<Array<Post>| Null>, PrismaPromise<Array<PostGetPayload<T>>| Null>>;
+    posts<T extends PostFindManyArgs= {}>(args?: Subset<T, PostFindManyArgs>): PrismaPromise<Array<PostGetPayload<T>>| Null>;
 
-    embedHolder<T extends EmbedHolderArgs = {}>(args?: Subset<T, EmbedHolderArgs>): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder | Null>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | Null>>;
+    embedHolder<T extends EmbedHolderArgs= {}>(args?: Subset<T, EmbedHolderArgs>): Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | Null>;
 
     private get _document();
     /**
@@ -3779,6 +3783,28 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * User findUniqueOrThrow
+   */
+  export type UserFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the User
+     * 
+    **/
+    select?: UserSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: UserInclude | null
+    /**
+     * Filter, which User to fetch.
+     * 
+    **/
+    where: UserWhereUniqueInput
+  }
+
 
   /**
    * User base type for findFirst actions
@@ -3847,6 +3873,63 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * User findFirstOrThrow
+   */
+  export type UserFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the User
+     * 
+    **/
+    select?: UserSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: UserInclude | null
+    /**
+     * Filter, which User to fetch.
+     * 
+    **/
+    where?: UserWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Users to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<UserOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Users.
+     * 
+    **/
+    cursor?: UserWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` Users from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` Users.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Users.
+     * 
+    **/
+    distinct?: Enumerable<UserScalarFieldEnum>
+  }
+
 
   /**
    * User findMany
@@ -4078,18 +4161,6 @@ export namespace Prisma {
 
 
   /**
-   * User: findUniqueOrThrow
-   */
-  export type UserFindUniqueOrThrowArgs = UserFindUniqueArgsBase
-      
-
-  /**
-   * User: findFirstOrThrow
-   */
-  export type UserFindFirstOrThrowArgs = UserFindFirstArgsBase
-      
-
-  /**
    * User without action
    */
   export type UserArgs = {
@@ -4277,36 +4348,32 @@ export namespace Prisma {
     _count?: boolean | EmbedHolderCountOutputTypeArgs
   }
 
+
   export type EmbedHolderInclude = {
     User?: boolean | UserFindManyArgs
     _count?: boolean | EmbedHolderCountOutputTypeArgs
-  }
+  } 
 
-  export type EmbedHolderGetPayload<
-    S extends boolean | null | undefined | EmbedHolderArgs,
-    U = keyof S
-      > = S extends true
-        ? EmbedHolder
-    : S extends undefined
-    ? never
-    : S extends EmbedHolderArgs | EmbedHolderFindManyArgs
-    ?'include' extends U
+  export type EmbedHolderGetPayload<S extends boolean | null | undefined | EmbedHolderArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? EmbedHolder :
+    S extends undefined ? never :
+    S extends { include: any } & (EmbedHolderArgs | EmbedHolderFindManyArgs)
     ? EmbedHolder  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'User' ? Array < UserGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
-        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'User' ? Array < UserGetPayload<S['include'][P]>>  :
+        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'embedList' ? Array < EmbedGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends 'requiredEmbed' ? EmbedGetPayload<Exclude<S['select'], undefined | null>[P]> :
-        P extends 'optionalEmbed' ? EmbedGetPayload<Exclude<S['select'], undefined | null>[P]> | null :
-        P extends 'User' ? Array < UserGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof EmbedHolder ? EmbedHolder[P] : never
+    : S extends { select: any } & (EmbedHolderArgs | EmbedHolderFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
+        P extends 'embedList' ? Array < EmbedGetPayload<S['select'][P]>>  :
+        P extends 'requiredEmbed' ? EmbedGetPayload<S['select'][P]> :
+        P extends 'optionalEmbed' ? EmbedGetPayload<S['select'][P]> | null :
+        P extends 'User' ? Array < UserGetPayload<S['select'][P]>>  :
+        P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof EmbedHolder ? EmbedHolder[P] : never
   } 
-    : EmbedHolder
-  : EmbedHolder
+      : EmbedHolder
 
 
   type EmbedHolderCountArgs = Merge<
@@ -4329,7 +4396,23 @@ export namespace Prisma {
     **/
     findUnique<T extends EmbedHolderFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, EmbedHolderFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'EmbedHolder'> extends True ? CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>> : CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder | null, null>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'EmbedHolder'> extends True ? Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>> : Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null, null>
+
+    /**
+     * Find one EmbedHolder that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {EmbedHolderFindUniqueOrThrowArgs} args - Arguments to find a EmbedHolder
+     * @example
+     * // Get one EmbedHolder
+     * const embedHolder = await prisma.embedHolder.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends EmbedHolderFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, EmbedHolderFindUniqueOrThrowArgs>
+    ): Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>
 
     /**
      * Find the first EmbedHolder that matches the filter.
@@ -4346,7 +4429,25 @@ export namespace Prisma {
     **/
     findFirst<T extends EmbedHolderFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, EmbedHolderFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'EmbedHolder'> extends True ? CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>> : CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder | null, null>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'EmbedHolder'> extends True ? Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>> : Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | null, null>
+
+    /**
+     * Find the first EmbedHolder that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EmbedHolderFindFirstOrThrowArgs} args - Arguments to find a EmbedHolder
+     * @example
+     * // Get one EmbedHolder
+     * const embedHolder = await prisma.embedHolder.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends EmbedHolderFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, EmbedHolderFindFirstOrThrowArgs>
+    ): Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>
 
     /**
      * Find zero or more EmbedHolders that matches the filter.
@@ -4366,7 +4467,7 @@ export namespace Prisma {
     **/
     findMany<T extends EmbedHolderFindManyArgs>(
       args?: SelectSubset<T, EmbedHolderFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<EmbedHolder>>, PrismaPromise<Array<EmbedHolderGetPayload<T>>>>
+    ): PrismaPromise<Array<EmbedHolderGetPayload<T>>>
 
     /**
      * Create a EmbedHolder.
@@ -4382,7 +4483,7 @@ export namespace Prisma {
     **/
     create<T extends EmbedHolderCreateArgs>(
       args: SelectSubset<T, EmbedHolderCreateArgs>
-    ): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>>
+    ): Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>
 
     /**
      * Create many EmbedHolders.
@@ -4414,7 +4515,7 @@ export namespace Prisma {
     **/
     delete<T extends EmbedHolderDeleteArgs>(
       args: SelectSubset<T, EmbedHolderDeleteArgs>
-    ): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>>
+    ): Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>
 
     /**
      * Update one EmbedHolder.
@@ -4433,7 +4534,7 @@ export namespace Prisma {
     **/
     update<T extends EmbedHolderUpdateArgs>(
       args: SelectSubset<T, EmbedHolderUpdateArgs>
-    ): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>>
+    ): Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>
 
     /**
      * Delete zero or more EmbedHolders.
@@ -4491,7 +4592,7 @@ export namespace Prisma {
     **/
     upsert<T extends EmbedHolderUpsertArgs>(
       args: SelectSubset<T, EmbedHolderUpsertArgs>
-    ): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>>
+    ): Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>
 
     /**
      * Find zero or more EmbedHolders that matches the filter.
@@ -4519,40 +4620,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: EmbedHolderAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one EmbedHolder that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {EmbedHolderFindUniqueOrThrowArgs} args - Arguments to find a EmbedHolder
-     * @example
-     * // Get one EmbedHolder
-     * const embedHolder = await prisma.embedHolder.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends EmbedHolderFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, EmbedHolderFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>>
-
-    /**
-     * Find the first EmbedHolder that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {EmbedHolderFindFirstOrThrowArgs} args - Arguments to find a EmbedHolder
-     * @example
-     * // Get one EmbedHolder
-     * const embedHolder = await prisma.embedHolder.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends EmbedHolderFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, EmbedHolderFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__EmbedHolderClient<EmbedHolder>, Prisma__EmbedHolderClient<EmbedHolderGetPayload<T>>>
 
     /**
      * Count the number of EmbedHolders.
@@ -4705,13 +4772,13 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    embedList<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, PrismaPromise<Array<Embed>| Null>, PrismaPromise<Array<EmbedGetPayload<T>>| Null>>;
+    embedList<T extends EmbedArgs= {}>(args?: Subset<T, EmbedArgs>): PrismaPromise<Array<EmbedGetPayload<T>>| Null>;
 
-    requiredEmbed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | Null>, Prisma__EmbedClient<EmbedGetPayload<T> | Null>>;
+    requiredEmbed<T extends EmbedArgs= {}>(args?: Subset<T, EmbedArgs>): Prisma__EmbedClient<EmbedGetPayload<T> | Null>;
 
-    optionalEmbed<T extends EmbedArgs = {}>(args?: Subset<T, EmbedArgs>): CheckSelect<T, Prisma__EmbedClient<Embed | Null>, Prisma__EmbedClient<EmbedGetPayload<T> | Null>>;
+    optionalEmbed<T extends EmbedArgs= {}>(args?: Subset<T, EmbedArgs>): Prisma__EmbedClient<EmbedGetPayload<T> | Null>;
 
-    User<T extends UserFindManyArgs = {}>(args?: Subset<T, UserFindManyArgs>): CheckSelect<T, PrismaPromise<Array<User>| Null>, PrismaPromise<Array<UserGetPayload<T>>| Null>>;
+    User<T extends UserFindManyArgs= {}>(args?: Subset<T, UserFindManyArgs>): PrismaPromise<Array<UserGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -4772,6 +4839,28 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * EmbedHolder findUniqueOrThrow
+   */
+  export type EmbedHolderFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolder
+     * 
+    **/
+    select?: EmbedHolderSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedHolderInclude | null
+    /**
+     * Filter, which EmbedHolder to fetch.
+     * 
+    **/
+    where: EmbedHolderWhereUniqueInput
+  }
+
 
   /**
    * EmbedHolder base type for findFirst actions
@@ -4840,6 +4929,63 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * EmbedHolder findFirstOrThrow
+   */
+  export type EmbedHolderFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the EmbedHolder
+     * 
+    **/
+    select?: EmbedHolderSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: EmbedHolderInclude | null
+    /**
+     * Filter, which EmbedHolder to fetch.
+     * 
+    **/
+    where?: EmbedHolderWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of EmbedHolders to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<EmbedHolderOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for EmbedHolders.
+     * 
+    **/
+    cursor?: EmbedHolderWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` EmbedHolders from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` EmbedHolders.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of EmbedHolders.
+     * 
+    **/
+    distinct?: Enumerable<EmbedHolderScalarFieldEnum>
+  }
+
 
   /**
    * EmbedHolder findMany
@@ -5069,18 +5215,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * EmbedHolder: findUniqueOrThrow
-   */
-  export type EmbedHolderFindUniqueOrThrowArgs = EmbedHolderFindUniqueArgsBase
-      
-
-  /**
-   * EmbedHolder: findFirstOrThrow
-   */
-  export type EmbedHolderFindFirstOrThrowArgs = EmbedHolderFindFirstArgsBase
-      
 
   /**
    * EmbedHolder without action
@@ -5381,33 +5515,29 @@ export namespace Prisma {
     _count?: boolean | MCountOutputTypeArgs
   }
 
+
   export type MInclude = {
     n?: boolean | NFindManyArgs
     _count?: boolean | MCountOutputTypeArgs
-  }
+  } 
 
-  export type MGetPayload<
-    S extends boolean | null | undefined | MArgs,
-    U = keyof S
-      > = S extends true
-        ? M
-    : S extends undefined
-    ? never
-    : S extends MArgs | MFindManyArgs
-    ?'include' extends U
+  export type MGetPayload<S extends boolean | null | undefined | MArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? M :
+    S extends undefined ? never :
+    S extends { include: any } & (MArgs | MFindManyArgs)
     ? M  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'n' ? Array < NGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
-        P extends '_count' ? MCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'n' ? Array < NGetPayload<S['include'][P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'n' ? Array < NGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends '_count' ? MCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof M ? M[P] : never
+    : S extends { select: any } & (MArgs | MFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
+        P extends 'n' ? Array < NGetPayload<S['select'][P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof M ? M[P] : never
   } 
-    : M
-  : M
+      : M
 
 
   type MCountArgs = Merge<
@@ -5430,7 +5560,23 @@ export namespace Prisma {
     **/
     findUnique<T extends MFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, MFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null, null>, Prisma__MClient<MGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'M'> extends True ? Prisma__MClient<MGetPayload<T>> : Prisma__MClient<MGetPayload<T> | null, null>
+
+    /**
+     * Find one M that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {MFindUniqueOrThrowArgs} args - Arguments to find a M
+     * @example
+     * // Get one M
+     * const m = await prisma.m.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends MFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, MFindUniqueOrThrowArgs>
+    ): Prisma__MClient<MGetPayload<T>>
 
     /**
      * Find the first M that matches the filter.
@@ -5447,7 +5593,25 @@ export namespace Prisma {
     **/
     findFirst<T extends MFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, MFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>> : CheckSelect<T, Prisma__MClient<M | null, null>, Prisma__MClient<MGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? Prisma__MClient<MGetPayload<T>> : Prisma__MClient<MGetPayload<T> | null, null>
+
+    /**
+     * Find the first M that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MFindFirstOrThrowArgs} args - Arguments to find a M
+     * @example
+     * // Get one M
+     * const m = await prisma.m.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends MFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, MFindFirstOrThrowArgs>
+    ): Prisma__MClient<MGetPayload<T>>
 
     /**
      * Find zero or more Ms that matches the filter.
@@ -5467,7 +5631,7 @@ export namespace Prisma {
     **/
     findMany<T extends MFindManyArgs>(
       args?: SelectSubset<T, MFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<M>>, PrismaPromise<Array<MGetPayload<T>>>>
+    ): PrismaPromise<Array<MGetPayload<T>>>
 
     /**
      * Create a M.
@@ -5483,7 +5647,7 @@ export namespace Prisma {
     **/
     create<T extends MCreateArgs>(
       args: SelectSubset<T, MCreateArgs>
-    ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+    ): Prisma__MClient<MGetPayload<T>>
 
     /**
      * Create many Ms.
@@ -5515,7 +5679,7 @@ export namespace Prisma {
     **/
     delete<T extends MDeleteArgs>(
       args: SelectSubset<T, MDeleteArgs>
-    ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+    ): Prisma__MClient<MGetPayload<T>>
 
     /**
      * Update one M.
@@ -5534,7 +5698,7 @@ export namespace Prisma {
     **/
     update<T extends MUpdateArgs>(
       args: SelectSubset<T, MUpdateArgs>
-    ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+    ): Prisma__MClient<MGetPayload<T>>
 
     /**
      * Delete zero or more Ms.
@@ -5592,7 +5756,7 @@ export namespace Prisma {
     **/
     upsert<T extends MUpsertArgs>(
       args: SelectSubset<T, MUpsertArgs>
-    ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
+    ): Prisma__MClient<MGetPayload<T>>
 
     /**
      * Find zero or more Ms that matches the filter.
@@ -5620,40 +5784,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: MAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one M that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {MFindUniqueOrThrowArgs} args - Arguments to find a M
-     * @example
-     * // Get one M
-     * const m = await prisma.m.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends MFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, MFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
-
-    /**
-     * Find the first M that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {MFindFirstOrThrowArgs} args - Arguments to find a M
-     * @example
-     * // Get one M
-     * const m = await prisma.m.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends MFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, MFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__MClient<M>, Prisma__MClient<MGetPayload<T>>>
 
     /**
      * Count the number of Ms.
@@ -5806,7 +5936,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    n<T extends NFindManyArgs = {}>(args?: Subset<T, NFindManyArgs>): CheckSelect<T, PrismaPromise<Array<N>| Null>, PrismaPromise<Array<NGetPayload<T>>| Null>>;
+    n<T extends NFindManyArgs= {}>(args?: Subset<T, NFindManyArgs>): PrismaPromise<Array<NGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -5867,6 +5997,28 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * M findUniqueOrThrow
+   */
+  export type MFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the M
+     * 
+    **/
+    select?: MSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: MInclude | null
+    /**
+     * Filter, which M to fetch.
+     * 
+    **/
+    where: MWhereUniqueInput
+  }
+
 
   /**
    * M base type for findFirst actions
@@ -5935,6 +6087,63 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * M findFirstOrThrow
+   */
+  export type MFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the M
+     * 
+    **/
+    select?: MSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: MInclude | null
+    /**
+     * Filter, which M to fetch.
+     * 
+    **/
+    where?: MWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MS to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<MOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MS.
+     * 
+    **/
+    cursor?: MWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` MS from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` MS.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MS.
+     * 
+    **/
+    distinct?: Enumerable<MScalarFieldEnum>
+  }
+
 
   /**
    * M findMany
@@ -6164,18 +6373,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * M: findUniqueOrThrow
-   */
-  export type MFindUniqueOrThrowArgs = MFindUniqueArgsBase
-      
-
-  /**
-   * M: findFirstOrThrow
-   */
-  export type MFindFirstOrThrowArgs = MFindFirstArgsBase
-      
 
   /**
    * M without action
@@ -6476,33 +6673,29 @@ export namespace Prisma {
     _count?: boolean | NCountOutputTypeArgs
   }
 
+
   export type NInclude = {
     m?: boolean | MFindManyArgs
     _count?: boolean | NCountOutputTypeArgs
-  }
+  } 
 
-  export type NGetPayload<
-    S extends boolean | null | undefined | NArgs,
-    U = keyof S
-      > = S extends true
-        ? N
-    : S extends undefined
-    ? never
-    : S extends NArgs | NFindManyArgs
-    ?'include' extends U
+  export type NGetPayload<S extends boolean | null | undefined | NArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? N :
+    S extends undefined ? never :
+    S extends { include: any } & (NArgs | NFindManyArgs)
     ? N  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'm' ? Array < MGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
-        P extends '_count' ? NCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'm' ? Array < MGetPayload<S['include'][P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'm' ? Array < MGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends '_count' ? NCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof N ? N[P] : never
+    : S extends { select: any } & (NArgs | NFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
+        P extends 'm' ? Array < MGetPayload<S['select'][P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof N ? N[P] : never
   } 
-    : N
-  : N
+      : N
 
 
   type NCountArgs = Merge<
@@ -6525,7 +6718,23 @@ export namespace Prisma {
     **/
     findUnique<T extends NFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, NFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null, null>, Prisma__NClient<NGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'N'> extends True ? Prisma__NClient<NGetPayload<T>> : Prisma__NClient<NGetPayload<T> | null, null>
+
+    /**
+     * Find one N that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {NFindUniqueOrThrowArgs} args - Arguments to find a N
+     * @example
+     * // Get one N
+     * const n = await prisma.n.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends NFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, NFindUniqueOrThrowArgs>
+    ): Prisma__NClient<NGetPayload<T>>
 
     /**
      * Find the first N that matches the filter.
@@ -6542,7 +6751,25 @@ export namespace Prisma {
     **/
     findFirst<T extends NFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, NFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>> : CheckSelect<T, Prisma__NClient<N | null, null>, Prisma__NClient<NGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? Prisma__NClient<NGetPayload<T>> : Prisma__NClient<NGetPayload<T> | null, null>
+
+    /**
+     * Find the first N that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NFindFirstOrThrowArgs} args - Arguments to find a N
+     * @example
+     * // Get one N
+     * const n = await prisma.n.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends NFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, NFindFirstOrThrowArgs>
+    ): Prisma__NClient<NGetPayload<T>>
 
     /**
      * Find zero or more Ns that matches the filter.
@@ -6562,7 +6789,7 @@ export namespace Prisma {
     **/
     findMany<T extends NFindManyArgs>(
       args?: SelectSubset<T, NFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<N>>, PrismaPromise<Array<NGetPayload<T>>>>
+    ): PrismaPromise<Array<NGetPayload<T>>>
 
     /**
      * Create a N.
@@ -6578,7 +6805,7 @@ export namespace Prisma {
     **/
     create<T extends NCreateArgs>(
       args: SelectSubset<T, NCreateArgs>
-    ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+    ): Prisma__NClient<NGetPayload<T>>
 
     /**
      * Create many Ns.
@@ -6610,7 +6837,7 @@ export namespace Prisma {
     **/
     delete<T extends NDeleteArgs>(
       args: SelectSubset<T, NDeleteArgs>
-    ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+    ): Prisma__NClient<NGetPayload<T>>
 
     /**
      * Update one N.
@@ -6629,7 +6856,7 @@ export namespace Prisma {
     **/
     update<T extends NUpdateArgs>(
       args: SelectSubset<T, NUpdateArgs>
-    ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+    ): Prisma__NClient<NGetPayload<T>>
 
     /**
      * Delete zero or more Ns.
@@ -6687,7 +6914,7 @@ export namespace Prisma {
     **/
     upsert<T extends NUpsertArgs>(
       args: SelectSubset<T, NUpsertArgs>
-    ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
+    ): Prisma__NClient<NGetPayload<T>>
 
     /**
      * Find zero or more Ns that matches the filter.
@@ -6715,40 +6942,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: NAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one N that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {NFindUniqueOrThrowArgs} args - Arguments to find a N
-     * @example
-     * // Get one N
-     * const n = await prisma.n.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends NFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, NFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
-
-    /**
-     * Find the first N that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {NFindFirstOrThrowArgs} args - Arguments to find a N
-     * @example
-     * // Get one N
-     * const n = await prisma.n.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends NFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, NFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__NClient<N>, Prisma__NClient<NGetPayload<T>>>
 
     /**
      * Count the number of Ns.
@@ -6901,7 +7094,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    m<T extends MFindManyArgs = {}>(args?: Subset<T, MFindManyArgs>): CheckSelect<T, PrismaPromise<Array<M>| Null>, PrismaPromise<Array<MGetPayload<T>>| Null>>;
+    m<T extends MFindManyArgs= {}>(args?: Subset<T, MFindManyArgs>): PrismaPromise<Array<MGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -6962,6 +7155,28 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * N findUniqueOrThrow
+   */
+  export type NFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the N
+     * 
+    **/
+    select?: NSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: NInclude | null
+    /**
+     * Filter, which N to fetch.
+     * 
+    **/
+    where: NWhereUniqueInput
+  }
+
 
   /**
    * N base type for findFirst actions
@@ -7030,6 +7245,63 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * N findFirstOrThrow
+   */
+  export type NFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the N
+     * 
+    **/
+    select?: NSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: NInclude | null
+    /**
+     * Filter, which N to fetch.
+     * 
+    **/
+    where?: NWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NS to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<NOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NS.
+     * 
+    **/
+    cursor?: NWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` NS from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` NS.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NS.
+     * 
+    **/
+    distinct?: Enumerable<NScalarFieldEnum>
+  }
+
 
   /**
    * N findMany
@@ -7259,18 +7531,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * N: findUniqueOrThrow
-   */
-  export type NFindUniqueOrThrowArgs = NFindUniqueArgsBase
-      
-
-  /**
-   * N: findFirstOrThrow
-   */
-  export type NFindFirstOrThrowArgs = NFindFirstArgsBase
-      
 
   /**
    * N without action
@@ -7567,33 +7827,29 @@ export namespace Prisma {
     _count?: boolean | OneOptionalCountOutputTypeArgs
   }
 
+
   export type OneOptionalInclude = {
     many?: boolean | ManyRequiredFindManyArgs
     _count?: boolean | OneOptionalCountOutputTypeArgs
-  }
+  } 
 
-  export type OneOptionalGetPayload<
-    S extends boolean | null | undefined | OneOptionalArgs,
-    U = keyof S
-      > = S extends true
-        ? OneOptional
-    : S extends undefined
-    ? never
-    : S extends OneOptionalArgs | OneOptionalFindManyArgs
-    ?'include' extends U
+  export type OneOptionalGetPayload<S extends boolean | null | undefined | OneOptionalArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? OneOptional :
+    S extends undefined ? never :
+    S extends { include: any } & (OneOptionalArgs | OneOptionalFindManyArgs)
     ? OneOptional  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'many' ? Array < ManyRequiredGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
-        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'many' ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'many' ? Array < ManyRequiredGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof OneOptional ? OneOptional[P] : never
+    : S extends { select: any } & (OneOptionalArgs | OneOptionalFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
+        P extends 'many' ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof OneOptional ? OneOptional[P] : never
   } 
-    : OneOptional
-  : OneOptional
+      : OneOptional
 
 
   type OneOptionalCountArgs = Merge<
@@ -7616,7 +7872,23 @@ export namespace Prisma {
     **/
     findUnique<T extends OneOptionalFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OneOptionalFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null, null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OneOptional'> extends True ? Prisma__OneOptionalClient<OneOptionalGetPayload<T>> : Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null, null>
+
+    /**
+     * Find one OneOptional that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {OneOptionalFindUniqueOrThrowArgs} args - Arguments to find a OneOptional
+     * @example
+     * // Get one OneOptional
+     * const oneOptional = await prisma.oneOptional.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends OneOptionalFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, OneOptionalFindUniqueOrThrowArgs>
+    ): Prisma__OneOptionalClient<OneOptionalGetPayload<T>>
 
     /**
      * Find the first OneOptional that matches the filter.
@@ -7633,7 +7905,25 @@ export namespace Prisma {
     **/
     findFirst<T extends OneOptionalFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OneOptionalFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>> : CheckSelect<T, Prisma__OneOptionalClient<OneOptional | null, null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? Prisma__OneOptionalClient<OneOptionalGetPayload<T>> : Prisma__OneOptionalClient<OneOptionalGetPayload<T> | null, null>
+
+    /**
+     * Find the first OneOptional that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OneOptionalFindFirstOrThrowArgs} args - Arguments to find a OneOptional
+     * @example
+     * // Get one OneOptional
+     * const oneOptional = await prisma.oneOptional.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends OneOptionalFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, OneOptionalFindFirstOrThrowArgs>
+    ): Prisma__OneOptionalClient<OneOptionalGetPayload<T>>
 
     /**
      * Find zero or more OneOptionals that matches the filter.
@@ -7653,7 +7943,7 @@ export namespace Prisma {
     **/
     findMany<T extends OneOptionalFindManyArgs>(
       args?: SelectSubset<T, OneOptionalFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<OneOptional>>, PrismaPromise<Array<OneOptionalGetPayload<T>>>>
+    ): PrismaPromise<Array<OneOptionalGetPayload<T>>>
 
     /**
      * Create a OneOptional.
@@ -7669,7 +7959,7 @@ export namespace Prisma {
     **/
     create<T extends OneOptionalCreateArgs>(
       args: SelectSubset<T, OneOptionalCreateArgs>
-    ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+    ): Prisma__OneOptionalClient<OneOptionalGetPayload<T>>
 
     /**
      * Create many OneOptionals.
@@ -7701,7 +7991,7 @@ export namespace Prisma {
     **/
     delete<T extends OneOptionalDeleteArgs>(
       args: SelectSubset<T, OneOptionalDeleteArgs>
-    ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+    ): Prisma__OneOptionalClient<OneOptionalGetPayload<T>>
 
     /**
      * Update one OneOptional.
@@ -7720,7 +8010,7 @@ export namespace Prisma {
     **/
     update<T extends OneOptionalUpdateArgs>(
       args: SelectSubset<T, OneOptionalUpdateArgs>
-    ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+    ): Prisma__OneOptionalClient<OneOptionalGetPayload<T>>
 
     /**
      * Delete zero or more OneOptionals.
@@ -7778,7 +8068,7 @@ export namespace Prisma {
     **/
     upsert<T extends OneOptionalUpsertArgs>(
       args: SelectSubset<T, OneOptionalUpsertArgs>
-    ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
+    ): Prisma__OneOptionalClient<OneOptionalGetPayload<T>>
 
     /**
      * Find zero or more OneOptionals that matches the filter.
@@ -7806,40 +8096,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: OneOptionalAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one OneOptional that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {OneOptionalFindUniqueOrThrowArgs} args - Arguments to find a OneOptional
-     * @example
-     * // Get one OneOptional
-     * const oneOptional = await prisma.oneOptional.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends OneOptionalFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, OneOptionalFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
-
-    /**
-     * Find the first OneOptional that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {OneOptionalFindFirstOrThrowArgs} args - Arguments to find a OneOptional
-     * @example
-     * // Get one OneOptional
-     * const oneOptional = await prisma.oneOptional.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends OneOptionalFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, OneOptionalFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__OneOptionalClient<OneOptional>, Prisma__OneOptionalClient<OneOptionalGetPayload<T>>>
 
     /**
      * Count the number of OneOptionals.
@@ -7992,7 +8248,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    many<T extends ManyRequiredFindManyArgs = {}>(args?: Subset<T, ManyRequiredFindManyArgs>): CheckSelect<T, PrismaPromise<Array<ManyRequired>| Null>, PrismaPromise<Array<ManyRequiredGetPayload<T>>| Null>>;
+    many<T extends ManyRequiredFindManyArgs= {}>(args?: Subset<T, ManyRequiredFindManyArgs>): PrismaPromise<Array<ManyRequiredGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -8053,6 +8309,28 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * OneOptional findUniqueOrThrow
+   */
+  export type OneOptionalFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the OneOptional
+     * 
+    **/
+    select?: OneOptionalSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: OneOptionalInclude | null
+    /**
+     * Filter, which OneOptional to fetch.
+     * 
+    **/
+    where: OneOptionalWhereUniqueInput
+  }
+
 
   /**
    * OneOptional base type for findFirst actions
@@ -8121,6 +8399,63 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * OneOptional findFirstOrThrow
+   */
+  export type OneOptionalFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the OneOptional
+     * 
+    **/
+    select?: OneOptionalSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: OneOptionalInclude | null
+    /**
+     * Filter, which OneOptional to fetch.
+     * 
+    **/
+    where?: OneOptionalWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OneOptionals to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OneOptionals.
+     * 
+    **/
+    cursor?: OneOptionalWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` OneOptionals from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OneOptionals.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OneOptionals.
+     * 
+    **/
+    distinct?: Enumerable<OneOptionalScalarFieldEnum>
+  }
+
 
   /**
    * OneOptional findMany
@@ -8350,18 +8685,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * OneOptional: findUniqueOrThrow
-   */
-  export type OneOptionalFindUniqueOrThrowArgs = OneOptionalFindUniqueArgsBase
-      
-
-  /**
-   * OneOptional: findFirstOrThrow
-   */
-  export type OneOptionalFindFirstOrThrowArgs = OneOptionalFindFirstArgsBase
-      
 
   /**
    * OneOptional without action
@@ -8665,30 +8988,26 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }
 
+
   export type ManyRequiredInclude = {
     one?: boolean | OneOptionalArgs
-  }
+  } 
 
-  export type ManyRequiredGetPayload<
-    S extends boolean | null | undefined | ManyRequiredArgs,
-    U = keyof S
-      > = S extends true
-        ? ManyRequired
-    : S extends undefined
-    ? never
-    : S extends ManyRequiredArgs | ManyRequiredFindManyArgs
-    ?'include' extends U
+  export type ManyRequiredGetPayload<S extends boolean | null | undefined | ManyRequiredArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? ManyRequired :
+    S extends undefined ? never :
+    S extends { include: any } & (ManyRequiredArgs | ManyRequiredFindManyArgs)
     ? ManyRequired  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'one' ? OneOptionalGetPayload<Exclude<S['include'], undefined | null>[P]> | null :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'one' ? OneOptionalGetPayload<S['include'][P]> | null :  never
   } 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'one' ? OneOptionalGetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof ManyRequired ? ManyRequired[P] : never
+    : S extends { select: any } & (ManyRequiredArgs | ManyRequiredFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
+        P extends 'one' ? OneOptionalGetPayload<S['select'][P]> | null :  P extends keyof ManyRequired ? ManyRequired[P] : never
   } 
-    : ManyRequired
-  : ManyRequired
+      : ManyRequired
 
 
   type ManyRequiredCountArgs = Merge<
@@ -8711,7 +9030,23 @@ export namespace Prisma {
     **/
     findUnique<T extends ManyRequiredFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, ManyRequiredFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null, null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'ManyRequired'> extends True ? Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>> : Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null, null>
+
+    /**
+     * Find one ManyRequired that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {ManyRequiredFindUniqueOrThrowArgs} args - Arguments to find a ManyRequired
+     * @example
+     * // Get one ManyRequired
+     * const manyRequired = await prisma.manyRequired.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends ManyRequiredFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, ManyRequiredFindUniqueOrThrowArgs>
+    ): Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>
 
     /**
      * Find the first ManyRequired that matches the filter.
@@ -8728,7 +9063,25 @@ export namespace Prisma {
     **/
     findFirst<T extends ManyRequiredFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, ManyRequiredFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>> : CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired | null, null>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>> : Prisma__ManyRequiredClient<ManyRequiredGetPayload<T> | null, null>
+
+    /**
+     * Find the first ManyRequired that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ManyRequiredFindFirstOrThrowArgs} args - Arguments to find a ManyRequired
+     * @example
+     * // Get one ManyRequired
+     * const manyRequired = await prisma.manyRequired.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends ManyRequiredFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, ManyRequiredFindFirstOrThrowArgs>
+    ): Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>
 
     /**
      * Find zero or more ManyRequireds that matches the filter.
@@ -8748,7 +9101,7 @@ export namespace Prisma {
     **/
     findMany<T extends ManyRequiredFindManyArgs>(
       args?: SelectSubset<T, ManyRequiredFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<ManyRequired>>, PrismaPromise<Array<ManyRequiredGetPayload<T>>>>
+    ): PrismaPromise<Array<ManyRequiredGetPayload<T>>>
 
     /**
      * Create a ManyRequired.
@@ -8764,7 +9117,7 @@ export namespace Prisma {
     **/
     create<T extends ManyRequiredCreateArgs>(
       args: SelectSubset<T, ManyRequiredCreateArgs>
-    ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+    ): Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>
 
     /**
      * Create many ManyRequireds.
@@ -8796,7 +9149,7 @@ export namespace Prisma {
     **/
     delete<T extends ManyRequiredDeleteArgs>(
       args: SelectSubset<T, ManyRequiredDeleteArgs>
-    ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+    ): Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>
 
     /**
      * Update one ManyRequired.
@@ -8815,7 +9168,7 @@ export namespace Prisma {
     **/
     update<T extends ManyRequiredUpdateArgs>(
       args: SelectSubset<T, ManyRequiredUpdateArgs>
-    ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+    ): Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>
 
     /**
      * Delete zero or more ManyRequireds.
@@ -8873,7 +9226,7 @@ export namespace Prisma {
     **/
     upsert<T extends ManyRequiredUpsertArgs>(
       args: SelectSubset<T, ManyRequiredUpsertArgs>
-    ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
+    ): Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>
 
     /**
      * Find zero or more ManyRequireds that matches the filter.
@@ -8901,40 +9254,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: ManyRequiredAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one ManyRequired that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {ManyRequiredFindUniqueOrThrowArgs} args - Arguments to find a ManyRequired
-     * @example
-     * // Get one ManyRequired
-     * const manyRequired = await prisma.manyRequired.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends ManyRequiredFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, ManyRequiredFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
-
-    /**
-     * Find the first ManyRequired that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {ManyRequiredFindFirstOrThrowArgs} args - Arguments to find a ManyRequired
-     * @example
-     * // Get one ManyRequired
-     * const manyRequired = await prisma.manyRequired.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends ManyRequiredFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, ManyRequiredFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__ManyRequiredClient<ManyRequired>, Prisma__ManyRequiredClient<ManyRequiredGetPayload<T>>>
 
     /**
      * Count the number of ManyRequireds.
@@ -9087,7 +9406,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    one<T extends OneOptionalArgs = {}>(args?: Subset<T, OneOptionalArgs>): CheckSelect<T, Prisma__OneOptionalClient<OneOptional | Null>, Prisma__OneOptionalClient<OneOptionalGetPayload<T> | Null>>;
+    one<T extends OneOptionalArgs= {}>(args?: Subset<T, OneOptionalArgs>): Prisma__OneOptionalClient<OneOptionalGetPayload<T> | Null>;
 
     private get _document();
     /**
@@ -9148,6 +9467,28 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * ManyRequired findUniqueOrThrow
+   */
+  export type ManyRequiredFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the ManyRequired
+     * 
+    **/
+    select?: ManyRequiredSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: ManyRequiredInclude | null
+    /**
+     * Filter, which ManyRequired to fetch.
+     * 
+    **/
+    where: ManyRequiredWhereUniqueInput
+  }
+
 
   /**
    * ManyRequired base type for findFirst actions
@@ -9216,6 +9557,63 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * ManyRequired findFirstOrThrow
+   */
+  export type ManyRequiredFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the ManyRequired
+     * 
+    **/
+    select?: ManyRequiredSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: ManyRequiredInclude | null
+    /**
+     * Filter, which ManyRequired to fetch.
+     * 
+    **/
+    where?: ManyRequiredWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ManyRequireds to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ManyRequireds.
+     * 
+    **/
+    cursor?: ManyRequiredWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` ManyRequireds from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` ManyRequireds.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ManyRequireds.
+     * 
+    **/
+    distinct?: Enumerable<ManyRequiredScalarFieldEnum>
+  }
+
 
   /**
    * ManyRequired findMany
@@ -9445,18 +9843,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * ManyRequired: findUniqueOrThrow
-   */
-  export type ManyRequiredFindUniqueOrThrowArgs = ManyRequiredFindUniqueArgsBase
-      
-
-  /**
-   * ManyRequired: findFirstOrThrow
-   */
-  export type ManyRequiredFindFirstOrThrowArgs = ManyRequiredFindFirstArgsBase
-      
 
   /**
    * ManyRequired without action
@@ -9760,30 +10146,26 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }
 
+
   export type OptionalSide1Include = {
     opti?: boolean | OptionalSide2Args
-  }
+  } 
 
-  export type OptionalSide1GetPayload<
-    S extends boolean | null | undefined | OptionalSide1Args,
-    U = keyof S
-      > = S extends true
-        ? OptionalSide1
-    : S extends undefined
-    ? never
-    : S extends OptionalSide1Args | OptionalSide1FindManyArgs
-    ?'include' extends U
+  export type OptionalSide1GetPayload<S extends boolean | null | undefined | OptionalSide1Args> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? OptionalSide1 :
+    S extends undefined ? never :
+    S extends { include: any } & (OptionalSide1Args | OptionalSide1FindManyArgs)
     ? OptionalSide1  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'opti' ? OptionalSide2GetPayload<Exclude<S['include'], undefined | null>[P]> | null :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'opti' ? OptionalSide2GetPayload<S['include'][P]> | null :  never
   } 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'opti' ? OptionalSide2GetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof OptionalSide1 ? OptionalSide1[P] : never
+    : S extends { select: any } & (OptionalSide1Args | OptionalSide1FindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
+        P extends 'opti' ? OptionalSide2GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide1 ? OptionalSide1[P] : never
   } 
-    : OptionalSide1
-  : OptionalSide1
+      : OptionalSide1
 
 
   type OptionalSide1CountArgs = Merge<
@@ -9806,7 +10188,23 @@ export namespace Prisma {
     **/
     findUnique<T extends OptionalSide1FindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide1FindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null, null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide1'> extends True ? Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>> : Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null, null>
+
+    /**
+     * Find one OptionalSide1 that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {OptionalSide1FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide1
+     * @example
+     * // Get one OptionalSide1
+     * const optionalSide1 = await prisma.optionalSide1.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends OptionalSide1FindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, OptionalSide1FindUniqueOrThrowArgs>
+    ): Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>
 
     /**
      * Find the first OptionalSide1 that matches the filter.
@@ -9823,7 +10221,25 @@ export namespace Prisma {
     **/
     findFirst<T extends OptionalSide1FindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide1FindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | null, null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>> : Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | null, null>
+
+    /**
+     * Find the first OptionalSide1 that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OptionalSide1FindFirstOrThrowArgs} args - Arguments to find a OptionalSide1
+     * @example
+     * // Get one OptionalSide1
+     * const optionalSide1 = await prisma.optionalSide1.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends OptionalSide1FindFirstOrThrowArgs>(
+      args?: SelectSubset<T, OptionalSide1FindFirstOrThrowArgs>
+    ): Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>
 
     /**
      * Find zero or more OptionalSide1s that matches the filter.
@@ -9843,7 +10259,7 @@ export namespace Prisma {
     **/
     findMany<T extends OptionalSide1FindManyArgs>(
       args?: SelectSubset<T, OptionalSide1FindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<OptionalSide1>>, PrismaPromise<Array<OptionalSide1GetPayload<T>>>>
+    ): PrismaPromise<Array<OptionalSide1GetPayload<T>>>
 
     /**
      * Create a OptionalSide1.
@@ -9859,7 +10275,7 @@ export namespace Prisma {
     **/
     create<T extends OptionalSide1CreateArgs>(
       args: SelectSubset<T, OptionalSide1CreateArgs>
-    ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+    ): Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>
 
     /**
      * Create many OptionalSide1s.
@@ -9891,7 +10307,7 @@ export namespace Prisma {
     **/
     delete<T extends OptionalSide1DeleteArgs>(
       args: SelectSubset<T, OptionalSide1DeleteArgs>
-    ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+    ): Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>
 
     /**
      * Update one OptionalSide1.
@@ -9910,7 +10326,7 @@ export namespace Prisma {
     **/
     update<T extends OptionalSide1UpdateArgs>(
       args: SelectSubset<T, OptionalSide1UpdateArgs>
-    ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+    ): Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>
 
     /**
      * Delete zero or more OptionalSide1s.
@@ -9968,7 +10384,7 @@ export namespace Prisma {
     **/
     upsert<T extends OptionalSide1UpsertArgs>(
       args: SelectSubset<T, OptionalSide1UpsertArgs>
-    ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
+    ): Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>
 
     /**
      * Find zero or more OptionalSide1s that matches the filter.
@@ -9996,40 +10412,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: OptionalSide1AggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one OptionalSide1 that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {OptionalSide1FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide1
-     * @example
-     * // Get one OptionalSide1
-     * const optionalSide1 = await prisma.optionalSide1.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends OptionalSide1FindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, OptionalSide1FindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
-
-    /**
-     * Find the first OptionalSide1 that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {OptionalSide1FindFirstOrThrowArgs} args - Arguments to find a OptionalSide1
-     * @example
-     * // Get one OptionalSide1
-     * const optionalSide1 = await prisma.optionalSide1.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends OptionalSide1FindFirstOrThrowArgs>(
-      args?: SelectSubset<T, OptionalSide1FindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T>>>
 
     /**
      * Count the number of OptionalSide1s.
@@ -10182,7 +10564,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    opti<T extends OptionalSide2Args = {}>(args?: Subset<T, OptionalSide2Args>): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | Null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | Null>>;
+    opti<T extends OptionalSide2Args= {}>(args?: Subset<T, OptionalSide2Args>): Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | Null>;
 
     private get _document();
     /**
@@ -10243,6 +10625,28 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * OptionalSide1 findUniqueOrThrow
+   */
+  export type OptionalSide1FindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the OptionalSide1
+     * 
+    **/
+    select?: OptionalSide1Select | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: OptionalSide1Include | null
+    /**
+     * Filter, which OptionalSide1 to fetch.
+     * 
+    **/
+    where: OptionalSide1WhereUniqueInput
+  }
+
 
   /**
    * OptionalSide1 base type for findFirst actions
@@ -10311,6 +10715,63 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * OptionalSide1 findFirstOrThrow
+   */
+  export type OptionalSide1FindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the OptionalSide1
+     * 
+    **/
+    select?: OptionalSide1Select | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: OptionalSide1Include | null
+    /**
+     * Filter, which OptionalSide1 to fetch.
+     * 
+    **/
+    where?: OptionalSide1WhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OptionalSide1s to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OptionalSide1s.
+     * 
+    **/
+    cursor?: OptionalSide1WhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` OptionalSide1s from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OptionalSide1s.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OptionalSide1s.
+     * 
+    **/
+    distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
+  }
+
 
   /**
    * OptionalSide1 findMany
@@ -10540,18 +11001,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * OptionalSide1: findUniqueOrThrow
-   */
-  export type OptionalSide1FindUniqueOrThrowArgs = OptionalSide1FindUniqueArgsBase
-      
-
-  /**
-   * OptionalSide1: findFirstOrThrow
-   */
-  export type OptionalSide1FindFirstOrThrowArgs = OptionalSide1FindFirstArgsBase
-      
 
   /**
    * OptionalSide1 without action
@@ -10847,30 +11296,26 @@ export namespace Prisma {
     optionalBoolean?: boolean
   }
 
+
   export type OptionalSide2Include = {
     opti?: boolean | OptionalSide1Args
-  }
+  } 
 
-  export type OptionalSide2GetPayload<
-    S extends boolean | null | undefined | OptionalSide2Args,
-    U = keyof S
-      > = S extends true
-        ? OptionalSide2
-    : S extends undefined
-    ? never
-    : S extends OptionalSide2Args | OptionalSide2FindManyArgs
-    ?'include' extends U
+  export type OptionalSide2GetPayload<S extends boolean | null | undefined | OptionalSide2Args> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? OptionalSide2 :
+    S extends undefined ? never :
+    S extends { include: any } & (OptionalSide2Args | OptionalSide2FindManyArgs)
     ? OptionalSide2  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'opti' ? OptionalSide1GetPayload<Exclude<S['include'], undefined | null>[P]> | null :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'opti' ? OptionalSide1GetPayload<S['include'][P]> | null :  never
   } 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'opti' ? OptionalSide1GetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof OptionalSide2 ? OptionalSide2[P] : never
+    : S extends { select: any } & (OptionalSide2Args | OptionalSide2FindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
+        P extends 'opti' ? OptionalSide1GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide2 ? OptionalSide2[P] : never
   } 
-    : OptionalSide2
-  : OptionalSide2
+      : OptionalSide2
 
 
   type OptionalSide2CountArgs = Merge<
@@ -10893,7 +11338,23 @@ export namespace Prisma {
     **/
     findUnique<T extends OptionalSide2FindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide2FindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null, null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide2'> extends True ? Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>> : Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null, null>
+
+    /**
+     * Find one OptionalSide2 that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {OptionalSide2FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide2
+     * @example
+     * // Get one OptionalSide2
+     * const optionalSide2 = await prisma.optionalSide2.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends OptionalSide2FindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, OptionalSide2FindUniqueOrThrowArgs>
+    ): Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>
 
     /**
      * Find the first OptionalSide2 that matches the filter.
@@ -10910,7 +11371,25 @@ export namespace Prisma {
     **/
     findFirst<T extends OptionalSide2FindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide2FindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>> : CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2 | null, null>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>> : Prisma__OptionalSide2Client<OptionalSide2GetPayload<T> | null, null>
+
+    /**
+     * Find the first OptionalSide2 that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OptionalSide2FindFirstOrThrowArgs} args - Arguments to find a OptionalSide2
+     * @example
+     * // Get one OptionalSide2
+     * const optionalSide2 = await prisma.optionalSide2.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends OptionalSide2FindFirstOrThrowArgs>(
+      args?: SelectSubset<T, OptionalSide2FindFirstOrThrowArgs>
+    ): Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>
 
     /**
      * Find zero or more OptionalSide2s that matches the filter.
@@ -10930,7 +11409,7 @@ export namespace Prisma {
     **/
     findMany<T extends OptionalSide2FindManyArgs>(
       args?: SelectSubset<T, OptionalSide2FindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<OptionalSide2>>, PrismaPromise<Array<OptionalSide2GetPayload<T>>>>
+    ): PrismaPromise<Array<OptionalSide2GetPayload<T>>>
 
     /**
      * Create a OptionalSide2.
@@ -10946,7 +11425,7 @@ export namespace Prisma {
     **/
     create<T extends OptionalSide2CreateArgs>(
       args: SelectSubset<T, OptionalSide2CreateArgs>
-    ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+    ): Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>
 
     /**
      * Create many OptionalSide2s.
@@ -10978,7 +11457,7 @@ export namespace Prisma {
     **/
     delete<T extends OptionalSide2DeleteArgs>(
       args: SelectSubset<T, OptionalSide2DeleteArgs>
-    ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+    ): Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>
 
     /**
      * Update one OptionalSide2.
@@ -10997,7 +11476,7 @@ export namespace Prisma {
     **/
     update<T extends OptionalSide2UpdateArgs>(
       args: SelectSubset<T, OptionalSide2UpdateArgs>
-    ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+    ): Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>
 
     /**
      * Delete zero or more OptionalSide2s.
@@ -11055,7 +11534,7 @@ export namespace Prisma {
     **/
     upsert<T extends OptionalSide2UpsertArgs>(
       args: SelectSubset<T, OptionalSide2UpsertArgs>
-    ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
+    ): Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>
 
     /**
      * Find zero or more OptionalSide2s that matches the filter.
@@ -11083,40 +11562,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: OptionalSide2AggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one OptionalSide2 that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {OptionalSide2FindUniqueOrThrowArgs} args - Arguments to find a OptionalSide2
-     * @example
-     * // Get one OptionalSide2
-     * const optionalSide2 = await prisma.optionalSide2.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends OptionalSide2FindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, OptionalSide2FindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
-
-    /**
-     * Find the first OptionalSide2 that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {OptionalSide2FindFirstOrThrowArgs} args - Arguments to find a OptionalSide2
-     * @example
-     * // Get one OptionalSide2
-     * const optionalSide2 = await prisma.optionalSide2.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends OptionalSide2FindFirstOrThrowArgs>(
-      args?: SelectSubset<T, OptionalSide2FindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__OptionalSide2Client<OptionalSide2>, Prisma__OptionalSide2Client<OptionalSide2GetPayload<T>>>
 
     /**
      * Count the number of OptionalSide2s.
@@ -11269,7 +11714,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    opti<T extends OptionalSide1Args = {}>(args?: Subset<T, OptionalSide1Args>): CheckSelect<T, Prisma__OptionalSide1Client<OptionalSide1 | Null>, Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | Null>>;
+    opti<T extends OptionalSide1Args= {}>(args?: Subset<T, OptionalSide1Args>): Prisma__OptionalSide1Client<OptionalSide1GetPayload<T> | Null>;
 
     private get _document();
     /**
@@ -11330,6 +11775,28 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * OptionalSide2 findUniqueOrThrow
+   */
+  export type OptionalSide2FindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the OptionalSide2
+     * 
+    **/
+    select?: OptionalSide2Select | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: OptionalSide2Include | null
+    /**
+     * Filter, which OptionalSide2 to fetch.
+     * 
+    **/
+    where: OptionalSide2WhereUniqueInput
+  }
+
 
   /**
    * OptionalSide2 base type for findFirst actions
@@ -11398,6 +11865,63 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * OptionalSide2 findFirstOrThrow
+   */
+  export type OptionalSide2FindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the OptionalSide2
+     * 
+    **/
+    select?: OptionalSide2Select | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: OptionalSide2Include | null
+    /**
+     * Filter, which OptionalSide2 to fetch.
+     * 
+    **/
+    where?: OptionalSide2WhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OptionalSide2s to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OptionalSide2s.
+     * 
+    **/
+    cursor?: OptionalSide2WhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` OptionalSide2s from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` OptionalSide2s.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OptionalSide2s.
+     * 
+    **/
+    distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
+  }
+
 
   /**
    * OptionalSide2 findMany
@@ -11627,18 +12151,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * OptionalSide2: findUniqueOrThrow
-   */
-  export type OptionalSide2FindUniqueOrThrowArgs = OptionalSide2FindUniqueArgsBase
-      
-
-  /**
-   * OptionalSide2: findFirstOrThrow
-   */
-  export type OptionalSide2FindFirstOrThrowArgs = OptionalSide2FindFirstArgsBase
-      
 
   /**
    * OptionalSide2 without action
@@ -11881,23 +12393,19 @@ export namespace Prisma {
     bInt?: boolean
   }
 
-  export type AGetPayload<
-    S extends boolean | null | undefined | AArgs,
-    U = keyof S
-      > = S extends true
-        ? A
-    : S extends undefined
-    ? never
-    : S extends AArgs | AFindManyArgs
-    ?'include' extends U
+
+  export type AGetPayload<S extends boolean | null | undefined | AArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? A :
+    S extends undefined ? never :
+    S extends { include: any } & (AArgs | AFindManyArgs)
     ? A 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (AArgs | AFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof A ? A[P] : never
   } 
-    : A
-  : A
+      : A
 
 
   type ACountArgs = Merge<
@@ -11920,7 +12428,23 @@ export namespace Prisma {
     **/
     findUnique<T extends AFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, AFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null, null>, Prisma__AClient<AGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'A'> extends True ? Prisma__AClient<AGetPayload<T>> : Prisma__AClient<AGetPayload<T> | null, null>
+
+    /**
+     * Find one A that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {AFindUniqueOrThrowArgs} args - Arguments to find a A
+     * @example
+     * // Get one A
+     * const a = await prisma.a.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends AFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, AFindUniqueOrThrowArgs>
+    ): Prisma__AClient<AGetPayload<T>>
 
     /**
      * Find the first A that matches the filter.
@@ -11937,7 +12461,25 @@ export namespace Prisma {
     **/
     findFirst<T extends AFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, AFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>> : CheckSelect<T, Prisma__AClient<A | null, null>, Prisma__AClient<AGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? Prisma__AClient<AGetPayload<T>> : Prisma__AClient<AGetPayload<T> | null, null>
+
+    /**
+     * Find the first A that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AFindFirstOrThrowArgs} args - Arguments to find a A
+     * @example
+     * // Get one A
+     * const a = await prisma.a.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends AFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, AFindFirstOrThrowArgs>
+    ): Prisma__AClient<AGetPayload<T>>
 
     /**
      * Find zero or more As that matches the filter.
@@ -11957,7 +12499,7 @@ export namespace Prisma {
     **/
     findMany<T extends AFindManyArgs>(
       args?: SelectSubset<T, AFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<A>>, PrismaPromise<Array<AGetPayload<T>>>>
+    ): PrismaPromise<Array<AGetPayload<T>>>
 
     /**
      * Create a A.
@@ -11973,7 +12515,7 @@ export namespace Prisma {
     **/
     create<T extends ACreateArgs>(
       args: SelectSubset<T, ACreateArgs>
-    ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
+    ): Prisma__AClient<AGetPayload<T>>
 
     /**
      * Create many As.
@@ -12005,7 +12547,7 @@ export namespace Prisma {
     **/
     delete<T extends ADeleteArgs>(
       args: SelectSubset<T, ADeleteArgs>
-    ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
+    ): Prisma__AClient<AGetPayload<T>>
 
     /**
      * Update one A.
@@ -12024,7 +12566,7 @@ export namespace Prisma {
     **/
     update<T extends AUpdateArgs>(
       args: SelectSubset<T, AUpdateArgs>
-    ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
+    ): Prisma__AClient<AGetPayload<T>>
 
     /**
      * Delete zero or more As.
@@ -12082,7 +12624,7 @@ export namespace Prisma {
     **/
     upsert<T extends AUpsertArgs>(
       args: SelectSubset<T, AUpsertArgs>
-    ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
+    ): Prisma__AClient<AGetPayload<T>>
 
     /**
      * Find zero or more As that matches the filter.
@@ -12110,40 +12652,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: AAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one A that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {AFindUniqueOrThrowArgs} args - Arguments to find a A
-     * @example
-     * // Get one A
-     * const a = await prisma.a.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends AFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, AFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
-
-    /**
-     * Find the first A that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {AFindFirstOrThrowArgs} args - Arguments to find a A
-     * @example
-     * // Get one A
-     * const a = await prisma.a.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends AFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, AFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__AClient<A>, Prisma__AClient<AGetPayload<T>>>
 
     /**
      * Count the number of As.
@@ -12353,6 +12861,23 @@ export namespace Prisma {
       
 
   /**
+   * A findUniqueOrThrow
+   */
+  export type AFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the A
+     * 
+    **/
+    select?: ASelect | null
+    /**
+     * Filter, which A to fetch.
+     * 
+    **/
+    where: AWhereUniqueInput
+  }
+
+
+  /**
    * A base type for findFirst actions
    */
   export type AFindFirstArgsBase = {
@@ -12414,6 +12939,58 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * A findFirstOrThrow
+   */
+  export type AFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the A
+     * 
+    **/
+    select?: ASelect | null
+    /**
+     * Filter, which A to fetch.
+     * 
+    **/
+    where?: AWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AS to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<AOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AS.
+     * 
+    **/
+    cursor?: AWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` AS from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` AS.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AS.
+     * 
+    **/
+    distinct?: Enumerable<AScalarFieldEnum>
+  }
+
 
   /**
    * A findMany
@@ -12618,18 +13195,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * A: findUniqueOrThrow
-   */
-  export type AFindUniqueOrThrowArgs = AFindUniqueArgsBase
-      
-
-  /**
-   * A: findFirstOrThrow
-   */
-  export type AFindFirstOrThrowArgs = AFindFirstArgsBase
-      
 
   /**
    * A without action
@@ -12839,23 +13404,19 @@ export namespace Prisma {
     dFloat?: boolean
   }
 
-  export type BGetPayload<
-    S extends boolean | null | undefined | BArgs,
-    U = keyof S
-      > = S extends true
-        ? B
-    : S extends undefined
-    ? never
-    : S extends BArgs | BFindManyArgs
-    ?'include' extends U
+
+  export type BGetPayload<S extends boolean | null | undefined | BArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? B :
+    S extends undefined ? never :
+    S extends { include: any } & (BArgs | BFindManyArgs)
     ? B 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (BArgs | BFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof B ? B[P] : never
   } 
-    : B
-  : B
+      : B
 
 
   type BCountArgs = Merge<
@@ -12878,7 +13439,23 @@ export namespace Prisma {
     **/
     findUnique<T extends BFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, BFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null, null>, Prisma__BClient<BGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'B'> extends True ? Prisma__BClient<BGetPayload<T>> : Prisma__BClient<BGetPayload<T> | null, null>
+
+    /**
+     * Find one B that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {BFindUniqueOrThrowArgs} args - Arguments to find a B
+     * @example
+     * // Get one B
+     * const b = await prisma.b.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends BFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, BFindUniqueOrThrowArgs>
+    ): Prisma__BClient<BGetPayload<T>>
 
     /**
      * Find the first B that matches the filter.
@@ -12895,7 +13472,25 @@ export namespace Prisma {
     **/
     findFirst<T extends BFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, BFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>> : CheckSelect<T, Prisma__BClient<B | null, null>, Prisma__BClient<BGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? Prisma__BClient<BGetPayload<T>> : Prisma__BClient<BGetPayload<T> | null, null>
+
+    /**
+     * Find the first B that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {BFindFirstOrThrowArgs} args - Arguments to find a B
+     * @example
+     * // Get one B
+     * const b = await prisma.b.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends BFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, BFindFirstOrThrowArgs>
+    ): Prisma__BClient<BGetPayload<T>>
 
     /**
      * Find zero or more Bs that matches the filter.
@@ -12915,7 +13510,7 @@ export namespace Prisma {
     **/
     findMany<T extends BFindManyArgs>(
       args?: SelectSubset<T, BFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<B>>, PrismaPromise<Array<BGetPayload<T>>>>
+    ): PrismaPromise<Array<BGetPayload<T>>>
 
     /**
      * Create a B.
@@ -12931,7 +13526,7 @@ export namespace Prisma {
     **/
     create<T extends BCreateArgs>(
       args: SelectSubset<T, BCreateArgs>
-    ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
+    ): Prisma__BClient<BGetPayload<T>>
 
     /**
      * Create many Bs.
@@ -12963,7 +13558,7 @@ export namespace Prisma {
     **/
     delete<T extends BDeleteArgs>(
       args: SelectSubset<T, BDeleteArgs>
-    ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
+    ): Prisma__BClient<BGetPayload<T>>
 
     /**
      * Update one B.
@@ -12982,7 +13577,7 @@ export namespace Prisma {
     **/
     update<T extends BUpdateArgs>(
       args: SelectSubset<T, BUpdateArgs>
-    ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
+    ): Prisma__BClient<BGetPayload<T>>
 
     /**
      * Delete zero or more Bs.
@@ -13040,7 +13635,7 @@ export namespace Prisma {
     **/
     upsert<T extends BUpsertArgs>(
       args: SelectSubset<T, BUpsertArgs>
-    ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
+    ): Prisma__BClient<BGetPayload<T>>
 
     /**
      * Find zero or more Bs that matches the filter.
@@ -13068,40 +13663,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: BAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one B that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {BFindUniqueOrThrowArgs} args - Arguments to find a B
-     * @example
-     * // Get one B
-     * const b = await prisma.b.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends BFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, BFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
-
-    /**
-     * Find the first B that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {BFindFirstOrThrowArgs} args - Arguments to find a B
-     * @example
-     * // Get one B
-     * const b = await prisma.b.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends BFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, BFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__BClient<B>, Prisma__BClient<BGetPayload<T>>>
 
     /**
      * Count the number of Bs.
@@ -13311,6 +13872,23 @@ export namespace Prisma {
       
 
   /**
+   * B findUniqueOrThrow
+   */
+  export type BFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the B
+     * 
+    **/
+    select?: BSelect | null
+    /**
+     * Filter, which B to fetch.
+     * 
+    **/
+    where: BWhereUniqueInput
+  }
+
+
+  /**
    * B base type for findFirst actions
    */
   export type BFindFirstArgsBase = {
@@ -13372,6 +13950,58 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * B findFirstOrThrow
+   */
+  export type BFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the B
+     * 
+    **/
+    select?: BSelect | null
+    /**
+     * Filter, which B to fetch.
+     * 
+    **/
+    where?: BWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of BS to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<BOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for BS.
+     * 
+    **/
+    cursor?: BWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` BS from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` BS.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of BS.
+     * 
+    **/
+    distinct?: Enumerable<BScalarFieldEnum>
+  }
+
 
   /**
    * B findMany
@@ -13578,18 +14208,6 @@ export namespace Prisma {
 
 
   /**
-   * B: findUniqueOrThrow
-   */
-  export type BFindUniqueOrThrowArgs = BFindUniqueArgsBase
-      
-
-  /**
-   * B: findFirstOrThrow
-   */
-  export type BFindFirstOrThrowArgs = BFindFirstArgsBase
-      
-
-  /**
    * B without action
    */
   export type BArgs = {
@@ -13791,23 +14409,19 @@ export namespace Prisma {
     uuid?: boolean
   }
 
-  export type CGetPayload<
-    S extends boolean | null | undefined | CArgs,
-    U = keyof S
-      > = S extends true
-        ? C
-    : S extends undefined
-    ? never
-    : S extends CArgs | CFindManyArgs
-    ?'include' extends U
+
+  export type CGetPayload<S extends boolean | null | undefined | CArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? C :
+    S extends undefined ? never :
+    S extends { include: any } & (CArgs | CFindManyArgs)
     ? C 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (CArgs | CFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof C ? C[P] : never
   } 
-    : C
-  : C
+      : C
 
 
   type CCountArgs = Merge<
@@ -13830,7 +14444,23 @@ export namespace Prisma {
     **/
     findUnique<T extends CFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, CFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null, null>, Prisma__CClient<CGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'C'> extends True ? Prisma__CClient<CGetPayload<T>> : Prisma__CClient<CGetPayload<T> | null, null>
+
+    /**
+     * Find one C that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {CFindUniqueOrThrowArgs} args - Arguments to find a C
+     * @example
+     * // Get one C
+     * const c = await prisma.c.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends CFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, CFindUniqueOrThrowArgs>
+    ): Prisma__CClient<CGetPayload<T>>
 
     /**
      * Find the first C that matches the filter.
@@ -13847,7 +14477,25 @@ export namespace Prisma {
     **/
     findFirst<T extends CFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, CFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>> : CheckSelect<T, Prisma__CClient<C | null, null>, Prisma__CClient<CGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? Prisma__CClient<CGetPayload<T>> : Prisma__CClient<CGetPayload<T> | null, null>
+
+    /**
+     * Find the first C that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {CFindFirstOrThrowArgs} args - Arguments to find a C
+     * @example
+     * // Get one C
+     * const c = await prisma.c.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends CFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, CFindFirstOrThrowArgs>
+    ): Prisma__CClient<CGetPayload<T>>
 
     /**
      * Find zero or more Cs that matches the filter.
@@ -13867,7 +14515,7 @@ export namespace Prisma {
     **/
     findMany<T extends CFindManyArgs>(
       args?: SelectSubset<T, CFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<C>>, PrismaPromise<Array<CGetPayload<T>>>>
+    ): PrismaPromise<Array<CGetPayload<T>>>
 
     /**
      * Create a C.
@@ -13883,7 +14531,7 @@ export namespace Prisma {
     **/
     create<T extends CCreateArgs>(
       args: SelectSubset<T, CCreateArgs>
-    ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
+    ): Prisma__CClient<CGetPayload<T>>
 
     /**
      * Create many Cs.
@@ -13915,7 +14563,7 @@ export namespace Prisma {
     **/
     delete<T extends CDeleteArgs>(
       args: SelectSubset<T, CDeleteArgs>
-    ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
+    ): Prisma__CClient<CGetPayload<T>>
 
     /**
      * Update one C.
@@ -13934,7 +14582,7 @@ export namespace Prisma {
     **/
     update<T extends CUpdateArgs>(
       args: SelectSubset<T, CUpdateArgs>
-    ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
+    ): Prisma__CClient<CGetPayload<T>>
 
     /**
      * Delete zero or more Cs.
@@ -13992,7 +14640,7 @@ export namespace Prisma {
     **/
     upsert<T extends CUpsertArgs>(
       args: SelectSubset<T, CUpsertArgs>
-    ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
+    ): Prisma__CClient<CGetPayload<T>>
 
     /**
      * Find zero or more Cs that matches the filter.
@@ -14020,40 +14668,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: CAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one C that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {CFindUniqueOrThrowArgs} args - Arguments to find a C
-     * @example
-     * // Get one C
-     * const c = await prisma.c.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends CFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, CFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
-
-    /**
-     * Find the first C that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {CFindFirstOrThrowArgs} args - Arguments to find a C
-     * @example
-     * // Get one C
-     * const c = await prisma.c.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends CFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, CFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__CClient<C>, Prisma__CClient<CGetPayload<T>>>
 
     /**
      * Count the number of Cs.
@@ -14263,6 +14877,23 @@ export namespace Prisma {
       
 
   /**
+   * C findUniqueOrThrow
+   */
+  export type CFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the C
+     * 
+    **/
+    select?: CSelect | null
+    /**
+     * Filter, which C to fetch.
+     * 
+    **/
+    where: CWhereUniqueInput
+  }
+
+
+  /**
    * C base type for findFirst actions
    */
   export type CFindFirstArgsBase = {
@@ -14324,6 +14955,58 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * C findFirstOrThrow
+   */
+  export type CFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the C
+     * 
+    **/
+    select?: CSelect | null
+    /**
+     * Filter, which C to fetch.
+     * 
+    **/
+    where?: CWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of CS to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<COrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for CS.
+     * 
+    **/
+    cursor?: CWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` CS from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` CS.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of CS.
+     * 
+    **/
+    distinct?: Enumerable<CScalarFieldEnum>
+  }
+
 
   /**
    * C findMany
@@ -14528,18 +15211,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * C: findUniqueOrThrow
-   */
-  export type CFindUniqueOrThrowArgs = CFindUniqueArgsBase
-      
-
-  /**
-   * C: findFirstOrThrow
-   */
-  export type CFindFirstOrThrowArgs = CFindFirstArgsBase
-      
 
   /**
    * C without action
@@ -14765,23 +15436,19 @@ export namespace Prisma {
     list?: boolean
   }
 
-  export type DGetPayload<
-    S extends boolean | null | undefined | DArgs,
-    U = keyof S
-      > = S extends true
-        ? D
-    : S extends undefined
-    ? never
-    : S extends DArgs | DFindManyArgs
-    ?'include' extends U
+
+  export type DGetPayload<S extends boolean | null | undefined | DArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? D :
+    S extends undefined ? never :
+    S extends { include: any } & (DArgs | DFindManyArgs)
     ? D 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (DArgs | DFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof D ? D[P] : never
   } 
-    : D
-  : D
+      : D
 
 
   type DCountArgs = Merge<
@@ -14804,7 +15471,23 @@ export namespace Prisma {
     **/
     findUnique<T extends DFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, DFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null, null>, Prisma__DClient<DGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'D'> extends True ? Prisma__DClient<DGetPayload<T>> : Prisma__DClient<DGetPayload<T> | null, null>
+
+    /**
+     * Find one D that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {DFindUniqueOrThrowArgs} args - Arguments to find a D
+     * @example
+     * // Get one D
+     * const d = await prisma.d.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends DFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, DFindUniqueOrThrowArgs>
+    ): Prisma__DClient<DGetPayload<T>>
 
     /**
      * Find the first D that matches the filter.
@@ -14821,7 +15504,25 @@ export namespace Prisma {
     **/
     findFirst<T extends DFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, DFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>> : CheckSelect<T, Prisma__DClient<D | null, null>, Prisma__DClient<DGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? Prisma__DClient<DGetPayload<T>> : Prisma__DClient<DGetPayload<T> | null, null>
+
+    /**
+     * Find the first D that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DFindFirstOrThrowArgs} args - Arguments to find a D
+     * @example
+     * // Get one D
+     * const d = await prisma.d.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends DFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, DFindFirstOrThrowArgs>
+    ): Prisma__DClient<DGetPayload<T>>
 
     /**
      * Find zero or more Ds that matches the filter.
@@ -14841,7 +15542,7 @@ export namespace Prisma {
     **/
     findMany<T extends DFindManyArgs>(
       args?: SelectSubset<T, DFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<D>>, PrismaPromise<Array<DGetPayload<T>>>>
+    ): PrismaPromise<Array<DGetPayload<T>>>
 
     /**
      * Create a D.
@@ -14857,7 +15558,7 @@ export namespace Prisma {
     **/
     create<T extends DCreateArgs>(
       args: SelectSubset<T, DCreateArgs>
-    ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
+    ): Prisma__DClient<DGetPayload<T>>
 
     /**
      * Create many Ds.
@@ -14889,7 +15590,7 @@ export namespace Prisma {
     **/
     delete<T extends DDeleteArgs>(
       args: SelectSubset<T, DDeleteArgs>
-    ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
+    ): Prisma__DClient<DGetPayload<T>>
 
     /**
      * Update one D.
@@ -14908,7 +15609,7 @@ export namespace Prisma {
     **/
     update<T extends DUpdateArgs>(
       args: SelectSubset<T, DUpdateArgs>
-    ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
+    ): Prisma__DClient<DGetPayload<T>>
 
     /**
      * Delete zero or more Ds.
@@ -14966,7 +15667,7 @@ export namespace Prisma {
     **/
     upsert<T extends DUpsertArgs>(
       args: SelectSubset<T, DUpsertArgs>
-    ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
+    ): Prisma__DClient<DGetPayload<T>>
 
     /**
      * Find zero or more Ds that matches the filter.
@@ -14994,40 +15695,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: DAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one D that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {DFindUniqueOrThrowArgs} args - Arguments to find a D
-     * @example
-     * // Get one D
-     * const d = await prisma.d.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends DFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, DFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
-
-    /**
-     * Find the first D that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {DFindFirstOrThrowArgs} args - Arguments to find a D
-     * @example
-     * // Get one D
-     * const d = await prisma.d.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends DFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, DFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__DClient<D>, Prisma__DClient<DGetPayload<T>>>
 
     /**
      * Count the number of Ds.
@@ -15237,6 +15904,23 @@ export namespace Prisma {
       
 
   /**
+   * D findUniqueOrThrow
+   */
+  export type DFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the D
+     * 
+    **/
+    select?: DSelect | null
+    /**
+     * Filter, which D to fetch.
+     * 
+    **/
+    where: DWhereUniqueInput
+  }
+
+
+  /**
    * D base type for findFirst actions
    */
   export type DFindFirstArgsBase = {
@@ -15298,6 +15982,58 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * D findFirstOrThrow
+   */
+  export type DFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the D
+     * 
+    **/
+    select?: DSelect | null
+    /**
+     * Filter, which D to fetch.
+     * 
+    **/
+    where?: DWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DS to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<DOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DS.
+     * 
+    **/
+    cursor?: DWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` DS from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` DS.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DS.
+     * 
+    **/
+    distinct?: Enumerable<DScalarFieldEnum>
+  }
+
 
   /**
    * D findMany
@@ -15504,18 +16240,6 @@ export namespace Prisma {
 
 
   /**
-   * D: findUniqueOrThrow
-   */
-  export type DFindUniqueOrThrowArgs = DFindUniqueArgsBase
-      
-
-  /**
-   * D: findFirstOrThrow
-   */
-  export type DFindFirstOrThrowArgs = DFindFirstArgsBase
-      
-
-  /**
    * D without action
    */
   export type DArgs = {
@@ -15693,23 +16417,19 @@ export namespace Prisma {
     ts?: boolean
   }
 
-  export type EGetPayload<
-    S extends boolean | null | undefined | EArgs,
-    U = keyof S
-      > = S extends true
-        ? E
-    : S extends undefined
-    ? never
-    : S extends EArgs | EFindManyArgs
-    ?'include' extends U
+
+  export type EGetPayload<S extends boolean | null | undefined | EArgs> =
+    S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
+    S extends true ? E :
+    S extends undefined ? never :
+    S extends { include: any } & (EArgs | EFindManyArgs)
     ? E 
-    : 'select' extends U
-    ? {
-    [P in TrueKeys<S['select']>]:
+    : S extends { select: any } & (EArgs | EFindManyArgs)
+      ? {
+    [P in TruthyKeys<S['select']>]:
     P extends keyof E ? E[P] : never
   } 
-    : E
-  : E
+      : E
 
 
   type ECountArgs = Merge<
@@ -15732,7 +16452,23 @@ export namespace Prisma {
     **/
     findUnique<T extends EFindUniqueArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, EFindUniqueArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null, null>, Prisma__EClient<EGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'E'> extends True ? Prisma__EClient<EGetPayload<T>> : Prisma__EClient<EGetPayload<T> | null, null>
+
+    /**
+     * Find one E that matches the filter or throw an error  with \`error.code='P2025'\` 
+     *     if no matches were found.
+     * @param {EFindUniqueOrThrowArgs} args - Arguments to find a E
+     * @example
+     * // Get one E
+     * const e = await prisma.e.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findUniqueOrThrow<T extends EFindUniqueOrThrowArgs>(
+      args?: SelectSubset<T, EFindUniqueOrThrowArgs>
+    ): Prisma__EClient<EGetPayload<T>>
 
     /**
      * Find the first E that matches the filter.
@@ -15749,7 +16485,25 @@ export namespace Prisma {
     **/
     findFirst<T extends EFindFirstArgs,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, EFindFirstArgs>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>> : CheckSelect<T, Prisma__EClient<E | null, null>, Prisma__EClient<EGetPayload<T> | null, null>>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? Prisma__EClient<EGetPayload<T>> : Prisma__EClient<EGetPayload<T> | null, null>
+
+    /**
+     * Find the first E that matches the filter or
+     * throw \`NotFoundError\` if no matches were found.
+     * Note, that providing \`undefined\` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {EFindFirstOrThrowArgs} args - Arguments to find a E
+     * @example
+     * // Get one E
+     * const e = await prisma.e.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+    **/
+    findFirstOrThrow<T extends EFindFirstOrThrowArgs>(
+      args?: SelectSubset<T, EFindFirstOrThrowArgs>
+    ): Prisma__EClient<EGetPayload<T>>
 
     /**
      * Find zero or more Es that matches the filter.
@@ -15769,7 +16523,7 @@ export namespace Prisma {
     **/
     findMany<T extends EFindManyArgs>(
       args?: SelectSubset<T, EFindManyArgs>
-    ): CheckSelect<T, PrismaPromise<Array<E>>, PrismaPromise<Array<EGetPayload<T>>>>
+    ): PrismaPromise<Array<EGetPayload<T>>>
 
     /**
      * Create a E.
@@ -15785,7 +16539,7 @@ export namespace Prisma {
     **/
     create<T extends ECreateArgs>(
       args: SelectSubset<T, ECreateArgs>
-    ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
+    ): Prisma__EClient<EGetPayload<T>>
 
     /**
      * Create many Es.
@@ -15817,7 +16571,7 @@ export namespace Prisma {
     **/
     delete<T extends EDeleteArgs>(
       args: SelectSubset<T, EDeleteArgs>
-    ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
+    ): Prisma__EClient<EGetPayload<T>>
 
     /**
      * Update one E.
@@ -15836,7 +16590,7 @@ export namespace Prisma {
     **/
     update<T extends EUpdateArgs>(
       args: SelectSubset<T, EUpdateArgs>
-    ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
+    ): Prisma__EClient<EGetPayload<T>>
 
     /**
      * Delete zero or more Es.
@@ -15894,7 +16648,7 @@ export namespace Prisma {
     **/
     upsert<T extends EUpsertArgs>(
       args: SelectSubset<T, EUpsertArgs>
-    ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
+    ): Prisma__EClient<EGetPayload<T>>
 
     /**
      * Find zero or more Es that matches the filter.
@@ -15922,40 +16676,6 @@ export namespace Prisma {
     aggregateRaw(
       args?: EAggregateRawArgs
     ): PrismaPromise<JsonObject>
-
-    /**
-     * Find one E that matches the filter or throw
-     * \`NotFoundError\` if no matches were found.
-     * @param {EFindUniqueOrThrowArgs} args - Arguments to find a E
-     * @example
-     * // Get one E
-     * const e = await prisma.e.findUniqueOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findUniqueOrThrow<T extends EFindUniqueOrThrowArgs>(
-      args?: SelectSubset<T, EFindUniqueOrThrowArgs>
-    ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
-
-    /**
-     * Find the first E that matches the filter or
-     * throw \`NotFoundError\` if no matches were found.
-     * Note, that providing \`undefined\` is treated as the value not being there.
-     * Read more here: https://pris.ly/d/null-undefined
-     * @param {EFindFirstOrThrowArgs} args - Arguments to find a E
-     * @example
-     * // Get one E
-     * const e = await prisma.e.findFirstOrThrow({
-     *   where: {
-     *     // ... provide filter here
-     *   }
-     * })
-    **/
-    findFirstOrThrow<T extends EFindFirstOrThrowArgs>(
-      args?: SelectSubset<T, EFindFirstOrThrowArgs>
-    ): CheckSelect<T, Prisma__EClient<E>, Prisma__EClient<EGetPayload<T>>>
 
     /**
      * Count the number of Es.
@@ -16165,6 +16885,23 @@ export namespace Prisma {
       
 
   /**
+   * E findUniqueOrThrow
+   */
+  export type EFindUniqueOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the E
+     * 
+    **/
+    select?: ESelect | null
+    /**
+     * Filter, which E to fetch.
+     * 
+    **/
+    where: EWhereUniqueInput
+  }
+
+
+  /**
    * E base type for findFirst actions
    */
   export type EFindFirstArgsBase = {
@@ -16226,6 +16963,58 @@ export namespace Prisma {
     rejectOnNotFound?: RejectOnNotFound
   }
       
+
+  /**
+   * E findFirstOrThrow
+   */
+  export type EFindFirstOrThrowArgs = {
+    /**
+     * Select specific fields to fetch from the E
+     * 
+    **/
+    select?: ESelect | null
+    /**
+     * Filter, which E to fetch.
+     * 
+    **/
+    where?: EWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ES to fetch.
+     * 
+    **/
+    orderBy?: Enumerable<EOrderByWithRelationInput>
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ES.
+     * 
+    **/
+    cursor?: EWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take \`±n\` ES from the position of the cursor.
+     * 
+    **/
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first \`n\` ES.
+     * 
+    **/
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ES.
+     * 
+    **/
+    distinct?: Enumerable<EScalarFieldEnum>
+  }
+
 
   /**
    * E findMany
@@ -16430,18 +17219,6 @@ export namespace Prisma {
     options?: InputJsonValue
   }
 
-
-  /**
-   * E: findUniqueOrThrow
-   */
-  export type EFindUniqueOrThrowArgs = EFindUniqueArgsBase
-      
-
-  /**
-   * E: findFirstOrThrow
-   */
-  export type EFindFirstOrThrowArgs = EFindFirstArgsBase
-      
 
   /**
    * E without action

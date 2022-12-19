@@ -4,11 +4,13 @@ export type PrismaPromiseBatchTransaction = {
   kind: 'batch'
   id: number
   isolationLevel?: IsolationLevel
+  index: number
 }
 
 export type PrismaPromiseInteractiveTransaction = {
   kind: 'itx'
   id: string
+  payload: unknown
 }
 
 export type PrismaPromiseTransaction = PrismaPromiseBatchTransaction | PrismaPromiseInteractiveTransaction

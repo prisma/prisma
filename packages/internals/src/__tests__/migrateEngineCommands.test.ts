@@ -34,24 +34,24 @@ describe('canConnectToDatabase', () => {
 
   test('sqlite - cannot', async () => {
     await expect(canConnectToDatabase('file:./doesnotexist.db')).resolves.toMatchInlineSnapshot(`
-            Object {
-              "code": "P1003",
-              "message": "Database doesnotexist.db does not exist at ./doesnotexist.db",
-            }
-          `)
+      {
+        "code": "P1003",
+        "message": "Database doesnotexist.db does not exist at ./doesnotexist.db",
+      }
+    `)
   })
 
   test('postgresql - server does not exist', async () => {
     await expect(
       canConnectToDatabase('postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public', __dirname),
     ).resolves.toMatchInlineSnapshot(`
-            Object {
-              "code": "P1001",
-              "message": "Can't reach database server at \`doesnotexist\`:\`5432\`
+      {
+        "code": "P1001",
+        "message": "Can't reach database server at \`doesnotexist\`:\`5432\`
 
-            Please make sure your database server is running at \`doesnotexist\`:\`5432\`.",
-            }
-          `)
+      Please make sure your database server is running at \`doesnotexist\`:\`5432\`.",
+      }
+    `)
   }, 10000)
 })
 

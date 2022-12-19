@@ -2,10 +2,10 @@ import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 import path from 'path'
 
-import { ClientModelAction } from '../runtime/clientActions'
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
 import { GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
+import { ifExtensions } from './TSClient/utils/ifExtensions'
 
 export enum Projection {
   select = 'select',
@@ -106,7 +106,7 @@ export function getArgName(name: string, findMany: boolean): string {
 
 // we need names for all top level args,
 // as GraphQL doesn't have the concept of unnamed args
-export function getModelArgName(modelName: string, action?: ClientModelAction): string {
+export function getModelArgName(modelName: string, action?: DMMF.ModelAction): string {
   if (!action) {
     return `${modelName}Args`
   }
@@ -115,8 +115,12 @@ export function getModelArgName(modelName: string, action?: ClientModelAction): 
       return `${modelName}FindManyArgs`
     case DMMF.ModelAction.findUnique:
       return `${modelName}FindUniqueArgs`
+    case DMMF.ModelAction.findUniqueOrThrow:
+      return `${modelName}FindUniqueOrThrowArgs`
     case DMMF.ModelAction.findFirst:
       return `${modelName}FindFirstArgs`
+    case DMMF.ModelAction.findFirstOrThrow:
+      return `${modelName}FindFirstOrThrowArgs`
     case DMMF.ModelAction.upsert:
       return `${modelName}UpsertArgs`
     case DMMF.ModelAction.update:
@@ -141,10 +145,6 @@ export function getModelArgName(modelName: string, action?: ClientModelAction): 
       return `${modelName}FindRawArgs`
     case DMMF.ModelAction.aggregateRaw:
       return `${modelName}AggregateRawArgs`
-    case 'findFirstOrThrow':
-      return `${modelName}FindFirstOrThrowArgs`
-    case 'findUniqueOrThrow':
-      return `${modelName}FindUniqueOrThrowArgs`
     default:
       assertNever(action, 'Unknown action')
   }
@@ -212,7 +212,7 @@ export function getFieldType(field: DMMF.SchemaField): string {
 
 interface SelectReturnTypeOptions {
   name: string
-  actionName: ClientModelAction
+  actionName: DMMF.ModelAction
   renderPromise?: boolean
   hideCondition?: boolean
   isField?: boolean
@@ -258,41 +258,36 @@ export function getReturnType({
     const promiseOpen = renderPromise ? 'PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `CheckSelect<T, ${promiseOpen}${listOpen}${name}${listClose}${
+    return `${promiseOpen}${listOpen}${getPayloadName(name)}<T${ifExtensions(', ExtArgs', '')}>${listClose}${
       isChaining ? '| Null' : ''
-    }${promiseClose}, ${promiseOpen}${listOpen}${getPayloadName(name)}<T>${listClose}${
-      isChaining ? '| Null' : ''
-    }${promiseClose}>`
+    }${promiseClose}`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
-    return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
+    return `Prisma__${name}Client<${getType(
+      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
       isList,
-    )}>>`
+    )}${ifExtensions(', never, ExtArgs', '')}>`
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
-      return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | Null>, Prisma__${name}Client<${getType(
-        getPayloadName(name) + '<T>',
+      return `Prisma__${name}Client<${getType(
+        getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
         isList,
-      )} | Null>>`
+      )} | Null${ifExtensions(', never, ExtArgs', '')}>`
     }
-    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? CheckSelect<T, Prisma__${name}Client<${getType(
-      name,
+    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? Prisma__${name}Client<${getType(
+      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
       isList,
-    )}>, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
+    )}${ifExtensions(', never, ExtArgs', '')}> : Prisma__${name}Client<${getType(
+      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
       isList,
-    )}>> : CheckSelect<T, Prisma__${name}Client<${getType(name, isList)} | null, null>, Prisma__${name}Client<${getType(
-      getPayloadName(name) + '<T>',
-      isList,
-    )} | null, null>>`
+    )} | null, null${ifExtensions(', ExtArgs', '')}>`
   }
-  return `CheckSelect<T, Prisma__${name}Client<${getType(name, isList)}>, Prisma__${name}Client<${getType(
-    getPayloadName(name) + '<T>',
+  return `Prisma__${name}Client<${getType(
+    getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
     isList,
-  )}>>`
+  )}${ifExtensions(', never, ExtArgs', '')}>`
 }
 
 export function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mutation'): boolean {

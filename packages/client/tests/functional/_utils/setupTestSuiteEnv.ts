@@ -7,13 +7,14 @@ import { match } from 'ts-pattern'
 import { Script } from 'vm'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
+import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
 import { Providers } from './providers'
 import { ProviderFlavor, ProviderFlavors } from './relationMode/ProviderFlavor'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
-import { ClientMeta } from './types'
+import { AlterStatementCallback, ClientMeta } from './types'
 
 const DB_NAME_VAR = 'PRISMA_DB_NAME'
 
@@ -108,12 +109,44 @@ export async function setupTestSuiteDatabase(
   suiteMeta: TestSuiteMeta,
   suiteConfig: NamedTestSuiteConfig,
   errors: Error[] = [],
+  alterStatementCallback?: AlterStatementCallback,
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-    await DbPush.new().parse(['--schema', schemaPath, '--force-reset', '--skip-generate'])
+    const dbpushParams = ['--schema', schemaPath, '--skip-generate']
+    const providerFlavor = suiteConfig['providerFlavor'] as ProviderFlavor | undefined
+    // `--force-reset` is great but only using it where necessary makes the tests faster
+    // Since we have full isolation of tests / database,
+    // we do not need to force reset
+    // But we currently break isolation for Vitess (for faster tests),
+    // so it's good to force reset in this case
+    if (providerFlavor === ProviderFlavors.VITESS_8) {
+      dbpushParams.push('--force-reset')
+    }
+    await DbPush.new().parse(dbpushParams)
+
+    if (alterStatementCallback) {
+      const prismaDir = path.dirname(schemaPath)
+      const timestamp = new Date().getTime()
+      const provider = suiteConfig.matrixOptions['provider'] as Providers
+
+      await fs.promises.mkdir(`${prismaDir}/migrations/${timestamp}`, { recursive: true })
+      await fs.promises.writeFile(`${prismaDir}/migrations/migration_lock.toml`, `provider = "${provider}"`)
+      await fs.promises.writeFile(
+        `${prismaDir}/migrations/${timestamp}/migration.sql`,
+        alterStatementCallback(provider),
+      )
+
+      await DbExecute.new().parse([
+        '--file',
+        `${prismaDir}/migrations/${timestamp}/migration.sql`,
+        '--schema',
+        `${schemaPath}`,
+      ])
+    }
+
     consoleInfoMock.mockRestore()
   } catch (e) {
     errors.push(e as Error)
@@ -185,7 +218,16 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
       return { envVarName, newURI }
     })
 
-  const databaseUrl = newURI.replace(DB_NAME_VAR, dbId)
+  let databaseUrl = newURI
+  // Vitess takes about 1 minute to create a database the first time
+  // So we can reuse the same database for all tests
+  // It has a significant impact on the test runtime
+  // Example: 60s -> 3s
+  if (providerFlavor === ProviderFlavors.VITESS_8) {
+    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
+  } else {
+    databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
+  }
   let dataProxyUrl: string | undefined
 
   if (clientMeta.dataProxy) {

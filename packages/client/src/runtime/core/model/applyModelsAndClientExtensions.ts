@@ -1,5 +1,11 @@
 import type { Client } from '../../getPrismaClient'
-import { addProperty, cacheProperties, CompositeProxyLayer, createCompositeProxy } from '../compositeProxy'
+import {
+  addObjectProperties,
+  addProperty,
+  cacheProperties,
+  CompositeProxyLayer,
+  createCompositeProxy,
+} from '../compositeProxy'
 import { applyModel } from './applyModel'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 import { jsToDMMFModelName } from './utils/jsToDMMFModelName'
@@ -16,8 +22,13 @@ const rawClient = Symbol()
  * @param client to create the proxy around
  * @returns a proxy to access models
  */
-export function applyModels(client: Client) {
-  return createCompositeProxy(client, [modelsLayer(client), addProperty(rawClient, () => client)])
+export function applyModelsAndClientExtensions(client: Client) {
+  const layers = [modelsLayer(client), addProperty(rawClient, () => client)]
+  const clientExtensions = client._extensions.getAllClientExtensions()
+  if (clientExtensions) {
+    layers.push(addObjectProperties(clientExtensions))
+  }
+  return createCompositeProxy(client, layers)
 }
 
 function modelsLayer(client: Client): CompositeProxyLayer {
@@ -55,7 +66,7 @@ function modelsLayer(client: Client): CompositeProxyLayer {
   })
 }
 
-export function unapplyModels(client: Client): Client {
+export function unapplyModelsAndClientExtensions(client: Client): Client {
   if (client[rawClient]) {
     return client[rawClient]
   }

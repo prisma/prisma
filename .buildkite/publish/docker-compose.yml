@@ -45,6 +45,8 @@ services:
       # Other vars !\ If not defined, they cannot be accessed
       # TODO: do an env var cleanup?
       - NPM_TOKEN
+      # Used to create a tag the prisma-engines repository
+      # After packages are published on npm
       - GITHUB_TOKEN
       - UPDATE_STUDIO
       - BUILDKITE
@@ -75,9 +77,9 @@ services:
       - mongodb_migrate
       - mongodb_migrate_seed
       - cockroachdb
-# TODO: uncomment when we test vitess in client functional test suite
-# Currently we only test `relationMode` tests in GitHub Actions
-#      - vitess-8
+  # TODO: uncomment when we test vitess in client functional test suite
+  # Currently we only test `relationMode` tests in GitHub Actions
+  #      - vitess-8
 
   postgres:
     image: postgres:10
@@ -130,7 +132,7 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:9412e3d51bde38e09c3039090b5c68808e299579f12c79178a4ec316f7831889
+    image: vitess/vttestserver:mysql80@sha256:1469c3ee165a8aeaaa118e97a7cf0b173bbef3f3491c52e2211118401017eaf7
     restart: always
     ports:
       - 33807:33807
@@ -187,4 +189,3 @@ services:
       MONGO_REPLICA_PORT: 27018
     ports:
       - '27018:27018'
-# TODO: investigate why isolated containers aren't used in the tests

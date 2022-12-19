@@ -57,9 +57,4 @@ export default defineMatrix(() => [
     },
     */
   ],
-  [
-    {
-      previewFeatures: '"referentialIntegrity"',
-    },
-  ],
 ])

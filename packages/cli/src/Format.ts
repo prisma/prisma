@@ -1,9 +1,7 @@
-import type { Command } from '@prisma/internals'
-import { arg, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/internals'
+import { arg, Command, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import fs from 'fs'
-import os from 'os'
 
 /**
  * $ prisma format
@@ -56,10 +54,15 @@ Or specify a Prisma schema path
 
     const output = await formatSchema({ schemaPath })
 
-    // Validate whether the formatted output is a valid schema
-    await getDMMF({
-      datamodel: output,
-    })
+    try {
+      // Validate whether the formatted output is a valid schema
+      await getDMMF({
+        datamodel: output,
+      })
+    } catch (e) {
+      console.error('') // empty line for better readability
+      throw e
+    }
 
     fs.writeFileSync(schemaPath, output)
     const after = Date.now()

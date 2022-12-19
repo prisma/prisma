@@ -139,13 +139,13 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('blog-env-mssql', () => {
     })
 
     expect(deletedPost).toMatchInlineSnapshot(`
-    Object {
-      authorId: null,
-      content: null,
-      published: false,
-      title: Some title,
-    }
-  `)
+      {
+        authorId: null,
+        content: null,
+        published: false,
+        title: Some title,
+      }
+    `)
   })
 
   test('can run update queries', async () => {
@@ -171,13 +171,13 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('blog-env-mssql', () => {
     })
 
     expect(updatedPost).toMatchInlineSnapshot(`
-    Object {
-      authorId: null,
-      content: null,
-      published: false,
-      title: Updated title,
-    }
-  `)
+      {
+        authorId: null,
+        content: null,
+        published: false,
+        title: Updated title,
+      }
+    `)
   })
 
   describe('$queryRaw', () => {

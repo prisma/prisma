@@ -1,18 +1,28 @@
 import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
-import EventEmitter from 'events'
 
 import type {
-  BatchTransactionOptions,
+  BatchQueryEngineResult,
   EngineConfig,
   EngineEventType,
   GetConfigResult,
   InlineDatasource,
+  InteractiveTransactionOptions,
+  RequestBatchOptions,
+  RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
+import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
+import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import { QueryEngineBatchRequest } from '../common/types/QueryEngine'
+import {
+  QueryEngineBatchRequest,
+  QueryEngineRequestHeaders,
+  QueryEngineResult,
+  QueryEngineResultBatchQueryResult,
+} from '../common/types/QueryEngine'
+import type * as Tx from '../common/types/Transaction'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -29,6 +39,12 @@ const MAX_RETRIES = 10
 const P = Promise.resolve()
 
 const debug = Debug('prisma:client:dataproxyEngine')
+
+type DataProxyTxInfoPayload = {
+  endpoint: string
+}
+
+type DataProxyTxInfo = Tx.Info<DataProxyTxInfoPayload>
 
 export class DataProxyEngine extends Engine {
   private inlineSchema: string
@@ -52,9 +68,7 @@ export class DataProxyEngine extends Engine {
     this.inlineDatasources = config.inlineDatasources ?? {}
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
     this.clientVersion = config.clientVersion ?? 'unknown'
-
-    this.logEmitter = new EventEmitter()
-    this.logEmitter.on('error', () => {})
+    this.logEmitter = config.logEmitter
 
     const [host, apiKey] = this.extractHostAndApiKey()
     this.remoteClientVersion = P.then(() => getClientVersion(this.config))
@@ -130,18 +144,18 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>(query: string, headers: Record<string, string>, attempt = 0) {
+  request<T>({ query, headers = {}, transaction }: RequestOptions<DataProxyTxInfoPayload>) {
     this.logEmitter.emit('query', { query })
 
-    return this.requestInternal<T>({ query, variables: {} }, headers, attempt)
+    // TODO: `elapsed`?
+    return this.requestInternal<T>({ query, variables: {} }, headers, transaction)
   }
 
-  async requestBatch<T>(
-    queries: string[],
-    headers: Record<string, string>,
-    transaction?: BatchTransactionOptions,
-    attempt = 0,
-  ) {
+  async requestBatch<T>({
+    queries,
+    headers = {},
+    transaction,
+  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
       query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,
@@ -153,76 +167,127 @@ export class DataProxyEngine extends Engine {
       isolationLevel: transaction?.isolationLevel,
     }
 
-    const { batchResult } = await this.requestInternal<T>(body, headers, attempt)
+    const { batchResult, elapsed } = await this.requestInternal<T, true>(body, headers)
 
-    return batchResult
+    return batchResult.map((result) => {
+      if ('errors' in result && result.errors.length > 0) {
+        return prismaGraphQLToJSError(result.errors[0], this.clientVersion!)
+      }
+      return {
+        data: result as T,
+        elapsed,
+      }
+    })
   }
 
-  private async requestInternal<T>(body: Record<string, any>, headers: Record<string, string>, attempt: number) {
-    try {
-      this.logEmitter.emit('info', {
-        message: `Calling ${await this.url('graphql')} (n=${attempt})`,
-      })
+  private requestInternal<T, Batch extends boolean = false>(
+    body: Record<string, any>,
+    headers: QueryEngineRequestHeaders,
+    itx?: InteractiveTransactionOptions<DataProxyTxInfoPayload>,
+  ): Promise<
+    Batch extends true ? { batchResult: QueryEngineResultBatchQueryResult<T>[]; elapsed: number } : QueryEngineResult<T>
+  > {
+    return this.withRetry({
+      actionGerund: 'querying',
+      callback: async ({ logHttpCall }) => {
+        const url = itx ? `${itx.payload.endpoint}/graphql` : await this.url('graphql')
 
-      const response = await request(await this.url('graphql'), {
-        method: 'POST',
-        headers: { ...headers, ...this.headers },
-        body: JSON.stringify(body),
-        clientVersion: this.clientVersion,
-      })
+        logHttpCall(url)
 
-      if (!response.ok) {
-        debug('graphql response status', response.status)
-      }
-
-      const e = await responseToError(response, this.clientVersion)
-
-      if (e instanceof SchemaMissingError) {
-        await this.uploadSchema()
-        throw new ForcedRetryError({
+        const response = await request(url, {
+          method: 'POST',
+          headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
+          body: JSON.stringify(body),
           clientVersion: this.clientVersion,
-          cause: e,
         })
-      }
 
-      if (e) throw e
-
-      const data = await response.json()
-
-      if (data.errors) {
-        if (data.errors.length === 1) {
-          throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+        if (!response.ok) {
+          debug('graphql response status', response.status)
         }
-      }
 
-      return data
-    } catch (e) {
-      this.logEmitter.emit('error', {
-        message: `Error while querying: ${e.message ?? '(unknown)'}`,
-      })
+        const e = await responseToError(response, this.clientVersion)
+        await this.handleError(e)
 
-      if (!(e instanceof DataProxyError)) throw e
-      if (!e.isRetryable) throw e
-      if (attempt >= MAX_RETRIES) {
-        if (e instanceof ForcedRetryError) {
-          throw e.cause
-        } else {
-          throw e
+        const data = await response.json()
+
+        // TODO: headers contain `x-elapsed` and it needs to be returned
+
+        if (data.errors) {
+          if (data.errors.length === 1) {
+            throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+          } else {
+            throw new PrismaClientUnknownRequestError(data.errors, { clientVersion: this.config.clientVersion! })
+          }
         }
-      }
 
-      this.logEmitter.emit('warn', { message: 'This request can be retried' })
-      const delay = await backOff(attempt)
-      this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
-
-      return this.requestInternal<T>(body, headers, attempt + 1)
-    }
+        return data
+      },
+    })
   }
 
-  // TODO: figure out how to support transactions
-  transaction(): Promise<any> {
-    throw new NotImplementedYetError('Interactive transactions are not yet supported', {
-      clientVersion: this.clientVersion,
+  /**
+   * Send START, COMMIT, or ROLLBACK to the Query Engine
+   * @param action START, COMMIT, or ROLLBACK
+   * @param headers headers for tracing
+   * @param options to change the default timeouts
+   * @param info transaction information for the QE
+   */
+  transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<DataProxyTxInfo>
+  transaction(action: 'commit', headers: Tx.TransactionHeaders, info: DataProxyTxInfo): Promise<undefined>
+  transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: DataProxyTxInfo): Promise<undefined>
+  async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
+    const actionToGerund = {
+      start: 'starting',
+      commit: 'committing',
+      rollback: 'rolling back',
+    }
+
+    return this.withRetry({
+      actionGerund: `${actionToGerund[action]} transaction`,
+      callback: async ({ logHttpCall }) => {
+        if (action === 'start') {
+          const body = JSON.stringify({
+            max_wait: arg?.maxWait ?? 2000, // default
+            timeout: arg?.timeout ?? 5000, // default
+            isolation_level: arg?.isolationLevel,
+          })
+
+          const url = await this.url('transaction/start')
+
+          logHttpCall(url)
+
+          const response = await request(url, {
+            method: 'POST',
+            headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
+            body,
+            clientVersion: this.clientVersion,
+          })
+
+          const err = await responseToError(response, this.clientVersion)
+          await this.handleError(err)
+
+          const json = await response.json()
+          const id = json.id as string
+          const endpoint = json['data-proxy'].endpoint as string
+
+          return { id, payload: { endpoint } }
+        } else {
+          const url = `${arg.payload.endpoint}/${action}`
+
+          logHttpCall(url)
+
+          const response = await request(url, {
+            method: 'POST',
+            headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
+            clientVersion: this.clientVersion,
+          })
+
+          const err = await responseToError(response, this.clientVersion)
+          await this.handleError(err)
+
+          return undefined
+        }
+      },
     })
   }
 
@@ -318,4 +383,61 @@ export class DataProxyEngine extends Engine {
       clientVersion: this.clientVersion,
     })
   }
+
+  private async withRetry<T>(args: {
+    callback: (api: { logHttpCall: (url: string) => void }) => Promise<T>
+    actionGerund: string
+  }): Promise<T> {
+    for (let attempt = 0; ; attempt++) {
+      const logHttpCall = (url: string) => {
+        this.logEmitter.emit('info', {
+          message: `Calling ${url} (n=${attempt})`,
+        })
+      }
+
+      try {
+        return await args.callback({ logHttpCall })
+      } catch (e) {
+        if (!(e instanceof DataProxyError)) throw e
+        if (!e.isRetryable) throw e
+        if (attempt >= MAX_RETRIES) {
+          if (e instanceof ForcedRetryError) {
+            throw e.cause
+          } else {
+            throw e
+          }
+        }
+
+        this.logEmitter.emit('warn', {
+          message: `Attempt ${attempt + 1}/${MAX_RETRIES} failed for ${args.actionGerund}: ${e.message ?? '(unknown)'}`,
+        })
+        const delay = await backOff(attempt)
+        this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
+      }
+    }
+  }
+
+  private async handleError(error: DataProxyError | undefined): Promise<void> {
+    if (error instanceof SchemaMissingError) {
+      await this.uploadSchema()
+      throw new ForcedRetryError({
+        clientVersion: this.clientVersion,
+        cause: error,
+      })
+    } else if (error) {
+      throw error
+    }
+  }
+}
+
+/**
+ * Convert runtime headers to HTTP headers expected by the Data Proxy by removing the transactionId runtime header.
+ */
+function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
+  if (headers.transactionId) {
+    const httpHeaders = { ...headers }
+    delete httpHeaders.transactionId
+    return httpHeaders
+  }
+  return headers
 }
