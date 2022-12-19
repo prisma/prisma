@@ -961,11 +961,11 @@ describe('postgresql-extensions', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-  if (!process.env.TEST_COCKROACH_URI) {
+  if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI) {
     throw new Error('You must set a value for process.env.TEST_COCKROACH_URI. See TESTING.md')
   }
   const defaultParams = {
-    connectionString: process.env.TEST_COCKROACH_URI,
+    connectionString: process.env.TEST_COCKROACH_URI!,
   }
 
   async function testSetup(setupDirname = 'cockroachdb', options = { withFixture: false }) {
@@ -1130,19 +1130,19 @@ describe('mysql', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
-  if (!process.env.TEST_MSSQL_URI) {
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_URI) {
     throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
   }
-  if (!process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
     throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
   }
 
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_MSSQL_URI,
+    connectionString: process.env.TEST_MSSQL_URI!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'sqlserver'),
   }
   const databaseName = 'tests-migrate'
-  const JDBC_URI = process.env.TEST_MSSQL_JDBC_URI_MIGRATE
+  const JDBC_URI = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!
 
   beforeAll(async () => {
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
