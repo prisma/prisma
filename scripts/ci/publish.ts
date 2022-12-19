@@ -477,7 +477,10 @@ async function getNextMinorStable() {
 
 // TODO: could probably use the semver package
 function getSemverFromPatchBranch(version: string) {
-  const regex = /(\d+)\.(\d+)\.x/
+  // the branch name must match
+  // number.number.x like 3.0.x or 2.29.x
+  // as an exact match, no character before or after
+  const regex = /^(\d+)\.(\d+)\.x$/
   const match = regex.exec(version)
 
   if (match) {
