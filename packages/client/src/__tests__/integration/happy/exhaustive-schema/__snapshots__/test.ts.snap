@@ -1346,6 +1346,7 @@ export namespace Prisma {
     db?: Datasource
   }
 
+  export type DefaultPrismaClient = PrismaClient
   export type RejectOnNotFound = boolean | ((error: Error) => Error)
   export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
   export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
@@ -1489,7 +1490,7 @@ export namespace Prisma {
   /**
    * \`PrismaClient\` proxy available in interactive transactions.
    */
-  export type TransactionClient = Omit<PrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>
+  export type TransactionClient = Omit<Prisma.DefaultPrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>
 
   export type Datasource = {
     url?: string
