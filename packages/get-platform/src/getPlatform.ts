@@ -14,9 +14,13 @@ const exec = promisify(cp.exec)
 export type Arch = 'x32' | 'x64' | 'arm' | 'arm64' | 's390' | 's390x' | 'mipsel' | 'ia32' | 'mips' | 'ppc' | 'ppc64'
 export type GetOSResult = {
   platform: NodeJS.Platform
-  libssl?: '1.0.x' | '1.1.x' | '3.0.x'
   arch: Arch
   distro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos' | 'freebsd11' | 'freebsd12' | 'freebsd13'
+
+  /**
+   * Starting from version 3.0, OpenSSL is basically adopting semver, and will be API and ABI compatible within a major version.
+   */
+  libssl?: '1.0.x' | '1.1.x' | '3.0.x'
 }
 
 export async function getos(): Promise<GetOSResult> {
@@ -104,7 +108,8 @@ export async function resolveDistro(): Promise<undefined | GetOSResult['distro']
 export function parseOpenSSLVersion(input: string): GetOSResult['libssl'] | undefined {
   const match = /^OpenSSL\s(\d+\.\d+)\.\d+/.exec(input)
   if (match) {
-    return `${match[1]}.x` as GetOSResult['libssl']
+    const partialVersion = `${match[1]}.x`
+    return sanitiseSSLVersion(partialVersion)
   }
 
   return undefined
@@ -117,10 +122,24 @@ export function parseOpenSSLVersion(input: string): GetOSResult['libssl'] | unde
 export function parseLibSSLVersion(input: string): GetOSResult['libssl'] | undefined {
   const match = /libssl\.so\.(\d)(\.\d)?/.exec(input)
   if (match) {
-    return `${match[1]}${match[2] ?? '.0'}.x` as GetOSResult['libssl']
+    const partialVersion = `${match[1]}${match[2] ?? '.0'}.x`
+    return sanitiseSSLVersion(partialVersion)
   }
 
   return undefined
+}
+
+function sanitiseSSLVersion(version: string): NonNullable<GetOSResult['libssl']> {
+  if (isLibssl1x(version)) {
+    return version
+  }
+
+  /**
+   * Sanitise OpenSSL 3+. E.g., '3.1.x' becomes '3.0.x'
+   */
+  const versionSplit = version.split('.')
+  versionSplit[1] = '0'
+  return versionSplit.join('.') as NonNullable<GetOSResult['libssl']>
 }
 
 type GetOpenSSLVersionParams = {
@@ -270,6 +289,6 @@ function getFirstSuccessfulExec(commands: string[]) {
   })
 }
 
-function isLibssl1x(libssl: NonNullable<GetOSResult['libssl']>): libssl is '1.0.x' | '1.1.x' {
+function isLibssl1x(libssl: NonNullable<GetOSResult['libssl']> | string): libssl is '1.0.x' | '1.1.x' {
   return libssl.startsWith('1.')
 }
