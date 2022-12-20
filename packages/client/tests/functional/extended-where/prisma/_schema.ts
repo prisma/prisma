@@ -18,6 +18,8 @@ export default testMatrix.setupSchema(({ provider }) => {
     posts Post[]
     profile Profile?
     referralId String @unique
+    payment Payment? @relation(fields: [paymentId], references: [id])
+    paymentId String @unique
   }
 
   model Profile {
@@ -34,6 +36,12 @@ export default testMatrix.setupSchema(({ provider }) => {
     title String @unique
     author User? @relation(fields: [authorId], references: [id], onDelete: Cascade)
     authorId String?
+  }
+
+  model Payment {
+    id ${idForProvider(provider)}
+    ccn String @unique @default(cuid())
+    author User?
   }
   `
 })
