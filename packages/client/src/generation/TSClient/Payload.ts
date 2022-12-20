@@ -30,7 +30,7 @@ export class PayloadType implements Generatable {
       isModel && this.findMany ? ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}${ifExtensions('', '')}` : ''
 
     return `\
-export type ${getPayloadName(name)}<S extends boolean | null | undefined | ${argsName}${ifExtensions(
+export type ${getPayloadName(name)}<S extends boolean | null | undefined | Pick<${findManyArg}, "include" | "select" | "where">${ifExtensions(
       `, ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs, _${name} = runtime.Types.Extensions.GetResultPayload<${name}, ExtArgs['result']['${lowerCase(
         name,
       )}']>`,
@@ -87,7 +87,7 @@ ${indent(
       (f) =>
         `P extends '${f.name}' ? ${this.wrapType(
           f,
-          `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]${ifExtensions(
+          `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P] & { where: Extract<S['where'][P] | (S['where']['AND'] & S['where']['OR'])[number][P], {}> }${ifExtensions(
             ', ExtArgs',
             '',
           )}>`,
@@ -110,7 +110,7 @@ ${indent(
       return 'null'
     }
     if (field.isNullable) {
-      str += ' | null'
+      str += " | (Extract<S['where'][P] | (S['where']['AND'] & S['where']['OR'])[number][P], {}> extends never ? null : never)"
     }
     return str
   }

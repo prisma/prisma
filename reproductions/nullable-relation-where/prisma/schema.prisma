@@ -1,0 +1,23 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../node_modules/.prisma/client"
+  previewFeatures = []
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String @id @default(uuid())
+  name      String
+  activeJob Job?
+}
+
+model Job {
+  id          String  @id @default(uuid())
+  description String
+  assignee    User?   @relation(fields: [assigneeId], references: [id])
+  assigneeId  String? @unique
+}

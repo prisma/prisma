@@ -41,6 +41,7 @@ esm
 reproductions/*
 !reproductions/basic-sqlite
 !reproductions/tracing
+!reproductions/nullable-relation-where
 !reproductions/pnpm-workspace.yaml
 
 dev.db
