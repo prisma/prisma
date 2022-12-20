@@ -427,9 +427,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
 
     // Delete all artifacts
     const deletedEngines = await del(path.posix.join(baseDir, '/*engine*'))
-    const deletedPrismafmt = await del(path.posix.join(baseDir, '/prisma-fmt*'))
     expect(deletedEngines.length).toBeGreaterThan(0)
-    expect(deletedPrismafmt.length).toBeGreaterThan(0)
 
     const before = Date.now()
     await download({
