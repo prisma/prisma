@@ -38,7 +38,6 @@ describe('download', () => {
     const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.queryEngine, platform))
     const introspectionEnginePath = path.join(baseDir, getBinaryName(BinaryType.introspectionEngine, platform))
     const migrationEnginePath = path.join(baseDir, getBinaryName(BinaryType.migrationEngine, platform))
-    const prismaFmtPath = path.join(baseDir, getBinaryName(BinaryType.prismaFmt, platform))
 
     await download({
       binaries: {
@@ -46,7 +45,6 @@ describe('download', () => {
         [BinaryType.queryEngine]: baseDir,
         [BinaryType.introspectionEngine]: baseDir,
         [BinaryType.migrationEngine]: baseDir,
-        [BinaryType.prismaFmt]: baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -112,20 +110,6 @@ describe('download', () => {
         "migration-engine-rhel-openssl-1.1.x",
         "migration-engine-rhel-openssl-3.0.x",
         "migration-engine-windows.exe",
-        "prisma-fmt-darwin",
-        "prisma-fmt-darwin-arm64",
-        "prisma-fmt-debian-openssl-1.0.x",
-        "prisma-fmt-debian-openssl-1.1.x",
-        "prisma-fmt-debian-openssl-3.0.x",
-        "prisma-fmt-linux-arm64-openssl-1.0.x",
-        "prisma-fmt-linux-arm64-openssl-1.1.x",
-        "prisma-fmt-linux-arm64-openssl-3.0.x",
-        "prisma-fmt-linux-musl",
-        "prisma-fmt-linux-musl-openssl-3.0.x",
-        "prisma-fmt-rhel-openssl-1.0.x",
-        "prisma-fmt-rhel-openssl-1.1.x",
-        "prisma-fmt-rhel-openssl-3.0.x",
-        "prisma-fmt-windows.exe",
         "query-engine-darwin",
         "query-engine-darwin-arm64",
         "query-engine-debian-openssl-1.0.x",
@@ -148,7 +132,6 @@ describe('download', () => {
     expect(await getVersion(queryEnginePath, BinaryType.queryEngine)).toContain(CURRENT_ENGINES_HASH)
     expect(await getVersion(introspectionEnginePath, BinaryType.introspectionEngine)).toContain(CURRENT_ENGINES_HASH)
     expect(await getVersion(migrationEnginePath, BinaryType.migrationEngine)).toContain(CURRENT_ENGINES_HASH)
-    expect(await getVersion(prismaFmtPath, BinaryType.prismaFmt)).toContain(CURRENT_ENGINES_HASH)
   })
 
   test('download all binaries & cache them', async () => {
@@ -158,7 +141,6 @@ describe('download', () => {
     const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.queryEngine, platform))
     const introspectionEnginePath = path.join(baseDir, getBinaryName(BinaryType.introspectionEngine, platform))
     const migrationEnginePath = path.join(baseDir, getBinaryName(BinaryType.migrationEngine, platform))
-    const prismaFmtPath = path.join(baseDir, getBinaryName(BinaryType.prismaFmt, platform))
 
     const before0 = Date.now()
     await download({
@@ -167,7 +149,6 @@ describe('download', () => {
         [BinaryType.queryEngine]: baseDir,
         [BinaryType.introspectionEngine]: baseDir,
         [BinaryType.migrationEngine]: baseDir,
-        [BinaryType.prismaFmt]: baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -366,62 +347,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
           "size": 23651328,
         },
         {
-          "name": "prisma-fmt-darwin",
-          "size": 3695536,
-        },
-        {
-          "name": "prisma-fmt-darwin-arm64",
-          "size": 3426856,
-        },
-        {
-          "name": "prisma-fmt-debian-openssl-1.0.x",
-          "size": 5159640,
-        },
-        {
-          "name": "prisma-fmt-debian-openssl-1.1.x",
-          "size": 5159640,
-        },
-        {
-          "name": "prisma-fmt-debian-openssl-3.0.x",
-          "size": 5159640,
-        },
-        {
-          "name": "prisma-fmt-linux-arm64-openssl-1.0.x",
-          "size": 4976912,
-        },
-        {
-          "name": "prisma-fmt-linux-arm64-openssl-1.1.x",
-          "size": 4976912,
-        },
-        {
-          "name": "prisma-fmt-linux-arm64-openssl-3.0.x",
-          "size": 4976912,
-        },
-        {
-          "name": "prisma-fmt-linux-musl",
-          "size": 5128056,
-        },
-        {
-          "name": "prisma-fmt-linux-musl-openssl-3.0.x",
-          "size": 5128256,
-        },
-        {
-          "name": "prisma-fmt-rhel-openssl-1.0.x",
-          "size": 5135904,
-        },
-        {
-          "name": "prisma-fmt-rhel-openssl-1.1.x",
-          "size": 5135904,
-        },
-        {
-          "name": "prisma-fmt-rhel-openssl-3.0.x",
-          "size": 5135904,
-        },
-        {
-          "name": "prisma-fmt-windows.exe",
-          "size": 3421696,
-        },
-        {
           "name": "query-engine-darwin",
           "size": 24036112,
         },
@@ -493,9 +418,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
     expect(await getVersion(migrationEnginePath, BinaryType.migrationEngine)).toMatchInlineSnapshot(
       `"migration-engine-cli c9e863f2d8de6fa0c4bcd609df078ea2dde3c2b2"`,
     )
-    expect(await getVersion(prismaFmtPath, BinaryType.prismaFmt)).toMatchInlineSnapshot(
-      `"prisma-fmt c9e863f2d8de6fa0c4bcd609df078ea2dde3c2b2"`,
-    )
 
     //
     // Cache test 1
@@ -516,7 +438,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
-        'prisma-fmt': baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -555,7 +476,6 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
         'query-engine': baseDir,
         'introspection-engine': baseDir,
         'migration-engine': baseDir,
-        'prisma-fmt': baseDir,
       },
       binaryTargets: [
         'darwin',

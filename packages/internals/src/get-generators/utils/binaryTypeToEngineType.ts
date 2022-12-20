@@ -16,9 +16,5 @@ export function binaryTypeToEngineType(binaryType: string): EngineType {
     return 'queryEngine'
   }
 
-  if (binaryType === BinaryType.prismaFmt) {
-    return 'prismaFmt'
-  }
-
   throw new Error(`Could not convert binary type ${binaryType}`)
 }

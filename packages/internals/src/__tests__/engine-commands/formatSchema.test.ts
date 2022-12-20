@@ -1,9 +1,8 @@
-import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
-import { BinaryType, jestConsoleContext, jestContext, resolveBinary } from '../..'
+import { jestConsoleContext, jestContext } from '../..'
 import { formatSchema } from '../../engine-commands'
 import { fixturesPath } from '../__utils__/fixtures'
 
@@ -13,61 +12,50 @@ if (process.env.CI) {
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-async function formatSchemaBinary(schema: string): Promise<string> {
-  const MAX_BUFFER = 1_000_000_000
-  const prismaFmtPath = await resolveBinary(BinaryType.prismaFmt)
-
-  const options = {
-    env: {
-      RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',
-    },
-    maxBuffer: MAX_BUFFER,
-  } as execa.Options
-
-  const formattedSchema = await execa(prismaFmtPath, ['format'], {
-    ...options,
-    input: schema,
-  })
-
-  return formattedSchema.stdout
-}
-
-describe('format wasm vs binary', () => {
+describe('format wasm', () => {
   describe('diff', () => {
     test('2-spaces', async () => {
       const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-2-spaces.prisma'), {
         encoding: 'utf8',
       })
-      const formattedByBinary = await formatSchemaBinary(schema)
+      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+        encoding: 'utf8',
+      })
       const formattedByWasm = await formatSchema({ schema })
-      expect(formattedByBinary + '\n').toEqual(formattedByWasm)
+      expect(formattedSchema).toEqual(formattedByWasm)
     })
 
     test('2-spaces-as-tab', async () => {
       const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-2-spaces-as-tab.prisma'), {
         encoding: 'utf8',
       })
-      const formattedByBinary = await formatSchemaBinary(schema)
+      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+        encoding: 'utf8',
+      })
       const formattedByWasm = await formatSchema({ schema })
-      expect(formattedByBinary + '\n').toEqual(formattedByWasm)
+      expect(formattedSchema).toEqual(formattedByWasm)
     })
 
     test('4-spaces', async () => {
       const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-4-spaces.prisma'), {
         encoding: 'utf8',
       })
-      const formattedByBinary = await formatSchemaBinary(schema)
+      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+        encoding: 'utf8',
+      })
       const formattedByWasm = await formatSchema({ schema })
-      expect(formattedByBinary + '\n').toEqual(formattedByWasm)
+      expect(formattedSchema).toEqual(formattedByWasm)
     })
 
     test('4-spaces-as-tab', async () => {
       const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-4-spaces-as-tab.prisma'), {
         encoding: 'utf8',
       })
-      const formattedByBinary = await formatSchemaBinary(schema)
+      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+        encoding: 'utf8',
+      })
       const formattedByWasm = await formatSchema({ schema })
-      expect(formattedByBinary + '\n').toEqual(formattedByWasm)
+      expect(formattedSchema).toEqual(formattedByWasm)
     })
   })
 })

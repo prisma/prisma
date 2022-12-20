@@ -29,7 +29,6 @@ describe('version', () => {
         binaries: {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
-          'prisma-fmt': enginesDir,
           'libquery-engine': enginesDir,
         },
         version,
@@ -78,7 +77,6 @@ describe('version', () => {
         binaries: {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
-          'prisma-fmt': enginesDir,
           'query-engine': enginesDir,
         },
         version,

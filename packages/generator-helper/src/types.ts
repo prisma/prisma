@@ -73,7 +73,6 @@ export type BinaryPaths = {
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
   introspectionEngine?: { [binaryTarget: string]: string }
-  prismaFmt?: { [binaryTarget: string]: string }
 }
 
 /** The options passed to the generator implementations */
@@ -92,7 +91,7 @@ export type GeneratorOptions = {
   dataProxy: boolean
 }
 
-export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
+export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine'
 
 export type GeneratorManifest = {
   prettyName?: string

@@ -49,10 +49,6 @@ export async function getEnginesMetaInfo() {
       name: 'introspection-engine' as const,
       type: BinaryType.introspectionEngine,
     },
-    {
-      name: 'format-binary' as const,
-      type: BinaryType.prismaFmt,
-    },
   ] as const
 
   /**
