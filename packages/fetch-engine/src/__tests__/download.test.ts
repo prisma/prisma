@@ -25,7 +25,6 @@ describe('download', () => {
     // Make sure to not mix forward and backward slashes in the path
     // or del glob pattern would not work on Windows
     await del(path.posix.join(dirname, '/**/*engine*'))
-    await del(path.posix.join(dirname, '/**/prisma-fmt*'))
   })
   afterEach(() => {
     delete process.env.PRISMA_QUERY_ENGINE_BINARY

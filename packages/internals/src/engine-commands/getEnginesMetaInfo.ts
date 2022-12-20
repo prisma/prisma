@@ -28,7 +28,6 @@ export type BinaryMatrix<T> = {
   'query-engine': T
   'migration-engine': T
   'introspection-engine': T
-  'format-binary': T
 }
 
 export type BinaryInfoMatrix = BinaryMatrix<EngineInfo>
@@ -70,7 +69,6 @@ export async function getEnginesMetaInfo() {
     'query-engine': string
     'migration-engine': string
     'introspection-engine': string
-    'format-binary': string
   }[] = engineDataAcc.map((arr) => arr[0])
 
   // keep track of any error that has occurred, if any
