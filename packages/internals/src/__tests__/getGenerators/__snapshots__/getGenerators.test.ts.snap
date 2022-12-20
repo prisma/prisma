@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`getGenerators fail if generator not found 1`] = `"The generator [1minvalid_generator[22m specified via [1m--generator[22m does not exist in your Prisma schema"`;

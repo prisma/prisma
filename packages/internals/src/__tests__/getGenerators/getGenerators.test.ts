@@ -854,8 +854,8 @@ describe('getGenerators', () => {
         schemaPath: path.join(__dirname, 'multiple-generators-schema.prisma'),
         dataProxy: false,
         providerAliases: aliases,
-        generatorNames: ['predefined-generator-1', 'invalid_generator'],
+        generatorNames: ['client_1', 'invalid_generator'],
       }),
-    ).rejects.toThrow('do not exist')
+    ).rejects.toThrowErrorMatchingSnapshot()
   })
 })
