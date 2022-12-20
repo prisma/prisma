@@ -1,6 +1,6 @@
 import type { NodeAPILibraryTypes } from '@prisma/engine-core'
 import { BinaryType } from '@prisma/fetch-engine'
-import { getPlatform, isNodeAPISupported } from '@prisma/get-platform'
+import { isNodeAPISupported } from '@prisma/get-platform'
 import chalk from 'chalk'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
@@ -81,53 +81,7 @@ export function loadNodeAPILibrary(queryEnginePath: string) {
       (e) => {
         const error = e as Error
         const defaultErrorMessage = `Unable to establish a connection to query-engine-node-api library.`
-
-        const osName = os.platform()
-        const osArch = os.arch()
-
-        const proposedErrorFixMessage2 = match({ osName, osArch, message: error.message })
-          // handle system library mismatch error on Linux/MacOS
-          .when(
-            ({ osName, message }) => ['linux'].includes(osName) && message.includes('symbol not found'),
-            () => {
-              return ` It seems a system library's version is not compatible with the one Prisma requires. Most likely, your system is using a non-supported C standard library.`
-            },
-          )
-
-          // handle openssl version mismatch on Linux
-          // e.g., "Error loading shared library libssl.so.3"
-          .when(
-            ({ osName, message }) => ['linux'].includes(osName) && message.includes('libssl'),
-            () => {
-              return ` It seems your system is using a non-supported version of OpenSSL.`
-            },
-          )
-
-          // handle incompatible arch on Linux
-          .when(
-            ({ message }) => message.includes('ld-linux'),
-            () => {
-              return ` It seems your system is using a non-supported architecture.`
-            },
-          )
-
-          // handle incompatible arch on Windows
-          .when(
-            ({ message }) => message.includes('Unable to require'),
-            () => {
-              return ` `
-            },
-          )
-
         const proposedErrorFixMessage = match(error.message)
-          // handle C standard library mismatch error on Linux / macOS
-          .when(
-            (errMessage) => errMessage.includes('symbol not found'),
-            () => {
-              return ` It seems your system is using a non-supported C standard library. Prisma requires \`musl\` on Linux Alpine and \`glibc\` on other Linux distros. Please refer to the documentation for more information: https://pris.ly/d/musl `
-            },
-          )
-
           // handle openssl loading error
           .when(
             (errMessage) => errMessage.includes('libssl'),
@@ -140,16 +94,10 @@ export function loadNodeAPILibrary(queryEnginePath: string) {
           .when(
             (errMessage) => errMessage.includes('Unable to require'),
             () => {
-              return match({ platform: os.platform(), architecture: os.arch() })
-                .with({ platform: 'win32', architecture: '' }, { platform: 'cygwin' }, () => {
-                  // handle Windows
-                  return " It seems your Windows system doesn't have the required Visual Studio C++ Redistributable installed."
-                })
-                .otherwise(({ architecture }) => {
-                  return ` It seems that the current architecture ${chalk.redBright(
-                    architecture,
-                  )} is not supported, or that ${chalk.redBright('libc')} is missing from the system.`
-                })
+              const architecture = os.arch()
+              return ` It seems that the current architecture ${chalk.redBright(
+                architecture,
+              )} is not supported, or that ${chalk.redBright('libc')} is missing from the system.`
             },
           )
 
