@@ -126,7 +126,7 @@ ${chalk.bold('Examples')}
     })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
+    const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
     if (wasDbCreated) {
       console.info(wasDbCreated)
       console.info() // empty line
@@ -351,24 +351,25 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
 
   private async confirmReset(
     {
-      schemaWord,
       dbType,
       dbName,
       dbLocation,
+      schema
     }: {
-      schemaWord?: 'database'
       dbType?: DbType
       dbName?: string
       dbLocation?: string
+      schema?: string
     },
     reason: string,
   ): Promise<boolean> {
-    const mssqlMessage = `We need to reset the database.
-Do you want to continue? ${chalk.red('All data will be lost')}.`
-    const postgresqlMessage = `We need to reset the schema(s).
-Do you want to continue? ${chalk.red('All data will be lost')}.`
+    // WIP TODO
+    const mssqlMessage = `We need to reset the database.`
+    const schemaInConnectionMessage = `We need to reset the "${schema}" schema.`
 
-    const message = `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".
+    const messageFirstLine = `We need to reset the ${dbType} database "${dbName}" at "${dbLocation}".`
+
+    const message = `${messageFirstLine}
 Do you want to continue? ${chalk.red('All data will be lost')}.`
 
     console.info(reason)

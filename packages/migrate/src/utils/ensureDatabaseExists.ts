@@ -17,7 +17,6 @@ export type DbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'Cockroa
 // TODO: extract functions in their own files?
 
 export async function getDbInfo(schemaPath?: string): Promise<{
-  schemaWord: 'database' // legacy? could be removed?
   name?: string // from datasource name
   url?: string // from getConfig
   dbLocation?: string // host without credentials
@@ -32,7 +31,6 @@ export async function getDbInfo(schemaPath?: string): Promise<{
   if (!activeDatasource) {
     return {
       name: undefined,
-      schemaWord: 'database',
       dbType: undefined,
       dbName: undefined,
       dbLocation: undefined,
@@ -45,7 +43,6 @@ export async function getDbInfo(schemaPath?: string): Promise<{
   if (activeDatasource.provider === 'sqlserver') {
     return {
       name: activeDatasource.name,
-      schemaWord: 'database',
       dbType: 'SQL Server',
       dbName: undefined,
       dbLocation: undefined,
@@ -75,7 +72,6 @@ export async function getDbInfo(schemaPath?: string): Promise<{
   } catch (e) {
     return {
       name: activeDatasource.name,
-      schemaWord: 'database',
       dbType: undefined,
       dbName: undefined,
       dbLocation: undefined,
@@ -108,7 +104,7 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
   }
 }
 
-export async function ensureDatabaseExists(action: MigrateAction, forceCreate = false, schemaPath?: string) {
+export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: string) {
   const datamodel = await getSchema(schemaPath)
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: false })
   const activeDatasource = config.datasources[0]
@@ -136,95 +132,34 @@ export async function ensureDatabaseExists(action: MigrateAction, forceCreate = 
   if (!schemaDir) {
     throw new Error(`Could not locate ${schemaPath || 'schema.prisma'}`)
   }
-  // forceCreate is always true in the codebase as of today
-  if (forceCreate) {
-    if (await createDatabase(activeDatasource.url.value, schemaDir)) {
-      // URI parsing is not implemented for SQL server yet
-      if (activeDatasource.provider === 'sqlserver') {
-        return `SQL Server database created.\n`
-      }
 
-      // parse the url
-      const credentials = uriToCredentials(activeDatasource.url.value)
-      const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
-      let databaseProvider = dbType
-
-      // not needed to check for sql server here since we returned already earlier if provider = sqlserver
-      if (dbType && dbType !== 'SQL Server') {
-        // For CockroachDB we cannot rely on the connection URL, only on the provider
-        if (activeDatasource.provider === 'cockroachdb') {
-          databaseProvider = 'CockroachDB'
-        }
-        return `${databaseProvider} ${schemaWord} ${chalk.bold(dbName)} created at ${chalk.bold(
-          getDbLocation(credentials),
-        )}`
-      } else {
-        // SQL Server case, never reached?
-        return `${schemaWord} created.`
-      }
+  if (await createDatabase(activeDatasource.url.value, schemaDir)) {
+    // URI parsing is not implemented for SQL server yet
+    if (activeDatasource.provider === 'sqlserver') {
+      return `SQL Server database created.\n`
     }
-  } else {
-    // never reached because forceCreate is always true in the codebase as of today
-    // todo remove
-    await interactivelyCreateDatabase(activeDatasource.url.value, action, schemaDir)
+
+    // parse the url
+    const credentials = uriToCredentials(activeDatasource.url.value)
+    const { dbType, dbName } = getDbinfoFromCredentials(credentials)
+    let databaseProvider = dbType
+
+    // not needed to check for sql server here since we returned already earlier if provider = sqlserver
+    if (dbType && dbType !== 'SQL Server') {
+      // For CockroachDB we cannot rely on the connection URL, only on the provider
+      if (activeDatasource.provider === 'cockroachdb') {
+        databaseProvider = 'CockroachDB'
+      }
+      return `${databaseProvider} database ${chalk.bold(dbName)} created at ${chalk.bold(
+        getDbLocation(credentials),
+      )}`
+    } else {
+      // SQL Server case, never reached?
+      return `Database created.`
+    }
   }
 
   return undefined
-}
-
-export async function interactivelyCreateDatabase(
-  connectionString: string,
-  action: MigrateAction,
-  schemaDir: string,
-): Promise<void> {
-  await askToCreateDb(connectionString, action, schemaDir)
-}
-
-export async function askToCreateDb(
-  connectionString: string,
-  action: MigrateAction,
-  schemaDir: string,
-): Promise<execa.ExecaReturnValue | undefined | void> {
-  const credentials = uriToCredentials(connectionString)
-  const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
-  const dbLocation = getDbLocation(credentials)
-  let message: string
-
-  if (dbName && dbLocation) {
-    message = `You are trying to ${action} a migration for ${dbType} ${schemaWord} ${chalk.bold(
-      dbName,
-    )}.\nA ${schemaWord} with that name doesn't exist at ${chalk.bold(dbLocation)}.\n`
-  } else {
-    message = `You are trying to ${action} a migration for ${dbType} ${schemaWord}.\nThe ${schemaWord} doesn't exist.\n`
-  }
-
-  // empty line
-  console.info()
-  const response = await prompt({
-    type: 'select',
-    name: 'value',
-    message: message,
-    initial: 0,
-    choices: [
-      {
-        title: 'Yes',
-        value: true,
-        description: `Create new ${dbType} ${schemaWord} ${chalk.bold(dbName)}`,
-      },
-      {
-        title: 'No',
-        value: false,
-        description: `Don't create the ${schemaWord}`,
-      },
-    ],
-  })
-
-  if (response.value) {
-    await createDatabase(connectionString, schemaDir)
-  } else {
-    // Return SIGINT exit code to signal that the process was cancelled.
-    process.exit(130)
-  }
 }
 
 // returns the "host" like localhost / 127.0.0.1 + default port
@@ -254,7 +189,6 @@ export function getDbLocation(credentials: DatabaseCredentials): string {
 export function getDbinfoFromCredentials(credentials: DatabaseCredentials): {
   dbName: string | undefined // database name
   dbType: DbType // pretty name
-  schemaWord: 'database'
 } {
   const dbName = credentials.database
 
@@ -278,11 +212,8 @@ export function getDbinfoFromCredentials(credentials: DatabaseCredentials): {
       break
   }
 
-  const schemaWord = 'database'
-
   return {
     dbName,
     dbType,
-    schemaWord,
   }
 }

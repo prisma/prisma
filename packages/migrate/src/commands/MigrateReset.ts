@@ -95,7 +95,7 @@ ${chalk.bold('Examples')}
     throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
+    const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
     if (wasDbCreated) {
       console.info() // empty line
       console.info(wasDbCreated)

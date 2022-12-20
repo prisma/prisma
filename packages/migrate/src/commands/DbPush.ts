@@ -105,7 +105,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
 
     try {
       // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists('push', true, schemaPath)
+      const wasDbCreated = await ensureDatabaseExists('push', schemaPath)
       if (wasDbCreated) {
         console.info() // empty line
         console.info(wasDbCreated)
@@ -125,11 +125,24 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
         throw e
       }
       if (dbInfo.dbName && dbInfo.dbLocation) {
-        console.info(
-          `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
-        )
+        if(dbInfo.schema) {
+          console.info(`The ${dbInfo.schema} schema of the ${dbInfo.dbType} database from "${dbInfo.dbLocation}" was successfully reset.`)
+        } else if(dbInfo.dbType === 'PostgreSQL') {
+          console.info(
+            `The ${dbInfo.dbType} database "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+          )
+        } else {
+          console.info(
+            `The ${dbInfo.dbType} database "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+          )
+        }
+        
       } else {
-        console.info(`The ${dbInfo.dbType} ${dbInfo.schemaWord} was successfully reset.`)
+        if(dbInfo.schema) {
+          console.info(`The ${dbInfo.schema} schema of the ${dbInfo.dbType} database was successfully reset.`)
+        } else {
+          console.info(`The ${dbInfo.dbType} database was successfully reset.`)
+        }
       }
       wasDatabaseReset = true
     }
@@ -186,10 +199,10 @@ ${chalk.bold.redBright('All data will be lost.')}
         await migrate.reset()
         if (dbInfo.dbName && dbInfo.dbLocation) {
           console.info(
-            `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+            `The ${dbInfo.dbType} database "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
           )
         } else {
-          console.info(`The ${dbInfo.dbType} ${dbInfo.schemaWord} was successfully reset.`)
+          console.info(`The ${dbInfo.dbType} database was successfully reset.`)
         }
         wasDatabaseReset = true
 

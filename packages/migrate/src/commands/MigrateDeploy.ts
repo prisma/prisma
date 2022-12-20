@@ -83,7 +83,7 @@ ${chalk.bold('Examples')}
 
     try {
       // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists('apply', true, schemaPath)
+      const wasDbCreated = await ensureDatabaseExists('apply', schemaPath)
       if (wasDbCreated) {
         console.info() // empty line
         console.info(wasDbCreated)

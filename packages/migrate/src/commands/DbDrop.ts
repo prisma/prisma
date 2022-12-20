@@ -106,7 +106,7 @@ ${chalk.bold('Examples')}
       const confirmation = await prompt({
         type: 'text',
         name: 'value',
-        message: `Enter the ${dbInfo.dbType} ${dbInfo.schemaWord} name "${dbInfo.dbName}" to drop it.\nLocation: "${
+        message: `Enter the ${dbInfo.dbType} database name "${dbInfo.dbName}" to drop it.\nLocation: "${
           dbInfo.dbLocation
         }".\n${chalk.red('All data will be lost')}.`,
       })
@@ -117,12 +117,12 @@ ${chalk.bold('Examples')}
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
       } else if (confirmation.value !== dbInfo.dbName) {
-        throw Error(`The ${dbInfo.schemaWord} name entered "${confirmation.value}" doesn't match "${dbInfo.dbName}".`)
+        throw Error(`The database name entered "${confirmation.value}" doesn't match "${dbInfo.dbName}".`)
       }
     }
 
     if (await dropDatabase(dbInfo.url, schemaDir)) {
-      return `${process.platform === 'win32' ? '' : '🚀  '}The ${dbInfo.dbType} ${dbInfo.schemaWord} "${
+      return `${process.platform === 'win32' ? '' : '🚀  '}The ${dbInfo.dbType} database "${
         dbInfo.dbName
       }" from "${dbInfo.dbLocation}" was successfully dropped.\n`
     } else {
