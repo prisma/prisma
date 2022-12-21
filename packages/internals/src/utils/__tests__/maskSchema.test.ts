@@ -5,10 +5,10 @@ test('maskSchema', () => {
     url = "mysql:secret-db"
   }`
   expect(maskSchema(schema)).toMatchInlineSnapshot(`
-        "datasource db {
-            url = \\"***\\"
-          }"
-    `)
+    "datasource db {
+        url = "***"
+      }"
+  `)
 
   const schema2 = `datasource db {
     provider = "mysql"
@@ -16,8 +16,8 @@ test('maskSchema', () => {
   }`
   expect(maskSchema(schema2)).toMatchInlineSnapshot(`
     "datasource db {
-        provider = \\"mysql\\"
-        url = \\"***\\"
+        provider = "mysql"
+        url = "***"
       }"
   `)
 })

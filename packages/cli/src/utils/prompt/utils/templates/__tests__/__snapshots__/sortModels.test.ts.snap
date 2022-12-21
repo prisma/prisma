@@ -1,46 +1,46 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`sortModels 1`] = `
-Array [
-  Object {
+[
+  {
     dbName: null,
-    fields: Array [],
+    fields: [],
     isEmbedded: false,
     isGenerated: false,
     name: User,
     primaryKey: null,
-    uniqueFields: Array [],
-    uniqueIndexes: Array [],
+    uniqueFields: [],
+    uniqueIndexes: [],
   },
-  Object {
+  {
     dbName: null,
-    fields: Array [],
+    fields: [],
     isEmbedded: false,
     isGenerated: false,
     name: Post,
     primaryKey: null,
-    uniqueFields: Array [],
-    uniqueIndexes: Array [],
+    uniqueFields: [],
+    uniqueIndexes: [],
   },
-  Object {
+  {
     dbName: null,
-    fields: Array [],
+    fields: [],
     isEmbedded: false,
     isGenerated: false,
     name: Bike,
     primaryKey: null,
-    uniqueFields: Array [],
-    uniqueIndexes: Array [],
+    uniqueFields: [],
+    uniqueIndexes: [],
   },
-  Object {
+  {
     dbName: null,
-    fields: Array [],
+    fields: [],
     isEmbedded: false,
     isGenerated: false,
     name: Car,
     primaryKey: null,
-    uniqueFields: Array [],
-    uniqueIndexes: Array [],
+    uniqueFields: [],
+    uniqueIndexes: [],
   },
 ]
 `;

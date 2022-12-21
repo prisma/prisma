@@ -11,7 +11,7 @@ import { getFiles } from './__utils__/getFiles'
 
 const CURRENT_ENGINES_HASH = enginesVersion
 console.debug({ CURRENT_ENGINES_HASH })
-const FIXED_ENGINES_HASH = 'da41d2bb3406da22087b849f0e911199ba4fbf11'
+const FIXED_ENGINES_HASH = 'c9e863f2d8de6fa0c4bcd609df078ea2dde3c2b2'
 const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
 
 // Network can be slow, especially for macOS in CI.
@@ -62,13 +62,14 @@ describe('download', () => {
         'rhel-openssl-3.0.x',
         'windows',
         'linux-musl',
+        'linux-musl-openssl-3.0.x',
       ],
       version: CURRENT_ENGINES_HASH,
     })
 
     const files = getFiles(baseDir).map((f) => f.name)
     expect(files).toMatchInlineSnapshot(`
-      Array [
+      [
         ".gitkeep",
         "introspection-engine-darwin",
         "introspection-engine-darwin-arm64",
@@ -79,6 +80,7 @@ describe('download', () => {
         "introspection-engine-linux-arm64-openssl-1.1.x",
         "introspection-engine-linux-arm64-openssl-3.0.x",
         "introspection-engine-linux-musl",
+        "introspection-engine-linux-musl-openssl-3.0.x",
         "introspection-engine-rhel-openssl-1.0.x",
         "introspection-engine-rhel-openssl-1.1.x",
         "introspection-engine-rhel-openssl-3.0.x",
@@ -91,6 +93,7 @@ describe('download', () => {
         "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
         "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
         "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
+        "libquery_engine-linux-musl-openssl-3.0.x.so.node",
         "libquery_engine-linux-musl.so.node",
         "libquery_engine-rhel-openssl-1.0.x.so.node",
         "libquery_engine-rhel-openssl-1.1.x.so.node",
@@ -104,6 +107,7 @@ describe('download', () => {
         "migration-engine-linux-arm64-openssl-1.1.x",
         "migration-engine-linux-arm64-openssl-3.0.x",
         "migration-engine-linux-musl",
+        "migration-engine-linux-musl-openssl-3.0.x",
         "migration-engine-rhel-openssl-1.0.x",
         "migration-engine-rhel-openssl-1.1.x",
         "migration-engine-rhel-openssl-3.0.x",
@@ -117,6 +121,7 @@ describe('download', () => {
         "prisma-fmt-linux-arm64-openssl-1.1.x",
         "prisma-fmt-linux-arm64-openssl-3.0.x",
         "prisma-fmt-linux-musl",
+        "prisma-fmt-linux-musl-openssl-3.0.x",
         "prisma-fmt-rhel-openssl-1.0.x",
         "prisma-fmt-rhel-openssl-1.1.x",
         "prisma-fmt-rhel-openssl-3.0.x",
@@ -130,6 +135,7 @@ describe('download', () => {
         "query-engine-linux-arm64-openssl-1.1.x",
         "query-engine-linux-arm64-openssl-3.0.x",
         "query-engine-linux-musl",
+        "query-engine-linux-musl-openssl-3.0.x",
         "query-engine-rhel-openssl-1.0.x",
         "query-engine-rhel-openssl-1.1.x",
         "query-engine-rhel-openssl-3.0.x",
@@ -177,6 +183,7 @@ describe('download', () => {
         'rhel-openssl-3.0.x',
         'windows',
         'linux-musl',
+        'linux-musl-openssl-3.0.x',
       ],
       version: FIXED_ENGINES_HASH,
     })
@@ -189,285 +196,305 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
 
     const files = getFiles(baseDir)
     expect(files).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "name": ".gitkeep",
           "size": 0,
         },
-        Object {
+        {
           "name": "introspection-engine-darwin",
-          "size": 26609608,
+          "size": 22312824,
         },
-        Object {
+        {
           "name": "introspection-engine-darwin-arm64",
-          "size": 24028642,
+          "size": 20314722,
         },
-        Object {
+        {
           "name": "introspection-engine-debian-openssl-1.0.x",
-          "size": 35236632,
+          "size": 24352384,
         },
-        Object {
+        {
           "name": "introspection-engine-debian-openssl-1.1.x",
-          "size": 32511968,
+          "size": 21613808,
         },
-        Object {
+        {
           "name": "introspection-engine-debian-openssl-3.0.x",
-          "size": 32512264,
+          "size": 21613184,
         },
-        Object {
+        {
           "name": "introspection-engine-linux-arm64-openssl-1.0.x",
-          "size": 32885344,
+          "size": 22175800,
         },
-        Object {
+        {
           "name": "introspection-engine-linux-arm64-openssl-1.1.x",
-          "size": 33449624,
+          "size": 22707488,
         },
-        Object {
+        {
           "name": "introspection-engine-linux-arm64-openssl-3.0.x",
-          "size": 35307720,
+          "size": 24565984,
         },
-        Object {
+        {
           "name": "introspection-engine-linux-musl",
-          "size": 34365712,
+          "size": 22026984,
         },
-        Object {
+        {
+          "name": "introspection-engine-linux-musl-openssl-3.0.x",
+          "size": 21705184,
+        },
+        {
           "name": "introspection-engine-rhel-openssl-1.0.x",
-          "size": 35211280,
+          "size": 24431688,
         },
-        Object {
+        {
           "name": "introspection-engine-rhel-openssl-1.1.x",
-          "size": 32503168,
+          "size": 21732384,
         },
-        Object {
+        {
           "name": "introspection-engine-rhel-openssl-3.0.x",
-          "size": 32503096,
+          "size": 21724632,
         },
-        Object {
+        {
           "name": "introspection-engine-windows.exe",
-          "size": 21941248,
+          "size": 19179008,
         },
-        Object {
+        {
           "name": "libquery_engine-darwin-arm64.dylib.node",
-          "size": 29651762,
+          "size": 19285688,
         },
-        Object {
+        {
           "name": "libquery_engine-darwin.dylib.node",
-          "size": 32938944,
+          "size": 21450240,
         },
-        Object {
+        {
           "name": "libquery_engine-debian-openssl-1.0.x.so.node",
-          "size": 43309920,
+          "size": 23250280,
         },
-        Object {
+        {
           "name": "libquery_engine-debian-openssl-1.1.x.so.node",
-          "size": 40584936,
+          "size": 20766448,
         },
-        Object {
+        {
           "name": "libquery_engine-debian-openssl-3.0.x.so.node",
-          "size": 40584984,
+          "size": 20766448,
         },
-        Object {
+        {
           "name": "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
-          "size": 40597496,
+          "size": 19526248,
         },
-        Object {
+        {
           "name": "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
-          "size": 41133176,
+          "size": 20041176,
         },
-        Object {
+        {
           "name": "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
-          "size": 43016432,
+          "size": 21575768,
         },
-        Object {
+        {
+          "name": "libquery_engine-linux-musl-openssl-3.0.x.so.node",
+          "size": 21138888,
+        },
+        {
           "name": "libquery_engine-linux-musl.so.node",
-          "size": 40477248,
+          "size": 21122504,
         },
-        Object {
+        {
           "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
-          "size": 43286256,
+          "size": 23478728,
         },
-        Object {
+        {
           "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
-          "size": 40577600,
+          "size": 21016088,
         },
-        Object {
+        {
           "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
-          "size": 40577536,
+          "size": 21040664,
         },
-        Object {
+        {
           "name": "migration-engine-darwin",
-          "size": 29286376,
+          "size": 26542544,
         },
-        Object {
+        {
           "name": "migration-engine-darwin-arm64",
-          "size": 26356446,
+          "size": 24046718,
         },
-        Object {
+        {
           "name": "migration-engine-debian-openssl-1.0.x",
-          "size": 35765488,
+          "size": 28153152,
         },
-        Object {
+        {
           "name": "migration-engine-debian-openssl-1.1.x",
-          "size": 35727784,
+          "size": 25411808,
         },
-        Object {
+        {
           "name": "migration-engine-debian-openssl-3.0.x",
-          "size": 35731752,
+          "size": 25411880,
         },
-        Object {
+        {
           "name": "migration-engine-linux-arm64-openssl-1.0.x",
-          "size": 35527272,
+          "size": 25645104,
         },
-        Object {
+        {
           "name": "migration-engine-linux-arm64-openssl-1.1.x",
-          "size": 36269640,
+          "size": 26195904,
         },
-        Object {
+        {
           "name": "migration-engine-linux-arm64-openssl-3.0.x",
-          "size": 38110928,
+          "size": 28050304,
         },
-        Object {
+        {
           "name": "migration-engine-linux-musl",
-          "size": 37455896,
+          "size": 25961744,
         },
-        Object {
+        {
+          "name": "migration-engine-linux-musl-openssl-3.0.x",
+          "size": 25640328,
+        },
+        {
           "name": "migration-engine-rhel-openssl-1.0.x",
-          "size": 35736776,
+          "size": 28387888,
         },
-        Object {
+        {
           "name": "migration-engine-rhel-openssl-1.1.x",
-          "size": 35722256,
+          "size": 25679616,
         },
-        Object {
+        {
           "name": "migration-engine-rhel-openssl-3.0.x",
-          "size": 35722112,
+          "size": 25679664,
         },
-        Object {
+        {
           "name": "migration-engine-windows.exe",
-          "size": 24539648,
+          "size": 23651328,
         },
-        Object {
+        {
           "name": "prisma-fmt-darwin",
-          "size": 5094864,
+          "size": 3695536,
         },
-        Object {
+        {
           "name": "prisma-fmt-darwin-arm64",
-          "size": 4686040,
+          "size": 3426856,
         },
-        Object {
+        {
           "name": "prisma-fmt-debian-openssl-1.0.x",
-          "size": 9626600,
+          "size": 5159640,
         },
-        Object {
+        {
           "name": "prisma-fmt-debian-openssl-1.1.x",
-          "size": 9626624,
+          "size": 5159640,
         },
-        Object {
+        {
           "name": "prisma-fmt-debian-openssl-3.0.x",
-          "size": 9626624,
+          "size": 5159640,
         },
-        Object {
+        {
           "name": "prisma-fmt-linux-arm64-openssl-1.0.x",
-          "size": 9480384,
+          "size": 4976912,
         },
-        Object {
+        {
           "name": "prisma-fmt-linux-arm64-openssl-1.1.x",
-          "size": 9480384,
+          "size": 4976912,
         },
-        Object {
+        {
           "name": "prisma-fmt-linux-arm64-openssl-3.0.x",
-          "size": 9480384,
+          "size": 4976912,
         },
-        Object {
+        {
           "name": "prisma-fmt-linux-musl",
-          "size": 9215520,
+          "size": 5128056,
         },
-        Object {
+        {
+          "name": "prisma-fmt-linux-musl-openssl-3.0.x",
+          "size": 5128256,
+        },
+        {
           "name": "prisma-fmt-rhel-openssl-1.0.x",
-          "size": 9626416,
+          "size": 5135904,
         },
-        Object {
+        {
           "name": "prisma-fmt-rhel-openssl-1.1.x",
-          "size": 9626432,
+          "size": 5135904,
         },
-        Object {
+        {
           "name": "prisma-fmt-rhel-openssl-3.0.x",
-          "size": 9626432,
+          "size": 5135904,
         },
-        Object {
+        {
           "name": "prisma-fmt-windows.exe",
-          "size": 3916800,
+          "size": 3421696,
         },
-        Object {
+        {
           "name": "query-engine-darwin",
-          "size": 39099592,
+          "size": 24036112,
         },
-        Object {
+        {
           "name": "query-engine-darwin-arm64",
-          "size": 35321562,
+          "size": 21624800,
         },
-        Object {
+        {
           "name": "query-engine-debian-openssl-1.0.x",
-          "size": 48143376,
+          "size": 23717192,
         },
-        Object {
+        {
           "name": "query-engine-debian-openssl-1.1.x",
-          "size": 48111776,
+          "size": 23704840,
         },
-        Object {
+        {
           "name": "query-engine-debian-openssl-3.0.x",
-          "size": 48111744,
+          "size": 23704840,
         },
-        Object {
+        {
           "name": "query-engine-linux-arm64-openssl-1.0.x",
-          "size": 47139360,
+          "size": 21868000,
         },
-        Object {
+        {
           "name": "query-engine-linux-arm64-openssl-1.1.x",
-          "size": 47909960,
+          "size": 22508552,
         },
-        Object {
+        {
           "name": "query-engine-linux-arm64-openssl-3.0.x",
-          "size": 49738536,
+          "size": 24039056,
         },
-        Object {
+        {
           "name": "query-engine-linux-musl",
-          "size": 49328568,
+          "size": 23991192,
         },
-        Object {
+        {
+          "name": "query-engine-linux-musl-openssl-3.0.x",
+          "size": 24007520,
+        },
+        {
           "name": "query-engine-rhel-openssl-1.0.x",
-          "size": 48114472,
+          "size": 23884872,
         },
-        Object {
+        {
           "name": "query-engine-rhel-openssl-1.1.x",
-          "size": 48110848,
+          "size": 23884872,
         },
-        Object {
+        {
           "name": "query-engine-rhel-openssl-3.0.x",
-          "size": 48110776,
+          "size": 23909448,
         },
-        Object {
+        {
           "name": "query-engine-windows.exe",
-          "size": 34626048,
+          "size": 28748288,
         },
-        Object {
+        {
           "name": "query_engine-windows.dll.node",
-          "size": 29770240,
+          "size": 25548800,
         },
       ]
     `)
 
     expect(await getVersion(queryEnginePath, BinaryType.queryEngine)).toMatchInlineSnapshot(
-      `"query-engine da41d2bb3406da22087b849f0e911199ba4fbf11"`,
+      `"query-engine c9e863f2d8de6fa0c4bcd609df078ea2dde3c2b2"`,
     )
     expect(await getVersion(introspectionEnginePath, BinaryType.introspectionEngine)).toMatchInlineSnapshot(
-      `"introspection-core da41d2bb3406da22087b849f0e911199ba4fbf11"`,
+      `"introspection-core c9e863f2d8de6fa0c4bcd609df078ea2dde3c2b2"`,
     )
     expect(await getVersion(migrationEnginePath, BinaryType.migrationEngine)).toMatchInlineSnapshot(
-      `"migration-engine-cli da41d2bb3406da22087b849f0e911199ba4fbf11"`,
+      `"migration-engine-cli c9e863f2d8de6fa0c4bcd609df078ea2dde3c2b2"`,
     )
     expect(await getVersion(prismaFmtPath, BinaryType.prismaFmt)).toMatchInlineSnapshot(
-      `"prisma-fmt da41d2bb3406da22087b849f0e911199ba4fbf11"`,
+      `"prisma-fmt c9e863f2d8de6fa0c4bcd609df078ea2dde3c2b2"`,
     )
 
     //
@@ -505,6 +532,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         'rhel-openssl-3.0.x',
         'windows',
         'linux-musl',
+        'linux-musl-openssl-3.0.x',
       ],
       version: FIXED_ENGINES_HASH,
     })
@@ -543,6 +571,7 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
         'rhel-openssl-3.0.x',
         'windows',
         'linux-musl',
+        'linux-musl-openssl-3.0.x',
       ],
       version: FIXED_ENGINES_HASH,
     })

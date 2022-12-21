@@ -6,12 +6,13 @@ on:
         description: 'Version to check and update the engines version'
         required: true
       npmDistTag:
-        description: 'npm tag used for `@prisma/engines-version` in prisma/engines-wrapper repo (`latest` or `integration`)'
+        description: 'npm tag used for `@prisma/engines-version` in prisma/engines-wrapper repo (`latest` or `integration` or `patch`)'
         required: true
         type: choice
         options:
           - latest
           - integration
+          - patch
 
 jobs:
   update_engines:
@@ -41,9 +42,9 @@ jobs:
           echo 'Checking that @prisma/engines-version have the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
 
+      # Note: @prisma/prisma-fmt-wasm might take a few minutes before it's available
+      # So expect to see a few automated retries happening in logs before it succeeds
       - name: Check if version of @prisma/prisma-fmt-wasm is available on npm
-        # Only run for `latest` npm tag, as @prisma/prisma-fmt-wasm doesn't currently release on the `integration` tag
-        if: github.event.inputs.npmDistTag == 'latest'
         run: |
           echo 'Checking that @prisma/prisma-fmt-wasm have the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/prisma-fmt-wasm -u ${{ github.event.inputs.version }}
@@ -58,8 +59,6 @@ jobs:
             pnpm update -r @prisma/engines-version@${{ github.event.inputs.version }}
 
       - name: Update the dependencies (@prisma/prisma-fmt-wasm)
-        # Only run for `latest` npm tag, as @prisma/prisma-fmt-wasm doesn't currently release on the `integration` tag
-        if: github.event.inputs.npmDistTag == 'latest'
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 7
@@ -76,8 +75,10 @@ jobs:
             const hash = context.payload.inputs.version.split('.').pop()
             core.setOutput('hash', hash)
 
-      # "Normal" Engine PR
+      #
+      # Regular engines PR, from prisma-engines main branch
       # Will be automerged if tests are passing
+      #
       - name: Create Pull Request
         id: cpr
         if: github.event.inputs.npmDistTag == 'latest'
@@ -92,7 +93,10 @@ jobs:
           labels: automerge
           title: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
           body: |
-            This automatic PR updates the engines to version `${{ github.event.inputs.version }}`. This will get automatically merged if all the tests pass.
+            The base branch for this PR is: main
+            This automatic PR updates the engines to version `${{ github.event.inputs.version }}`.
+            This will get automatically merged if all the tests pass.
+            :warning: If this PR needs to be updated, first remove the `automerge` label before pushing to avoid automerge to merge without waiting for tests.
             ## Packages
             | Package | NPM URL |
             |---------|---------|
@@ -100,17 +104,14 @@ jobs:
             |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
-
       - name: PR url
         if: github.event.inputs.npmDistTag == 'latest'
         run: |
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
-
       - name: Sleep for 5 seconds
         if: github.event.inputs.npmDistTag == 'latest'
         run: sleep 5s
         shell: bash
-
       - name: Auto approve Pull Request (to trigger automerge if tests passing)
         if: github.event.inputs.npmDistTag == 'latest' && steps.cpr.outputs.pull-request-operation == 'created'
         uses: juliangruber/approve-pull-request-action@v2
@@ -118,10 +119,12 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.cpr.outputs.pull-request-number }}
 
+      #
       # Integration Engine PR for end to end testing (From prisma/prisma-engines to prisma/prisma and finally npm)
       # This will create a draft PR as we don't want to merge it
       # But we want to publish it to npm
       # For that we can create an `integration/` branch
+      #
       - name: Create Pull Request for Integration Engine
         id: cpr-integration
         if: github.event.inputs.npmDistTag == 'integration'
@@ -136,7 +139,9 @@ jobs:
           draft: true
           title: 'chore(Automated Integration PR): update engines to ${{ github.event.inputs.version }}'
           body: |
-            This automatic integration PR updates the engines to version `${{ github.event.inputs.version }}`. This PR should normally not be merged.
+            The base branch for this PR is: main
+            This automatic integration PR updates the engines to version `${{ github.event.inputs.version }}`.
+            :warning: This PR should normally not be merged.
             ## Packages
             | Package | NPM URL |
             |---------|---------|
@@ -144,6 +149,51 @@ jobs:
             |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
+      - name: PR url
+        if: github.event.inputs.npmDistTag == 'integration'
+        run: |
+          echo "Pull Request URL - ${{ steps.cpr-integration.outputs.pull-request-url }}"
+
+      #
+      # Patch Engine PR, from a prisma-engines patch branch (e.g. "4.6.x")
+      # This will create a PR that will need to be manually merged
+      #
+      - name: Extract patch branch name from version
+        id: extract-patch-branch-name
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const parts = context.payload.inputs.version.split('.')
+            const patchBranch = `${parts[0]}.${parts[1]}.x`
+            console.log(`patchBranch: ${patchBranch}`)
+            core.setOutput('patchBranch', patchBranch)
+      - name: Create Pull Request for Patch Engine
+        id: cpr-patch
+        if: github.event.inputs.npmDistTag == 'patch'
+        uses: peter-evans/create-pull-request@v4
+        with:
+          token: ${{ secrets.BOT_TOKEN }}
+          commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
+          committer: 'Prismo <prismabots@gmail.com>'
+          author: 'Prismo <prismabots@gmail.com>'
+          base: ${{ steps.extract-patch-branch-name.outputs.patchBranch }}
+          branch: patch/${{ github.event.inputs.version }}
+          title: 'chore(deps): patch ${{ steps.extract-patch-branch-name.outputs.patchBranch }} ${{ github.event.inputs.version }}'
+          body: |
+            The base branch for this PR is: ${{ steps.extract-patch-branch-name.outputs.patchBranch }}
+            This automatic PR updates the engines to version `${{ github.event.inputs.version }}`.
+            This PR will need to be manually merged (no auto-merge).
+            ## Packages
+            | Package | NPM URL |
+            |---------|---------|
+            |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
+            ## Engines commit
+            [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
+      - name: PR url
+        if: github.event.inputs.npmDistTag == 'patch'
+        run: |
+          echo "Pull Request URL - ${{ steps.cpr-patch.outputs.pull-request-url }}"
 
       - name: 'Set current job url in SLACK_FOOTER env var'
         if: ${{ failure() }}

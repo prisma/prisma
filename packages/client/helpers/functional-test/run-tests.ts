@@ -49,6 +49,8 @@ const args = arg(
     '--changedSince': String,
     // Passes the same flag to Jest to only run tests related to changed files
     '--changedFilesWithAncestor': Boolean,
+    // Passes the same flag to Jest to shard tests between multiple machines
+    '--shard': String,
   },
   true,
   true,
@@ -119,6 +121,9 @@ async function main(): Promise<number | void> {
   }
   if (args['--changedSince']) {
     jestArgs.push('--changedSince', args['--changedSince'])
+  }
+  if (args['--shard']) {
+    jestArgs.push('--shard', args['--shard'])
   }
   const codeTestCli = jestCli.withArgs(jestArgs)
 

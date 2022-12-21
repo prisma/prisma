@@ -36,12 +36,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 42,
                 vote: false,
               },
@@ -73,12 +73,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 42,
                 vote: false,
               },
@@ -104,7 +104,7 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
         message: expect.stringContaining('Argument set for data.contents.set must not be null'),
       }),
@@ -121,7 +121,7 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
         message: expect.stringContaining('Argument contents for data.contents must not be null'),
       }),
@@ -148,16 +148,16 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: false,
               },
-              Object {
+              {
                 userId: 11,
                 vote: false,
               },
@@ -186,33 +186,33 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: false,
               },
             ],
           },
-          Object {
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
             ],
           },
-          Object {
+          {
             text: Hello World,
-            upvotes: Array [],
+            upvotes: [],
           },
-          Object {
+          {
             text: Goodbye World,
-            upvotes: Array [],
+            upvotes: [],
           },
         ],
         country: France,
@@ -244,30 +244,30 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: false,
               },
             ],
           },
-          Object {
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
             ],
           },
-          Object {
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: Another Comment,
                 vote: true,
               },
@@ -300,21 +300,21 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Goodbye World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 11,
                 vote: false,
               },
             ],
           },
-          Object {
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -339,7 +339,7 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
         message: expect.stringContaining(
           'Unknown arg `unset` in data.contents.unset for type CommentContentListUpdateEnvelopeInput',
@@ -364,7 +364,7 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
         message: expect.stringContaining(
           'Unknown arg `upsert` in data.contents.upsert for type CommentContentListUpdateEnvelopeInput',
@@ -397,7 +397,7 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
         message: expect.stringContaining(
           'Unknown arg `upsert` in data.contents.upsert for type CommentContentListUpdateEnvelopeInput',

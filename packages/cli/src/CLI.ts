@@ -107,7 +107,8 @@ export class CLI implements Command {
                   db   Manage your database schema and lifecycle
              migrate   Migrate your database
               studio   Browse your data with Prisma Studio
-              format   Format your schema
+            validate   Validate your Prisma schema
+              format   Format your Prisma schema
 
     ${chalk.bold('Flags')}
 
@@ -132,5 +133,11 @@ export class CLI implements Command {
 
       Push the Prisma schema state to the database
       ${chalk.dim('$')} prisma db push
+
+      Validate your Prisma schema
+      ${chalk.dim('$')} prisma validate
+
+      Format your Prisma schema
+      ${chalk.dim('$')} prisma format
   `)
 }

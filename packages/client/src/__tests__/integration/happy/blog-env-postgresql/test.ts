@@ -183,9 +183,9 @@ test('Blog fixture: Postgres', async () => {
   })
 
   expect(resultJsonUpdateWithSet).toMatchInlineSnapshot(`
-    Object {
+    {
       authorId: null,
-      coinflips: Array [
+      coinflips: [
         true,
         true,
         true,
@@ -193,9 +193,9 @@ test('Blog fixture: Postgres', async () => {
         true,
       ],
       content: null,
-      jsonData: Object {
-        set: Array [
-          Object {
+      jsonData: {
+        set: [
+          {
             array1key: array1valueupdated,
           },
         ],

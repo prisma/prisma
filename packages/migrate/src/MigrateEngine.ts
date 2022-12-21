@@ -27,6 +27,7 @@ export class EngineError extends Error {
   }
 }
 
+// Is incremented every time `getRPCPayload` is called
 let messageId = 1
 
 export class MigrateEngine {
@@ -51,78 +52,171 @@ export class MigrateEngine {
     this.debug = debug
     this.enabledPreviewFeatures = enabledPreviewFeatures
   }
-  public stop(): void {
-    this.child!.kill()
-  }
-  /* eslint-disable @typescript-eslint/no-unsafe-return */
 
-  // Runs dev diagnostic
+  /* eslint-disable @typescript-eslint/no-unsafe-return */
+  //
+  // See JSON-RPC API definition:
+  // https://prisma.github.io/prisma-engines/doc/migration_core/json_rpc/index.html
+  //
+
+  /**
+   * Apply the migrations from the migrations directory to the database.
+   * This is the command behind prisma migrate deploy.
+   */
+  public applyMigrations(args: EngineArgs.ApplyMigrationsInput): Promise<EngineResults.ApplyMigrationsOutput> {
+    return this.runCommand(this.getRPCPayload('applyMigrations', args))
+  }
+
+  /**
+   * Create the logical database from the Prisma schema.
+   */
+  public createDatabase(args: EngineArgs.CreateDatabaseInput): Promise<EngineResults.CreateDatabaseOutput> {
+    return this.runCommand(this.getRPCPayload('createDatabase', args))
+  }
+
+  /**
+   * Create the next migration in the migrations history.
+   * If draft is false and there are no unexecutable steps, it will also apply the newly created migration.
+   * Note: This will use the shadow database on the connectors where we need one.
+   */
+  public createMigration(args: EngineArgs.CreateMigrationInput): Promise<EngineResults.CreateMigrationOutput> {
+    return this.runCommand(this.getRPCPayload('createMigration', args))
+  }
+
+  /**
+   * Execute a database script directly on the specified live database.
+   * Note that this may not be defined on all connectors.
+   */
+  public dbExecute(args: EngineArgs.DbExecuteInput): Promise<EngineResults.DbExecuteOutput> {
+    return this.runCommand(this.getRPCPayload('dbExecute', args))
+  }
+
+  /**
+   * Make the migration engine panic. Only useful to test client error handling.
+   */
+  public debugPanic(): Promise<void> {
+    return this.runCommand(this.getRPCPayload('debugPanic', undefined))
+  }
+
+  /**
+   * The method called at the beginning of migrate dev to decide the course of action,
+   * based on the current state of the workspace.
+   * It acts as a wrapper around diagnoseMigrationHistory.
+   * Its role is to interpret the diagnostic output,
+   * and translate it to a concrete action to be performed by the CLI.
+   */
   public devDiagnostic(args: EngineArgs.DevDiagnosticInput): Promise<EngineResults.DevDiagnosticOutput> {
     return this.runCommand(this.getRPCPayload('devDiagnostic', args))
   }
-  // List migrations in migration directory.
-  public listMigrationDirectories(
-    args: EngineArgs.ListMigrationDirectoriesInput,
-  ): Promise<EngineResults.ListMigrationDirectoriesOutput> {
-    return this.runCommand(this.getRPCPayload('listMigrationDirectories', args))
-  }
-  // Mark the specified migration as applied in the migrations table. There are two possible cases:
-  // - The migration is already in the table, but in a failed state. In this case, we will mark it as rolled back, then create a new entry.
-  // - The migration is not in the table. We will create a new entry in the migrations table. The `started_at` and `finished_at` will be the same.
-  // - If it is already applied, we return a user-facing error.
-  public markMigrationApplied(args: EngineArgs.MarkMigrationAppliedInput): Promise<void> {
-    return this.runCommand(this.getRPCPayload('markMigrationApplied', args))
-  }
-  // Mark an existing failed migration as rolled back in the migrations table. It will still be there, but ignored for all purposes except as audit trail.
-  public markMigrationRolledBack(args: EngineArgs.MarkMigrationRolledBackInput): Promise<void> {
-    return this.runCommand(this.getRPCPayload('markMigrationRolledBack', args))
-  }
+
+  /**
+   * Read the contents of the migrations directory and the migrations table, and returns their relative statuses.
+   * At this stage, the migration engine only reads,
+   * it does not write to the database nor the migrations directory, nor does it use a shadow database.
+   */
   public diagnoseMigrationHistory(
     args: EngineArgs.DiagnoseMigrationHistoryInput,
   ): Promise<EngineResults.DiagnoseMigrationHistoryOutput> {
     return this.runCommand(this.getRPCPayload('diagnoseMigrationHistory', args))
   }
-  public planMigration(args: EngineArgs.PlanMigrationInput): Promise<EngineResults.PlanMigrationOutput> {
-    return this.runCommand(this.getRPCPayload('planMigration', args))
+
+  /**
+   * Make sure the migration engine can connect to the database from the Prisma schema.
+   */
+  public ensureConnectionValidity(args: EngineArgs.EnsureConnectionValidityInput): Promise<void> {
+    return this.runCommand(this.getRPCPayload('ensureConnectionValidity', args))
   }
+
+  /**
+   * Development command for migrations.
+   * Evaluate the data loss induced by the next migration the engine would generate on the main database.
+   */
   public evaluateDataLoss(args: EngineArgs.EvaluateDataLossInput): Promise<EngineResults.EvaluateDataLossOutput> {
     return this.runCommand(this.getRPCPayload('evaluateDataLoss', args))
   }
-  public createMigration(args: EngineArgs.CreateMigrationInput): Promise<EngineResults.CreateMigrationOutput> {
-    return this.runCommand(this.getRPCPayload('createMigration', args))
-  }
-  public applyMigrations(args: EngineArgs.ApplyMigrationsInput): Promise<EngineResults.ApplyMigrationsOutput> {
-    return this.runCommand(this.getRPCPayload('applyMigrations', args))
-  }
-  public reset(): Promise<void> {
-    return this.runCommand(this.getRPCPayload('reset', undefined))
-  }
-  public dbExecute(args: EngineArgs.DbExecuteInput): Promise<EngineResults.DbExecuteOutput> {
-    return this.runCommand(this.getRPCPayload('dbExecute', args))
-  }
-  public migrateDiff(args: EngineArgs.MigrateDiffInput): Promise<EngineResults.MigrateDiffOutput> {
-    return this.runCommand(this.getRPCPayload('diff', args))
-  }
+
+  /**
+   * Get the database version for error reporting.
+   */
   public getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
   }
+
+  /**
+   * Compares two databases schemas from two arbitrary sources,
+   * and display the difference as either a human-readable summary,
+   * or an executable script that can be passed to dbExecute.
+   * Connection to a shadow database is only necessary when either the from or the to params is a migrations directory.
+   * Diffs have a direction. Which source is from and which is to matters.
+   * The resulting diff should be thought of as a migration from the schema in `args.from` to the schema in `args.to`.
+   * By default, we output a human-readable diff. If you want an executable script, pass the "script": true param.
+   */
+  public migrateDiff(args: EngineArgs.MigrateDiffInput): Promise<EngineResults.MigrateDiffOutput> {
+    return this.runCommand(this.getRPCPayload('diff', args))
+  }
+
+  /**
+   * List the names of the migrations in the migrations directory.
+   */
+  public listMigrationDirectories(
+    args: EngineArgs.ListMigrationDirectoriesInput,
+  ): Promise<EngineResults.ListMigrationDirectoriesOutput> {
+    return this.runCommand(this.getRPCPayload('listMigrationDirectories', args))
+  }
+
+  /**
+   * Mark a migration as applied in the migrations table.
+   * There are two possible outcomes:
+   * - The migration is already in the table, but in a failed state. In this case, we will mark it as rolled back, then create a new entry.
+   * - The migration is not in the table. We will create a new entry in the migrations table. The started_at and finished_at will be the same.
+   * If it is already applied, we return a user-facing error.
+   */
+  public markMigrationApplied(args: EngineArgs.MarkMigrationAppliedInput): Promise<void> {
+    return this.runCommand(this.getRPCPayload('markMigrationApplied', args))
+  }
+
+  /**
+   * Mark an existing failed migration as rolled back in the migrations table. It will still be there, but ignored for all purposes except as audit trail.
+   */
+  public markMigrationRolledBack(args: EngineArgs.MarkMigrationRolledBackInput): Promise<void> {
+    return this.runCommand(this.getRPCPayload('markMigrationRolledBack', args))
+  }
+
+  /**
+   * Try to make the database empty: no data and no schema.
+   * On most connectors, this is implemented by dropping and recreating the database.
+   * If that fails (most likely because of insufficient permissions),
+   * the engine attemps a “best effort reset” by inspecting the contents of the database and dropping them individually.
+   * Drop and recreate the database. The migrations will not be applied, as it would overlap with applyMigrations.
+   */
+  public reset(): Promise<void> {
+    return this.runCommand(this.getRPCPayload('reset', undefined))
+  }
+
+  /**
+   * The command behind db push.
+   */
   public schemaPush(args: EngineArgs.SchemaPush): Promise<EngineResults.SchemaPush> {
     return this.runCommand(this.getRPCPayload('schemaPush', args))
   }
-  public debugPanic(): Promise<any> {
-    return this.runCommand(this.getRPCPayload('debugPanic', undefined))
-  }
 
   /* eslint-enable @typescript-eslint/no-unsafe-return */
+
+  public stop(): void {
+    this.child!.kill()
+  }
+
   private rejectAll(err: any): void {
     Object.entries(this.listeners).map(([id, listener]) => {
       listener(null, err)
       delete this.listeners[id]
     })
   }
+
   private registerCallback(id: number, callback: (result: any, err?: Error) => any): void {
     this.listeners[id] = callback
   }
+
   private handleResponse(response: any): void {
     let result
     try {
@@ -160,6 +254,7 @@ export class MigrateEngine {
       }
     }
   }
+
   private init(): Promise<void> {
     if (!this.initPromise) {
       this.initPromise = this.internalInit()
@@ -167,6 +262,7 @@ export class MigrateEngine {
 
     return this.initPromise
   }
+
   private internalInit(): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
     return new Promise(async (resolve, reject) => {
@@ -275,6 +371,7 @@ export class MigrateEngine {
       }
     })
   }
+
   private async runCommand(request: RPCPayload): Promise<any> {
     if (process.env.FORCE_PANIC_MIGRATION_ENGINE) {
       request = this.getRPCPayload('debugPanic', undefined)

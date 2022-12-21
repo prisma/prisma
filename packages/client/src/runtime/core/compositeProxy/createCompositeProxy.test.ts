@@ -1,3 +1,5 @@
+import util from 'util'
+
 import { createCompositeProxy } from './createCompositeProxy'
 
 test('forwards properties to the target', () => {
@@ -52,6 +54,22 @@ test('allows to add multiple properties via single layer', () => {
   expect(proxy).toHaveProperty('second', 2)
 })
 
+test('logs proxy properties if used in console.log/util.inspect', () => {
+  const proxy = createCompositeProxy({}, [
+    {
+      getKeys() {
+        return ['first', 'second']
+      },
+
+      getPropertyValue(key) {
+        return key === 'first' ? 1 : 2
+      },
+    },
+  ])
+
+  expect(util.inspect(proxy)).toMatchInlineSnapshot(`{ first: 1, second: 2 }`)
+})
+
 test('allows to set property descriptor via layer', () => {
   const proxy = createCompositeProxy({}, [
     {
@@ -79,6 +97,28 @@ test('allows to set property descriptor via layer', () => {
   expect(Object.keys(proxy)).toEqual(['second'])
   expect(proxy).toHaveProperty('first', 123)
   expect(proxy).toHaveProperty('second', 123)
+})
+
+test('allows to hide properties via layers', () => {
+  const proxy = createCompositeProxy({ prop: 1, secret: "It's a secret to everybody" }, [
+    {
+      getKeys() {
+        return ['secret']
+      },
+
+      getPropertyValue() {
+        return undefined
+      },
+
+      has() {
+        return false
+      },
+    },
+  ])
+
+  expect(Object.keys(proxy)).toEqual(['prop'])
+  expect(proxy).not.toHaveProperty('secret')
+  expect(proxy['secret']).toBeUndefined()
 })
 
 test('does not add layers for undeclared keys', () => {
@@ -207,6 +247,29 @@ test('allows to override a property from a layer', () => {
   expect(proxy.prop).toBe('override')
 })
 
+test('allows to override a property from a layer using defineProperty', () => {
+  const target = {} as Record<string, unknown>
+
+  const proxy = createCompositeProxy(target, [
+    {
+      getKeys() {
+        return ['prop']
+      },
+
+      getPropertyValue() {
+        return 'from proxy'
+      },
+    },
+  ])
+
+  Object.defineProperty(proxy, 'prop', {
+    value: 'override',
+  })
+
+  expect(target.prop).toBe('override')
+  expect(proxy.prop).toBe('override')
+})
+
 test('does not allow to overriding property from a layer if it is non writable', () => {
   const target = {} as Record<string, unknown>
 
@@ -231,7 +294,7 @@ test('does not allow to overriding property from a layer if it is non writable',
 
   expect(() => {
     proxy.prop = 'override'
-  }).toThrowError()
+  }).toThrow()
 
   expect(target.prop).toBeUndefined()
   expect(proxy.prop).toBe('from proxy')

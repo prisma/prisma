@@ -1,5 +1,6 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 
+import { RequestError } from '../errors/types/RequestError'
 import * as Transaction from './Transaction'
 
 // Events
@@ -78,6 +79,15 @@ export type QueryEngineResult<T> = {
   data: T
   elapsed: number
 }
+
+export type QueryEngineResultBatchQueryResult<T> =
+  | {
+      data: T
+      elapsed: number
+    }
+  | {
+      errors: RequestError[]
+    }
 
 export type QueryEngineRequestHeaders = {
   traceparent?: string

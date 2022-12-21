@@ -30,9 +30,4 @@ export default defineMatrix(() => [
       onDelete: 'SetNull',
     },
   ],
-  [
-    {
-      previewFeatures: '"referentialIntegrity"',
-    },
-  ],
 ])

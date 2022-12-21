@@ -2,3 +2,4 @@ export { addObjectProperties as addObjectProperties } from './addObjectPropertie
 export { addProperty } from './addProperty'
 export { cacheProperties } from './cacheProperties'
 export { type CompositeProxyLayer, createCompositeProxy } from './createCompositeProxy'
+export { removeProperties } from './removeProperties'

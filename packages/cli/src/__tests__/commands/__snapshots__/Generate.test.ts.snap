@@ -12,8 +12,8 @@ const prisma = new PrismaClient()
 `;
 
 exports[`using cli should work with a custom output dir 2`] = `
-Array [
-  Object {
+[
+  {
     email: bob@bob.bob,
     id: 1,
     name: Bobby Brown Sqlite,

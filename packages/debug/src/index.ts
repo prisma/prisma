@@ -81,5 +81,9 @@ export function getLogs(numChars = 7500): string {
   return output.slice(-numChars)
 }
 
+export function clearLogs() {
+  debugArgsHistory.length = 0
+}
+
 export { Debug }
 export default Debug

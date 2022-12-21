@@ -18,12 +18,12 @@ testMatrix.setupTestSuite(
     })
 
     test('suiteConfig', () => {
-      /* 
+      /*
       {
         provider: 'sqlite',
         id: 'Int @id @default(autoincrement())',
         providerFeatures: '',
-        previewFeatures: '"interactiveTransactions"'
+        previewFeatures: '"tracing"'
       }
     */
 
@@ -31,7 +31,7 @@ testMatrix.setupTestSuite(
     })
 
     test('suiteMeta', () => {
-      /* 
+      /*
       {
         testName: '_example',
         testPath: '/code/prisma/packages/client/tests/functional/_example/tests.ts',

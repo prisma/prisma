@@ -157,13 +157,13 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
     })
 
     expect(deletedPost).toMatchInlineSnapshot(`
-    Object {
-      authorId: null,
-      content: null,
-      published: false,
-      title: Some title,
-    }
-  `)
+      {
+        authorId: null,
+        content: null,
+        published: false,
+        title: Some title,
+      }
+    `)
   })
 
   test('can run update queries', async () => {
@@ -189,13 +189,13 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
     })
 
     expect(updatedPost).toMatchInlineSnapshot(`
-    Object {
-      authorId: null,
-      content: null,
-      published: false,
-      title: Updated title,
-    }
-  `)
+      {
+        authorId: null,
+        content: null,
+        published: false,
+        title: Updated title,
+      }
+    `)
 
     const resultJsonArray = await prisma.post.create({
       data: {
@@ -248,27 +248,27 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
       },
     })
     expect(resultJsonUpdateWithSet).toMatchInlineSnapshot(`
-    Object {
-      authorId: null,
-      coinflips: Array [
-        true,
-        true,
-        true,
-        false,
-        true,
-      ],
-      content: null,
-      jsonData: Object {
-        set: Array [
-          Object {
-            array1key: array1valueupdated,
-          },
+      {
+        authorId: null,
+        coinflips: [
+          true,
+          true,
+          true,
+          false,
+          true,
         ],
-      },
-      published: false,
-      title: json array updated 2,
-    }
-  `)
+        content: null,
+        jsonData: {
+          set: [
+            {
+              array1key: array1valueupdated,
+            },
+          ],
+        },
+        published: false,
+        title: json array updated 2,
+      }
+    `)
   })
 
   describe('$queryRaw', () => {

@@ -36,12 +36,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -78,12 +78,12 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
@@ -113,7 +113,7 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
         message: expect.stringContaining('Argument set for create.contents.set must not be null'),
       }),
@@ -134,7 +134,7 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
         message: expect.stringContaining('Argument contents for create.contents must not be null'),
       }),
@@ -166,16 +166,16 @@ setupTestSuite(() => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        contents: Array [
-          Object {
+      {
+        contents: [
+          {
             text: Hello World,
-            upvotes: Array [
-              Object {
+            upvotes: [
+              {
                 userId: 10,
                 vote: true,
               },
-              Object {
+              {
                 userId: 11,
                 vote: true,
               },

@@ -5,9 +5,9 @@ import type { ProviderFlavor } from './ProviderFlavor'
 
 export type ComputeSchemaHeader = {
   provider: Providers
-  providerFlavor: ProviderFlavor
-  previewFeatures: string
   relationMode: string
+  providerFlavor?: ProviderFlavor
+  previewFeatures?: string
 }
 
 export function computeSchemaHeader({
@@ -28,7 +28,7 @@ export function computeSchemaHeader({
   const schemaHeader = /* Prisma */ `
 generator client {
   provider = "prisma-client-js"
-  previewFeatures = [${previewFeatures}]
+  ${previewFeatures ? `previewFeatures = ["${previewFeatures}"]` : ''}
 }
 
 datasource db {
