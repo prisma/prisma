@@ -366,8 +366,7 @@ describe('common/sqlite', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       P1012 Introspection failed as your current Prisma schema file is invalid
 
-      Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it),
-      and then run this command again.
+      Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
       Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
 
     `)
