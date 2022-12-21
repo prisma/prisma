@@ -275,7 +275,7 @@ Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again.
 
 Please fix your current schema manually (using either ${chalk.green(
           getCommandWithExecutor('prisma validate'),
-        )} or the Prisma VSCode extension to understand what's broken and confirm you fixed it),
+        )} or the Prisma VS Code extension to understand what's broken and confirm you fixed it),
 and then run this command again.
 Or run this command with the ${chalk.green(
           '--force',

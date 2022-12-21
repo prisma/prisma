@@ -366,7 +366,7 @@ describe('common/sqlite', () => {
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
       P1012 Introspection failed as your current Prisma schema file is invalid
 
-      Please fix your current schema manually (using either prisma validate or the Prisma VSCode extension to understand what's broken and confirm you fixed it),
+      Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it),
       and then run this command again.
       Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
 
@@ -551,7 +551,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     ctx.fixture('introspection/sqlserver-multi-schema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
-    await expect(result).rejects.toThrowError(`P4001`)
+    await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -613,7 +613,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     ctx.fixture('introspection/sqlserver-multi-schema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
-    await expect(result).rejects.toThrowError(`P4001`)
+    await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -641,7 +641,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     const introspect = new DbPull()
     const connectionString = `${process.env.TEST_MSSQL_JDBC_URI_MIGRATE}schema=does-not-exist`
     const result = introspect.parse(['--print', '--url', connectionString])
-    await expect(result).rejects.toThrowError(`P4001`)
+    await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -690,7 +690,7 @@ describe('postgresql-multi-schema', () => {
     ctx.fixture('introspection/postgresql-multi-schema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
-    await expect(result).rejects.toThrowError(`P4001`)
+    await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -752,7 +752,7 @@ describe('postgresql-multi-schema', () => {
     ctx.fixture('introspection/postgresql-multi-schema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
-    await expect(result).rejects.toThrowError(`P4001`)
+    await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -781,7 +781,7 @@ describe('postgresql-multi-schema', () => {
     // postgres://prisma:prisma@localhost:5432/tests-migrate?schema=does-not-exist
     const connectionString = `${setupParams.connectionString}?schema=does-not-exist`
     const result = introspect.parse(['--print', '--url', connectionString])
-    await expect(result).rejects.toThrowError(`P4001`)
+    await expect(result).rejects.toThrow(`P4001`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
