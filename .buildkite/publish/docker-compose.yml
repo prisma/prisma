@@ -138,10 +138,9 @@ services:
       PORT: '33804' # unused in testing, but required by vttestserver
       KEYSPACES: 'keyspace' # unused in testing, but required by vttestserver
       NUM_SHARDS: '1' # unused in testing, but required by vttestserver
-
       MYSQL_BIND_HOST: '0.0.0.0'
       FOREIGN_KEY_MODE: 'disallow'
-      VT_DIALECT: 'mysql80'
+      TABLET_REFRESH_INTERVAL: '1s'
 
   mariadb:
     image: mariadb:10.7.3
