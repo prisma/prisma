@@ -12,6 +12,7 @@ const exec = promisify(cp.exec)
 
 // https://www.geeksforgeeks.org/node-js-process-arch-property/
 export type Arch = 'x32' | 'x64' | 'arm' | 'arm64' | 's390' | 's390x' | 'mipsel' | 'ia32' | 'mips' | 'ppc' | 'ppc64'
+export type UnameArch = 'i386' | 'x86_64' | 'arm64' | 'arm7l'
 export type GetOSResult = {
   platform: NodeJS.Platform
   arch: Arch
@@ -153,14 +154,33 @@ type GetOpenSSLVersionParams = {
  * This function never throws.
  */
 export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOSResult['libssl'] | undefined> {
-  const libsslVersion: string | undefined = await match(args)
+  const libsslVersionSpecific: string | undefined = await match(args)
     .with({ distro: 'musl' }, () => {
       /* Linux Alpine */
       return getFirstSuccessfulExec(['ls -l /lib/libssl.so.3', 'ls -l /lib/libssl.so.1.1'])
     })
-    .otherwise(() => {
-      return getFirstSuccessfulExec(['ls -l /lib64 | grep ssl', 'ls -l /usr/lib64 | grep ssl'])
+    .with({ distro: 'debian' }, async () => {
+      const archFromUname = await getArchFromUname()
+      return getFirstSuccessfulExec([
+        `ls -l /usr/lib/${archFromUname}-linux-gnu/libssl.so.3*`,
+        `ls -l /usr/lib/${archFromUname}-linux-gnu/libssl.so.1.1*`,
+        `ls -l /usr/lib/${archFromUname}-linux-gnu/libssl.so.1.0*`,
+      ])
     })
+    .run()
+
+  if (libsslVersionSpecific) {
+    const matchedVersion = parseLibSSLVersion(libsslVersionSpecific)
+    if (matchedVersion) {
+      return matchedVersion
+    }
+  }
+
+  const libsslVersion: string | undefined = await getFirstSuccessfulExec([
+    'ldconfig -p | grep ssl',
+    'ls -l /lib64 | grep ssl',
+    'ls -l /usr/lib64 | grep ssl',
+  ])
 
   if (libsslVersion) {
     const matchedVersion = parseLibSSLVersion(libsslVersion)
@@ -287,6 +307,15 @@ function getFirstSuccessfulExec(commands: string[]) {
     }>
     return String(value.stdout)
   })
+}
+
+/**
+ * Returns the architecture of a system from the output of `uname -m` (whose format is different than `process.arch`).
+ * This function never throws.
+ */
+async function getArchFromUname(): Promise<UnameArch | undefined> {
+  const arch = await getFirstSuccessfulExec(['uname -m'])
+  return arch?.trim() as UnameArch
 }
 
 function isLibssl1x(libssl: NonNullable<GetOSResult['libssl']> | string): libssl is '1.0.x' | '1.1.x' {
