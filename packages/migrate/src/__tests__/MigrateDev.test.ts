@@ -29,7 +29,7 @@ describe('common', () => {
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(error.message).toMatchInlineSnapshot(`
-        Schema validation error - Error (get-config wasm)
+        Prisma schema validation - (get-config wasm)
         Error code: P1012
         error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
           -->  schema.prisma:10
@@ -61,7 +61,7 @@ describe('common', () => {
       expect(true).toBe(false) // unreachable
     } catch (error) {
       expect(error.message).toMatchInlineSnapshot(`
-        Schema validation error - Error (get-config wasm)
+        Prisma schema validation - (get-config wasm)
         Error code: P1012
         error: Error validating datasource \`my_db\`: The provider argument in a datasource must be a string literal
           -->  schema.prisma:2
@@ -461,7 +461,7 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('edited migration and unapplied empty draft', async () => {
@@ -765,7 +765,7 @@ describe('sqlite', () => {
                                                                                                                                                                                                                                                                                                                                                                                 • You are about to drop the \`Blog\` table, which is not empty (2 rows).
                                                                                                                                                                                                                                                     `)
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   // TODO: Windows: snapshot test fails because of emoji.
@@ -862,7 +862,7 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain(`An error occurred while running the seed command:`)
-    expect(mockExit).toBeCalledWith(1)
+    expect(mockExit).toHaveBeenCalledWith(1)
   })
 
   it('legacy seed (no config in package.json)', async () => {

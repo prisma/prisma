@@ -24,10 +24,9 @@ const rawClient = Symbol()
  */
 export function applyModelsAndClientExtensions(client: Client) {
   const layers = [modelsLayer(client), addProperty(rawClient, () => client)]
-  for (const extension of client._extensions) {
-    if (extension.client) {
-      layers.push(addObjectProperties(extension.client))
-    }
+  const clientExtensions = client._extensions.getAllClientExtensions()
+  if (clientExtensions) {
+    layers.push(addObjectProperties(clientExtensions))
   }
   return createCompositeProxy(client, layers)
 }

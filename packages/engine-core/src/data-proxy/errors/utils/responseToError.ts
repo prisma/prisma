@@ -95,7 +95,7 @@ export async function responseToError(
   const error = await getResponseErrorBody(response)
 
   if (error.type === 'QueryEngineError') {
-    throw new PrismaClientKnownRequestError(error.body.message, error.body.error_code, clientVersion)
+    throw new PrismaClientKnownRequestError(error.body.message, { code: error.body.error_code, clientVersion })
   }
 
   if (error.type === 'DataProxyError') {

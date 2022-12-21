@@ -33,7 +33,9 @@ function getMappings(mappings: ExternalDMMF.Mappings, datamodel: DMMF.Datamodel)
       model: mapping.model,
       plural: pluralize(lowerCase(mapping.model)), // TODO not needed anymore
       findUnique: mapping.findUnique || mapping.findSingle,
+      findUniqueOrThrow: mapping.findUniqueOrThrow,
       findFirst: mapping.findFirst,
+      findFirstOrThrow: mapping.findFirstOrThrow,
       findMany: mapping.findMany,
       create: mapping.createOne || mapping.createSingle || mapping.create,
       createMany: mapping.createMany,

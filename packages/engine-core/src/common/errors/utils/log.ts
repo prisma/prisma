@@ -1,5 +1,6 @@
-export type LogLevel = 'info' | 'trace' | 'debug' | 'warn' | 'error' | 'query'
+import { PrismaClientRustError } from '../PrismaClientRustError'
 
+export type LogLevel = 'info' | 'trace' | 'debug' | 'warn' | 'error' | 'query'
 export interface RawRustLog {
   timestamp: string
   level: LogLevel
@@ -14,26 +15,15 @@ export interface RustLog {
   fields: LogFields
 }
 
-// TODO #debt check if this is up to date
-export interface RustError {
-  is_panic: boolean
-  message: string
-  backtrace?: string
-}
-
-export function getMessage(log: string | RustLog | RustError | any): string {
+export function getMessage(log: string | PrismaClientRustError): string {
   if (typeof log === 'string') {
     return log
-  } else if (isRustError(log)) {
-    return getBacktraceFromRustError(log)
-  } else if (isRustLog(log)) {
-    return getBacktraceFromLog(log)
+  } else {
+    return log.message
   }
-
-  return JSON.stringify(log)
 }
 
-export function getBacktraceFromLog(log: RustLog): string {
+export function getBacktrace(log: RustLog): string {
   if (log.fields?.message) {
     let str = log.fields?.message
     if (log.fields?.file) {
@@ -54,18 +44,8 @@ export function getBacktraceFromLog(log: RustLog): string {
   return 'Unknown error'
 }
 
-export function getBacktraceFromRustError(err: RustError): string {
-  let str = ''
-  if (err.is_panic) {
-    str += `PANIC`
-  }
-  if (err.backtrace) {
-    str += ` in ${err.backtrace}`
-  }
-  if (err.message) {
-    str += `\n${err.message}`
-  }
-  return str
+export function isPanic(err: RustLog): boolean {
+  return err.fields?.message === 'PANIC'
 }
 
 export function isRustLog(e: any): e is RustLog {
@@ -74,10 +54,6 @@ export function isRustLog(e: any): e is RustLog {
 
 export function isRustErrorLog(e: any): e is RustLog {
   return isRustLog(e) && (e.level === 'error' || e.fields?.message?.includes('fatal error'))
-}
-
-export function isRustError(e: any): e is RustError {
-  return typeof e.is_panic !== 'undefined'
 }
 
 export type LogFields = { [key: string]: any }

@@ -132,13 +132,13 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     })
 
     expect(deletedPost).toMatchInlineSnapshot(`
-          Object {
-            authorId: null,
-            content: null,
-            published: false,
-            title: Some title,
-          }
-      `)
+      {
+        authorId: null,
+        content: null,
+        published: false,
+        title: Some title,
+      }
+    `)
   })
 
   test('can run update queries', async () => {
@@ -166,10 +166,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     })
 
     expect(updatedPost).toMatchInlineSnapshot(`
-      Object {
+      {
         authorId: null,
         content: null,
-        ids: Array [
+        ids: [
           620e79866f46aba24d751441,
         ],
         published: false,
@@ -213,7 +213,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       },
     })
 
-    await expect(post).rejects.toThrowError(
+    await expect(post).rejects.toThrow(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       expect.objectContaining({
         message: expect.stringContaining('Malformed ObjectID'),
@@ -230,7 +230,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       },
     })
 
-    await expect(post).rejects.toThrowError(
+    await expect(post).rejects.toThrow(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       expect.objectContaining({
         message: expect.stringContaining('Malformed ObjectID'),
@@ -258,8 +258,8 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
         options: { projection: { _id: false } },
       })
       expect(users).toMatchInlineSnapshot(`
-        Array [
-          Object {
+        [
+          {
             email: e@a.de,
             name: E,
           },
@@ -278,12 +278,12 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
         pipeline: [{ $group: { _id: '$name', total: { $sum: 1 } } }, { $sort: { _id: -1 } }],
       })
       expect(users).toMatchInlineSnapshot(`
-        Array [
-          Object {
+        [
+          {
             _id: B,
             total: 2,
           },
-          Object {
+          {
             _id: A,
             total: 2,
           },
@@ -298,11 +298,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
         pipeline: [{ $match: { name: 'A' } }, { $project: { email: true, _id: false } }],
       })
       expect(users).toMatchInlineSnapshot(`
-        Array [
-          Object {
+        [
+          {
             email: 1@a.de,
           },
-          Object {
+          {
             email: 3@a.de,
           },
         ]
@@ -322,13 +322,13 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       })
 
       expect(users).toMatchInlineSnapshot(`
-        Object {
-          cursor: Object {
-            firstBatch: Array [
-              Object {
+        {
+          cursor: {
+            firstBatch: [
+              {
                 email: 1@a.de,
               },
-              Object {
+              {
                 email: 3@a.de,
               },
             ],

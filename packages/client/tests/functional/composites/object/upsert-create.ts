@@ -34,11 +34,11 @@ setupTestSuite(({ contentProperty }) => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        content: Object {
+      {
+        content: {
           text: Hello World,
-          upvotes: Array [
-            Object {
+          upvotes: [
+            {
               userId: 10,
               vote: true,
             },
@@ -71,11 +71,11 @@ setupTestSuite(({ contentProperty }) => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        content: Object {
+      {
+        content: {
           text: Hello World,
-          upvotes: Array [
-            Object {
+          upvotes: [
+            {
               userId: 10,
               vote: true,
             },
@@ -106,7 +106,7 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
+        {
           content: null,
           country: France,
           id: Any<String>,
@@ -114,7 +114,7 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining('Argument set for create.content.set must not be null'),
         }),
@@ -138,7 +138,7 @@ setupTestSuite(({ contentProperty }) => {
       expect(await comment).toMatchInlineSnapshot(
         { id: expect.any(String) },
         `
-        Object {
+        {
           content: null,
           country: France,
           id: Any<String>,
@@ -174,15 +174,15 @@ setupTestSuite(({ contentProperty }) => {
     expect(comment).toMatchInlineSnapshot(
       { id: expect.any(String) },
       `
-      Object {
-        content: Object {
+      {
+        content: {
           text: Hello World,
-          upvotes: Array [
-            Object {
+          upvotes: [
+            {
               userId: 10,
               vote: true,
             },
-            Object {
+            {
               userId: 11,
               vote: true,
             },

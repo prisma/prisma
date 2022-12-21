@@ -308,7 +308,7 @@ export class Init implements Command {
     return `
 ✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
-${warnings.length > 0 && logger.should.warn ? `\n${warnings.join('\n')}\n` : ''}
+${warnings.length > 0 && logger.should.warn() ? `\n${warnings.join('\n')}\n` : ''}
 Next steps:
 ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
