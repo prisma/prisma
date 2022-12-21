@@ -4,7 +4,6 @@ import path from 'path'
 
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
-import { GraphQLScalarToJSTypeTable } from '../runtime/utils/common'
 import { ifExtensions } from './TSClient/utils/ifExtensions'
 
 export enum Projection {
@@ -17,7 +16,7 @@ export function getScalarsName(modelName: string): string {
 }
 
 export function getPayloadName(modelName: string): string {
-  return `${modelName}GetPayload`
+  return ifExtensions(`runtime.Types.GetResult`, `${modelName}GetPayload`)
 }
 
 // export function getExtractName(modelName: string, projection: Projection) {
@@ -258,34 +257,35 @@ export function getReturnType({
     const promiseOpen = renderPromise ? 'PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `${promiseOpen}${listOpen}${getPayloadName(name)}<T${ifExtensions(', ExtArgs', '')}>${listClose}${
-      isChaining ? '| Null' : ''
-    }${promiseClose}`
+    return `${promiseOpen}${ifExtensions('', listOpen)}${getPayloadName(name)}<${ifExtensions(
+      `${name}Payload<ExtArgs>, T, '${actionName}'`,
+      'T',
+    )}>${ifExtensions('', listClose)}${isChaining ? '| Null' : ''}${promiseClose}`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
     return `Prisma__${name}Client<${getType(
-      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
+      getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
       isList,
     )}${ifExtensions(', never, ExtArgs', '')}>`
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
       return `Prisma__${name}Client<${getType(
-        getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
+        getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
         isList,
       )} | Null${ifExtensions(', never, ExtArgs', '')}>`
     }
     return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? Prisma__${name}Client<${getType(
-      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
+      getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
       isList,
     )}${ifExtensions(', never, ExtArgs', '')}> : Prisma__${name}Client<${getType(
-      getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
+      getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
       isList,
     )} | null, null${ifExtensions(', ExtArgs', '')}>`
   }
   return `Prisma__${name}Client<${getType(
-    getPayloadName(name) + `<T${ifExtensions(', ExtArgs', '')}>`,
+    getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
     isList,
   )}${ifExtensions(', never, ExtArgs', '')}>`
 }

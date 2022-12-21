@@ -18,7 +18,7 @@ function clientExtensionsResultDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const resultGenericParams = (modelName: string) => {
-    return `R_${modelName}_Needs extends Record<string, runtime.Types.Extensions.GetResultSelect<Prisma.${modelName}SelectScalar, ExtArgs['result']['${lowerCase(
+    return `R_${modelName}_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.${modelName}SelectScalar, ExtArgs['result']['${lowerCase(
       modelName,
     )}']>>`
   }
@@ -32,7 +32,7 @@ function clientExtensionsResultDefinition(this: PrismaClientClass) {
     return `${lowerCase(modelName)}?: {
         [K in keyof R_${modelName}_Needs]: {
           needs: R_${modelName}_Needs[K]
-          compute: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }, ExtArgs>) => unknown
+          compute: (data: runtime.Types.GetResult<${modelName}Payload<ExtArgs>, { select: R_${modelName}_Needs[K] }, 'findUniqueOrThrow'>) => unknown
         }
       }`
   }
@@ -54,9 +54,9 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const modelParam = (modelName: string) => {
-    return `${lowerCase(modelName)}?: { [K: symbol]: PrismaClient<never, never, false, ExtArgs>['${lowerCase(
+    return `${lowerCase(modelName)}?: { [K: symbol]: { ctx: PrismaClient<never, never, false, ExtArgs>['${lowerCase(
       modelName,
-    )}'] }`
+    )}'], meta: Prisma.TypeMap<ExtArgs>['model']['${modelName}'] } }`
   }
 
   const params = `{
@@ -83,6 +83,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
       ${action}: {
         args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
         result: runtime.Types.Utils.OptionalFlat<${modelName}>
+        payload: ${modelName}Payload<ExtArgs>
       }`
       }, '')}
     }`
@@ -136,7 +137,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
 function clientExtensionsClientDefinition(this: PrismaClientClass) {
   return {
     genericParams: `C extends runtime.Types.Extensions.Args['client'] = {}`,
-    params: `{ [K: symbol]: runtime.Types.Extensions.GetClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client'], {}> }`,
+    params: `{ [K: symbol]: { ctx: runtime.Types.Extensions.GetClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client'], {}> } }`,
   }
 }
 
@@ -449,7 +450,9 @@ ${[
 get ${methodName}(): ${ifExtensions(
             `runtime.Types.Extensions.GetModel<Prisma.${
               m.model
-            }Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['${lowerCase(m.model)}']>`,
+            }Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['${lowerCase(
+              m.model,
+            )}'], Prisma.TypeMap<ExtArgs>['model']['${m.model}']>`,
             `Prisma.${m.model}Delegate<GlobalReject>`,
           )};`
         })

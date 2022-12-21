@@ -1,3 +1,5 @@
+import { expectTypeOf } from 'expect-type'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -291,5 +293,95 @@ testMatrix.setupTestSuite(() => {
     })
 
     expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(`Error caused by an extension: Fail!`)
+  })
+
+  test('custom method re-using input types to augment them via intersection', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T, A>(
+            this: T,
+            args: PrismaNamespace.Exact<
+              A,
+              PrismaNamespace.Args<T, 'findUniqueOrThrow'> & {
+                cache: boolean
+              }
+            >,
+          ): A {
+            return args as any as A
+          },
+        },
+      },
+    })
+
+    const args = xprisma.user.findFirstOrCreate({
+      cache: true,
+      where: {
+        id: '1',
+      },
+    })
+
+    expectTypeOf(args).toEqualTypeOf<{ cache: true; where: { id: '1' } }>
+  })
+
+  test('custom method re-using input types to augment them via mapped type', () => {
+    type Nullable<T> = {
+      [K in keyof T]: T[K] | null
+    }
+
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T, A>(
+            this: T,
+            args: PrismaNamespace.Exact<A, Nullable<PrismaNamespace.Args<T, 'findUniqueOrThrow'>>>,
+          ): A {
+            return args as any as A
+          },
+        },
+      },
+    })
+
+    const args = xprisma.user.findFirstOrCreate({
+      include: null,
+      where: {
+        id: '1',
+      },
+    })
+
+    expectTypeOf(args).toMatchTypeOf<{ include: null; where: { id: '1' } }>
+  })
+
+  test('custom method re-using output to augment it via mapped type', () => {
+    type Nullable<T> = {
+      [K in keyof T]: T[K] | null
+    }
+
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T, A>(
+            this: T,
+            args: PrismaNamespace.Exact<A, Nullable<PrismaNamespace.Args<T, 'findUniqueOrThrow'>>>,
+          ): PrismaNamespace.Result<T, A, 'findUniqueOrThrow'> {
+            return {} as any
+          },
+        },
+      },
+    })
+
+    const data = xprisma.user.findFirstOrCreate({
+      include: null,
+      where: {
+        id: '1',
+      },
+    })
+
+    expectTypeOf(data).toMatchTypeOf<{
+      id: string
+      email: string
+      firstName: string
+      lastName: string
+    }>
   })
 })

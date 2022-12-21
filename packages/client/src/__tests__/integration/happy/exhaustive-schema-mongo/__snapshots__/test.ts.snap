@@ -2151,11 +2151,10 @@ export namespace Prisma {
       : Post
 
 
-  type PostCountArgs = Merge<
+  type PostCountArgs = 
     Omit<PostFindManyArgs, 'select' | 'include'> & {
       select?: PostCountAggregateInputType | true
     }
-  >
 
   export interface PostDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -3325,11 +3324,10 @@ export namespace Prisma {
       : User
 
 
-  type UserCountArgs = Merge<
+  type UserCountArgs = 
     Omit<UserFindManyArgs, 'select' | 'include'> & {
       select?: UserCountAggregateInputType | true
     }
-  >
 
   export interface UserDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -4377,11 +4375,10 @@ export namespace Prisma {
       : EmbedHolder
 
 
-  type EmbedHolderCountArgs = Merge<
+  type EmbedHolderCountArgs = 
     Omit<EmbedHolderFindManyArgs, 'select' | 'include'> & {
       select?: EmbedHolderCountAggregateInputType | true
     }
-  >
 
   export interface EmbedHolderDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -5541,11 +5538,10 @@ export namespace Prisma {
       : M
 
 
-  type MCountArgs = Merge<
+  type MCountArgs = 
     Omit<MFindManyArgs, 'select' | 'include'> & {
       select?: MCountAggregateInputType | true
     }
-  >
 
   export interface MDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -6699,11 +6695,10 @@ export namespace Prisma {
       : N
 
 
-  type NCountArgs = Merge<
+  type NCountArgs = 
     Omit<NFindManyArgs, 'select' | 'include'> & {
       select?: NCountAggregateInputType | true
     }
-  >
 
   export interface NDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -7853,11 +7848,10 @@ export namespace Prisma {
       : OneOptional
 
 
-  type OneOptionalCountArgs = Merge<
+  type OneOptionalCountArgs = 
     Omit<OneOptionalFindManyArgs, 'select' | 'include'> & {
       select?: OneOptionalCountAggregateInputType | true
     }
-  >
 
   export interface OneOptionalDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -9011,11 +9005,10 @@ export namespace Prisma {
       : ManyRequired
 
 
-  type ManyRequiredCountArgs = Merge<
+  type ManyRequiredCountArgs = 
     Omit<ManyRequiredFindManyArgs, 'select' | 'include'> & {
       select?: ManyRequiredCountAggregateInputType | true
     }
-  >
 
   export interface ManyRequiredDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -10169,11 +10162,10 @@ export namespace Prisma {
       : OptionalSide1
 
 
-  type OptionalSide1CountArgs = Merge<
+  type OptionalSide1CountArgs = 
     Omit<OptionalSide1FindManyArgs, 'select' | 'include'> & {
       select?: OptionalSide1CountAggregateInputType | true
     }
-  >
 
   export interface OptionalSide1Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -11319,11 +11311,10 @@ export namespace Prisma {
       : OptionalSide2
 
 
-  type OptionalSide2CountArgs = Merge<
+  type OptionalSide2CountArgs = 
     Omit<OptionalSide2FindManyArgs, 'select' | 'include'> & {
       select?: OptionalSide2CountAggregateInputType | true
     }
-  >
 
   export interface OptionalSide2Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -12409,11 +12400,10 @@ export namespace Prisma {
       : A
 
 
-  type ACountArgs = Merge<
+  type ACountArgs = 
     Omit<AFindManyArgs, 'select' | 'include'> & {
       select?: ACountAggregateInputType | true
     }
-  >
 
   export interface ADelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -13420,11 +13410,10 @@ export namespace Prisma {
       : B
 
 
-  type BCountArgs = Merge<
+  type BCountArgs = 
     Omit<BFindManyArgs, 'select' | 'include'> & {
       select?: BCountAggregateInputType | true
     }
-  >
 
   export interface BDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -14425,11 +14414,10 @@ export namespace Prisma {
       : C
 
 
-  type CCountArgs = Merge<
+  type CCountArgs = 
     Omit<CFindManyArgs, 'select' | 'include'> & {
       select?: CCountAggregateInputType | true
     }
-  >
 
   export interface CDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -15452,11 +15440,10 @@ export namespace Prisma {
       : D
 
 
-  type DCountArgs = Merge<
+  type DCountArgs = 
     Omit<DFindManyArgs, 'select' | 'include'> & {
       select?: DCountAggregateInputType | true
     }
-  >
 
   export interface DDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**
@@ -16433,11 +16420,10 @@ export namespace Prisma {
       : E
 
 
-  type ECountArgs = Merge<
+  type ECountArgs = 
     Omit<EFindManyArgs, 'select' | 'include'> & {
       select?: ECountAggregateInputType | true
     }
-  >
 
   export interface EDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
     /**

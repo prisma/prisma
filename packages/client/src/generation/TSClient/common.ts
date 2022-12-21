@@ -180,6 +180,9 @@ ${ifExtensions(
 */
 export type Extension = runtime.Types.Extensions.Args
 export import getExtensionContext = runtime.Extensions.getExtensionContext
+export type Args<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Args<T, F>
+export type Result<T, A, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Result<T, A, F>
+export type Exact<T, W> = runtime.Types.Public.Exact<T, W>
 
 `,
   '',
@@ -520,19 +523,11 @@ export type Or<B1 extends Boolean, B2 extends Boolean> = {
 
 export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
-type Exact<A, W = unknown> = 
-W extends unknown ? A extends Narrowable ? Cast<A, W> : Cast<
-{[K in keyof A]: K extends keyof W ? Exact<A[K], W[K]> : never},
-{[K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : W[K]}>
-: never;
-
-type Narrowable = string | number | boolean | bigint;
-
 type Cast<A, B> = A extends B ? A : B;
 
 export const type: unique symbol;
 
-export function validator<V>(): <S>(select: Exact<S, V>) => S;
+export function validator<V>(): <S>(select: runtime.Types.Utils.LegacyExact<S, V>) => S;
 
 /**
  * Used by group by
