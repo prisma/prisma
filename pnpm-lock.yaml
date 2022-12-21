@@ -33,7 +33,7 @@ importers:
       eslint-config-prettier: 8.5.0
       eslint-plugin-eslint-comments: 3.2.0
       eslint-plugin-import: 2.26.0
-      eslint-plugin-jest: 27.1.6
+      eslint-plugin-jest: 27.1.7
       eslint-plugin-prettier: 4.2.1
       eslint-plugin-simple-import-sort: 8.0.0
       eventemitter3: 4.0.7
@@ -91,7 +91,7 @@ importers:
       eslint-config-prettier: 8.5.0_eslint@8.27.0
       eslint-plugin-eslint-comments: 3.2.0_eslint@8.27.0
       eslint-plugin-import: 2.26.0_jnohwm7eexgw7uduhweedcbnpe
-      eslint-plugin-jest: 27.1.6_dh5zoy5tprom2j3yddxus2umce
+      eslint-plugin-jest: 27.1.7_dh5zoy5tprom2j3yddxus2umce
       eslint-plugin-prettier: 4.2.1_v7o5sx5x3wbs57ifz6wc4f76we
       eslint-plugin-simple-import-sort: 8.0.0_eslint@8.27.0
       eventemitter3: 4.0.7
@@ -138,7 +138,7 @@ importers:
       '@prisma/studio': 0.479.0
       '@prisma/studio-server': 0.479.0
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23
+      '@swc/jest': 0.2.24
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
       '@types/jest': 29.2.4
@@ -184,7 +184,7 @@ importers:
       '@prisma/studio': 0.479.0
       '@prisma/studio-server': 0.479.0_af2arurw4njyhq5wa6w6rrkc54
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23_@swc+core@1.3.14
+      '@swc/jest': 0.2.24_@swc+core@1.3.14
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
       '@types/jest': 29.2.4
@@ -221,7 +221,7 @@ importers:
   packages/client:
     specifiers:
       '@faker-js/faker': 7.6.0
-      '@fast-check/jest': 1.4.0
+      '@fast-check/jest': 1.5.0
       '@jest/globals': 29.3.1
       '@jest/test-sequencer': 29.3.1
       '@opentelemetry/api': 1.2.0
@@ -243,7 +243,7 @@ importers:
       '@prisma/mini-proxy': 0.3.0
       '@swc-node/register': 1.5.4
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23
+      '@swc/jest': 0.2.24
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
@@ -304,7 +304,7 @@ importers:
       '@prisma/engines-version': 4.8.0-61.d6e67a83f971b175a593ccc12e15c4a757f93ffe
     devDependencies:
       '@faker-js/faker': 7.6.0
-      '@fast-check/jest': 1.4.0_@jest+globals@29.3.1
+      '@fast-check/jest': 1.5.0_@jest+globals@29.3.1
       '@jest/globals': 29.3.1
       '@jest/test-sequencer': 29.3.1
       '@opentelemetry/api': 1.2.0
@@ -325,7 +325,7 @@ importers:
       '@prisma/mini-proxy': 0.3.0
       '@swc-node/register': 1.5.4_ldaqumno46ke76prz5kcgkjhhy
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23_@swc+core@1.3.14
+      '@swc/jest': 0.2.24_@swc+core@1.3.14
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.7
       '@types/fs-extra': 9.0.13
@@ -415,7 +415,7 @@ importers:
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23
+      '@swc/jest': 0.2.24
       '@types/jest': 29.2.4
       '@types/node': 16.18.10
       chalk: 4.1.2
@@ -447,7 +447,7 @@ importers:
       undici: 5.11.0
     devDependencies:
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23_@swc+core@1.3.14
+      '@swc/jest': 0.2.24_@swc+core@1.3.14
       '@types/jest': 29.2.4
       '@types/node': 16.18.10
       esbuild: 0.15.13
@@ -462,7 +462,7 @@ importers:
       '@prisma/fetch-engine': workspace:*
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23
+      '@swc/jest': 0.2.24
       '@types/jest': 29.2.4
       '@types/node': 16.18.10
       execa: 5.1.1
@@ -474,7 +474,7 @@ importers:
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/get-platform': link:../get-platform
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23_@swc+core@1.3.14
+      '@swc/jest': 0.2.24_@swc+core@1.3.14
       '@types/jest': 29.2.4
       '@types/node': 16.18.10
       execa: 5.1.1
@@ -487,7 +487,7 @@ importers:
       '@prisma/engines-version': 4.8.0-61.d6e67a83f971b175a593ccc12e15c4a757f93ffe
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23
+      '@swc/jest': 0.2.24
       '@types/jest': 29.2.4
       '@types/node': 16.18.10
       '@types/node-fetch': 2.6.2
@@ -532,7 +532,7 @@ importers:
     devDependencies:
       '@prisma/engines-version': 4.8.0-61.d6e67a83f971b175a593ccc12e15c4a757f93ffe
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23_@swc+core@1.3.14
+      '@swc/jest': 0.2.24_@swc+core@1.3.14
       '@types/jest': 29.2.4
       '@types/node': 16.18.10
       '@types/node-fetch': 2.6.2
@@ -547,7 +547,7 @@ importers:
       '@prisma/debug': workspace:*
       '@swc-node/register': 1.5.4
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23
+      '@swc/jest': 0.2.24
       '@types/cross-spawn': 6.0.2
       '@types/jest': 29.2.4
       '@types/node': 12.20.55
@@ -566,7 +566,7 @@ importers:
     devDependencies:
       '@swc-node/register': 1.5.4_ldaqumno46ke76prz5kcgkjhhy
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23_@swc+core@1.3.14
+      '@swc/jest': 0.2.24_@swc+core@1.3.14
       '@types/jest': 29.2.4
       '@types/node': 12.20.55
       esbuild: 0.15.13
@@ -579,7 +579,7 @@ importers:
     specifiers:
       '@prisma/debug': workspace:*
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23
+      '@swc/jest': 0.2.24
       '@types/jest': 29.2.4
       '@types/node': 16.18.10
       jest: 29.3.1
@@ -590,7 +590,7 @@ importers:
       ts-pattern: 4.0.6
     devDependencies:
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23_@swc+core@1.3.14
+      '@swc/jest': 0.2.24_@swc+core@1.3.14
       '@types/jest': 29.2.4
       '@types/node': 16.18.10
       jest: 29.3.1_@types+node@16.18.10
@@ -622,7 +622,7 @@ importers:
       '@prisma/internals': workspace:*
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23
+      '@swc/jest': 0.2.24
       '@types/jest': 29.2.4
       '@types/mssql': 8.1.1
       '@types/node': 12.20.55
@@ -649,7 +649,7 @@ importers:
       '@prisma/internals': link:../internals
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23_@swc+core@1.3.14
+      '@swc/jest': 0.2.24_@swc+core@1.3.14
       '@types/jest': 29.2.4
       '@types/mssql': 8.1.1
       '@types/node': 12.20.55
@@ -683,7 +683,7 @@ importers:
       '@prisma/get-platform': workspace:*
       '@prisma/prisma-fmt-wasm': 4.8.0-61.d6e67a83f971b175a593ccc12e15c4a757f93ffe
       '@swc/core': 1.2.204
-      '@swc/jest': 0.2.23
+      '@swc/jest': 0.2.24
       '@types/jest': 29.2.4
       '@types/node': 12.20.55
       '@types/resolve': 1.20.2
@@ -778,7 +778,7 @@ importers:
       ts-pattern: 4.0.5
     devDependencies:
       '@swc/core': 1.2.204
-      '@swc/jest': 0.2.23_@swc+core@1.2.204
+      '@swc/jest': 0.2.24_@swc+core@1.2.204
       '@types/jest': 29.2.4
       '@types/node': 12.20.55
       '@types/resolve': 1.20.2
@@ -799,7 +799,7 @@ importers:
       '@prisma/internals': workspace:*
       '@sindresorhus/slugify': 1.1.2
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23
+      '@swc/jest': 0.2.24
       '@types/jest': 29.2.4
       '@types/node': 12.20.55
       '@types/pg': 8.6.5
@@ -852,7 +852,7 @@ importers:
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.3.14
-      '@swc/jest': 0.2.23_@swc+core@1.3.14
+      '@swc/jest': 0.2.24_@swc+core@1.3.14
       '@types/jest': 29.2.4
       '@types/node': 12.20.55
       '@types/pg': 8.6.5
@@ -2447,10 +2447,17 @@ packages:
     engines: {node: '>=14.0.0', npm: '>=6.0.0'}
     dev: true
 
-  /@fast-check/jest/1.4.0_@jest+globals@29.3.1:
-    resolution: {integrity: sha512-wPU2aM293AMpoA+AZJhrA1jIDPS7xGGJUppX25Ixm76eSXcxu4n+RDFc/UCqWWUhvGq8HgohX9HrcOUs1fsjUQ==}
+  /@fast-check/jest/1.5.0_@jest+globals@29.3.1:
+    resolution: {integrity: sha512-H5nwqyUrdAmbbgYchqdJdxweeBFOg8jcY5djwn5sgzRb5A/OcOacXmxD8XB0wGXdrwv4C/zqfHVDYZXD/sDFow==}
     peerDependencies:
+      '@fast-check/worker': ~0.0.1
+      '@jest/expect': '>=28.0.0'
       '@jest/globals': '>=25.5.2'
+    peerDependenciesMeta:
+      '@fast-check/worker':
+        optional: true
+      '@jest/expect':
+        optional: true
     dependencies:
       '@jest/globals': 29.3.1
       fast-check: 3.3.0
@@ -3760,8 +3767,8 @@ packages:
       '@swc/core-win32-x64-msvc': 1.3.23
     dev: true
 
-  /@swc/jest/0.2.23_@swc+core@1.2.204:
-    resolution: {integrity: sha512-ZLj17XjHbPtNsgqjm83qizENw05emLkKGu3WuPUttcy9hkngl0/kcc7fDbcSBpADS0GUtsO+iKPjZFWVAtJSlA==}
+  /@swc/jest/0.2.24_@swc+core@1.2.204:
+    resolution: {integrity: sha512-fwgxQbM1wXzyKzl1+IW0aGrRvAA8k0Y3NxFhKigbPjOJ4mCKnWEcNX9HQS3gshflcxq8YKhadabGUVfdwjCr6Q==}
     engines: {npm: '>= 7.0.0'}
     peerDependencies:
       '@swc/core': '*'
@@ -3771,8 +3778,8 @@ packages:
       jsonc-parser: 3.2.0
     dev: true
 
-  /@swc/jest/0.2.23_@swc+core@1.3.14:
-    resolution: {integrity: sha512-ZLj17XjHbPtNsgqjm83qizENw05emLkKGu3WuPUttcy9hkngl0/kcc7fDbcSBpADS0GUtsO+iKPjZFWVAtJSlA==}
+  /@swc/jest/0.2.24_@swc+core@1.3.14:
+    resolution: {integrity: sha512-fwgxQbM1wXzyKzl1+IW0aGrRvAA8k0Y3NxFhKigbPjOJ4mCKnWEcNX9HQS3gshflcxq8YKhadabGUVfdwjCr6Q==}
     engines: {npm: '>= 7.0.0'}
     peerDependencies:
       '@swc/core': '*'
@@ -6334,8 +6341,8 @@ packages:
       - supports-color
     dev: true
 
-  /eslint-plugin-jest/27.1.6_dh5zoy5tprom2j3yddxus2umce:
-    resolution: {integrity: sha512-XA7RFLSrlQF9IGtAmhddkUkBuICCTuryfOTfCSWcZHiHb69OilIH05oozH2XA6CEOtztnOd0vgXyvxZodkxGjg==}
+  /eslint-plugin-jest/27.1.7_dh5zoy5tprom2j3yddxus2umce:
+    resolution: {integrity: sha512-0QVzf+og4YI1Qr3UoprkqqhezAZjFffdi62b0IurkCXMqPtRW84/UT4CKsYT80h/D82LA9avjO/80Ou1LdgbaQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     peerDependencies:
       '@typescript-eslint/eslint-plugin': ^5.0.0
