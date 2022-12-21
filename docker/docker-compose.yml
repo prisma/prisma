@@ -49,6 +49,7 @@ services:
       NUM_SHARDS: '1' # unused in testing, but required by vttestserver
       MYSQL_BIND_HOST: '0.0.0.0'
       FOREIGN_KEY_MODE: 'disallow'
+      TABLET_REFRESH_INTERVAL: '1s'
 
   mysql:
     image: mysql:8.0
