@@ -10,6 +10,7 @@ export async function setup(_prisma: unknown) {
   const postId2 = `02${randomBytes(11).toString('hex')}`
   const postId3 = `03${randomBytes(11).toString('hex')}`
   const profileId = randomBytes(12).toString('hex')
+  const ccn = randomBytes(12).toString('hex')
 
   const prisma = _prisma as PrismaClient
 
@@ -33,6 +34,11 @@ export async function setup(_prisma: unknown) {
           },
         ],
       },
+      payment: {
+        create: {
+          ccn,
+        },
+      },
     },
   })
 
@@ -50,5 +56,6 @@ export async function setup(_prisma: unknown) {
     postId1,
     postId2,
     profileId,
+    ccn,
   }
 }
