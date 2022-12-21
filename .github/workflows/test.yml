@@ -127,7 +127,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # os: [buildjet-4vcpu-ubuntu-2004]
+        # os: [ubuntu-latest]
         relationMode: ['', 'foreignKeys', 'prisma']
         os: [ubuntu-latest]
         node: [16]
@@ -211,7 +211,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
-        os: [buildjet-4vcpu-ubuntu-2004]
+        os: [ubuntu-latest]
         node: [16, 18]
 
     env:
@@ -298,7 +298,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [buildjet-4vcpu-ubuntu-2004]
+        os: [ubuntu-latest]
         node: [14, 16, 18]
 
     steps:
@@ -377,7 +377,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        os: [buildjet-4vcpu-ubuntu-2004]
+        os: [ubuntu-latest]
         node: [14, 16, 18]
     steps:
       - uses: actions/checkout@v3
@@ -484,7 +484,7 @@ jobs:
   #
   client-types:
     timeout-minutes: 15
-    runs-on: buildjet-4vcpu-ubuntu-2004
+    runs-on: ubuntu-latest
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
