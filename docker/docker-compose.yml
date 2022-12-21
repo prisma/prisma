@@ -51,7 +51,7 @@ services:
       FOREIGN_KEY_MODE: 'disallow'
 
   mysql:
-    image: mysql:8.0
+    image: mysql:8.0.31
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
     restart: always
     environment:
