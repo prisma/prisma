@@ -313,9 +313,9 @@ function getFirstSuccessfulExec(commands: string[]) {
  * Returns the architecture of a system from the output of `uname -m` (whose format is different than `process.arch`).
  * This function never throws.
  */
-async function getArchFromUname(): Promise<UnameArch | undefined> {
+async function getArchFromUname(): Promise<string | undefined> {
   const arch = await getFirstSuccessfulExec(['uname -m'])
-  return arch?.trim() as UnameArch
+  return arch?.trim()
 }
 
 function isLibssl1x(libssl: NonNullable<GetOSResult['libssl']> | string): libssl is '1.0.x' | '1.1.x' {
