@@ -653,7 +653,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
         if (supported) {
           await fn()
         } else {
-          await expect(fn()).rejects.toThrowError('Invalid enum value')
+          await expect(fn()).rejects.toThrow('Invalid enum value')
         }
       })
     }

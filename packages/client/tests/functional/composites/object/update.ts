@@ -124,7 +124,7 @@ setupTestSuite(({ contentProperty }) => {
           `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining('Argument set for data.content.set must not be null'),
         }),
@@ -154,7 +154,7 @@ setupTestSuite(({ contentProperty }) => {
           `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining('Argument content for data.content must not be null'),
         }),
@@ -457,7 +457,7 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining(
             'Unknown arg `unset` in data.content.unset for type CommentContentUpdateEnvelopeInput',
@@ -506,7 +506,7 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining(
             'Unknown arg `upsert` in data.content.upsert for type CommentContentUpdateEnvelopeInput',
@@ -562,7 +562,7 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining(
             'Unknown arg `upsert` in data.content.upsert for type CommentContentUpdateEnvelopeInput',
