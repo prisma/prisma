@@ -467,6 +467,13 @@ export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNot
       ', ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs',
       '',
     )}> {
+${ifExtensions(
+  `${indent(
+    `[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'] }, meta: { name: '${name}' } `,
+    TAB_SIZE,
+  )}`,
+  '',
+)}
 ${indent(
   nonAggregateActions
     .map(

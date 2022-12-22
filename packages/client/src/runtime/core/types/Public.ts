@@ -1,21 +1,28 @@
+/* eslint-disable prettier/prettier */
+
 import { GetResult, Operation } from './GetResult'
+import { Payload } from './Payload'
 import { Exact } from './Utils'
 
 /*
- * /!\ These types are exposed to the user.
- * Proceed with caution.
+ * /!\ These types are exposed to the user. Proceed with caution.
  *
- * TODO: type-level testing
  * TODO: Move more hardcoded types from generation into here
  */
 
-export type Args<T, F extends Operation> = T extends { [K: symbol]: { meta: { [K in F]: { args: any } } } }
-  ? T[symbol]['meta'][F]['args']
-  : never
+export type Args<T, F extends Operation> =
+  T extends { [K: symbol]: { types: { [K in F]: { args: infer A } } } }
+  ? A
+  : T extends { [K: symbol]: { ctx: { [K: symbol]: { types: { [K in F]: { args: infer A } } } } } }
+    ? A
+    : never
 
-export type Result<T, A, F extends Operation> = T extends { [K: symbol]: { meta: { [K in F]: { payload: any } } } }
-  ? GetResult<T[symbol]['meta'][F]['payload'], A, F>
-  : never
+export type Result<T, A, F extends Operation> =
+  T extends { [K: symbol]: { types: { [K in F]: { payload: infer P extends Payload } } } }
+  ? GetResult<P, A, F>
+  : T extends { [K: symbol]: { ctx: { [K: symbol]: { types: { [K in F]: { payload: infer P extends Payload } } } } } }
+    ? GetResult<P, A, F>
+    : never
 
 export { type Operation }
 

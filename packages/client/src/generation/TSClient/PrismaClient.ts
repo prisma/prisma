@@ -54,9 +54,11 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const modelParam = (modelName: string) => {
-    return `${lowerCase(modelName)}?: { [K: symbol]: { ctx: PrismaClient<never, never, false, ExtArgs>['${lowerCase(
+    return `${lowerCase(
       modelName,
-    )}'], meta: Prisma.TypeMap<ExtArgs>['model']['${modelName}'] } }`
+    )}?: { [K: symbol]: { ctx: runtime.Types.Extensions.GetModel<Prisma.${modelName}Delegate<false, ExtArgs>, ExtArgs['model']['${lowerCase(
+      modelName,
+    )}']> } }`
   }
 
   const params = `{
@@ -450,9 +452,7 @@ ${[
 get ${methodName}(): ${ifExtensions(
             `runtime.Types.Extensions.GetModel<Prisma.${
               m.model
-            }Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['${lowerCase(
-              m.model,
-            )}'], Prisma.TypeMap<ExtArgs>['model']['${m.model}']>`,
+            }Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['${lowerCase(m.model)}']>`,
             `Prisma.${m.model}Delegate<GlobalReject>`,
           )};`
         })

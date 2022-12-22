@@ -1,17 +1,6 @@
 /* eslint-disable prettier/prettier */
 import { RequiredArgs as Args } from '../extensions/$extends'
-import { ExtensionContext } from '../extensions/getExtensionContext';
-import { Operation } from './GetResult';
-import { Payload } from './Payload';
 import { Omit, ReadonlyDeep } from './Utils'
-
-type OperationMeta = {
-  [key in Operation]?: {
-      args: any,
-      result: any,
-      payload: Payload;
-  };
-}
 
 export type DefaultArgs = { result: {}; model: {}; query: {}; client: {} }
 
@@ -21,9 +10,8 @@ export type GetResult<Base extends object, R extends Args['result'][string]> =
 export type GetSelect<Base extends object, R extends Args['result'][string]> =
   { [K in keyof R | keyof Base]?: K extends keyof Base ? Base[K] : boolean } 
 
-export type GetModel<Base extends object, M extends Args['model'][string], Meta extends OperationMeta> =
+export type GetModel<Base extends object, M extends Args['model'][string]> =
   M & Omit<Base, keyof M>
-  & { [K: symbol]: { meta: Meta } }
 
 export type GetClient<Base extends object, C extends Args['client'], CP extends Args['client']> =
   C & Omit<CP, keyof C> & Omit<Base, '$use' | keyof C | keyof CP>
@@ -34,4 +22,4 @@ export type ReadonlySelector<T> = T extends unknown ? {
   [K in keyof T as K extends 'include' | 'select' ? never : K]: T[K]
 } : never
 
-export type { Args, ExtensionContext }
+export type { Args }
