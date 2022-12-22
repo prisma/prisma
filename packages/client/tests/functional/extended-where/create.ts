@@ -14,6 +14,7 @@ testMatrix.setupTestSuite(() => {
       data: {
         id: userId,
         referralId: userReferralId,
+        payment: { create: {} },
       },
     })
 
@@ -48,6 +49,9 @@ testMatrix.setupTestSuite(() => {
       data: {
         id: userId,
         referralId: userReferralId,
+        payment: {
+          create: {},
+        },
       },
     })
 
@@ -83,6 +87,7 @@ testMatrix.setupTestSuite(() => {
       data: {
         id: userId,
         referralId: userReferralId,
+        payment: { create: {} },
       },
     })
 

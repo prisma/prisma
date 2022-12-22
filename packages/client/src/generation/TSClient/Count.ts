@@ -62,7 +62,7 @@ ${indent(
     .map((field) => {
       const types = ['boolean']
       if (field.outputType.location === 'outputObjectTypes') {
-        types.push(getFieldArgName(field))
+        types.push(getFieldArgName(field, this.type.name))
       }
 
       // TODO: what should happen if both args and output types are present?

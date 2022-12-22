@@ -48,3 +48,7 @@ export type Compute<T> = T extends Function
 export type OptionalFlat<T> = {
   [K in keyof T]?: T[K]
 }
+
+export type ReadonlyDeep<T> = {
+  readonly [K in keyof T]: ReadonlyDeep<T[K]>
+}
