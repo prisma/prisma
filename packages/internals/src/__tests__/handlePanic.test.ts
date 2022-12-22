@@ -134,7 +134,7 @@ describe('handlePanic', () => {
     expect(stripAnsi(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
       new RegExp(`^Error report submission failed due to:?`),
     )
-    expect(mockExit).toBeCalledWith(1)
+    expect(mockExit).toHaveBeenCalledWith(1)
     spySendPanic.mockRestore()
   })
 })

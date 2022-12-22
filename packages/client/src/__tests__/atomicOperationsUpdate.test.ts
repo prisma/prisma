@@ -149,6 +149,6 @@ describe('minimal atomic update transformation', () => {
       }
     `)
 
-    expect(() => document.validate(select, false)).not.toThrowError()
+    expect(() => document.validate(select, false)).not.toThrow()
   })
 })

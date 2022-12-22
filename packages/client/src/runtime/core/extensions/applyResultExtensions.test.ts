@@ -23,7 +23,7 @@ test('does not add fields if some dependencies are not met', () => {
     modelName: 'user',
     extensions: MergedExtensionsList.single(extension),
   })
-  expect(fullName).not.toBeCalled()
+  expect(fullName).not.toHaveBeenCalled()
   expect(extended).not.toHaveProperty('fullName')
 })
 

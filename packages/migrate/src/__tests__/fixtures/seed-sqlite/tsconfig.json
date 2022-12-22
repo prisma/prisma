@@ -1,8 +1,5 @@
 {
   "compilerOptions": {
-    "lib": [
-      "DOM",
-      "ES2020"
-    ]
+    "lib": ["DOM", "ES2020"]
   }
 }
