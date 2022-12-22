@@ -23,6 +23,7 @@ import {
   getMaxAggregateName,
   getMinAggregateName,
   getModelArgName,
+  getModelFieldArgsName,
   getReturnType,
   getSelectName,
   getSumAggregateName,
@@ -75,6 +76,18 @@ export class Model implements Generatable {
         argsTypes.push(new MinimalArgsType(field.args, this.type, this.genericsInfo, action as DMMF.ModelAction))
       } else if (action !== 'groupBy' && action !== 'aggregate') {
         argsTypes.push(new ArgsType(field.args, this.type, this.genericsInfo, action as DMMF.ModelAction))
+      }
+    }
+
+    for (const field of this.type.fields) {
+      if (field.args.length) {
+        if (field.outputType.location === 'outputObjectTypes' && typeof field.outputType.type === 'object') {
+          argsTypes.push(
+            new ArgsType(field.args, field.outputType.type, this.genericsInfo)
+              .setGeneratedName(getModelFieldArgsName(field, this.model.name))
+              .setComment(`${this.model.name}.${field.name}`),
+          )
+        }
       }
     }
 
@@ -335,7 +348,7 @@ ${indent(
       return (
         `${f.name}?: boolean` +
         (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions('<ExtArgs>', '')}`
+          ? ` | ${getFieldArgName(f, model.name)}${ifExtensions('<ExtArgs>', '')}`
           : '')
       )
     })
@@ -365,7 +378,7 @@ ${indent(
       return (
         `${f.name}?: boolean` +
         (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions('<ExtArgs>', '')}`
+          ? ` | ${getFieldArgName(f, model.name)}${ifExtensions('<ExtArgs>', '')}`
           : '')
       )
     })
@@ -590,13 +603,10 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions(
+${f.name}<T extends ${getFieldArgName(f, name)}${ifExtensions(
         '<ExtArgs> = {}',
         '= {}',
-      )}>(args?: Subset<T, ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions(
-        '<ExtArgs>',
-        '',
-      )}>): ${getReturnType({
+      )}>(args?: Subset<T, ${getFieldArgName(f, name)}${ifExtensions('<ExtArgs>', '')}>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
         hideCondition: false,

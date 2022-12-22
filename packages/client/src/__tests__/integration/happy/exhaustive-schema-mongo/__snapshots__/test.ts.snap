@@ -2589,7 +2589,7 @@ export namespace Prisma {
   }
 
   /**
-   * Post: findUnique
+   * Post findUnique
    */
   export interface PostFindUniqueArgs extends PostFindUniqueArgsBase {
    /**
@@ -2679,7 +2679,7 @@ export namespace Prisma {
   }
 
   /**
-   * Post: findFirst
+   * Post findFirst
    */
   export interface PostFindFirstArgs extends PostFindFirstArgsBase {
    /**
@@ -3282,7 +3282,7 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
-    posts?: boolean | PostFindManyArgs
+    posts?: boolean | UserPostsArgs
     embedHolder?: boolean | EmbedHolderArgs
     embedHolderId?: boolean
     _count?: boolean | UserCountOutputTypeArgs
@@ -3290,7 +3290,7 @@ export namespace Prisma {
 
 
   export type UserInclude = {
-    posts?: boolean | PostFindManyArgs
+    posts?: boolean | UserPostsArgs
     embedHolder?: boolean | EmbedHolderArgs
     _count?: boolean | UserCountOutputTypeArgs
   } 
@@ -3711,7 +3711,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    posts<T extends PostFindManyArgs= {}>(args?: Subset<T, PostFindManyArgs>): PrismaPromise<Array<PostGetPayload<T>>| Null>;
+    posts<T extends UserPostsArgs= {}>(args?: Subset<T, UserPostsArgs>): PrismaPromise<Array<PostGetPayload<T>>| Null>;
 
     embedHolder<T extends EmbedHolderArgs= {}>(args?: Subset<T, EmbedHolderArgs>): Prisma__EmbedHolderClient<EmbedHolderGetPayload<T> | Null>;
 
@@ -3764,7 +3764,7 @@ export namespace Prisma {
   }
 
   /**
-   * User: findUnique
+   * User findUnique
    */
   export interface UserFindUniqueArgs extends UserFindUniqueArgsBase {
    /**
@@ -3854,7 +3854,7 @@ export namespace Prisma {
   }
 
   /**
-   * User: findFirst
+   * User findFirst
    */
   export interface UserFindFirstArgs extends UserFindFirstArgsBase {
    /**
@@ -4152,6 +4152,29 @@ export namespace Prisma {
 
 
   /**
+   * User.posts
+   */
+  export type UserPostsArgs = {
+    /**
+     * Select specific fields to fetch from the Post
+     * 
+    **/
+    select?: PostSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: PostInclude | null
+    where?: PostWhereInput
+    orderBy?: Enumerable<PostOrderByWithRelationInput>
+    cursor?: PostWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Enumerable<PostScalarFieldEnum>
+  }
+
+
+  /**
    * User without action
    */
   export type UserArgs = {
@@ -4335,13 +4358,13 @@ export namespace Prisma {
     embedList?: boolean | EmbedArgs
     requiredEmbed?: boolean | EmbedArgs
     optionalEmbed?: boolean | EmbedArgs
-    User?: boolean | UserFindManyArgs
+    User?: boolean | EmbedHolderUserArgs
     _count?: boolean | EmbedHolderCountOutputTypeArgs
   }
 
 
   export type EmbedHolderInclude = {
-    User?: boolean | UserFindManyArgs
+    User?: boolean | EmbedHolderUserArgs
     _count?: boolean | EmbedHolderCountOutputTypeArgs
   } 
 
@@ -4768,7 +4791,7 @@ export namespace Prisma {
 
     optionalEmbed<T extends EmbedArgs= {}>(args?: Subset<T, EmbedArgs>): Prisma__EmbedClient<EmbedGetPayload<T> | Null>;
 
-    User<T extends UserFindManyArgs= {}>(args?: Subset<T, UserFindManyArgs>): PrismaPromise<Array<UserGetPayload<T>>| Null>;
+    User<T extends EmbedHolderUserArgs= {}>(args?: Subset<T, EmbedHolderUserArgs>): PrismaPromise<Array<UserGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -4819,7 +4842,7 @@ export namespace Prisma {
   }
 
   /**
-   * EmbedHolder: findUnique
+   * EmbedHolder findUnique
    */
   export interface EmbedHolderFindUniqueArgs extends EmbedHolderFindUniqueArgsBase {
    /**
@@ -4909,7 +4932,7 @@ export namespace Prisma {
   }
 
   /**
-   * EmbedHolder: findFirst
+   * EmbedHolder findFirst
    */
   export interface EmbedHolderFindFirstArgs extends EmbedHolderFindFirstArgsBase {
    /**
@@ -5207,6 +5230,29 @@ export namespace Prisma {
 
 
   /**
+   * EmbedHolder.User
+   */
+  export type EmbedHolderUserArgs = {
+    /**
+     * Select specific fields to fetch from the User
+     * 
+    **/
+    select?: UserSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: UserInclude | null
+    where?: UserWhereInput
+    orderBy?: Enumerable<UserOrderByWithRelationInput>
+    cursor?: UserWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Enumerable<UserScalarFieldEnum>
+  }
+
+
+  /**
    * EmbedHolder without action
    */
   export type EmbedHolderArgs = {
@@ -5489,7 +5535,7 @@ export namespace Prisma {
   export type MSelect = {
     id?: boolean
     n_ids?: boolean
-    n?: boolean | NFindManyArgs
+    n?: boolean | MNArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -5507,7 +5553,7 @@ export namespace Prisma {
 
 
   export type MInclude = {
-    n?: boolean | NFindManyArgs
+    n?: boolean | MNArgs
     _count?: boolean | MCountOutputTypeArgs
   } 
 
@@ -5925,7 +5971,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    n<T extends NFindManyArgs= {}>(args?: Subset<T, NFindManyArgs>): PrismaPromise<Array<NGetPayload<T>>| Null>;
+    n<T extends MNArgs= {}>(args?: Subset<T, MNArgs>): PrismaPromise<Array<NGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -5976,7 +6022,7 @@ export namespace Prisma {
   }
 
   /**
-   * M: findUnique
+   * M findUnique
    */
   export interface MFindUniqueArgs extends MFindUniqueArgsBase {
    /**
@@ -6066,7 +6112,7 @@ export namespace Prisma {
   }
 
   /**
-   * M: findFirst
+   * M findFirst
    */
   export interface MFindFirstArgs extends MFindFirstArgsBase {
    /**
@@ -6364,6 +6410,29 @@ export namespace Prisma {
 
 
   /**
+   * M.n
+   */
+  export type MNArgs = {
+    /**
+     * Select specific fields to fetch from the N
+     * 
+    **/
+    select?: NSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: NInclude | null
+    where?: NWhereInput
+    orderBy?: Enumerable<NOrderByWithRelationInput>
+    cursor?: NWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Enumerable<NScalarFieldEnum>
+  }
+
+
+  /**
    * M without action
    */
   export type MArgs = {
@@ -6646,7 +6715,7 @@ export namespace Prisma {
   export type NSelect = {
     id?: boolean
     m_ids?: boolean
-    m?: boolean | MFindManyArgs
+    m?: boolean | NMArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -6664,7 +6733,7 @@ export namespace Prisma {
 
 
   export type NInclude = {
-    m?: boolean | MFindManyArgs
+    m?: boolean | NMArgs
     _count?: boolean | NCountOutputTypeArgs
   } 
 
@@ -7082,7 +7151,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    m<T extends MFindManyArgs= {}>(args?: Subset<T, MFindManyArgs>): PrismaPromise<Array<MGetPayload<T>>| Null>;
+    m<T extends NMArgs= {}>(args?: Subset<T, NMArgs>): PrismaPromise<Array<MGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -7133,7 +7202,7 @@ export namespace Prisma {
   }
 
   /**
-   * N: findUnique
+   * N findUnique
    */
   export interface NFindUniqueArgs extends NFindUniqueArgsBase {
    /**
@@ -7223,7 +7292,7 @@ export namespace Prisma {
   }
 
   /**
-   * N: findFirst
+   * N findFirst
    */
   export interface NFindFirstArgs extends NFindFirstArgsBase {
    /**
@@ -7521,6 +7590,29 @@ export namespace Prisma {
 
 
   /**
+   * N.m
+   */
+  export type NMArgs = {
+    /**
+     * Select specific fields to fetch from the M
+     * 
+    **/
+    select?: MSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: MInclude | null
+    where?: MWhereInput
+    orderBy?: Enumerable<MOrderByWithRelationInput>
+    cursor?: MWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Enumerable<MScalarFieldEnum>
+  }
+
+
+  /**
    * N without action
    */
   export type NArgs = {
@@ -7799,7 +7891,7 @@ export namespace Prisma {
 
   export type OneOptionalSelect = {
     id?: boolean
-    many?: boolean | ManyRequiredFindManyArgs
+    many?: boolean | OneOptionalManyArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -7817,7 +7909,7 @@ export namespace Prisma {
 
 
   export type OneOptionalInclude = {
-    many?: boolean | ManyRequiredFindManyArgs
+    many?: boolean | OneOptionalManyArgs
     _count?: boolean | OneOptionalCountOutputTypeArgs
   } 
 
@@ -8235,7 +8327,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    many<T extends ManyRequiredFindManyArgs= {}>(args?: Subset<T, ManyRequiredFindManyArgs>): PrismaPromise<Array<ManyRequiredGetPayload<T>>| Null>;
+    many<T extends OneOptionalManyArgs= {}>(args?: Subset<T, OneOptionalManyArgs>): PrismaPromise<Array<ManyRequiredGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -8286,7 +8378,7 @@ export namespace Prisma {
   }
 
   /**
-   * OneOptional: findUnique
+   * OneOptional findUnique
    */
   export interface OneOptionalFindUniqueArgs extends OneOptionalFindUniqueArgsBase {
    /**
@@ -8376,7 +8468,7 @@ export namespace Prisma {
   }
 
   /**
-   * OneOptional: findFirst
+   * OneOptional findFirst
    */
   export interface OneOptionalFindFirstArgs extends OneOptionalFindFirstArgsBase {
    /**
@@ -8670,6 +8762,29 @@ export namespace Prisma {
      * 
     **/
     options?: InputJsonValue
+  }
+
+
+  /**
+   * OneOptional.many
+   */
+  export type OneOptionalManyArgs = {
+    /**
+     * Select specific fields to fetch from the ManyRequired
+     * 
+    **/
+    select?: ManyRequiredSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: ManyRequiredInclude | null
+    where?: ManyRequiredWhereInput
+    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
+    cursor?: ManyRequiredWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Enumerable<ManyRequiredScalarFieldEnum>
   }
 
 
@@ -9443,7 +9558,7 @@ export namespace Prisma {
   }
 
   /**
-   * ManyRequired: findUnique
+   * ManyRequired findUnique
    */
   export interface ManyRequiredFindUniqueArgs extends ManyRequiredFindUniqueArgsBase {
    /**
@@ -9533,7 +9648,7 @@ export namespace Prisma {
   }
 
   /**
-   * ManyRequired: findFirst
+   * ManyRequired findFirst
    */
   export interface ManyRequiredFindFirstArgs extends ManyRequiredFindFirstArgsBase {
    /**
@@ -10600,7 +10715,7 @@ export namespace Prisma {
   }
 
   /**
-   * OptionalSide1: findUnique
+   * OptionalSide1 findUnique
    */
   export interface OptionalSide1FindUniqueArgs extends OptionalSide1FindUniqueArgsBase {
    /**
@@ -10690,7 +10805,7 @@ export namespace Prisma {
   }
 
   /**
-   * OptionalSide1: findFirst
+   * OptionalSide1 findFirst
    */
   export interface OptionalSide1FindFirstArgs extends OptionalSide1FindFirstArgsBase {
    /**
@@ -11749,7 +11864,7 @@ export namespace Prisma {
   }
 
   /**
-   * OptionalSide2: findUnique
+   * OptionalSide2 findUnique
    */
   export interface OptionalSide2FindUniqueArgs extends OptionalSide2FindUniqueArgsBase {
    /**
@@ -11839,7 +11954,7 @@ export namespace Prisma {
   }
 
   /**
-   * OptionalSide2: findFirst
+   * OptionalSide2 findFirst
    */
   export interface OptionalSide2FindFirstArgs extends OptionalSide2FindFirstArgsBase {
    /**
@@ -12832,7 +12947,7 @@ export namespace Prisma {
   }
 
   /**
-   * A: findUnique
+   * A findUnique
    */
   export interface AFindUniqueArgs extends AFindUniqueArgsBase {
    /**
@@ -12912,7 +13027,7 @@ export namespace Prisma {
   }
 
   /**
-   * A: findFirst
+   * A findFirst
    */
   export interface AFindFirstArgs extends AFindFirstArgsBase {
    /**
@@ -13842,7 +13957,7 @@ export namespace Prisma {
   }
 
   /**
-   * B: findUnique
+   * B findUnique
    */
   export interface BFindUniqueArgs extends BFindUniqueArgsBase {
    /**
@@ -13922,7 +14037,7 @@ export namespace Prisma {
   }
 
   /**
-   * B: findFirst
+   * B findFirst
    */
   export interface BFindFirstArgs extends BFindFirstArgsBase {
    /**
@@ -14846,7 +14961,7 @@ export namespace Prisma {
   }
 
   /**
-   * C: findUnique
+   * C findUnique
    */
   export interface CFindUniqueArgs extends CFindUniqueArgsBase {
    /**
@@ -14926,7 +15041,7 @@ export namespace Prisma {
   }
 
   /**
-   * C: findFirst
+   * C findFirst
    */
   export interface CFindFirstArgs extends CFindFirstArgsBase {
    /**
@@ -15872,7 +15987,7 @@ export namespace Prisma {
   }
 
   /**
-   * D: findUnique
+   * D findUnique
    */
   export interface DFindUniqueArgs extends DFindUniqueArgsBase {
    /**
@@ -15952,7 +16067,7 @@ export namespace Prisma {
   }
 
   /**
-   * D: findFirst
+   * D findFirst
    */
   export interface DFindFirstArgs extends DFindFirstArgsBase {
    /**
@@ -16852,7 +16967,7 @@ export namespace Prisma {
   }
 
   /**
-   * E: findUnique
+   * E findUnique
    */
   export interface EFindUniqueArgs extends EFindUniqueArgsBase {
    /**
@@ -16932,7 +17047,7 @@ export namespace Prisma {
   }
 
   /**
-   * E: findFirst
+   * E findFirst
    */
   export interface EFindFirstArgs extends EFindFirstArgsBase {
    /**

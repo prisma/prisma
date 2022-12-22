@@ -430,9 +430,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 
   async getDmmf(): Promise<DMMF.Document> {
-    await this.libraryInstantiationPromise
+    await this.start()
 
-    return JSON.parse(await this.library!.dmmf(this.datamodel))
+    return JSON.parse(await this.engine!.dmmf())
   }
 
   version(): string {

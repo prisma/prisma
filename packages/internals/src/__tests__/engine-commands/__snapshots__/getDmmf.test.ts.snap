@@ -23812,6 +23812,7 @@ exports[`getDMMF simple model, mongodb 1`] = `
       "dbName": null,
       "fields": [
         {
+          "dbName": "_id",
           "hasDefaultValue": false,
           "isGenerated": false,
           "isId": true,
@@ -23858,6 +23859,7 @@ exports[`getDMMF simple model, mongodb 2`] = `
         "dbName": null,
         "fields": [
           {
+            "dbName": "_id",
             "hasDefaultValue": false,
             "isGenerated": false,
             "isId": true,
