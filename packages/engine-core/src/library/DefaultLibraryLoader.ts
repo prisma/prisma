@@ -35,7 +35,9 @@ export class DefaultLibraryLoader implements LibraryLoader {
       if (fs.existsSync(this.libQueryEnginePath)) {
         if (this.libQueryEnginePath.endsWith('.node')) {
           throw new PrismaClientInitializationError(
-            `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, Library may be corrupt: ${e.message}`,
+            `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, Library may be corrupt: ${
+              e.message
+            }`,
             this.config.clientVersion!,
           )
         } else {
