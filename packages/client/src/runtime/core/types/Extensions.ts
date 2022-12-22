@@ -5,7 +5,13 @@ import { Operation } from './GetResult';
 import { Payload } from './Payload';
 import { Omit, ReadonlyDeep } from './Utils'
 
-type OperationMap = Record<Operation, { payload: Payload }>
+type OperationMeta = {
+  [key in Operation]?: {
+      args: any,
+      result: any,
+      payload: Payload;
+  };
+}
 
 export type DefaultArgs = { result: {}; model: {}; query: {}; client: {} }
 
@@ -13,9 +19,9 @@ export type GetResult<Base extends object, R extends Args['result'][string]> =
   {} extends R ? Base : { [K in keyof R]: ReturnType<R[K]['compute']> } & { [K in Exclude<keyof Base, keyof R>]: Base[K] }
 
 export type GetSelect<Base extends object, R extends Args['result'][string]> =
-  R extends unknown ? Base & { [K in keyof R]?: boolean } : never
+  { [K in keyof R | keyof Base]?: K extends keyof Base ? Base[K] : boolean } 
 
-export type GetModel<Base extends object, M extends Args['model'][string], Meta extends OperationMap> =
+export type GetModel<Base extends object, M extends Args['model'][string], Meta extends OperationMeta> =
   M & Omit<Base, keyof M>
   & { [K: symbol]: { meta: Meta } }
 

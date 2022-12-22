@@ -60,7 +60,7 @@ export type Narrow<A> = {
 } | (A extends Narrowable ? A : never)
 
 export type Exact<A, W> = (W extends A ? {
-  [K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : never
+  [K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : W[K]
 } : W) | (A extends Narrowable ? A : never)
 
 export type Cast<A, W> = A extends W ? A : W

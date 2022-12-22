@@ -1,1 +1,9 @@
-export type Payload = { kind: 'Payload'; scalars: any; objects: any }
+export type Payload = {
+  kind: 'Payload'
+  scalars: {
+    [ScalarName in string]: unknown
+  }
+  objects: {
+    [ObjectName in string]: Payload | Payload[] | null
+  }
+}

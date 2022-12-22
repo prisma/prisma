@@ -27,55 +27,48 @@ export type Operation =
 // | 'findRaw'
 // | 'runCommandRaw'
 
-type ObjectsOf<P extends Payload> = P['objects']
-type ScalarsOf<P extends Payload> = P['scalars']
-type AllOf<P extends Payload> = P['objects'] & P['scalars']
-
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
-type GetFindResult<P, A, R extends 'objects' | 'scalars' = 'scalars'> =
-  // Args extends { select: any, include: any } ? 'Please either choose `select` or `include`' :
-  P extends Payload
-  ? A extends { include: any }
-    ? ScalarsOf<P> & {
-      [K in keyof A['include'] as A['include'][K] extends false | undefined | null ? never : K]:
-        K extends '_count' ? Count<GetFindResult<P, A['include'][K], 'objects'>> :
-        ObjectsOf<P>[K] extends any[] ? Array<GetFindResult<ObjectsOf<P>[K][number], A['include'][K]>> :
-        ObjectsOf<P>[K] extends object ? GetFindResult<ObjectsOf<P>[K], A['include'][K]> :
-        GetFindResult<ObjectsOf<P>[K], A['include'][K]>
-    }
-    : A extends { select: any }
-    ? {
-      [K in keyof A['select'] as A['select'][K] extends false | undefined | null ? never : K]:
-        K extends '_count' ? Count<GetFindResult<P, A['select'][K], 'objects'>> :
-        AllOf<P>[K] extends any[] ? Array<GetFindResult<AllOf<P>[K][number], A['select'][K]>> :
-        AllOf<P>[K] extends object ? GetFindResult<AllOf<P>[K], A['select'][K]> :
-        GetFindResult<AllOf<P>[K], A['select'][K]>
-    }
-    : { scalars: ScalarsOf<P>, objects: ObjectsOf<P> }[R]
-  : P
+type GetFindResult<P extends Payload, A> = 
+  A extends { select: infer S } | { include: infer S }
+  ? {
+      [K in keyof S as S[K] extends false | undefined | null ? never : K]:
+        S[K] extends true
+        ? P extends { objects: { [k in K]: (infer O extends Payload)[] } }
+          ? O['scalars'][]
+          : P extends { objects: { [k in K]: (infer O extends Payload) | null } }
+            ? O['scalars'] | P['objects'][K] & null
+            : P extends { scalars: { [k in K]: infer O } }
+              ? O
+              : K extends '_count'
+                ? Count<P['objects']>
+                : never
+        : P extends { objects: { [k in K]: (infer O extends Payload)[] } }
+          ? GetFindResult<O, S[K]>[]
+          : P extends { objects: { [k in K]: (infer O extends Payload) | null } }
+            ? GetFindResult<O, S[K]> | P['objects'][K] & null
+            : K extends '_count'
+              ? Count<GetFindResult<P, S[K]>>
+              : never
+  } & (A extends { include: any} ? P['scalars'] : unknown)
+  : P['scalars']
 
 type GetCountResult<P, A> =
-  P extends Payload
-  ? A extends { select: any }
-    ? A extends { select : true }
-      ? number
-      : Count<A['select']>
-    : number
-  : never
+  A extends { select: infer S }
+  ? S extends true
+    ? number
+    : Count<S>
+  : number
 
 type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum' 
-type GetAggregateResult<P, A> =
-  P extends Payload
-  ? {
-      [K in keyof A as K extends Aggregate ? K : never]:
-        K extends '_count'
-        ? A[K] extends true
-          ? number
-          : Count<A[K]>
-        : Count<A[K]>
-    }
-  : never
+type GetAggregateResult<P, A> = {
+  [K in keyof A as K extends Aggregate ? K : never]:
+    K extends '_count'
+    ? A[K] extends true
+      ? number
+      : Count<A[K]>
+    : Count<A[K]>
+}
 
 type GetBatchResult<P, A> = { count: number }
 
@@ -86,7 +79,7 @@ type GetGroupByResult<P, A> =
     : never
   : never
 
-export type GetResult<P, A, O extends Operation> = {
+export type GetResult<P extends Payload, A, O extends Operation> = {
   findUnique: GetFindResult<P, A>,
   findUniqueOrThrow: GetFindResult<P, A>,
   findFirst: GetFindResult<P, A>,
