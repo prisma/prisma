@@ -12,7 +12,6 @@ const exec = promisify(cp.exec)
 
 // https://www.geeksforgeeks.org/node-js-process-arch-property/
 export type Arch = 'x32' | 'x64' | 'arm' | 'arm64' | 's390' | 's390x' | 'mipsel' | 'ia32' | 'mips' | 'ppc' | 'ppc64'
-export type UnameArch = 'i386' | 'x86_64' | 'arm64' | 'arm7l'
 export type GetOSResult = {
   platform: NodeJS.Platform
   arch: Arch
