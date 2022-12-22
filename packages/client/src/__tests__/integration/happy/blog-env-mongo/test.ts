@@ -213,7 +213,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       },
     })
 
-    await expect(post).rejects.toThrowError(
+    await expect(post).rejects.toThrow(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       expect.objectContaining({
         message: expect.stringContaining('Malformed ObjectID'),
@@ -230,7 +230,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       },
     })
 
-    await expect(post).rejects.toThrowError(
+    await expect(post).rejects.toThrow(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       expect.objectContaining({
         message: expect.stringContaining('Malformed ObjectID'),

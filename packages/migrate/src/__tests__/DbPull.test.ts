@@ -170,20 +170,20 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                              - Introspecting based on datasource defined in prisma/reintrospection.prisma
+                  - Introspecting based on datasource defined in prisma/reintrospection.prisma
 
-                              ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
-                                    
-                              *** WARNING ***
+                  ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
+                        
+                  *** WARNING ***
 
-                              These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                              - Model "AwesomeNewPost"
-                              - Model "AwesomeProfile"
-                              - Model "AwesomeUser"
+                  These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                  - Model "AwesomeNewPost"
+                  - Model "AwesomeProfile"
+                  - Model "AwesomeUser"
 
-                              Run prisma generate to generate Prisma Client.
+                  Run prisma generate to generate Prisma Client.
 
-                    `)
+            `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toMatchInlineSnapshot(`
@@ -240,14 +240,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                              // *** WARNING ***
-                              // 
-                              // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                              // - Model "AwesomeNewPost"
-                              // - Model "AwesomeProfile"
-                              // - Model "AwesomeUser"
-                              // 
-                    `)
+                  // *** WARNING ***
+                  // 
+                  // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                  // - Model "AwesomeNewPost"
+                  // - Model "AwesomeProfile"
+                  // - Model "AwesomeUser"
+                  // 
+            `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 
@@ -282,18 +282,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      P4001 The introspected database was empty: 
+            P4001 The introspected database was empty: 
 
-      prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-      To fix this, you have two options:
+            To fix this, you have two options:
 
-      - manually create a table in your database.
-      - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+            - manually create a table in your database.
+            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-      Then you can run prisma db pull again. 
+            Then you can run prisma db pull again. 
 
-    `)
+        `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -317,18 +317,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      P4001 The introspected database was empty: 
+            P4001 The introspected database was empty: 
 
-      prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-      To fix this, you have two options:
+            To fix this, you have two options:
 
-      - manually create a table in your database.
-      - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+            - manually create a table in your database.
+            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-      Then you can run prisma db pull again. 
+            Then you can run prisma db pull again. 
 
-    `)
+        `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -364,12 +364,12 @@ describe('common/sqlite', () => {
     ctx.fixture('introspect')
     const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            P1012 Introspection failed as your current Prisma schema file is invalid
+      P1012 Introspection failed as your current Prisma schema file is invalid
 
-            Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-            Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+      Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
+      Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
 
-          `)
+    `)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -404,13 +404,13 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                            - Introspecting based on datasource defined in prisma/invalid.prisma
+                                                - Introspecting based on datasource defined in prisma/invalid.prisma
 
-                                                            ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
-                                                                  
-                                                            Run prisma generate to generate Prisma Client.
+                                                ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
+                                                      
+                                                Run prisma generate to generate Prisma Client.
 
-                                        `)
+                                `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 
     expect(ctx.fs.read('prisma/invalid.prisma')).toMatchSnapshot()
@@ -504,11 +504,11 @@ describe('postgresql', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                            - Introspecting based on datasource defined in prisma/using-dotenv.prisma
+                                                - Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
-                                                            ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
+                                                ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
-                                                                        `)
+                                                                `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
@@ -1197,20 +1197,20 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                          - Introspecting based on datasource defined in prisma/no-model.prisma
+                                              - Introspecting based on datasource defined in prisma/no-model.prisma
 
-                                                          ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
-                                                                
-                                                          *** WARNING ***
-                                                          
-                                                          The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                          - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                          - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                          - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                              ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
+                                                    
+                                              *** WARNING ***
+                                              
+                                              The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                              - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                              - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                              - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-                                                          Run prisma generate to generate Prisma Client.
+                                              Run prisma generate to generate Prisma Client.
 
-                                      `)
+                              `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1228,20 +1228,20 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                            - Introspecting based on datasource defined in prisma/schema.prisma
+                                                - Introspecting based on datasource defined in prisma/schema.prisma
 
-                                                            ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
-                                                                  
-                                                            *** WARNING ***
-                                                            
-                                                            The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                            - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                            - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                            - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+                                                      
+                                                *** WARNING ***
+                                                
+                                                The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-                                                            Run prisma generate to generate Prisma Client.
+                                                Run prisma generate to generate Prisma Client.
 
-                                        `)
+                                `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1291,14 +1291,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                            // *** WARNING ***
-                                                            // 
-                                                            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                            // - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                            // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                            // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-                                                            // 
-                                        `)
+                                                // *** WARNING ***
+                                                // 
+                                                // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                // 
+                                `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1334,12 +1334,12 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                            // *** WARNING ***
-                                                            // 
-                                                            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                            // - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                            // 
-                                        `)
+                                                // *** WARNING ***
+                                                // 
+                                                // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                // 
+                                `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1383,13 +1383,13 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                            // *** WARNING ***
-                                                            // 
-                                                            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                            // - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                            // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                            // 
-                                        `)
+                                                // *** WARNING ***
+                                                // 
+                                                // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                // 
+                                `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1408,20 +1408,20 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                            - Introspecting based on datasource defined in prisma/schema.prisma
+                                                - Introspecting based on datasource defined in prisma/schema.prisma
 
-                                                            ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
-                                                                  
-                                                            *** WARNING ***
-                                                            
-                                                            The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                            - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                            - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                            - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+                                                      
+                                                *** WARNING ***
+                                                
+                                                The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-                                                            Run prisma generate to generate Prisma Client.
+                                                Run prisma generate to generate Prisma Client.
 
-                                        `)
+                                `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1471,14 +1471,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                            // *** WARNING ***
-                                                            // 
-                                                            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                            // - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                            // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                            // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-                                                            // 
-                                        `)
+                                                // *** WARNING ***
+                                                // 
+                                                // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                // 
+                                `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1493,14 +1493,14 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                            // *** WARNING ***
-                                                            // 
-                                                            // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                            // - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                            // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                            // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-                                                            // 
-                                        `)
+                                                // *** WARNING ***
+                                                // 
+                                                // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                // 
+                                `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1520,20 +1520,20 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                            - Introspecting
+                                                - Introspecting
 
-                                                            ✔ Introspected 1 model and 2 embedded documents and wrote them into schema.prisma in XXXms
-                                                                  
-                                                            *** WARNING ***
-                                                            
-                                                            The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                            - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                            - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                            - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                ✔ Introspected 1 model and 2 embedded documents and wrote them into schema.prisma in XXXms
+                                                      
+                                                *** WARNING ***
+                                                
+                                                The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-                                                            Run prisma generate to generate Prisma Client.
+                                                Run prisma generate to generate Prisma Client.
 
-                                        `)
+                                `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1551,20 +1551,20 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                            - Introspecting based on datasource defined in prisma/schema.prisma
+                                                - Introspecting based on datasource defined in prisma/schema.prisma
 
-                                                            ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
-                                                                  
-                                                            *** WARNING ***
-                                                            
-                                                            The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                            - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                            - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                            - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+                                                      
+                                                *** WARNING ***
+                                                
+                                                The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-                                                            Run prisma generate to generate Prisma Client.
+                                                Run prisma generate to generate Prisma Client.
 
-                                        `)
+                                `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 

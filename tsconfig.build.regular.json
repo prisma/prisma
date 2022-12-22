@@ -2,10 +2,7 @@
   "compilerOptions": {
     "target": "ES2020",
     "module": "commonjs",
-    "lib": [
-      "ES2020",
-      "ES2021.WeakRef"
-    ],
+    "lib": ["ES2020", "ES2021.WeakRef"],
     "esModuleInterop": true,
     "isolatedModules": true,
     "sourceMap": true,
@@ -21,9 +18,5 @@
     "emitDeclarationOnly": true,
     "resolveJsonModule": true
   },
-  "exclude": [
-    "**/dist",
-    "**/node_modules",
-    "**/src/__tests__"
-  ]
+  "exclude": ["**/dist", "**/node_modules", "**/src/__tests__"]
 }
