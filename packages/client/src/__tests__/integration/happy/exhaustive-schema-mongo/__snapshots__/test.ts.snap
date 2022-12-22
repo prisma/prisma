@@ -1761,6 +1761,7 @@ export namespace Prisma {
 
 
 
+
   }
 
   /**
@@ -1867,6 +1868,7 @@ export namespace Prisma {
 
 
   export interface EmbedEmbedDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
 
 
 
@@ -2149,6 +2151,7 @@ export namespace Prisma {
     }
 
   export interface PostDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one Post that matches the filter.
      * @param {PostFindUniqueArgs} args - Arguments to find a Post
@@ -3322,6 +3325,7 @@ export namespace Prisma {
     }
 
   export interface UserDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one User that matches the filter.
      * @param {UserFindUniqueArgs} args - Arguments to find a User
@@ -4396,6 +4400,7 @@ export namespace Prisma {
     }
 
   export interface EmbedHolderDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one EmbedHolder that matches the filter.
      * @param {EmbedHolderFindUniqueArgs} args - Arguments to find a EmbedHolder
@@ -5582,6 +5587,7 @@ export namespace Prisma {
     }
 
   export interface MDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one M that matches the filter.
      * @param {MFindUniqueArgs} args - Arguments to find a M
@@ -6762,6 +6768,7 @@ export namespace Prisma {
     }
 
   export interface NDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one N that matches the filter.
      * @param {NFindUniqueArgs} args - Arguments to find a N
@@ -7938,6 +7945,7 @@ export namespace Prisma {
     }
 
   export interface OneOptionalDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one OneOptional that matches the filter.
      * @param {OneOptionalFindUniqueArgs} args - Arguments to find a OneOptional
@@ -9118,6 +9126,7 @@ export namespace Prisma {
     }
 
   export interface ManyRequiredDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one ManyRequired that matches the filter.
      * @param {ManyRequiredFindUniqueArgs} args - Arguments to find a ManyRequired
@@ -10275,6 +10284,7 @@ export namespace Prisma {
     }
 
   export interface OptionalSide1Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one OptionalSide1 that matches the filter.
      * @param {OptionalSide1FindUniqueArgs} args - Arguments to find a OptionalSide1
@@ -11424,6 +11434,7 @@ export namespace Prisma {
     }
 
   export interface OptionalSide2Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one OptionalSide2 that matches the filter.
      * @param {OptionalSide2FindUniqueArgs} args - Arguments to find a OptionalSide2
@@ -12513,6 +12524,7 @@ export namespace Prisma {
     }
 
   export interface ADelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one A that matches the filter.
      * @param {AFindUniqueArgs} args - Arguments to find a A
@@ -13523,6 +13535,7 @@ export namespace Prisma {
     }
 
   export interface BDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one B that matches the filter.
      * @param {BFindUniqueArgs} args - Arguments to find a B
@@ -14527,6 +14540,7 @@ export namespace Prisma {
     }
 
   export interface CDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one C that matches the filter.
      * @param {CFindUniqueArgs} args - Arguments to find a C
@@ -15553,6 +15567,7 @@ export namespace Prisma {
     }
 
   export interface DDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one D that matches the filter.
      * @param {DFindUniqueArgs} args - Arguments to find a D
@@ -16533,6 +16548,7 @@ export namespace Prisma {
     }
 
   export interface EDelegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined> {
+
     /**
      * Find zero or one E that matches the filter.
      * @param {EFindUniqueArgs} args - Arguments to find a E
