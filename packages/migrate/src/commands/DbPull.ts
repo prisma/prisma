@@ -163,30 +163,40 @@ Set composite types introspection depth to 2 levels
      *
      * If neither these variables were set, we'd have already thrown a `NoSchemaFoundError`.
      */
-    const schema = await match({ url, schemaPath })
+    const { config, schema } = await match({ url, schemaPath })
       .when(
         (input): input is { url: string | undefined; schemaPath: string } => input.schemaPath !== null,
         async (input) => {
           const rawSchema = fs.readFileSync(input.schemaPath, 'utf-8')
+          const config = await getConfig({
+            datamodel: rawSchema,
+            ignoreEnvVarErrors: true,
+          })
 
           if (input.url) {
-            const config = await getConfig({
-              datamodel: rawSchema,
-              ignoreEnvVarErrors: true,
-            })
+            // TODO: ensure that the `input.url` protocol is compatible with the schema provider
+            // to avoid ambiguities in case of schema parsing errors (error code P1012)
+
             const provider = config.datasources[0]?.provider
             const schema = `${this.urlToDatasource(input.url, provider)}${removeDatasource(rawSchema)}`
-            return schema
+            return { config, schema }
           }
 
-          return rawSchema
+          return { config, schema: rawSchema }
         },
       )
       .when(
         (input): input is { url: string; schemaPath: null } => input.url !== undefined,
-        (input) => {
+        async (input) => {
+          // TODO: ensure that the `input.url` protocol is valid
+
           const schema = this.urlToDatasource(input.url)
-          return Promise.resolve(schema)
+          const config = await getConfig({
+            datamodel: schema,
+            ignoreEnvVarErrors: true,
+          })
+
+          return { config, schema }
         },
       )
       .run()
@@ -194,10 +204,6 @@ Set composite types introspection depth to 2 levels
     // Re-Introspection is not supported on MongoDB
     if (schemaPath) {
       const schema = await getSchema(args['--schema'])
-      const config = await getConfig({
-        datamodel: schema,
-        ignoreEnvVarErrors: true,
-      })
 
       const modelRegex = /\s*model\s*(\w+)\s*{/
       const modelMatch = modelRegex.exec(schema)
@@ -264,11 +270,12 @@ Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again.
 
         // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
         // '--url' argument is different than the one written in the schema.prisma file.
+        // We should throw another error earlier in case the URL protocol is not compatible with the schema provider.
         throw new Error(`${chalk.red(`${e.code}`)} Introspection failed as your current Prisma schema file is invalid
 
-Please fix your current schema manually, use ${chalk.green(
+Please fix your current schema manually (using either ${chalk.green(
           getCommandWithExecutor('prisma validate'),
-        )} to confirm it is valid and then run this command again.
+        )} or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
 Or run this command with the ${chalk.green(
           '--force',
         )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
