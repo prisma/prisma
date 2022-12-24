@@ -11,10 +11,10 @@ import { Exact } from './Utils'
  */
 
 export type Args<T, F extends Operation> =
-  T extends { [K: symbol]: { types: { [K in F]: { args: infer A } } } }
-  ? A
-  : T extends { [K: symbol]: { ctx: { [K: symbol]: { types: { [K in F]: { args: infer A } } } } } }
-    ? A
+  T extends { [K: symbol]: { types: { [K in F]: { args: any} } } }
+  ? T[symbol]['types'][F]['args']
+  : T extends { [K: symbol]: { ctx: { [K: symbol]: { types: { [K in F]: { args: any } } } } } }
+    ? T[symbol]['ctx'][symbol]['types'][F]['args']
     : never
 
 export type Result<T, A, F extends Operation> =

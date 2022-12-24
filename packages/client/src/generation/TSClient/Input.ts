@@ -59,7 +59,7 @@ function stringifyInputType(
 
   ifExtensions(() => {
     if (typeof type === 'string' && (type.endsWith('Select') || type.endsWith('Include'))) {
-      type = `${type}<ExtArgs>`
+      type = `${type}<ExtArgs & {}>`
     }
   }, undefined)
 

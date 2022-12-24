@@ -302,7 +302,7 @@ ${indent(
 ${indent(
   model.fields
     .filter((f) => f.kind === 'scalar' || f.kind === 'enum')
-    .map((field) => new ModelOutputField(this.dmmf, field, false).toTS())
+    .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
     .join('\n'),
   TAB_SIZE,
 )}
@@ -469,7 +469,7 @@ export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNot
     )}> {
 ${ifExtensions(
   `${indent(
-    `[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'] }, meta: { name: '${name}' } `,
+    `[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`,
     TAB_SIZE,
   )}`,
   '',

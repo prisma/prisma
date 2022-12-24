@@ -12,7 +12,6 @@ import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
 import { ifExtensions } from './utils/ifExtensions'
-import { Patch, Patch3 } from './utils/Patch'
 
 function clientExtensionsResultDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
@@ -25,7 +24,7 @@ function clientExtensionsResultDefinition(this: PrismaClientClass) {
 
   const genericParams = [
     ...modelNames.flatMap(resultGenericParams),
-    `R extends runtime.Types.Extensions.Args['result'] = {}`,
+    `R extends runtime.Types.Extensions.UserArgs['result'] = {}`,
   ].join(',\n    ')
 
   const resultParam = (modelName: string) => {
@@ -67,7 +66,7 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
     }`
 
   return {
-    genericParams: `M extends runtime.Types.Extensions.Args['model'] = {}`,
+    genericParams: `M extends runtime.Types.Extensions.UserArgs['model'] = {}`,
     params,
   }
 }
@@ -130,7 +129,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     }`
 
   return {
-    genericParams: `Q extends runtime.Types.Extensions.Args['query'] = {}`,
+    genericParams: `Q extends runtime.Types.Extensions.UserArgs['query'] = {}`,
     params: `${allModelsParam} & ${concreteModelParams}`,
     prismaNamespaceDefinitions,
   }
@@ -138,8 +137,8 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
 
 function clientExtensionsClientDefinition(this: PrismaClientClass) {
   return {
-    genericParams: `C extends runtime.Types.Extensions.Args['client'] = {}`,
-    params: `{ [K: symbol]: { ctx: runtime.Types.Extensions.GetClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client'], {}> } }`,
+    genericParams: `C extends runtime.Types.Extensions.UserArgs['client'] = {}`,
+    params: `{ [K: symbol]: { ctx: runtime.Types.Extensions.GetClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client']> } }`,
   }
 }
 
@@ -156,7 +155,7 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
   return {
     signature: `${name === 'defineExtension' ? name : `${name}: { extArgs: ExtArgs } & (`}<
     ${genericParams.join(',\n    ')},
-    Args extends runtime.Types.Extensions.Args = { result: R, model: M, query: Q, client: C },${
+    Args extends runtime.Types.Extensions.Args = runtime.Types.Utils.WrapPropsInFnDeep<{ result: R, model: M, query: Q, client: C }>, ${
       name === 'defineExtension'
         ? `
     ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs,`
@@ -171,15 +170,11 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
       name === 'defineExtension'
         ? '(client: any) => PrismaClient<any, any, any, Args>'
         : `runtime.Types.Extensions.GetClient<PrismaClient<T, U, GlobalReject, {
-  result: '$allModels' extends keyof Args['result']
-  ? { [K in ${modelNameUnion}]: ${Patch3(`Args['result'][K]`, `Args['result']['$allModels']`, `ExtArgs['result'][K]`)} }
-  : { [K in (keyof Args['result'] | keyof ExtArgs['result'])]: ${Patch(`Args['result'][K]`, `ExtArgs['result'][K]`)} }
-  model: '$allModels' extends keyof Args['model']
-  ? { [K in ${modelNameUnion}]: ${Patch3(`Args['model'][K]`, `Args['model']['$allModels']`, `ExtArgs['model'][K]`)} }
-  : { [K in (keyof Args['model'] | keyof ExtArgs['model'])]: ${Patch(`Args['model'][K]`, `ExtArgs['model'][K]`)} }
-  client: ${Patch(`Args['client']`, `ExtArgs['client']`)}
-  query: {}
-  }>, Args['client'], ExtArgs['client']>`
+    result: ExtArgs['result'] & Args['result'],
+    model: ExtArgs['model'] & Args['model'],
+    client: ExtArgs['client'] & Args['client'],
+    query: {}
+  }>, ExtArgs['client'] & Args['client']>`
     }${name === 'defineExtension' ? '' : ')'};`,
     prismaNamespaceDefinitions: `${query.prismaNamespaceDefinitions}
 export type ExtensionArgs<

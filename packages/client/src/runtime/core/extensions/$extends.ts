@@ -15,13 +15,13 @@ type NameArgs = {
 
 type ResultArgs = {
   result: {
-    [ModelName in string]: ResultModelArgs
+    [ModelName in string]: ResultArg
   }
 }
 
 export type ResultArgsFieldCompute = (model: any) => unknown
 
-export type ResultModelArgs = {
+export type ResultArg = {
   [FieldName in string]: ResultFieldDefinition
 }
 
@@ -32,19 +32,19 @@ export type ResultFieldDefinition = {
 
 type ModelArgs = {
   model: {
-    [ModelName in string]: ModelExtensionDefinition
+    [ModelName in string]: ModelArg
   }
 }
 
-export type ModelExtensionDefinition = {
+export type ModelArg = {
   [MethodName in string]: (...args: any[]) => any
 }
 
 type ClientArgs = {
-  client: ClientExtensionDefinition
+  client: ClientArg
 }
 
-export type ClientExtensionDefinition = {
+export type ClientArg = {
   [MethodName in string]: (...args: any[]) => any
 }
 
