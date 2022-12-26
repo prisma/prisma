@@ -59,9 +59,9 @@ export type Narrow<A> = {
   [K in keyof A]: A[K] extends Function ? A[K] : Narrow<A[K]>
 } | (A extends Narrowable ? A : never)
 
-export type Exact<A, W> = (W extends A ? {
-  [K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : W[K]
-} : W) | (A extends Narrowable ? A : never)
+export type Exact<A, W> = ({
+  [K in keyof W]: Exact<A[K & keyof A], W[K]>
+}) | (A extends Narrowable ? A : never)
 
 export type Cast<A, W> = A extends W ? A : W
 
@@ -75,8 +75,8 @@ export type LegacyExact<A, W = unknown> =
 export type WrapPropsInFnDeep<T> = {
   [K in keyof T]:
     T[K] extends Function
-    ? () => T[K]
+    ? T[K]
     : T[K] extends object
       ? WrapPropsInFnDeep<T[K]>
       : () => T[K]
-}
+} & {}

@@ -61,7 +61,7 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
   }
 
   const params = `{
-      $allModels?: Record<string, unknown>
+      $allModels?: {}
       ${modelNames.map(modelParam).join('\n      ')}
     }`
 
@@ -75,6 +75,9 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const prismaNamespaceDefinitions = `export type TypeMap<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
+    meta: {
+      modelProps: ${modelNames.map((mn) => `'${lowerCase(mn)}'`).join(' | ')}
+    },
     model: {${modelNames.reduce((acc, modelName) => {
       const actions = getModelActions(this.dmmf, modelName)
 
@@ -147,15 +150,13 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
   const model = clientExtensionsModelDefinition.call(this)
   const client = clientExtensionsClientDefinition.call(this)
   const query = clientExtensionsQueryDefinition.call(this)
-  const lcModelNames = Object.keys(this.dmmf.getModelMap()).map(lowerCase)
-  const modelNameUnion = lcModelNames.map((m) => `'${m}'`).join(' | ')
   const genericParams = [result.genericParams, model.genericParams, query.genericParams, client.genericParams]
   const genericVars = genericParams.map((gp) => gp.replace(/ extends .*/g, ','))
 
   return {
     signature: `${name === 'defineExtension' ? name : `${name}: { extArgs: ExtArgs } & (`}<
     ${genericParams.join(',\n    ')},
-    Args extends runtime.Types.Extensions.Args = runtime.Types.Utils.WrapPropsInFnDeep<{ result: R, model: M, query: Q, client: C }>, ${
+    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, Q, C>, ${
       name === 'defineExtension'
         ? `
     ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs,`
@@ -169,12 +170,7 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
   >) ${name === 'defineExtension' ? ':' : '=>'} ${
       name === 'defineExtension'
         ? '(client: any) => PrismaClient<any, any, any, Args>'
-        : `runtime.Types.Extensions.GetClient<PrismaClient<T, U, GlobalReject, {
-    result: ExtArgs['result'] & Args['result'],
-    model: ExtArgs['model'] & Args['model'],
-    client: ExtArgs['client'] & Args['client'],
-    query: {}
-  }>, ExtArgs['client'] & Args['client']>`
+        : `runtime.Types.Extensions.GetClient<PrismaClient<T, U, GlobalReject, runtime.Types.Extensions.MergeArgs<Args, ExtArgs>>, ExtArgs['client'] & Args['client']>`
     }${name === 'defineExtension' ? '' : ')'};`,
     prismaNamespaceDefinitions: `${query.prismaNamespaceDefinitions}
 export type ExtensionArgs<

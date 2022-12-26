@@ -33,16 +33,21 @@ export declare const PrismaClient: any
  */
 export declare type PrismaClient = any
 
-export declare type PrismaClientExtends<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
+export declare type PrismaClientExtends<ExtArgs extends runtime.Types.Extensions.Args = unknown> = {
   $extends: { extArgs: ExtArgs } & (<
-    R extends runtime.Types.Extensions.Args['result'] = {},
-    M extends runtime.Types.Extensions.Args['model'] = {},
-    Q extends runtime.Types.Extensions.Args['query'] = {},
-    C extends runtime.Types.Extensions.Args['client'] = {},
-    Args extends runtime.Types.Extensions.Args = { result: R; model: M; query: Q; client: C }
+    R extends runtime.Types.Extensions.UserArgs['result'] = {},
+    M extends runtime.Types.Extensions.UserArgs['model'] = {},
+    Q extends runtime.Types.Extensions.UserArgs['query'] = {},
+    C extends runtime.Types.Extensions.UserArgs['client'] = {},
+    Args extends runtime.Types.Extensions.Args = {
+      result: { [K in keyof R]: { [P in keyof R[K]]: () => R[K][P] } },
+      model: { [K in keyof M]: { [P in keyof M[K]]: () => M[K][P] } },
+      query: { [K in keyof Q]: { [P in keyof Q[K]]: () => Q[K][P] } },
+      client: { [K in keyof C]: () => C[K] }
+    }
   >(args: ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } }) | {
     result?: R; model?: M; query?: Q; client?: C
-  }) => PrismaClientExtends<runtime.Types.Utils.PatchDeep<Args, ExtArgs>>)
+  }) => PrismaClientExtends<Args & ExtArgs>)
 }
 
 export declare const dmmf: any
@@ -62,11 +67,16 @@ export namespace Prisma {
   export type TransactionClient = any
 
   export function defineExtension<
-    R extends runtime.Types.Extensions.Args['result'] = {},
-    M extends runtime.Types.Extensions.Args['model'] = {},
-    Q extends runtime.Types.Extensions.Args['query'] = {},
-    C extends runtime.Types.Extensions.Args['client'] = {},
-    Args extends runtime.Types.Extensions.Args = { result: R; model: M; query: Q; client: C }
+    R extends runtime.Types.Extensions.UserArgs['result'] = {},
+    M extends runtime.Types.Extensions.UserArgs['model'] = {},
+    Q extends runtime.Types.Extensions.UserArgs['query'] = {},
+    C extends runtime.Types.Extensions.UserArgs['client'] = {},
+    Args extends runtime.Types.Extensions.Args = {
+      result: { [K in keyof R]: { [P in keyof R[K]]: () => R[K][P] } },
+      model: { [K in keyof M]: { [P in keyof M[K]]: () => M[K][P] } },
+      query: { [K in keyof Q]: { [P in keyof Q[K]]: () => Q[K][P] } },
+      client: { [K in keyof C]: () => C[K] }
+    }
   >(args: ((client: PrismaClientExtends) => { $extends: { extArgs: Args } }) | {
     result?: R; model?: M; query?: Q; client?: C
   }): (client: any) => PrismaClientExtends<Args>

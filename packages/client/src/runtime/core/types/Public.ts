@@ -1,7 +1,6 @@
 /* eslint-disable prettier/prettier */
 
 import { GetResult, Operation } from './GetResult'
-import { Payload } from './Payload'
 import { Exact } from './Utils'
 
 /*
@@ -18,10 +17,10 @@ export type Args<T, F extends Operation> =
     : never
 
 export type Result<T, A, F extends Operation> =
-  T extends { [K: symbol]: { types: { [K in F]: { payload: infer P extends Payload } } } }
-  ? GetResult<P, A, F>
-  : T extends { [K: symbol]: { ctx: { [K: symbol]: { types: { [K in F]: { payload: infer P extends Payload } } } } } }
-    ? GetResult<P, A, F>
+  T extends { [K: symbol]: { types: { [K in F]: { payload: any } } } }
+  ? GetResult<T[symbol]['types'][F]['payload'], A, F>
+  : T extends { [K: symbol]: { ctx: { [K: symbol]: { types: { [K in F]: { payload: any } } } } } }
+    ? GetResult<T[symbol]['ctx'][symbol]['types'][F]['payload'], A, F>
     : never
 
 export { type Operation }

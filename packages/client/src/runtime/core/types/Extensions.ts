@@ -1,29 +1,52 @@
 import { RequiredArgs as UserArgs } from '../extensions/$extends'
-import { ReadonlyDeep, WrapPropsInFnDeep } from './Utils'
+import { ReadonlyDeep } from './Utils'
 
 /* eslint-disable prettier/prettier */
 
-export type Args = WrapPropsInFnDeep<UserArgs>
+export type InternalArgs<
+  R extends UserArgs['result'] = UserArgs['result'],
+  M extends UserArgs['model'] = UserArgs['model'],
+  Q extends UserArgs['query'] = UserArgs['query'],
+  C extends UserArgs['client'] = UserArgs['client'],
+> = {
+  result: { [K in keyof R]: { [P in keyof R[K]]: () => R[K][P] } },
+  model: { [K in keyof M]: { [P in keyof M[K]]: () => M[K][P] } },
+  query: { [K in keyof Q]: { [P in keyof Q[K]]: () => Q[K][P] } },
+  client: { [K in keyof C]: () => C[K] },
+}
 
-export type DefaultArgs = WrapPropsInFnDeep<{ result: {}; model: {}; query: {}; client: {} }>
+export type Args = InternalArgs
+
+export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
 export type GetResult<Base extends Record<any, any>, R extends Args['result'][string]> =
-  { [K in keyof R | keyof Base]: K extends keyof R ? ReturnType<ReturnType<R[K]['compute']>> : Base[K] }
+  unknown extends R ? Base : { [K in keyof R | keyof Base]: K extends keyof R ? ReturnType<ReturnType<R[K]>['compute']> : Base[K] }
 
 export type GetSelect<Base extends Record<any, any>, R extends Args['result'][string]> =
-  { [K in keyof R | keyof Base]?: K extends keyof R ? boolean : Base[K] }
+  unknown extends R ? Base : { [K in keyof R | keyof Base]?: K extends keyof R ? boolean : Base[K] }
 
 export type GetModel<Base extends Record<any, any>, M extends Args['model'][string]> =
-  { [K in keyof M | keyof Base]: K extends keyof M ? ReturnType<M[K]> : Base[K] } 
+  unknown extends M ? Base : { [K in keyof M | keyof Base]: K extends keyof M ? ReturnType<M[K]> : Base[K] }
 
 export type GetClient<Base extends Record<any, any>, C extends Args['client']> =
-  { [K in keyof C | keyof Base]: K extends keyof C ? ReturnType<C[K]>: Base[K] } 
+  unknown extends C ? Base : { [K in keyof C | Exclude<keyof Base, '$use'>]: K extends keyof C ? ReturnType<C[K]>: Base[K] }
 
 export type ReadonlySelector<T> = T extends unknown ? {
   readonly [K in keyof T as K extends 'include' | 'select' ? K : never]: ReadonlyDeep<T[K]>
 } & {
   [K in keyof T as K extends 'include' | 'select' ? never : K]: T[K]
 } : never
+
+export type MergeArgs<CurrArgs extends Args, PrevArgs extends Args> = {
+  result: '$allModels' extends keyof CurrArgs['result']
+  ? PrevArgs['result'] & Record<string, CurrArgs['result']['$allModels']> & CurrArgs['result']
+  : PrevArgs['result'] & CurrArgs['result']
+  model: '$allModels' extends keyof CurrArgs['model']
+  ? PrevArgs['model'] & Record<string, CurrArgs['model']['$allModels']> & CurrArgs['model']
+  : PrevArgs['model'] & CurrArgs['model']
+  client: PrevArgs['client'] & CurrArgs['client'],
+  query: {}
+}
 
 /* eslint-enable prettier/prettier */
 

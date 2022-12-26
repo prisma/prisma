@@ -903,6 +903,9 @@ testMatrix.setupTestSuite(
           user: {
             async findFirst({ args, query, operation, model }) {
               const user = await query(args)
+
+              expectTypeOf(user).toHaveProperty('id').toEqualTypeOf<string | undefined>()
+
               // @ts-expect-error
               return query(user)
             },

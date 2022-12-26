@@ -283,7 +283,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       () => {
         return `export type ${
           model.name
-        }Payload<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.Args> = {
+        }Payload<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
 ${indent(`kind: 'Payload'`, TAB_SIZE)}
 ${indent(
   `objects: {

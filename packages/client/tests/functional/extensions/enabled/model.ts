@@ -321,7 +321,8 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    expectTypeOf(args).toEqualTypeOf<{ cache: true; where: { id: '1' } }>
+    expectTypeOf(args).toHaveProperty('cache').toEqualTypeOf<true>()
+    expectTypeOf(args).toHaveProperty('where').toEqualTypeOf<{ id: '1' }>()
   })
 
   test('custom method re-using input types to augment them via mapped type', () => {
@@ -349,21 +350,18 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    expectTypeOf(args).toMatchTypeOf<{ include: null; where: { id: '1' } }>
+    expectTypeOf(args).toHaveProperty('include').toEqualTypeOf<null>()
+    expectTypeOf(args).toHaveProperty('where').toEqualTypeOf<{ id: '1' }>()
   })
 
   test('custom method re-using output to augment it via mapped type', () => {
-    type Nullable<T> = {
-      [K in keyof T]: T[K] | null
-    }
-
     const xprisma = prisma.$extends({
       model: {
         $allModels: {
           findFirstOrCreate<T, A>(
             this: T,
-            args: PrismaNamespace.Exact<A, Nullable<PrismaNamespace.Args<T, 'findUniqueOrThrow'>>>,
-          ): PrismaNamespace.Result<T, A, 'findUniqueOrThrow'> {
+            args: PrismaNamespace.Exact<A, PrismaNamespace.Args<T, 'findUniqueOrThrow'>>,
+          ): PrismaNamespace.Result<T, A, 'findUniqueOrThrow'> & { extra: boolean } {
             return {} as any
           },
         },
@@ -371,17 +369,91 @@ testMatrix.setupTestSuite(() => {
     })
 
     const data = xprisma.user.findFirstOrCreate({
-      include: null,
       where: {
         id: '1',
       },
     })
 
-    expectTypeOf(data).toMatchTypeOf<{
-      id: string
-      email: string
-      firstName: string
-      lastName: string
-    }>
+    expectTypeOf(data).toHaveProperty('extra').toEqualTypeOf<boolean>()
+    expectTypeOf(data).toHaveProperty('id').toEqualTypeOf<string>()
+    expectTypeOf(data).toHaveProperty('email').toEqualTypeOf<string>()
+    expectTypeOf(data).toHaveProperty('firstName').toEqualTypeOf<string>()
+    expectTypeOf(data).toHaveProperty('lastName').toEqualTypeOf<string>()
+  })
+
+  test('getExtension context on specific model and non-generic this', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        user: {
+          myCustomCallB() {},
+          myCustomCallA() {
+            const ctx = Prisma.getExtensionContext(this)
+
+            return ctx
+          },
+        },
+      },
+    })
+
+    const ctx = xprisma.user.myCustomCallA()
+    expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
+    expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
+  })
+
+  test('getExtension context on generic model and non-generic this', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          myCustomCallB() {},
+          myCustomCallA() {
+            const ctx = Prisma.getExtensionContext(this)
+
+            return ctx
+          },
+        },
+      },
+    })
+
+    const ctx = xprisma.user.myCustomCallA()
+    expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
+    expectTypeOf(ctx).not.toHaveProperty('update')
+  })
+
+  test('getExtension context on specific model and generic this', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        user: {
+          myCustomCallB() {},
+          myCustomCallA<T>(this: T) {
+            const ctx = Prisma.getExtensionContext(this)
+
+            return ctx
+          },
+        },
+      },
+    })
+
+    const ctx = xprisma.user.myCustomCallA()
+    expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
+    expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
+  })
+
+  test('getExtension context on generic model and generic this', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          myCustomCallB() {},
+          myCustomCallA<T>(this: T) {
+            const ctx = Prisma.getExtensionContext(this)
+
+            return ctx
+          },
+        },
+      },
+    })
+
+    const ctx = xprisma.user.myCustomCallA()
+    expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
+    expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
   })
 })

@@ -1,5 +1,3 @@
-import { Omit } from '../types/Utils'
-
 /*
  * Because we use a symbol to store the context, we need to merge the context
  * with the original this type. We manage the context via `getExtensionContext`
@@ -10,8 +8,10 @@ import { Omit } from '../types/Utils'
 /* eslint-disable prettier/prettier */
 export type Context<T> =
   T extends { [K: symbol]: { ctx: infer C } }
-  ? Omit<T, keyof C> & C & { meta: { name: string } }
-  : Record<string, unknown> & { meta: { name: string } }
+  ? C & { [K in Exclude<keyof T, keyof C> & string]: T[K] } & ContextMeta
+  : T & ContextMeta
+  
+type ContextMeta = { name: string }
 /* eslint-enable prettier/prettier */
 
 export function getExtensionContext<T>(that: T) {
