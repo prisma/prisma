@@ -52,6 +52,7 @@ ${chalk.bold('Options')}
                 --schema   Custom path to your Prisma schema
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
+         --multi-schemas   Specify the database schemas to introspect. This overrides the schemas defined in the datasource block of your Prisma schema.
 
 ${chalk.bold('Examples')}
 
@@ -91,6 +92,7 @@ Set composite types introspection depth to 2 levels
       '--url': String,
       '--print': Boolean,
       '--schema': String,
+      '--multi-schemas': [String],
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
       // deprecated
@@ -201,6 +203,18 @@ Set composite types introspection depth to 2 levels
       )
       .run()
 
+    const multiSchemas = args['--multi-schemas'] || []
+
+    // TODO: remove this check once the 'multiSchema' feature is GA
+    const previewFeatures = config.generators[0]?.previewFeatures ?? []
+    if (!previewFeatures.includes('multiSchema') && multiSchemas.length > 0) {
+      throw new Error(
+        `The ${chalk.redBright(
+          '--schemas',
+        )} flag is only supported when the \`multiSchema\` preview feature is defined in the generator block of your Prisma schema.`,
+      )
+    }
+
     // Re-Introspection is not supported on MongoDB
     if (schemaPath) {
       const schema = await getSchema(args['--schema'])
@@ -220,6 +234,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
+    // TODO: pass multiSchemas to the engine
     const engine = new IntrospectionEngine({
       cwd: schemaPath ? path.dirname(schemaPath) : undefined,
     })
