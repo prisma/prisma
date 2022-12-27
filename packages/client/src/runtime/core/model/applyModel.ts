@@ -57,9 +57,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
 }
 
 function modelMetaLayer(dmmfModelName: string): CompositeProxyLayer {
-  return addProperty('meta', () => {
-    return { name: dmmfModelName }
-  })
+  return addProperty('name', () => dmmfModelName)
 }
 
 /**

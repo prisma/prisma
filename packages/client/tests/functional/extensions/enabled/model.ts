@@ -389,6 +389,8 @@ testMatrix.setupTestSuite(() => {
           myCustomCallA() {
             const ctx = Prisma.getExtensionContext(this)
 
+            expect(ctx.name).toEqual('User')
+
             return ctx
           },
         },
@@ -407,6 +409,8 @@ testMatrix.setupTestSuite(() => {
           myCustomCallB() {},
           myCustomCallA() {
             const ctx = Prisma.getExtensionContext(this)
+
+            expect(ctx.name).toEqual('User')
 
             return ctx
           },
@@ -427,6 +431,8 @@ testMatrix.setupTestSuite(() => {
           myCustomCallA<T>(this: T) {
             const ctx = Prisma.getExtensionContext(this)
 
+            expect(ctx.name).toEqual('User')
+
             return ctx
           },
         },
@@ -445,6 +451,8 @@ testMatrix.setupTestSuite(() => {
           myCustomCallB() {},
           myCustomCallA<T>(this: T) {
             const ctx = Prisma.getExtensionContext(this)
+
+            expect(ctx.name).toEqual('User')
 
             return ctx
           },

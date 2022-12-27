@@ -178,7 +178,7 @@ ${ifExtensions(
   `/**
 * Extensions
 */
-export type Extension = runtime.Types.Extensions.Args
+export type Extension = runtime.Types.Extensions.UserArgs
 export import getExtensionContext = runtime.Extensions.getExtensionContext
 export type Args<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Args<T, F>
 export type Result<T, A, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Result<T, A, F>

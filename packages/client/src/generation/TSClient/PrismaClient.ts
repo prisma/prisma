@@ -170,7 +170,12 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
   >) ${name === 'defineExtension' ? ':' : '=>'} ${
       name === 'defineExtension'
         ? '(client: any) => PrismaClient<any, any, any, Args>'
-        : `runtime.Types.Extensions.GetClient<PrismaClient<T, U, GlobalReject, runtime.Types.Extensions.MergeArgs<Args, ExtArgs>>, ExtArgs['client'] & Args['client']>`
+        : `runtime.Types.Extensions.GetClient<PrismaClient<T, U, GlobalReject, {
+    result: ExtArgs['result'] & Record<string, Args['result']['$allModels'] & {}> & Args['result']
+    model: ExtArgs['model'] & Record<string, Args['model']['$allModels'] & {}> & Args['model']
+    client: ExtArgs['client'] & Args['client'],
+    query: {}
+  }>, ExtArgs['client'] & Args['client']>`
     }${name === 'defineExtension' ? '' : ')'};`,
     prismaNamespaceDefinitions: `${query.prismaNamespaceDefinitions}
 export type ExtensionArgs<
