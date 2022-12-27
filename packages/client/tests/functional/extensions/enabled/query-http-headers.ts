@@ -24,7 +24,7 @@ testMatrix.setupTestSuite(() => {
   testIf(process.env.DATA_PROXY !== undefined)('changing http headers', async () => {
     const xprisma = prisma.$extends({
       query: {
-        user: {
+        $allModels: {
           findUnique(operation) {
             const { __internalParams, query, args } = operation as any as {
               query: (...args: any[]) => Promise<any>
