@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto'
 import https from 'https'
 
 import testMatrix from './_matrix'
@@ -5,6 +6,8 @@ import testMatrix from './_matrix'
 import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare const prisma: PrismaClient
+
+const randomId1 = randomBytes(12).toString('hex')
 
 const originalRequest = https.request
 testMatrix.setupTestSuite(() => {
@@ -43,7 +46,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await xprisma.user.findUnique({ where: { id: '1' } })
+    await xprisma.user.findUnique({ where: { id: randomId1 } })
 
     expect(mockedRequest.mock.calls[0][1].headers).not.toHaveProperty('x-custom-header')
     expect(mockedRequest.mock.calls[1][1].headers).toHaveProperty('x-custom-header')
