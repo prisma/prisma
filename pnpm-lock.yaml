@@ -221,7 +221,7 @@ importers:
   packages/client:
     specifiers:
       '@faker-js/faker': 7.6.0
-      '@fast-check/jest': 1.5.0
+      '@fast-check/jest': 1.6.0
       '@jest/globals': 29.3.1
       '@jest/test-sequencer': 29.3.1
       '@opentelemetry/api': 1.2.0
@@ -304,7 +304,7 @@ importers:
       '@prisma/engines-version': 4.9.0-4.768eaeb6a18563a8cf8b3da5c9e475edfa5c0340
     devDependencies:
       '@faker-js/faker': 7.6.0
-      '@fast-check/jest': 1.5.0_@jest+globals@29.3.1
+      '@fast-check/jest': 1.6.0_@jest+globals@29.3.1
       '@jest/globals': 29.3.1
       '@jest/test-sequencer': 29.3.1
       '@opentelemetry/api': 1.2.0
@@ -2449,8 +2449,8 @@ packages:
     engines: {node: '>=14.0.0', npm: '>=6.0.0'}
     dev: true
 
-  /@fast-check/jest/1.5.0_@jest+globals@29.3.1:
-    resolution: {integrity: sha512-H5nwqyUrdAmbbgYchqdJdxweeBFOg8jcY5djwn5sgzRb5A/OcOacXmxD8XB0wGXdrwv4C/zqfHVDYZXD/sDFow==}
+  /@fast-check/jest/1.6.0_@jest+globals@29.3.1:
+    resolution: {integrity: sha512-a5GEOQrVhLAWEiouiCBSt45EkyVgj59ePTHX8nsjSMxZyBMhasUgg5O60Q2ItR5P/6xUbGBBwoXVkg5mO501hw==}
     peerDependencies:
       '@fast-check/worker': ~0.0.1
       '@jest/expect': '>=28.0.0'
