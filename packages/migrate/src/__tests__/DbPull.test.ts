@@ -608,6 +608,9 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
 
       // *** WARNING ***
       // 
+      // The following models were commented out as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client.
+      // - "transactional_some_table"
+      // 
       // These models were renamed due to their names being duplicates in the Prisma Schema Language.
       // Code 20
       // [
