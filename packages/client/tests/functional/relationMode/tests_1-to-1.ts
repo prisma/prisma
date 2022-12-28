@@ -105,7 +105,7 @@ testMatrix.setupTestSuite(
                   userId: '1',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap && isRelationMode_foreignKeys
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
@@ -140,7 +140,7 @@ testMatrix.setupTestSuite(
                 userId: undefined, // this would actually be a type-error, but we don't have access to types here
               },
             }),
-          ).rejects.toThrowError('Argument user for data.user is missing.')
+          ).rejects.toThrow('Argument user for data.user is missing.')
 
           expect(
             await prisma[profileModel].findMany({
@@ -517,7 +517,7 @@ testMatrix.setupTestSuite(
                     id: '3',
                   },
                 }),
-              ).rejects.toThrowError(expectedErrorUpdateWithNonExistingId)
+              ).rejects.toThrow(expectedErrorUpdateWithNonExistingId)
 
               expect(
                 await prisma[userModel].findMany({
@@ -543,7 +543,7 @@ testMatrix.setupTestSuite(
                     id: '3',
                   },
                 }),
-              ).rejects.toThrowError(expectedErrorUpdateWithNonExistingId)
+              ).rejects.toThrow(expectedErrorUpdateWithNonExistingId)
 
               expect(
                 await prisma[userModel].findMany({
@@ -615,7 +615,7 @@ testMatrix.setupTestSuite(
                       id: '2', // existing id
                     },
                   }),
-                ).rejects.toThrowError(expectedErrorUpdateWithExistingId)
+                ).rejects.toThrow(expectedErrorUpdateWithExistingId)
 
                 expect(
                   await prisma[userModel].findMany({
@@ -639,7 +639,7 @@ testMatrix.setupTestSuite(
                     where: { id: '1' },
                     data: { id: '2' }, // existing id
                   }),
-                ).rejects.toThrowError(expectedErrorUpdateWithExistingId)
+                ).rejects.toThrow(expectedErrorUpdateWithExistingId)
 
                 expect(
                   await prisma[userModel].findMany({
@@ -665,7 +665,7 @@ testMatrix.setupTestSuite(
                       id: '2', // existing id
                     },
                   }),
-                ).rejects.toThrowError(
+                ).rejects.toThrow(
                   isSchemaUsingMap
                     ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                       // So we can be less specific here
@@ -717,7 +717,7 @@ testMatrix.setupTestSuite(
                       },
                     },
                   }),
-                ).rejects.toThrowError(
+                ).rejects.toThrow(
                   conditionalError.snapshot({
                     foreignKeys:
                       "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
@@ -889,7 +889,7 @@ testMatrix.setupTestSuite(
                 prisma[userModel].delete({
                   where: { id: '1' },
                 }),
-              ).rejects.toThrowError(expectedError)
+              ).rejects.toThrow(expectedError)
 
               expect(
                 await prisma[userModel].findMany({
@@ -907,7 +907,7 @@ testMatrix.setupTestSuite(
               ])
             })
             test('[deleteMany] parents should throw', async () => {
-              await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
+              await expect(prisma[userModel].deleteMany()).rejects.toThrow(expectedError)
 
               expect(
                 await prisma[userModel].findMany({
@@ -947,7 +947,7 @@ testMatrix.setupTestSuite(
                 })
 
           testIf(isRelationMode_foreignKeys)('[delete] parent should throw', async () => {
-            await expect(prisma[userModel].delete({ where: { id: '1' } })).rejects.toThrowError(expectedError)
+            await expect(prisma[userModel].delete({ where: { id: '1' } })).rejects.toThrow(expectedError)
 
             expect(
               await prisma[userModel].findMany({
@@ -965,7 +965,7 @@ testMatrix.setupTestSuite(
             ])
           })
           testIf(isRelationMode_foreignKeys)('[deleteMany] parents should throw', async () => {
-            await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
+            await expect(prisma[userModel].deleteMany()).rejects.toThrow(expectedError)
 
             expect(
               await prisma[userModel].findMany({
@@ -1006,7 +1006,7 @@ testMatrix.setupTestSuite(
                 prisma[userModel].delete({
                   where: { id: '1' },
                 }),
-              ).rejects.toThrowError(expectedError)
+              ).rejects.toThrow(expectedError)
 
               expect(
                 await prisma[userModel].findMany({
@@ -1027,7 +1027,7 @@ testMatrix.setupTestSuite(
           testIf(isRelationMode_prisma).failing(
             'relationMode=prisma / SetNull: [deleteMany] parents should throw',
             async () => {
-              await expect(prisma[userModel].deleteMany()).rejects.toThrowError(expectedError)
+              await expect(prisma[userModel].deleteMany()).rejects.toThrow(expectedError)
 
               expect(
                 await prisma[userModel].findMany({

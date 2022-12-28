@@ -19,6 +19,6 @@ testMatrix.setupTestSuite(() => {
       }),
     ])
 
-    await expect(result).rejects.toThrowError('Invalid `prisma.user.update()` invocation')
+    await expect(result).rejects.toThrow('Invalid `prisma.user.update()` invocation')
   })
 })
