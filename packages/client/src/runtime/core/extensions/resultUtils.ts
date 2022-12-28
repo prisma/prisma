@@ -52,19 +52,23 @@ export function getComputedFields(
 
 export function resolveDependencies(computedFields: ComputedFieldsMap): ComputedFieldsMap {
   const cache = new Cache<string, string[]>()
-  const resolveNeeds = (fieldName: string) => {
+  const resolveNeeds = (fieldName: string, visitedFields: Set<string>) => {
     return cache.getOrCreate(fieldName, () => {
-      if (computedFields[fieldName]) {
-        return computedFields[fieldName].needs.flatMap(resolveNeeds)
+      if (visitedFields.has(fieldName)) {
+        return [fieldName]
       }
-      return [fieldName]
+      visitedFields.add(fieldName)
+      if (!computedFields[fieldName]) {
+        return [fieldName]
+      }
+      return computedFields[fieldName].needs.flatMap((fieldDep) => resolveNeeds(fieldDep, visitedFields))
     })
   }
 
   return mapObjectValues(computedFields, (field) => {
     return {
       ...field,
-      needs: resolveNeeds(field.name),
+      needs: resolveNeeds(field.name, new Set()),
     }
   })
 }

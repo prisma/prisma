@@ -206,6 +206,24 @@ testMatrix.setupTestSuite(() => {
     expect(user?.loudName).toBe('JOHN SMITH')
   })
 
+  test('shadowing dependency', async () => {
+    const xprisma = prisma.$extends({
+      result: {
+        user: {
+          firstName: {
+            needs: { firstName: true },
+            compute(user) {
+              return user.firstName.toUpperCase()
+            },
+          },
+        },
+      },
+    })
+
+    const user = await xprisma.user.findFirst()
+    expect(user?.firstName).toBe('JOHN')
+  })
+
   test('empty extension does nothing', async () => {
     const xprisma = prismaWithExtension()
       .$extends({
