@@ -456,6 +456,44 @@ model User {
 // introspectionSchemaVersion: Prisma2,
 `;
 
+exports[`common/sqlite should succeed and NOT show a warning when PRISMA_DISABLE_WARNINGS is truthy 8`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique(map: "Profile.userId")
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  email   String   @unique(map: "User.email")
+  id      Int      @id @default(autoincrement())
+  name    String?
+  posts   Post[]
+  profile Profile?
+}
+
+`;
+
 exports[`common/sqlite should succeed and keep changes to valid schema and output warnings when using --print 2`] = `
 generator client {
   provider = "prisma-client-js"
@@ -500,6 +538,44 @@ model AwesomeProfile {
 
 
 // introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`common/sqlite should succeed and show a warning on stderr (preview feature deprecated) 8`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique(map: "Profile.userId")
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  email   String   @unique(map: "User.email")
+  id      Int      @id @default(autoincrement())
+  name    String?
+  posts   Post[]
+  profile Profile?
+}
+
 `;
 
 exports[`common/sqlite should succeed when schema is invalid and using --force 7`] = `

@@ -10,6 +10,7 @@ import {
   lintSchema,
   loadEnvFile,
   logger,
+  maybePrintValidationWarnings,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
@@ -66,21 +67,7 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
-
-    const { lintDiagnostics } = handleLintPanic(
-      () => {
-        // the only possible error here is a Rust panic
-        const lintDiagnostics = lintSchema({ schema })
-        return { lintDiagnostics }
-      },
-      { schema },
-    )
-
-    const lintWarnings = getLintWarningsAsText(lintDiagnostics)
-    if (lintWarnings && logger.should.warn()) {
-      // Output warnings to stderr
-      console.warn(lintWarnings)
-    }
+    maybePrintValidationWarnings({ schema })
 
     try {
       // Validate whether the formatted output is a valid schema

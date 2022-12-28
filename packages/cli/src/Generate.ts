@@ -7,13 +7,14 @@ import {
   getCommandWithExecutor,
   getGenerators,
   getGeneratorSuccessMessage,
-  getPlatform,
+  getSchema,
   HelpError,
   highlightTS,
   isError,
   link,
   loadEnvFile,
   logger,
+  maybePrintValidationWarnings,
   missingGeneratorMessage,
   parseEnvValue,
   Platform,
@@ -126,7 +127,12 @@ ${chalk.bold('Examples')}
     loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
+
     if (!schemaPath) return ''
+
+    const schema = await getSchema(schemaPath)
+
+    maybePrintValidationWarnings({ schema })
 
     // TODO Extract logic from here
     let hasJsClient

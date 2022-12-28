@@ -8,14 +8,19 @@ import {
   formatms,
   getCommandWithExecutor,
   getConfig,
+  getLintWarningsAsText,
   getSchema,
   getSchemaPath,
+  handleLintPanic,
   HelpError,
   IntrospectionEngine,
   IntrospectionSchemaVersion,
   IntrospectionWarnings,
   link,
+  lintSchema,
   loadEnvFile,
+  logger,
+  maybePrintValidationWarnings,
   protocolToConnectorType,
 } from '@prisma/internals'
 import chalk from 'chalk'
@@ -200,6 +205,8 @@ Set composite types introspection depth to 2 levels
         },
       )
       .run()
+
+    maybePrintValidationWarnings({ schema })
 
     // Re-Introspection is not supported on MongoDB
     if (schemaPath) {

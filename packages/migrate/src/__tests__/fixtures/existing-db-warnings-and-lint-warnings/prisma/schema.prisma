@@ -1,0 +1,14 @@
+datasource my_db {
+  provider        = "sqlite"
+  url             = "file:dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "@prisma/client"
+  previewFeatures = ["referentialIntegrity"]
+}
+
+model Post {
+  id          Int @id
+}

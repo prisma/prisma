@@ -12,7 +12,16 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-describeIf(process.platform !== 'win32')('push', () => {
+describeIf(process.platform !== 'win32')('push with sqlite', () => {
+  const originalEnv = { ...process.env }
+
+  beforeEach(() => {
+    process.env = { ...originalEnv }
+  })
+  afterAll(() => {
+    process.env = { ...originalEnv }
+  })
+
   it('--preview-feature flag is not required anymore', async () => {
     ctx.fixture('empty')
 
@@ -161,6 +170,57 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  it('dataloss warnings should show alongside with validation warnings', async () => {
+    ctx.fixture('existing-db-warnings-and-lint-warnings')
+
+    prompt.inject(['y'])
+
+    const result = DbPush.new().parse([])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      ⚠️  There might be data loss when applying the changes:
+
+        • You are about to drop the \`Blog\` table, which is not empty (1 rows).
+
+
+
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
+    `)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+      Prisma schema warning:
+      - Preview feature "referentialIntegrity" is deprecated. The functionality can be used without specifying it as a preview feature.
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  it('validation warnings should not show when PRISMA_DISABLE_WARNINGS is truthy', async () => {
+    ctx.fixture('existing-db-warnings-and-lint-warnings')
+    process.env.PRISMA_DISABLE_WARNINGS = 'true'
+
+    prompt.inject(['y'])
+
+    const result = DbPush.new().parse([])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      ⚠️  There might be data loss when applying the changes:
+
+        • You are about to drop the \`Blog\` table, which is not empty (1 rows).
+
+
+
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
+    `)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
   // eslint-disable-next-line jest/no-identical-title
   it('dataloss warnings cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings')
@@ -287,14 +347,14 @@ describeIf(process.platform !== 'win32')('push', () => {
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                    ⚠️ We found changes that cannot be executed:
+                                          ⚠️ We found changes that cannot be executed:
 
-                                      • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                            • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                    Use the --force-reset flag to drop the database before push like prisma db push --force-reset
-                                    All data will be lost.
-                                            
-                        `)
+                                          Use the --force-reset flag to drop the database before push like prisma db push --force-reset
+                                          All data will be lost.
+                                                  
+                            `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })

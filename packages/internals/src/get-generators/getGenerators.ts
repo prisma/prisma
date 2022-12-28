@@ -22,7 +22,6 @@ import { missingDatasource } from '../utils/missingDatasource'
 import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missingGeneratorMessage'
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
 import { pick } from '../utils/pick'
-import { printConfigWarnings } from '../utils/printConfigWarnings'
 import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
 import { checkFeatureFlags } from './utils/check-feature-flags/checkFeatureFlags'
 import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
@@ -119,8 +118,6 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   if (config.datasources.length === 0) {
     throw new Error(missingDatasource)
   }
-
-  printConfigWarnings(config.warnings)
 
   // TODO: This needs a better abstraction, but we don't have any better right now
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))

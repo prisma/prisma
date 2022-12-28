@@ -1,5 +1,6 @@
 import chalk from 'chalk'
 
+import { logger } from '..'
 import { ErrorArea, RustPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 
@@ -71,6 +72,26 @@ export function getLintWarningsAsText(lintDiagnostics: LintDiagnostic[]): string
   }
 
   return textLines.join('\n')
+}
+
+/**
+ * Given a Prisma schema, display validation warnings if there are any and warnings
+ * are globally enabled in `logger`.
+ */
+export function maybePrintValidationWarnings({ schema }: LintSchemaParams) {
+  const { lintDiagnostics } = handleLintPanic(
+    () => {
+      // the only possible error here is a Rust panic
+      const lintDiagnostics = lintSchema({ schema })
+      return { lintDiagnostics }
+    },
+    { schema },
+  )
+  const lintWarnings = getLintWarningsAsText(lintDiagnostics)
+  if (logger.should.warn() && lintWarnings.length > 0) {
+    // Output warnings to stderr
+    console.warn(lintWarnings)
+  }
 }
 
 export function warningToString(warning: LintDiagnostic): string {

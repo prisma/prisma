@@ -41,6 +41,15 @@ function sanitizeSQLServerIdName(schema: string) {
 }
 
 describe('common/sqlite', () => {
+  const originalEnv = { ...process.env }
+
+  beforeEach(() => {
+    process.env = { ...originalEnv }
+  })
+  afterAll(() => {
+    process.env = { ...originalEnv }
+  })
+
   test('basic introspection', async () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
@@ -389,6 +398,40 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  it('should fail and show a warning when schema is invalid', async () => {
+    ctx.fixture('introspection/sqlite')
+    const result = DbPull.new().parse(['--schema=invalid-with-lint-warning.prisma'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+            P1012 Introspection failed as your current Prisma schema file is invalid
+
+            Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
+            Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+
+          `)
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from invalid-with-lint-warning.prisma
+      Datasource "db": SQLite database "dev.db" at "file:dev.db"
+
+    `)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+      Prisma schema warning:
+      - Preview feature "referentialIntegrity" is deprecated. The functionality can be used without specifying it as a preview feature.
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+
+      - Introspecting based on datasource defined in invalid-with-lint-warning.prisma
+
+      ✖ Introspecting based on datasource defined in invalid-with-lint-warning.prisma
+
+    `)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
   it('should succeed when schema is invalid and using --force', async () => {
     ctx.fixture('introspect')
 
@@ -414,6 +457,67 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 
     expect(ctx.fs.read('prisma/invalid.prisma')).toMatchSnapshot()
+  })
+
+  it('should succeed and show a warning on stderr (preview feature deprecated)', async () => {
+    ctx.fixture('introspection/sqlite')
+
+    const result = DbPull.new().parse(['--schema=lint-warning.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'in XXms')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from lint-warning.prisma
+      Datasource "db": SQLite database "dev.db" at "file:dev.db"
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+            Prisma schema warning:
+            - Preview feature "referentialIntegrity" is deprecated. The functionality can be used without specifying it as a preview feature.
+        `)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+
+            - Introspecting based on datasource defined in lint-warning.prisma
+
+            ✔ Introspected 3 models and wrote them into lint-warning.prisma in XXXms
+                  
+            Run prisma generate to generate Prisma Client.
+
+        `)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
+    expect(ctx.fs.read('lint-warning.prisma')).toMatchSnapshot()
+  })
+
+  it('should succeed and NOT show a warning when PRISMA_DISABLE_WARNINGS is truthy', async () => {
+    ctx.fixture('introspection/sqlite')
+    process.env.PRISMA_DISABLE_WARNINGS = 'true'
+
+    const result = DbPull.new().parse(['--schema=lint-warning.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n').replace(/\d{2,3}ms/, 'in XXms')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from lint-warning.prisma
+      Datasource "db": SQLite database "dev.db" at "file:dev.db"
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+
+            - Introspecting based on datasource defined in lint-warning.prisma
+
+            ✔ Introspected 3 models and wrote them into lint-warning.prisma in XXXms
+                  
+            Run prisma generate to generate Prisma Client.
+
+        `)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+
+    expect(ctx.fs.read('lint-warning.prisma')).toMatchSnapshot()
   })
 })
 

@@ -6,10 +6,15 @@ import {
   format,
   formatms,
   getCommandWithExecutor,
+  getLintWarningsAsText,
+  getSchema,
+  handleLintPanic,
   HelpError,
   isError,
+  lintSchema,
   loadEnvFile,
   logger,
+  maybePrintValidationWarnings,
   protocolToConnectorType,
 } from '@prisma/internals'
 import chalk from 'chalk'
@@ -96,6 +101,8 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
     loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const schema = await getSchema(schemaPath)
+    maybePrintValidationWarnings({ schema })
 
     await printDatasource(schemaPath)
 
