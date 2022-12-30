@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.9.0-6.c417b3d7f4d3ba648bde7483f42ddf7a1f0cbd35",
+    "@prisma/engines-version": "4.9.0-8.log-capture-improvements-c2d0876355bc9103b77721edc74c886b51446aab",
     "@swc/core": "1.3.14",
     "@swc/jest": "0.2.24",
     "@types/jest": "29.2.4",
