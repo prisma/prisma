@@ -90,7 +90,7 @@ testMatrix.setupTestSuite(
                   id: 2,
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               conditionalError.snapshot({
                 foreignKeys: {
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
@@ -145,7 +145,7 @@ testMatrix.setupTestSuite(
                 id: 2,
               },
             }),
-          ).rejects.toThrowError(
+          ).rejects.toThrow(
             conditionalError.snapshot({
               foreignKeys: {
                 [Providers.POSTGRESQL]:
@@ -170,7 +170,7 @@ testMatrix.setupTestSuite(
               prisma[userModel].delete({
                 where: { id: 1 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               conditionalError.snapshot({
                 foreignKeys: {
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
@@ -220,7 +220,7 @@ testMatrix.setupTestSuite(
             prisma[userModel].delete({
               where: { id: 1 },
             }),
-          ).rejects.toThrowError(
+          ).rejects.toThrow(
             conditionalError.snapshot({
               foreignKeys: {
                 [Providers.POSTGRESQL]:

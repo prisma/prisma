@@ -50,6 +50,10 @@ testMatrix.setupTestSuite(
         query: {
           user: {
             findFirst({ args, query, operation, model }) {
+              if (args.select != undefined) {
+                // @ts-expect-error
+                args.select.email = undefined
+              }
               // @ts-expect-error
               args.include = undefined
               // @ts-expect-error
@@ -675,7 +679,8 @@ testMatrix.setupTestSuite(
               expectTypeOf(args).not.toBeAny
               expectTypeOf(query).toBeFunction()
               expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
-              expectTypeOf(model).toEqualTypeOf<'Post' | 'User'>()
+              type Model = typeof model & ('Post' | 'User')
+              expectTypeOf<Model>().toEqualTypeOf<'Post' | 'User'>()
 
               fnModel({ args, operation, model })
 
@@ -735,7 +740,9 @@ testMatrix.setupTestSuite(
                 | 'groupBy'
                 | 'count'
               >()
-              expectTypeOf(model).toEqualTypeOf<'Post' | 'User'>()
+
+              type Model = typeof model & ('Post' | 'User')
+              expectTypeOf<Model>().toEqualTypeOf<'Post' | 'User'>()
 
               fnModel({ args, operation, model })
 

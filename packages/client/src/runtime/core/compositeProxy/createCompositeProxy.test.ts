@@ -294,7 +294,7 @@ test('does not allow to overriding property from a layer if it is non writable',
 
   expect(() => {
     proxy.prop = 'override'
-  }).toThrowError()
+  }).toThrow()
 
   expect(target.prop).toBeUndefined()
   expect(proxy.prop).toBe('from proxy')
