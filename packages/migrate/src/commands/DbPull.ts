@@ -405,11 +405,7 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
         } else if (warning.code === 20) {
           message += warning.affected
             .map((it) => {
-              if (it.type === 'Model') {
-                return `- Model "${it.name}"`
-              } else if (it.type === 'Enum') {
-                return `- Enum "${it.name}"`
-              }
+              return `- ${it.type} "${it.name}"`
             })
             .join('\n')
         } else if (warning.code === 9 || warning.code === 10) {
