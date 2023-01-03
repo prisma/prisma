@@ -172,6 +172,11 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
       debug('Trying platform-specific paths for "debian" (and "ubuntu")')
       return [`/usr/lib/${archFromUname}-linux-gnu`, `/lib/${archFromUname}-linux-gnu`]
     })
+    .with({ distro: 'rhel' }, async () => {
+      /* Linux Red Hat, OpenSuse etc */
+      debug('Trying platform-specific paths for "rhel"')
+      return Promise.resolve(['/lib64', '/usr/lib64'])
+    })
     .otherwise(({ distro, arch }) => {
       /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
       debug(`Don't know any platform-specific paths for "${distro}" on ${arch}`)
