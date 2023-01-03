@@ -7,6 +7,7 @@ exports[`getConfig datasource with env var - ignoreEnvVarErrors 1`] = `
       "activeProvider": "postgresql",
       "name": "db",
       "provider": "postgresql",
+      "schemas": [],
       "url": {
         "fromEnvVar": "SOMETHING-SOMETHING-1234",
         "value": null,
@@ -25,6 +26,7 @@ exports[`getConfig datasource with env var 1`] = `
       "activeProvider": "postgresql",
       "name": "db",
       "provider": "postgresql",
+      "schemas": [],
       "url": {
         "fromEnvVar": "TEST_POSTGRES_URI_FOR_DATASOURCE",
         "value": "postgres://user:password@something:5432/db",
@@ -43,6 +45,7 @@ exports[`getConfig empty config 1`] = `
       "activeProvider": "sqlite",
       "name": "db",
       "provider": "sqlite",
+      "schemas": [],
       "url": {
         "fromEnvVar": null,
         "value": "file:../hello.db",
@@ -61,6 +64,7 @@ exports[`getConfig with generator and datasource 1`] = `
       "activeProvider": "sqlite",
       "name": "db",
       "provider": "sqlite",
+      "schemas": [],
       "url": {
         "fromEnvVar": null,
         "value": "file:dev.db",

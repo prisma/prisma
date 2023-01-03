@@ -89,8 +89,8 @@
     "@types/jest": "29.2.4",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.1",
-    "@types/node": "14.18.35",
-    "@types/pg": "8.6.5",
+    "@types/node": "14.18.36",
+    "@types/pg": "8.6.6",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
@@ -149,7 +149,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.9.0-6.c417b3d7f4d3ba648bde7483f42ddf7a1f0cbd35"
+    "@prisma/engines-version": "4.9.0-9.fd432b9f5bf656320dededa56d9fa1de0e0e3f69"
   },
   "sideEffects": false
 }
