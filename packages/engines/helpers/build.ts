@@ -7,6 +7,7 @@ const postinstallBuildConfig: BuildOptions = {
   entryPoints: ['src/scripts/postinstall.ts'],
   outfile: 'dist/scripts/postinstall',
   bundle: true,
+  metafile: true,
   emitTypes: false,
 }
 
@@ -16,6 +17,7 @@ const localinstallBuildConfig: BuildOptions = {
   entryPoints: ['src/scripts/localinstall.ts'],
   outfile: 'dist/scripts/localinstall',
   bundle: true,
+  metafile: true,
   emitTypes: false,
 }
 
@@ -25,6 +27,7 @@ const defaultBuildConfig: BuildOptions = {
   entryPoints: ['src/index.ts'],
   outfile: 'dist/index',
   bundle: true,
+  metafile: true,
 }
 
 void build([postinstallBuildConfig, localinstallBuildConfig, defaultBuildConfig])

@@ -2,6 +2,7 @@ import { watch as createWatcher } from 'chokidar'
 import * as esbuild from 'esbuild'
 import glob from 'globby'
 import path from 'path'
+import fs from 'fs'
 
 import { debounce } from '../blaze/debounce'
 import { flatten } from '../blaze/flatten'
@@ -106,7 +107,12 @@ function addDefaultOutDir(options: BuildOptions) {
  * Execute esbuild with all the configurations we pass
  */
 async function executeEsBuild(options: BuildOptions) {
-  return [options, await esbuild.build(omit(options, ['name', 'emitTypes']))] as const
+  const result = await esbuild.build(omit(options, ['name', 'emitTypes']))
+
+  const filename = `meta.${options.name}.json`
+  fs.writeFileSync(filename, JSON.stringify(result.metafile))
+
+  return [options, result] as const
 }
 
 /**

@@ -13,6 +13,7 @@ const nodeRuntimeBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/index',
   bundle: true,
+  metafile: true,
   define: {
     NODE_CLIENT: 'true',
     // that fixes an issue with lz-string umd builds
@@ -27,6 +28,7 @@ const browserBuildConfig: BuildOptions = {
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
+  metafile: true,
 }
 
 // we define the config for edge
@@ -35,6 +37,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/edge',
   bundle: true,
+  metafile: true,
   minify: true,
   legalComments: 'none',
   emitTypes: false,
@@ -79,6 +82,7 @@ const generatorBuildConfig: BuildOptions = {
   entryPoints: ['src/generation/generator.ts'],
   outfile: 'generator-build/index',
   bundle: true,
+  metafile: true,
   emitTypes: false,
 }
 
