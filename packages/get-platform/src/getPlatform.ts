@@ -159,6 +159,7 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
       return getFirstSuccessfulExec(['ls -l /lib/libssl.so.3', 'ls -l /lib/libssl.so.1.1'])
     })
     .with({ distro: 'debian' }, async () => {
+      /* Linux Debian, Ubuntu, etc */
       const archFromUname = await getArchFromUname()
       return getFirstSuccessfulExec([
         `ls -l /usr/lib/${archFromUname}-linux-gnu/libssl.so.3*`,
@@ -166,7 +167,10 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
         `ls -l /usr/lib/${archFromUname}-linux-gnu/libssl.so.1.0*`,
       ])
     })
-    .run()
+    .otherwise(() => {
+      /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
+      return Promise.resolve(undefined)
+    })
 
   if (libsslVersionSpecific) {
     const matchedVersion = parseLibSSLVersion(libsslVersionSpecific)
