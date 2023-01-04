@@ -76,7 +76,6 @@
     "@types/fs-extra": "9.0.13",
     "@types/jest": "29.2.4",
     "@types/rimraf": "3.0.2",
-    "@types/ws": "8.5.3",
     "chalk": "4.1.2",
     "checkpoint-client": "1.1.21",
     "debug": "4.3.4",
