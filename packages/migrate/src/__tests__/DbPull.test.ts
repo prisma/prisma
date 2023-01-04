@@ -771,12 +771,6 @@ describe('postgresql-multi-schema', () => {
 
       // *** WARNING ***
       // 
-      // These enums were enriched with \`@@map\` information taken from the previous Prisma schema.
-      // - Enum "base_status"
-      // 
-      // These enums were enriched with \`@@map\` information taken from the previous Prisma schema.
-      // - Enum "transactional_status"
-      // 
       // These models and enums were renamed due to their names being duplicates in the Prisma Schema Language.
       // - Enum "base_status"
       // - Enum "transactional_status"
