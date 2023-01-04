@@ -143,7 +143,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 29.2.4
       '@types/rimraf': 3.0.2
-      '@types/ws': 8.5.3
+      '@types/ws': 8.5.4
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       debug: 4.3.4
@@ -189,7 +189,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 29.2.4
       '@types/rimraf': 3.0.2
-      '@types/ws': 8.5.3
+      '@types/ws': 8.5.4
       chalk: 4.1.2
       checkpoint-client: 1.1.21
       debug: 4.3.4
@@ -4203,8 +4203,8 @@ packages:
       '@types/webidl-conversions': 7.0.0
     dev: false
 
-  /@types/ws/8.5.3:
-    resolution: {integrity: sha512-6YOoWjruKj1uLf3INHH7D3qTXwFfEsg1kf3c0uDdSBJwfa/llkwIjrAGV7j7mVgGNbzTQ3HiHKKDXl6bJPD97w==}
+  /@types/ws/8.5.4:
+    resolution: {integrity: sha512-zdQDHKUgcX/zBc4GrwsE/7dVdAD8JR4EuiAXiiUhhfyIJXXb2+PrGshFyeXWQPMmmZ2XxgaqclgpIC7eTXc1mg==}
     dependencies:
       '@types/node': 18.11.18
     dev: true
