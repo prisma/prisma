@@ -5,7 +5,7 @@ import { ClientEngineType, getClientEngineType, getEngineVersion } from '@prisma
 import copy from '@timsuchanek/copy'
 import chalk from 'chalk'
 import fs from 'fs'
-import makeDir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
@@ -241,10 +241,10 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
-  await makeDir(finalOutputDir)
-  await makeDir(path.join(outputDir, 'runtime'))
+  await ensureDir(finalOutputDir)
+  await ensureDir(path.join(outputDir, 'runtime'))
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
-    await makeDir(path.join(outputDir, 'deno'))
+    await ensureDir(path.join(outputDir, 'deno'))
   }
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
   // outputDir:       /home/millsp/Work/prisma/packages/client
@@ -269,7 +269,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
     // TODO: Windows, / is not working here...
     const copyTarget = path.join(outputDir, 'runtime')
-    await makeDir(copyTarget)
+    await ensureDir(copyTarget)
     if (runtimeSourceDir !== copyTarget) {
       await copy({
         from: runtimeSourceDir,
@@ -293,7 +293,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   if (transpile === true && dataProxy !== true) {
     if (process.env.NETLIFY) {
-      await makeDir('/tmp/prisma-engines')
+      await ensureDir('/tmp/prisma-engines')
     }
 
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {

@@ -36,7 +36,6 @@
     "hasha": "5.2.2",
     "http-proxy-agent": "5.0.0",
     "https-proxy-agent": "5.0.1",
-    "make-dir": "3.1.0",
     "node-fetch": "2.6.7",
     "p-filter": "2.1.0",
     "p-map": "4.0.0",

@@ -65,7 +65,6 @@
     "has-yarn": "2.1.0",
     "is-windows": "^1.0.2",
     "is-wsl": "^2.2.0",
-    "make-dir": "3.1.0",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.6.7",
     "open": "7",
