@@ -721,7 +721,6 @@ importers:
       read-pkg-up: 7.0.1
       replace-string: 3.1.0
       resolve: 1.22.1
-      rimraf: 3.0.2
       string-width: 4.2.3
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
@@ -768,7 +767,6 @@ importers:
       read-pkg-up: 7.0.1
       replace-string: 3.1.0
       resolve: 1.22.1
-      rimraf: 3.0.2
       string-width: 4.2.3
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
