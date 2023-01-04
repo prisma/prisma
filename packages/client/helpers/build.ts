@@ -32,6 +32,7 @@ const browserBuildConfig: BuildOptions = {
 // we define the config for edge
 const edgeRuntimeBuildConfig: BuildOptions = {
   name: 'edge',
+  target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
   outfile: 'runtime/edge',
   bundle: true,
