@@ -88,7 +88,7 @@ describeIf(process.platform !== 'win32')('push', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      SQLite database dev.db created at file:dev.db
+      sqlite database dev.db created at file:dev.db
 
       🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
@@ -113,7 +113,7 @@ describeIf(process.platform !== 'win32')('push', () => {
       Prisma schema loaded from something/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      SQLite database dev.db created at file:dev.db
+      sqlite database dev.db created at file:dev.db
 
       🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
@@ -336,7 +336,7 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db": MongoDB database
       Applying the following changes:
 
       [+] Collection \`Post\`
@@ -360,7 +360,7 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db": MongoDB database
       Applying the following changes:
 
       [+] Collection \`Post\`
@@ -379,7 +379,7 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db": MongoDB database
       Applying the following changes:
 
       [+] Collection \`Post\`
