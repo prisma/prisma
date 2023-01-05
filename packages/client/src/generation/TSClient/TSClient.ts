@@ -157,6 +157,11 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
       path.dirname(this.options.schemaPath),
     )
 
+    /**
+     * Specifying "readonly-input = true" marks all input types as
+     */
+    const readolyInput = this.options.generator?.config['readonly-input'] === 'true'
+
     const commonCode = commonCodeTS(this.options)
     const modelAndTypes = Object.values(this.dmmf.typeAndModelMap).reduce((acc, modelOrType) => {
       if (this.dmmf.outputTypeMap[modelOrType.name]) {
@@ -264,9 +269,9 @@ ${this.dmmf.inputObjectTypes.prisma
       ${baseName}
     >
   | OptionalFlat<Omit<${baseName}, 'path'>>`)
-      acc.push(new InputType({ ...inputType, name: `${inputType.name}Base` }, this.genericsInfo).toTS())
+      acc.push(new InputType({ ...inputType, name: `${inputType.name}Base` }, this.genericsInfo, readolyInput).toTS())
     } else {
-      acc.push(new InputType(inputType, this.genericsInfo).toTS())
+      acc.push(new InputType(inputType, this.genericsInfo, readolyInput).toTS())
     }
     return acc
   }, [] as string[])
