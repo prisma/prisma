@@ -3000,13 +3000,13 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
-    posts?: boolean | UserPostsArgs
+    posts?: boolean | User$postsArgs
     _count?: boolean | UserCountOutputTypeArgs
   }
 
 
   export type UserInclude = {
-    posts?: boolean | UserPostsArgs
+    posts?: boolean | User$postsArgs
     _count?: boolean | UserCountOutputTypeArgs
   } 
 
@@ -3398,7 +3398,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    posts<T extends UserPostsArgs= {}>(args?: Subset<T, UserPostsArgs>): PrismaPromise<Array<PostGetPayload<T>>| Null>;
+    posts<T extends User$postsArgs= {}>(args?: Subset<T, User$postsArgs>): PrismaPromise<Array<PostGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -3806,7 +3806,7 @@ export namespace Prisma {
   /**
    * User.posts
    */
-  export type UserPostsArgs = {
+  export type User$postsArgs = {
     /**
      * Select specific fields to fetch from the Post
      * 
@@ -4109,7 +4109,7 @@ export namespace Prisma {
 
   export type MSelect = {
     id?: boolean
-    n?: boolean | MNArgs
+    n?: boolean | M$nArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -4127,7 +4127,7 @@ export namespace Prisma {
 
 
   export type MInclude = {
-    n?: boolean | MNArgs
+    n?: boolean | M$nArgs
     _count?: boolean | MCountOutputTypeArgs
   } 
 
@@ -4519,7 +4519,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    n<T extends MNArgs= {}>(args?: Subset<T, MNArgs>): PrismaPromise<Array<NGetPayload<T>>| Null>;
+    n<T extends M$nArgs= {}>(args?: Subset<T, M$nArgs>): PrismaPromise<Array<NGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -4927,7 +4927,7 @@ export namespace Prisma {
   /**
    * M.n
    */
-  export type MNArgs = {
+  export type M$nArgs = {
     /**
      * Select specific fields to fetch from the N
      * 
@@ -5230,7 +5230,7 @@ export namespace Prisma {
 
   export type NSelect = {
     id?: boolean
-    m?: boolean | NMArgs
+    m?: boolean | N$mArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -5248,7 +5248,7 @@ export namespace Prisma {
 
 
   export type NInclude = {
-    m?: boolean | NMArgs
+    m?: boolean | N$mArgs
     _count?: boolean | NCountOutputTypeArgs
   } 
 
@@ -5640,7 +5640,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    m<T extends NMArgs= {}>(args?: Subset<T, NMArgs>): PrismaPromise<Array<MGetPayload<T>>| Null>;
+    m<T extends N$mArgs= {}>(args?: Subset<T, N$mArgs>): PrismaPromise<Array<MGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -6048,7 +6048,7 @@ export namespace Prisma {
   /**
    * N.m
    */
-  export type NMArgs = {
+  export type N$mArgs = {
     /**
      * Select specific fields to fetch from the M
      * 
@@ -6351,7 +6351,7 @@ export namespace Prisma {
 
   export type OneOptionalSelect = {
     id?: boolean
-    many?: boolean | OneOptionalManyArgs
+    many?: boolean | OneOptional$manyArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -6369,7 +6369,7 @@ export namespace Prisma {
 
 
   export type OneOptionalInclude = {
-    many?: boolean | OneOptionalManyArgs
+    many?: boolean | OneOptional$manyArgs
     _count?: boolean | OneOptionalCountOutputTypeArgs
   } 
 
@@ -6761,7 +6761,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    many<T extends OneOptionalManyArgs= {}>(args?: Subset<T, OneOptionalManyArgs>): PrismaPromise<Array<ManyRequiredGetPayload<T>>| Null>;
+    many<T extends OneOptional$manyArgs= {}>(args?: Subset<T, OneOptional$manyArgs>): PrismaPromise<Array<ManyRequiredGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -7169,7 +7169,7 @@ export namespace Prisma {
   /**
    * OneOptional.many
    */
-  export type OneOptionalManyArgs = {
+  export type OneOptional$manyArgs = {
     /**
      * Select specific fields to fetch from the ManyRequired
      * 
