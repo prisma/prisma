@@ -10,41 +10,62 @@ import {
 import chalk from 'chalk'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
-export type DbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'CockroachDB'
+export type PrettyProvider = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'CockroachDB' | 'MongoDB'
 
 // TODO: extract functions in their own files?
 
-export async function getDatasourceInfo(schemaPath?: string): Promise<{
+export type DatasourceInfo = {
   name?: string // from datasource name
-  url?: string // from getConfig
+  url: string // from getConfig
   dbLocation?: string // host without credentials
-  dbType?: DbType // pretty name
+  dbType: PrettyProvider // pretty name for the provider
   dbName?: string // database name
-  schema?: string // only for postgres right now (but SQL Server has this concept too)
-}> {
-  const datamodel = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel, ignoreEnvVarErrors: false })
-  const activeDatasource = config.datasources?.[0]
+  schema?: string // database schema (!= multiSchema, can be found in the connection string like `?schema=myschema`)
+  schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
+}
 
-  if (!activeDatasource) {
-    return {
-      name: undefined,
-      dbType: undefined,
-      dbName: undefined,
-      dbLocation: undefined,
-      url: undefined,
-    }
+export async function getDatasourceInfo(schemaPath?: string): Promise<DatasourceInfo> {
+  const schema = await getSchema(schemaPath)
+  const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+  const firstDatasource = config.datasources?.[0]
+
+  if (!firstDatasource) {
+    throw new Error(`We could not find a datasource block in the Prisma schema file. You must define one.`)
   }
 
-  const url = activeDatasource.url.value
+  const url = firstDatasource.url.value
 
-  if (activeDatasource.provider === 'sqlserver') {
+  let dbType
+  switch (firstDatasource.provider) {
+    case 'mysql':
+      dbType = `MySQL`
+      break
+    case 'postgresql':
+      dbType = `PostgreSQL`
+      break
+    case 'sqlite':
+      dbType = `SQLite`
+      break
+    case 'cockroachdb':
+      dbType = `CockroachDB`
+      break
+    // this is never reached as url parsing for sql server is not implemented
+    case 'sqlserver':
+      dbType = `SQL Server`
+      break
+    case 'mongodb':
+      dbType = `MongoDB`
+      break
+  }
+
+  if (firstDatasource.provider === 'sqlserver') {
     return {
-      name: activeDatasource.name,
-      dbType: 'SQL Server',
+      name: firstDatasource.name,
+      dbType,
       dbName: undefined,
       dbLocation: undefined,
-      url: activeDatasource.url.value,
+      url: firstDatasource.url.value,
+      schemas: firstDatasource.schemas,
     }
   }
 
@@ -53,27 +74,41 @@ export async function getDatasourceInfo(schemaPath?: string): Promise<{
     const dbLocation = getDbLocation(credentials)
     const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
 
+    let schema: string | undefined = undefined
+    if (firstDatasource.provider === 'postgresql') {
+      if (credentials.schema) {
+        schema = credentials.schema
+      } else {
+        schema = 'public'
+      }
+    }
+
     const datasourceInfo = {
-      name: activeDatasource.name,
+      name: firstDatasource.name,
+      dbType,
       dbLocation,
       ...dbinfoFromCredentials,
       url,
-      schema: credentials.schema,
+      schema,
+      schemas: firstDatasource.schemas,
     }
 
-    // For CockroachDB we cannot rely on the connection URL, only on the provider
-    if (activeDatasource.provider === 'cockroachdb') {
-      datasourceInfo.dbType = 'CockroachDB'
+    // Default to `postgres` database name for PostgreSQL
+    // It's not 100% accurate but it's the best we can do here
+    if (firstDatasource.provider === 'postgresql' && datasourceInfo.dbName === undefined) {
+      datasourceInfo.dbName = 'postgres'
     }
 
     return datasourceInfo
   } catch (e) {
+    console.error(e)
     return {
-      name: activeDatasource.name,
-      dbType: undefined,
+      name: firstDatasource.name,
+      dbType,
       dbName: undefined,
       dbLocation: undefined,
       url,
+      schemas: firstDatasource.schemas,
     }
   }
 }
@@ -82,17 +117,17 @@ export async function getDatasourceInfo(schemaPath?: string): Promise<{
 // if true: return true
 // if false: throw error
 export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<Boolean | Error> {
-  const datamodel = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel, ignoreEnvVarErrors: false })
-  const activeDatasource = config.datasources[0]
+  const schema = await getSchema(schemaPath)
+  const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+  const firstDatasource = config.datasources[0]
 
-  if (!activeDatasource) {
+  if (!firstDatasource) {
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const canConnect = await canConnectToDatabase(activeDatasource.url.value, schemaDir)
+  const canConnect = await canConnectToDatabase(firstDatasource.url.value, schemaDir)
 
   if (canConnect === true) {
     return true
@@ -103,17 +138,17 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 }
 
 export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: string) {
-  const datamodel = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel, ignoreEnvVarErrors: false })
-  const activeDatasource = config.datasources[0]
+  const schema = await getSchema(schemaPath)
+  const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+  const firstDatasource = config.datasources[0]
 
-  if (!activeDatasource) {
+  if (!firstDatasource) {
     throw new Error(`Couldn't find a datasource in the schema.prisma file`)
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const canConnect = await canConnectToDatabase(activeDatasource.url.value, schemaDir)
+  const canConnect = await canConnectToDatabase(firstDatasource.url.value, schemaDir)
   if (canConnect === true) {
     return
   }
@@ -131,28 +166,19 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
     throw new Error(`Could not locate ${schemaPath || 'schema.prisma'}`)
   }
 
-  if (await createDatabase(activeDatasource.url.value, schemaDir)) {
+  if (await createDatabase(firstDatasource.url.value, schemaDir)) {
     // URI parsing is not implemented for SQL server yet
-    if (activeDatasource.provider === 'sqlserver') {
+    if (firstDatasource.provider === 'sqlserver') {
       return `SQL Server database created.\n`
     }
 
     // parse the url
-    const credentials = uriToCredentials(activeDatasource.url.value)
-    const { dbType, dbName } = getDbinfoFromCredentials(credentials)
-    let databaseProvider = dbType
+    const credentials = uriToCredentials(firstDatasource.url.value)
+    const { dbName } = getDbinfoFromCredentials(credentials)
 
-    // not needed to check for sql server here since we returned already earlier if provider = sqlserver
-    if (dbType && dbType !== 'SQL Server') {
-      // For CockroachDB we cannot rely on the connection URL, only on the provider
-      if (activeDatasource.provider === 'cockroachdb') {
-        databaseProvider = 'CockroachDB'
-      }
-      return `${databaseProvider} database ${chalk.bold(dbName)} created at ${chalk.bold(getDbLocation(credentials))}`
-    } else {
-      // SQL Server case, never reached?
-      return `Database created.`
-    }
+    return `${firstDatasource.provider} database ${chalk.bold(dbName)} created at ${chalk.bold(
+      getDbLocation(credentials),
+    )}`
   }
 
   return undefined
@@ -184,32 +210,10 @@ export function getDbLocation(credentials: DatabaseCredentials): string {
 // returns database name + pretty name of db provider
 export function getDbinfoFromCredentials(credentials: DatabaseCredentials): {
   dbName: string | undefined // database name
-  dbType: DbType // pretty name
 } {
   const dbName = credentials.database
 
-  let dbType
-  switch (credentials.type) {
-    case 'mysql':
-      dbType = `MySQL`
-      break
-    case 'postgresql':
-      dbType = `PostgreSQL`
-      break
-    case 'sqlite':
-      dbType = `SQLite`
-      break
-    case 'cockroachdb':
-      dbType = `CockroachDB`
-      break
-    // this is never reached as url parsing for sql server is not implemented
-    case 'sqlserver':
-      dbType = `SQL Server`
-      break
-  }
-
   return {
     dbName,
-    dbType,
   }
 }

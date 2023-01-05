@@ -28,6 +28,7 @@ import { printDatasource } from '../utils/printDatasource'
 import type { ConnectorType } from '../utils/printDatasources'
 import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
+import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 
 export class DbPull implements Command {
   public static new(): DbPull {
@@ -141,7 +142,7 @@ Set composite types introspection depth to 2 levels
       // Load and print where the .env was loaded (if loaded)
       loadEnvFile(args['--schema'], true)
 
-      await printDatasource({ schemaPath })
+      printDatasource({ datasourceInfo: await getDatasourceInfo(schemaPath) })
     } else {
       // Load .env but don't print
       loadEnvFile(args['--schema'], false)

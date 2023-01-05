@@ -113,8 +113,6 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
   }
 
   let database: string | undefined = undefined
-  // For Postgres only?
-  let defaultSchema: string | undefined = undefined
 
   if (type === 'sqlite' && uri.pathname) {
     // weird conditionals here
@@ -138,11 +136,6 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
     }
   }
 
-  if (type === 'postgresql' && !schema) {
-    // default to public schema
-    defaultSchema = 'public'
-  }
-
   return {
     type,
     host: exists(uri.hostname) ? uri.hostname : undefined,
@@ -150,7 +143,7 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
     port: exists(uri.port) ? Number(uri.port) : undefined,
     password: exists(uri.password) ? uri.password : undefined,
     database,
-    schema: schema || defaultSchema,
+    schema: schema || undefined,
     uri: connectionString,
     ssl: Boolean(uri.searchParams.get('sslmode')),
     socket: socket || undefined,

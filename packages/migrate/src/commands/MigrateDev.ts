@@ -20,7 +20,7 @@ import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import type { DbType } from '../utils/ensureDatabaseExists'
+import type { DatasourceInfo, PrettyProvider } from '../utils/ensureDatabaseExists'
 import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
 import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
@@ -110,7 +110,7 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     const datasourceInfo = await getDatasourceInfo(schemaPath)
-    await printDatasource({ schemaPath })
+    printDatasource({ datasourceInfo })
 
     console.info() // empty line
 
@@ -153,7 +153,10 @@ ${chalk.bold('Examples')}
           throw new MigrateDevEnvNonInteractiveError()
         }
 
-        const confirmedReset = await this.confirmReset(datasourceInfo, devDiagnostic.action.reason)
+        const confirmedReset = await this.confirmReset({
+          datasourceInfo,
+          reason: devDiagnostic.action.reason,
+        })
 
         console.info() // empty line
 
@@ -349,25 +352,31 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
     return ''
   }
 
-  private async confirmReset(
-    {
-      dbType,
-      dbName,
-      dbLocation,
-      schema,
-    }: {
-      dbType?: DbType
-      dbName?: string
-      dbLocation?: string
-      schema?: string
-    },
-    reason: string,
-  ): Promise<boolean> {
-    // WIP TODO
-    const mssqlMessage = `We need to reset the database.`
-    const schemaInConnectionMessage = `We need to reset the "${schema}" schema.`
+  private async confirmReset({
+    datasourceInfo,
+    reason,
+  }: {
+    datasourceInfo: DatasourceInfo
+    reason: string
+  }): Promise<boolean> {
+    let messageFirstLine = ''
 
-    const messageFirstLine = `We need to reset the ${dbType} database "${dbName}" at "${dbLocation}".`
+    console.debug(datasourceInfo)
+    if (['PostgreSQL', 'SQL Server'].includes(datasourceInfo.dbType)) {
+      if (datasourceInfo.schemas?.length) {
+        messageFirstLine = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
+      } else if (datasourceInfo.schema) {
+        messageFirstLine = `We need to reset the "${datasourceInfo.schema}" schema`
+      } else {
+        messageFirstLine = `We need to reset the database schema`
+      }
+    } else {
+      messageFirstLine = `We need to reset the ${datasourceInfo.dbType} database "${datasourceInfo.dbName}"`
+    }
+
+    if (datasourceInfo.dbLocation) {
+      messageFirstLine += ` at "${datasourceInfo.dbLocation}"`
+    }
 
     const message = `${messageFirstLine}
 Do you want to continue? ${chalk.red('All data will be lost')}.`
@@ -377,7 +386,7 @@ Do you want to continue? ${chalk.red('All data will be lost')}.`
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
-      message: dbType === 'SQL Server' ? mssqlMessage : dbType === 'PostgreSQL' ? postgresqlMessage : message,
+      message: message,
     })
 
     return confirmation.value

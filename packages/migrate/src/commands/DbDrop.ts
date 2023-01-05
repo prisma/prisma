@@ -86,12 +86,7 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     const datasourceInfo = await getDatasourceInfo(schemaPath)
-    if (!datasourceInfo.url) {
-      // TODO better error
-      throw new Error('Connection url is undefined.')
-    }
-
-    await printDatasource({ schemaPath })
+    printDatasource({ datasourceInfo })
 
     const schemaDir = (await getSchemaDir(schemaPath))!
 
@@ -102,7 +97,6 @@ ${chalk.bold('Examples')}
         throw new DbNeedsForceError('drop')
       }
 
-      // TODO for mssql
       const confirmation = await prompt({
         type: 'text',
         name: 'value',

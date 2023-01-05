@@ -14,7 +14,7 @@ import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
@@ -90,7 +90,7 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    await printDatasource({ schemaPath })
+    printDatasource({ datasourceInfo: await getDatasourceInfo(schemaPath) })
 
     throwUpgradeErrorIfOldMigrate(schemaPath)
 
