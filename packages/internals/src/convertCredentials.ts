@@ -8,9 +8,7 @@ import type { DatabaseCredentials } from './types'
 // only used for internal tests
 export function credentialsToUri(credentials: DatabaseCredentials): string {
   const type = databaseTypeToProtocol(credentials.type)
-  if (credentials.type === 'mongodb') {
-    return credentials.uri!
-  } else if (credentials.type === 'sqlite') {
+  if (credentials.type === 'sqlite') {
     // if `file:../parent-dev.db` return as it is
     return credentials.uri!
   }
@@ -41,6 +39,8 @@ export function credentialsToUri(credentials: DatabaseCredentials): string {
     if (credentials.socket) {
       url.searchParams.set('socket', credentials.socket)
     }
+  } else if (credentials.type === 'mongodb') {
+    url.pathname = '/' + credentials.database
   }
 
   if (credentials.ssl) {
@@ -90,14 +90,6 @@ export function uriToCredentials(connectionString: string): DatabaseCredentials 
   }
 
   const type = protocolToConnectorType(uri.protocol)
-
-  // if mongodb no extra parsing
-  if (type === 'mongodb') {
-    return {
-      type,
-      uri: connectionString, // todo: set authsource as database if not provided explicitly
-    }
-  }
 
   // needed, as the URL implementation adds empty strings
   const exists = (str): boolean => str && str.length > 0
