@@ -203,7 +203,7 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
   ])
 
   if (libsslFilename) {
-    debug(`Found libssl.so file using "ldconfig" and other generic paths: ${libsslFilenameFromSpecificPath}`)
+    debug(`Found libssl.so file using "ldconfig" or other generic paths: ${libsslFilenameFromSpecificPath}`)
     const libsslVersion = parseLibSSLVersion(libsslFilename)
     if (libsslVersion) {
       return libsslVersion
