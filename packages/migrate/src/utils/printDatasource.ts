@@ -15,7 +15,7 @@ export function printDatasource({ datasourceInfo }: { datasourceInfo: Datasource
   }
 
   // If schemas are defined in the datasource block, print them
-  if (datasourceInfo.schemas) {
+  if (datasourceInfo.schemas?.length) {
     message += `, schemas "${datasourceInfo.schemas.join(', ')}"`
   }
   // Otherwise, print the schema if it's defined in the connection string
