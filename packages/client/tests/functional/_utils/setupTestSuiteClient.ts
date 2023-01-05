@@ -1,4 +1,6 @@
 import { getConfig, parseEnvValue } from '@prisma/internals'
+import fs from 'fs'
+import { copyFile } from 'fs-extra'
 import path from 'path'
 
 import { generateClient } from '../../../src/generation/generateClient'
@@ -27,6 +29,7 @@ export async function setupTestSuiteClient({
   datasourceInfo,
   clientMeta,
   alterStatementCallback,
+  useDefaultClient,
 }: {
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
@@ -34,6 +37,7 @@ export async function setupTestSuiteClient({
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
   alterStatementCallback?: AlterStatementCallback
+  useDefaultClient?: boolean
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const previewFeatures = getTestSuitePreviewFeatures(suiteConfig.matrixOptions)
@@ -73,6 +77,38 @@ export async function setupTestSuiteClient({
     projectRoot: suiteFolderPath,
     dataProxy: clientMeta.dataProxy,
   })
+
+  if (useDefaultClient) {
+    const prismaClientDir = path.join(suiteFolderPath, 'node_modules/', '@prisma', 'client')
+    const prismaClientRuntimeDir = path.join(suiteFolderPath, 'node_modules/', '@prisma', 'client', 'runtime')
+    const dotPrismaClientDir = path.join(suiteFolderPath, 'node_modules/', '.prisma/client')
+    const scriptsPath = path.join(__dirname, '../../../scripts')
+    const runtimePath = path.join(__dirname, '../../../runtime')
+    const prismaClientRootPath = path.join(__dirname, '../../../')
+
+    await fs.promises.mkdir(prismaClientRuntimeDir, { recursive: true })
+
+    await fs.promises.mkdir(dotPrismaClientDir, { recursive: true })
+    await fs.promises.writeFile(
+      `${dotPrismaClientDir}/package.json`,
+      JSON.stringify({ name: '.prisma/client', main: 'index.js', types: 'index.d.ts' }),
+    )
+
+    await copyFile(path.join(prismaClientRootPath, 'index.js'), path.join(prismaClientDir, 'index.js'))
+    await copyFile(path.join(prismaClientRootPath, 'index.d.ts'), path.join(prismaClientDir, 'index.d.ts'))
+
+    const defaultNodeIndexPath = path.join(dotPrismaClientDir, 'index.js')
+    await copyFile(path.join(scriptsPath, 'default-index.js'), defaultNodeIndexPath)
+
+    const defaultNodeIndexDtsPath = path.join(dotPrismaClientDir, 'index.d.ts')
+    await copyFile(path.join(scriptsPath, 'default-index.d.ts'), defaultNodeIndexDtsPath)
+
+    const defaultRuntimeNodeIndexPath = path.join(prismaClientRuntimeDir, 'index.js')
+    await copyFile(path.join(runtimePath, 'index.js'), defaultRuntimeNodeIndexPath)
+
+    const defaultRuntimeNodeIndexDtsPath = path.join(prismaClientRuntimeDir, 'index.d.ts')
+    await copyFile(path.join(runtimePath, 'index.d.ts'), defaultRuntimeNodeIndexDtsPath)
+  }
 
   const clientPathForRuntime: Record<ClientRuntime, string> = {
     node: 'node_modules/@prisma/client',

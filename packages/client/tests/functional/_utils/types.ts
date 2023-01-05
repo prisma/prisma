@@ -13,6 +13,9 @@ export type MatrixOptions = {
   }
   // SQL Migraiton to apply after inital generated migration
   alterStatementCallback?: AlterStatementCallback
+
+  // Copy the default JS and TS files across
+  useDefaultClient?: boolean
 }
 
 export type NewPrismaClient<T extends new (...args: any) => any> = (

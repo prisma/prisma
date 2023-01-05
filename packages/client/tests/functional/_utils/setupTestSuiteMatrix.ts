@@ -77,7 +77,12 @@ function setupTestSuiteMatrix(
           datasourceInfo,
           clientMeta,
           alterStatementCallback: options?.alterStatementCallback,
+          useDefaultClient: options?.useDefaultClient,
         })
+
+        if (options?.useDefaultClient) {
+          return
+        }
 
         globalThis['newPrismaClient'] = (...args) => {
           const client = new global['loaded']['PrismaClient'](...args)
