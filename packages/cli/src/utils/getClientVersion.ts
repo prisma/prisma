@@ -2,6 +2,7 @@ import fs from 'fs'
 import Module from 'module'
 import path from 'path'
 import pkgUp from 'pkg-up'
+import { pathToFileURL } from 'url'
 import { promisify } from 'util'
 
 const readFileAsync = promisify(fs.readFile)
@@ -25,7 +26,7 @@ export async function getGeneratedClientVersion(
 ): Promise<string | null> {
   try {
     const generatedClientPath = path.resolve(cwd, clientPath, 'index.js')
-    const generatedClientImport = await import(generatedClientPath)
+    const generatedClientImport = await import(pathToFileURL(generatedClientPath).toString())
 
     return generatedClientImport.Prisma.prismaVersion.client
   } catch {
