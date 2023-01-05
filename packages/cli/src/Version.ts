@@ -179,7 +179,7 @@ export class Version implements Command {
     const datamodel = await getSchema()
     const config = await getConfig({
       datamodel,
-      ignoreEnvVarErrors: false,
+      ignoreEnvVarErrors: true,
     })
 
     return filterDuplicatesOnProperty(
