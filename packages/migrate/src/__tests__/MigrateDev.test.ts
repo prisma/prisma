@@ -1606,8 +1606,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db" - SQL Server
+      Prisma schema loaded from prisma/shadowdb.prisma
+      Datasource "my_db": SQL Server database
 
       Applying migration \`20201231000000_\`
 
@@ -1631,7 +1631,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/shadowdb.prisma
-      Datasource "my_db" - SQL Server
+      Datasource "my_db": SQL Server database
 
       Applying migration \`20201231000000_\`
 
@@ -1653,7 +1653,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db" - SQL Server
+      Datasource "my_db": SQL Server database
 
       Applying migration \`20201231000000_\`
 
@@ -1736,10 +1736,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect((fs.list('prisma/migrations')?.length || 0) > 0).toMatchInlineSnapshot(`true`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db" - SQL Server
+      Datasource "my_db": SQL Server database
 
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db" - SQL Server
+      Datasource "my_db": SQL Server database
 
       Applying migration \`20201231000000_first\`
 
@@ -1763,7 +1763,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db" - SQL Server
+      Datasource "my_db": SQL Server database
 
       Applying migration \`20201231000000_first\`
 

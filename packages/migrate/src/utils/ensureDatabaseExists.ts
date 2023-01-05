@@ -24,6 +24,7 @@ export type DatasourceInfo = {
   schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
 }
 
+// todo
 export async function getDatasourceInfo(schemaPath?: string): Promise<DatasourceInfo> {
   const schema = await getSchema(schemaPath)
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
@@ -75,7 +76,7 @@ export async function getDatasourceInfo(schemaPath?: string): Promise<Datasource
     const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
 
     let schema: string | undefined = undefined
-    if (firstDatasource.provider === 'postgresql') {
+    if (['postgresql', 'cockroachdb'].includes(firstDatasource.provider)) {
       if (credentials.schema) {
         schema = credentials.schema
       } else {

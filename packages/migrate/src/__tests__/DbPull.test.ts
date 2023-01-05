@@ -1214,7 +1214,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/no-model.prisma
-      Datasource "my_db": MongoDB database
+      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -1245,7 +1245,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database
+      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -1425,7 +1425,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database
+      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -1568,7 +1568,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database
+      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -1603,7 +1603,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database
+      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
