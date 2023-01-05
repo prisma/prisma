@@ -185,26 +185,18 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
 }
 
 // returns the "host" like localhost / 127.0.0.1 + default port
-export function getDbLocation(credentials: DatabaseCredentials): string {
+export function getDbLocation(credentials: DatabaseCredentials): string | undefined {
   if (credentials.type === 'sqlite') {
     return credentials.uri!
   }
 
-  if (!credentials.port) {
-    switch (credentials.type) {
-      case 'mysql':
-        credentials.port = 3306
-        break
-      case 'postgresql':
-        credentials.port = 5432
-        break
-      case 'sqlserver':
-        credentials.port = 1433
-        break
-    }
+  if (credentials.host && credentials.port) {
+    return `${credentials.host}:${credentials.port}`
+  } else if (credentials.host) {
+    return `${credentials.host}`
   }
 
-  return `${credentials.host}:${credentials.port}`
+  return undefined
 }
 
 // returns database name + pretty name of db provider
