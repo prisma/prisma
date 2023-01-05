@@ -6,7 +6,7 @@ import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 // Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 // Datasource "my_db": MySQL database "tests-migrate" at "localhost:5432"
 // Datasource "my_db" - SQL Server
-export async function printDatasource(schemaPath: string): Promise<void> {
+export async function printDatasource({ schemaPath }: { schemaPath: string }): Promise<void> {
   const datasourceInfo = await getDatasourceInfo(schemaPath)
 
   if (datasourceInfo.dbType) {

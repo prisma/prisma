@@ -109,7 +109,8 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    await printDatasource(schemaPath)
+    const datasourceInfo = await getDatasourceInfo(schemaPath)
+    await printDatasource({ schemaPath })
 
     console.info() // empty line
 
@@ -152,7 +153,6 @@ ${chalk.bold('Examples')}
           throw new MigrateDevEnvNonInteractiveError()
         }
 
-        const datasourceInfo = await getDatasourceInfo(schemaPath)
         const confirmedReset = await this.confirmReset(datasourceInfo, devDiagnostic.action.reason)
 
         console.info() // empty line

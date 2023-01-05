@@ -85,13 +85,13 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    await printDatasource(schemaPath)
-
     const datasourceInfo = await getDatasourceInfo(schemaPath)
     if (!datasourceInfo.url) {
       // TODO better error
       throw new Error('Connection url is undefined.')
     }
+
+    await printDatasource({ schemaPath })
 
     const schemaDir = (await getSchemaDir(schemaPath))!
 
