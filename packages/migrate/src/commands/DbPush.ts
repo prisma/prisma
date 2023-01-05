@@ -17,7 +17,7 @@ import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
-import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbPushForceFlagRenamedError, DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
@@ -99,7 +99,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
 
     await printDatasource(schemaPath)
 
-    const dbInfo = await getDbInfo(schemaPath)
+    const datasourceInfo = await getDatasourceInfo(schemaPath)
 
     const migrate = new Migrate(schemaPath)
 
@@ -124,24 +124,27 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
         migrate.stop()
         throw e
       }
-      if (dbInfo.dbName && dbInfo.dbLocation) {
-        if(dbInfo.schema) {
-          console.info(`The ${dbInfo.schema} schema of the ${dbInfo.dbType} database from "${dbInfo.dbLocation}" was successfully reset.`)
-        } else if(dbInfo.dbType === 'PostgreSQL') {
+      if (datasourceInfo.dbName && datasourceInfo.dbLocation) {
+        if (datasourceInfo.schema) {
           console.info(
-            `The ${dbInfo.dbType} database "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+            `The ${datasourceInfo.schema} schema of the ${datasourceInfo.dbType} database from "${datasourceInfo.dbLocation}" was successfully reset.`,
+          )
+        } else if (datasourceInfo.dbType === 'PostgreSQL') {
+          console.info(
+            `The ${datasourceInfo.dbType} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
           )
         } else {
           console.info(
-            `The ${dbInfo.dbType} database "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+            `The ${datasourceInfo.dbType} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
           )
         }
-        
       } else {
-        if(dbInfo.schema) {
-          console.info(`The ${dbInfo.schema} schema of the ${dbInfo.dbType} database was successfully reset.`)
+        if (datasourceInfo.schema) {
+          console.info(
+            `The ${datasourceInfo.schema} schema of the ${datasourceInfo.dbType} database was successfully reset.`,
+          )
         } else {
-          console.info(`The ${dbInfo.dbType} database was successfully reset.`)
+          console.info(`The ${datasourceInfo.dbType} database was successfully reset.`)
         }
       }
       wasDatabaseReset = true
@@ -197,12 +200,12 @@ ${chalk.bold.redBright('All data will be lost.')}
       try {
         // Reset first to remove all structure and data
         await migrate.reset()
-        if (dbInfo.dbName && dbInfo.dbLocation) {
+        if (datasourceInfo.dbName && datasourceInfo.dbLocation) {
           console.info(
-            `The ${dbInfo.dbType} database "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+            `The ${datasourceInfo.dbType} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
           )
         } else {
-          console.info(`The ${dbInfo.dbType} database was successfully reset.`)
+          console.info(`The ${datasourceInfo.dbType} database was successfully reset.`)
         }
         wasDatabaseReset = true
 
@@ -264,7 +267,7 @@ ${chalk.bold.redBright('All data will be lost.')}
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
       // this is safe, as if the protocol was unknown, we would have already exited the program with an error
-      const provider = protocolToConnectorType(`${dbInfo.url?.split(':')[0]}:`)
+      const provider = protocolToConnectorType(`${datasourceInfo.url?.split(':')[0]}:`)
 
       console.info(
         `\n${rocketEmoji}${

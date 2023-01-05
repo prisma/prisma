@@ -14,7 +14,7 @@ import {
 import chalk from 'chalk'
 import prompt from 'prompts'
 
-import { getDbInfo } from '../utils/ensureDatabaseExists'
+import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbNeedsForceError } from '../utils/errors'
 import { PreviewFlagError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
@@ -87,8 +87,8 @@ ${chalk.bold('Examples')}
 
     await printDatasource(schemaPath)
 
-    const dbInfo = await getDbInfo(schemaPath)
-    if (!dbInfo.url) {
+    const datasourceInfo = await getDatasourceInfo(schemaPath)
+    if (!datasourceInfo.url) {
       // TODO better error
       throw new Error('Connection url is undefined.')
     }
@@ -106,8 +106,8 @@ ${chalk.bold('Examples')}
       const confirmation = await prompt({
         type: 'text',
         name: 'value',
-        message: `Enter the ${dbInfo.dbType} database name "${dbInfo.dbName}" to drop it.\nLocation: "${
-          dbInfo.dbLocation
+        message: `Enter the ${datasourceInfo.dbType} database name "${datasourceInfo.dbName}" to drop it.\nLocation: "${
+          datasourceInfo.dbLocation
         }".\n${chalk.red('All data will be lost')}.`,
       })
       console.info() // empty line
@@ -116,15 +116,15 @@ ${chalk.bold('Examples')}
         console.info('Drop cancelled.')
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
-      } else if (confirmation.value !== dbInfo.dbName) {
-        throw Error(`The database name entered "${confirmation.value}" doesn't match "${dbInfo.dbName}".`)
+      } else if (confirmation.value !== datasourceInfo.dbName) {
+        throw Error(`The database name entered "${confirmation.value}" doesn't match "${datasourceInfo.dbName}".`)
       }
     }
 
-    if (await dropDatabase(dbInfo.url, schemaDir)) {
-      return `${process.platform === 'win32' ? '' : '🚀  '}The ${dbInfo.dbType} database "${
-        dbInfo.dbName
-      }" from "${dbInfo.dbLocation}" was successfully dropped.\n`
+    if (await dropDatabase(datasourceInfo.url, schemaDir)) {
+      return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.dbType} database "${
+        datasourceInfo.dbName
+      }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`
     } else {
       return ''
     }

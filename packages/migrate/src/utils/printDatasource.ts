@@ -1,32 +1,32 @@
 import chalk from 'chalk'
 
-import { getDbInfo } from '../utils/ensureDatabaseExists'
+import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 
 // Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 // Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 // Datasource "my_db": MySQL database "tests-migrate" at "localhost:5432"
 // Datasource "my_db" - SQL Server
 export async function printDatasource(schemaPath: string): Promise<void> {
-  const dbInfo = await getDbInfo(schemaPath)
+  const datasourceInfo = await getDatasourceInfo(schemaPath)
 
-  if (dbInfo.dbType) {
-    if (dbInfo.dbType === 'PostgreSQL' && dbInfo.dbName === undefined) {
-      dbInfo.dbName = 'postgres'
+  if (datasourceInfo.dbType) {
+    if (datasourceInfo.dbType === 'PostgreSQL' && datasourceInfo.dbName === undefined) {
+      datasourceInfo.dbName = 'postgres'
     }
 
-    if (dbInfo.dbType === 'SQL Server') {
-      console.info(chalk.dim(`Datasource "${dbInfo.name}" - SQL Server`))
+    if (datasourceInfo.dbType === 'SQL Server') {
+      console.info(chalk.dim(`Datasource "${datasourceInfo.name}" - SQL Server`))
     } else {
       console.info(
         chalk.dim(
-          `Datasource "${dbInfo.name}": ${dbInfo.dbType} database "${dbInfo.dbName}"${
-            dbInfo.schema ? `, schema "${dbInfo.schema}"` : ''
-          } at "${dbInfo.dbLocation}"`,
+          `Datasource "${datasourceInfo.name}": ${datasourceInfo.dbType} database "${datasourceInfo.dbName}"${
+            datasourceInfo.schema ? `, schema "${datasourceInfo.schema}"` : ''
+          } at "${datasourceInfo.dbLocation}"`,
         ),
       )
     }
-  } else if (dbInfo.name) {
-    console.info(chalk.dim(`Datasource "${dbInfo.name}"`))
+  } else if (datasourceInfo.name) {
+    console.info(chalk.dim(`Datasource "${datasourceInfo.name}"`))
   } else {
     // Nothing
   }

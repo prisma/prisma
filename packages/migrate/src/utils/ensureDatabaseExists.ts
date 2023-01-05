@@ -8,15 +8,13 @@ import {
   uriToCredentials,
 } from '@prisma/internals'
 import chalk from 'chalk'
-import type execa from 'execa'
-import prompt from 'prompts'
 
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 export type DbType = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'CockroachDB'
 
 // TODO: extract functions in their own files?
 
-export async function getDbInfo(schemaPath?: string): Promise<{
+export async function getDatasourceInfo(schemaPath?: string): Promise<{
   name?: string // from datasource name
   url?: string // from getConfig
   dbLocation?: string // host without credentials
@@ -55,7 +53,7 @@ export async function getDbInfo(schemaPath?: string): Promise<{
     const dbLocation = getDbLocation(credentials)
     const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
 
-    const dbInfo = {
+    const datasourceInfo = {
       name: activeDatasource.name,
       dbLocation,
       ...dbinfoFromCredentials,
@@ -65,10 +63,10 @@ export async function getDbInfo(schemaPath?: string): Promise<{
 
     // For CockroachDB we cannot rely on the connection URL, only on the provider
     if (activeDatasource.provider === 'cockroachdb') {
-      dbInfo.dbType = 'CockroachDB'
+      datasourceInfo.dbType = 'CockroachDB'
     }
 
-    return dbInfo
+    return datasourceInfo
   } catch (e) {
     return {
       name: activeDatasource.name,
@@ -150,9 +148,7 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
       if (activeDatasource.provider === 'cockroachdb') {
         databaseProvider = 'CockroachDB'
       }
-      return `${databaseProvider} database ${chalk.bold(dbName)} created at ${chalk.bold(
-        getDbLocation(credentials),
-      )}`
+      return `${databaseProvider} database ${chalk.bold(dbName)} created at ${chalk.bold(getDbLocation(credentials))}`
     } else {
       // SQL Server case, never reached?
       return `Database created.`

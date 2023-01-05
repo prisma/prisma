@@ -21,7 +21,7 @@ import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import type { DbType } from '../utils/ensureDatabaseExists'
-import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
 import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
@@ -152,8 +152,8 @@ ${chalk.bold('Examples')}
           throw new MigrateDevEnvNonInteractiveError()
         }
 
-        const dbInfo = await getDbInfo(schemaPath)
-        const confirmedReset = await this.confirmReset(dbInfo, devDiagnostic.action.reason)
+        const datasourceInfo = await getDatasourceInfo(schemaPath)
+        const confirmedReset = await this.confirmReset(datasourceInfo, devDiagnostic.action.reason)
 
         console.info() // empty line
 
@@ -354,7 +354,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
       dbType,
       dbName,
       dbLocation,
-      schema
+      schema,
     }: {
       dbType?: DbType
       dbName?: string
@@ -377,7 +377,7 @@ Do you want to continue? ${chalk.red('All data will be lost')}.`
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
-      message: dbType === 'SQL Server' ? mssqlMessage : (dbType === 'PostgreSQL' ? postgresqlMessage : message),
+      message: dbType === 'SQL Server' ? mssqlMessage : dbType === 'PostgreSQL' ? postgresqlMessage : message,
     })
 
     return confirmation.value
