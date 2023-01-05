@@ -4,7 +4,7 @@ const ts = require('typescript')
 function compileFile(filePath) {
   const options = {
     module: ModuleKind.CommonJS,
-    target: ScriptTarget.ES2020,
+    target: ScriptTarget.ES2018,
     lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
     declaration: true,
     strict: true,
