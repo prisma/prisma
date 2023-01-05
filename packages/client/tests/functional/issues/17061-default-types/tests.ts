@@ -1,7 +1,6 @@
-// @ts-ignore
-import { PrismaClient } from '@prisma/client'
-
 import testMatrix from './_matrix'
+// @ts-ignore
+import { PrismaClient } from './node_modules/@prisma/client'
 
 // https://github.com/prisma/prisma/issues/17061
 testMatrix.setupTestSuite(
