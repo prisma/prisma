@@ -81,7 +81,7 @@ const urlMustStartWithProtocolValidationError = `
  Prisma CLI Version : 0.0.0
    `
 
-const couldNotFindDatasourceError = `Couldn't find a datasource in the schema.prisma file`
+const couldNotFindDatasourceError = `A datasource block is missing in the Prisma schema file.`
 const thereIsNoDatasourceError = `
 There is no datasource in the schema.
 
@@ -388,7 +388,10 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(thereIsNoDatasourceError)
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
+          thereIsNoDatasourceError,
+          `A datasource block is missing in the Prisma schema file.`,
+        )
       }
     })
 

@@ -30,7 +30,7 @@ export async function getDatasourceInfo(schemaPath?: string): Promise<Datasource
   const firstDatasource = config.datasources?.[0]
 
   if (!firstDatasource) {
-    throw new Error(`We could not find a datasource block in the Prisma schema file. You must define one.`)
+    throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
   const url = firstDatasource.url.value
@@ -122,7 +122,7 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
   const firstDatasource = config.datasources[0]
 
   if (!firstDatasource) {
-    throw new Error(`Couldn't find a datasource in the schema.prisma file`)
+    throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
@@ -143,7 +143,7 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
   const firstDatasource = config.datasources[0]
 
   if (!firstDatasource) {
-    throw new Error(`Couldn't find a datasource in the schema.prisma file`)
+    throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
