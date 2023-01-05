@@ -336,7 +336,7 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database
+      Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
       Applying the following changes:
 
       [+] Collection \`Post\`
@@ -360,7 +360,7 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database
+      Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
       Applying the following changes:
 
       [+] Collection \`Post\`
@@ -379,7 +379,7 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": MongoDB database
+      Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
       Applying the following changes:
 
       [+] Collection \`Post\`
