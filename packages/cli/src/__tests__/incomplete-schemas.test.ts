@@ -81,7 +81,7 @@ const urlMustStartWithProtocolValidationError = `
  Prisma CLI Version : 0.0.0
    `
 
-const couldNotFindDatasourceError = `A datasource block is missing in the Prisma schema file.`
+const aDatasourceBlockIsMissingError = `A datasource block is missing in the Prisma schema file.`
 const thereIsNoDatasourceError = `
 There is no datasource in the schema.
 
@@ -379,7 +379,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbPush.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(couldNotFindDatasourceError)
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(aDatasourceBlockIsMissingError)
       }
     })
 
@@ -388,10 +388,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
-          thereIsNoDatasourceError,
-          `A datasource block is missing in the Prisma schema file.`,
-        )
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(aDatasourceBlockIsMissingError)
       }
     })
 
@@ -411,7 +408,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await MigrateReset.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(couldNotFindDatasourceError)
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(aDatasourceBlockIsMissingError)
       }
     })
 
@@ -420,7 +417,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await MigrateDev.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(couldNotFindDatasourceError)
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(aDatasourceBlockIsMissingError)
       }
     })
   })
