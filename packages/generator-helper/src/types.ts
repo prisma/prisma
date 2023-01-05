@@ -69,10 +69,10 @@ export type ConnectorType =
 
 export interface DataSource {
   name: string
-  activeProvider: ConnectorType
   provider: ConnectorType
+  activeProvider: ConnectorType
   url: EnvValue
-  config: { [key: string]: string }
+  schemas: string[] | []
 }
 
 export type BinaryPaths = {
