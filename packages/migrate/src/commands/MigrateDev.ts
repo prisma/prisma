@@ -361,7 +361,6 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
   }): Promise<boolean> {
     let messageFirstLine = ''
 
-    console.debug(datasourceInfo)
     if (['PostgreSQL', 'SQL Server'].includes(datasourceInfo.dbType)) {
       if (datasourceInfo.schemas?.length) {
         messageFirstLine = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
