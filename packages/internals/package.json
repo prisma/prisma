@@ -78,7 +78,7 @@
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
     "temp-dir": "2.0.0",
-    "temp-write": "4.0.0",
+    "temp-write": "5.0.0",
     "tempy": "1.0.1",
     "terminal-link": "2.1.1",
     "tmp": "0.2.1",
