@@ -9,7 +9,7 @@ import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
 export function printDatasource({ datasourceInfo }: { datasourceInfo: DatasourceInfo }): void {
   if (!datasourceInfo.name) return
 
-  let message = `Datasource "${datasourceInfo.name}": ${datasourceInfo.dbType} database`
+  let message = `Datasource "${datasourceInfo.name}": ${datasourceInfo.prettyProvider} database`
   if (datasourceInfo.dbName) {
     message += ` "${datasourceInfo.dbName}"`
   }

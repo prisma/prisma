@@ -1,4 +1,4 @@
-import type { DatabaseCredentials } from '@prisma/internals'
+import type { ConfigMetaFormat, DatabaseCredentials } from '@prisma/internals'
 import {
   canConnectToDatabase,
   createDatabase,
@@ -15,10 +15,10 @@ export type PrettyProvider = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 
 // TODO: extract functions in their own files?
 
 export type DatasourceInfo = {
+  prettyProvider: PrettyProvider // pretty name for the provider
   name?: string // from datasource name
-  url: string // from getConfig
+  url?: string // from getConfig
   dbLocation?: string // host without credentials
-  dbType: PrettyProvider // pretty name for the provider
   dbName?: string // database name
   schema?: string // database schema (!= multiSchema, can be found in the connection string like `?schema=myschema`)
   schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
@@ -27,45 +27,56 @@ export type DatasourceInfo = {
 // todo
 export async function getDatasourceInfo(schemaPath?: string): Promise<DatasourceInfo> {
   const schema = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+  let config: ConfigMetaFormat
+
+  // Try parsing the env var if defined
+  // Because we want to get the database name from the url later in the function
+  // If it fails we try again but ignore the env var error
+  try {
+    config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+  } catch (error) {
+    config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
+  }
+
   const firstDatasource = config.datasources?.[0]
 
   if (!firstDatasource) {
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
   }
 
-  const url = firstDatasource.url.value
-
-  let dbType
+  let prettyProvider
   switch (firstDatasource.provider) {
     case 'mysql':
-      dbType = `MySQL`
+      prettyProvider = `MySQL`
       break
     case 'postgresql':
-      dbType = `PostgreSQL`
+      prettyProvider = `PostgreSQL`
       break
     case 'sqlite':
-      dbType = `SQLite`
+      prettyProvider = `SQLite`
       break
     case 'cockroachdb':
-      dbType = `CockroachDB`
+      prettyProvider = `CockroachDB`
       break
-    // this is never reached as url parsing for sql server is not implemented
     case 'sqlserver':
-      dbType = `SQL Server`
+      prettyProvider = `SQL Server`
       break
     case 'mongodb':
-      dbType = `MongoDB`
+      prettyProvider = `MongoDB`
       break
   }
 
-  if (firstDatasource.provider === 'sqlserver') {
+  const url = firstDatasource.url.value
+
+  // url parsing for sql server is not implemented
+  if (!url || firstDatasource.provider === 'sqlserver') {
     return {
       name: firstDatasource.name,
-      dbType,
+      prettyProvider,
       dbName: undefined,
       dbLocation: undefined,
-      url: firstDatasource.url.value,
+      url: firstDatasource.url.value || undefined,
+      schema: undefined,
       schemas: firstDatasource.schemas,
     }
   }
@@ -73,7 +84,6 @@ export async function getDatasourceInfo(schemaPath?: string): Promise<Datasource
   try {
     const credentials = uriToCredentials(url)
     const dbLocation = getDbLocation(credentials)
-    const dbinfoFromCredentials = getDbinfoFromCredentials(credentials)
 
     let schema: string | undefined = undefined
     if (['postgresql', 'cockroachdb'].includes(firstDatasource.provider)) {
@@ -86,9 +96,9 @@ export async function getDatasourceInfo(schemaPath?: string): Promise<Datasource
 
     const datasourceInfo = {
       name: firstDatasource.name,
-      dbType,
+      prettyProvider,
+      dbName: credentials.database,
       dbLocation,
-      ...dbinfoFromCredentials,
       url,
       schema,
       schemas: firstDatasource.schemas,
@@ -102,13 +112,13 @@ export async function getDatasourceInfo(schemaPath?: string): Promise<Datasource
 
     return datasourceInfo
   } catch (e) {
-    console.error(e)
     return {
       name: firstDatasource.name,
-      dbType,
+      prettyProvider,
       dbName: undefined,
       dbLocation: undefined,
       url,
+      schema: undefined,
       schemas: firstDatasource.schemas,
     }
   }
@@ -128,7 +138,8 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const canConnect = await canConnectToDatabase(firstDatasource.url.value, schemaDir)
+  // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
+  const canConnect = await canConnectToDatabase(firstDatasource.url.value!, schemaDir)
 
   if (canConnect === true) {
     return true
@@ -149,7 +160,8 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
 
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const canConnect = await canConnectToDatabase(firstDatasource.url.value, schemaDir)
+  // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
+  const canConnect = await canConnectToDatabase(firstDatasource.url.value!, schemaDir)
   if (canConnect === true) {
     return
   }
@@ -167,17 +179,18 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
     throw new Error(`Could not locate ${schemaPath || 'schema.prisma'}`)
   }
 
-  if (await createDatabase(firstDatasource.url.value, schemaDir)) {
+  // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
+  if (await createDatabase(firstDatasource.url.value!, schemaDir)) {
     // URI parsing is not implemented for SQL server yet
     if (firstDatasource.provider === 'sqlserver') {
       return `SQL Server database created.\n`
     }
 
     // parse the url
-    const credentials = uriToCredentials(firstDatasource.url.value)
-    const { dbName } = getDbinfoFromCredentials(credentials)
+    // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
+    const credentials = uriToCredentials(firstDatasource.url.value!)
 
-    return `${firstDatasource.provider} database ${chalk.bold(dbName)} created at ${chalk.bold(
+    return `${firstDatasource.provider} database ${chalk.bold(credentials.database)} created at ${chalk.bold(
       getDbLocation(credentials),
     )}`
   }
@@ -198,15 +211,4 @@ export function getDbLocation(credentials: DatabaseCredentials): string | undefi
   }
 
   return undefined
-}
-
-// returns database name + pretty name of db provider
-export function getDbinfoFromCredentials(credentials: DatabaseCredentials): {
-  dbName: string | undefined // database name
-} {
-  const dbName = credentials.database
-
-  return {
-    dbName,
-  }
 }

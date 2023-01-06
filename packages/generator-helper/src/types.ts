@@ -43,7 +43,7 @@ export interface GeneratorConfig {
 
 export interface EnvValue {
   fromEnvVar: null | string
-  value: string
+  value: null | string
 }
 
 export interface BinaryTargetsEnvValue {

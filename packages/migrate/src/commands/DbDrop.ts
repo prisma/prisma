@@ -100,9 +100,9 @@ ${chalk.bold('Examples')}
       const confirmation = await prompt({
         type: 'text',
         name: 'value',
-        message: `Enter the ${datasourceInfo.dbType} database name "${datasourceInfo.dbName}" to drop it.\nLocation: "${
-          datasourceInfo.dbLocation
-        }".\n${chalk.red('All data will be lost')}.`,
+        message: `Enter the ${datasourceInfo.prettyProvider} database name "${
+          datasourceInfo.dbName
+        }" to drop it.\nLocation: "${datasourceInfo.dbLocation}".\n${chalk.red('All data will be lost')}.`,
       })
       console.info() // empty line
 
@@ -116,7 +116,7 @@ ${chalk.bold('Examples')}
     }
 
     if (await dropDatabase(datasourceInfo.url, schemaDir)) {
-      return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.dbType} database "${
+      return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
         datasourceInfo.dbName
       }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`
     } else {

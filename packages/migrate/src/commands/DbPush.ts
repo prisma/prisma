@@ -126,24 +126,24 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       if (datasourceInfo.dbName && datasourceInfo.dbLocation) {
         if (datasourceInfo.schema) {
           console.info(
-            `The ${datasourceInfo.schema} schema of the ${datasourceInfo.dbType} database from "${datasourceInfo.dbLocation}" was successfully reset.`,
+            `The ${datasourceInfo.schema} schema of the ${datasourceInfo.prettyProvider} database from "${datasourceInfo.dbLocation}" was successfully reset.`,
           )
-        } else if (datasourceInfo.dbType === 'PostgreSQL') {
+        } else if (datasourceInfo.prettyProvider === 'PostgreSQL') {
           console.info(
-            `The ${datasourceInfo.dbType} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
+            `The ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
           )
         } else {
           console.info(
-            `The ${datasourceInfo.dbType} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
+            `The ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
           )
         }
       } else {
         if (datasourceInfo.schema) {
           console.info(
-            `The ${datasourceInfo.schema} schema of the ${datasourceInfo.dbType} database was successfully reset.`,
+            `The ${datasourceInfo.schema} schema of the ${datasourceInfo.prettyProvider} database was successfully reset.`,
           )
         } else {
-          console.info(`The ${datasourceInfo.dbType} database was successfully reset.`)
+          console.info(`The ${datasourceInfo.prettyProvider} database was successfully reset.`)
         }
       }
       wasDatabaseReset = true
@@ -201,10 +201,10 @@ ${chalk.bold.redBright('All data will be lost.')}
         await migrate.reset()
         if (datasourceInfo.dbName && datasourceInfo.dbLocation) {
           console.info(
-            `The ${datasourceInfo.dbType} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
+            `The ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
           )
         } else {
-          console.info(`The ${datasourceInfo.dbType} database was successfully reset.`)
+          console.info(`The ${datasourceInfo.prettyProvider} database was successfully reset.`)
         }
         wasDatabaseReset = true
 

@@ -361,7 +361,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
   }): Promise<boolean> {
     let messageFirstLine = ''
 
-    if (['PostgreSQL', 'SQL Server'].includes(datasourceInfo.dbType)) {
+    if (['PostgreSQL', 'SQL Server'].includes(datasourceInfo.prettyProvider)) {
       if (datasourceInfo.schemas?.length) {
         messageFirstLine = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
       } else if (datasourceInfo.schema) {
@@ -370,7 +370,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
         messageFirstLine = `We need to reset the database schema`
       }
     } else {
-      messageFirstLine = `We need to reset the ${datasourceInfo.dbType} database "${datasourceInfo.dbName}"`
+      messageFirstLine = `We need to reset the ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}"`
     }
 
     if (datasourceInfo.dbLocation) {
