@@ -164,7 +164,7 @@ Set composite types introspection depth to 2 levels
      *
      * If neither these variables were set, we'd have already thrown a `NoSchemaFoundError`.
      */
-    const { config, schema } = await match({ url, schemaPath })
+    const { firstDatasource, schema } = await match({ url, schemaPath })
       .when(
         (input): input is { url: string | undefined; schemaPath: string } => input.schemaPath !== null,
         async (input) => {
@@ -173,31 +173,55 @@ Set composite types introspection depth to 2 levels
             datamodel: rawSchema,
             ignoreEnvVarErrors: true,
           })
+          const firstDatasource = config.datasources[0]
 
           if (input.url) {
-            // TODO: ensure that the `input.url` protocol is compatible with the schema provider
-            // to avoid ambiguities in case of schema parsing errors (error code P1012)
+            const providerFromSchema = firstDatasource?.provider
+            // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
+            const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
+            const schema = `${this.urlToDatasource(input.url, providerFromSchema)}${removeDatasource(rawSchema)}`
 
-            const provider = config.datasources[0]?.provider
-            const schema = `${this.urlToDatasource(input.url, provider)}${removeDatasource(rawSchema)}`
-            return { config, schema }
+            // If the provider is cockroachdb or postgresql, the are compatible
+            // If not they are not compatible and we throw an error
+            if (
+              providerFromSchema &&
+              providerFromUrl &&
+              !['postgresql', 'cockroachdb'].includes(providerFromSchema) &&
+              !['postgresql', 'cockroachdb'].includes(providerFromUrl) &&
+              providerFromSchema !== providerFromUrl
+            ) {
+              throw new Error(
+                `The database provider found in --url (${providerFromUrl}) is different from the provider found in the Prisma schema (${providerFromSchema}).`,
+              )
+            }
+
+            return { firstDatasource, schema }
+          }
+          // If the datasource url is null and the env var is not set, we throw an error
+          else if (
+            firstDatasource.url.value === null &&
+            firstDatasource.url.fromEnvVar &&
+            !process.env[firstDatasource.url.fromEnvVar]
+          ) {
+            throw new Error(
+              `Environment variable not found: ${firstDatasource.url.fromEnvVar} for the datasource "${firstDatasource.name}" defined in the Prisma schema file.`,
+            )
           }
 
-          return { config, schema: rawSchema }
+          return { firstDatasource, schema: rawSchema }
         },
       )
       .when(
         (input): input is { url: string; schemaPath: null } => input.url !== undefined,
         async (input) => {
-          // TODO: ensure that the `input.url` protocol is valid
-
+          // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
+          protocolToConnectorType(`${input.url.split(':')[0]}:`)
           const schema = this.urlToDatasource(input.url)
           const config = await getConfig({
             datamodel: schema,
             ignoreEnvVarErrors: true,
           })
-
-          return { config, schema }
+          return { firstDatasource: config.datasources[0], schema }
         },
       )
       .run()
@@ -210,7 +234,7 @@ Set composite types introspection depth to 2 levels
       const modelMatch = modelRegex.exec(schema)
       const isReintrospection = modelMatch
 
-      if (isReintrospection && !args['--force'] && config.datasources[0].provider === 'mongodb') {
+      if (isReintrospection && !args['--force'] && firstDatasource.provider === 'mongodb') {
         throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
 You can explicitly ignore and override your current local schema file with ${chalk.green(
           getCommandWithExecutor('prisma db pull --force'),

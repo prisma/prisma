@@ -81,6 +81,7 @@ const urlMustStartWithProtocolValidationError = `
  Prisma CLI Version : 0.0.0
    `
 
+const envVarNotFoundError = `Environment variable not found: SOME_UNDEFINED_DB for the datasource "db" defined in the Prisma schema file.`
 const aDatasourceBlockIsMissingError = `A datasource block is missing in the Prisma schema file.`
 const thereIsNoDatasourceError = `
 There is no datasource in the schema.
@@ -194,7 +195,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(envVarNotFoundValidationError)
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(envVarNotFoundError)
       }
     })
 
@@ -388,7 +389,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(aDatasourceBlockIsMissingError)
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(thereIsNoDatasourceError)
       }
     })
 
