@@ -536,7 +536,7 @@ describe('postgresql', () => {
     } catch (e) {
       expect(e.code).toEqual(undefined)
       expect(e.message).toMatchInlineSnapshot(
-        `The database provider found in --url (postgresql) is different from the provider found in the Prisma schema (sqlite)`,
+        `The database provider found in --url (postgresql) is different from the provider found in the Prisma schema (sqlite).`,
       )
     }
 

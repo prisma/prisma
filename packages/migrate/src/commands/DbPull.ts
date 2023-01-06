@@ -180,15 +180,17 @@ Set composite types introspection depth to 2 levels
             const providerFromSchema = firstDatasource?.provider
             // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
             const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
-            const schema = `${this.urlToDatasource(input.url, providerFromSchema)}${removeDatasource(rawSchema)}`
+            const schema = `${this.urlToDatasource(input.url, providerFromSchema)}\n${removeDatasource(rawSchema)}`
 
             // If the provider is cockroachdb or postgresql, the are compatible
             // If not they are not compatible and we throw an error
             if (
               providerFromSchema &&
               providerFromUrl &&
-              !['postgresql', 'cockroachdb'].includes(providerFromSchema) &&
-              !['postgresql', 'cockroachdb'].includes(providerFromUrl) &&
+              Boolean(
+                ['postgresql', 'cockroachdb'].includes(providerFromSchema) &&
+                  ['postgresql', 'cockroachdb'].includes(providerFromUrl),
+              ) === false &&
               providerFromSchema !== providerFromUrl
             ) {
               throw new Error(
@@ -198,7 +200,8 @@ Set composite types introspection depth to 2 levels
 
             return { firstDatasource, schema }
           } else {
-            // Use getConfig with ignoreEnvVarErrors to throw an error if the env var is not set or something is invalid
+            // Use getConfig with ignoreEnvVarErrors
+            // It will  throw an error if the env var is not set or if it is invalid
             await getConfig({
               datamodel: rawSchema,
               ignoreEnvVarErrors: false,
