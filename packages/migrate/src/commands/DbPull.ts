@@ -23,12 +23,12 @@ import fs from 'fs'
 import path from 'path'
 import { match } from 'ts-pattern'
 
+import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
 import type { ConnectorType } from '../utils/printDatasources'
 import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
-import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 
 export class DbPull implements Command {
   public static new(): DbPull {
@@ -175,6 +175,7 @@ Set composite types introspection depth to 2 levels
           })
 
           const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
+          const envVarName = firstDatasource?.url.fromEnvVar
 
           if (input.url) {
             const providerFromSchema = firstDatasource?.provider
@@ -199,14 +200,25 @@ Set composite types introspection depth to 2 levels
             return { firstDatasource, schema }
           }
           // If the datasource url is null and the env var is not set, we throw an error
-          else if (
-            firstDatasource?.url.value === null &&
-            firstDatasource?.url.fromEnvVar &&
-            !process.env[firstDatasource.url.fromEnvVar]
-          ) {
-            throw new Error(
-              `Environment variable not found: ${firstDatasource.url.fromEnvVar} for the datasource "${firstDatasource.name}" defined in the Prisma schema file.`,
-            )
+          else if (envVarName) {
+            const envVarValueFromSchemaDatasource = process.env[envVarName]
+            const isEnvVarEmptyOrUndefined = envVarValueFromSchemaDatasource?.length === 0
+
+            if (isEnvVarEmptyOrUndefined) {
+              throw new Error(
+                `Environment variable not found: ${envVarName} for the datasource "${firstDatasource.name}" defined in the Prisma schema file.`,
+              )
+            } else {
+              const providerFromEnvVarValue = envVarValueFromSchemaDatasource?.split(':')[0]
+              if (!providerFromEnvVarValue) {
+                throw new Error(
+                  `The value of the environment variable ${envVarName} for the datasource "${firstDatasource.name}" defined in the Prisma schema file must start with a supported Prisma provided (e.g. \`postgresql://\`).`,
+                )
+              }
+
+              // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
+              protocolToConnectorType(`${providerFromEnvVarValue}:`)
+            }
           }
 
           return { firstDatasource, schema: rawSchema }

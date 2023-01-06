@@ -81,7 +81,6 @@ const urlMustStartWithProtocolValidationError = `
  Prisma CLI Version : 0.0.0
    `
 
-const envVarNotFoundError = `Environment variable not found: SOME_UNDEFINED_DB for the datasource "db" defined in the Prisma schema file.`
 const aDatasourceBlockIsMissingError = `A datasource block is missing in the Prisma schema file.`
 const thereIsNoDatasourceError = `
 There is no datasource in the schema.
@@ -122,7 +121,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchSnapshot(urlMustStartWithProtocolValidationError)
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`Unknown protocol some-invalid-url:`)
       }
     })
 
@@ -195,7 +194,9 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(envVarNotFoundError)
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(
+          `The value of the environment variable SOME_UNDEFINED_DB for the datasource "db" defined in the Prisma schema file must start with a supported Prisma provided (e.g. \`postgresql://\`).`,
+        )
       }
     })
 

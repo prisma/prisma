@@ -1,21 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid db pull: 
- Prisma schema validation - (get-config wasm)
- Error code: P1012
- error: Error validating datasource \`db\`: the URL must start with the protocol \`postgresql://\` or \`postgres://\`.
-   -->  schema.prisma:5
-    | 
-  4 |   provider = "postgresql"
-  5 |   url      = env("SOME_DEFINED_INVALID_URL")
-    | 
- 
- Validation Error Count: 1
- [Context: getConfig]
- 
- Prisma CLI Version : 0.0.0
-    1`] = `Environment variable not found: SOME_DEFINED_INVALID_URL for the datasource "db" defined in the Prisma schema file.`;
-
 exports[`[wasm] incomplete-schemas datasource-block-url-env-set-invalid db push: 
  Prisma schema validation - (get-config wasm)
  Error code: P1012
