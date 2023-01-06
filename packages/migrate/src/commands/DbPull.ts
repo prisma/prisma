@@ -175,7 +175,6 @@ Set composite types introspection depth to 2 levels
           })
 
           const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
-          const envVarName = firstDatasource?.url.fromEnvVar
 
           if (input.url) {
             const providerFromSchema = firstDatasource?.provider
@@ -198,27 +197,12 @@ Set composite types introspection depth to 2 levels
             }
 
             return { firstDatasource, schema }
-          }
-          // If the datasource url is null and the env var is not set, we throw an error
-          else if (envVarName) {
-            const envVarValueFromSchemaDatasource = process.env[envVarName]
-            const isEnvVarEmptyOrUndefined = envVarValueFromSchemaDatasource?.length === 0
-
-            if (isEnvVarEmptyOrUndefined) {
-              throw new Error(
-                `Environment variable not found: ${envVarName} for the datasource "${firstDatasource.name}" defined in the Prisma schema file.`,
-              )
-            } else {
-              const providerFromEnvVarValue = envVarValueFromSchemaDatasource?.split(':')[0]
-              if (!providerFromEnvVarValue) {
-                throw new Error(
-                  `The value of the environment variable ${envVarName} for the datasource "${firstDatasource.name}" defined in the Prisma schema file must start with a supported Prisma provided (e.g. \`postgresql://\`).`,
-                )
-              }
-
-              // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
-              protocolToConnectorType(`${providerFromEnvVarValue}:`)
-            }
+          } else {
+            // Use getConfig with ignoreEnvVarErrors to throw an error if the env var is not set or something is invalid
+            await getConfig({
+              datamodel: rawSchema,
+              ignoreEnvVarErrors: false,
+            })
           }
 
           return { firstDatasource, schema: rawSchema }
