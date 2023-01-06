@@ -15,8 +15,8 @@ export type PrettyProvider = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 
 // TODO: extract functions in their own files?
 
 export type DatasourceInfo = {
-  prettyProvider: PrettyProvider // pretty name for the provider
   name?: string // from datasource name
+  prettyProvider?: PrettyProvider // pretty name for the provider
   url?: string // from getConfig
   dbLocation?: string // host without credentials
   dbName?: string // database name
@@ -47,7 +47,16 @@ export async function getDatasourceInfo({
   const firstDatasource = config.datasources?.[0]
 
   if (!firstDatasource) {
-    throw new Error(`A datasource block is missing in the Prisma schema file.`)
+    // throw new Error(`A datasource block is missing in the Prisma schema file.`)
+    return {
+      name: undefined,
+      prettyProvider: undefined,
+      dbName: undefined,
+      dbLocation: undefined,
+      url: undefined,
+      schema: undefined,
+      schemas: undefined,
+    }
   }
 
   let prettyProvider
