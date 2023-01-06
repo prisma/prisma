@@ -44,7 +44,7 @@ export async function getDatasourceInfo({
     config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   }
 
-  const firstDatasource = config.datasources?.[0]
+  const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
     // throw new Error(`A datasource block is missing in the Prisma schema file.`)
@@ -145,7 +145,7 @@ export async function getDatasourceInfo({
 export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<Boolean | Error> {
   const schema = await getSchema(schemaPath)
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
-  const firstDatasource = config.datasources[0]
+  const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
     throw new Error(`A datasource block is missing in the Prisma schema file.`)
@@ -167,7 +167,7 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: string) {
   const schema = await getSchema(schemaPath)
   const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
-  const firstDatasource = config.datasources[0]
+  const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
     throw new Error(`A datasource block is missing in the Prisma schema file.`)

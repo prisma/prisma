@@ -173,7 +173,8 @@ Set composite types introspection depth to 2 levels
             datamodel: rawSchema,
             ignoreEnvVarErrors: true,
           })
-          const firstDatasource = config.datasources[0]
+
+          const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
           if (input.url) {
             const providerFromSchema = firstDatasource?.provider
@@ -199,8 +200,8 @@ Set composite types introspection depth to 2 levels
           }
           // If the datasource url is null and the env var is not set, we throw an error
           else if (
-            firstDatasource.url.value === null &&
-            firstDatasource.url.fromEnvVar &&
+            firstDatasource?.url.value === null &&
+            firstDatasource?.url.fromEnvVar &&
             !process.env[firstDatasource.url.fromEnvVar]
           ) {
             throw new Error(
@@ -234,7 +235,7 @@ Set composite types introspection depth to 2 levels
       const modelMatch = modelRegex.exec(schema)
       const isReintrospection = modelMatch
 
-      if (isReintrospection && !args['--force'] && firstDatasource.provider === 'mongodb') {
+      if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
         throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
 You can explicitly ignore and override your current local schema file with ${chalk.green(
           getCommandWithExecutor('prisma db pull --force'),
