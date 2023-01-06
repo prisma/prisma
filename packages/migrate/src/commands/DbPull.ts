@@ -142,7 +142,7 @@ Set composite types introspection depth to 2 levels
       // Load and print where the .env was loaded (if loaded)
       loadEnvFile(args['--schema'], true)
 
-      printDatasource({ datasourceInfo: await getDatasourceInfo(schemaPath) })
+      printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
     } else {
       // Load .env but don't print
       loadEnvFile(args['--schema'], false)

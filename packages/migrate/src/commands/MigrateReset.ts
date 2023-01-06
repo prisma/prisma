@@ -90,7 +90,7 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo(schemaPath) })
+    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
 
     throwUpgradeErrorIfOldMigrate(schemaPath)
 

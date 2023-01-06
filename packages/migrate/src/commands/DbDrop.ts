@@ -85,7 +85,7 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    const datasourceInfo = await getDatasourceInfo(schemaPath)
+    const datasourceInfo = await getDatasourceInfo({ schemaPath, throwIfEnvError: true })
     printDatasource({ datasourceInfo })
 
     const schemaDir = (await getSchemaDir(schemaPath))!
@@ -115,7 +115,8 @@ ${chalk.bold('Examples')}
       }
     }
 
-    if (await dropDatabase(datasourceInfo.url, schemaDir)) {
+    // Url exists because we set `throwIfEnvErrors: true` in `getDatasourceInfo`
+    if (await dropDatabase(datasourceInfo.url!, schemaDir)) {
       return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
         datasourceInfo.dbName
       }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`

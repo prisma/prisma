@@ -24,8 +24,10 @@ export type DatasourceInfo = {
   schemas?: string[] // database schemas from the datasource (multiSchema preview feature)
 }
 
-// todo
-export async function getDatasourceInfo(schemaPath?: string): Promise<DatasourceInfo> {
+export async function getDatasourceInfo({
+  schemaPath,
+  throwIfEnvError,
+}: { schemaPath?: string; throwIfEnvError?: boolean } = {}): Promise<DatasourceInfo> {
   const schema = await getSchema(schemaPath)
   let config: ConfigMetaFormat
 
@@ -35,6 +37,10 @@ export async function getDatasourceInfo(schemaPath?: string): Promise<Datasource
   try {
     config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
   } catch (error) {
+    // Note: only used for db drop (which is not exposed in the CLI)
+    if (throwIfEnvError) {
+      throw error
+    }
     config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
   }
 

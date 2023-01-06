@@ -109,7 +109,7 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    const datasourceInfo = await getDatasourceInfo(schemaPath)
+    const datasourceInfo = await getDatasourceInfo({ schemaPath })
     printDatasource({ datasourceInfo })
 
     console.info() // empty line

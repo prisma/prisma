@@ -97,7 +97,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    const datasourceInfo = await getDatasourceInfo(schemaPath)
+    const datasourceInfo = await getDatasourceInfo({ schemaPath })
     printDatasource({ datasourceInfo })
 
     const migrate = new Migrate(schemaPath)
