@@ -3,6 +3,7 @@ import {
   canConnectToDatabase,
   createDatabase,
   getConfig,
+  getDirectUrl,
   getSchema,
   getSchemaDir,
   uriToCredentials,
@@ -40,7 +41,7 @@ export async function getDbInfo(schemaPath?: string): Promise<{
     }
   }
 
-  const url = activeDatasource.url.value
+  const url = getDirectUrl(activeDatasource).value
 
   if (activeDatasource.provider === 'sqlserver') {
     return {
@@ -98,7 +99,9 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const canConnect = await canConnectToDatabase(activeDatasource.url.value, schemaDir)
+  const url = getDirectUrl(activeDatasource).value
+
+  const canConnect = await canConnectToDatabase(url, schemaDir)
 
   if (canConnect === true) {
     return true

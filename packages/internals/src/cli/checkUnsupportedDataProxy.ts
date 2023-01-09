@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import fs from 'fs'
 import { O } from 'ts-toolbelt'
 
-import { getConfig, getSchemaPath, link } from '..'
+import { getConfig, getDirectUrl, getSchemaPath, link } from '..'
 import { loadEnvFile } from '../utils/loadEnvFile'
 
 /**
@@ -62,8 +62,9 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
 
       const datamodel = await fs.promises.readFile(argValue, 'utf-8')
       const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-      const urlFromValue = config.datasources[0]?.url.value
-      const urlEnvVarName = config.datasources[0]?.url.fromEnvVar
+      const url = getDirectUrl(config.datasources[0])
+      const urlFromValue = url.value
+      const urlEnvVarName = url.fromEnvVar
       const urlEnvVarValue = urlEnvVarName ? process.env[urlEnvVarName] : undefined
 
       if ((urlFromValue ?? urlEnvVarValue)?.startsWith('prisma://')) {
