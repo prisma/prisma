@@ -1,3 +1,4 @@
+import Debug from '@prisma/debug'
 import {
   arg,
   checkUnsupportedDataProxy,
@@ -28,6 +29,8 @@ import { printDatasource } from '../utils/printDatasource'
 import type { ConnectorType } from '../utils/printDatasources'
 import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
+
+const debug = Debug('prisma:db:pull')
 
 export class DbPull implements Command {
   public static new(): DbPull {
@@ -239,7 +242,9 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
+      debug(`Introspection warnings`, JSON.stringify(introspectionResult.warnings, null, 2))
       introspectionSchemaVersion = introspectionResult.version
+      debug(`Introspection Schema Version: ${introspectionResult.version}`)
     } catch (e: any) {
       introspectionSpinner.failure()
       if (e.code === 'P4001') {
