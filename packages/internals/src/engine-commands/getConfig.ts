@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import execa from 'execa'
 import * as E from 'fp-ts/Either'
@@ -81,6 +81,12 @@ ${detailsHeader} ${message}`
 
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
   }
+}
+
+export function getDirectUrl(ds: DataSource): EnvValue {
+  if (ds.directUrl !== undefined) return ds.directUrl
+
+  return ds.url
 }
 
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
