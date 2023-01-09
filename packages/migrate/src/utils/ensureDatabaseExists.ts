@@ -47,7 +47,6 @@ export async function getDatasourceInfo({
   const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
   if (!firstDatasource) {
-    // throw new Error(`A datasource block is missing in the Prisma schema file.`)
     return {
       name: undefined,
       prettyProvider: undefined,
