@@ -282,18 +282,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      P4001 The introspected database was empty: 
+            P4001 The introspected database was empty: 
 
-      prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-      To fix this, you have two options:
+            To fix this, you have two options:
 
-      - manually create a table in your database.
-      - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+            - manually create a table in your database.
+            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-      Then you can run prisma db pull again. 
+            Then you can run prisma db pull again. 
 
-    `)
+        `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -317,18 +317,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      P4001 The introspected database was empty: 
+            P4001 The introspected database was empty: 
 
-      prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-      To fix this, you have two options:
+            To fix this, you have two options:
 
-      - manually create a table in your database.
-      - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+            - manually create a table in your database.
+            - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-      Then you can run prisma db pull again. 
+            Then you can run prisma db pull again. 
 
-    `)
+        `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -364,12 +364,12 @@ describe('common/sqlite', () => {
     ctx.fixture('introspect')
     const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            P1012 Introspection failed as your current Prisma schema file is invalid
+      P1012 Introspection failed as your current Prisma schema file is invalid
 
-            Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-            Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+      Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
+      Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
 
-          `)
+    `)
 
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -600,7 +600,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
   // TODO unskip in a following PR
   // We need to find out why this test can fail and pass in CI...
   // It was blocking the release pipeline
-  // Example https://buildkite.com/prisma/test-prisma-typescript/builds/18484#0184ed59-6523-4cab-b79d-992ad9d32fb4
+  // Example https://buildkite.com/prisma/test-prisma-typescript/builds/18825#01855966-3d90-4362-b130-502021a1047b
   test.skip('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
     ctx.fixture('introspection/sqlserver-multi-schema')
     const introspect = new DbPull()
@@ -613,7 +613,20 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
       // *** WARNING ***
       // 
       // The following models were commented out as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client.
-      // - "some_table"
+      // - "transactional_some_table"
+      // 
+      // These models were renamed due to their names being duplicates in the Prisma Schema Language.
+      // Code 20
+      // [
+      //   {
+      //     "type": "Model",
+      //     "name": "base_some_table"
+      //   },
+      //   {
+      //     "type": "Model",
+      //     "name": "transactional_some_table"
+      //   }
+      // ]
       // 
     `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -754,7 +767,17 @@ describe('postgresql-multi-schema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+      // *** WARNING ***
+      // 
+      // These models and enums were renamed due to their names being duplicates in the Prisma Schema Language.
+      // - Enum "base_status"
+      // - Enum "transactional_status"
+      // - Model "base_some_table"
+      // - Model "transactional_some_table"
+      // 
+    `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })

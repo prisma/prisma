@@ -1,4 +1,4 @@
-import mkdir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import { join, resolve } from 'path'
 import prompt from 'prompts'
@@ -39,7 +39,7 @@ describe('handlePanic', () => {
     jest.resetModules() // most important - it clears the cache
     process.env = { ...OLD_ENV, GITHUB_ACTIONS: 'true' } // make a copy and simulate CI environment
     process.cwd = () => testRootDir
-    await mkdir(testRootDir)
+    await ensureDir(testRootDir)
   })
   afterEach(() => {
     process.cwd = oldProcessCwd
@@ -134,7 +134,7 @@ describe('handlePanic', () => {
     expect(stripAnsi(ctx.mocked['console.error'].mock.calls.join('\n'))).toMatch(
       new RegExp(`^Error report submission failed due to:?`),
     )
-    expect(mockExit).toBeCalledWith(1)
+    expect(mockExit).toHaveBeenCalledWith(1)
     spySendPanic.mockRestore()
   })
 })

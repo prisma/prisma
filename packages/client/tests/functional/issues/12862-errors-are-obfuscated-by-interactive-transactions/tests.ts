@@ -25,7 +25,7 @@ testMatrix.setupTestSuite(
             viewCount: -1, // should fail, must be >= 0
           },
         }),
-      ).rejects.toThrowError('violates check constraint \\"post_viewcount_check\\"')
+      ).rejects.toThrow('violates check constraint \\"post_viewcount_check\\"')
     })
 
     test('should propagate the correct error when a method fails inside an transaction', async () => {
@@ -46,7 +46,7 @@ testMatrix.setupTestSuite(
             },
           }),
         ]),
-      ).rejects.toThrowError('violates check constraint \\"post_viewcount_check\\"')
+      ).rejects.toThrow('violates check constraint \\"post_viewcount_check\\"')
     })
 
     test('should propagate the correct error when a method fails inside an interactive transaction', async () => {
@@ -69,7 +69,7 @@ testMatrix.setupTestSuite(
 
           return post
         }),
-      ).rejects.toThrowError('violates check constraint \\"post_viewcount_check\\"')
+      ).rejects.toThrow('violates check constraint \\"post_viewcount_check\\"')
     })
   },
   {

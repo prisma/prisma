@@ -712,6 +712,11 @@ model some_table {
   email String
 }
 
+enum status {
+  ON
+  OFF
+}
+
 
 // introspectionSchemaVersion: NonPrisma,
 `;
@@ -738,11 +743,12 @@ model User {
   @@schema("base")
 }
 
-model some_table {
-  id         String       @id(map: "User_pkey2")
+model base_some_table {
+  id         String                     @id(map: "User_pkey2")
   email      String
-  some_table some_table[]
+  some_table transactional_some_table[]
 
+  @@map("some_table")
   @@schema("base")
 }
 
@@ -755,12 +761,29 @@ model Post {
   @@schema("transactional")
 }
 
-model some_table {
-  id         String     @id(map: "Post_pkey2")
+model transactional_some_table {
+  id         String          @id(map: "Post_pkey2")
   title      String
   authorId   String
-  some_table some_table @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
+  some_table base_some_table @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
 
+  @@map("some_table")
+  @@schema("transactional")
+}
+
+enum base_status {
+  ON
+  OFF
+
+  @@map("status")
+  @@schema("base")
+}
+
+enum transactional_status {
+  ON
+  OFF
+
+  @@map("status")
   @@schema("transactional")
 }
 
@@ -794,6 +817,13 @@ model some_table {
   @@schema("base")
 }
 
+enum status {
+  ON
+  OFF
+
+  @@schema("base")
+}
+
 
 // introspectionSchemaVersion: NonPrisma,
 `;
@@ -820,6 +850,13 @@ model User {
 model some_table {
   id    String @id(map: "User_pkey2")
   email String
+
+  @@schema("base")
+}
+
+enum status {
+  ON
+  OFF
 
   @@schema("base")
 }
@@ -873,17 +910,19 @@ model Post {
   @@schema("transactional")
 }
 
-model some_table {
+model base_some_table {
   id String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
 
+  @@map("some_table")
   @@schema("base")
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-model some_table {
+model transactional_some_table {
   id    String @db.NVarChar(1)
   title String @db.NVarChar(1)
 
+  @@map("some_table")
   @@ignore
   @@schema("transactional")
 }

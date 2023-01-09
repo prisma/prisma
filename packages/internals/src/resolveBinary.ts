@@ -1,11 +1,10 @@
-import Debug from '@prisma/debug'
 import { plusX } from '@prisma/engine-core'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
-import makeDir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import path from 'path'
 import tempDir from 'temp-dir'
 import { promisify } from 'util'
@@ -97,7 +96,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     // TODO Probably to be able to make the file executable?
     // TODO Go and Python Client (which use pkg) actually provide the binaries _outside_ of the CLI via env vars - so never and up here
     const targetDir = path.join(tempDir, 'prisma-binaries')
-    await makeDir(targetDir)
+    await ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
 
     // We have to read and write until https://github.com/zeit/pkg/issues/639 is resolved
