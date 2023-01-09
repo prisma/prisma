@@ -10,6 +10,9 @@ const clientPath = path.dirname(require.resolve('@prisma/client'))
 const clientPkg = require('@prisma/client/package.json')
 
 // we compute the paths of the files that would get npm published
+// this uses a glob library to understand patterns in files.
+// Using tooling from npm would be even better, but it is in magnitudes slower compared to this approach.
+// Ideally, it would be great if we could remove this somehow.
 const clientFiles = fg.sync(clientPkg.files, { cwd: clientPath, dot: true, onlyFiles: false })
 
 // we copy each file that we found in pkg to a new destination
