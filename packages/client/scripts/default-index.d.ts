@@ -42,7 +42,7 @@ export declare type PrismaClientExtends<ExtArgs extends runtime.Types.Extensions
     Args extends runtime.Types.Extensions.Args = { result: R; model: M; query: Q; client: C }
   >(args: ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } }) | {
     result?: R; model?: M; query?: Q; client?: C
-  }) => PrismaClientExtends<runtime.Types.Extensions.MergeArgs<Args, ExtArgs, string, false>>)
+  }) => PrismaClientExtends<runtime.Types.Utils.PatchDeep<Args, ExtArgs>>)
 }
 
 export declare const dmmf: any

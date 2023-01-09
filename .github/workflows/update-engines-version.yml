@@ -1,4 +1,6 @@
 name: Update Engines Version
+run-name: Update Engines on npm ${{ inputs.npmDistTag }} ${{ inputs.version }}
+
 on:
   workflow_dispatch:
     inputs:
