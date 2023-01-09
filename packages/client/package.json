@@ -38,6 +38,7 @@
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --verbose",
+    "test:ecosystem": "node -r esbuild-register tests/ecosystem/_utils/run.ts",
     "test:functional": "node -r esbuild-register helpers/functional-test/run-tests.ts",
     "test:memory": "node -r esbuild-register helpers/memory-tests.ts",
     "test:functional:code": "node -r esbuild-register helpers/functional-test/run-tests.ts --no-types",
@@ -135,7 +136,8 @@
     "tsd": "0.21.0",
     "typescript": "4.8.4",
     "yeoman-generator": "5.7.0",
-    "yo": "4.3.1"
+    "yo": "4.3.1",
+    "zx": "7.1.1"
   },
   "peerDependencies": {
     "prisma": "*"
