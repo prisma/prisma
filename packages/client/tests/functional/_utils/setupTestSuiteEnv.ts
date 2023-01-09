@@ -1,6 +1,6 @@
 import { assertNever } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
-import cuid from 'cuid'
+import { faker } from '@faker-js/faker'
 import fs from 'fs-extra'
 import path from 'path'
 import { match } from 'ts-pattern'
@@ -204,7 +204,7 @@ export type DatasourceInfo = {
 export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientMeta: ClientMeta): DatasourceInfo {
   const provider = suiteConfig['provider'] as Providers
   const providerFlavor = suiteConfig['providerFlavor'] as ProviderFlavor | undefined
-  const dbId = cuid()
+  const dbId = faker.random.alphaNumeric(25)
 
   const { envVarName, newURI } = match(providerFlavor)
     .with(undefined, () => {
