@@ -1226,7 +1226,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   })
 })
 
-describe('MongoDB', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   const MONGO_URI =
     process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
 
