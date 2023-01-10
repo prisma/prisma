@@ -20,33 +20,22 @@ export type Args = InternalArgs
 export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
 export type GetResult<Base extends Record<any, any>, R extends Args['result'][string]> =
-  unknown extends R ? Base : { [K in keyof R | keyof Base]: K extends keyof R ? ReturnType<ReturnType<R[K]>['compute']> : Base[K] }
+  { [K in keyof R | keyof Base]: K extends keyof R ? ReturnType<ReturnType<R[K]>['compute']> : Base[K] }
 
 export type GetSelect<Base extends Record<any, any>, R extends Args['result'][string]> =
-  unknown extends R ? Base : { [K in keyof R | keyof Base]?: K extends keyof R ? boolean : Base[K] }
+  { [K in keyof R | keyof Base]?: K extends keyof R ? boolean : Base[K] }
 
 export type GetModel<Base extends Record<any, any>, M extends Args['model'][string]> =
-  unknown extends M ? Base : { [K in keyof M | keyof Base]: K extends keyof M ? ReturnType<M[K]> : Base[K] }
+  { [K in keyof M | keyof Base]: K extends keyof M ? ReturnType<M[K]> : Base[K] }
 
 export type GetClient<Base extends Record<any, any>, C extends Args['client']> =
-  unknown extends C ? Base : { [K in keyof C | Exclude<keyof Base, '$use'>]: K extends keyof C ? ReturnType<C[K]>: Base[K] }
+  { [K in keyof C | Exclude<keyof Base, '$use'>]: K extends keyof C ? ReturnType<C[K]>: Base[K] }
 
 export type ReadonlySelector<T> = T extends unknown ? {
   readonly [K in keyof T as K extends 'include' | 'select' ? K : never]: ReadonlyDeep<T[K]>
 } & {
   [K in keyof T as K extends 'include' | 'select' ? never : K]: T[K]
 } : never
-
-export type MergeArgs<CurrArgs extends Args, PrevArgs extends Args> = {
-  result: '$allModels' extends keyof CurrArgs['result']
-  ? PrevArgs['result'] & Record<string, CurrArgs['result']['$allModels']> & CurrArgs['result']
-  : PrevArgs['result'] & CurrArgs['result']
-  model: '$allModels' extends keyof CurrArgs['model']
-  ? PrevArgs['model'] & Record<string, CurrArgs['model']['$allModels']> & CurrArgs['model']
-  : PrevArgs['model'] & CurrArgs['model']
-  client: PrevArgs['client'] & CurrArgs['client'],
-  query: {}
-}
 
 /* eslint-enable prettier/prettier */
 
