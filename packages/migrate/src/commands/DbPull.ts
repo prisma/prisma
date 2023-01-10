@@ -182,16 +182,16 @@ Set composite types introspection depth to 2 levels
             const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
             const schema = `${this.urlToDatasource(input.url, providerFromSchema)}\n${removeDatasource(rawSchema)}`
 
-            // If the provider is cockroachdb or postgresql, they are compatible
-            // If not they are not compatible and we throw an error
+            // if providers are different the engine would return a misleading error
+            // So we check here and return a better error
+            // if a combination of non compatible providers is used
+            // since cockroachdb is compatible with postgresql
+            // we only error if it's a different combination
             if (
               providerFromSchema &&
               providerFromUrl &&
-              Boolean(
-                ['postgresql', 'cockroachdb'].includes(providerFromSchema) &&
-                  ['postgresql', 'cockroachdb'].includes(providerFromUrl),
-              ) === false &&
-              providerFromSchema !== providerFromUrl
+              providerFromSchema !== providerFromUrl &&
+              Boolean(providerFromSchema === 'cockroachdb' && providerFromUrl === 'postgresql') === false
             ) {
               throw new Error(
                 `The database provider found in --url (${providerFromUrl}) is different from the provider found in the Prisma schema (${providerFromSchema}).`,
