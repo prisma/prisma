@@ -1,3 +1,6 @@
+// describeIf is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
 import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/internals'
 import path from 'path'
 
@@ -20,9 +23,6 @@ const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()
 
 // To avoid the loading spinner locally
 process.env.CI = 'true'
-
-// describeIf is making eslint not happy about the names
-/* eslint-disable jest/no-identical-title */
 
 // We want to remove unique IDs to have stable snapshots
 // Example:
@@ -1127,15 +1127,18 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
   //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
   //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-  testIf(process.platform !== 'win32')('basic introspection (with cockroach schema, cockroachdb native types) --url ', async () => {
-    await testSetup('nativeTypes-cockroachdb', { withFixture: true })
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  })
+  testIf(process.platform !== 'win32')(
+    'basic introspection (with cockroach schema, cockroachdb native types) --url ',
+    async () => {
+      await testSetup('nativeTypes-cockroachdb', { withFixture: true })
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    },
+  )
 })
 
 describe('mysql', () => {
@@ -1242,10 +1245,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   })
 })
 
-  // TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
-  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+// TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
+// Error: P1012 Introspection failed as your current Prisma schema file is invalid·
+//     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
+//     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
 describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   const MONGO_URI =
     process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
@@ -1554,8 +1557,6 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('Mong
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // describeIf is making eslint not happy about the names
-  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', MONGO_URI])

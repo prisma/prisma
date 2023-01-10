@@ -1,3 +1,6 @@
+// describeIf is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
 import { jestConsoleContext, jestContext } from '@prisma/internals'
 import fs from 'fs-jetpack'
 import path from 'path'
@@ -1182,7 +1185,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     })
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('schema only', async () => {
     ctx.fixture('schema-only-cockroachdb')
 
@@ -1207,7 +1209,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     `)
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-cockroachdb')
 
@@ -1232,7 +1233,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     `)
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('create first migration', async () => {
     ctx.fixture('schema-only-cockroachdb')
     const result = MigrateDev.new().parse([])
@@ -1257,7 +1257,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('create first migration with nativeTypes', async () => {
     ctx.fixture('nativeTypes-cockroachdb')
 
@@ -1281,7 +1280,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   }, 40000)
 
-  // eslint-disable-next-line jest/no-identical-title
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-cockroachdb')
     jest.setTimeout(7_000)
@@ -1321,7 +1319,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('existingdb: create first migration', async () => {
     ctx.fixture('schema-only-cockroachdb')
     const result = MigrateDev.new().parse(['--name=first'])
@@ -1597,7 +1594,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     })
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('schema only', async () => {
     ctx.fixture('schema-only-sqlserver')
 
@@ -1621,7 +1617,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     `)
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('schema only with shadowdb', async () => {
     ctx.fixture('schema-only-sqlserver')
 
@@ -1645,7 +1640,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     `)
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('create first migration', async () => {
     ctx.fixture('schema-only-sqlserver')
     const result = MigrateDev.new().parse([])
@@ -1717,7 +1711,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   //   expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   // })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-sqlserver')
     jest.setTimeout(10_000)
@@ -1755,7 +1748,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('existingdb: create first migration', async () => {
     ctx.fixture('schema-only-sqlserver')
     const result = MigrateDev.new().parse(['--name=first'])

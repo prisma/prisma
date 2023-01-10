@@ -1,3 +1,6 @@
+// describeIf is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
 import { jestConsoleContext, jestContext } from '@prisma/internals'
 import path from 'path'
 import prompt from 'prompts'
@@ -138,7 +141,6 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('dataloss warnings accepted (prompt)', async () => {
     ctx.fixture('existing-db-warnings')
 
@@ -161,7 +163,6 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('dataloss warnings cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
@@ -187,7 +188,6 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(mockExit).toBeCalledWith(130)
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('--accept-data-loss flag', async () => {
     ctx.fixture('existing-db-warnings')
     const result = DbPush.new().parse(['--accept-data-loss'])
@@ -326,7 +326,6 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
     })
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('dataloss warnings accepted (prompt)', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
 
@@ -347,7 +346,6 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('dataloss warnings cancelled (prompt)', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
@@ -372,7 +370,6 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
     expect(mockExit).toBeCalledWith(130)
   })
 
-  // eslint-disable-next-line jest/no-identical-title
   it('--accept-data-loss flag', async () => {
     ctx.fixture('existing-db-warnings-mongodb')
     const result = DbPush.new().parse(['--accept-data-loss'])
