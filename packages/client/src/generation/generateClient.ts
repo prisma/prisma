@@ -370,7 +370,7 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
 
   const denylists = {
     // A copy of this list is also in prisma-engines. Any edit should be done in both places.
-    // https://github.com/prisma/prisma-engines/blob/main/libs/datamodel/core/src/transform/ast_to_dml/reserved_model_names.rs
+    // https://github.com/prisma/prisma-engines/blob/main/psl/parser-database/src/names/reserved_model_names.rs
     models: [
       // Reserved Prisma keywords
       'PrismaClient',

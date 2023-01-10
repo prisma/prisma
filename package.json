@@ -84,7 +84,8 @@
     "ts-toolbelt": "9.6.0",
     "tty-browserify": "0.0.1",
     "typescript": "4.8.4",
-    "util": "0.12.5"
+    "util": "0.12.5",
+    "zx": "7.1.1"
   },
   "pnpm": {
     "peerDependencyRules": {
