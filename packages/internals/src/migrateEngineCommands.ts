@@ -2,6 +2,7 @@ import { BinaryType } from '@prisma/fetch-engine'
 import execa from 'execa'
 import fs from 'fs'
 import path from 'path'
+import * as NodeURL from 'url'
 import { promisify } from 'util'
 
 import { getSchemaDir } from './cli/getSchema'
@@ -80,6 +81,16 @@ export async function canConnectToDatabase(
     throw new Error(
       'Connection url is empty. See https://www.prisma.io/docs/reference/database-reference/connection-urls',
     )
+  }
+
+  //check connection string for multiple ? in the search params instead of &, a common user mistake
+  const urlConnectionString = new NodeURL.URL(connectionString)
+  for (const [key, value] of urlConnectionString.searchParams) {
+    if (value.includes('?')) {
+      throw new Error(
+        "Invalid connection url, it appears you have used multiple question marks instead of a & to seperate parameters. For example, incorrect: '?foo=true?bar=false' correct: '?foo=true&bar=false', see https://www.prisma.io/docs/reference/database-reference/connection-urls",
+      )
+    }
   }
 
   try {
