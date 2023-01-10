@@ -7,6 +7,7 @@ import { promisify } from 'util'
 
 import { getSchemaDir } from './cli/getSchema'
 import { protocolToConnectorType } from './convertCredentials'
+import { warn } from './logger'
 import { resolveBinary } from './resolveBinary'
 
 const exists = promisify(fs.exists)
@@ -87,8 +88,8 @@ export async function canConnectToDatabase(
   const urlConnectionString = new NodeURL.URL(connectionString)
   for (const [key, value] of urlConnectionString.searchParams) {
     if (value.includes('?')) {
-      throw new Error(
-        "Invalid connection url, it appears you have used multiple question marks instead of a & to seperate parameters. For example, incorrect: '?foo=true?bar=false' correct: '?foo=true&bar=false', see https://www.prisma.io/docs/reference/database-reference/connection-urls",
+      warn(
+        "Possbile invalid connection url, it appears you may have used multiple question marks instead of a & to seperate parameters. For example, incorrect: '?foo=true?bar=false' correct: '?foo=true&bar=false', see https://www.prisma.io/docs/reference/database-reference/connection-urls",
       )
     }
   }
