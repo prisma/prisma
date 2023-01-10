@@ -7,6 +7,7 @@ import prompt from 'prompts'
 
 import { DbPush } from '../commands/DbPush'
 import { setupMongo, SetupParams, tearDownMongo } from '../utils/setupMongo'
+import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
@@ -265,7 +266,7 @@ describeIf(process.platform !== 'win32')('push', () => {
     expect(mockExit).toBeCalledWith(130)
   })
 
-  it('unexecutable - --force-reset', async () => {
+  it('unexecutable - --force-reset should succeed and print a log', async () => {
     ctx.fixture('existing-db-1-unexecutable-schema-change')
     const result = DbPush.new().parse(['--force-reset'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -287,15 +288,78 @@ describeIf(process.platform !== 'win32')('push', () => {
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                    ⚠️ We found changes that cannot be executed:
+                                                                  ⚠️ We found changes that cannot be executed:
 
-                                      • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                    • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                    Use the --force-reset flag to drop the database before push like prisma db push --force-reset
-                                    All data will be lost.
-                                            
-                        `)
+                                                                  Use the --force-reset flag to drop the database before push like prisma db push --force-reset
+                                                                  All data will be lost.
+                                                                          
+                                            `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
+
+describe('postgresql', () => {
+  const setupParams: SetupParams = {
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql'),
+  }
+
+  beforeAll(async () => {
+    await tearDownPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  beforeEach(async () => {
+    await setupPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  afterEach(async () => {
+    await tearDownPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  it('--force-reset should succeed and display a log', async () => {
+    ctx.fixture('schema-only-postgresql')
+
+    prompt.inject(['y'])
+
+    const result = DbPush.new().parse(['--force-reset'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Environment variables loaded from prisma/.env
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
+
+      The PostgreSQL database "tests-migrate" schema "public" at "localhost:5432" was successfully reset.
+
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  it('multiSchema: --force-reset should succeed and display a log', async () => {
+    ctx.fixture('schema-only-postgresql')
+
+    prompt.inject(['y'])
+
+    const result = DbPush.new().parse(['--schema=./prisma/multiSchema.prisma', '--force-reset'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Environment variables loaded from prisma/.env
+      Prisma schema loaded from prisma/multiSchema.prisma
+      Datasource "my_db": PostgreSQL database "tests-migrate", schemas "schema1, schema2" at "localhost:5432"
+
+      The PostgreSQL database "tests-migrate" schemas "schema1, schema2" at "localhost:5432" were successfully reset.
+
+      🚀  Your database is now in sync with your Prisma schema. Done in XXXms
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
@@ -324,6 +388,28 @@ describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('push
     await tearDownMongo(setupParams).catch((e) => {
       console.error(e)
     })
+  })
+
+  it('--force-reset should succeed and print a log', async () => {
+    ctx.fixture('existing-db-warnings-mongodb')
+
+    prompt.inject(['y'])
+
+    const result = DbPush.new().parse(['--force-reset'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": MongoDB database "tests-migrate-existing-db" at "localhost:27017"
+
+      The MongoDB database "tests-migrate-existing-db" at "localhost:27017" was successfully reset.
+      Applying the following changes:
+
+      [+] Collection \`Post\`
+
+
+      🚀  Your database indexes are now in sync with your Prisma schema. Done in XXXms
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
   it('dataloss warnings accepted (prompt)', async () => {

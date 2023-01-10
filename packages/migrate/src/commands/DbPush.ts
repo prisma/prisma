@@ -132,7 +132,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       const schemasLength = datasourceInfo.schemas?.length || 0
       // If schemas are defined in the datasource block, print them
       if (datasourceInfo.schemas && schemasLength > 0) {
-        successfulResetMsg += ` schema(s) "${datasourceInfo.schemas.join(', ')}"`
+        successfulResetMsg += ` schema${schemasLength > 1 ? 's' : ''} "${datasourceInfo.schemas.join(', ')}"`
       }
       // Otherwise, print the schema if it's defined in the connection string
       else if (datasourceInfo.schema) {
