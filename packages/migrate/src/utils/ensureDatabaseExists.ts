@@ -9,6 +9,8 @@ import {
 } from '@prisma/internals'
 import chalk from 'chalk'
 
+import { ConnectorType } from './printDatasources'
+
 export type MigrateAction = 'create' | 'apply' | 'unapply' | 'dev' | 'push'
 export type PrettyProvider = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 'CockroachDB' | 'MongoDB'
 
@@ -16,7 +18,7 @@ export type PrettyProvider = 'MySQL' | 'PostgreSQL' | 'SQLite' | 'SQL Server' | 
 
 export type DatasourceInfo = {
   name?: string // from datasource name
-  prettyProvider?: PrettyProvider // pretty name for the provider
+  prettyProvider?: PrettyProvider | string // pretty name for the provider
   url?: string // from getConfig
   dbLocation?: string // host without credentials
   dbName?: string // database name
@@ -58,28 +60,7 @@ export async function getDatasourceInfo({
     }
   }
 
-  let prettyProvider
-  switch (firstDatasource.provider) {
-    case 'mysql':
-      prettyProvider = `MySQL`
-      break
-    case 'postgresql':
-      prettyProvider = `PostgreSQL`
-      break
-    case 'sqlite':
-      prettyProvider = `SQLite`
-      break
-    case 'cockroachdb':
-      prettyProvider = `CockroachDB`
-      break
-    case 'sqlserver':
-      prettyProvider = `SQL Server`
-      break
-    case 'mongodb':
-      prettyProvider = `MongoDB`
-      break
-  }
-
+  const prettyProvider = prettifyProvider(firstDatasource.provider)
   const url = firstDatasource.url.value
 
   // url parsing for sql server is not implemented
@@ -203,10 +184,15 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
     // parse the url
     // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
     const credentials = uriToCredentials(firstDatasource.url.value!)
+    const prettyProvider = prettifyProvider(firstDatasource.provider)
 
-    return `${firstDatasource.provider} database ${chalk.bold(credentials.database)} created at ${chalk.bold(
-      getDbLocation(credentials),
-    )}`
+    let message = `${prettyProvider} database${credentials.database ? ` ${credentials.database} ` : ' '}created`
+    const dbLocation = getDbLocation(credentials)
+    if (dbLocation) {
+      message += ` at ${chalk.bold(getDbLocation(credentials))}`
+    }
+
+    return message
   }
 
   return undefined
@@ -225,4 +211,28 @@ export function getDbLocation(credentials: DatabaseCredentials): string | undefi
   }
 
   return undefined
+}
+
+/**
+ * Return a pretty version of a "provider" (with uppercase characters)
+ * @param provider
+ * @returns PrettyProvider | string
+ */
+export function prettifyProvider(provider: ConnectorType): PrettyProvider | string {
+  switch (provider) {
+    case 'mysql':
+      return `MySQL`
+    case 'postgresql':
+      return `PostgreSQL`
+    case 'sqlite':
+      return `SQLite`
+    case 'cockroachdb':
+      return `CockroachDB`
+    case 'sqlserver':
+      return `SQL Server`
+    case 'mongodb':
+      return `MongoDB`
+    default:
+      return provider
+  }
 }

@@ -157,7 +157,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
       Already in sync, no schema change or pending migration was found.
     `)
@@ -176,7 +176,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
       Applying migration \`20201231000000_first\`
 
@@ -217,7 +217,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
       Applying migration \`20201231000000_xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end\`
 
@@ -305,7 +305,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -343,7 +343,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
@@ -369,7 +369,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -556,7 +556,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
@@ -781,7 +781,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
-      sqlite database dev.db created at file:./dev.db
+      SQLite database dev.db created at file:./dev.db
 
       Applying migration \`20201231000000_y\`
 
@@ -814,7 +814,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
-      sqlite database dev.db created at file:./dev.db
+      SQLite database dev.db created at file:./dev.db
 
       Applying migration \`20201231000000_y\`
 
@@ -846,7 +846,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
-      sqlite database dev.db created at file:./dev.db
+      SQLite database dev.db created at file:./dev.db
 
       Applying migration \`20201231000000_y\`
 
@@ -879,7 +879,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
-      sqlite database dev.db created at file:./dev.db
+      SQLite database dev.db created at file:./dev.db
 
       Applying migration \`20201231000000_y\`
 
@@ -910,7 +910,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
 
-      sqlite database dev.db created at file:./dev.db
+      SQLite database dev.db created at file:./dev.db
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])

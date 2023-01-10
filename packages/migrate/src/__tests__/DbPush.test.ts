@@ -88,7 +88,7 @@ describeIf(process.platform !== 'win32')('push', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
       🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)
@@ -113,7 +113,7 @@ describeIf(process.platform !== 'win32')('push', () => {
       Prisma schema loaded from something/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
       🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)

@@ -42,7 +42,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
       No migration found in prisma/migrations
 
@@ -75,7 +75,7 @@ describe('sqlite', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      sqlite database dev.db created at file:dev.db
+      SQLite database dev.db created at file:dev.db
 
       1 migration found in prisma/migrations
 
