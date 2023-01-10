@@ -273,7 +273,7 @@ describeIf(process.platform !== 'win32')('push', () => {
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
-      The SQLite database "dev.db" from "file:dev.db" was successfully reset.
+      The SQLite database "dev.db" at "file:dev.db" was successfully reset.
 
       🚀  Your database is now in sync with your Prisma schema. Done in XXXms
     `)

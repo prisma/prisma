@@ -123,29 +123,29 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
         migrate.stop()
         throw e
       }
-      if (datasourceInfo.dbName && datasourceInfo.dbLocation) {
-        if (datasourceInfo.schema) {
-          console.info(
-            `The ${datasourceInfo.schema} schema of the ${datasourceInfo.prettyProvider} database from "${datasourceInfo.dbLocation}" was successfully reset.`,
-          )
-        } else if (datasourceInfo.prettyProvider === 'PostgreSQL') {
-          console.info(
-            `The ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
-          )
-        } else {
-          console.info(
-            `The ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
-          )
-        }
-      } else {
-        if (datasourceInfo.schema) {
-          console.info(
-            `The ${datasourceInfo.schema} schema of the ${datasourceInfo.prettyProvider} database was successfully reset.`,
-          )
-        } else {
-          console.info(`The ${datasourceInfo.prettyProvider} database was successfully reset.`)
-        }
+
+      let successfulResetMsg = `The ${datasourceInfo.prettyProvider} database`
+      if (datasourceInfo.dbName) {
+        successfulResetMsg += ` "${datasourceInfo.dbName}"`
       }
+
+      const schemasLength = datasourceInfo.schemas?.length || 0
+      // If schemas are defined in the datasource block, print them
+      if (datasourceInfo.schemas && schemasLength > 0) {
+        successfulResetMsg += ` schema(s) "${datasourceInfo.schemas.join(', ')}"`
+      }
+      // Otherwise, print the schema if it's defined in the connection string
+      else if (datasourceInfo.schema) {
+        successfulResetMsg += ` schema "${datasourceInfo.schema}"`
+      }
+
+      if (datasourceInfo.dbLocation) {
+        successfulResetMsg += ` at "${datasourceInfo.dbLocation}"`
+      }
+
+      successfulResetMsg += ` ${schemasLength > 1 ? 'were' : 'was'} successfully reset.`
+      console.info(successfulResetMsg)
+
       wasDatabaseReset = true
     }
 
