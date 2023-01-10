@@ -182,7 +182,7 @@ Set composite types introspection depth to 2 levels
             const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
             const schema = `${this.urlToDatasource(input.url, providerFromSchema)}\n${removeDatasource(rawSchema)}`
 
-            // If the provider is cockroachdb or postgresql, the are compatible
+            // If the provider is cockroachdb or postgresql, they are compatible
             // If not they are not compatible and we throw an error
             if (
               providerFromSchema &&
