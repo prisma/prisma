@@ -1,0 +1,16 @@
+{
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@vercel/ncc": "0.36.0",
+    "@prisma/client": "../../prisma-client-0.0.0.tgz",
+    "prisma": "../../prisma-0.0.0.tgz"
+  }
+}

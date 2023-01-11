@@ -129,7 +129,7 @@ function setupTestSuiteMatrix(
         delete globalThis['prisma']
         delete globalThis['Prisma']
         delete globalThis['newPrismaClient']
-      }, 120_000)
+      }, 180_000)
 
       tests(suiteConfig.matrixOptions, suiteMeta, clientMeta)
     })

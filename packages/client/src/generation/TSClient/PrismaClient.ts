@@ -4,6 +4,7 @@ import indent from 'indent-string'
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import * as ts from '../ts-builders'
 import { getModelArgName } from '../utils'
 import { runtimeImport } from '../utils/runtimeImport'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
@@ -212,38 +213,64 @@ ${extend.prismaNamespaceDefinitions}`,
 }
 
 function batchingTransactionDefinition(this: PrismaClientClass) {
-  const args = ['arg: [...P]']
+  const method = ts
+    .method('$transaction')
+    .setDocComment(
+      ts.docComment`
+        Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
+        @example
+        \`\`\`
+        const [george, bob, alice] = await prisma.$transaction([
+          prisma.user.create({ data: { name: 'George' } }),
+          prisma.user.create({ data: { name: 'Bob' } }),
+          prisma.user.create({ data: { name: 'Alice' } }),
+        ])
+        \`\`\`
+
+        Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
+      `,
+    )
+    .addGenericParameter(ts.genericParameter('P').extends(ts.array(ts.prismaPromise(ts.anyType))))
+    .addParameter(ts.parameter('arg', ts.arraySpread(ts.namedType('P'))))
+    .setReturnType(ts.promise(ts.namedType('UnwrapTuple').addGenericArgument(ts.namedType('P'))))
+
   if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
-    args.push('options?: { isolationLevel?: Prisma.TransactionIsolationLevel }')
+    const options = ts
+      .objectType()
+      .formatInline()
+      .add(ts.property('isolationLevel', ts.namedType('Prisma.TransactionIsolationLevel')).optional())
+    method.addParameter(ts.parameter('options', options).optional())
   }
-  const argsString = args.join(', ')
-  return `
-  /**
-   * Allows the running of a sequence of read/write operations that are guaranteed to either succeed or fail as a whole.
-   * @example
-   * \`\`\`
-   * const [george, bob, alice] = await prisma.$transaction([
-   *   prisma.user.create({ data: { name: 'George' } }),
-   *   prisma.user.create({ data: { name: 'Bob' } }),
-   *   prisma.user.create({ data: { name: 'Alice' } }),
-   * ])
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
-   */
-  $transaction<P extends PrismaPromise<any>[]>(${argsString}): Promise<UnwrapTuple<P>>;`
+
+  return '\n' + ts.stringify(method, { indentLevel: 1 })
 }
 
 function interactiveTransactionDefinition(this: PrismaClientClass) {
-  const txOptions = ['maxWait?: number', 'timeout?: number']
+  const options = ts
+    .objectType()
+    .formatInline()
+    .add(ts.property('maxWait', ts.numberType).optional())
+    .add(ts.property('timeout', ts.numberType).optional())
 
   if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
-    txOptions.push('isolationLevel?: Prisma.TransactionIsolationLevel')
+    const isolationLevel = ts.property('isolationLevel', ts.namedType('Prisma.TransactionIsolationLevel')).optional()
+    options.add(isolationLevel)
   }
 
-  const optionsType = `{${txOptions.join(', ')}}`
-  return `
-  $transaction<R>(fn: (prisma: Prisma.TransactionClient) => Promise<R>, options?: ${optionsType}): Promise<R>;`
+  const returnType = ts.promise(ts.namedType('R'))
+  const callbackType = ts
+    .functionType()
+    .addParameter(ts.parameter('prisma', ts.namedType('Prisma.TransactionClient')))
+    .setReturnType(returnType)
+
+  const method = ts
+    .method('$transaction')
+    .addGenericParameter(ts.genericParameter('R'))
+    .addParameter(ts.parameter('fn', callbackType))
+    .addParameter(ts.parameter('options', options).optional())
+    .setReturnType(returnType)
+
+  return '\n' + ts.stringify(method, { indentLevel: 1 })
 }
 
 function queryRawDefinition(this: PrismaClientClass) {
@@ -313,19 +340,23 @@ function metricDefinition(this: PrismaClientClass) {
     return ''
   }
 
-  return `
-  /**
-   * Gives access to the client metrics in json or prometheus format.
-   * 
-   * @example
-   * \`\`\`
-   * const metrics = await prisma.$metrics.json()
-   * // or
-   * const metrics = await prisma.$metrics.prometheus()
-   * \`\`\`
-   */
-  readonly $metrics: runtime.${runtimeImport('MetricsClient')};
-  `
+  const property = ts
+    .property('$metrics', ts.namedType(`runtime.${runtimeImport('MetricsClient')}`))
+    .setDocComment(
+      ts.docComment`
+        Gives access to the client metrics in json or prometheus format.
+        
+        @example
+        \`\`\`
+        const metrics = await prisma.$metrics.json()
+        // or
+        const metrics = await prisma.$metrics.prometheus()
+        \`\`\`
+    `,
+    )
+    .readonly()
+
+  return '\n' + ts.stringify(property, { indentLevel: 1 })
 }
 
 function runCommandRawDefinition(this: PrismaClientClass) {
@@ -334,21 +365,24 @@ function runCommandRawDefinition(this: PrismaClientClass) {
     return '' // https://github.com/prisma/prisma/issues/8189
   }
 
-  return `
-  /**
-   * Executes a raw MongoDB command and returns the result of it.
-   * @example
-   * \`\`\`
-   * const user = await prisma.$runCommandRaw({
-   *   aggregate: 'User',
-   *   pipeline: [{ $match: { name: 'Bob' } }, { $project: { email: true, _id: false } }],
-   *   explain: false,
-   * })
-   * \`\`\`
-   * 
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
-   */
-  $runCommandRaw(command: Prisma.InputJsonObject): PrismaPromise<Prisma.JsonObject>;`
+  const method = ts
+    .method('$runCommandRaw')
+    .addParameter(ts.parameter('command', ts.namedType('Prisma.InputJsonObject')))
+    .setReturnType(ts.prismaPromise(ts.namedType('Prisma.JsonObject'))).setDocComment(ts.docComment`
+      Executes a raw MongoDB command and returns the result of it.
+      @example
+      \`\`\`
+      const user = await prisma.$runCommandRaw({
+        aggregate: 'User',
+        pipeline: [{ $match: { name: 'Bob' } }, { $project: { email: true, _id: false } }],
+        explain: false,
+      })
+      \`\`\`
+   
+      Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
+    `)
+
+  return '\n' + ts.stringify(method, { indentLevel: 1 })
 }
 
 export class PrismaClientClass implements Generatable {

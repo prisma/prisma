@@ -118,6 +118,7 @@ describe('getConfig', () => {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
+            "schemas": [],
             "url": {
               "fromEnvVar": null,
               "value": "file:../hello.db",
@@ -170,6 +171,7 @@ describe('getConfig', () => {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
+            "schemas": [],
             "url": {
               "fromEnvVar": null,
               "value": "file:../hello.db",
