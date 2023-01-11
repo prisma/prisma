@@ -1,33 +1,32 @@
 import chalk from 'chalk'
 
-import { getDbInfo } from '../utils/ensureDatabaseExists'
+import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
 
 // Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 // Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 // Datasource "my_db": MySQL database "tests-migrate" at "localhost:5432"
-// Datasource "my_db" - SQL Server
-export async function printDatasource(schemaPath: string): Promise<void> {
-  const dbInfo = await getDbInfo(schemaPath)
+// Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
+// Datasource "my_db": SQL Server database
+export function printDatasource({ datasourceInfo }: { datasourceInfo: DatasourceInfo }): void {
+  if (!datasourceInfo.name || !datasourceInfo.prettyProvider) return
 
-  if (dbInfo.dbType) {
-    if (dbInfo.dbType === 'PostgreSQL' && dbInfo.dbName === undefined) {
-      dbInfo.dbName = 'postgres'
-    }
-
-    if (dbInfo.dbType === 'SQL Server') {
-      console.info(chalk.dim(`Datasource "${dbInfo.name}" - SQL Server`))
-    } else {
-      console.info(
-        chalk.dim(
-          `Datasource "${dbInfo.name}": ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}"${
-            dbInfo.schema ? `, schema "${dbInfo.schema}"` : ''
-          } at "${dbInfo.dbLocation}"`,
-        ),
-      )
-    }
-  } else if (dbInfo.name) {
-    console.info(chalk.dim(`Datasource "${dbInfo.name}"`))
-  } else {
-    // Nothing
+  let message = `Datasource "${datasourceInfo.name}": ${datasourceInfo.prettyProvider} database`
+  if (datasourceInfo.dbName) {
+    message += ` "${datasourceInfo.dbName}"`
   }
+
+  // If schemas are defined in the datasource block, print them
+  if (datasourceInfo.schemas?.length) {
+    message += `, schemas "${datasourceInfo.schemas.join(', ')}"`
+  }
+  // Otherwise, print the schema if it's defined in the connection string
+  else if (datasourceInfo.schema) {
+    message += `, schema "${datasourceInfo.schema}"`
+  }
+
+  if (datasourceInfo.dbLocation) {
+    message += ` at "${datasourceInfo.dbLocation}"`
+  }
+
+  console.info(chalk.dim(message))
 }

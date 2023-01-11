@@ -1,3 +1,6 @@
+// describeIf is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
 import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/internals'
 import path from 'path'
 
@@ -20,9 +23,6 @@ const ctx = jestContext.new().add(jestConsoleContext()).add(jestProcessContext()
 
 // To avoid the loading spinner locally
 process.env.CI = 'true'
-
-// describeIf is making eslint not happy about the names
-/* eslint-disable jest/no-identical-title */
 
 // We want to remove unique IDs to have stable snapshots
 // Example:
@@ -74,6 +74,29 @@ describe('common/sqlite', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'file:dev.db'])
     await expect(result).resolves.toBe('')
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('basic introspection with schema and --url missing file: prefix should fail', async () => {
+    ctx.fixture('introspection/sqlite')
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', 'withoutfileprefix.db'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Unknown protocol withoutfileprefix.db:`)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('basic introspection without schema and with --url missing "file:" prefix should fail', async () => {
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', 'withoutfileprefix.db'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`Unknown protocol withoutfileprefix.db:`)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -509,6 +532,29 @@ describe('postgresql', () => {
                                                             ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
                                                                         `)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('introspection --url with postgresql provider but schema has a sqlite provider should fail', async () => {
+    ctx.fixture('schema-only-sqlite')
+    expect.assertions(7)
+
+    try {
+      await DbPull.new().parse(['--url', setupParams.connectionString])
+    } catch (e) {
+      expect(e.code).toEqual(undefined)
+      expect(e.message).toMatchInlineSnapshot(
+        `The database provider found in --url (postgresql) is different from the provider found in the Prisma schema (sqlite).`,
+      )
+    }
+
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
@@ -1199,12 +1245,17 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   })
 })
 
-// TODO: Windows: tests fail on Windows, introspected schema differs from snapshots.
-// TODO: macOS: disabled on CI because it fails with timeout. Somehow jest.setTimeout
-// doesn't seem to work in this test case particularly.
-describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
+// TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
+// Error: P1012 Introspection failed as your current Prisma schema file is invalid·
+//     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
+//     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   const MONGO_URI =
     process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
+
+  if (isMacOrWindowsCI) {
+    jest.setTimeout(60_000)
+  }
 
   test('basic introspection', async () => {
     ctx.fixture('schema-only-mongodb')
@@ -1214,7 +1265,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/no-model.prisma
-      Datasource "my_db"
+      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -1245,7 +1296,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -1425,7 +1476,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -1506,8 +1557,6 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // describeIf is making eslint not happy about the names
-  // eslint-disable-next-line jest/no-identical-title
   test('basic introspection --url', async () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', MONGO_URI])
@@ -1568,7 +1617,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
@@ -1603,7 +1652,7 @@ describeIf(process.platform !== 'win32' && !isMacOrWindowsCI)('MongoDB', () => {
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db"
+      Datasource "my_db": MongoDB database "tests-migrate" at "localhost:27017"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)

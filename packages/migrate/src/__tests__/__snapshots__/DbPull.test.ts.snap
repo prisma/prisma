@@ -417,6 +417,10 @@ exports[`common/sqlite basic introspection with invalid --url - empty host 2`] =
 
 exports[`common/sqlite basic introspection with invalid --url if schema is unspecified 2`] = ``;
 
+exports[`common/sqlite basic introspection with schema and --url missing file: prefix should fail 2`] = ``;
+
+exports[`common/sqlite basic introspection without schema and with --url missing "file:" prefix should fail 2`] = ``;
+
 exports[`common/sqlite introspection --force 2`] = `
 generator client {
   provider = "prisma-client-js"

@@ -43,7 +43,7 @@ export interface GeneratorConfig {
 
 export interface EnvValue {
   fromEnvVar: null | string
-  value: string
+  value: null | string
 }
 
 export interface BinaryTargetsEnvValue {
@@ -69,11 +69,11 @@ export type ConnectorType =
 
 export interface DataSource {
   name: string
-  activeProvider: ConnectorType
   provider: ConnectorType
+  activeProvider: ConnectorType
   url: EnvValue
   directUrl?: EnvValue
-  config: { [key: string]: string }
+  schemas: string[] | []
 }
 
 export type BinaryPaths = {
