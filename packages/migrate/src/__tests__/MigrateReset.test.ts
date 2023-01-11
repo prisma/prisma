@@ -173,7 +173,7 @@ describe('reset', () => {
       Reset cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('reset should error in unattended environment', async () => {
@@ -270,7 +270,7 @@ describe('reset', () => {
             An error occurred while running the seed command:
             Error: Command failed with exit code 1: node prisma/seed.js
         `)
-    expect(mockExit).toBeCalledWith(1)
+    expect(mockExit).toHaveBeenCalledWith(1)
   })
 
   testIf(process.platform !== 'win32')(
@@ -283,19 +283,19 @@ describe('reset', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
 
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-              Prisma schema loaded from prisma/schema.prisma
-              Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+        Prisma schema loaded from prisma/schema.prisma
+        Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
-              SQLite database dev.db created at file:./dev.db
-
-
-              Database reset successful
+        SQLite database dev.db created at file:./dev.db
 
 
-              Running seed command \`ts-node prisma/seed.ts\` ...
+        Database reset successful
 
-              🌱  The seed command has been executed.
-          `)
+
+        Running seed command \`ts-node prisma/seed.ts\` ...
+
+        🌱  The seed command has been executed.
+      `)
       expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     },

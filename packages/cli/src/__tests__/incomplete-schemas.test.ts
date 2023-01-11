@@ -1,3 +1,4 @@
+// describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
 import { jestContext, serializeQueryEngineName } from '@prisma/internals'
@@ -81,7 +82,7 @@ const urlMustStartWithProtocolValidationError = `
  Prisma CLI Version : 0.0.0
    `
 
-const couldNotFindDatasourceError = `Couldn't find a datasource in the schema.prisma file`
+const aDatasourceBlockIsMissingError = `A datasource block is missing in the Prisma schema file.`
 const thereIsNoDatasourceError = `
 There is no datasource in the schema.
 
@@ -122,7 +123,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchSnapshot(urlMustStartWithProtocolValidationError)
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlMustStartWithProtocolValidationError)
       }
     })
 
@@ -380,7 +381,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbPush.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(couldNotFindDatasourceError)
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(aDatasourceBlockIsMissingError)
       }
     })
 
@@ -409,7 +410,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await MigrateReset.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(couldNotFindDatasourceError)
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(aDatasourceBlockIsMissingError)
       }
     })
 
@@ -418,7 +419,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await MigrateDev.new().parse([])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(couldNotFindDatasourceError)
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(aDatasourceBlockIsMissingError)
       }
     })
   })

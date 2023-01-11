@@ -10,7 +10,7 @@ Invalid \`.findMany()\` invocation in
   XX   const result = prisma.user
 → XX     .findMany(
 Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })) })
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Server(ServerError { code: 1064, message: "syntax error, unexpected '-'", state: "42000" })), transient: false })
 `;
 
 exports[`fulltext-search (provider=postgresql) bad query 1`] = `
@@ -23,5 +23,5 @@ Invalid \`.findMany()\` invocation in
   XX   const result = prisma.user
 → XX     .findMany(
 Error occurred during query execution:
-ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState(E42601), message: "syntax error in tsquery: \\"John Smith\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(0), routine: Some("makepol") }) }) })
+ConnectorError(ConnectorError { user_facing_error: None, kind: QueryError(Error { kind: Db, cause: Some(DbError { severity: "ERROR", parsed_severity: Some(Error), code: SqlState(E42601), message: "syntax error in tsquery: \\"John Smith\\"", detail: None, hint: None, position: None, where_: None, schema: None, table: None, column: None, datatype: None, constraint: None, file: Some("tsquery.c"), line: Some(0), routine: Some("makepol") }) }), transient: false })
 `;

@@ -2,11 +2,14 @@ const fs = require('fs')
 const path = require('path')
 const pkgUp = require('pkg-up')
 const Debug = require('debug')
+
 const debug = Debug('prisma:install')
 const pkg = require('../package.json')
+
 const pkgName = pkg.name
 
-// if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
+// if we are in a Vercel (previously named Zeit Now) context (because NOW_BUILDER is truthy)
+// ensure that `prisma generate` is ran in the postinstall hook
 if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
   ensurePostInstall().catch((e) => {
     debug(e)
