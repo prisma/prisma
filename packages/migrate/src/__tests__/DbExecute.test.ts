@@ -1,3 +1,6 @@
+// describeIf is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
 import { jestConsoleContext, jestContext } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
@@ -486,7 +489,6 @@ DROP SCHEMA IF EXISTS "test-dbexecute";
 CREATE SCHEMA "test-dbexecute";
 DROP SCHEMA "test-dbexecute";`
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -495,7 +497,6 @@ DROP SCHEMA "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     }, 10000)
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should use env var from .env file', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -511,7 +512,6 @@ DROP SCHEMA "test-dbexecute";`
             `)
     }, 10000)
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -529,7 +529,6 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     }, 10000)
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -538,7 +537,6 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass with empty --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -567,7 +565,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
       expect.assertions(2)
@@ -589,7 +586,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url provider with --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
       expect.assertions(2)
@@ -608,7 +604,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1001 error with unreachable url with --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
       expect.assertions(2)
@@ -632,7 +627,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with invalid SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -842,7 +836,6 @@ DROP DATABASE IF EXISTS "test-dbexecute";
 CREATE DATABASE "test-dbexecute";
 DROP DATABASE "test-dbexecute";`
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -859,7 +852,6 @@ DROP DATABASE "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -868,7 +860,6 @@ DROP DATABASE "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -888,7 +879,6 @@ COMMIT;`,
 
     // Limitation of sqlserver
     // DROP DATABASE statement cannot be used inside a user transaction.
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail if DROP DATABASE in a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -910,7 +900,6 @@ COMMIT;`,
             `)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -932,7 +921,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url provider with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -951,7 +939,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1001 error with unreachable url with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -975,7 +962,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -988,7 +974,6 @@ COMMIT;`,
             `)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with invalid SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
