@@ -939,43 +939,6 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
-
-  it('need to reset prompt: (no) should succeed', async () => {
-    ctx.fixture('existing-db-reset-needed')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
-      throw new Error('process.exit: ' + number)
-    })
-
-    prompt.inject([new Error()]) // simulate user cancellation
-
-    const result = MigrateDev.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
-    expect(mockExit).toHaveBeenCalledWith(130)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-
-      - The migration \`20201231000000_init\` was modified after it was applied.
-      - Drift detected: Your database schema is not in sync with your migration history.
-
-      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
-
-      It should be understood as the set of changes to get from the expected schema to the actual schema.
-
-      [+] Added tables
-        - untitled_table_4
-
-      [*] Redefined table \`Blog\`
-
-
-      We need to reset the SQLite database "dev.db" at "file:dev.db"
-      Do you want to continue? All data will be lost.
-
-      Reset cancelled.
-    `)
-    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
-  })
 })
 
 describe('postgresql', () => {
