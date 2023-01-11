@@ -167,7 +167,12 @@ export class MigrateEngine {
     compositeTypeDepth = -1, // cannot be undefined
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
     this.latestSchema = schema
-    return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
+    const introspectResult = this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
+
+    // shut down the migration engine after introspection
+    this.stop()
+
+    return introspectResult
   }
 
   /**
