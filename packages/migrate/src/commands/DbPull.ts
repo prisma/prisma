@@ -252,9 +252,9 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       debug(`Introspection Schema Version: ${introspectionResult.version}`)
     } catch (e: any) {
       introspectionSpinner.failure()
-      if (e.code === 'P4001') {
+      if (e.code === 'P1003') {
         if (introspectionSchema.trim() === '') {
-          throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red('The introspected database was empty:')} ${
+          throw new Error(`\n${chalk.red.bold('P1003 ')}${chalk.red('The introspected database was empty:')} ${
             url ? chalk.underline(url) : ''
           }
 
