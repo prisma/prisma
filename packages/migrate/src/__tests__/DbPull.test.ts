@@ -313,6 +313,7 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  // failing, on Rust side we should receive P1003 rather than P4001
   it('should fail when db is empty', async () => {
     ctx.fixture('schema-only-sqlite')
     ctx.fs.write('prisma/dev.db', '')
@@ -391,6 +392,8 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  // failing, it rejects with P1012 (schema is invalid) rather than succeeding.
+  // The error tells us to try --force, which we do already. Perhaps --force isn't passed properly to Rust?
   it('should succeed when schema is invalid and using --force', async () => {
     ctx.fixture('introspect')
 
