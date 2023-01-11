@@ -183,7 +183,7 @@ Set composite types introspection depth to 2 levels
             // to avoid ambiguities in case of schema parsing errors (error code P1012)
 
             const provider = config.datasources[0]?.provider
-            const schema = `${this.urlToDatasource(input.url, provider)}${removeDatasource(rawSchema)}`
+            const schema = `${this.urlToDatasource(input.url, provider)}\n\n${removeDatasource(rawSchema)}`
             return { config, schema }
           }
 
