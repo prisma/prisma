@@ -83,7 +83,7 @@ ${detailsHeader} ${message}`
   }
 }
 
-export function getDirectUrl(ds: DataSource): EnvValue {
+export function getEffectiveUrl(ds: DataSource): EnvValue {
   if (ds.directUrl !== undefined) return ds.directUrl
 
   return ds.url

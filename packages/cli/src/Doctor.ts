@@ -6,8 +6,8 @@ import {
   Command,
   format,
   getConfig,
-  getDirectUrl,
   getDMMF,
+  getEffectiveUrl,
   HelpError,
   IntrospectionEngine,
   keyBy,
@@ -82,7 +82,7 @@ ${chalk.bold('Examples')}
 
     console.error(`👩‍⚕️🏥 Prisma Doctor checking the database...`)
 
-    const connectionString = getDirectUrl(config.datasources[0])
+    const connectionString = getEffectiveUrl(config.datasources[0])
     const canConnect = await canConnectToDatabase(connectionString.value, path.dirname(schemaPath))
     if (typeof canConnect !== 'boolean') {
       throw new Error(`${canConnect.code}: ${canConnect.message}`)

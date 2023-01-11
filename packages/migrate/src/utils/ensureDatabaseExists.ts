@@ -3,7 +3,7 @@ import {
   canConnectToDatabase,
   createDatabase,
   getConfig,
-  getDirectUrl,
+  getEffectiveUrl,
   getSchema,
   getSchemaDir,
   uriToCredentials,
@@ -41,7 +41,7 @@ export async function getDbInfo(schemaPath?: string): Promise<{
     }
   }
 
-  const url = getDirectUrl(activeDatasource).value
+  const url = getEffectiveUrl(activeDatasource).value
 
   if (activeDatasource.provider === 'sqlserver') {
     return {
@@ -99,7 +99,7 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 
   const schemaDir = (await getSchemaDir(schemaPath))!
 
-  const url = getDirectUrl(activeDatasource).value
+  const url = getEffectiveUrl(activeDatasource).value
 
   const canConnect = await canConnectToDatabase(url, schemaDir)
 
@@ -121,7 +121,7 @@ export async function ensureDatabaseExists(action: MigrateAction, forceCreate = 
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
-  const url = getDirectUrl(activeDatasource).value
+  const url = getEffectiveUrl(activeDatasource).value
 
   const canConnect = await canConnectToDatabase(url, schemaDir)
   if (canConnect === true) {
