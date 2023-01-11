@@ -349,7 +349,9 @@ describe('postgresql', () => {
 
 describe('postgresql-multi-schema', () => {
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    connectionString:
+      process.env.TEST_POSTGRES_URI_MIGRATE + '-multi-schema' ||
+      'postgres://prisma:prisma@localhost:5432/tests-migrate',
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multi-schema'),
   }
 
@@ -381,6 +383,8 @@ describe('postgresql-multi-schema', () => {
     expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       Prisma schema loaded from schema.prisma
       Datasource "db": postgres database "tests-migrate", schemas "base, transactional" at "localhost:5432"
+
+      postgres database tests-migrate created at localhost:5432
 
       The postgres database "tests-migrate" schemas "base, transactional" at "localhost:5432" were successfully reset.
 
