@@ -206,7 +206,6 @@ Set composite types introspection depth to 2 levels
       )
       .run()
 
-    const schemasFromCliArgs = args['--schemas']?.split(',')
     if (schemaPath) {
       // Re-Introspection is not supported on MongoDB
       const schema = await getSchema(args['--schema'])
@@ -245,7 +244,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
         schema,
         args['--force'],
         args['--composite-type-depth'],
-        schemasFromCliArgs,
+        args['--schemas']?.split(','),
       )
 
       introspectionSchema = introspectionResult.datamodel
