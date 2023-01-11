@@ -85,6 +85,7 @@ const couldNotFindDatasourceError = `Couldn't find a datasource in the schema.pr
 const thereIsNoDatasourceError = `
 There is no datasource in the schema.
 
+
 `
 
 describe('[wasm] incomplete-schemas', () => {
@@ -399,7 +400,7 @@ describe('[normalized library/binary] incomplete-schemas', () => {
       try {
         await DbExecute.new().parse(['--file=./script.sql'])
       } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(thereIsNoDatasourceError + '\n')
+        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(thereIsNoDatasourceError)
       }
     })
 
