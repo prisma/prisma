@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { getNodeAPIName, Platform } from '@prisma/get-platform'
 import findCacheDir from 'find-cache-dir'
 import fs from 'fs'
-import makeDir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import os from 'os'
 import path from 'path'
 
@@ -23,7 +23,7 @@ export async function getRootCacheDir(): Promise<string | null> {
   // if this is lambda, nope
   if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
     try {
-      await makeDir(`/tmp/prisma-download`)
+      await ensureDir(`/tmp/prisma-download`)
       return `/tmp/prisma-download`
     } catch (e) {
       return null
@@ -40,7 +40,7 @@ export async function getCacheDir(channel: string, version: string, platform: st
   const cacheDir = path.join(rootCacheDir, channel, version, platform)
   try {
     if (!fs.existsSync(cacheDir)) {
-      await makeDir(cacheDir)
+      await ensureDir(cacheDir)
     }
   } catch (e) {
     debug('The following error is being caught and just there for debugging:')

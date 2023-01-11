@@ -99,7 +99,9 @@ export function getFieldArgName(field: DMMF.SchemaField, modelName: string): str
 }
 
 export function getModelFieldArgsName(field: DMMF.SchemaField, modelName: string) {
-  return `${modelName}${capitalize(field.name)}Args`
+  // Example: User$postsArgs
+  // So it doesn't conflict with the generated type, like UserPostsArgs
+  return `${modelName}$${field.name}Args`
 }
 
 export function getArgName(name: string): string {
