@@ -161,18 +161,23 @@ export class MigrateEngine {
    * Given a Prisma schema, introspect the database definitions and update the schema with the results.
    * `compositeTypeDepth` is optional, and only required for MongoDB.
    */
-  public introspect({
+  public async introspect({
     schema,
     force = false,
     compositeTypeDepth = -1, // cannot be undefined
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
     this.latestSchema = schema
-    const introspectResult = this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
 
-    // shut down the migration engine after introspection
-    this.stop()
-
-    return introspectResult
+    try {
+      const introspectResult = await this.runCommand(
+        this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }),
+      )
+      return introspectResult
+    } finally {
+      // stop the engine after either a successful or failed introspection, to emulate how the
+      // introspection engine used to work.
+      this.stop()
+    }
   }
 
   /**

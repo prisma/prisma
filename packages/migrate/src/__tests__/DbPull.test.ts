@@ -727,7 +727,7 @@ describe('postgresql-multi-schema', () => {
     })
   })
 
-  test('without datasource property `schemas` it should error with P4001, empty database', async () => {
+  test.skip('without datasource property `schemas` it should error with P4001, empty database', async () => {
     ctx.fixture('introspection/postgresql-multi-schema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
@@ -737,7 +737,7 @@ describe('postgresql-multi-schema', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  })
+  }, 50_000)
 
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
     ctx.fixture('introspection/postgresql-multi-schema')

@@ -244,8 +244,6 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
         force: args['--force'],
         compositeTypeDepth: args['--composite-type-depth'],
       })
-      // We can now stop the engine
-      engine.stop()
 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
@@ -253,9 +251,6 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       introspectionSchemaVersion = introspectionResult.version
       debug(`Introspection Schema Version: ${introspectionResult.version}`)
     } catch (e: any) {
-      // We can now stop the engine
-      engine.stop()
-
       introspectionSpinner.failure()
       if (e.code === 'P1003') {
         if (introspectionSchema.trim() === '') {
