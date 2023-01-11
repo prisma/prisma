@@ -18,6 +18,8 @@ function removeRocketEmoji(str: string) {
   return str.replace('🚀  ', '')
 }
 
+const originalEnv = { ...process.env }
+
 describe('push', () => {
   it('--preview-feature flag is not required anymore', async () => {
     ctx.fixture('empty')
@@ -353,20 +355,25 @@ describe('postgresql-multi-schema', () => {
     'tests-migrate-db-push-postgresql-multischema',
   )
 
-  // Update env var because it's the one that is used in the schemas tested
-  process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-
   const setupParams: SetupParams = {
     connectionString,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multi-schema'),
   }
 
   beforeAll(async () => {
+    process.env = { ...originalEnv }
+
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
+  afterAll(() => {
+    process.env = { ...originalEnv }
+  })
   beforeEach(async () => {
     await setupPostgres(setupParams).catch((e) => {
       console.error(e)
