@@ -345,6 +345,31 @@ describe('postgresql', () => {
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
+})
+
+describe('postgresql-multi-schema', () => {
+  const setupParams: SetupParams = {
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multi-schema'),
+  }
+
+  beforeAll(async () => {
+    await tearDownPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  beforeEach(async () => {
+    await setupPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  afterEach(async () => {
+    await tearDownPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
 
   it('multiSchema: --force-reset should succeed and display a log', async () => {
     ctx.fixture('introspection/postgresql-multi-schema')
