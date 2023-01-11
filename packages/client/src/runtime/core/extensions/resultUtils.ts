@@ -45,8 +45,8 @@ export function getComputedFields(
 
   return resolveDependencies({
     ...previousComputedFields,
-    ...getComputedFieldsFromModel(extension.name, extension.result.$allModels),
-    ...getComputedFieldsFromModel(extension.name, extension.result[jsName]),
+    ...getComputedFieldsFromModel(extension.name, previousComputedFields, extension.result.$allModels),
+    ...getComputedFieldsFromModel(extension.name, previousComputedFields, extension.result[jsName]),
   })
 }
 
@@ -75,6 +75,7 @@ export function resolveDependencies(computedFields: ComputedFieldsMap): Computed
 
 function getComputedFieldsFromModel(
   name: string | undefined,
+  previousComputedFields: ComputedFieldsMap | undefined,
   modelResult: ResultModelArgs | undefined,
 ): ComputedFieldsMap {
   if (!modelResult) {
@@ -84,8 +85,22 @@ function getComputedFieldsFromModel(
   return mapObjectValues(modelResult, ({ needs, compute }, fieldName) => ({
     name: fieldName,
     needs: needs ? Object.keys(needs).filter((key) => needs[key]) : [],
-    compute: wrapExtensionCallback(name, compute),
+    compute: wrapExtensionCallback(name, composeCompute(previousComputedFields, fieldName, compute)),
   }))
+}
+
+function composeCompute(
+  previousComputedFields: ComputedFieldsMap | undefined,
+  fieldName: string,
+  nextCompute: ResultArgsFieldCompute,
+): ResultArgsFieldCompute {
+  const previousCompute = previousComputedFields?.[fieldName]?.compute
+  if (!previousCompute) {
+    return nextCompute
+  }
+  return (model) => {
+    return nextCompute({ ...model, [fieldName]: previousCompute(model) })
+  }
 }
 
 export function applyComputedFieldsToSelection(
