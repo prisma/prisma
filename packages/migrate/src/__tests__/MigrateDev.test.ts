@@ -1204,7 +1204,7 @@ describe('postgresql', () => {
   //   ).toEqual([])
   // })
 
-  it.only('need to reset prompt: (no) should succeed', async () => {
+  it('need to reset prompt: (no) should succeed', async () => {
     ctx.fixture('schema-only-postgresql')
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
       throw new Error('process.exit: ' + number)
