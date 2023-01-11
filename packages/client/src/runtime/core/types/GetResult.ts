@@ -50,7 +50,7 @@ type GetFindResult<P extends Payload, A> =
             : K extends '_count'
               ? Count<GetFindResult<P, S[K]>>
               : never
-  } & (A extends { include: any} ? P['scalars'] : unknown)
+  } & (A extends { include: any } ? P['scalars'] : unknown)
   : P['scalars']
 
 type GetCountResult<P, A> =

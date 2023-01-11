@@ -181,6 +181,7 @@ ${ifExtensions(
 export type Extension = runtime.Types.Extensions.UserArgs
 export import getExtensionContext = runtime.Extensions.getExtensionContext
 export type Args<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Args<T, F>
+export type Payload<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Payload<T, F>
 export type Result<T, A, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Result<T, A, F>
 export type Exact<T, W> = runtime.Types.Public.Exact<T, W>
 

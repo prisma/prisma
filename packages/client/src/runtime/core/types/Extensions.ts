@@ -20,7 +20,7 @@ export type Args = InternalArgs
 export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
 export type GetResult<Base extends Record<any, any>, R extends Args['result'][string]> =
-  { [K in keyof R | keyof Base]: K extends keyof R ? ReturnType<ReturnType<R[K]>['compute']> : Base[K] }
+  { [K in keyof R | keyof Base]: K extends keyof R ? ReturnType<ReturnType<R[K]>['compute']> : Base[K] } & unknown
 
 export type GetSelect<Base extends Record<any, any>, R extends Args['result'][string]> =
   { [K in keyof R | keyof Base]?: K extends keyof R ? boolean : Base[K] }
