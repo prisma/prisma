@@ -121,8 +121,9 @@ export async function ensureDatabaseExists(action: MigrateAction, forceCreate = 
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
+  const url = getDirectUrl(activeDatasource).value
 
-  const canConnect = await canConnectToDatabase(activeDatasource.url.value, schemaDir)
+  const canConnect = await canConnectToDatabase(url, schemaDir)
   if (canConnect === true) {
     return
   }
@@ -141,14 +142,14 @@ export async function ensureDatabaseExists(action: MigrateAction, forceCreate = 
   }
   // forceCreate is always true in the codebase as of today
   if (forceCreate) {
-    if (await createDatabase(activeDatasource.url.value, schemaDir)) {
+    if (await createDatabase(url, schemaDir)) {
       // URI parsing is not implemented for SQL server yet
       if (activeDatasource.provider === 'sqlserver') {
         return `SQL Server database created.\n`
       }
 
       // parse the url
-      const credentials = uriToCredentials(activeDatasource.url.value)
+      const credentials = uriToCredentials(url)
       const { schemaWord, dbType, dbName } = getDbinfoFromCredentials(credentials)
       let databaseProvider = dbType
 
@@ -169,7 +170,7 @@ export async function ensureDatabaseExists(action: MigrateAction, forceCreate = 
   } else {
     // never reached because forceCreate is always true in the codebase as of today
     // todo remove
-    await interactivelyCreateDatabase(activeDatasource.url.value, action, schemaDir)
+    await interactivelyCreateDatabase(url, action, schemaDir)
   }
 
   return undefined
