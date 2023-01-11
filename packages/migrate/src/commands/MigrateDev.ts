@@ -359,6 +359,9 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
     datasourceInfo: DatasourceInfo
     reason: string
   }): Promise<boolean> {
+    // Log the reason of why a reset is needed to the user
+    console.info(reason)
+
     let messageFirstLine = ''
 
     if (['PostgreSQL', 'SQL Server'].includes(datasourceInfo.prettyProvider!)) {
@@ -377,15 +380,19 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
       messageFirstLine += ` at "${datasourceInfo.dbLocation}"`
     }
 
-    const message = `${messageFirstLine}
+    const messageForPrompt = `${messageFirstLine}
 Do you want to continue? ${chalk.red('All data will be lost')}.`
 
-    console.info(reason)
-
+    // For testing purposes we log the message
+    // An alternative would be to find a way to capture the prompt message from jest tests
+    // (attempted without success)
+    if (Boolean((prompt as any)._injected?.length) === true) {
+      console.info(messageForPrompt)
+    }
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
-      message: message,
+      message: messageForPrompt,
     })
 
     return confirmation.value

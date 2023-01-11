@@ -12,6 +12,7 @@ import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { DbExecute } from '../commands/DbExecute'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
@@ -22,6 +23,10 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 process.env.GITHUB_ACTIONS = '1'
 // Disable generate
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
+
+function removeSeedlingEmoji(str: string) {
+  return str.replace('🌱  ', '')
+}
 
 describe('common', () => {
   it('invalid schema', async () => {
@@ -416,6 +421,8 @@ describe('sqlite', () => {
         - Blog
         - _Migration
 
+      We need to reset the SQLite database "dev.db" at "file:dev.db"
+      Do you want to continue? All data will be lost.
 
       Applying migration \`20201231000000_\`
 
@@ -459,6 +466,8 @@ describe('sqlite', () => {
         - Blog
         - _Migration
 
+      We need to reset the SQLite database "dev.db" at "file:dev.db"
+      Do you want to continue? All data will be lost.
 
       Reset cancelled.
     `)
@@ -480,6 +489,8 @@ describe('sqlite', () => {
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
 
       The migration \`20201231000000_test\` was modified after it was applied.
+      We need to reset the SQLite database "dev.db" at "file:dev.db"
+      Do you want to continue? All data will be lost.
 
       Applying migration \`20201231000000_test\`
       Applying migration \`20201231000000_draft\`
@@ -522,6 +533,8 @@ describe('sqlite', () => {
 
       - The migrations recorded in the database diverge from the local migrations directory.
 
+      We need to reset the SQLite database "dev.db" at "file:dev.db"
+      Do you want to continue? All data will be lost.
 
       Applying migration \`20201231000000_draft\`
 
@@ -771,8 +784,7 @@ describe('sqlite', () => {
     expect(mockExit).toHaveBeenCalledWith(130)
   })
 
-  // TODO: Windows: snapshot test fails because of emoji.
-  testIf(process.platform !== 'win32')('one seed.ts file', async () => {
+  test('one seed.ts file', async () => {
     ctx.fixture('seed-sqlite-ts')
 
     prompt.inject(['y'])
@@ -780,7 +792,7 @@ describe('sqlite', () => {
     const result = MigrateDev.new().parse([])
 
     await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+    expect(removeSeedlingEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
 
@@ -798,7 +810,7 @@ describe('sqlite', () => {
 
       Running seed command \`ts-node prisma/seed.ts\` ...
 
-      🌱  The seed command has been executed.
+      The seed command has been executed.
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
@@ -918,6 +930,43 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+  })
+
+  it('need to reset prompt: (no) should succeed', async () => {
+    ctx.fixture('existing-db-reset-needed')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
+
+    prompt.inject([new Error()]) // simulate user cancellation
+
+    const result = MigrateDev.new().parse([])
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
+    expect(mockExit).toHaveBeenCalledWith(130)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+      - The migration \`20201231000000_init\` was modified after it was applied.
+      - Drift detected: Your database schema is not in sync with your migration history.
+
+      The following is a summary of the differences between the expected database schema given your migrations files, and the actual schema of the database.
+
+      It should be understood as the set of changes to get from the expected schema to the actual schema.
+
+      [+] Added tables
+        - untitled_table_4
+
+      [*] Redefined table \`Blog\`
+
+
+      We need to reset the SQLite database "dev.db" at "file:dev.db"
+      Do you want to continue? All data will be lost.
+
+      Reset cancelled.
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
 })
 
@@ -1154,6 +1203,47 @@ describe('postgresql', () => {
   //     fs.read(`prisma/${fs.list('prisma/migrations')![0]}/migration.sql`),
   //   ).toEqual([])
   // })
+
+  it.only('need to reset prompt: (no) should succeed', async () => {
+    ctx.fixture('schema-only-postgresql')
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
+
+    await fs.writeAsync(
+      'script.sql',
+      `CREATE TABLE "public"."User" (
+        "id" text,
+        "email" text NOT NULL,
+        "name" text,
+        PRIMARY KEY ("id")
+    );`,
+    )
+
+    const dbExecuteResult = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+    await expect(dbExecuteResult).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+
+    prompt.inject(['test', new Error()]) // simulate user cancellation
+    // prompt.inject(['y']) // simulate user cancellation
+
+    const result = MigrateDev.new().parse(['--schema=prisma/multiSchema.prisma'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+      db error: ERROR: relation "_prisma_migrations" already exists
+         0: migration_core::state::ApplyMigrations
+                   at migration-engine/core/src/state.rs:199
+
+    `)
+    expect(mockExit).toHaveBeenCalledWith(130)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Environment variables loaded from prisma/.env
+      Prisma schema loaded from prisma/multiSchema.prisma
+      Datasource "my_db": PostgreSQL database "tests-migrate-dev", schemas "schema1, schema2" at "localhost:5432"
+
+      Enter a name for the new migration:
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(`Canceled by user.`)
+    expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
+  })
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
@@ -1713,7 +1803,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 
   it('draft migration and apply (--name)', async () => {
     ctx.fixture('schema-only-sqlserver')
-    jest.setTimeout(10_000)
 
     const draftResult = MigrateDev.new().parse(['--create-only', '--name=first'])
 
