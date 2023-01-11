@@ -29,7 +29,7 @@ export type GetModel<Base extends Record<any, any>, M extends Args['model'][stri
   { [K in keyof M | keyof Base]: K extends keyof M ? ReturnType<M[K]> : Base[K] }
 
 export type GetClient<Base extends Record<any, any>, C extends Args['client']> =
-  { [K in keyof C | Exclude<keyof Base, '$use'>]: K extends keyof C ? ReturnType<C[K]>: Base[K] }
+  Omit<Base, keyof C | '$use'> & { [K in keyof C]: ReturnType<C[K]> }
 
 export type ReadonlySelector<T> = T extends unknown ? {
   readonly [K in keyof T as K extends 'include' | 'select' ? K : never]: ReadonlyDeep<T[K]>
