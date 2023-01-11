@@ -37,7 +37,7 @@ export class ObjectType implements BasicBuilder {
           writer.writeLine(item)
         }
       })
-      .writeLine('}')
+      .write('}')
   }
 
   private writeInline(writer: Writer) {

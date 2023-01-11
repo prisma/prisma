@@ -1,6 +1,7 @@
 import { ArraySpread } from './ArraySpread'
 import { ArrayType } from './ArrayType'
 import { FunctionType } from './FunctionType'
+import { KeyType } from './KeyType'
 import { NamedType } from './NamedType'
 import { ObjectType } from './ObjectType'
 import { PrimitiveType } from './PrimitiveType'
@@ -16,3 +17,4 @@ export type AnyTypeBuilder =
   | FunctionType
   | UnionType
   | StringLiteralType
+  | KeyType

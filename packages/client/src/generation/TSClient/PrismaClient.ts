@@ -242,7 +242,7 @@ function batchingTransactionDefinition(this: PrismaClientClass) {
     method.addParameter(ts.parameter('options', options).optional())
   }
 
-  return '\n' + ts.stringify(method, { indentLevel: 1 })
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
 function interactiveTransactionDefinition(this: PrismaClientClass) {
@@ -270,7 +270,7 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
     .addParameter(ts.parameter('options', options).optional())
     .setReturnType(returnType)
 
-  return '\n' + ts.stringify(method, { indentLevel: 1 })
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
 function queryRawDefinition(this: PrismaClientClass) {
@@ -356,7 +356,7 @@ function metricDefinition(this: PrismaClientClass) {
     )
     .readonly()
 
-  return '\n' + ts.stringify(property, { indentLevel: 1 })
+  return ts.stringify(property, { indentLevel: 1, newLine: 'leading' })
 }
 
 function runCommandRawDefinition(this: PrismaClientClass) {
@@ -382,7 +382,7 @@ function runCommandRawDefinition(this: PrismaClientClass) {
       Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
     `)
 
-  return '\n' + ts.stringify(method, { indentLevel: 1 })
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
 export class PrismaClientClass implements Generatable {

@@ -1,5 +1,6 @@
 import { AnyTypeBuilder } from './AnyTypeBuilder'
 import { BasicBuilder } from './BasicBuilder'
+import { KeyType } from './KeyType'
 import { Writer } from './Writer'
 
 export class NamedType implements BasicBuilder {
@@ -10,6 +11,10 @@ export class NamedType implements BasicBuilder {
   addGenericArgument(type: AnyTypeBuilder): this {
     this.genericArguments.push(type)
     return this
+  }
+
+  subKey(key: string): KeyType {
+    return new KeyType(this, key)
   }
 
   write(writer: Writer): void {

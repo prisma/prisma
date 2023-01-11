@@ -1,5 +1,6 @@
 import { AnyTypeBuilder } from './AnyTypeBuilder'
 import { BasicBuilder } from './BasicBuilder'
+import { NamedType } from './NamedType'
 import { Writer } from './Writer'
 
 export class GenericParameter implements BasicBuilder {
@@ -16,6 +17,10 @@ export class GenericParameter implements BasicBuilder {
   default(type: AnyTypeBuilder): this {
     this.defaultType = type
     return this
+  }
+
+  toArgument(): NamedType {
+    return new NamedType(this.name)
   }
 
   write(writer: Writer): void {
