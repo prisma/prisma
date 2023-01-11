@@ -207,19 +207,8 @@ Set composite types introspection depth to 2 levels
       .run()
 
     const schemasFromCliArgs = args['--schemas']?.split(',')
-    console.debug({ schemasFromCliArgs })
-    // TODO: remove this check once the 'multiSchema' feature is GA
-    const previewFeatures = config.generators[0]?.previewFeatures ?? []
-    if (!previewFeatures.includes('multiSchema') && multiSchemas.length > 0) {
-      throw new Error(
-        `The ${chalk.redBright(
-          '--schemas',
-        )} flag is only supported when the \`multiSchema\` preview feature is defined in the generator block of your Prisma schema.`,
-      )
-    }
-
-    // Re-Introspection is not supported on MongoDB
     if (schemaPath) {
+      // Re-Introspection is not supported on MongoDB
       const schema = await getSchema(args['--schema'])
 
       const modelRegex = /\s*model\s*(\w+)\s*{/
@@ -295,7 +284,8 @@ Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again.
         // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
         // '--url' argument is different than the one written in the schema.prisma file.
         // We should throw another error earlier in case the URL protocol is not compatible with the schema provider.
-        throw new Error(`${chalk.red(`${e.code}`)} Introspection failed as your current Prisma schema file is invalid
+        throw new Error(`${chalk.red(`${e.message}`)}
+Introspection failed as your current Prisma schema file is invalid
 
 Please fix your current schema manually (using either ${chalk.green(
           getCommandWithExecutor('prisma validate'),

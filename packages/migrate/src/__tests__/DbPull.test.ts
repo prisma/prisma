@@ -364,7 +364,19 @@ describe('common/sqlite', () => {
     ctx.fixture('introspect')
     const result = DbPull.new().parse(['--schema=./prisma/invalid.prisma'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      P1012 Introspection failed as your current Prisma schema file is invalid
+      P1012
+
+      error: Error validating model "something": Each model must have at least one unique criteria that has only required fields. Either mark a single field with \`@id\`, \`@unique\` or add a multi field criterion with \`@@id([])\` or \`@@unique([])\` to the model.
+        -->  schema.prisma:11
+         | 
+      10 | 
+      11 | model something {
+      12 |   id Int
+      13 | }
+         | 
+
+
+      Introspection failed as your current Prisma schema file is invalid
 
       Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
       Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
@@ -379,13 +391,13 @@ describe('common/sqlite', () => {
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      
-      
-      - Introspecting based on datasource defined in prisma/invalid.prisma
 
-      ✖ Introspecting based on datasource defined in prisma/invalid.prisma
-      
-    `)
+
+            - Introspecting based on datasource defined in prisma/invalid.prisma
+
+            ✖ Introspecting based on datasource defined in prisma/invalid.prisma
+
+        `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -814,6 +826,132 @@ describe('postgresql-multi-schema', () => {
       '--schema',
       'with-schemas-in-datasource-1-existing-1-non-existing-value.prisma',
     ])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url with --schemas=base without preview feature should error', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fs.remove(`./schema.prisma`)
+
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+      P1012
+
+      The preview feature \`multiSchema\` must be enabled before using --schemas command line parameter.
+
+      Introspection failed as your current Prisma schema file is invalid
+
+      Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
+      Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url with --schemas=does-not-exist should error', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'does-not-exist'])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+      P4001 The introspected database was empty: postgres://prisma:prisma@localhost:5432/tests-migrate
+
+      prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+
+      To fix this, you have two options:
+
+      - manually create a table in your database.
+      - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+
+      Then you can run prisma db pull again. 
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url --schemas=base (1 existing schema) should succeed', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url  --schemas=base,transactional (2 existing schemas) should succeed', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+
+    const introspect = new DbPull()
+    const result = introspect.parse([
+      '--print',
+      '--url',
+      setupParams.connectionString,
+      '--schemas',
+      'base,transactional',
+    ])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+            // *** WARNING ***
+            // 
+            // These models and enums were renamed due to their names being duplicates in the Prisma Schema Language.
+            // - Enum "base_status"
+            // - Enum "transactional_status"
+            // - Model "base_some_table"
+            // - Model "transactional_some_table"
+            // 
+        `)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url  --schemas=base,does-not-exist (1 existing schemas + 1 non-existing) should succeed', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+
+    const introspect = new DbPull()
+    const result = introspect.parse([
+      '--print',
+      '--url',
+      setupParams.connectionString,
+      '--schemas',
+      'base,does-not-exist',
+    ])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  test('--url with --schemas=["does-not-exist", "base"] should error', async () => {
+    ctx.fixture('introspection/postgresql-multi-schema')
+    // needed?
+    ctx.fs.remove(`./prisma/schema.prisma`)
+
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
