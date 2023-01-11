@@ -180,7 +180,7 @@ Set composite types introspection depth to 2 levels
           const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
           if (input.url) {
-            const providerFromSchema = firstDatasource?.provider
+            let providerFromSchema = firstDatasource?.provider
             // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
             // TODO: better error handling with better error message
             // Related https://github.com/prisma/prisma/issues/14732
@@ -189,7 +189,7 @@ Set composite types introspection depth to 2 levels
 
             // Normalize provider from schema for PostgreSQL
             // For PostgreSQL the protocol can also only be `postgres` which will not match the provider from the schema (which is normalized somewhere already)
-            if(providerFromSchema === 'postgres') {
+            if (providerFromSchema === 'postgres') {
               providerFromSchema = 'postgresql'
             }
             
