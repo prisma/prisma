@@ -24,7 +24,7 @@ export function parseEnvValue(object: EnvValue) {
     return value
   }
 
-  return object.value
+  return object.value as string
 }
 
 /**
