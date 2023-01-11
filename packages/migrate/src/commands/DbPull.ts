@@ -182,6 +182,8 @@ Set composite types introspection depth to 2 levels
           if (input.url) {
             const providerFromSchema = firstDatasource?.provider
             // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
+            // TODO: better error handling with better error message
+            // Related https://github.com/prisma/prisma/issues/14732
             const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
             const schema = `${this.urlToDatasource(input.url, providerFromSchema)}\n${removeDatasource(rawSchema)}`
 
@@ -218,6 +220,8 @@ Set composite types introspection depth to 2 levels
         (input): input is { url: string; schemaPath: null } => input.url !== undefined,
         async (input) => {
           // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
+          // TODO: better error handling with better error message
+          // Related https://github.com/prisma/prisma/issues/14732
           protocolToConnectorType(`${input.url.split(':')[0]}:`)
           const schema = this.urlToDatasource(input.url)
           const config = await getConfig({
