@@ -55,7 +55,7 @@ ${chalk.bold('Options')}
                 --schema   Custom path to your Prisma schema
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
-         --multi-schemas   Specify the database schemas to introspect. This overrides the schemas defined in the datasource block of your Prisma schema.
+               --schemas   Specify the database schemas to introspect. This overrides the schemas defined in the datasource block of your Prisma schema.
 
 ${chalk.bold('Examples')}
 
@@ -95,7 +95,7 @@ Set composite types introspection depth to 2 levels
       '--url': String,
       '--print': Boolean,
       '--schema': String,
-      '--multi-schemas': [String],
+      '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
       // deprecated
@@ -206,8 +206,8 @@ Set composite types introspection depth to 2 levels
       )
       .run()
 
-    const multiSchemas = args['--multi-schemas'] || []
-
+    const schemasFromCliArgs = args['--schemas']?.split(',')
+    console.debug({ schemasFromCliArgs })
     // TODO: remove this check once the 'multiSchema' feature is GA
     const previewFeatures = config.generators[0]?.previewFeatures ?? []
     if (!previewFeatures.includes('multiSchema') && multiSchemas.length > 0) {
@@ -237,7 +237,6 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    // TODO: pass multiSchemas to the engine
     const engine = new IntrospectionEngine({
       cwd: schemaPath ? path.dirname(schemaPath) : undefined,
     })
@@ -253,7 +252,12 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     let introspectionWarnings: IntrospectionWarnings[]
     let introspectionSchemaVersion: IntrospectionSchemaVersion
     try {
-      const introspectionResult = await engine.introspect(schema, args['--force'], args['--composite-type-depth'])
+      const introspectionResult = await engine.introspect(
+        schema,
+        args['--force'],
+        args['--composite-type-depth'],
+        schemasFromCliArgs,
+      )
 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
