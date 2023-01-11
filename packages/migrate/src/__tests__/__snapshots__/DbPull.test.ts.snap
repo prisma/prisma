@@ -712,6 +712,11 @@ model some_table {
   email String
 }
 
+enum status {
+  ON
+  OFF
+}
+
 
 // introspectionSchemaVersion: NonPrisma,
 `;
@@ -766,6 +771,22 @@ model transactional_some_table {
   @@schema("transactional")
 }
 
+enum base_status {
+  ON
+  OFF
+
+  @@map("status")
+  @@schema("base")
+}
+
+enum transactional_status {
+  ON
+  OFF
+
+  @@map("status")
+  @@schema("transactional")
+}
+
 
 // introspectionSchemaVersion: NonPrisma,
 `;
@@ -796,6 +817,13 @@ model some_table {
   @@schema("base")
 }
 
+enum status {
+  ON
+  OFF
+
+  @@schema("base")
+}
+
 
 // introspectionSchemaVersion: NonPrisma,
 `;
@@ -822,6 +850,13 @@ model User {
 model some_table {
   id    String @id(map: "User_pkey2")
   email String
+
+  @@schema("base")
+}
+
+enum status {
+  ON
+  OFF
 
   @@schema("base")
 }

@@ -771,22 +771,15 @@ describe('postgresql-multi-schema', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-            // *** WARNING ***
-            // 
-            // These models were renamed due to their names being duplicates in the Prisma Schema Language.
-            // Code 20
-            // [
-            //   {
-            //     "type": "Model",
-            //     "name": "base_some_table"
-            //   },
-            //   {
-            //     "type": "Model",
-            //     "name": "transactional_some_table"
-            //   }
-            // ]
-            // 
-        `)
+      // *** WARNING ***
+      // 
+      // These models and enums were renamed due to their names being duplicates in the Prisma Schema Language.
+      // - Enum "base_status"
+      // - Enum "transactional_status"
+      // - Model "base_some_table"
+      // - Model "transactional_some_table"
+      // 
+    `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
