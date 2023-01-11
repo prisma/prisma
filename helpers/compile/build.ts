@@ -24,6 +24,7 @@ export type BuildOptions = esbuild.BuildOptions & {
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
+  target: 'ES2020',
   keepNames: true,
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
@@ -38,7 +39,6 @@ const DEFAULT_BUILD_OPTIONS = {
 const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
-  target: 'ES2020',
   outExtension: { '.js': '.js' },
   resolveExtensions: ['.ts', '.js', '.node'],
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
@@ -123,7 +123,8 @@ async function dependencyCheck(options: BuildOptions) {
   // we need to bundle everything to do the analysis
   const buildPromise = esbuild.build({
     entryPoints: glob.sync('**/*.{j,t}s', {
-      ignore: ['./src/__tests__/**/*'],
+      // We don't check dependencies in ecosystem tests because tests are isolated from the build.
+      ignore: ['./src/__tests__/**/*', './tests/ecosystem/**/*'],
       gitignore: true,
     }),
     logLevel: 'silent', // there will be errors
@@ -144,6 +145,11 @@ async function dependencyCheck(options: BuildOptions) {
  * @param options
  */
 export async function build(options: BuildOptions[]) {
+  // When we trigger pnpm pack we actually don't want to build again to go faster.
+  // We re-use what has been already build; and also implies you ran pnpm run watch/dev/build before hand.
+  // In the future, I think I'll enable a full build + packaging mode to be much closer to reality, this could be done on CI.
+  if (process.env.ECOSYSTEM === 'true') return
+
   void transduce.async(options, dependencyCheck)
 
   return transduce.async(

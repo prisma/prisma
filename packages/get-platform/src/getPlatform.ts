@@ -1,3 +1,4 @@
+import Debug from '@prisma/debug'
 import cp from 'child_process'
 import fs from 'fs'
 import os from 'os'
@@ -10,6 +11,10 @@ const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
 const exec = promisify(cp.exec)
 
+const debug = Debug('prisma:get-platform')
+
+const supportedLibSSLVersions = ['1.0.x', '1.1.x', '3.0.x'] as const
+
 // https://www.geeksforgeeks.org/node-js-process-arch-property/
 export type Arch = 'x32' | 'x64' | 'arm' | 'arm64' | 's390' | 's390x' | 'mipsel' | 'ia32' | 'mips' | 'ppc' | 'ppc64'
 export type GetOSResult = {
@@ -20,7 +25,7 @@ export type GetOSResult = {
   /**
    * Starting from version 3.0, OpenSSL is basically adopting semver, and will be API and ABI compatible within a major version.
    */
-  libssl?: '1.0.x' | '1.1.x' | '3.0.x'
+  libssl?: typeof supportedLibSSLVersions[number]
 }
 
 export async function getos(): Promise<GetOSResult> {
@@ -151,56 +156,75 @@ type GetOpenSSLVersionParams = {
  * On Linux, returns the OpenSSL version excluding the patch version, e.g. "1.1.x".
  * Reading the version from the libssl.so file is more reliable than reading it from the openssl binary.
  * This function never throws.
+ *
+ * TODO: we should probably validate the output of this function, and ensure it's contained in `supportedLibSSLVersions`
  */
 export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOSResult['libssl'] | undefined> {
-  const libsslVersionSpecific: string | undefined = await match(args)
-    .with({ distro: 'musl' }, () => {
+  const libsslSpecificPaths = await match(args)
+    .with({ distro: 'musl' }, async () => {
       /* Linux Alpine */
-      return getFirstSuccessfulExec(['ls -l /lib/libssl.so.3', 'ls -l /lib/libssl.so.1.1'])
+      debug('Trying platform-specific paths for "alpine"')
+      return Promise.resolve(['/lib'])
     })
     .with({ distro: 'debian' }, async () => {
+      /* Linux Debian, Ubuntu, etc */
       const archFromUname = await getArchFromUname()
-      return getFirstSuccessfulExec([
-        `ls -l /usr/lib/${archFromUname}-linux-gnu/libssl.so.3*`,
-        `ls -l /usr/lib/${archFromUname}-linux-gnu/libssl.so.1.1*`,
-        `ls -l /usr/lib/${archFromUname}-linux-gnu/libssl.so.1.0*`,
-      ])
+      debug('Trying platform-specific paths for "debian" (and "ubuntu")')
+      return [`/usr/lib/${archFromUname}-linux-gnu`, `/lib/${archFromUname}-linux-gnu`]
     })
-    .run()
+    .with({ distro: 'rhel' }, async () => {
+      /* Linux Red Hat, OpenSuse etc */
+      debug('Trying platform-specific paths for "rhel"')
+      return Promise.resolve(['/lib64', '/usr/lib64'])
+    })
+    .otherwise(({ distro, arch }) => {
+      /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
+      debug(`Don't know any platform-specific paths for "${distro}" on ${arch}`)
+      return Promise.resolve(undefined)
+    })
 
-  if (libsslVersionSpecific) {
-    const matchedVersion = parseLibSSLVersion(libsslVersionSpecific)
-    if (matchedVersion) {
-      return matchedVersion
+  const libsslSpecificCommands = (libsslSpecificPaths || []).map((path) => `ls -r ${path} | grep libssl.so`)
+  const libsslFilenameFromSpecificPath: string | undefined = await getFirstSuccessfulExec(libsslSpecificCommands)
+
+  if (libsslFilenameFromSpecificPath) {
+    debug(`Found libssl.so file using platform-specific paths: ${libsslFilenameFromSpecificPath}`)
+    const libsslVersion = parseLibSSLVersion(libsslFilenameFromSpecificPath)
+    debug(`The parsed libssl version is: ${libsslVersion}`)
+    if (libsslVersion) {
+      return libsslVersion
     }
   }
 
-  const libsslVersion: string | undefined = await getFirstSuccessfulExec([
-    'ldconfig -p | grep ssl',
-    'ls -l /lib64 | grep ssl',
-    'ls -l /usr/lib64 | grep ssl',
+  debug('Falling back to "ldconfig" and other generic paths')
+  const libsslFilename: string | undefined = await getFirstSuccessfulExec([
+    'ldconfig -p | sed "s/.*=>s*//" | sed "s/.*///" | grep ssl | sort -r',
+    'ls -r /lib64 | grep ssl',
+    'ls -r /usr/lib64 | grep ssl',
   ])
 
-  if (libsslVersion) {
-    const matchedVersion = parseLibSSLVersion(libsslVersion)
-    if (matchedVersion) {
-      return matchedVersion
+  if (libsslFilename) {
+    debug(`Found libssl.so file using "ldconfig" or other generic paths: ${libsslFilenameFromSpecificPath}`)
+    const libsslVersion = parseLibSSLVersion(libsslFilename)
+    if (libsslVersion) {
+      return libsslVersion
     }
   }
 
   /* Reading the libssl.so version didn't work, fall back to openssl */
 
-  const openSSLVersion: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
+  const openSSLVersionLine: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
 
-  if (openSSLVersion) {
-    const matchedVersion = parseOpenSSLVersion(openSSLVersion)
-    if (matchedVersion) {
-      return matchedVersion
+  if (openSSLVersionLine) {
+    debug(`Found openssl binary with version: ${openSSLVersionLine}`)
+    const openSSLVersion = parseOpenSSLVersion(openSSLVersionLine)
+    debug(`The parsed openssl version is: ${openSSLVersion}`)
+    if (openSSLVersion) {
+      return openSSLVersion
     }
   }
 
   /* Reading openssl didn't work */
-
+  debug(`Couldn't find any version of libssl or OpenSSL in the system`)
   return undefined
 }
 
@@ -301,10 +325,16 @@ async function discardError<T>(runPromise: () => Promise<T>): Promise<T | undefi
 function getFirstSuccessfulExec(commands: string[]) {
   return discardError(async () => {
     const results = await Promise.allSettled(commands.map((cmd) => exec(cmd)))
-    const { value } = results.find(({ status }) => status === 'fulfilled') as PromiseFulfilledResult<{
-      stdout: string | Buffer
-    }>
-    return String(value.stdout)
+    const idx = results.findIndex(({ status }) => status === 'fulfilled')
+    if (idx === -1) {
+      return undefined
+    }
+
+    const { value } = results[idx] as PromiseFulfilledResult<{ stdout: string | Buffer }>
+    const output = String(value.stdout)
+
+    debug(`Command "${commands[idx]}" successfully returned "${output}"`)
+    return output
   })
 }
 
