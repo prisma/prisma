@@ -284,18 +284,18 @@ describe('common/sqlite', () => {
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      P1003 The introspected database was empty: 
+            P1003 The introspected database does not exist: 
 
-      prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+            prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-      To fix this, you have two options:
+            To fix this, you have two options:
 
-      - manually create a table in your database.
-      - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+            - manually create a database.
+            - make sure the database connection URL inside the datasource block in schema.prisma points to an existing database.
 
-      Then you can run prisma db pull again. 
+            Then you can run prisma db pull again. 
 
-    `)
+        `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -313,25 +313,24 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // failing, on Rust side we should receive P1003 rather than P4001
   it('should fail when db is empty', async () => {
     ctx.fixture('schema-only-sqlite')
     ctx.fs.write('prisma/dev.db', '')
     const result = DbPull.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-                        P4001 The introspected database was empty: 
+                                    P4001 The introspected database was empty: 
 
-                        prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+                                    prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
 
-                        To fix this, you have two options:
+                                    To fix this, you have two options:
 
-                        - manually create a table in your database.
-                        - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
+                                    - manually create a table in your database.
+                                    - make sure the database connection URL inside the datasource block in schema.prisma points to a database that is not empty (it must contain at least one table).
 
-                        Then you can run prisma db pull again. 
+                                    Then you can run prisma db pull again. 
 
-                `)
+                        `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
@@ -419,6 +418,38 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 
     expect(ctx.fs.read('prisma/invalid.prisma')).toMatchSnapshot()
+  })
+})
+
+describe('postgresql - missing database', () => {
+  const defaultConnectionString =
+    process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
+
+  // replace database name, e.g., 'tests-migrate', with 'unknown-database'
+  const connectionString = defaultConnectionString.split('/').slice(0, -1).join('/') + '/unknown-database'
+
+  test('basic introspection --url', async () => {
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', connectionString])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+      P1003 The introspected database does not exist: postgres://prisma:prisma@localhost:5432/unknown-database
+
+      prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
+
+      To fix this, you have two options:
+
+      - manually create a database.
+      - make sure the database connection URL inside the datasource block in schema.prisma points to an existing database.
+
+      Then you can run prisma db pull again. 
+
+    `)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
 
