@@ -187,6 +187,12 @@ Set composite types introspection depth to 2 levels
             const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
             const schema = `${this.urlToDatasource(input.url, providerFromSchema)}\n${removeDatasource(rawSchema)}`
 
+            // Normalize provider from schema for PostgreSQL
+            // For PostgreSQL the protocol can also only be `postgres` which will not match the provider from the schema (which is normalized somewhere already)
+            if(providerFromSchema === 'postgres') {
+              providerFromSchema = 'postgresql'
+            }
+            
             // if providers are different the engine would return a misleading error
             // So we check here and return a better error
             // if a combination of non compatible providers is used
