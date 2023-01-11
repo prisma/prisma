@@ -156,7 +156,7 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
-  const url = getEffectiveUrl(activeDatasource).value
+  const url = getEffectiveUrl(firstDatasource).value
 
   // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
   const canConnect = await canConnectToDatabase(url, schemaDir)
