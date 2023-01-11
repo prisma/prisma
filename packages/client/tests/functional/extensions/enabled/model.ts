@@ -406,6 +406,54 @@ testMatrix.setupTestSuite(() => {
     expectTypeOf<typeof data['objects']['posts'][0]>().toHaveProperty('kind').toMatchTypeOf<'Payload'>()
   })
 
+  test('custom method that uses exact for narrowing inputs', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T, A>(
+            this: T,
+            args: PrismaNamespace.Exact<
+              A,
+              {
+                guestName: string
+                foodChoice: ('starters' | 'main' | 'desert' | 'drink')[]
+                allergies: string[]
+                vegan: boolean
+              }
+            >,
+          ): A {
+            return {} as any
+          },
+        },
+      },
+    })
+
+    const data = xprisma.user.findFirstOrCreate({
+      allergies: ['nuts'],
+      foodChoice: ['starters', 'main'],
+      guestName: 'John',
+      vegan: false,
+    })
+
+    expectTypeOf(data).toEqualTypeOf<{
+      allergies: ['nuts']
+      foodChoice: ['starters', 'main']
+      guestName: 'John'
+      vegan: false
+    }>()
+
+    void xprisma.user.findFirstOrCreate({
+      // @ts-expect-error
+      allergies: 'invalid',
+      // @ts-expect-error
+      foodChoice: ['starters', 'invalid'],
+      // @ts-expect-error
+      guestName: null,
+      // @ts-expect-error
+      vegan: 'invalid',
+    })
+  })
+
   test('getExtension context on specific model and non-generic this', () => {
     const xprisma = prisma.$extends({
       model: {

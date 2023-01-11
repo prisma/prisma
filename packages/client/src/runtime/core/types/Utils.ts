@@ -53,15 +53,16 @@ export type ReadonlyDeep<T> = {
   readonly [K in keyof T]: ReadonlyDeep<T[K]>
 }
 
-type Narrowable = string | number | bigint | boolean | unknown[] | []
+type Narrowable = string | number | bigint | boolean | []
 
 export type Narrow<A> = {
   [K in keyof A]: A[K] extends Function ? A[K] : Narrow<A[K]>
 } | (A extends Narrowable ? A : never)
 
-export type Exact<A, W> = ({
-  [K in keyof W]: Exact<A[K & keyof A], W[K]>
-}) | (A extends Narrowable ? A : never)
+export type Exact<A, W> =
+| { [K in keyof W]: Exact<A[K & keyof A], W[K]> } & (A extends Narrowable ? A : {})
+| (A extends [] ? [] : never)
+| (A extends W ? A : never)
 
 export type Cast<A, W> = A extends W ? A : W
 
