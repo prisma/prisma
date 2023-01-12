@@ -72,6 +72,7 @@ export interface DataSource {
   provider: ConnectorType
   activeProvider: ConnectorType
   url: EnvValue
+  directUrl?: EnvValue
   schemas: string[] | []
 }
 
