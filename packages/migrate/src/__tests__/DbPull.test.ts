@@ -414,8 +414,6 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // failing, it rejects with P1012 (schema is invalid) rather than succeeding.
-  // The error tells us to try --force, which we do already. Perhaps --force isn't passed properly to Rust?
   it('should succeed when schema is invalid and using --force', async () => {
     ctx.fixture('introspect')
 
