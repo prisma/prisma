@@ -271,7 +271,7 @@ export class IntrospectionEngine {
   }
 
   /**
-   * @deprecated Use `MigrateEngine.introspect()` instead
+   * @deprecated Use `MigrateEngine.introspect()` instead from `@prisma/migrate` package
    */
   public introspect(
     schema: string,
