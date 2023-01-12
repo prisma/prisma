@@ -393,9 +393,9 @@ describe('postgresql-multi-schema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       Prisma schema loaded from schema.prisma
-      Datasource "db": postgres database "tests-migrate-db-push-postgresql-multischema", schemas "base, transactional" at "localhost:5432"
+      Datasource "db": PostgreSQL database "tests-migrate-db-push-postgresql-multischema", schemas "base, transactional" at "localhost:5432"
 
-      The postgres database "tests-migrate-db-push-postgresql-multischema" schemas "base, transactional" at "localhost:5432" were successfully reset.
+      The PostgreSQL database "tests-migrate-db-push-postgresql-multischema" schemas "base, transactional" at "localhost:5432" were successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
     `)

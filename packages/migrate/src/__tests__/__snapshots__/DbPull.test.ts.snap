@@ -708,7 +708,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
   schemas  = ["base", "does-not-exist"]
 }
 
@@ -745,7 +745,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
   schemas  = ["base", "transactional"]
 }
 
@@ -813,7 +813,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
   schemas  = ["base"]
 }
 
@@ -877,7 +877,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgresql://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
   schemas  = ["base"]
 }
 
