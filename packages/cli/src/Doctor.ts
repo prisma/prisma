@@ -98,7 +98,6 @@ ${chalk.bold('Examples')}
       const result = await engine.introspect({ schema })
       datamodel = result.datamodel
     } finally {
-      engine.stop()
     }
 
     const remoteDmmf = await getDMMF({ datamodel })
