@@ -50,6 +50,4 @@ test('introspection basic', async () => {
   // TODO: uncomment once https://github.com/prisma/prisma-private/issues/203 is closed.
   // const dbVersion = await engine.getDatabaseVersion({ schema })
   // expect(dbVersion.length > 0).toBe(true)
-
-  engine.stop()
 })

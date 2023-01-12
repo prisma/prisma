@@ -311,7 +311,6 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     projectDir: process.cwd(),
   })
   const introspectionResult = await engine.introspect({ schema: schemaBase })
-  engine.stop()
 
   const prismaSchemaPath = ctx.fs.path('schema.prisma')
 
