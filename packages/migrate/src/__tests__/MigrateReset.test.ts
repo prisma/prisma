@@ -325,4 +325,29 @@ describe('reset', () => {
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
+
+  it('should work with directUrl', async () => {
+    ctx.fixture('reset-directurl')
+
+    prompt.inject(['y']) // simulate user yes input
+
+    const result = MigrateReset.new().parse([])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+
+
+      Applying migration \`20201231000000_init\`
+
+      Database reset successful
+
+      The following migration(s) have been applied:
+
+      migrations/
+        └─ 20201231000000_init/
+          └─ migration.sql
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
 })
