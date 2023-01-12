@@ -222,6 +222,7 @@ export function prettifyProvider(provider: ConnectorType): PrettyProvider | stri
   switch (provider) {
     case 'mysql':
       return `MySQL`
+    case 'postgres':
     case 'postgresql':
       return `PostgreSQL`
     case 'sqlite':
