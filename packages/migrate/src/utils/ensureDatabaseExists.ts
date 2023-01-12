@@ -3,6 +3,7 @@ import {
   canConnectToDatabase,
   createDatabase,
   getConfig,
+  getEffectiveUrl,
   getSchema,
   getSchemaDir,
   uriToCredentials,
@@ -61,7 +62,7 @@ export async function getDatasourceInfo({
   }
 
   const prettyProvider = prettifyProvider(firstDatasource.provider)
-  const url = firstDatasource.url.value
+  const url = getEffectiveUrl(firstDatasource).value
 
   // url parsing for sql server is not implemented
   if (!url || firstDatasource.provider === 'sqlserver') {
@@ -70,7 +71,7 @@ export async function getDatasourceInfo({
       prettyProvider,
       dbName: undefined,
       dbLocation: undefined,
-      url: firstDatasource.url.value || undefined,
+      url: url || undefined,
       schema: undefined,
       schemas: firstDatasource.schemas,
     }
@@ -132,9 +133,10 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
+  const url = getEffectiveUrl(firstDatasource).value
 
-  // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
-  const canConnect = await canConnectToDatabase(firstDatasource.url.value!, schemaDir)
+  // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
+  const canConnect = await canConnectToDatabase(url!, schemaDir)
 
   if (canConnect === true) {
     return true
@@ -154,9 +156,10 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
   }
 
   const schemaDir = (await getSchemaDir(schemaPath))!
+  const url = getEffectiveUrl(firstDatasource).value
 
-  // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
-  const canConnect = await canConnectToDatabase(firstDatasource.url.value!, schemaDir)
+  // url exists because `ignoreEnvVarErrors: false` would have thrown an error if not
+  const canConnect = await canConnectToDatabase(url!, schemaDir)
   if (canConnect === true) {
     return
   }
@@ -175,7 +178,7 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
   }
 
   // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
-  if (await createDatabase(firstDatasource.url.value!, schemaDir)) {
+  if (await createDatabase(url!, schemaDir)) {
     // URI parsing is not implemented for SQL server yet
     if (firstDatasource.provider === 'sqlserver') {
       return `SQL Server database created.\n`
@@ -183,7 +186,7 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
 
     // parse the url
     // url.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
-    const credentials = uriToCredentials(firstDatasource.url.value!)
+    const credentials = uriToCredentials(url!)
     const prettyProvider = prettifyProvider(firstDatasource.provider)
 
     let message = `${prettyProvider} database${credentials.database ? ` ${credentials.database} ` : ' '}created`
