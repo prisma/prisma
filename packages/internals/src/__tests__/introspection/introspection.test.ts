@@ -64,4 +64,5 @@ test('introspection basic', async () => {
 
   const json = JSON.parse(description)
   expect(typeof json).toBe('object')
+  engine.stop()
 })
