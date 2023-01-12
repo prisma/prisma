@@ -1,10 +1,11 @@
-import { handlePanic, IntrospectionEngine } from '@prisma/internals'
+import { handlePanic } from '@prisma/internals'
+import { MigrateEngine } from '@prisma/migrate'
 import fs from 'fs'
 import path from 'path'
 
 async function main() {
   const packageJsonVersion = '0.0.0'
-  const engineVersion = 'prismaEngineVersionHash'
+  const enginesVersion = 'prismaEngineVersionHash'
   const command = 'something-test'
 
   try {
@@ -15,16 +16,23 @@ async function main() {
     const schemaPath = path.join(dirPath, 'schema.prisma')
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
-    const engine = new IntrospectionEngine({
-      cwd: dirPath,
+    const engine = new MigrateEngine({
+      projectDir: dirPath,
     })
 
-    await engine.introspect(schema, false)
+    await engine.introspect({ schema, force: false })
     await engine.debugPanic()
   } catch (err) {
     console.debug({ err })
 
-    handlePanic(err, packageJsonVersion, engineVersion, command)
+    const getDatabaseVersionSafe = () => Promise.resolve(undefined)
+    handlePanic({
+      error: err,
+      cliVersion: packageJsonVersion,
+      enginesVersion,
+      command,
+      getDatabaseVersionSafe,
+    })
       .catch((e) => {
         console.error('Error: ' + e.stack)
         console.error('Error: ' + e.message)
