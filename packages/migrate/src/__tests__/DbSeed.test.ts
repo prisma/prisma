@@ -3,21 +3,14 @@ import execa from 'execa'
 
 import { DbSeed } from '../commands/DbSeed'
 
-// TODO: Windows: snapshot tests fail on Windows because of emoji.
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-describeIf(process.platform !== 'win32')('seed', () => {
+describe('seed', () => {
   it('seed.js', async () => {
     ctx.fixture('seed-sqlite-js')
 
     const result = DbSeed.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-
-                                                                                                                                                                                                                                                                              🌱  The seed command has been executed.
-                                                                                                                                                                                                                                `)
-
+    await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
       `Running seed command \`node prisma/seed.js\` ...`,
     )
@@ -39,17 +32,14 @@ describeIf(process.platform !== 'win32')('seed', () => {
       `Running seed command \`node prisma/seed.js\` ...`,
     )
     expect(ctx.mocked['console.error'].mock.calls.join()).toContain('An error occurred while running the seed command:')
-    expect(mockExit).toBeCalledWith(1)
+    expect(mockExit).toHaveBeenCalledWith(1)
   })
 
   it('seed.ts', async () => {
     ctx.fixture('seed-sqlite-ts')
 
     const result = DbSeed.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-
-                                                                                                                                                                                                                                                                                                      🌱  The seed command has been executed.
-                                                                                                                                                                                                                                                    `)
+    await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
       `Running seed command \`ts-node prisma/seed.ts\` ...`,
     )
@@ -63,10 +53,7 @@ describeIf(process.platform !== 'win32')('seed', () => {
     await execa.command('npm i')
 
     const result = DbSeed.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-
-                                                                                                                                                                                                                                                                                                      🌱  The seed command has been executed.
-                                                                                                                                                                                                                                                    `)
+    await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
       `Running seed command \`node --loader ts-node/esm prisma/seed.ts\` ...`,
     )
@@ -79,10 +66,7 @@ describeIf(process.platform !== 'win32')('seed', () => {
     ctx.fixture('seed-sqlite-sh')
 
     const result = DbSeed.new().parse([])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-
-                                                                                                                                                                                                                                                                                                      🌱  The seed command has been executed.
-                                                                                                                                                                                                                                                    `)
+    await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
       `Running seed command \`./prisma/seed.sh\` ...`,
     )
@@ -90,7 +74,7 @@ describeIf(process.platform !== 'win32')('seed', () => {
   })
 })
 
-describeIf(process.platform !== 'win32')('seed - legacy', () => {
+describe('seed - legacy', () => {
   it('no seed file', async () => {
     ctx.fixture('seed-sqlite-legacy')
     ctx.fs.remove('prisma/seed.js')
@@ -172,10 +156,7 @@ https://pris.ly/d/seeding
     ctx.fixture('seed-sqlite-js')
 
     const result = DbSeed.new().parse(['--preview-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-
-                                                                                                      🌱  The seed command has been executed.
-                                                                                    `)
+    await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
       `Running seed command \`node prisma/seed.js\` ...`,
     )
@@ -191,10 +172,7 @@ https://pris.ly/d/seeding
     ctx.fixture('seed-sqlite-js')
 
     const result = DbSeed.new().parse(['--schema=./some-folder/schema.prisma'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-
-                                                                                                                                                                                                                                                                                                      🌱  The seed command has been executed.
-                                                                                                                                                                                                                                                    `)
+    await expect(result).resolves.toContain(`The seed command has been executed.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
       `Running seed command \`node prisma/seed.js\` ...`,
     )
