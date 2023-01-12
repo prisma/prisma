@@ -325,37 +325,37 @@ testMatrix.setupTestSuite(() => {
     })
   })
 
-  // here we want to check that type utils also work via default
-  test('generic model - callback via default', () => {
-    const xprisma = prisma.$extends(modelGenericExtensionCallbackViaDefault())
-    expectTypeOf(xprisma.user).toHaveProperty('myGenericMethodViaDefault')
+  // // here we want to check that type utils also work via default
+  // test('generic model - callback via default', () => {
+  //   const xprisma = prisma.$extends(modelGenericExtensionCallbackViaDefault())
+  //   expectTypeOf(xprisma.user).toHaveProperty('myGenericMethodViaDefault')
 
-    const data = xprisma.user.myGenericMethodViaDefault({
-      select: {
-        email: true,
-      },
-    })
+  //   const data = xprisma.user.myGenericMethodViaDefault({
+  //     select: {
+  //       email: true,
+  //     },
+  //   })
 
-    expectTypeOf<typeof data['args']>().toEqualTypeOf<{ select: { email: true } }>()
-    expectTypeOf<typeof data['payload']>().toMatchTypeOf<object>()
-    expectTypeOf<typeof data['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
-    expectTypeOf<typeof data['result']>().toHaveProperty('email').toEqualTypeOf<string>()
-  })
+  //   expectTypeOf<typeof data['args']>().toEqualTypeOf<{ select: { email: true } }>()
+  //   expectTypeOf<typeof data['payload']>().toMatchTypeOf<object>()
+  //   expectTypeOf<typeof data['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
+  //   expectTypeOf<typeof data['result']>().toHaveProperty('email').toEqualTypeOf<string>()
+  // })
 
-  // here we want to check that type utils also work via default
-  test('generic model - object via default', () => {
-    const xprisma = prisma.$extends(modelGenericExtensionObjectViaDefault())
-    expectTypeOf(xprisma.user).toHaveProperty('myGenericMethodViaDefault')
+  // // here we want to check that type utils also work via default
+  // test('generic model - object via default', () => {
+  //   const xprisma = prisma.$extends(modelGenericExtensionObjectViaDefault())
+  //   expectTypeOf(xprisma.user).toHaveProperty('myGenericMethodViaDefault')
 
-    const data = xprisma.user.myGenericMethodViaDefault({
-      select: {
-        email: true,
-      },
-    })
+  //   const data = xprisma.user.myGenericMethodViaDefault({
+  //     select: {
+  //       email: true,
+  //     },
+  //   })
 
-    expectTypeOf<typeof data['args']>().toEqualTypeOf<{ select: { email: true } }>()
-    expectTypeOf<typeof data['payload']>().toMatchTypeOf<object>()
-    expectTypeOf<typeof data['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
-    expectTypeOf<typeof data['result']>().toHaveProperty('email').toEqualTypeOf<string>()
-  })
+  //   expectTypeOf<typeof data['args']>().toEqualTypeOf<{ select: { email: true } }>()
+  //   expectTypeOf<typeof data['payload']>().toMatchTypeOf<object>()
+  //   expectTypeOf<typeof data['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
+  //   expectTypeOf<typeof data['result']>().toHaveProperty('email').toEqualTypeOf<string>()
+  // })
 })

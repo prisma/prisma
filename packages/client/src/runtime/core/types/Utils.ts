@@ -59,10 +59,9 @@ export type Narrow<A> = {
   [K in keyof A]: A[K] extends Function ? A[K] : Narrow<A[K]>
 } | (A extends Narrowable ? A : never)
 
-export type Exact<A, W> =
-| { [K in keyof W]: Exact<A[K & keyof A], W[K]> } & (A extends Narrowable ? A : {})
-| (A extends [] ? [] : never)
-| (A extends W ? A : never)
+export type Exact<A, W> = (W extends A ? {
+  [K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : never
+} : W) | (A extends Narrowable ? A : never)
 
 export type Cast<A, W> = A extends W ? A : W
 

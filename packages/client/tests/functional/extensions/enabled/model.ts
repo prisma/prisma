@@ -454,6 +454,52 @@ testMatrix.setupTestSuite(() => {
     })
   })
 
+  test('custom method that uses exact for narrowing generic inputs', () => {
+    type Pick<T, K extends string | number | symbol> = {
+      [P in keyof T as P extends K ? P : never]: T[P]
+    }
+
+    type Input<T> = {
+      where: Pick<PrismaNamespace.Args<T, 'findMany'>['where'], keyof PrismaNamespace.Payload<T, 'findMany'>['scalars']>
+      include: PrismaNamespace.Args<T, 'findMany'>['include']
+    }
+
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T, A>(this: T, args: PrismaNamespace.Exact<A, Input<T>>): A {
+            return {} as any
+          },
+        },
+      },
+    })
+
+    const data = xprisma.user.findFirstOrCreate({
+      where: {
+        email: 'test',
+        // @ts-expect-error
+        posts: {
+          none: {
+            id: '1',
+          },
+        },
+      },
+      include: {},
+    })
+
+    expectTypeOf(data).toEqualTypeOf<{
+      where: {
+        email: 'test'
+        posts: {
+          none: {
+            id: '1'
+          }
+        }
+      }
+      include: {}
+    }>()
+  })
+
   test('getExtension context on specific model and non-generic this', () => {
     const xprisma = prisma.$extends({
       model: {

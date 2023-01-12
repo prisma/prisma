@@ -37,7 +37,7 @@ type ModelArgs = {
 }
 
 export type ModelArg = {
-  [MethodName in string]: (...args: any[]) => any
+  [MethodName in string]: Function
 }
 
 type ClientArgs = {
@@ -45,7 +45,7 @@ type ClientArgs = {
 }
 
 export type ClientArg = {
-  [MethodName in string]: (...args: any[]) => any
+  [MethodName in string]: Function
 }
 
 type QueryOptionsCbArgs = {

@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-
 import runtime from '@prisma/client/runtime'
 
 /**
@@ -40,14 +38,21 @@ export declare type PrismaClientExtends<ExtArgs extends runtime.Types.Extensions
     Q extends runtime.Types.Extensions.UserArgs['query'] = {},
     C extends runtime.Types.Extensions.UserArgs['client'] = {},
     Args extends runtime.Types.Extensions.Args = {
-      result: { [K in keyof R]: { [P in keyof R[K]]: () => R[K][P] } },
-      model: { [K in keyof M]: { [P in keyof M[K]]: () => M[K][P] } },
-      query: { [K in keyof Q]: { [P in keyof Q[K]]: () => Q[K][P] } },
+      result: { [K in keyof R]: { [P in keyof R[K]]: () => R[K][P] } }
+      model: { [K in keyof M]: { [P in keyof M[K]]: () => M[K][P] } }
+      query: { [K in keyof Q]: { [P in keyof Q[K]]: () => Q[K][P] } }
       client: { [K in keyof C]: () => C[K] }
-    }
-  >(args: ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } }) | {
-    result?: R; model?: M; query?: Q; client?: C
-  }) => PrismaClientExtends<Args & ExtArgs>)
+    },
+  >(
+    args:
+      | ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } })
+      | {
+          result?: R
+          model?: M
+          query?: Q
+          client?: C
+        },
+  ) => PrismaClientExtends<Args & ExtArgs>)
 }
 
 export declare const dmmf: any
@@ -72,14 +77,21 @@ export namespace Prisma {
     Q extends runtime.Types.Extensions.UserArgs['query'] = {},
     C extends runtime.Types.Extensions.UserArgs['client'] = {},
     Args extends runtime.Types.Extensions.Args = {
-      result: { [K in keyof R]: { [P in keyof R[K]]: () => R[K][P] } },
-      model: { [K in keyof M]: { [P in keyof M[K]]: () => M[K][P] } },
-      query: { [K in keyof Q]: { [P in keyof Q[K]]: () => Q[K][P] } },
+      result: { [K in keyof R]: { [P in keyof R[K]]: () => R[K][P] } }
+      model: { [K in keyof M]: { [P in keyof M[K]]: () => M[K][P] } }
+      query: { [K in keyof Q]: { [P in keyof Q[K]]: () => Q[K][P] } }
       client: { [K in keyof C]: () => C[K] }
-    }
-  >(args: ((client: PrismaClientExtends) => { $extends: { extArgs: Args } }) | {
-    result?: R; model?: M; query?: Q; client?: C
-  }): (client: any) => PrismaClientExtends<Args>
+    },
+  >(
+    args:
+      | ((client: PrismaClientExtends) => { $extends: { extArgs: Args } })
+      | {
+          result?: R
+          model?: M
+          query?: Q
+          client?: C
+        },
+  ): (client: any) => PrismaClientExtends<Args>
 
   export type Extension = runtime.Types.Extensions.UserArgs
   export import getExtensionContext = runtime.Extensions.getExtensionContext
