@@ -32,7 +32,7 @@ export function getGitHubIssueUrl({
 interface IssueOptions {
   error: any
   cliVersion: string
-  engineVersion: string
+  enginesVersion: string
   command: string
   prompt: Boolean
   title?: string
@@ -104,7 +104,7 @@ ${options.reportId ? `The report Id is: ${options.reportId}` : ''}
 | Platform    | ${platform.padEnd(19)}| 
 | Node        | ${process.version.padEnd(19)}| 
 | Prisma CLI  | ${options.cliVersion.padEnd(19)}| 
-| Engine      | ${options.engineVersion.padEnd(19)}| 
+| Engine      | ${options.enginesVersion.padEnd(19)}| 
 
 ## Error
 \`\`\`

@@ -12,7 +12,6 @@ import {
   getSchema,
   getSchemaPath,
   HelpError,
-  IntrospectionEngine,
   IntrospectionSchemaVersion,
   IntrospectionWarnings,
   link,
@@ -24,6 +23,7 @@ import fs from 'fs'
 import path from 'path'
 import { match } from 'ts-pattern'
 
+import { MigrateEngine } from '../MigrateEngine'
 import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
@@ -252,8 +252,9 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    const engine = new IntrospectionEngine({
-      cwd: schemaPath ? path.dirname(schemaPath) : undefined,
+    const engine = new MigrateEngine({
+      projectDir: schemaPath ? path.dirname(schemaPath) : process.cwd(),
+      schemaPath: schemaPath ?? undefined,
     })
 
     const basedOn =
@@ -267,7 +268,11 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     let introspectionWarnings: IntrospectionWarnings[]
     let introspectionSchemaVersion: IntrospectionSchemaVersion
     try {
-      const introspectionResult = await engine.introspect(schema, args['--force'], args['--composite-type-depth'])
+      const introspectionResult = await engine.introspect({
+        schema,
+        force: args['--force'],
+        compositeTypeDepth: args['--composite-type-depth'],
+      })
 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
@@ -276,30 +281,56 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       debug(`Introspection Schema Version: ${introspectionResult.version}`)
     } catch (e: any) {
       introspectionSpinner.failure()
-      if (e.code === 'P4001') {
-        if (introspectionSchema.trim() === '') {
-          throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red('The introspected database was empty:')} ${
-            url ? chalk.underline(url) : ''
-          }
+
+      /**
+       * Human-friendly error handling based on:
+       * https://www.prisma.io/docs/reference/api-reference/error-reference
+       */
+
+      if (e.code === 'P4001' && introspectionSchema.trim() === '') {
+        /* P4001: The introspected database was empty */
+        throw new Error(`\n${chalk.red.bold(`${e.code} `)}${chalk.red('The introspected database was empty:')} ${
+          url ? chalk.underline(url) : ''
+        }
 
 ${chalk.bold('prisma db pull')} could not create any models in your ${chalk.bold(
-            'schema.prisma',
-          )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
-            getCommandWithExecutor('prisma generate'),
-          )} command.
+          'schema.prisma',
+        )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
+          getCommandWithExecutor('prisma generate'),
+        )} command.
 
 ${chalk.bold('To fix this, you have two options:')}
 
 - manually create a table in your database.
 - make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold(
-            'schema.prisma',
-          )} points to a database that is not empty (it must contain at least one table).
+          'schema.prisma',
+        )} points to a database that is not empty (it must contain at least one table).
 
 Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again. 
 `)
+      } else if (e.code === 'P1003') {
+        /* P1003: Database does not exist */
+        throw new Error(`\n${chalk.red.bold(`${e.code} `)}${chalk.red('The introspected database does not exist:')} ${
+          url ? chalk.underline(url) : ''
         }
+
+${chalk.bold('prisma db pull')} could not create any models in your ${chalk.bold(
+          'schema.prisma',
+        )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
+          getCommandWithExecutor('prisma generate'),
+        )} command.
+
+${chalk.bold('To fix this, you have two options:')}
+
+- manually create a database.
+- make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold(
+          'schema.prisma',
+        )} points to an existing database.
+
+Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again. 
+`)
       } else if (e.code === 'P1012') {
-        // Schema Parsing Error
+        /* P1012: Schema parsing error */
         console.info() // empty line
 
         // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
@@ -382,8 +413,6 @@ Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upg
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
 ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }
-
-    engine.stop()
 
     return ''
   }

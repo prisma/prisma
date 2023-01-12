@@ -30,35 +30,35 @@ describe('migrate diff', () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse([])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --from-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--from-empty'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --to-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--to-empty'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --from-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--from-empty', '--from-url=file:dev.db'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --to-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--to-empty', '--to-url=file:dev.db'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if schema does no exists, --from-schema-datasource', async () => {

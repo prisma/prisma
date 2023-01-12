@@ -19,6 +19,7 @@ export const database = {
     create schema ${ctx.id};
     set search_path to ${ctx.id};`
     await db.query(sqlUp + sqlScenario)
+    await db.end()
   },
   close: (db) => db.end(),
 } as Input<PG.Client>['database']
