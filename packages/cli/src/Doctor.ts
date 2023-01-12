@@ -7,13 +7,13 @@ import {
   format,
   getConfig,
   getDMMF,
+  getEffectiveUrl,
   HelpError,
-  IntrospectionEngine,
   keyBy,
   loadEnvFile,
   pick,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
+import { getSchemaPathAndPrint, MigrateEngine } from '@prisma/migrate'
 import chalk from 'chalk'
 import equal from 'fast-deep-equal'
 import fs from 'fs'
@@ -81,23 +81,23 @@ ${chalk.bold('Examples')}
 
     console.error(`👩‍⚕️🏥 Prisma Doctor checking the database...`)
 
-    const connectionString = config.datasources[0].url
+    const connectionString = getEffectiveUrl(config.datasources[0])
     // connectionString.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
     const canConnect = await canConnectToDatabase(connectionString.value!, path.dirname(schemaPath))
     if (typeof canConnect !== 'boolean') {
       throw new Error(`${canConnect.code}: ${canConnect.message}`)
     }
 
-    const engine = new IntrospectionEngine({
-      cwd: path.dirname(schemaPath),
+    const engine = new MigrateEngine({
+      projectDir: path.dirname(schemaPath),
+      schemaPath,
     })
 
     let datamodel
     try {
-      const result = await engine.introspect(schema)
+      const result = await engine.introspect({ schema })
       datamodel = result.datamodel
     } finally {
-      engine.stop()
     }
 
     const remoteDmmf = await getDMMF({ datamodel })

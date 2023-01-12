@@ -190,7 +190,7 @@ describe('push', () => {
       Push cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('--accept-data-loss flag', async () => {
@@ -267,7 +267,7 @@ describe('push', () => {
       Push cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('unexecutable - --force-reset should succeed and print a log', async () => {
@@ -492,7 +492,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
       Your database indexes are now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('--accept-data-loss flag', async () => {
