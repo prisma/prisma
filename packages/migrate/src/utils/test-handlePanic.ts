@@ -11,7 +11,7 @@ async function main() {
   )
 
   const packageJsonVersion = '0.0.0'
-  const enginesVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
+  const enginesVersion = 'prismaEngineVersionHash'
   const getDatabaseVersionSafe = () => Promise.resolve(undefined)
 
   await handlePanic({
