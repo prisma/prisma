@@ -14,7 +14,7 @@ import {
 import chalk from 'chalk'
 import prompt from 'prompts'
 
-import { getDbInfo } from '../utils/ensureDatabaseExists'
+import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbNeedsForceError } from '../utils/errors'
 import { PreviewFlagError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
@@ -85,13 +85,8 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    await printDatasource(schemaPath)
-
-    const dbInfo = await getDbInfo(schemaPath)
-    if (!dbInfo.url) {
-      // TODO better error
-      throw new Error('Connection url is undefined.')
-    }
+    const datasourceInfo = await getDatasourceInfo({ schemaPath, throwIfEnvError: true })
+    printDatasource({ datasourceInfo })
 
     const schemaDir = (await getSchemaDir(schemaPath))!
 
@@ -102,13 +97,12 @@ ${chalk.bold('Examples')}
         throw new DbNeedsForceError('drop')
       }
 
-      // TODO for mssql
       const confirmation = await prompt({
         type: 'text',
         name: 'value',
-        message: `Enter the ${dbInfo.dbType} ${dbInfo.schemaWord} name "${dbInfo.dbName}" to drop it.\nLocation: "${
-          dbInfo.dbLocation
-        }".\n${chalk.red('All data will be lost')}.`,
+        message: `Enter the ${datasourceInfo.prettyProvider} database name "${
+          datasourceInfo.dbName
+        }" to drop it.\nLocation: "${datasourceInfo.dbLocation}".\n${chalk.red('All data will be lost')}.`,
       })
       console.info() // empty line
 
@@ -116,15 +110,16 @@ ${chalk.bold('Examples')}
         console.info('Drop cancelled.')
         // Return SIGINT exit code to signal that the process was cancelled.
         process.exit(130)
-      } else if (confirmation.value !== dbInfo.dbName) {
-        throw Error(`The ${dbInfo.schemaWord} name entered "${confirmation.value}" doesn't match "${dbInfo.dbName}".`)
+      } else if (confirmation.value !== datasourceInfo.dbName) {
+        throw Error(`The database name entered "${confirmation.value}" doesn't match "${datasourceInfo.dbName}".`)
       }
     }
 
-    if (await dropDatabase(dbInfo.url, schemaDir)) {
-      return `${process.platform === 'win32' ? '' : '🚀  '}The ${dbInfo.dbType} ${dbInfo.schemaWord} "${
-        dbInfo.dbName
-      }" from "${dbInfo.dbLocation}" was successfully dropped.\n`
+    // Url exists because we set `throwIfEnvErrors: true` in `getDatasourceInfo`
+    if (await dropDatabase(datasourceInfo.url!, schemaDir)) {
+      return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
+        datasourceInfo.dbName
+      }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`
     } else {
       return ''
     }

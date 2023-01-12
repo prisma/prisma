@@ -7,6 +7,7 @@ import {
   format,
   getConfig,
   getDMMF,
+  getEffectiveUrl,
   HelpError,
   IntrospectionEngine,
   keyBy,
@@ -81,8 +82,9 @@ ${chalk.bold('Examples')}
 
     console.error(`👩‍⚕️🏥 Prisma Doctor checking the database...`)
 
-    const connectionString = config.datasources[0].url
-    const canConnect = await canConnectToDatabase(connectionString.value, path.dirname(schemaPath))
+    const connectionString = getEffectiveUrl(config.datasources[0])
+    // connectionString.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
+    const canConnect = await canConnectToDatabase(connectionString.value!, path.dirname(schemaPath))
     if (typeof canConnect !== 'boolean') {
       throw new Error(`${canConnect.code}: ${canConnect.message}`)
     }

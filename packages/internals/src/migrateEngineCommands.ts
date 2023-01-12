@@ -1,14 +1,7 @@
 import { BinaryType } from '@prisma/fetch-engine'
 import execa from 'execa'
-import fs from 'fs'
-import path from 'path'
-import { promisify } from 'util'
 
-import { getSchemaDir } from './cli/getSchema'
-import { protocolToConnectorType } from './convertCredentials'
 import { resolveBinary } from './resolveBinary'
-
-const exists = promisify(fs.exists)
 
 // ### Exit codes
 // `0`: normal exit

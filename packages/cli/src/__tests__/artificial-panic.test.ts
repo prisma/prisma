@@ -43,7 +43,7 @@ describe('artificial-panic introspection', () => {
 
         datasource db {
           provider = "postgresql"
-          url      = env("DATABASE_URL")
+          url      = "postgres://user:password@randomhost:5432"
         }
 
       `),
@@ -112,7 +112,7 @@ describe('artificial-panic get-config', () => {
 
         datasource db {
           provider = "postgresql"
-          url      = env("DATABASE_URL")
+          url      = "postgres://user:password@randomhost:5432"
         }
 
       `)
@@ -152,7 +152,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
 
         datasource db {
           provider = "postgresql"
-          url      = env("DATABASE_URL")
+          url      = "postgres://user:password@randomhost:5432"
         }
 
       `)
@@ -184,7 +184,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
 
         datasource db {
           provider = "postgresql"
-          url      = env("DATABASE_URL")
+          url      = "postgres://user:password@randomhost:5432"
         }
 
       `)
