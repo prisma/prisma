@@ -503,8 +503,7 @@ export class MigrateEngine {
 
 /** The full message with context we return to the user in case of engine panic. */
 function serializePanic(log: string): string {
-  // TODO: do we still want the "Please create an issue ..." part? That's supposedly
-  // already handled in cli/bin.ts when a panic occurs.
+  // TODO: https://github.com/prisma/prisma/issues/17268
   return `${chalk.red.bold('Error in migration engine.\nReason: ')}${log}
 
 Please create an issue with your \`schema.prisma\` at
