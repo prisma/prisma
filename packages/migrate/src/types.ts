@@ -179,11 +179,14 @@ export namespace EngineArgs {
     | IntrospectionWarningsCustomIndexNameReintro
     | IntrospectionWarningsCustomPrimaryKeyNamesReintro
     | IntrospectionWarningsRelationsReintro
+    | IntrospectionWarningsTopLevelItemNameIsADupe
+    // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
     | IntrospectionWarningsMongoFieldsWithUnknownTypes
     | IntrospectionWarningsMongoFieldsWithEmptyNames
 
+  type AffectedTopLevel = { type: 'Model' | 'Enum'; name: string }
   type AffectedModel = { model: string }
   type AffectedModelAndIndex = { model: string; index_db_name: string }
   type AffectedModelAndField = { model: string; field: string }
@@ -211,6 +214,7 @@ export namespace EngineArgs {
     code: number
     message: string
     affected:
+      | AffectedTopLevel[]
       | AffectedModel[]
       | AffectedModelAndIndex[]
       | AffectedModelAndField[]
@@ -305,6 +309,11 @@ export namespace EngineArgs {
   interface IntrospectionWarningsRelationsReintro extends IntrospectionWarning {
     code: 19
     affected: AffectedModel[]
+  }
+
+  interface IntrospectionWarningsTopLevelItemNameIsADupe extends IntrospectionWarning {
+    code: 20
+    affected: AffectedTopLevel[]
   }
 
   // MongoDB starts at 101 see
