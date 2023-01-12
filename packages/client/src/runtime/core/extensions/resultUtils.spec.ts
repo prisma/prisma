@@ -150,9 +150,31 @@ describe('getAllComputedFields', () => {
       nameAndAge: { name: 'nameAndAge', needs: ['firstName', 'lastName', 'age'], compute: expect.any(Function) },
     })
   })
+
+  test('allows to shadow normal field with a computed fields', () => {
+    const result = getComputedFields(
+      {},
+
+      {
+        result: {
+          user: {
+            firstName: {
+              needs: { firstName: true },
+              compute: jest.fn(),
+            },
+          },
+        },
+      },
+      'User',
+    )
+
+    expect(result).toEqual({
+      firstName: { name: 'firstName', needs: ['firstName'], compute: expect.any(Function) },
+    })
+  })
 })
 
-describe('applyExtensionsToSelection', () => {
+describe('applyComputedFieldsToSelection', () => {
   test('adds all dependencies to the selection', () => {
     const fields = {
       fullName: { name: 'fullName', needs: ['firstName', 'lastName'], compute: jest.fn() },
@@ -164,6 +186,18 @@ describe('applyExtensionsToSelection', () => {
       age: true,
       firstName: true,
       lastName: true,
+    })
+  })
+
+  test('works correctly with shadowing dependencies', () => {
+    const fields = {
+      fullName: { name: 'firstName', needs: ['firstName'], compute: jest.fn() },
+    }
+
+    const selection = { firstName: true }
+
+    expect(applyComputedFieldsToSelection(selection, fields)).toEqual({
+      firstName: true,
     })
   })
 
