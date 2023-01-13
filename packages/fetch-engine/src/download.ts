@@ -299,6 +299,9 @@ async function binaryNeedsToBeDownloaded(
       } else {
         return true
       }
+    } else if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
+      debug(`Missing Cached Checksum File: ${sha256FilePath}`)
+      return false
     } else {
       return true
     }
@@ -451,8 +454,8 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
 async function saveFileToCache(
   job: BinaryDownloadJob,
   version: string,
-  sha256: string,
-  zippedSha256: string,
+  sha256: string | null,
+  zippedSha256: string | null,
 ): Promise<void> {
   // always fail silent, as the cache is optional
   const cacheDir = await getCacheDir(channel, version, job.binaryTarget)
@@ -466,8 +469,12 @@ async function saveFileToCache(
 
   try {
     await overwriteFile(job.targetFilePath, cachedTargetPath)
-    await writeFile(cachedSha256Path, sha256)
-    await writeFile(cachedSha256ZippedPath, zippedSha256)
+    if (sha256 != null) {
+      await writeFile(cachedSha256Path, sha256)
+    }
+    if (zippedSha256 != null) {
+      await writeFile(cachedSha256ZippedPath, zippedSha256)
+    }
   } catch (e) {
     debug(e)
     // let this fail silently - the CI system may have reached the file size limit

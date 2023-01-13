@@ -2,12 +2,19 @@ import { enginesVersion } from '@prisma/engines-version'
 import { getPlatform } from '@prisma/get-platform'
 import del from 'del'
 import fs from 'fs'
+import type { Response } from 'node-fetch'
+import _mockFetch from 'node-fetch'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { cleanupCache } from '../cleanupCache'
 import { BinaryType, download, getBinaryName, getVersion } from '../download'
 import { getFiles } from './__utils__/getFiles'
+
+jest.mock('node-fetch', () => jest.fn())
+
+const actualFetch: typeof import('node-fetch').default = jest.requireActual('node-fetch')
+const mockFetch = _mockFetch as any as jest.Mock<ReturnType<typeof actualFetch>, Parameters<typeof actualFetch>>
 
 const CURRENT_ENGINES_HASH = enginesVersion
 console.debug({ CURRENT_ENGINES_HASH })
@@ -20,6 +27,7 @@ jest.retryTimes(3)
 
 describe('download', () => {
   beforeEach(async () => {
+    mockFetch.mockReset().mockImplementation(actualFetch)
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
     // Make sure to not mix forward and backward slashes in the path
@@ -596,5 +604,102 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     })
     expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
+  })
+
+  describe('env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1', () => {
+    beforeAll(() => {
+      process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = '1'
+    })
+
+    afterAll(() => {
+      delete process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING
+    })
+
+    test('if checksum downloads and matches, does not throw', async () => {
+      const baseDir = path.posix.join(dirname, 'all')
+      const platform = await getPlatform()
+      const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.queryEngine, platform))
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.queryEngine]: baseDir,
+          },
+          binaryTargets: [platform],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).resolves.toStrictEqual({
+        'query-engine': {
+          [platform]: queryEnginePath,
+        },
+      })
+
+      const files = getFiles(baseDir).map((f) => f.name)
+      expect(files.filter((name) => !name.startsWith('.'))).toEqual([path.basename(queryEnginePath)])
+      expect(await getVersion(queryEnginePath, BinaryType.queryEngine)).toContain(CURRENT_ENGINES_HASH)
+    })
+
+    test("if checksum downloads but doesn't match, throws", async () => {
+      mockFetch.mockImplementation((url, opts) => {
+        if (String(url).endsWith('.sha256')) {
+          return Promise.resolve({
+            ok: true,
+            status: 200,
+            statusText: 'OK',
+            text: () =>
+              Promise.resolve(`1deadbeef2deadbeef3deadbeef4deadbeef5deadbeef6deadbeef7deadbeef8  query-engine.gz\n`),
+          } as Response)
+        }
+        return actualFetch(url, opts)
+      })
+
+      const baseDir = path.posix.join(dirname, 'all')
+      const platform = await getPlatform()
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.queryEngine]: baseDir,
+          },
+          binaryTargets: [platform],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).rejects.toThrow(/^sha256 of .+ \(zipped\) should be .+ but is .+$/)
+    })
+
+    test('if checksum download fails, logs warning but does not throw', async () => {
+      mockFetch.mockImplementation((url, opts) => {
+        if (String(url).endsWith('.sha256')) {
+          return Promise.resolve({
+            ok: false,
+            status: 404,
+            statusText: 'Not Found',
+          } as any as Response)
+        }
+        return actualFetch(url, opts)
+      })
+
+      const baseDir = path.posix.join(dirname, 'all')
+      const platform = await getPlatform()
+      const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.queryEngine, platform))
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.queryEngine]: baseDir,
+          },
+          binaryTargets: [platform],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).resolves.toStrictEqual({
+        'query-engine': {
+          [platform]: queryEnginePath,
+        },
+      })
+
+      const files = getFiles(baseDir).map((f) => f.name)
+      expect(files.filter((name) => !name.startsWith('.'))).toEqual([path.basename(queryEnginePath)])
+      expect(await getVersion(queryEnginePath, BinaryType.queryEngine)).toContain(CURRENT_ENGINES_HASH)
+    })
   })
 })
