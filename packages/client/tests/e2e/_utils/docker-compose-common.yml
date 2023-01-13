@@ -3,7 +3,7 @@ services:
     build:
       dockerfile: ./standard.dockerfile
     volumes:
-      - ../:/ecosystem
+      - ../:/e2e
       - ../../../:/client
       - ../.cache:/root/.cache
       - ../.cache/pnpmcache:/root/.local/share/pnpm/store/v3

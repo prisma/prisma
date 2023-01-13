@@ -8,8 +8,10 @@ const args = arg(
   process.argv.slice(2),
   {
     '--verbose': Boolean,
-    // also build cli and client packages
+    // do not fully build cli and client packages before packing
     '--skipBuild': Boolean,
+    // a way to cleanup created files that also works on linux
+    '--clean': Boolean,
   },
   true,
   true,
@@ -21,11 +23,22 @@ async function main() {
     process.exit(1)
   }
 
-  $.verbose = args['--verbose'] ?? false
+  args['--verbose'] = args['--verbose'] ?? false
   args['--skipBuild'] = args['--skipBuild'] ?? false
+  args['--clean'] = args['--clean'] ?? false
+  $.verbose = args['--verbose']
 
-  if ($.verbose === true) {
+  if (args['--verbose'] === true) {
     await $`docker -v`
+  }
+
+  if (args['--clean'] === true) {
+    console.log('🧹 Cleaning up created files')
+    await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
+    await $`docker compose -f ${__dirname}/docker-compose-clean.yml build`
+    await $`docker compose -f ${__dirname}/docker-compose-clean.yml up`
+
+    return
   }
 
   console.log('🎠 Preparing e2e tests')
@@ -82,13 +95,13 @@ async function main() {
   console.log('🐳 Starting tests in docker')
   // tarball was created, ready to send it to docker and begin e2e tests
   const testNames = args._.join(' ')
-  await $`docker compose -f ${__dirname}/docker-compose.yml down`
+  await $`docker compose -f ${__dirname}/docker-compose.yml down --remove-orphans`
   await $`docker compose -f ${__dirname}/docker-compose.yml build ${testNames}`
   await $`docker compose -f ${__dirname}/docker-compose.yml up ${testNames}`
 
   // let the tests run and gather a list of logs for containers that have failed
-  const findErrors = await $`find "$(pwd)" -not -name .logs.0.txt -name .logs.*.txt`
-  const findSuccess = await $`find "$(pwd)" -name .logs.0.txt`
+  const findErrors = await $`find "$(pwd)" -not -name ".logs.0.txt" -name ".logs.*.txt"`
+  const findSuccess = await $`find "$(pwd)" -name ".logs.0.txt"`
   const errors = findErrors.stdout.split('\n').filter((v) => v.length > 0)
   const success = findSuccess.stdout.split('\n').filter((v) => v.length > 0)
   if (errors.length > 0) {
