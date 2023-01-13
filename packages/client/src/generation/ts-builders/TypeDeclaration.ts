@@ -1,10 +1,10 @@
-import { AnyTypeBuilder } from './AnyTypeBuilder'
 import { BasicBuilder } from './BasicBuilder'
 import { DocComment } from './DocComment'
 import { GenericParameter } from './GenericParameter'
+import { TypeBuilder } from './TypeBuilder'
 import { Writer } from './Writer'
 
-export class TypeDeclaration<InnerType extends AnyTypeBuilder = AnyTypeBuilder> implements BasicBuilder {
+export class TypeDeclaration<InnerType extends TypeBuilder = TypeBuilder> implements BasicBuilder {
   private genericParameters: GenericParameter[] = []
   private docComment?: DocComment
 
@@ -32,6 +32,6 @@ export class TypeDeclaration<InnerType extends AnyTypeBuilder = AnyTypeBuilder> 
   }
 }
 
-export function typeDeclaration<InnerType extends AnyTypeBuilder = AnyTypeBuilder>(name: string, type: InnerType) {
+export function typeDeclaration<InnerType extends TypeBuilder = TypeBuilder>(name: string, type: InnerType) {
   return new TypeDeclaration(name, type)
 }

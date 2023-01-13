@@ -24,3 +24,10 @@ test('with generic parameters', () => {
   const decl = typeDeclaration('B', A).addGenericParameter(genericParameter('T'))
   expect(stringify(decl)).toMatchInlineSnapshot(`type B<T> = A`)
 })
+
+test('with multiple generic parameters', () => {
+  const decl = typeDeclaration('B', A)
+    .addGenericParameter(genericParameter('T'))
+    .addGenericParameter(genericParameter('U'))
+  expect(stringify(decl)).toMatchInlineSnapshot(`type B<T, U> = A`)
+})

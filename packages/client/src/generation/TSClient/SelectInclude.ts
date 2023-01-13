@@ -29,7 +29,7 @@ type BuildSelectTypeParams = {
 
 export function buildSelectType({ modelName, fields }: BuildSelectTypeParams) {
   const objectType = buildSelectOrIncludeObject(modelName, fields)
-  const selectType = ifExtensions<ts.AnyTypeBuilder>(
+  const selectType = ifExtensions<ts.TypeBuilder>(
     () =>
       ts
         .namedType('runtime.Types.Extensions.GetResultSelect')
@@ -70,7 +70,7 @@ function buildSelectOrIncludeObject(modelName: string, fields: DMMF.SchemaField[
   return objectType
 }
 
-function buildExport(typeName: string, type: ts.AnyTypeBuilder) {
+function buildExport(typeName: string, type: ts.TypeBuilder) {
   const declaration = ts.typeDeclaration(typeName, type)
   return ts.moduleExport(
     ifExtensions(
