@@ -48,7 +48,7 @@ describe('drop', () => {
     // No such file or directory (os error 2)
     // On Windows:
     // No such file or directory (os error 2)
-    await expect(result).rejects.toMatchInlineSnapshot(`Failed to delete SQLite database at \`dev.db\`.`)
+    await expect(result).rejects.toThrow(`Failed to delete SQLite database at \`dev.db\`.`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
