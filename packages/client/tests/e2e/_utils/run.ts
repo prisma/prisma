@@ -9,7 +9,7 @@ const args = arg(
   {
     '--verbose': Boolean,
     // also build cli and client packages
-    '--build': Boolean,
+    '--skipBuild': Boolean,
   },
   true,
   true,
@@ -22,6 +22,7 @@ async function main() {
   }
 
   $.verbose = args['--verbose'] ?? false
+  args['--skipBuild'] = args['--skipBuild'] ?? false
 
   if ($.verbose === true) {
     await $`docker -v`
@@ -60,14 +61,16 @@ async function main() {
   // write the modified package.json to overwrite the original package.json
   await fs.writeFile(cliPkgJsonPath, JSON.stringify(cliPkgJson, null, 2))
   await fs.writeFile(clientPkgJsonPath, JSON.stringify(clientPkgJson, null, 2))
-  // this is to avoid bundling types and locally link directly to the sources
-  await fs.writeFile(clientRuntimeDtsPath, `export * from '/client/src/runtime/index'`)
+
+  if (args['--skipBuild'] === true) {
+    // this is to avoid bundling types and locally link directly to the sources
+    await fs.writeFile(clientRuntimeDtsPath, `export * from '/client/src/runtime/index'`)
+  }
 
   try {
     console.log('📦 Packing package tarballs')
-    const skipBuild = args['--build'] ? 'false' : 'true'
-    await $`cd ${clientPkgPath} && SKIP_BUILD=${skipBuild} pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${cliPkgPath} && SKIP_BUILD=${skipBuild} pnpm pack --pack-destination ${__dirname}/../`
+    await $`cd ${clientPkgPath} && SKIP_BUILD=${args['--skipBuild']} pnpm pack --pack-destination ${__dirname}/../`
+    await $`cd ${cliPkgPath} && SKIP_BUILD=${args['--skipBuild']} pnpm pack --pack-destination ${__dirname}/../`
   } catch (e) {
     console.log(e.message)
     console.log('🛑 Failed to pack one or more of the packages')
