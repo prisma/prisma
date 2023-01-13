@@ -162,31 +162,24 @@ type GetOpenSSLVersionParams = {
  * This function never throws.
  */
 export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOSResult['libssl'] | undefined> {
-  const archFromUname = await getArchFromUname()
+  const isVercel = process.env.VERCEL === '1'
+  debug(`isVercel: ${isVercel}`)
+  debug(`process.env.VERCEL: ${process.env.VERCEL}`)
+  debug(`process.env: ${process.env}`)
 
   const libsslSpecificPaths = match(args)
     .with({ distro: 'musl' }, () => {
       /* Linux Alpine */
       debug('Trying platform-specific paths for "alpine"')
-      return ['/lib']
-    })
-    .with({ distro: 'debian' }, () => {
-      /* Linux Debian, Ubuntu, etc */
-      debug('Trying platform-specific paths for "debian" (and "ubuntu")')
-      return [`/usr/lib/${archFromUname}-linux-gnu`, `/lib/${archFromUname}-linux-gnu`]
-    })
-    .with({ distro: 'rhel' }, () => {
-      /* Linux Red Hat, OpenSuse etc */
-      debug('Trying platform-specific paths for "rhel"')
-      return ['/lib64', '/usr/lib64']
+      return ['/lib/libssl.so.3', '/lib/libssl.so.1.1']
     })
     .otherwise(({ distro, arch }) => {
       /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
       debug(`Don't know any platform-specific paths for "${distro}" on ${arch}`)
-      return []
+      return ['/lib64 | grep ssl', '/usr/lib64 | grep ssl']
     })
 
-  const libsslSpecificCommands = libsslSpecificPaths.map((path) => `ls ${path} | grep libssl.so`)
+  const libsslSpecificCommands = libsslSpecificPaths.map((path) => `ls ${path}`)
   const libsslFilenameFromSpecificPath: string | undefined = await getFirstSuccessfulExec(libsslSpecificCommands)
 
   if (libsslFilenameFromSpecificPath) {
@@ -198,34 +191,7 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
     }
   }
 
-  debug('Falling back to "ldconfig" and other generic paths')
-  const libsslFilename: string | undefined = await getFirstSuccessfulExec([
-    'ldconfig -p | sed "s/.*=>s*//" | sed "s/.*///" | grep ssl | sort',
-    'ls /lib64 | grep ssl',
-    'ls /usr/lib64 | grep ssl',
-  ])
-
-  if (libsslFilename) {
-    debug(`Found libssl.so file using "ldconfig" or other generic paths: ${libsslFilenameFromSpecificPath}`)
-    const libsslVersion = parseLibSSLVersion(libsslFilename)
-    if (libsslVersion) {
-      return libsslVersion
-    }
-  }
-
-  const openSSLVersionLine: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
-
-  if (openSSLVersionLine) {
-    debug(`Found openssl binary with version: ${openSSLVersionLine}`)
-    const openSSLVersion = parseOpenSSLVersion(openSSLVersionLine)
-    debug(`The parsed openssl version is: ${openSSLVersion}`)
-    if (openSSLVersion) {
-      return openSSLVersion
-    }
-  }
-
-  /* Reading the libssl.so version didn't work, fall back to openssl */
-
+  debug(`Couldn't find any version of libssl in the system, falling back to OpenSSL`)
   const openSSLVersion: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
 
   if (openSSLVersion) {
@@ -241,7 +207,16 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
 }
 
 export async function getPlatform(): Promise<Platform> {
-  const { platform, libssl, distro, arch } = await getos()
+  const { platform, distro, arch, libssl } = await getos()
+
+  // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
+  const defaultLibssl = '1.1.x' as const
+
+  debug(`Detected platform: ${platform}`)
+  debug(`Detected distro: ${distro}`)
+  debug(`Detected arch: ${arch}`)
+  debug(`Detected libssl: ${libssl}`)
+  debug(`Default libssl: ${defaultLibssl}`)
 
   // Apple Silicon (M1)
   if (platform === 'darwin' && arch === 'arm64') {
@@ -299,22 +274,22 @@ export async function getPlatform(): Promise<Platform> {
 
   // when the platform is linux
   if (platform === 'linux' && distro && libssl) {
-    return (distro + '-openssl-' + libssl) as Platform
+    return `${distro}-openssl-${libssl}` as Platform
   }
 
   // if just OpenSSL is known, fallback to debian with a specific libssl version
   if (libssl) {
-    return ('debian-openssl-' + libssl) as Platform
+    return `debian-openssl-${libssl}`
   }
 
   // if just the distro is known, fallback to latest OpenSSL 1.1
   if (distro) {
-    return (distro + '-openssl-1.1.x') as Platform
+    return `${distro}-openssl-${defaultLibssl}` as Platform
   }
 
   // use the debian build with OpenSSL 1.1 as a last resort
   // TODO: perhaps we should default to 'debian-openssl-3.0.x'
-  return 'debian-openssl-1.1.x'
+  return `debian-openssl-${defaultLibssl}`
 }
 
 /**
