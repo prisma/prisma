@@ -61,8 +61,9 @@ async function main() {
 
   try {
     console.log('📦 Packing package tarballs')
-    await $`cd ${clientPkgPath} && BUILD=${!!args['--build']} pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${cliPkgPath} && BUILD=${!!args['--build']} pnpm pack --pack-destination ${__dirname}/../`
+    const skipBuild = args['--build'] ? 'false' : 'true'
+    await $`cd ${clientPkgPath} && SKIP_BUILD=${skipBuild} pnpm pack --pack-destination ${__dirname}/../`
+    await $`cd ${cliPkgPath} && SKIP_BUILD=${skipBuild} pnpm pack --pack-destination ${__dirname}/../`
   } catch (e) {
     console.log(e.message)
     console.log('🛑 Failed to pack one or more of the packages')
