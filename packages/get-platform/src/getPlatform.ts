@@ -153,8 +153,12 @@ type GetOpenSSLVersionParams = {
 }
 
 /**
- * On Linux, returns the OpenSSL version excluding the patch version, e.g. "1.1.x".
+ * On Linux, returns the libssl version excluding the patch version, e.g. "1.1.x".
  * Reading the version from the libssl.so file is more reliable than reading it from the openssl binary.
+ * Older versions of libssl are preferred, e.g. "1.0.x" over "1.1.x", because of Vercel serverless
+ * having different build and runtime environments, with the runtime environment having an old version
+ * of libssl, and the build environment having both that old version and a newer version of libssl installed.
+ *
  * This function never throws.
  */
 export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOSResult['libssl'] | undefined> {
