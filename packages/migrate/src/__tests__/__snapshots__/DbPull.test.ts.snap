@@ -417,6 +417,10 @@ exports[`common/sqlite basic introspection with invalid --url - empty host 2`] =
 
 exports[`common/sqlite basic introspection with invalid --url if schema is unspecified 2`] = ``;
 
+exports[`common/sqlite basic introspection with schema and --url missing file: prefix should fail 2`] = ``;
+
+exports[`common/sqlite basic introspection without schema and with --url missing "file:" prefix should fail 2`] = ``;
+
 exports[`common/sqlite introspection --force 2`] = `
 generator client {
   provider = "prisma-client-js"
@@ -696,6 +700,148 @@ enum Role {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
+exports[`postgresql-multi-schema --url  --schemas=base,does-not-exist (1 existing schemas + 1 non-existing) should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  schemas  = ["base", "does-not-exist"]
+}
+
+model User {
+  id    String @id
+  email String
+
+  @@schema("base")
+}
+
+model some_table {
+  id    String @id(map: "User_pkey2")
+  email String
+
+  @@schema("base")
+}
+
+enum status {
+  ON
+  OFF
+
+  @@schema("base")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql-multi-schema --url  --schemas=base,transactional (2 existing schemas) should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  schemas  = ["base", "transactional"]
+}
+
+model User {
+  id    String @id
+  email String
+  Post  Post[]
+
+  @@schema("base")
+}
+
+model base_some_table {
+  id         String                     @id(map: "User_pkey2")
+  email      String
+  some_table transactional_some_table[]
+
+  @@map("some_table")
+  @@schema("base")
+}
+
+model Post {
+  id       String @id
+  title    String
+  authorId String
+  User     User   @relation(fields: [authorId], references: [id])
+
+  @@schema("transactional")
+}
+
+model transactional_some_table {
+  id         String          @id(map: "Post_pkey2")
+  title      String
+  authorId   String
+  some_table base_some_table @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
+
+  @@map("some_table")
+  @@schema("transactional")
+}
+
+enum base_status {
+  ON
+  OFF
+
+  @@map("status")
+  @@schema("base")
+}
+
+enum transactional_status {
+  ON
+  OFF
+
+  @@map("status")
+  @@schema("transactional")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql-multi-schema --url --schemas=base (1 existing schema) should succeed 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  schemas  = ["base"]
+}
+
+model User {
+  id    String @id
+  email String
+
+  @@schema("base")
+}
+
+model some_table {
+  id    String @id(map: "User_pkey2")
+  email String
+
+  @@schema("base")
+}
+
+enum status {
+  ON
+  OFF
+
+  @@schema("base")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
 exports[`postgresql-multi-schema --url with \`?schema=base\` should succeed 2`] = `
 datasource db {
   provider = "postgresql"
@@ -722,6 +868,47 @@ enum status {
 `;
 
 exports[`postgresql-multi-schema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
+
+exports[`postgresql-multi-schema --url with --schemas=["does-not-exist", "base"] should error 2`] = `
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  schemas  = ["base"]
+}
+
+model User {
+  id    String @id
+  email String
+
+  @@schema("base")
+}
+
+model some_table {
+  id    String @id(map: "User_pkey2")
+  email String
+
+  @@schema("base")
+}
+
+enum status {
+  ON
+  OFF
+
+  @@schema("base")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql-multi-schema --url with --schemas=base without preview feature should error 2`] = ``;
+
+exports[`postgresql-multi-schema --url with --schemas=does-not-exist should error 2`] = ``;
 
 exports[`postgresql-multi-schema datasource property \`schemas=["base", "transactional"]\` should succeed 2`] = `
 generator client {

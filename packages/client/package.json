@@ -38,7 +38,7 @@
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --verbose",
-    "test:ecosystem": "node -r esbuild-register tests/ecosystem/_utils/run.ts",
+    "test:e2e": "node -r esbuild-register tests/e2e/_utils/run.ts",
     "test:functional": "node -r esbuild-register helpers/functional-test/run-tests.ts",
     "test:memory": "node -r esbuild-register helpers/memory-tests.ts",
     "test:functional:code": "node -r esbuild-register helpers/functional-test/run-tests.ts --no-types",
@@ -148,7 +148,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.9.0-28.86cd69d2d027037f199d1e32d95a89c0045d9b39"
+    "@prisma/engines-version": "4.9.0-39.df61b5f5ab3f27359e273f1cba4e5a9c7cb8485a"
   },
   "sideEffects": false
 }
