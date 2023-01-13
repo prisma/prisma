@@ -2,10 +2,8 @@ services:
   test:
     build:
       dockerfile: ./standard.dockerfile
-      args:
-        - NAME=_example
     volumes:
-      - ../:/ecosystem
+      - ../:/e2e
       - ../../../:/client
       - ../.cache:/root/.cache
       - ../.cache/pnpmcache:/root/.local/share/pnpm/store/v3

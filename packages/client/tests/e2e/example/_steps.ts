@@ -16,5 +16,5 @@ void executeSteps({
   finish: async () => {
     await $`echo "done"`
   },
-  // keep: true,
+  // keep: true, // keep docker open to debug it
 })

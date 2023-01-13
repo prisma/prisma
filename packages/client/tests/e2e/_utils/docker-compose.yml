@@ -1,9 +1,9 @@
 version: '3.7'
 
 services:
-  _example:
+  example:
     extends:
       file: docker-compose-common.yml
       service: test
     environment:
-      - NAME=_example
+      - NAME=example
