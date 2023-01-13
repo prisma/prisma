@@ -1021,8 +1021,6 @@ describe('postgresql-multi-schema', () => {
 
   test('--url with --schemas=["does-not-exist", "base"] should error', async () => {
     ctx.fixture('introspection/postgresql-multi-schema')
-    // needed?
-    ctx.fs.remove(`./prisma/schema.prisma`)
 
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
