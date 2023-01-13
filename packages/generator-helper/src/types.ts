@@ -43,7 +43,7 @@ export interface GeneratorConfig {
 
 export interface EnvValue {
   fromEnvVar: null | string
-  value: string
+  value: null | string
 }
 
 export interface BinaryTargetsEnvValue {
@@ -56,6 +56,7 @@ export type ConnectorType =
   | 'mongodb'
   | 'sqlite'
   | 'postgresql'
+  | 'postgres' // TODO: we could normalize postgres to postgresql this in engines to reduce the complexity?
   | 'sqlserver'
   | 'cockroachdb'
 
@@ -63,16 +64,13 @@ export type ConnectorType =
   // 'jdbc:sqlserver' has been removed in https://github.com/prisma/prisma-engines/pull/2830
   | 'jdbc:sqlserver'
 
-// TODO: this is also a valid provider as returned by `getConfig({ ... }).datasources[0]?.provider` from a schema with `provider = "postgres"`,
-// but adding it would currently break the TypeScript compilation.
-// | 'postgres'
-
 export interface DataSource {
   name: string
-  activeProvider: ConnectorType
   provider: ConnectorType
+  activeProvider: ConnectorType
   url: EnvValue
-  config: { [key: string]: string }
+  directUrl?: EnvValue
+  schemas: string[] | []
 }
 
 export type BinaryPaths = {

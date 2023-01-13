@@ -10,6 +10,7 @@ import {
   DbPush,
   // DbDrop,
   DbSeed,
+  getDatabaseVersionSafe,
   MigrateCommand,
   MigrateDeploy,
   MigrateDev,
@@ -210,7 +211,13 @@ if (eval('require.main === module')) {
 
 function handleIndividualError(error: Error): void {
   if (isRustPanic(error)) {
-    handlePanic(error, packageJson.version, enginesVersion, redactedCommandAsString)
+    handlePanic({
+      error,
+      cliVersion: packageJson.version,
+      enginesVersion,
+      command: redactedCommandAsString,
+      getDatabaseVersionSafe,
+    })
       .catch((e) => {
         if (Debug.enabled('prisma')) {
           console.error(chalk.redBright.bold('Error: ') + e.stack)

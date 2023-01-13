@@ -153,37 +153,40 @@ type GetOpenSSLVersionParams = {
 }
 
 /**
- * On Linux, returns the OpenSSL version excluding the patch version, e.g. "1.1.x".
+ * On Linux, returns the libssl version excluding the patch version, e.g. "1.1.x".
  * Reading the version from the libssl.so file is more reliable than reading it from the openssl binary.
- * This function never throws.
+ * Older versions of libssl are preferred, e.g. "1.0.x" over "1.1.x", because of Vercel serverless
+ * having different build and runtime environments, with the runtime environment having an old version
+ * of libssl, and the build environment having both that old version and a newer version of libssl installed.
  *
- * TODO: we should probably validate the output of this function, and ensure it's contained in `supportedLibSSLVersions`
+ * This function never throws.
  */
 export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOSResult['libssl'] | undefined> {
-  const libsslSpecificPaths = await match(args)
-    .with({ distro: 'musl' }, async () => {
+  const archFromUname = await getArchFromUname()
+
+  const libsslSpecificPaths = match(args)
+    .with({ distro: 'musl' }, () => {
       /* Linux Alpine */
       debug('Trying platform-specific paths for "alpine"')
-      return Promise.resolve(['/lib'])
+      return ['/lib']
     })
-    .with({ distro: 'debian' }, async () => {
+    .with({ distro: 'debian' }, () => {
       /* Linux Debian, Ubuntu, etc */
-      const archFromUname = await getArchFromUname()
       debug('Trying platform-specific paths for "debian" (and "ubuntu")')
       return [`/usr/lib/${archFromUname}-linux-gnu`, `/lib/${archFromUname}-linux-gnu`]
     })
-    .with({ distro: 'rhel' }, async () => {
+    .with({ distro: 'rhel' }, () => {
       /* Linux Red Hat, OpenSuse etc */
       debug('Trying platform-specific paths for "rhel"')
-      return Promise.resolve(['/lib64', '/usr/lib64'])
+      return ['/lib64', '/usr/lib64']
     })
     .otherwise(({ distro, arch }) => {
       /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
       debug(`Don't know any platform-specific paths for "${distro}" on ${arch}`)
-      return Promise.resolve(undefined)
+      return []
     })
 
-  const libsslSpecificCommands = (libsslSpecificPaths || []).map((path) => `ls -r ${path} | grep libssl.so`)
+  const libsslSpecificCommands = libsslSpecificPaths.map((path) => `ls ${path} | grep libssl.so`)
   const libsslFilenameFromSpecificPath: string | undefined = await getFirstSuccessfulExec(libsslSpecificCommands)
 
   if (libsslFilenameFromSpecificPath) {
@@ -197,9 +200,9 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
 
   debug('Falling back to "ldconfig" and other generic paths')
   const libsslFilename: string | undefined = await getFirstSuccessfulExec([
-    'ldconfig -p | sed "s/.*=>s*//" | sed "s/.*///" | grep ssl | sort -r',
-    'ls -r /lib64 | grep ssl',
-    'ls -r /usr/lib64 | grep ssl',
+    'ldconfig -p | sed "s/.*=>s*//" | sed "s/.*///" | grep ssl | sort',
+    'ls /lib64 | grep ssl',
+    'ls /usr/lib64 | grep ssl',
   ])
 
   if (libsslFilename) {
@@ -210,8 +213,6 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
     }
   }
 
-  /* Reading the libssl.so version didn't work, fall back to openssl */
-
   const openSSLVersionLine: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
 
   if (openSSLVersionLine) {
@@ -220,6 +221,17 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
     debug(`The parsed openssl version is: ${openSSLVersion}`)
     if (openSSLVersion) {
       return openSSLVersion
+    }
+  }
+
+  /* Reading the libssl.so version didn't work, fall back to openssl */
+
+  const openSSLVersion: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
+
+  if (openSSLVersion) {
+    const matchedVersion = parseOpenSSLVersion(openSSLVersion)
+    if (matchedVersion) {
+      return matchedVersion
     }
   }
 

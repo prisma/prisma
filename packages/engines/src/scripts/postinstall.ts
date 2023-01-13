@@ -63,7 +63,6 @@ function cleanupLockFile() {
 
 main().catch((e) => debug(e))
 
-// if we are in a Now context, ensure that `prisma generate` is in the postinstall hook
 process.on('beforeExit', () => {
   cleanupLockFile()
 })

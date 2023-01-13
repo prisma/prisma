@@ -6,6 +6,7 @@ export type ConnectorType =
   | 'mongodb'
   | 'sqlite'
   | 'postgresql'
+  | 'postgres'
   | 'sqlserver'
   | 'jdbc:sqlserver'
   | 'cockroachdb'

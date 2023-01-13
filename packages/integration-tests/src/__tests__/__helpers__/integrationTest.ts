@@ -1,4 +1,4 @@
-import { IntrospectionEngine } from '@prisma/internals'
+import { MigrateEngine } from '@prisma/migrate'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
 import type { FSJetpack } from 'fs-jetpack/types'
@@ -11,8 +11,6 @@ import { getTestClient } from '../../../../client/src/utils/getTestClient'
 process.setMaxListeners(200)
 
 process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = 'true'
-
-const engine = new IntrospectionEngine()
 
 /**
  * A potentially async value
@@ -254,7 +252,6 @@ export function runtimeIntegrationTest<Client>(input: Input<Client>) {
 }
 
 function afterAllScenarios(kind: string, states: Record<string, ScenarioState>) {
-  engine.stop()
   Object.values(states).forEach(async (state) => {
     // props might be missing if test errors out before they are set.
     if (state.db && state.input.database.close) {
@@ -310,7 +307,11 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     ${datasourceBlock}
   `
 
-  const introspectionResult = await engine.introspect(schemaBase)
+  const engine = new MigrateEngine({
+    projectDir: process.cwd(),
+  })
+  const introspectionResult = await engine.introspect({ schema: schemaBase })
+
   const prismaSchemaPath = ctx.fs.path('schema.prisma')
 
   await fs.writeAsync(prismaSchemaPath, introspectionResult.datamodel)
