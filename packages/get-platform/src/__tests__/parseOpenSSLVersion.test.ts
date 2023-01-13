@@ -38,6 +38,16 @@ describe('parseLibSSLVersion', () => {
       expect: '1.0.x',
     },
     {
+      name: 'libssl 1.0.2k',
+      content: `/lib/libssl.so.1.0.2k`,
+      expect: '1.0.x',
+    },
+    {
+      name: 'libssl 10',
+      content: `/lib/libssl.so.10`,
+      expect: '1.0.x',
+    },
+    {
       name: 'libssl 1.1',
       content: `/lib/libssl.so.1.1`,
       expect: '1.1.x',

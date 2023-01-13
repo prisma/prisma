@@ -377,3 +377,95 @@ test('caches the result', () => {
 
   expect(compute).toHaveBeenCalledTimes(1)
 })
+
+test('allow to shadow a field', () => {
+  const result = {
+    firstName: 'John',
+  }
+
+  const extension = {
+    result: {
+      user: {
+        firstName: {
+          needs: { firstName: true },
+          compute(user) {
+            return `${user.firstName}!`
+          },
+        },
+      },
+    },
+  }
+
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension),
+  })
+  expect(extended).toHaveProperty('firstName', 'John!')
+})
+
+test('allow to shadow a field when select is used', () => {
+  const result = {
+    firstName: 'John',
+  }
+
+  const extension = {
+    result: {
+      user: {
+        firstName: {
+          needs: { firstName: true },
+          compute(user) {
+            return `${user.firstName}!`
+          },
+        },
+      },
+    },
+  }
+
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension),
+    select: { firstName: true },
+  })
+  expect(extended).toHaveProperty('firstName', 'John!')
+})
+
+test('allow to shadow already shadowed field', () => {
+  const result = {
+    firstName: 'John',
+  }
+
+  const extension1 = {
+    result: {
+      user: {
+        firstName: {
+          needs: { firstName: true },
+          compute(user) {
+            return user.firstName.toUpperCase()
+          },
+        },
+      },
+    },
+  }
+
+  const extension2 = {
+    result: {
+      user: {
+        firstName: {
+          needs: { firstName: true },
+          compute(user) {
+            return `${user.firstName}!`
+          },
+        },
+      },
+    },
+  }
+
+  const extended = applyResultExtensions({
+    result,
+    modelName: 'user',
+    extensions: MergedExtensionsList.single(extension1).append(extension2),
+  })
+  expect(extended).toHaveProperty('firstName', 'JOHN!')
+})
