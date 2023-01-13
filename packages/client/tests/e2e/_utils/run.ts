@@ -23,6 +23,10 @@ async function main() {
 
   $.verbose = args['--verbose'] ?? false
 
+  if ($.verbose === true) {
+    await $`docker -v`
+  }
+
   console.log('🎠 Preparing e2e tests')
   // we first get all the paths we are going to need to run e2e tests
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'prisma-build'))

@@ -2,8 +2,6 @@ services:
   test:
     build:
       dockerfile: ./standard.dockerfile
-      args:
-        - NAME=_example
     volumes:
       - ../:/ecosystem
       - ../../../:/client
