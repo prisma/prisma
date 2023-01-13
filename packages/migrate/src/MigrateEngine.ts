@@ -165,12 +165,13 @@ export class MigrateEngine {
     schema,
     force = false,
     compositeTypeDepth = -1, // cannot be undefined
+    schemas,
   }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
     this.latestSchema = schema
 
     try {
       const introspectResult = await this.runCommand(
-        this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }),
+        this.getRPCPayload('introspect', { schema, force, compositeTypeDepth, schemas }),
       )
       return introspectResult
     } finally {

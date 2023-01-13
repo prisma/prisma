@@ -147,6 +147,7 @@ export namespace EngineArgs {
 
     // Note: this must be a non-negative integer
     compositeTypeDepth?: number
+    schemas?: string[]
   }
   export interface IntrospectResult {
     datamodel: string
