@@ -234,7 +234,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:e2e
+      - run: pnpm run test:e2e --verbose
         working-directory: packages/client
         env:
           CI: true
