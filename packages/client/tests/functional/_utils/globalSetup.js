@@ -1,7 +1,7 @@
 'use strict'
 const glob = require('globby')
 const fs = require('fs-extra')
-const { setupQueryEngine } = require('../../commonUtils/setupQueryEngine')
+const { setupQueryEngine } = require('../../_utils/setupQueryEngine')
 
 module.exports = async () => {
   await setupQueryEngine()
