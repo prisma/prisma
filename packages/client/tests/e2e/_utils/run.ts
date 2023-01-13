@@ -1,11 +1,30 @@
+import { arg } from '@prisma/internals'
 import fs from 'fs/promises'
 import os from 'os'
 import path from 'path'
 import { $ } from 'zx'
 
+const args = arg(
+  process.argv.slice(2),
+  {
+    '--verbose': Boolean,
+    // also build cli and client packages
+    '--build': Boolean,
+  },
+  true,
+  true,
+)
+
 async function main() {
-  console.log('🎠 Preparing ecosystem tests')
-  // we first get all the paths we are going to need to run ecosystem
+  if (args instanceof Error) {
+    console.log(args.message)
+    process.exit(1)
+  }
+
+  $.verbose = args['--verbose'] ?? false
+
+  console.log('🎠 Preparing e2e tests')
+  // we first get all the paths we are going to need to run e2e tests
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'prisma-build'))
   const cliPkgPath = path.join(__dirname, '..', '..', '..', '..', 'cli')
   const clientPkgPath = path.join(__dirname, '..', '..', '..', '..', 'client')
@@ -16,15 +35,15 @@ async function main() {
   const clientPkgJson = require(clientPkgJsonPath)
 
   // this process will need to modify some package.json, we save copies
-  await $`cd ${tmpDir} && cp ${cliPkgJsonPath} cli.package.json`.quiet()
-  await $`cd ${tmpDir} && cp ${clientPkgJsonPath} client.package.json`.quiet()
-  await $`cd ${tmpDir} && cp ${clientRuntimeDtsPath} client.runtime.d.ts`.quiet()
+  await $`cd ${tmpDir} && cp ${cliPkgJsonPath} cli.package.json`
+  await $`cd ${tmpDir} && cp ${clientPkgJsonPath} client.package.json`
+  await $`cd ${tmpDir} && cp ${clientRuntimeDtsPath} client.runtime.d.ts`
 
   // we provide a function that can revert modified package.json back
   const restoreOriginal = async () => {
-    await $`cd ${tmpDir} && cp cli.package.json ${cliPkgJsonPath}`.quiet()
-    await $`cd ${tmpDir} && cp client.package.json ${clientPkgJsonPath}`.quiet()
-    await $`cd ${tmpDir} && cp client.runtime.d.ts ${clientRuntimeDtsPath}`.quiet()
+    await $`cd ${tmpDir} && cp cli.package.json ${cliPkgJsonPath}`
+    await $`cd ${tmpDir} && cp client.package.json ${clientPkgJsonPath}`
+    await $`cd ${tmpDir} && cp client.runtime.d.ts ${clientRuntimeDtsPath}`
   }
 
   // if process is killed by hand, ensure that package.json is restored
@@ -43,9 +62,8 @@ async function main() {
 
   try {
     console.log('📦 Packing package tarballs')
-    // pack package's tarballs while actually skip the compilation via ECOSYSTEM
-    await $`cd ${cliPkgPath} && ECOSYSTEM=true pnpm pack --pack-destination ${__dirname}/../`.quiet()
-    await $`cd ${clientPkgPath} && ECOSYSTEM=true pnpm pack --pack-destination ${__dirname}/../`.quiet()
+    await $`cd ${clientPkgPath} && BUILD=${!!args['--build']} pnpm pack --pack-destination ${__dirname}/../`
+    await $`cd ${cliPkgPath} && BUILD=${!!args['--build']} pnpm pack --pack-destination ${__dirname}/../`
   } catch (e) {
     console.log(e.message)
     console.log('🛑 Failed to pack one or more of the packages')
@@ -55,13 +73,14 @@ async function main() {
   }
 
   console.log('🐳 Starting tests in docker')
-  // tarball was created, ready to send it to docker and begin ecosystem tests
-  await $`docker compose -f ${__dirname}/docker-compose.yml build`.quiet()
-  await $`docker compose -f ${__dirname}/docker-compose.yml down`.quiet()
-  await $`docker compose -f ${__dirname}/docker-compose.yml up`.quiet()
+  // tarball was created, ready to send it to docker and begin e2e tests
+  const testNames = args._.join(' ')
+  await $`docker compose -f ${__dirname}/docker-compose.yml down`
+  await $`docker compose -f ${__dirname}/docker-compose.yml build ${testNames}`
+  await $`docker compose -f ${__dirname}/docker-compose.yml up ${testNames}`
 
   // let the tests run and gather a list of logs for containers that have failed
-  const findErrors = await $`find "$(pwd)" -not -name .logs.0.txt -name .logs.*.txt`.quiet()
+  const findErrors = await $`find "$(pwd)" -not -name .logs.0.txt -name .logs.*.txt`
   const errors = findErrors.stdout.split('\n').filter((v) => v.length > 0)
   if (errors.length > 0) {
     console.log(`🛑 ${errors.length} tests failed with`, errors)
@@ -70,4 +89,7 @@ async function main() {
   }
 }
 
-void main()
+void main().catch((e) => {
+  console.log(e)
+  process.exit(1)
+})

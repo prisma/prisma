@@ -148,7 +148,7 @@ export async function build(options: BuildOptions[]) {
   // When we trigger pnpm pack we actually don't want to build again to go faster.
   // We re-use what has been already build; and also implies you ran pnpm run watch/dev/build before hand.
   // In the future, I think I'll enable a full build + packaging mode to be much closer to reality, this could be done on CI.
-  if (process.env.ECOSYSTEM === 'true') return
+  if (process.env.BUILD === 'false') return
 
   void transduce.async(options, dependencyCheck)
 
