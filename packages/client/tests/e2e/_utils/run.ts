@@ -58,7 +58,6 @@ async function main() {
   await fs.writeFile(clientPkgJsonPath, JSON.stringify(clientPkgJson, null, 2))
   // this is to avoid bundling types and locally link directly to the sources
   await fs.writeFile(clientRuntimeDtsPath, `export * from '/client/src/runtime/index'`)
-  // TODO: have a fast mode (this one) and a full mode with type bundling
 
   try {
     console.log('📦 Packing package tarballs')
