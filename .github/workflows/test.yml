@@ -228,6 +228,12 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
+      - run: bash .github/workflows/scripts/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
       - run: pnpm run test:e2e
         working-directory: packages/client
         env:
