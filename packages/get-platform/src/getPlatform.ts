@@ -179,10 +179,10 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
     .otherwise(({ distro, arch }) => {
       /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
       debug(`Don't know any platform-specific paths for "${distro}" on ${arch}`)
-      return undefined
+      return []
     })
 
-  const libsslSpecificCommands = (libsslSpecificPaths || []).map((path) => `ls ${path} | grep libssl.so`)
+  const libsslSpecificCommands = libsslSpecificPaths.map((path) => `ls ${path} | grep libssl.so`)
   const libsslFilenameFromSpecificPath: string | undefined = await getFirstSuccessfulExec(libsslSpecificCommands)
 
   if (libsslFilenameFromSpecificPath) {
@@ -196,7 +196,7 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
 
   debug('Falling back to "ldconfig" and other generic paths')
   const libsslFilename: string | undefined = await getFirstSuccessfulExec([
-    'ldconfig -p | sed "s/.*=>s*//" | sed "s/.*///" | grep ssl',
+    'ldconfig -p | sed "s/.*=>s*//" | sed "s/.*///" | grep ssl | sort',
     'ls /lib64 | grep ssl',
     'ls /usr/lib64 | grep ssl',
   ])
