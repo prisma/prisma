@@ -47,4 +47,3 @@ pnpm run test
 # be dropped after memory tests, which in turn will fail subsequent tests.  We
 # should fix it in a similar way we did for functional tests, eventually.
 pnpm run --filter "@prisma/client" test:memory
-pnpm run --filter "@prisma/client" test:e2e

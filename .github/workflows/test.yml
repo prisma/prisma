@@ -198,6 +198,45 @@ jobs:
         working-directory: packages/client
 
   #
+  # CLIENT test:e2e
+  #
+  client-e2e:
+    timeout-minutes: 15
+    runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [16]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Not currently needed, but we might need it in the future
+      # - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+
+      - run: pnpm run test:e2e
+        working-directory: packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          NODE_OPTIONS: '--max-old-space-size=8096'
+
+  #
   # CLIENT (without types test)
   #
   client:
