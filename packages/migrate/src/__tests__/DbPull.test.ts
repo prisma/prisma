@@ -921,14 +921,8 @@ describe('postgresql-multi-schema', () => {
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-      P1012
-
       The preview feature \`multiSchema\` must be enabled before using --schemas command line parameter.
 
-      Introspection failed as your current Prisma schema file is invalid
-
-      Please fix your current schema manually (using either prisma validate or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
-      Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
