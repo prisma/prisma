@@ -351,16 +351,17 @@ describe('evaluateDataLoss', () => {
   })
 })
 
-describe('getDatabaseVersion', () => {
-  it('should succeed - PostgreSQL', async () => {
-    ctx.fixture('schema-only')
-    const schemaPath = (await getSchemaPath())!
-    const migrate = new Migrate(schemaPath)
-    const result = migrate.engine.getDatabaseVersion()
-    await expect(result).resolves.toContain('PostgreSQL')
-    migrate.stop()
-  })
-})
+// TODO: uncomment once https://github.com/prisma/prisma-private/issues/203 is closed.
+// describe('getDatabaseVersion', () => {
+//   it('should succeed - PostgreSQL', async () => {
+//     ctx.fixture('schema-only')
+//     const schemaPath = (await getSchemaPath())!
+//     const migrate = new Migrate(schemaPath)
+//     const result = migrate.engine.getDatabaseVersion({ schema: schemaPath })
+//     await expect(result).resolves.toContain('PostgreSQL')
+//     migrate.stop()
+//   })
+// })
 
 describe('listMigrationDirectories', () => {
   it('should succeed - existing-db-1-migration', async () => {

@@ -6,13 +6,13 @@ import fs from 'fs-jetpack'
 import path from 'path'
 import prompt from 'prompts'
 
+import { DbExecute } from '../commands/DbExecute'
 import { MigrateDev } from '../commands/MigrateDev'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
-import { DbExecute } from '../commands/DbExecute'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)

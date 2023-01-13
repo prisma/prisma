@@ -12,7 +12,6 @@ import {
   getSchema,
   getSchemaPath,
   HelpError,
-  IntrospectionEngine,
   IntrospectionSchemaVersion,
   IntrospectionWarnings,
   link,
@@ -24,6 +23,7 @@ import fs from 'fs'
 import path from 'path'
 import { match } from 'ts-pattern'
 
+import { MigrateEngine } from '../MigrateEngine'
 import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
@@ -56,6 +56,7 @@ ${chalk.bold('Options')}
                 --schema   Custom path to your Prisma schema
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
+               --schemas   Specify the database schemas to introspect. This overrides the schemas defined in the datasource block of your Prisma schema.
 
 ${chalk.bold('Examples')}
 
@@ -95,6 +96,7 @@ Set composite types introspection depth to 2 levels
       '--url': String,
       '--print': Boolean,
       '--schema': String,
+      '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
       // deprecated
@@ -180,12 +182,18 @@ Set composite types introspection depth to 2 levels
           const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
           if (input.url) {
-            const providerFromSchema = firstDatasource?.provider
+            let providerFromSchema = firstDatasource?.provider
+            // Both postgres and postgresql are valid provider
+            // We need to remove the alias for the error logic below
+            if (providerFromSchema === 'postgres') {
+              providerFromSchema = 'postgresql'
+            }
+
             // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
             // TODO: better error handling with better error message
             // Related https://github.com/prisma/prisma/issues/14732
             const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
-            const schema = `${this.urlToDatasource(input.url, providerFromSchema)}\n${removeDatasource(rawSchema)}`
+            const schema = `${this.urlToDatasource(input.url, providerFromSchema)}\n\n${removeDatasource(rawSchema)}`
 
             // if providers are different the engine would return a misleading error
             // So we check here and return a better error
@@ -233,8 +241,8 @@ Set composite types introspection depth to 2 levels
       )
       .run()
 
-    // Re-Introspection is not supported on MongoDB
     if (schemaPath) {
+      // Re-Introspection is not supported on MongoDB
       const schema = await getSchema(args['--schema'])
 
       const modelRegex = /\s*model\s*(\w+)\s*{/
@@ -252,8 +260,9 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    const engine = new IntrospectionEngine({
-      cwd: schemaPath ? path.dirname(schemaPath) : undefined,
+    const engine = new MigrateEngine({
+      projectDir: schemaPath ? path.dirname(schemaPath) : process.cwd(),
+      schemaPath: schemaPath ?? undefined,
     })
 
     const basedOn =
@@ -267,7 +276,12 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     let introspectionWarnings: IntrospectionWarnings[]
     let introspectionSchemaVersion: IntrospectionSchemaVersion
     try {
-      const introspectionResult = await engine.introspect(schema, args['--force'], args['--composite-type-depth'])
+      const introspectionResult = await engine.introspect({
+        schema,
+        force: args['--force'],
+        compositeTypeDepth: args['--composite-type-depth'],
+        schemas: args['--schemas']?.split(','),
+      })
 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
@@ -276,36 +290,63 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       debug(`Introspection Schema Version: ${introspectionResult.version}`)
     } catch (e: any) {
       introspectionSpinner.failure()
-      if (e.code === 'P4001') {
-        if (introspectionSchema.trim() === '') {
-          throw new Error(`\n${chalk.red.bold('P4001 ')}${chalk.red('The introspected database was empty:')} ${
-            url ? chalk.underline(url) : ''
-          }
+
+      /**
+       * Human-friendly error handling based on:
+       * https://www.prisma.io/docs/reference/api-reference/error-reference
+       */
+
+      if (e.code === 'P4001' && introspectionSchema.trim() === '') {
+        /* P4001: The introspected database was empty */
+        throw new Error(`\n${chalk.red.bold(`${e.code} `)}${chalk.red('The introspected database was empty:')} ${
+          url ? chalk.underline(url) : ''
+        }
 
 ${chalk.bold('prisma db pull')} could not create any models in your ${chalk.bold(
-            'schema.prisma',
-          )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
-            getCommandWithExecutor('prisma generate'),
-          )} command.
+          'schema.prisma',
+        )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
+          getCommandWithExecutor('prisma generate'),
+        )} command.
 
 ${chalk.bold('To fix this, you have two options:')}
 
 - manually create a table in your database.
 - make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold(
-            'schema.prisma',
-          )} points to a database that is not empty (it must contain at least one table).
+          'schema.prisma',
+        )} points to a database that is not empty (it must contain at least one table).
 
 Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again. 
 `)
+      } else if (e.code === 'P1003') {
+        /* P1003: Database does not exist */
+        throw new Error(`\n${chalk.red.bold(`${e.code} `)}${chalk.red('The introspected database does not exist:')} ${
+          url ? chalk.underline(url) : ''
         }
+
+${chalk.bold('prisma db pull')} could not create any models in your ${chalk.bold(
+          'schema.prisma',
+        )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
+          getCommandWithExecutor('prisma generate'),
+        )} command.
+
+${chalk.bold('To fix this, you have two options:')}
+
+- manually create a database.
+- make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold(
+          'schema.prisma',
+        )} points to an existing database.
+
+Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again. 
+`)
       } else if (e.code === 'P1012') {
-        // Schema Parsing Error
+        /* P1012: Schema parsing error */
         console.info() // empty line
 
         // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
         // '--url' argument is different than the one written in the schema.prisma file.
         // We should throw another error earlier in case the URL protocol is not compatible with the schema provider.
-        throw new Error(`${chalk.red(`${e.code}`)} Introspection failed as your current Prisma schema file is invalid
+        throw new Error(`${chalk.red(`${e.message}`)}
+Introspection failed as your current Prisma schema file is invalid
 
 Please fix your current schema manually (using either ${chalk.green(
           getCommandWithExecutor('prisma validate'),
@@ -382,8 +423,6 @@ Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upg
       ${chalk.keyword('orange')(introspectionWarningsMessage)}
 ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }
-
-    engine.stop()
 
     return ''
   }

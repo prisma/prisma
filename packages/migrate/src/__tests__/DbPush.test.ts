@@ -190,7 +190,7 @@ describe('push', () => {
       Push cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('--accept-data-loss flag', async () => {
@@ -267,7 +267,7 @@ describe('push', () => {
       Push cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('unexecutable - --force-reset should succeed and print a log', async () => {
@@ -393,9 +393,9 @@ describe('postgresql-multi-schema', () => {
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       Prisma schema loaded from schema.prisma
-      Datasource "db": postgres database "tests-migrate-db-push-postgresql-multischema", schemas "base, transactional" at "localhost:5432"
+      Datasource "db": PostgreSQL database "tests-migrate-db-push-postgresql-multischema", schemas "base, transactional" at "localhost:5432"
 
-      The postgres database "tests-migrate-db-push-postgresql-multischema" schemas "base, transactional" at "localhost:5432" were successfully reset.
+      The PostgreSQL database "tests-migrate-db-push-postgresql-multischema" schemas "base, transactional" at "localhost:5432" were successfully reset.
 
       Your database is now in sync with your Prisma schema. Done in XXXms
     `)
@@ -492,7 +492,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () =
       Your database indexes are now in sync with your Prisma schema. Done in XXXms
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('--accept-data-loss flag', async () => {
