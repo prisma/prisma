@@ -246,43 +246,35 @@ function handleIndividualError(error: Error): void {
 
 // macOS
 path.join(__dirname, '../../engines/query-engine-darwin')
-path.join(__dirname, '../../engines/introspection-engine-darwin')
 path.join(__dirname, '../../engines/migration-engine-darwin')
 path.join(__dirname, '../../engines/prisma-fmt-darwin')
 // Windows
 path.join(__dirname, '../../engines/query-engine-windows.exe')
-path.join(__dirname, '../../engines/introspection-engine-windows.exe')
 path.join(__dirname, '../../engines/migration-engine-windows.exe')
 path.join(__dirname, '../../engines/prisma-fmt-windows.exe')
 
 // Debian openssl-1.0.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.0.x')
 path.join(__dirname, '../../engines/migration-engine-debian-openssl-1.0.x')
 path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.0.x')
 // Debian openssl-1.1.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.1.x')
 path.join(__dirname, '../../engines/migration-engine-debian-openssl-1.1.x')
 path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.1.x')
 // Debian openssl-3.0.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-3.0.x')
-path.join(__dirname, '../../engines/introspection-engine-debian-openssl-3.0.x')
 path.join(__dirname, '../../engines/migration-engine-debian-openssl-3.0.x')
 path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-3.0.x')
 
 // Red Hat Enterprise Linux openssl-1.0.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../../engines/migration-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.0.x')
 // Red Hat Enterprise Linux openssl-1.1.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.1.x')
 path.join(__dirname, '../../engines/migration-engine-rhel-openssl-1.1.x')
 path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.1.x')
 // Red Hat Enterprise Linux openssl-3.0.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-3.0.x')
-path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-3.0.x')
 path.join(__dirname, '../../engines/migration-engine-rhel-openssl-3.0.x')
 path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-3.0.x')

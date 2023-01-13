@@ -25,7 +25,6 @@ export const engineEnvVarMap = {
   [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
   [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
   [BinaryType.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-  [BinaryType.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
   [BinaryType.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
 export { BinaryType }

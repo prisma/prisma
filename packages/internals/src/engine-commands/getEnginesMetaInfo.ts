@@ -27,7 +27,6 @@ export type EngineInfo = {
 export type BinaryMatrix<T> = {
   'query-engine': T
   'migration-engine': T
-  'introspection-engine': T
   'format-binary': T
 }
 
@@ -44,10 +43,6 @@ export async function getEnginesMetaInfo() {
     {
       name: 'migration-engine' as const,
       type: BinaryType.migrationEngine,
-    },
-    {
-      name: 'introspection-engine' as const,
-      type: BinaryType.introspectionEngine,
     },
     {
       name: 'format-binary' as const,
@@ -73,7 +68,6 @@ export async function getEnginesMetaInfo() {
   const engineMetaInfo: {
     'query-engine': string
     'migration-engine': string
-    'introspection-engine': string
     'format-binary': string
   }[] = engineDataAcc.map((arr) => arr[0])
 

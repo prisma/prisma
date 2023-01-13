@@ -56,7 +56,7 @@ export function getAllUrls(branch: string, commit: string): string[] {
   ]
   const relevantPlatforms = platforms.filter((p) => !excludedPlatforms.includes(p))
   for (const platform of relevantPlatforms) {
-    for (const engine of ['query-engine', 'introspection-engine', 'migration-engine', 'prisma-fmt']) {
+    for (const engine of ['query-engine', 'migration-engine', 'prisma-fmt']) {
       for (const extension of ['.gz', '.gz.sha256', '.gz.sig', '.sig', '.sha256']) {
         const downloadUrl = getDownloadUrl(branch, commit, platform, engine, extension)
         urls.push(downloadUrl)
