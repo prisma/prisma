@@ -54,6 +54,7 @@ export function wrapAllExtensionCallbacks(name: string | undefined, object: Reco
   if (!object) {
     return object
   }
+
   return mapObjectValues(object, (prop) =>
     typeof prop === 'function' ? wrapExtensionCallback(name, prop as (...args: unknown[]) => unknown) : prop,
   )
