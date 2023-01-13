@@ -85,11 +85,13 @@ async function main() {
 
   // let the tests run and gather a list of logs for containers that have failed
   const findErrors = await $`find "$(pwd)" -not -name .logs.0.txt -name .logs.*.txt`
+  const findSuccess = await $`find "$(pwd)" -name .logs.0.txt`
   const errors = findErrors.stdout.split('\n').filter((v) => v.length > 0)
+  const success = findSuccess.stdout.split('\n').filter((v) => v.length > 0)
   if (errors.length > 0) {
     console.log(`🛑 ${errors.length} tests failed with`, errors)
   } else {
-    console.log(`✅ All tests passed`)
+    console.log(`✅ All ${success.length} tests passed`)
   }
 }
 
