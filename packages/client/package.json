@@ -38,7 +38,7 @@
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --verbose",
-    "test:ecosystem": "node -r esbuild-register tests/ecosystem/_utils/run.ts",
+    "test:e2e": "node -r esbuild-register tests/e2e/_utils/run.ts",
     "test:functional": "node -r esbuild-register helpers/functional-test/run-tests.ts",
     "test:memory": "node -r esbuild-register helpers/memory-tests.ts",
     "test:functional:code": "node -r esbuild-register helpers/functional-test/run-tests.ts --no-types",
