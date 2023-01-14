@@ -10,6 +10,7 @@
   "license": "ISC",
   "devDependencies": {
     "@prisma/client": "../prisma-client-0.0.0.tgz",
+    "@types/node": "16",
     "prisma": "../prisma-0.0.0.tgz"
   }
 }

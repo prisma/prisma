@@ -1,0 +1,553 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["clientExtensions"]
+}
+
+datasource db {
+  provider   = "sqlite"
+  url        = "file:./dev.db"
+
+}
+
+model ModelA {
+  id String @id @default(cuid())
+  modelB ModelB[] @relation()
+}
+
+model ModelB {
+  id String @id @default(cuid())
+  modelA ModelA @relation(fields: [modelAId], references: [id], onDelete: Cascade)
+  modelAId String @unique
+  modelC ModelC[] @relation()
+}
+
+model ModelC {
+  id String @id @default(cuid())
+  modelB ModelB @relation(fields: [modelBId], references: [id], onDelete: Cascade)
+  modelBId String @unique
+  modelD ModelD[] @relation()
+}
+
+model ModelD {
+  id String @id @default(cuid())
+  modelC ModelC @relation(fields: [modelCId], references: [id], onDelete: Cascade)
+  modelCId String @unique
+  modelE ModelE[] @relation()
+}
+
+model ModelE {
+  id String @id @default(cuid())
+  modelD ModelD @relation(fields: [modelDId], references: [id], onDelete: Cascade)
+  modelDId String @unique
+  modelF ModelF[] @relation()
+}
+
+model ModelF {
+  id String @id @default(cuid())
+  modelE ModelE @relation(fields: [modelEId], references: [id], onDelete: Cascade)
+  modelEId String @unique
+  modelG ModelG[] @relation()
+}
+
+model ModelG {
+  id String @id @default(cuid())
+  modelF ModelF @relation(fields: [modelFId], references: [id], onDelete: Cascade)
+  modelFId String @unique
+  modelH ModelH[] @relation()
+}
+
+model ModelH {
+  id String @id @default(cuid())
+  modelG ModelG @relation(fields: [modelGId], references: [id], onDelete: Cascade)
+  modelGId String @unique
+  modelI ModelI[] @relation()
+}
+
+model ModelI {
+  id String @id @default(cuid())
+  modelH ModelH @relation(fields: [modelHId], references: [id], onDelete: Cascade)
+  modelHId String @unique
+  modelJ ModelJ[] @relation()
+}
+
+model ModelJ {
+  id String @id @default(cuid())
+  modelI ModelI @relation(fields: [modelIId], references: [id], onDelete: Cascade)
+  modelIId String @unique
+  modelK ModelK[] @relation()
+}
+
+model ModelK {
+  id String @id @default(cuid())
+  modelJ ModelJ @relation(fields: [modelJId], references: [id], onDelete: Cascade)
+  modelJId String @unique
+  modelL ModelL[] @relation()
+}
+
+model ModelL {
+  id String @id @default(cuid())
+  modelK ModelK @relation(fields: [modelKId], references: [id], onDelete: Cascade)
+  modelKId String @unique
+  modelM ModelM[] @relation()
+}
+
+model ModelM {
+  id String @id @default(cuid())
+  modelL ModelL @relation(fields: [modelLId], references: [id], onDelete: Cascade)
+  modelLId String @unique
+  modelN ModelN[] @relation()
+}
+
+model ModelN {
+  id String @id @default(cuid())
+  modelM ModelM @relation(fields: [modelMId], references: [id], onDelete: Cascade)
+  modelMId String @unique
+  modelO ModelO[] @relation()
+}
+
+model ModelO {
+  id String @id @default(cuid())
+  modelN ModelN @relation(fields: [modelNId], references: [id], onDelete: Cascade)
+  modelNId String @unique
+  modelP ModelP[] @relation()
+}
+
+model ModelP {
+  id String @id @default(cuid())
+  modelO ModelO @relation(fields: [modelOId], references: [id], onDelete: Cascade)
+  modelOId String @unique
+  modelQ ModelQ[] @relation()
+}
+
+model ModelQ {
+  id String @id @default(cuid())
+  modelP ModelP @relation(fields: [modelPId], references: [id], onDelete: Cascade)
+  modelPId String @unique
+  modelR ModelR[] @relation()
+}
+
+model ModelR {
+  id String @id @default(cuid())
+  modelQ ModelQ @relation(fields: [modelQId], references: [id], onDelete: Cascade)
+  modelQId String @unique
+  modelS ModelS[] @relation()
+}
+
+model ModelS {
+  id String @id @default(cuid())
+  modelR ModelR @relation(fields: [modelRId], references: [id], onDelete: Cascade)
+  modelRId String @unique
+  modelT ModelT[] @relation()
+}
+
+model ModelT {
+  id String @id @default(cuid())
+  modelS ModelS @relation(fields: [modelSId], references: [id], onDelete: Cascade)
+  modelSId String @unique
+  modelU ModelU[] @relation()
+}
+
+model ModelU {
+  id String @id @default(cuid())
+  modelT ModelT @relation(fields: [modelTId], references: [id], onDelete: Cascade)
+  modelTId String @unique
+  modelV ModelV[] @relation()
+}
+
+model ModelV {
+  id String @id @default(cuid())
+  modelU ModelU @relation(fields: [modelUId], references: [id], onDelete: Cascade)
+  modelUId String @unique
+  modelW ModelW[] @relation()
+}
+
+model ModelW {
+  id String @id @default(cuid())
+  modelV ModelV @relation(fields: [modelVId], references: [id], onDelete: Cascade)
+  modelVId String @unique
+  modelX ModelX[] @relation()
+}
+
+model ModelX {
+  id String @id @default(cuid())
+  modelW ModelW @relation(fields: [modelWId], references: [id], onDelete: Cascade)
+  modelWId String @unique
+  modelY ModelY[] @relation()
+}
+
+model ModelY {
+  id String @id @default(cuid())
+  modelX ModelX @relation(fields: [modelXId], references: [id], onDelete: Cascade)
+  modelXId String @unique
+  modelZ ModelZ[] @relation()
+}
+
+model ModelZ {
+  id String @id @default(cuid())
+  modelY ModelY @relation(fields: [modelYId], references: [id], onDelete: Cascade)
+  modelYId String @unique
+  modelA1 ModelA1[] @relation()
+}
+
+model ModelA1 {
+  id String @id @default(cuid())
+  modelZ ModelZ @relation(fields: [modelZId], references: [id], onDelete: Cascade)
+  modelZId String @unique
+  modelB1 ModelB1[] @relation()
+}
+
+model ModelB1 {
+  id String @id @default(cuid())
+  modelA1 ModelA1 @relation(fields: [modelA1Id], references: [id], onDelete: Cascade)
+  modelA1Id String @unique
+  modelC1 ModelC1[] @relation()
+}
+
+model ModelC1 {
+  id String @id @default(cuid())
+  modelB1 ModelB1 @relation(fields: [modelB1Id], references: [id], onDelete: Cascade)
+  modelB1Id String @unique
+  modelD1 ModelD1[] @relation()
+}
+
+model ModelD1 {
+  id String @id @default(cuid())
+  modelC1 ModelC1 @relation(fields: [modelC1Id], references: [id], onDelete: Cascade)
+  modelC1Id String @unique
+  modelE1 ModelE1[] @relation()
+}
+
+model ModelE1 {
+  id String @id @default(cuid())
+  modelD1 ModelD1 @relation(fields: [modelD1Id], references: [id], onDelete: Cascade)
+  modelD1Id String @unique
+  modelF1 ModelF1[] @relation()
+}
+
+model ModelF1 {
+  id String @id @default(cuid())
+  modelE1 ModelE1 @relation(fields: [modelE1Id], references: [id], onDelete: Cascade)
+  modelE1Id String @unique
+  modelG1 ModelG1[] @relation()
+}
+
+model ModelG1 {
+  id String @id @default(cuid())
+  modelF1 ModelF1 @relation(fields: [modelF1Id], references: [id], onDelete: Cascade)
+  modelF1Id String @unique
+  modelH1 ModelH1[] @relation()
+}
+
+model ModelH1 {
+  id String @id @default(cuid())
+  modelG1 ModelG1 @relation(fields: [modelG1Id], references: [id], onDelete: Cascade)
+  modelG1Id String @unique
+  modelI1 ModelI1[] @relation()
+}
+
+model ModelI1 {
+  id String @id @default(cuid())
+  modelH1 ModelH1 @relation(fields: [modelH1Id], references: [id], onDelete: Cascade)
+  modelH1Id String @unique
+  modelJ1 ModelJ1[] @relation()
+}
+
+model ModelJ1 {
+  id String @id @default(cuid())
+  modelI1 ModelI1 @relation(fields: [modelI1Id], references: [id], onDelete: Cascade)
+  modelI1Id String @unique
+  modelK1 ModelK1[] @relation()
+}
+
+model ModelK1 {
+  id String @id @default(cuid())
+  modelJ1 ModelJ1 @relation(fields: [modelJ1Id], references: [id], onDelete: Cascade)
+  modelJ1Id String @unique
+  modelL1 ModelL1[] @relation()
+}
+
+model ModelL1 {
+  id String @id @default(cuid())
+  modelK1 ModelK1 @relation(fields: [modelK1Id], references: [id], onDelete: Cascade)
+  modelK1Id String @unique
+  modelM1 ModelM1[] @relation()
+}
+
+model ModelM1 {
+  id String @id @default(cuid())
+  modelL1 ModelL1 @relation(fields: [modelL1Id], references: [id], onDelete: Cascade)
+  modelL1Id String @unique
+  modelN1 ModelN1[] @relation()
+}
+
+model ModelN1 {
+  id String @id @default(cuid())
+  modelM1 ModelM1 @relation(fields: [modelM1Id], references: [id], onDelete: Cascade)
+  modelM1Id String @unique
+  modelO1 ModelO1[] @relation()
+}
+
+model ModelO1 {
+  id String @id @default(cuid())
+  modelN1 ModelN1 @relation(fields: [modelN1Id], references: [id], onDelete: Cascade)
+  modelN1Id String @unique
+  modelP1 ModelP1[] @relation()
+}
+
+model ModelP1 {
+  id String @id @default(cuid())
+  modelO1 ModelO1 @relation(fields: [modelO1Id], references: [id], onDelete: Cascade)
+  modelO1Id String @unique
+  modelQ1 ModelQ1[] @relation()
+}
+
+model ModelQ1 {
+  id String @id @default(cuid())
+  modelP1 ModelP1 @relation(fields: [modelP1Id], references: [id], onDelete: Cascade)
+  modelP1Id String @unique
+  modelR1 ModelR1[] @relation()
+}
+
+model ModelR1 {
+  id String @id @default(cuid())
+  modelQ1 ModelQ1 @relation(fields: [modelQ1Id], references: [id], onDelete: Cascade)
+  modelQ1Id String @unique
+  modelS1 ModelS1[] @relation()
+}
+
+model ModelS1 {
+  id String @id @default(cuid())
+  modelR1 ModelR1 @relation(fields: [modelR1Id], references: [id], onDelete: Cascade)
+  modelR1Id String @unique
+  modelT1 ModelT1[] @relation()
+}
+
+model ModelT1 {
+  id String @id @default(cuid())
+  modelS1 ModelS1 @relation(fields: [modelS1Id], references: [id], onDelete: Cascade)
+  modelS1Id String @unique
+  modelU1 ModelU1[] @relation()
+}
+
+model ModelU1 {
+  id String @id @default(cuid())
+  modelT1 ModelT1 @relation(fields: [modelT1Id], references: [id], onDelete: Cascade)
+  modelT1Id String @unique
+  modelV1 ModelV1[] @relation()
+}
+
+model ModelV1 {
+  id String @id @default(cuid())
+  modelU1 ModelU1 @relation(fields: [modelU1Id], references: [id], onDelete: Cascade)
+  modelU1Id String @unique
+  modelW1 ModelW1[] @relation()
+}
+
+model ModelW1 {
+  id String @id @default(cuid())
+  modelV1 ModelV1 @relation(fields: [modelV1Id], references: [id], onDelete: Cascade)
+  modelV1Id String @unique
+  modelX1 ModelX1[] @relation()
+}
+
+model ModelX1 {
+  id String @id @default(cuid())
+  modelW1 ModelW1 @relation(fields: [modelW1Id], references: [id], onDelete: Cascade)
+  modelW1Id String @unique
+  modelY1 ModelY1[] @relation()
+}
+
+model ModelY1 {
+  id String @id @default(cuid())
+  modelX1 ModelX1 @relation(fields: [modelX1Id], references: [id], onDelete: Cascade)
+  modelX1Id String @unique
+  modelZ1 ModelZ1[] @relation()
+}
+
+model ModelZ1 {
+  id String @id @default(cuid())
+  modelY1 ModelY1 @relation(fields: [modelY1Id], references: [id], onDelete: Cascade)
+  modelY1Id String @unique
+  modelA2 ModelA2[] @relation() 
+}
+
+model ModelA2 {
+  id String @id @default(cuid())
+  modelZ1 ModelZ1 @relation(fields: [modelZId], references: [id], onDelete: Cascade)
+  modelZId String @unique
+  modelB2 ModelB2[] @relation()
+}
+
+model ModelB2 {
+  id String @id @default(cuid())
+  modelA2 ModelA2 @relation(fields: [modelA2Id], references: [id], onDelete: Cascade)
+  modelA2Id String @unique
+  modelC2 ModelC2[] @relation()
+}
+
+model ModelC2 {
+  id String @id @default(cuid())
+  modelB2 ModelB2 @relation(fields: [modelB2Id], references: [id], onDelete: Cascade)
+  modelB2Id String @unique
+  modelD2 ModelD2[] @relation()
+}
+
+model ModelD2 {
+  id String @id @default(cuid())
+  modelC2 ModelC2 @relation(fields: [modelC2Id], references: [id], onDelete: Cascade)
+  modelC2Id String @unique
+  modelE2 ModelE2[] @relation()
+}
+
+model ModelE2 {
+  id String @id @default(cuid())
+  modelD2 ModelD2 @relation(fields: [modelD2Id], references: [id], onDelete: Cascade)
+  modelD2Id String @unique
+  modelF2 ModelF2[] @relation()
+}
+
+model ModelF2 {
+  id String @id @default(cuid())
+  modelE2 ModelE2 @relation(fields: [modelE2Id], references: [id], onDelete: Cascade)
+  modelE2Id String @unique
+  modelG2 ModelG2[] @relation()
+}
+
+model ModelG2 {
+  id String @id @default(cuid())
+  modelF2 ModelF2 @relation(fields: [modelF2Id], references: [id], onDelete: Cascade)
+  modelF2Id String @unique
+  modelH2 ModelH2[] @relation()
+}
+
+model ModelH2 {
+  id String @id @default(cuid())
+  modelG2 ModelG2 @relation(fields: [modelG2Id], references: [id], onDelete: Cascade)
+  modelG2Id String @unique
+  modelI2 ModelI2[] @relation()
+}
+
+model ModelI2 {
+  id String @id @default(cuid())
+  modelH2 ModelH2 @relation(fields: [modelH2Id], references: [id], onDelete: Cascade)
+  modelH2Id String @unique
+  modelJ2 ModelJ2[] @relation()
+}
+
+model ModelJ2 {
+  id String @id @default(cuid())
+  modelI2 ModelI2 @relation(fields: [modelI2Id], references: [id], onDelete: Cascade)
+  modelI2Id String @unique
+  modelK2 ModelK2[] @relation()
+}
+
+model ModelK2 {
+  id String @id @default(cuid())
+  modelJ2 ModelJ2 @relation(fields: [modelJ2Id], references: [id], onDelete: Cascade)
+  modelJ2Id String @unique
+  modelL2 ModelL2[] @relation()
+}
+
+model ModelL2 {
+  id String @id @default(cuid())
+  modelK2 ModelK2 @relation(fields: [modelK2Id], references: [id], onDelete: Cascade)
+  modelK2Id String @unique
+  modelM2 ModelM2[] @relation()
+}
+
+model ModelM2 {
+  id String @id @default(cuid())
+  modelL2 ModelL2 @relation(fields: [modelL2Id], references: [id], onDelete: Cascade)
+  modelL2Id String @unique
+  modelN2 ModelN2[] @relation()
+}
+
+model ModelN2 {
+  id String @id @default(cuid())
+  modelM2 ModelM2 @relation(fields: [modelM2Id], references: [id], onDelete: Cascade)
+  modelM2Id String @unique
+  modelO2 ModelO2[] @relation()
+}
+
+model ModelO2 {
+  id String @id @default(cuid())
+  modelN2 ModelN2 @relation(fields: [modelN2Id], references: [id], onDelete: Cascade)
+  modelN2Id String @unique
+  modelP2 ModelP2[] @relation()
+}
+
+model ModelP2 {
+  id String @id @default(cuid())
+  modelO2 ModelO2 @relation(fields: [modelO2Id], references: [id], onDelete: Cascade)
+  modelO2Id String @unique
+  modelQ2 ModelQ2[] @relation()
+}
+
+model ModelQ2 {
+  id String @id @default(cuid())
+  modelP2 ModelP2 @relation(fields: [modelP2Id], references: [id], onDelete: Cascade)
+  modelP2Id String @unique
+  modelR2 ModelR2[] @relation()
+}
+
+model ModelR2 {
+  id String @id @default(cuid())
+  modelQ2 ModelQ2 @relation(fields: [modelQ2Id], references: [id], onDelete: Cascade)
+  modelQ2Id String @unique
+  modelS2 ModelS2[] @relation()
+}
+
+model ModelS2 {
+  id String @id @default(cuid())
+  modelR2 ModelR2 @relation(fields: [modelR2Id], references: [id], onDelete: Cascade)
+  modelR2Id String @unique
+  modelT2 ModelT2[] @relation()
+}
+
+model ModelT2 {
+  id String @id @default(cuid())
+  modelS2 ModelS2 @relation(fields: [modelS2Id], references: [id], onDelete: Cascade)
+  modelS2Id String @unique
+  modelU2 ModelU2[] @relation()
+}
+
+model ModelU2 {
+  id String @id @default(cuid())
+  modelT2 ModelT2 @relation(fields: [modelT2Id], references: [id], onDelete: Cascade)
+  modelT2Id String @unique
+  modelV2 ModelV2[] @relation()
+}
+
+model ModelV2 {
+  id String @id @default(cuid())
+  modelU2 ModelU2 @relation(fields: [modelU2Id], references: [id], onDelete: Cascade)
+  modelU2Id String @unique
+  modelW2 ModelW2[] @relation()
+}
+
+model ModelW2 {
+  id String @id @default(cuid())
+  modelV2 ModelV2 @relation(fields: [modelV2Id], references: [id], onDelete: Cascade)
+  modelV2Id String @unique
+  modelX2 ModelX2[] @relation()
+}
+
+model ModelX2 {
+  id String @id @default(cuid())
+  modelW2 ModelW2 @relation(fields: [modelW2Id], references: [id], onDelete: Cascade)
+  modelW2Id String @unique
+  modelY2 ModelY2[] @relation()
+}
+
+model ModelY2 {
+  id String @id @default(cuid())
+  modelX2 ModelX2 @relation(fields: [modelX2Id], references: [id], onDelete: Cascade)
+  modelX2Id String @unique
+  modelZ2 ModelZ2[] @relation()
+}
+
+model ModelZ2 {
+  id String @id @default(cuid())
+  modelY2 ModelY2 @relation(fields: [modelY2Id], references: [id], onDelete: Cascade)
+  modelY2Id String @unique
+}

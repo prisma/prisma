@@ -4,6 +4,6 @@ export type Payload = {
     [ScalarName in string]: unknown
   }
   objects: {
-    [ObjectName in string]: Payload | Payload[] | null
+    [ObjectName in string]: unknown
   }
 }

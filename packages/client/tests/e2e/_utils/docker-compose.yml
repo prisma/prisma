@@ -7,3 +7,10 @@ services:
       service: test
     environment:
       - NAME=example
+
+  16600-tsc-crash-extensions:
+    extends:
+      file: docker-compose-common.yml
+      service: test
+    environment:
+      - NAME=16600-tsc-crash-extensions
