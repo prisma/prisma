@@ -396,14 +396,12 @@ testMatrix.setupTestSuite(() => {
 
     expectTypeOf<typeof data>().toHaveProperty('scalars').toMatchTypeOf<object>()
     expectTypeOf<typeof data>().toHaveProperty('objects').toMatchTypeOf<object>()
-    expectTypeOf<typeof data>().toHaveProperty('kind').toMatchTypeOf<'Payload'>()
     expectTypeOf<typeof data['scalars']>().toHaveProperty('id').toMatchTypeOf<string>()
     expectTypeOf<typeof data['objects']>().toHaveProperty('posts').toMatchTypeOf<object>()
     expectTypeOf<typeof data['objects']['posts']>().toMatchTypeOf<object[]>()
     expectTypeOf<typeof data['objects']['posts'][0]>().toMatchTypeOf<object>()
     expectTypeOf<typeof data['objects']['posts'][0]>().toHaveProperty('scalars').toMatchTypeOf<object>()
     expectTypeOf<typeof data['objects']['posts'][0]>().toHaveProperty('objects').toMatchTypeOf<object>()
-    expectTypeOf<typeof data['objects']['posts'][0]>().toHaveProperty('kind').toMatchTypeOf<'Payload'>()
   })
 
   test('custom method that uses exact for narrowing inputs', () => {
