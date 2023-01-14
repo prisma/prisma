@@ -153,50 +153,41 @@ type GetOpenSSLVersionParams = {
 }
 
 /**
- * On Linux, returns the libssl version excluding the patch version, e.g. "1.1.x".
+ * On Linux, returns the OpenSSL version excluding the patch version, e.g. "1.1.x".
  * Reading the version from the libssl.so file is more reliable than reading it from the openssl binary.
- * Older versions of libssl are preferred, e.g. "1.0.x" over "1.1.x", because of Vercel serverless
- * having different build and runtime environments, with the runtime environment having an old version
- * of libssl, and the build environment having both that old version and a newer version of libssl installed.
- *
  * This function never throws.
  */
 export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOSResult['libssl'] | undefined> {
   const isVercel = process.env.VERCEL === '1'
   debug(`isVercel: ${isVercel}`)
-  debug(`process.env.VERCEL: ${process.env.VERCEL}`)
-  debug(`process.env: ${process.env}`)
 
-  const libsslSpecificPaths = match(args)
+  const libsslVersion: string | undefined = await match(args)
     .with({ distro: 'musl' }, () => {
       /* Linux Alpine */
-      debug('Trying platform-specific paths for "alpine"')
-      return ['/lib/libssl.so.3', '/lib/libssl.so.1.1']
+      return getFirstSuccessfulExec(['ls -l /lib/libssl.so.3', 'ls -l /lib/libssl.so.1.1'])
     })
-    .otherwise(({ distro, arch }) => {
-      /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
-      debug(`Don't know any platform-specific paths for "${distro}" on ${arch}`)
-      return ['/lib64 | grep ssl', '/usr/lib64 | grep ssl']
+    .otherwise(() => {
+      return getFirstSuccessfulExec(['ls -l /lib64 | grep ssl', 'ls -l /usr/lib64 | grep ssl'])
     })
 
-  const libsslSpecificCommands = libsslSpecificPaths.map((path) => `ls ${path}`)
-  const libsslFilenameFromSpecificPath: string | undefined = await getFirstSuccessfulExec(libsslSpecificCommands)
-
-  if (libsslFilenameFromSpecificPath) {
-    debug(`Found libssl.so file using platform-specific paths: ${libsslFilenameFromSpecificPath}`)
-    const libsslVersion = parseLibSSLVersion(libsslFilenameFromSpecificPath)
-    debug(`The parsed libssl version is: ${libsslVersion}`)
-    if (libsslVersion) {
-      return libsslVersion
+  if (libsslVersion) {
+    debug(`libsslVersion found: ${libsslVersion}`)
+    const matchedVersion = parseLibSSLVersion(libsslVersion)
+    if (matchedVersion) {
+      debug(`matchedVersion for libssl found: ${libsslVersion}`)
+      return matchedVersion
     }
   }
 
+  /* Reading the libssl.so version didn't work, fall back to openssl */
   debug(`Couldn't find any version of libssl in the system, falling back to OpenSSL`)
   const openSSLVersion: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
 
   if (openSSLVersion) {
+    debug(`openSSLVersion found: ${openSSLVersion}`)
     const matchedVersion = parseOpenSSLVersion(openSSLVersion)
     if (matchedVersion) {
+      debug(`matchedVersion for OpenSSL found: ${libsslVersion}`)
       return matchedVersion
     }
   }
