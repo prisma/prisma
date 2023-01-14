@@ -15,9 +15,9 @@ services:
     environment:
       - NAME=issues/16600-tsc-crash-extensions
 
-  community-16600-tsc-crash-extensions:
+  community-publish-extensions:
     extends:
       file: docker-compose-common.yml
       service: test
     environment:
-      - NAME=community/16600-tsc-crash-extensions
+      - NAME=community/publish-extensions

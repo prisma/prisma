@@ -6,9 +6,6 @@
     "declaration": true,
     "esModuleInterop": true,
     "strict": true,
-    "skipLibCheck": false,
-    "paths": {
-      "@prisma/client/runtime": ["/client/src/runtime"]
-    }
+    "skipLibCheck": false
   }
 }
