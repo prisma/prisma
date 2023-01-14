@@ -28,14 +28,16 @@ export namespace JsonRPC {
   }
 }
 
-export type Dictionary<T> = { [key: string]: T }
-
 export interface GeneratorConfig {
   name: string
   output: EnvValue | null
   isCustomOutput?: boolean
   provider: EnvValue
-  config: Dictionary<string>
+  config: {
+    /** `output` is a reserved name and always will only be available at `generator.output` directly */
+    output: never
+    [key: string]: string
+  }
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
