@@ -8,8 +8,6 @@ const args = arg(
   process.argv.slice(2),
   {
     '--verbose': Boolean,
-    // do not fully build cli and client packages before packing
-    '--skipBuild': Boolean,
     // a way to cleanup created files that also works on linux
     '--clean': Boolean,
   },
@@ -24,7 +22,6 @@ async function main() {
   }
 
   args['--verbose'] = args['--verbose'] ?? false
-  args['--skipBuild'] = args['--skipBuild'] ?? false
   args['--clean'] = args['--clean'] ?? false
   $.verbose = args['--verbose']
 
@@ -75,15 +72,10 @@ async function main() {
   await fs.writeFile(cliPkgJsonPath, JSON.stringify(cliPkgJson, null, 2))
   await fs.writeFile(clientPkgJsonPath, JSON.stringify(clientPkgJson, null, 2))
 
-  if (args['--skipBuild'] === true) {
-    // this is to avoid bundling types and locally link directly to the sources
-    await fs.writeFile(clientRuntimeDtsPath, `export * from '/client/src/runtime/index'`)
-  }
-
   try {
     console.log('📦 Packing package tarballs')
-    await $`cd ${clientPkgPath} && SKIP_BUILD=${args['--skipBuild']} pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${cliPkgPath} && SKIP_BUILD=${args['--skipBuild']} pnpm pack --pack-destination ${__dirname}/../`
+    await $`cd ${clientPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+    await $`cd ${cliPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
   } catch (e) {
     console.log(e.message)
     console.log('🛑 Failed to pack one or more of the packages')

@@ -8,9 +8,16 @@ services:
     environment:
       - NAME=example
 
-  16600-tsc-crash-extensions:
+  issues-16600-tsc-crash-extensions:
     extends:
       file: docker-compose-common.yml
       service: test
     environment:
-      - NAME=16600-tsc-crash-extensions
+      - NAME=issues/16600-tsc-crash-extensions
+
+  community-16600-tsc-crash-extensions:
+    extends:
+      file: docker-compose-common.yml
+      service: test
+    environment:
+      - NAME=community/16600-tsc-crash-extensions

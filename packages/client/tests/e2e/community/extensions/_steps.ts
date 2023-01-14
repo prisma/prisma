@@ -1,6 +1,6 @@
 import { $ } from 'zx'
 
-import { executeSteps } from '../_utils/executeSteps'
+import { executeSteps } from '../../_utils/executeSteps'
 
 void executeSteps({
   setup: async () => {
@@ -11,8 +11,7 @@ void executeSteps({
   test: async () => {
     await $`ts-node src/index.ts`
     await $`pnpm exec prisma -v`
-    await $`pnpm exec jest`
-    await $`pnpm exec tsc src/index.ts`
+    await $`pnpm exec tsc`
   },
   finish: async () => {
     await $`echo "done"`
