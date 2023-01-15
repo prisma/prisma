@@ -200,7 +200,21 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
 
   debug('Falling back to "ldconfig" and other generic paths')
   const libsslFilename: string | undefined = await getFirstSuccessfulExec([
-    'ldconfig -p | sed "s/.*=>s*//" | sed "s/.*///" | grep ssl | sort',
+    /**
+     * The `ldconfig -p` returns the dynamic linker cache paths, where libssl.so files are likely to be included.
+     * Each line looks like this:
+     * 	libssl.so (libc6,hard-float) => /usr/lib/arm-linux-gnueabihf/libssl.so.1.1
+     * But we're only interested in the filename, so we use sed to remove everything before the `=>` separator,
+     * and then we remove the path and keep only the filename.
+     * The second sed commands uses `|` as a separator because the paths may contain `/`, which would result in the
+     * `unknown option to 's'` error (see https://stackoverflow.com/a/9366940/6174476) - which would silently
+     * fail with error code 0.
+     */
+    'ldconfig -p | sed "s/.*=>s*//" | sed "s|.*/||" | grep ssl | sort',
+
+    /**
+     * Fall back to the rhel-specific paths (although "distro" isn't detected as rhel) when the "ldconfig" command fails.
+     */
     'ls /lib64 | grep ssl',
     'ls /usr/lib64 | grep ssl',
   ])
