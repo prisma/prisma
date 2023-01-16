@@ -8,7 +8,7 @@ on:
 jobs:
   pr_commented:
     name: Identify comment source
-    if: ${{ github.event.issue.pull_request }} && ${{ github.event.issue.state == 'open' }}
+    if: ${{ github.event.issue.pull_request }}
     runs-on: ubuntu-latest
     steps:
       - name: Comment came from Pull Request
