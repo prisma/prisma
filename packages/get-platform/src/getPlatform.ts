@@ -268,7 +268,7 @@ export async function getPlatform(): Promise<Platform> {
 
   // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
   const defaultLibssl = '1.1.x' as const
-  if (libssl === undefined) {
+  if (platform === 'linux' && libssl === undefined) {
     /**
      * Ask the user to install openssl manually, and provide some additional instructions based on the detected Linux distro.
      */
@@ -286,7 +286,7 @@ ${additionalMessage}`)
 
   // sometimes we fail to detect the distro in use, so we default to debian
   const defaultDistro = 'debian' as const
-  if (distro === undefined) {
+  if (platform === 'linux' && distro === undefined) {
     console.warn(
       `Prisma failed to detect the Linux distro in use, and may not work as expected. Defaulting to "${defaultDistro}".`,
     )
