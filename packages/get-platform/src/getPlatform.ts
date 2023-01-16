@@ -351,6 +351,10 @@ ${additionalMessage}`)
     return `${distro}-openssl-${libssl}` as Platform
   }
 
+  if (platform !== 'linux') {
+    console.warn(`Prisma detected unknown OS "${platform}" and may not work as expected. Defaulting to "linux".`)
+  }
+
   // if just OpenSSL is known, fallback to debian with a specific libssl version
   if (libssl) {
     return `${defaultDistro}-openssl-${libssl}`
