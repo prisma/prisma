@@ -58,7 +58,7 @@ function buildSingleFieldType(
   noEnumerable = false, // used for group by, there we need an Array<> for "by"
   genericsInfo: GenericArgsInfo,
   source?: string,
-): ts.AnyTypeBuilder {
+): ts.TypeBuilder {
   let type: ts.NamedType
   if (typeof t.type === 'string') {
     if (t.type === 'Null') {
@@ -111,7 +111,7 @@ function namedInputType(typeName: string) {
   return ts.namedType(JSOutputTypeToInputType[typeName] ?? typeName)
 }
 
-function wrapList(type: ts.AnyTypeBuilder, noEnumerable: boolean): ts.AnyTypeBuilder {
+function wrapList(type: ts.TypeBuilder, noEnumerable: boolean): ts.TypeBuilder {
   return noEnumerable ? ts.array(type) : ts.namedType('Enumerable').addGenericArgument(type)
 }
 
@@ -133,7 +133,7 @@ function buildAllFieldTypes(
   noEnumerable = false,
   genericsInfo: GenericArgsInfo,
   source?: string,
-): ts.AnyTypeBuilder {
+): ts.TypeBuilder {
   const pairMap: Record<string, number> = Object.create(null)
 
   const singularPairIndexes = new Set<number>()
@@ -179,7 +179,7 @@ function buildAllFieldTypes(
   return ts.unionType(xorTypes(tsInputObjectTypes)).addVariants(tsOtherTypes)
 }
 
-function xorTypes(types: ts.AnyTypeBuilder[]) {
+function xorTypes(types: ts.TypeBuilder[]) {
   return types.reduce((prev, curr) => ts.namedType('XOR').addGenericArgument(prev).addGenericArgument(curr))
 }
 
