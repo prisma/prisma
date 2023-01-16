@@ -1,5 +1,3 @@
-/* eslint-disable prettier/prettier */
-
 import runtime from '@prisma/client/runtime'
 
 /**
@@ -17,6 +15,7 @@ import runtime from '@prisma/client/runtime'
  * Read more in our [docs](https://github.com/prisma/prisma/blob/main/docs/prisma-client-js/api.md).
  */
 export declare const PrismaClient: any
+
 /**
  * ##  Prisma Client ʲˢ
  *
@@ -33,16 +32,20 @@ export declare const PrismaClient: any
  */
 export declare type PrismaClient = any
 
-export declare type PrismaClientExtends<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
+export declare type PrismaClientExtends<
+  ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs,
+> = {
   $extends: { extArgs: ExtArgs } & (<
-    R extends runtime.Types.Extensions.Args['result'] = {},
-    M extends runtime.Types.Extensions.Args['model'] = {},
-    Q extends runtime.Types.Extensions.Args['query'] = {},
-    C extends runtime.Types.Extensions.Args['client'] = {},
-    Args extends runtime.Types.Extensions.Args = { result: R; model: M; query: Q; client: C }
-  >(args: ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } }) | {
-    result?: R; model?: M; query?: Q; client?: C
-  }) => PrismaClientExtends<runtime.Types.Utils.PatchDeep<Args, ExtArgs>>)
+    R extends runtime.Types.Extensions.UserArgs['result'] = {},
+    M extends runtime.Types.Extensions.UserArgs['model'] = {},
+    Q extends runtime.Types.Extensions.UserArgs['query'] = {},
+    C extends runtime.Types.Extensions.UserArgs['client'] = {},
+    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, Q, C>,
+  >(
+    args:
+      | ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } })
+      | { name?: string; result?: R; model?: M; query?: Q; client?: C },
+  ) => PrismaClientExtends<Args & ExtArgs>)
 }
 
 export declare const dmmf: any
@@ -62,12 +65,21 @@ export namespace Prisma {
   export type TransactionClient = any
 
   export function defineExtension<
-    R extends runtime.Types.Extensions.Args['result'] = {},
-    M extends runtime.Types.Extensions.Args['model'] = {},
-    Q extends runtime.Types.Extensions.Args['query'] = {},
-    C extends runtime.Types.Extensions.Args['client'] = {},
-    Args extends runtime.Types.Extensions.Args = { result: R; model: M; query: Q; client: C }
-  >(args: ((client: PrismaClientExtends) => { $extends: { extArgs: Args } }) | {
-    result?: R; model?: M; query?: Q; client?: C
-  }): (client: any) => PrismaClientExtends<Args>
+    R extends runtime.Types.Extensions.UserArgs['result'] = {},
+    M extends runtime.Types.Extensions.UserArgs['model'] = {},
+    Q extends runtime.Types.Extensions.UserArgs['query'] = {},
+    C extends runtime.Types.Extensions.UserArgs['client'] = {},
+    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, Q, C>,
+  >(
+    args:
+      | ((client: PrismaClientExtends) => { $extends: { extArgs: Args } })
+      | { name?: string; result?: R; model?: M; query?: Q; client?: C },
+  ): (client: any) => PrismaClientExtends<Args>
+
+  export type Extension = runtime.Types.Extensions.UserArgs
+  export import getExtensionContext = runtime.Extensions.getExtensionContext
+  export type Args<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Args<T, F> & {}
+  export type Payload<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Payload<T, F> & {}
+  export type Result<T, A, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Result<T, A, F> & {}
+  export type Exact<T, W> = runtime.Types.Public.Exact<T, W> & {}
 }

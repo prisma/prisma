@@ -32,7 +32,7 @@ export function buildSelectType({ modelName, fields }: BuildSelectTypeParams) {
   const selectType = ifExtensions<ts.TypeBuilder>(
     () =>
       ts
-        .namedType('runtime.Types.Extensions.GetResultSelect')
+        .namedType('runtime.Types.Extensions.GetSelect')
         .addGenericArgument(objectType)
         .addGenericArgument(extArgsParameter.toArgument().subKey('result').subKey(lowerCase(modelName))),
     () => objectType,

@@ -1,7 +1,6 @@
 import indent from 'indent-string'
 
 import { DMMF } from '../../runtime/dmmf-types'
-import { lowerCase } from '../../runtime/utils/common'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
