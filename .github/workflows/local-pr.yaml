@@ -1,0 +1,171 @@
+name: "Local PR"
+run-name: "Local PR requested for #${{ github.event.issue.number }} by @${{ github.actor }}"
+
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  pr_commented:
+    name: Identify comment source
+    if: ${{ github.event.issue.pull_request }} || ${{ github.event.issue.state == 'open' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Comment came from Pull Request
+        run: echo "Pull request check succeeded."
+
+  check_user_permission:
+    runs-on: ubuntu-latest
+    name: Check permissions
+    needs: [pr_commented]
+    steps:
+      # Check for write permission
+      - name: Check write permission
+        id: check
+        uses: actions-cool/check-user-permission@v2
+        with:
+          require: write
+        env:
+          GITHUB_TOKEN: ${{ secrets.pat }}
+
+      - name: User doesn't have write permission
+        if: "! steps.check.outputs.require-result"
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.pat }}
+          script: |
+            core.setFailed('User doesn't have write permission.')
+          
+  create_local_pr: 
+    name: /create-local-pr
+    runs-on: ubuntu-latest
+    if: ${{ startsWith(github.event.comment.body, '/create-local-pr') }}
+    needs: [check_user_permission]
+    env: 
+      BRANCH_PREFIX: local_
+      MAIN_BRANCH: main
+
+    steps: 
+      - name: "Obtain Pull Request information"
+        uses: actions/github-script@v6
+        id: obtain-pull-request
+        with:
+          github-token: ${{ secrets.pat }}
+          script: |
+            const request = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            }
+            core.info(`Getting PR #${request.pull_number} from ${request.owner}/${request.repo}`)
+            try {
+              const result = await github.rest.pulls.get(request)
+              return {
+                pullRequest: {
+                  number: request.pull_number
+                },
+                head: {
+                  label: result.data.head.label,
+                  ref: result.data.head.ref,
+                  sha: result.data.head.sha,
+                  repo: {
+                    fullName: result.data.head.repo.full_name
+                  }
+                }
+              }
+            } catch (err) {
+              core.setFailed(`Request failed with error ${err}`)
+            }
+
+      - uses: actions/checkout@v3.3.0
+        with:
+          token: ${{ secrets.pat }}
+          ref: ${{ fromJSON(steps.obtain-pull-request.outputs.result).head.ref }}
+
+      - name: "Create local branch"
+        id: create-branch
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.pat }}
+          script: |
+            const branch = "${{ env.BRANCH_PREFIX }}${{ fromJSON(steps.obtain-pull-request.outputs.result).head.repo.fullName }}/${{ fromJSON(steps.obtain-pull-request.outputs.result).head.ref }}-${{ fromJSON(steps.obtain-pull-request.outputs.result).pullRequest.number }}";
+            const ref = `refs/heads/${branch}`;
+            try {
+              await github.rest.repos.getBranch({
+                ...context.repo,
+                branch,
+              });
+
+              return {
+                created: false
+              }
+            } catch (err) {
+              if (err.name === 'HttpError' && err.status === 404) {
+                const response = await github.rest.git.createRef({
+                  ref,
+                  sha: "${{ fromJSON(steps.obtain-pull-request.outputs.result).head.sha }}",
+                  ...context.repo,
+                });
+
+                return {
+                  created: response?.data?.ref === ref
+                };
+              } else {
+                throw Error(error);
+              }
+            }
+
+      - name: "Local branch exists"
+        if: "! fromJSON(steps.create-branch.outputs.result).created"
+        uses: peter-evans/create-or-update-comment@v2.1.0
+        with:
+          token: ${{ secrets.pat }}
+          issue-number: ${{ fromJSON(steps.obtain-pull-request.outputs.result).pullRequest.number }}
+          body: |
+            Hello @${{ github.actor }}!
+
+            An integration branch for this Pull Request has already been created and can be found at [this](/${{ github.event.repository.full_name }}/tree/${{ env.BRANCH_PREFIX }}${{ fromJSON(steps.obtain-pull-request.outputs.result).head.repo.fullName }}/${{ fromJSON(steps.obtain-pull-request.outputs.result).head.ref }}-${{ fromJSON(steps.obtain-pull-request.outputs.result).pullRequest.number }}) link. If you want to update this branch, use `/sync-local-pr` instead.
+      
+      - uses: actions/checkout@v3.3.0
+        if: "fromJSON(steps.create-branch.outputs.result).created"
+        with:
+          token: ${{ secrets.pat }}
+          ref: "${{ env.BRANCH_PREFIX }}${{ fromJSON(steps.obtain-pull-request.outputs.result).head.repo.fullName }}/${{ fromJSON(steps.obtain-pull-request.outputs.result).head.ref }}-${{ fromJSON(steps.obtain-pull-request.outputs.result).pullRequest.number }}"
+
+      - name: "Create integration Pull Request"
+        if: "fromJSON(steps.create-branch.outputs.result).created"
+        uses: actions/github-script@v6
+        id: create-integration-pr
+        with:
+          github-token: ${{ secrets.pat }}
+          script: |
+            const request = {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: "Integration PR for #${{ fromJSON(steps.obtain-pull-request.outputs.result).pullRequest.number }}",
+              base: "${{ env.MAIN_BRANCH }}",
+              head: "${{ env.BRANCH_PREFIX }}${{ fromJSON(steps.obtain-pull-request.outputs.result).head.repo.fullName }}/${{ fromJSON(steps.obtain-pull-request.outputs.result).head.ref }}-${{ fromJSON(steps.obtain-pull-request.outputs.result).pullRequest.number }}",
+              draft: true,
+              body: "Integration PR for #${{ fromJSON(steps.obtain-pull-request.outputs.result).pullRequest.number }}",
+              maintainer_can_modify: true
+            };
+
+            try {
+              const response = await github.rest.pulls.create(request);
+              return {
+                response: response
+              }
+            } catch (err) {
+              core.setFailed(`Request failed with error ${err}`)
+            }
+
+      - name: "Create comment"
+        if: "fromJSON(steps.create-branch.outputs.result).created"
+        uses: peter-evans/create-or-update-comment@v2.1.0
+        with:
+          token: ${{ secrets.pat }}
+          issue-number: ${{ fromJSON(steps.obtain-pull-request.outputs.result).pullRequest.number }}
+          body: |
+            **Local Integration PR created for #${{ fromJSON(steps.obtain-pull-request.outputs.result).pullRequest.number }}**.
+
+            The local PR is available at #${{ toJSON(fromJSON(steps.create-integration-pr.outputs.result).response.data.number) }}. If you want to update it, use `/sync-local-pr`.
