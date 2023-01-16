@@ -4,6 +4,7 @@ import { klona } from 'klona'
 
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
+import { lowerCase } from '../../runtime/utils/common'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import {
@@ -280,7 +281,42 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     const modelLine = `Model ${model.name}\n`
     const docs = `${modelLine}${docLines}`
 
-    return `${buildComment(docs)}export type ${model.name} = {
+    return ifExtensions(
+      () => {
+        return `export type ${
+          model.name
+        }Payload<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
+${indent(
+  `objects: {
+${indent(
+  model.fields
+    .filter((f) => f.kind === 'object')
+    .map((field) => new ModelOutputField(this.dmmf, field, false).toTS())
+    .join('\n'),
+  TAB_SIZE,
+)}
+}`,
+  TAB_SIZE,
+)}
+${indent(
+  `scalars: runtime.Types.Extensions.GetResult<{
+${indent(
+  model.fields
+    .filter((f) => f.kind === 'scalar' || f.kind === 'enum')
+    .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
+    .join('\n'),
+  TAB_SIZE,
+)}
+}, ExtArgs['result']['${lowerCase(model.name)}']>`,
+  TAB_SIZE,
+)}
+}
+
+${buildComment(docs)}export type ${model.name} = ${model.name}Payload['scalars']
+`
+      },
+      () => {
+        return `${buildComment(docs)}export type ${model.name} = {
 ${indent(
   model.fields
     .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
@@ -290,6 +326,8 @@ ${indent(
 )}
 }
 `
+      },
+    )
   }
   public toTS(): string {
     const { model, outputType } = this
@@ -320,7 +358,7 @@ ${ifExtensions(() => {
   })
 }, '')}
 ${includeType}
-${new PayloadType(this.outputType, this.dmmf).toTS()}
+${ifExtensions('', new PayloadType(this.outputType, this.dmmf).toTS())}
 
 ${new ModelDelegate(this.outputType, this.dmmf, this.generator).toTS()}
 
@@ -377,11 +415,10 @@ ${
     ? `type ${countArgsName}${ifExtensions(
         '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
         '',
-      )} = Merge<
+      )} = 
   Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'> & {
     select?: ${getCountAggregateInputName(name)} | true
   }
->
 `
     : ''
 }
@@ -389,6 +426,13 @@ export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNot
       ', ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs',
       '',
     )}> {
+${ifExtensions(
+  `${indent(
+    `[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`,
+    TAB_SIZE,
+  )}`,
+  '',
+)}
 ${indent(
   nonAggregateActions
     .map(

@@ -1,15 +1,13 @@
-import { mapObjectValues } from '@prisma/internals'
-
 import { Cache } from '../../../generation/Cache'
 import { lazyProperty } from '../../../generation/lazyProperty'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
-import { Args, ClientExtensionDefinition, ModelExtensionDefinition, QueryOptionsCb } from './$extends'
+import { Args, ClientArg, ModelArg, QueryOptionsCb } from './$extends'
 import { ComputedFieldsMap, getComputedFields } from './resultUtils'
 import { wrapAllExtensionCallbacks, wrapExtensionCallback } from './wrapExtensionCallback'
 
 class MergedExtensionsListNode {
   private computedFieldsCache = new Cache<string, ComputedFieldsMap | undefined>()
-  private modelExtensionsCache = new Cache<string, ModelExtensionDefinition | undefined>()
+  private modelExtensionsCache = new Cache<string, ModelArg | undefined>()
   private queryCallbacksCache = new Cache<string, QueryOptionsCb[]>()
 
   private clientExtensions = lazyProperty(() => {
@@ -31,11 +29,11 @@ class MergedExtensionsListNode {
     })
   }
 
-  getAllClientExtensions(): ClientExtensionDefinition | undefined {
+  getAllClientExtensions(): ClientArg | undefined {
     return this.clientExtensions.get()
   }
 
-  getAllModelExtensions(dmmfModelName: string): ModelExtensionDefinition | undefined {
+  getAllModelExtensions(dmmfModelName: string): ModelArg | undefined {
     return this.modelExtensionsCache.getOrCreate(dmmfModelName, () => {
       const jsModelName = dmmfToJSModelName(dmmfModelName)
       if (!this.extension.model || !(this.extension.model[jsModelName] || this.extension.model.$allModels)) {

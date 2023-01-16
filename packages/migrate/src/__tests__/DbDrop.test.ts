@@ -111,7 +111,7 @@ describe('drop', () => {
       Drop cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('should ask for --force if not provided if CI', async () => {

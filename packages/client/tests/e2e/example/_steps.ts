@@ -9,9 +9,10 @@ void executeSteps({
     await $`pnpm exec prisma generate`
   },
   test: async () => {
-    await $`ts-node src/index.ts`
     await $`pnpm exec prisma -v`
+    await $`ts-node src/index.ts`
     await $`pnpm exec jest`
+    await $`pnpm exec tsc`
   },
   finish: async () => {
     await $`echo "done"`

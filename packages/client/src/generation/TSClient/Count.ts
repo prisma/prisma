@@ -79,7 +79,7 @@ ${indent(
 )}
 }
 
-${new PayloadType(outputType, this.dmmf, false).toTS()}
+${ifExtensions('', new PayloadType(outputType, this.dmmf, false).toTS())}
 
 
 

@@ -32,21 +32,18 @@ async function main() {
     await $`docker -v`
   }
 
-  if (args['--clean'] === true) {
-    console.log('🧹 Cleaning up created files')
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml build`
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml up`
+  console.log('🧹 Cleaning up old files')
+  await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
+  await $`docker compose -f ${__dirname}/docker-compose-clean.yml build`
+  await $`docker compose -f ${__dirname}/docker-compose-clean.yml up`
 
-    return
-  }
+  if (args['--clean'] === true) return
 
   console.log('🎠 Preparing e2e tests')
   // we first get all the paths we are going to need to run e2e tests
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'prisma-build'))
   const cliPkgPath = path.join(__dirname, '..', '..', '..', '..', 'cli')
   const clientPkgPath = path.join(__dirname, '..', '..', '..', '..', 'client')
-  const clientRuntimeDtsPath = path.join(clientPkgPath, 'runtime', 'index.d.ts')
   const cliPkgJsonPath = path.join(cliPkgPath, 'package.json')
   const clientPkgJsonPath = path.join(clientPkgPath, 'package.json')
   const cliPkgJson = require(cliPkgJsonPath)
@@ -55,13 +52,11 @@ async function main() {
   // this process will need to modify some package.json, we save copies
   await $`cd ${tmpDir} && cp ${cliPkgJsonPath} cli.package.json`
   await $`cd ${tmpDir} && cp ${clientPkgJsonPath} client.package.json`
-  await $`cd ${tmpDir} && cp ${clientRuntimeDtsPath} client.runtime.d.ts`
 
   // we provide a function that can revert modified package.json back
   const restoreOriginal = async () => {
     await $`cd ${tmpDir} && cp cli.package.json ${cliPkgJsonPath}`
     await $`cd ${tmpDir} && cp client.package.json ${clientPkgJsonPath}`
-    await $`cd ${tmpDir} && cp client.runtime.d.ts ${clientRuntimeDtsPath}`
   }
 
   // if process is killed by hand, ensure that package.json is restored
@@ -74,11 +69,6 @@ async function main() {
   // write the modified package.json to overwrite the original package.json
   await fs.writeFile(cliPkgJsonPath, JSON.stringify(cliPkgJson, null, 2))
   await fs.writeFile(clientPkgJsonPath, JSON.stringify(clientPkgJson, null, 2))
-
-  if (args['--skipBuild'] === true) {
-    // this is to avoid bundling types and locally link directly to the sources
-    await fs.writeFile(clientRuntimeDtsPath, `export * from '/client/src/runtime/index'`)
-  }
 
   try {
     console.log('📦 Packing package tarballs')
@@ -94,7 +84,7 @@ async function main() {
 
   console.log('🐳 Starting tests in docker')
   // tarball was created, ready to send it to docker and begin e2e tests
-  const testNames = args._.join(' ')
+  const testNames = args._.join(' ').replace(/\//g, '-')
   await $`docker compose -f ${__dirname}/docker-compose.yml down --remove-orphans`
   await $`docker compose -f ${__dirname}/docker-compose.yml build ${testNames}`
   await $`docker compose -f ${__dirname}/docker-compose.yml up ${testNames}`
