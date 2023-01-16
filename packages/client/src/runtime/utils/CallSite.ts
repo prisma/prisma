@@ -37,6 +37,9 @@ class EnabledCallSite implements CallSite {
         t.file !== '<anonymous>' && // Ignore as we can not read an <anonymous> file
         !t.file.includes('@prisma') && // Internal, unbundled code
         !t.file.includes('getPrismaClient') &&
+        !t.file.includes('runtime/binary') &&
+        !t.file.includes('runtime/library') &&
+        !t.file.includes('runtime/data-proxy') &&
         !t.file.startsWith('internal/') && // We don't want internal nodejs files
         !t.methodName.includes('new ') && // "new CallSite" call and maybe other constructors
         !t.methodName.includes('getCallSite') && // getCallSite function from this module
