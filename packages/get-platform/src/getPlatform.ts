@@ -6,6 +6,7 @@ import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
 import { Platform } from './platforms'
+import { warnOnce } from './warnOnce'
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
@@ -55,9 +56,17 @@ export async function getos(): Promise<GetOSResult> {
 
   const distro = await resolveDistro()
 
+  if (distro === 'musl' && arch !== 'x64') {
+    throw new Error(
+      `Prisma only supports Linux Alpine on the amd64 (x86_64) system architecture. If you're running Prisma on Docker, please use Docker Buildx to simulate the amd64 architecture on your device as explained by this comment: https://github.com/prisma/prisma/issues/8478#issuecomment-1355209706`,
+    )
+  }
+
+  const libssl = await getSSLVersion({ arch, distro })
+
   return {
     platform: 'linux',
-    libssl: await getSSLVersion({ arch, distro }),
+    libssl,
     distro,
     arch,
   }
@@ -255,7 +264,37 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
 }
 
 export async function getPlatform(): Promise<Platform> {
-  const { platform, libssl, distro, arch } = await getos()
+  const { platform, distro, arch, libssl } = await getos()
+
+  // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
+  const defaultLibssl = '1.1.x' as const
+  if (platform === 'linux' && libssl === undefined) {
+    /**
+     * Ask the user to install openssl manually, and provide some additional instructions based on the detected Linux distro.
+     */
+    const additionalMessage = match({ distro })
+      .with({ distro: 'debian' }, () => {
+        return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with `node:lts-slim`, which already ships with OpenSSL installed."
+      })
+      .otherwise(() => {
+        return 'Please manually install OpenSSL and try installing Prisma again.'
+      })
+
+    warnOnce(
+      'libssl:undefined',
+      `Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-${defaultLibssl}".
+${additionalMessage}`,
+    )
+  }
+
+  // sometimes we fail to detect the distro in use, so we default to debian
+  const defaultDistro = 'debian' as const
+  if (platform === 'linux' && distro === undefined) {
+    warnOnce(
+      'distro:undefined',
+      `Prisma failed to detect the Linux distro in use, and may not work as expected. Defaulting to "${defaultDistro}".`,
+    )
+  }
 
   // Apple Silicon (M1)
   if (platform === 'darwin' && arch === 'arm64') {
@@ -288,12 +327,12 @@ export async function getPlatform(): Promise<Platform> {
 
   if (platform === 'linux' && arch === 'arm64') {
     // 64 bit ARM
-    return `linux-arm64-openssl-${libssl}` as Platform
+    return `linux-arm64-openssl-${libssl || defaultLibssl}` as Platform
   }
 
   if (platform === 'linux' && arch === 'arm') {
     // 32 bit ARM
-    return `linux-arm-openssl-${libssl}` as Platform
+    return `linux-arm-openssl-${libssl || defaultLibssl}` as Platform
   }
 
   if (platform === 'linux' && distro === 'musl') {
@@ -313,22 +352,29 @@ export async function getPlatform(): Promise<Platform> {
 
   // when the platform is linux
   if (platform === 'linux' && distro && libssl) {
-    return (distro + '-openssl-' + libssl) as Platform
+    return `${distro}-openssl-${libssl}` as Platform
+  }
+
+  if (platform !== 'linux') {
+    warnOnce(
+      'platform:undefined',
+      `Prisma detected unknown OS "${platform}" and may not work as expected. Defaulting to "linux".`,
+    )
   }
 
   // if just OpenSSL is known, fallback to debian with a specific libssl version
   if (libssl) {
-    return ('debian-openssl-' + libssl) as Platform
+    return `${defaultDistro}-openssl-${libssl}`
   }
 
   // if just the distro is known, fallback to latest OpenSSL 1.1
   if (distro) {
-    return (distro + '-openssl-1.1.x') as Platform
+    return `${distro}-openssl-${defaultLibssl}` as Platform
   }
 
   // use the debian build with OpenSSL 1.1 as a last resort
   // TODO: perhaps we should default to 'debian-openssl-3.0.x'
-  return 'debian-openssl-1.1.x'
+  return `${defaultDistro}-openssl-${defaultLibssl}`
 }
 
 /**
