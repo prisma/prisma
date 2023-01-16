@@ -264,7 +264,10 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
 }
 
 export async function getPlatform(): Promise<Platform> {
-  const { platform, libssl, distro, arch } = await getos()
+  const { platform, distro, arch, libssl } = await getos()
+
+  // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
+  const defaultLibssl = '1.1.x' as const
 
   // Apple Silicon (M1)
   if (platform === 'darwin' && arch === 'arm64') {
@@ -297,12 +300,12 @@ export async function getPlatform(): Promise<Platform> {
 
   if (platform === 'linux' && arch === 'arm64') {
     // 64 bit ARM
-    return `linux-arm64-openssl-${libssl}` as Platform
+    return `linux-arm64-openssl-${libssl || defaultLibssl}` as Platform
   }
 
   if (platform === 'linux' && arch === 'arm') {
     // 32 bit ARM
-    return `linux-arm-openssl-${libssl}` as Platform
+    return `linux-arm-openssl-${libssl || defaultLibssl}` as Platform
   }
 
   if (platform === 'linux' && distro === 'musl') {
@@ -322,22 +325,22 @@ export async function getPlatform(): Promise<Platform> {
 
   // when the platform is linux
   if (platform === 'linux' && distro && libssl) {
-    return (distro + '-openssl-' + libssl) as Platform
+    return `${distro}-openssl-${libssl}` as Platform
   }
 
   // if just OpenSSL is known, fallback to debian with a specific libssl version
   if (libssl) {
-    return ('debian-openssl-' + libssl) as Platform
+    return `debian-openssl-${libssl}`
   }
 
   // if just the distro is known, fallback to latest OpenSSL 1.1
   if (distro) {
-    return (distro + '-openssl-1.1.x') as Platform
+    return `${distro}-openssl-${defaultLibssl}` as Platform
   }
 
   // use the debian build with OpenSSL 1.1 as a last resort
   // TODO: perhaps we should default to 'debian-openssl-3.0.x'
-  return 'debian-openssl-1.1.x'
+  return `debian-openssl-${defaultLibssl}`
 }
 
 /**
