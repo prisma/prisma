@@ -20,40 +20,42 @@ class Model {
   public build() {
     return `
 model ${this.name} {
-  ${this.body}
+${this.body}
 }
 `
   }
 }
 
-function main() {
-  let schema = `
+export function renderSchema(engineType: 'library' | 'binary') {
+  let schema = `\
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["groupBy"]
+    provider   = "prisma-client-js"
+    engineType = "${engineType}"
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
-  }
-  
-  `
-  const ts = `
-import { PrismaClient } from  '@prisma/client'
-const client = new PrismaClient();
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+`
 
-async function main(){
+  const ts = `\
+import { PrismaClient } from  '@prisma/client'
+
+const client = new PrismaClient()
+
+async function main() {
   const a = await client.model1.findMany()
 }
-main().catch(err => console.log(err))
+main().catch((err) => console.log(err))
 `
   const modelMap = new Map<string, Model>()
   for (let i = 1; i < 50; i++) {
     const modelName = `Model${i}`
     const model = new Model({
       name: modelName,
-      body: `   id        Int      @id @default(autoincrement())
+      body: `\
+    id              Int      @id @default(autoincrement())
     int             Int
     optionalInt     Int?
     float           Float
@@ -77,4 +79,4 @@ main().catch(err => console.log(err))
   write(tsPath, ts)
 }
 
-main()
+renderSchema('library')

@@ -7,6 +7,7 @@ import path from 'path'
 
 import { compileFile } from '../../../utils/compileFile'
 import { generateTestClient } from '../../../utils/getTestClient'
+import { renderSchema } from './builder'
 
 const suite = new Benchmark.Suite('typescript')
 // @ts-ignore
@@ -41,15 +42,24 @@ suite
     // Output benchmark result by converting benchmark result to string
     console.log(String(event.target))
   })
-  .on('complete', () => {
+  .on('complete', async () => {
     printSize('./node_modules/@prisma/client')
     printSize('./node_modules/.prisma/client')
     printSize('./node_modules/.prisma/client/index.d.ts')
     printSize('./node_modules/.prisma/client/index.js')
+
     // For GitHub CI
     if (process.env.CI) {
+      // Bench size of the n-api library
       printSize('./node_modules/.prisma/client/libquery_engine-debian-openssl-1.1.x.so.node')
+
+      // Bench size of the binary
+      renderSchema('binary')
+      await generateTestClient(__dirname)
+      printSize('./node_modules/.prisma/client/query-engine-debian-openssl-1.1.x')
+      renderSchema('library')
     }
+
     execa.sync('rm', ['-rf', `./dotPlusAtPrismaClientFolder.zip`], {
       stdout: 'pipe',
       cwd: __dirname,
