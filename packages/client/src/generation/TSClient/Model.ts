@@ -6,6 +6,7 @@ import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import { lowerCase } from '../../runtime/utils/common'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
+import * as ts from '../ts-builders'
 import {
   getAggregateArgsName,
   getAggregateGetName,
@@ -41,6 +42,7 @@ import { ModelFieldRefs } from './ModelFieldRefs'
 import { ModelOutputField, OutputType } from './Output'
 import { PayloadType } from './Payload'
 import { SchemaOutputType } from './SchemaOutput'
+import { buildIncludeType, buildScalarSelectType, buildSelectType } from './SelectInclude'
 import { getModelActions } from './utils/getModelActions'
 import { ifExtensions } from './utils/ifExtensions'
 
@@ -332,29 +334,12 @@ ${indent(
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
-      ? `\nexport type ${getIncludeName(model.name)}${ifExtensions(
-          '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-          '',
-        )} = {
-${indent(
-  outputType.fields
-    .filter((f) => {
-      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
-      return f.outputType.location === 'outputObjectTypes' && !this.dmmf.typeMap[fieldTypeName]
-    })
-    .map((f) => {
-      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
-      return (
-        `${f.name}?: boolean` +
-        (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, model.name)}${ifExtensions('<ExtArgs>', '')}`
-          : '')
-      )
-    })
-    .join('\n'),
-  TAB_SIZE,
-)}
-} \n`
+      ? ts.stringify(
+          buildIncludeType({ modelName: this.model.name, dmmf: this.dmmf, fields: this.outputType.fields }),
+          {
+            newLine: 'both',
+          },
+        )
       : ''
 
     return `
@@ -366,36 +351,11 @@ ${!this.dmmf.typeMap[model.name] ? this.getAggregationTypes() : ''}
 
 ${!this.dmmf.typeMap[model.name] ? this.getGroupByTypes() : ''}
 
-export type ${getSelectName(model.name)}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = ${ifExtensions(() => `runtime.Types.Extensions.GetSelect<`, '')}{
-${indent(
-  outputType.fields
-    .map((f) => {
-      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
-      return (
-        `${f.name}?: boolean` +
-        (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, model.name)}${ifExtensions('<ExtArgs>', '')}`
-          : '')
-      )
-    })
-    .join('\n'),
-  TAB_SIZE,
-)}
-}${ifExtensions(() => `, ExtArgs['result']['${lowerCase(model.name)}']>`, '')}
+${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.outputType.fields }))}
 ${ifExtensions(() => {
-  return `
-export type ${getSelectName(model.name)}Scalar = {
-${indent(
-  outputType.fields
-    .filter((field) => field.outputType.location === 'scalar' || field.outputType.location === 'enumTypes')
-    .map((f) => `${f.name}?: boolean`)
-    .join('\n'),
-  TAB_SIZE,
-)}
-}`
+  return ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.outputType.fields }), {
+    newLine: 'leading',
+  })
 }, '')}
 ${includeType}
 ${ifExtensions('', new PayloadType(this.outputType, this.dmmf).toTS())}

@@ -1887,7 +1887,7 @@ export namespace Prisma {
 
   export type PostInclude = {
     author?: boolean | UserArgs
-  } 
+  }
 
   export type PostGetPayload<S extends boolean | null | undefined | PostArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
@@ -2936,7 +2936,7 @@ export namespace Prisma {
   export type UserInclude = {
     posts?: boolean | User$postsArgs
     _count?: boolean | UserCountOutputTypeArgs
-  } 
+  }
 
   export type UserGetPayload<S extends boolean | null | undefined | UserArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
@@ -4000,7 +4000,7 @@ export namespace Prisma {
   export type MInclude = {
     n?: boolean | M$nArgs
     _count?: boolean | MCountOutputTypeArgs
-  } 
+  }
 
   export type MGetPayload<S extends boolean | null | undefined | MArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
@@ -5064,7 +5064,7 @@ export namespace Prisma {
   export type NInclude = {
     m?: boolean | N$mArgs
     _count?: boolean | NCountOutputTypeArgs
-  } 
+  }
 
   export type NGetPayload<S extends boolean | null | undefined | NArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
@@ -6128,7 +6128,7 @@ export namespace Prisma {
   export type OneOptionalInclude = {
     many?: boolean | OneOptional$manyArgs
     _count?: boolean | OneOptionalCountOutputTypeArgs
-  } 
+  }
 
   export type OneOptionalGetPayload<S extends boolean | null | undefined | OneOptionalArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
@@ -7202,7 +7202,7 @@ export namespace Prisma {
 
   export type ManyRequiredInclude = {
     one?: boolean | OneOptionalArgs
-  } 
+  }
 
   export type ManyRequiredGetPayload<S extends boolean | null | undefined | ManyRequiredArgs> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
@@ -8253,7 +8253,7 @@ export namespace Prisma {
 
   export type OptionalSide1Include = {
     opti?: boolean | OptionalSide2Args
-  } 
+  }
 
   export type OptionalSide1GetPayload<S extends boolean | null | undefined | OptionalSide1Args> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
@@ -9292,7 +9292,7 @@ export namespace Prisma {
 
   export type OptionalSide2Include = {
     opti?: boolean | OptionalSide1Args
-  } 
+  }
 
   export type OptionalSide2GetPayload<S extends boolean | null | undefined | OptionalSide2Args> =
     S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
