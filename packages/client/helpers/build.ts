@@ -19,6 +19,7 @@ function nodeRuntimeBuildConfig(
     entryPoints: ['src/runtime/index.ts'],
     outfile: `runtime/${outFileName}`,
     bundle: true,
+    minify: true,
     emitTypes: targetEngineType === 'all',
     define: {
       NODE_CLIENT: 'true',
