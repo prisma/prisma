@@ -20,6 +20,7 @@ function nodeRuntimeBuildConfig(
     outfile: `runtime/${outFileName}`,
     bundle: true,
     minify: true,
+    sourcemap: 'linked',
     emitTypes: targetEngineType === 'all',
     define: {
       NODE_CLIENT: 'true',
