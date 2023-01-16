@@ -65,11 +65,7 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO (https://github.com/prisma/prisma/issues/13077): Windows: fails with
-  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-  testIf(process.platform !== 'win32')('basic introspection with --url', async () => {
+  test('basic introspection with --url', async () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'file:dev.db'])
@@ -138,11 +134,7 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO: Windows: fails with
-  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-  testIf(process.platform !== 'win32')('should succeed when schema and db do match using --url', async () => {
+  test('should succeed when schema and db do match using --url', async () => {
     ctx.fixture('introspect/prisma')
     const result = DbPull.new().parse(['--url=file:./dev.db'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -1273,11 +1265,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
-  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-  testIf(process.platform !== 'win32')('basic introspection (with cockroach schema) --url ', async () => {
+  test('basic introspection (with cockroach schema) --url ', async () => {
     await testSetup('cockroachdb', { withFixture: true })
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
@@ -1287,22 +1275,15 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
-  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-  testIf(process.platform !== 'win32')(
-    'basic introspection (with cockroach schema, cockroachdb native types) --url ',
-    async () => {
-      await testSetup('nativeTypes-cockroachdb', { withFixture: true })
-      const introspect = new DbPull()
-      const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    },
-  )
+  test('basic introspection (with cockroach schema, cockroachdb native types) --url ', async () => {
+    await testSetup('nativeTypes-cockroachdb', { withFixture: true })
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
 })
 
 describe('mysql', () => {
@@ -1409,11 +1390,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   })
 })
 
-// TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
-// Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-//     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-//     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
+describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
   const MONGO_URI =
     process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
 
