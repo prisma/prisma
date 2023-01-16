@@ -277,7 +277,7 @@ export async function getPlatform(): Promise<Platform> {
         return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with `node:lts-slim`, which already ships with OpenSSL installed."
       })
       .otherwise(() => {
-        return 'Please manually install openssl and try installing Prisma again.'
+        return 'Please manually install OpenSSL and try installing Prisma again.'
       })
 
     console.warn(`Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-${defaultLibssl}".
