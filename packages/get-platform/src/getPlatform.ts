@@ -6,6 +6,7 @@ import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
 import { Platform } from './platforms'
+import { warnOnce } from './warnOnce'
 
 const readFile = promisify(fs.readFile)
 const exists = promisify(fs.exists)
@@ -280,14 +281,18 @@ export async function getPlatform(): Promise<Platform> {
         return 'Please manually install OpenSSL and try installing Prisma again.'
       })
 
-    console.warn(`Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-${defaultLibssl}".
-${additionalMessage}`)
+    warnOnce(
+      'libssl:undefined',
+      `Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-${defaultLibssl}".
+${additionalMessage}`,
+    )
   }
 
   // sometimes we fail to detect the distro in use, so we default to debian
   const defaultDistro = 'debian' as const
   if (platform === 'linux' && distro === undefined) {
-    console.warn(
+    warnOnce(
+      'distro:undefined',
       `Prisma failed to detect the Linux distro in use, and may not work as expected. Defaulting to "${defaultDistro}".`,
     )
   }
@@ -352,7 +357,10 @@ ${additionalMessage}`)
   }
 
   if (platform !== 'linux') {
-    console.warn(`Prisma detected unknown OS "${platform}" and may not work as expected. Defaulting to "linux".`)
+    warnOnce(
+      'platform:undefined',
+      `Prisma detected unknown OS "${platform}" and may not work as expected. Defaulting to "linux".`,
+    )
   }
 
   // if just OpenSSL is known, fallback to debian with a specific libssl version
