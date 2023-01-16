@@ -274,7 +274,7 @@ export async function getPlatform(): Promise<Platform> {
      */
     const additionalMessage = match({ distro })
       .with({ distro: 'debian' }, () => {
-        return "Please manually install openssl via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with `node:lts-slim`, which already ships with openssl installed."
+        return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with `node:lts-slim`, which already ships with OpenSSL installed."
       })
       .otherwise(() => {
         return 'Please manually install openssl and try installing Prisma again.'
