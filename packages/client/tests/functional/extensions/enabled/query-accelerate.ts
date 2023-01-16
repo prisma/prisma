@@ -8,8 +8,11 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare const prisma: PrismaClient
 
 const randomId1 = randomBytes(12).toString('hex')
-
 const originalRequest = https.request
+
+/**
+ * Tests for underlying query component features used by Prisma Accelerate
+ */
 testMatrix.setupTestSuite(() => {
   const mockedRequest = jest.fn()
 
@@ -24,7 +27,7 @@ testMatrix.setupTestSuite(() => {
     https.request = originalRequest
   })
 
-  testIf(process.env.DATA_PROXY !== undefined)('changing http headers', async () => {
+  testIf(process.env.DATA_PROXY !== undefined)('changing http headers via headers property', async () => {
     const xprisma = prisma.$extends({
       query: {
         $allModels: {
@@ -54,7 +57,7 @@ testMatrix.setupTestSuite(() => {
     expect(mockedRequest.mock.calls[3][1].headers).toHaveProperty('x-custom-header', 'hello')
   })
 
-  testIf(process.env.DATA_PROXY !== undefined)('using a custom fetch', async () => {
+  testIf(process.env.DATA_PROXY !== undefined)('changing http headers via custom fetch', async () => {
     const xprisma = prisma.$extends({
       query: {
         $allModels: {
