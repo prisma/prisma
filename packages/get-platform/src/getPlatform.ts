@@ -268,6 +268,29 @@ export async function getPlatform(): Promise<Platform> {
 
   // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
   const defaultLibssl = '1.1.x' as const
+  if (libssl === undefined) {
+    /**
+     * Ask the user to install openssl manually, and provide some additional instructions based on the detected Linux distro.
+     */
+    const additionalMessage = match({ distro })
+      .with({ distro: 'debian' }, () => {
+        return "Please manually install openssl via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with `node:lts-slim`, which already ships with openssl installed."
+      })
+      .otherwise(() => {
+        return 'Please manually install openssl and try installing Prisma again.'
+      })
+
+    console.warn(`Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-${defaultLibssl}".
+${additionalMessage}`)
+  }
+
+  // sometimes we fail to detect the distro in use, so we default to debian
+  const defaultDistro = 'debian' as const
+  if (distro === undefined) {
+    console.warn(
+      `Prisma failed to detect the Linux distro in use, and may not work as expected. Defaulting to "${defaultDistro}".`,
+    )
+  }
 
   // Apple Silicon (M1)
   if (platform === 'darwin' && arch === 'arm64') {
@@ -330,7 +353,7 @@ export async function getPlatform(): Promise<Platform> {
 
   // if just OpenSSL is known, fallback to debian with a specific libssl version
   if (libssl) {
-    return `debian-openssl-${libssl}`
+    return `${defaultDistro}-openssl-${libssl}`
   }
 
   // if just the distro is known, fallback to latest OpenSSL 1.1
@@ -340,7 +363,7 @@ export async function getPlatform(): Promise<Platform> {
 
   // use the debian build with OpenSSL 1.1 as a last resort
   // TODO: perhaps we should default to 'debian-openssl-3.0.x'
-  return `debian-openssl-${defaultLibssl}`
+  return `${defaultDistro}-openssl-${defaultLibssl}`
 }
 
 /**
