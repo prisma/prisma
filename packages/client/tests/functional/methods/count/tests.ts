@@ -113,27 +113,23 @@ testMatrix.setupTestSuite(() => {
     } catch (err) {
       expect(err.message).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.user.count()\` invocation in
-        /client/tests/functional/methods/count/tests.ts:0:0
+        Invalid \`prisma.user.count()\` invocation:
 
-          100 
-          101 test('bad prop', async () => {
-          102   try {
-        → 103     await prisma.user.count({
-                    select: {
-                      _count: {
-                        select: {
-                  ?       _all?: true,
-                  ?       email?: true,
-                  ?       age?: true,
-                  ?       name?: true,
-                          posts: true,
-                          ~~~~~
-                  ?       id?: true
-                        }
-                      }
-                    }
-                  })
+        {
+          select: {
+            _count: {
+              select: {
+        ?       _all?: true,
+        ?       email?: true,
+        ?       age?: true,
+        ?       name?: true,
+                posts: true,
+                ~~~~~
+        ?       id?: true
+              }
+            }
+          }
+        }
 
 
         Unknown field \`posts\` for select statement on model UserCountAggregateOutputType. Available options are listed in green. Did you mean \`id\`?
