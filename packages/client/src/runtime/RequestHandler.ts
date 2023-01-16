@@ -1,6 +1,7 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import { EventEmitter, getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
+import { Fetch } from '@prisma/engine-core/dist/data-proxy/utils/request'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -59,6 +60,7 @@ export type Request = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   tracingConfig?: TracingConfig
+  customFetch?: (fetch: Fetch) => Fetch
 }
 
 type ApplyExtensionsParams = {
@@ -116,6 +118,7 @@ export class RequestHandler {
           headers: info.headers,
           transaction: batchTransaction,
           containsWrite,
+          customFetch: requests[0].customFetch,
         })
       },
       singleLoader: (request) => {
@@ -128,6 +131,7 @@ export class RequestHandler {
           headers: info.headers,
           transaction: interactiveTransaction,
           isWrite: request.document.type === 'mutation',
+          customFetch: request.customFetch,
         })
       },
       batchBy: (request) => {

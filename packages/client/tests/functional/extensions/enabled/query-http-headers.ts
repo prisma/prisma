@@ -53,4 +53,40 @@ testMatrix.setupTestSuite(() => {
     expect(mockedRequest.mock.calls[2][1].headers).not.toHaveProperty('x-custom-header')
     expect(mockedRequest.mock.calls[3][1].headers).toHaveProperty('x-custom-header', 'hello')
   })
+
+  testIf(process.env.DATA_PROXY !== undefined)('using a custom fetch', async () => {
+    const xprisma = prisma.$extends({
+      query: {
+        $allModels: {
+          findUnique(operation) {
+            const { __internalParams, query, args } = operation as any as {
+              query: (...args: any[]) => Promise<any>
+              __internalParams: any
+              args: any
+            }
+
+            __internalParams.customFetch = (fetch) => {
+              return (url, options) => {
+                options.headers = {
+                  ...options.headers,
+                  'x-custom-header': 'hello',
+                }
+
+                return fetch(url, options)
+              }
+            }
+
+            return query(args, __internalParams)
+          },
+        },
+      },
+    })
+
+    await xprisma.user.findUnique({ where: { id: randomId1 } })
+
+    expect(mockedRequest.mock.calls[0][1].headers).not.toHaveProperty('x-custom-header')
+    expect(mockedRequest.mock.calls[1][1].headers).toHaveProperty('x-custom-header')
+    expect(mockedRequest.mock.calls[2][1].headers).not.toHaveProperty('x-custom-header')
+    expect(mockedRequest.mock.calls[3][1].headers).toHaveProperty('x-custom-header', 'hello')
+  })
 })

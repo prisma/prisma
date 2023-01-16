@@ -1,5 +1,6 @@
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 
+import { Fetch } from '../data-proxy/utils/request'
 import { TracingConfig } from '../tracing/getTracingConfig'
 import { EventEmitter } from './types/Events'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
@@ -31,6 +32,8 @@ export type RequestOptions<InteractiveTransactionPayload> = {
   numTry?: number
   transaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
   isWrite: boolean
+  // only used by the data proxy engine
+  customFetch?: (fetch: Fetch) => Fetch
 }
 
 export type RequestBatchOptions = {
@@ -39,6 +42,8 @@ export type RequestBatchOptions = {
   transaction?: BatchTransactionOptions
   numTry?: number
   containsWrite: boolean
+  // only used by the data proxy engine
+  customFetch?: (fetch: Fetch) => Fetch
 }
 
 export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error

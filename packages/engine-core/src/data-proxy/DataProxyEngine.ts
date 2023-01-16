@@ -31,7 +31,7 @@ import { SchemaMissingError } from './errors/SchemaMissingError'
 import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
-import { request } from './utils/request'
+import { Fetch, request } from './utils/request'
 
 const MAX_RETRIES = 10
 
@@ -144,17 +144,18 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>({ query, headers = {}, transaction }: RequestOptions<DataProxyTxInfoPayload>) {
+  request<T>({ query, headers = {}, transaction, customFetch }: RequestOptions<DataProxyTxInfoPayload>) {
     this.logEmitter.emit('query', { query })
 
     // TODO: `elapsed`?
-    return this.requestInternal<T>({ query, variables: {} }, headers, transaction)
+    return this.requestInternal<T>({ query, variables: {} }, headers, transaction, customFetch)
   }
 
   async requestBatch<T>({
     queries,
     headers = {},
     transaction,
+    customFetch,
   }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
@@ -167,7 +168,7 @@ export class DataProxyEngine extends Engine {
       isolationLevel: transaction?.isolationLevel,
     }
 
-    const { batchResult, elapsed } = await this.requestInternal<T, true>(body, headers)
+    const { batchResult, elapsed } = await this.requestInternal<T, true>(body, headers, undefined, customFetch)
 
     return batchResult.map((result) => {
       if ('errors' in result && result.errors.length > 0) {
@@ -184,6 +185,7 @@ export class DataProxyEngine extends Engine {
     body: Record<string, any>,
     headers: QueryEngineRequestHeaders,
     itx?: InteractiveTransactionOptions<DataProxyTxInfoPayload>,
+    customFetch?: (fetch: Fetch) => Fetch,
   ): Promise<
     Batch extends true ? { batchResult: QueryEngineResultBatchQueryResult<T>[]; elapsed: number } : QueryEngineResult<T>
   > {
@@ -194,12 +196,16 @@ export class DataProxyEngine extends Engine {
 
         logHttpCall(url)
 
-        const response = await request(url, {
-          method: 'POST',
-          headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
-          body: JSON.stringify(body),
-          clientVersion: this.clientVersion,
-        })
+        const response = await request(
+          url,
+          {
+            method: 'POST',
+            headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
+            body: JSON.stringify(body),
+            clientVersion: this.clientVersion,
+          },
+          customFetch,
+        )
 
         if (!response.ok) {
           debug('graphql response status', response.status)

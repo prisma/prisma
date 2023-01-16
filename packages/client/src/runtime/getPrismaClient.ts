@@ -16,6 +16,7 @@ import {
   SpanOptions,
   TracingConfig,
 } from '@prisma/engine-core'
+import { Fetch } from '@prisma/engine-core/dist/data-proxy/utils/request'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
@@ -184,6 +185,8 @@ export type InternalRequestParams = {
   otelParentCtx?: Context
   /** Used to "desugar" a user input into an "expanded" one */
   argsMapper?: (args?: UserArgs) => UserArgs
+  /** Used for Accelerate client extension via Data Proxy */
+  customFetch?: (fetch: Fetch) => Fetch
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 // only used by the .use() hooks
