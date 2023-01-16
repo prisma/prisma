@@ -44,6 +44,7 @@ export type RequestParams = {
   unpacker?: Unpacker
   otelParentCtx?: Context
   otelChildCtx?: Context
+  customFetch?: (fetch: Fetch) => Fetch
 }
 
 export type HandleErrorParams = {
@@ -161,6 +162,7 @@ export class RequestHandler {
     extensions,
     otelParentCtx,
     otelChildCtx,
+    customFetch,
   }: RequestParams) {
     if (this.hooks && this.hooks.beforeRequest) {
       const query = String(document)
@@ -200,6 +202,7 @@ export class RequestHandler {
           otelParentCtx,
           otelChildCtx,
           tracingConfig: this.client._tracingConfig,
+          customFetch,
         })
         data = result?.data
         elapsed = result?.elapsed

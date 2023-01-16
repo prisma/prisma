@@ -7,23 +7,23 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare const prisma: PrismaClient
 
-const randomId1 = randomBytes(12).toString('hex')
-const originalRequest = https.request
-
 /**
  * Tests for underlying query component features used by Prisma Accelerate
  */
 testMatrix.setupTestSuite(() => {
-  const mockedRequest = jest.fn()
+  let mockedRequest: jest.Mock
+  const originalRequest = https.request
+  const randomId = randomBytes(12).toString('hex')
 
-  beforeAll(() => {
+  beforeEach(() => {
+    mockedRequest = jest.fn()
     https.request = (...args: any[]) => {
       mockedRequest(args[0], args[1], args[2])
       return originalRequest(args[0], args[1], args[2])
     }
   })
 
-  afterAll(() => {
+  afterEach(() => {
     https.request = originalRequest
   })
 
@@ -49,12 +49,14 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await xprisma.user.findUnique({ where: { id: randomId1 } })
+    const data = await xprisma.user.findUnique({ where: { id: randomId } })
 
-    expect(mockedRequest.mock.calls[0][1].headers).not.toHaveProperty('x-custom-header')
-    expect(mockedRequest.mock.calls[1][1].headers).toHaveProperty('x-custom-header')
-    expect(mockedRequest.mock.calls[2][1].headers).not.toHaveProperty('x-custom-header')
-    expect(mockedRequest.mock.calls[3][1].headers).toHaveProperty('x-custom-header', 'hello')
+    expect(data).toBe(null)
+    // for the first call, the data proxy client will do some additional requests that aren't relevant
+    expect(mockedRequest.mock.calls[0][1].headers).not.toHaveProperty('x-custom-header') // checks version
+    expect(mockedRequest.mock.calls[1][1].headers).toHaveProperty('x-custom-header') // tries to send query
+    expect(mockedRequest.mock.calls[2][1].headers).not.toHaveProperty('x-custom-header') // uploads schema
+    expect(mockedRequest.mock.calls[3][1].headers).toHaveProperty('x-custom-header', 'hello') // sends query
   })
 
   testIf(process.env.DATA_PROXY !== undefined)('changing http headers via custom fetch', async () => {
@@ -69,13 +71,18 @@ testMatrix.setupTestSuite(() => {
             }
 
             __internalParams.customFetch = (fetch) => {
-              return (url, options) => {
+              return async (url, options) => {
                 options.headers = {
                   ...options.headers,
                   'x-custom-header': 'hello',
                 }
 
-                return fetch(url, options)
+                const res = await fetch(url, options)
+
+                expect(res).toHaveProperty('headers')
+                expect(res.headers).toHaveProperty('content-length')
+
+                return res
               }
             }
 
@@ -85,11 +92,10 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await xprisma.user.findUnique({ where: { id: randomId1 } })
+    const data = await xprisma.user.findUnique({ where: { id: randomId } })
 
-    expect(mockedRequest.mock.calls[0][1].headers).not.toHaveProperty('x-custom-header')
-    expect(mockedRequest.mock.calls[1][1].headers).toHaveProperty('x-custom-header')
-    expect(mockedRequest.mock.calls[2][1].headers).not.toHaveProperty('x-custom-header')
-    expect(mockedRequest.mock.calls[3][1].headers).toHaveProperty('x-custom-header', 'hello')
+    expect(data).toBe(null)
+
+    expect(mockedRequest.mock.calls[0][1].headers).toHaveProperty('x-custom-header', 'hello')
   })
 })

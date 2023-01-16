@@ -1141,6 +1141,7 @@ new PrismaClient({
       lock,
       unpacker,
       otelParentCtx,
+      customFetch,
     }: InternalRequestParams) {
       if (this._dmmf === undefined) {
         this._dmmf = await this._getDmmf({ clientMethod, callsite })
@@ -1241,6 +1242,7 @@ new PrismaClient({
         unpacker,
         otelParentCtx,
         otelChildCtx: context.active(),
+        customFetch,
       })
     }
 

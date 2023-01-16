@@ -29,7 +29,7 @@ declare let fetch: Fetch
 export async function request(
   url: string,
   options: RequestOptions & { clientVersion: string },
-  customFetch: (fetch: Fetch) => Fetch = (f) => f,
+  customFetch: (fetch: Fetch) => Fetch = (fetch) => fetch,
 ): Promise<RequestResponse> {
   const clientVersion = options.clientVersion
   const jsRuntimeName = getJSRuntimeName()
