@@ -25,8 +25,6 @@ jobs:
         uses: actions-cool/check-user-permission@v2
         with:
           require: write
-        env:
-          GITHUB_TOKEN: ${{ secrets.pat }}
 
       - name: User doesn't have write permission
         if: steps.check.outputs.require-result == 'false'
