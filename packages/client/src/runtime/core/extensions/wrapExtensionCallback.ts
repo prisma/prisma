@@ -50,13 +50,11 @@ export function wrapExtensionCallback<ResultT, ThisT, Args extends unknown[]>(
   }
 }
 
-export function wrapAllExtensionCallbacks(
-  name: string | undefined,
-  object: Record<string, (...args: unknown[]) => unknown> | undefined,
-) {
+export function wrapAllExtensionCallbacks(name: string | undefined, object: Record<string, Function> | undefined) {
   if (!object) {
     return object
   }
+
   return mapObjectValues(object, (prop) =>
     typeof prop === 'function' ? wrapExtensionCallback(name, prop as (...args: unknown[]) => unknown) : prop,
   )
