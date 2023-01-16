@@ -29,7 +29,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.pat }}
 
       - name: User doesn't have write permission
-        if: "! steps.check.outputs.require-result"
+        if: steps.check.outputs.require-result == 'false'
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.pat }}
