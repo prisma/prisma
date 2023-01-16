@@ -13,6 +13,9 @@ export type MatrixOptions = {
   }
   // SQL Migraiton to apply after inital generated migration
   alterStatementCallback?: AlterStatementCallback
+
+  // SQL Migraiton to apply before inital generated migration
+  migrateStatementCallback?: AlterStatementCallback
 }
 
 export type NewPrismaClient<T extends new (...args: any) => any> = (
@@ -27,3 +30,5 @@ export type ClientMeta = {
 }
 
 export type AlterStatementCallback = (provider: Providers) => string
+
+export type MigrateStatementCallback = (provider: Providers) => string
