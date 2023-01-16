@@ -12,6 +12,7 @@ import {
   getAggregateGetName,
   getAggregateInputType,
   getAggregateName,
+  getArgName,
   getAvgAggregateName,
   getCountAggregateInputName,
   getCountAggregateOutputName,
@@ -358,7 +359,12 @@ ${ifExtensions(() => {
   })
 }, '')}
 ${includeType}
-${ifExtensions('', new PayloadType(this.outputType, this.dmmf).toTS())}
+${ifExtensions(
+  `type ${model.name}GetPayload<S extends boolean | null | undefined | ${getArgName(
+    model.name,
+  )}> = runtime.Types.GetFindResult<${model.name}Payload, S>`,
+  new PayloadType(this.outputType, this.dmmf).toTS(),
+)}
 
 ${new ModelDelegate(this.outputType, this.dmmf, this.generator).toTS()}
 

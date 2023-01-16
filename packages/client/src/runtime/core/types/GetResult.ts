@@ -29,7 +29,7 @@ export type Operation =
 
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
-type GetFindResult<P extends Payload, A> = 
+export type GetFindResult<P extends Payload, A> = 
   A extends { select: infer S } | { include: infer S }
   ? {
       [K in keyof S as S[K] extends false | undefined | null ? never : K]:
@@ -93,6 +93,6 @@ export type GetResult<P extends Payload, A, O extends Operation> = {
   delete: GetFindResult<P, A>,
   deleteMany: GetBatchResult<P, A>,
   aggregate: GetAggregateResult<P, A>,
-  count: GetCountResult<P, A>
-  groupBy: GetGroupByResult<P, A>
+  count: GetCountResult<P, A>,
+  groupBy: GetGroupByResult<P, A>,
 }[O]
