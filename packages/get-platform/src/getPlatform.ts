@@ -57,7 +57,6 @@ export async function getos(): Promise<GetOSResult> {
   const distro = await resolveDistro()
 
   if (distro === 'musl' && arch !== 'x64') {
-    // TODO: evaluate adding a pris.ly link to this error message
     throw new Error(
       `Prisma only supports Linux Alpine on the amd64 (x86_64) system architecture. If you're running Prisma on Docker, please use Docker Buildx to simulate the amd64 architecture on your device as explained by this comment: https://github.com/prisma/prisma/issues/8478#issuecomment-1355209706`,
     )
