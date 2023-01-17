@@ -20,7 +20,7 @@ export class PayloadType implements Generatable {
     const { type } = this
     const { name } = type
 
-    const argsName = `${getArgName(name, false)}${ifExtensions('', '')}`
+    const argsName = getArgName(name)
 
     const include = this.renderRelations(Projection.include)
     const select = this.renderRelations(Projection.select)
@@ -31,7 +31,7 @@ export class PayloadType implements Generatable {
 
     return `\
 export type ${getPayloadName(name)}<S extends boolean | null | undefined | ${argsName}${ifExtensions(
-      `, ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs, _${name} = runtime.Types.Extensions.GetResultPayload<${name}, ExtArgs['result']['${lowerCase(
+      `, ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs, _${name} = runtime.Types.Extensions.GetResult<${name}, ExtArgs['result']['${lowerCase(
         name,
       )}']>`,
       '',

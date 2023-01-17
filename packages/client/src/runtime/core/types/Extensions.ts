@@ -1,43 +1,42 @@
+import { RequiredArgs as UserArgs } from '../extensions/$extends'
+import { ReadonlyDeep } from './Utils'
+
 /* eslint-disable prettier/prettier */
-import { RequiredArgs as Args } from '../extensions/$extends'
-import { Omit, PatchFlat3,Pick,  } from './Utils'
 
-export type DefaultArgs = { result: {}; model: {}; query: {}; client: {} }
+export type InternalArgs<
+  R extends UserArgs['result'] = UserArgs['result'],
+  M extends UserArgs['model'] = UserArgs['model'],
+  Q extends UserArgs['query'] = UserArgs['query'],
+  C extends UserArgs['client'] = UserArgs['client'],
+> = {
+  result: { [K in keyof R]: { [P in keyof R[K]]: () => R[K][P] } },
+  model: { [K in keyof M]: { [P in keyof M[K]]: () => M[K][P] } },
+  query: { [K in keyof Q]: { [P in keyof Q[K]]: () => Q[K][P] } },
+  client: { [K in keyof C]: () => C[K] },
+}
 
-export type GetResultPayload<Base extends object, R extends Args['result'][string]> =
-  PatchFlat3<{}, { [K in keyof R]: ReturnType<R[K]['compute']> }, Base>
+export type Args = InternalArgs
 
-export type GetResultSelect<Base extends object, R extends Args['result'][string]> =
-  Base & { [K in keyof R]?: true }
+export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
-export type GetModel<Base extends object, M extends Args['model'][string]> =
-  PatchFlat3<M, Base, {}>
+export type GetResult<Base extends Record<any, any>, R extends Args['result'][string]> =
+  { [K in keyof R | keyof Base]: K extends keyof R ? ReturnType<ReturnType<R[K]>['compute']> : Base[K] } & unknown
 
-export type GetClient<Base extends object, C extends Args['client'], CP extends Args['client']> =
-  PatchFlat3<C, CP, Omit<Base, '$use'>>
+export type GetSelect<Base extends Record<any, any>, R extends Args['result'][string]> =
+  { [K in keyof R | keyof Base]?: K extends keyof R ? boolean : Base[K] }
 
-export type ReadonlySelector<T> = {
-  readonly [K in keyof T as K extends 'include' | 'select' ? K : never]: ReadonlySelector<T[K]>
+export type GetModel<Base extends Record<any, any>, M extends Args['model'][string]> =
+  { [K in keyof M | keyof Base]: K extends keyof M ? ReturnType<M[K]> : Base[K] }
+
+export type GetClient<Base extends Record<any, any>, C extends Args['client']> =
+  Omit<Base, keyof C | '$use'> & { [K in keyof C]: ReturnType<C[K]> }
+
+export type ReadonlySelector<T> = T extends unknown ? {
+  readonly [K in keyof T as K extends 'include' | 'select' ? K : never]: ReadonlyDeep<T[K]>
 } & {
   [K in keyof T as K extends 'include' | 'select' ? never : K]: T[K]
-}
+} : never
 
-export type MergeArgs<
-  ExtArgs extends Args,
-  PrevExtArgs extends Args,
-  ModelNames extends string,
-  ApplyAllModels extends boolean = true,
-> = {
-  result: '$allModels' extends keyof ExtArgs['result'] ? ApplyAllModels extends true
-  ? { [K in ModelNames]: PatchFlat3<ExtArgs['result'][K], ExtArgs['result']['$allModels'], PrevExtArgs['result'][K]> }
-  : { [K in keyof ExtArgs['result'] | keyof PrevExtArgs['result']]: PatchFlat3<ExtArgs['result'][K], PrevExtArgs['result'][K], {}> }
-  : { [K in keyof ExtArgs['result'] | keyof PrevExtArgs['result']]: PatchFlat3<ExtArgs['result'][K], PrevExtArgs['result'][K], {}> }
-  model: '$allModels' extends keyof ExtArgs['model'] ? ApplyAllModels extends true
-  ? { [K in ModelNames]: PatchFlat3<ExtArgs['model'][K], ExtArgs['model']['$allModels'], PrevExtArgs['model'][K]> }
-  : { [K in keyof ExtArgs['model'] | keyof PrevExtArgs['model']]: PatchFlat3<ExtArgs['model'][K], PrevExtArgs['model'][K], {}> }
-  : { [K in keyof ExtArgs['model'] | keyof PrevExtArgs['model']]: PatchFlat3<ExtArgs['model'][K], PrevExtArgs['model'][K], {}> }
-  client: Pick<PatchFlat3<ExtArgs['client'], PrevExtArgs['client'], {}>, `$${string}`>
-  query: {}
-}
+/* eslint-enable prettier/prettier */
 
-export type { Args }
+export type { UserArgs }

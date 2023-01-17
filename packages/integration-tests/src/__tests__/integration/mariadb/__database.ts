@@ -25,6 +25,7 @@ export const database = {
     CREATE DATABASE ${ctx.id};
     USE ${ctx.id};`
     await db.query(sqlUp + sqlScenario)
+    await db.end()
   },
   close: (db) => db.end(),
 } as Input<mariadb.Connection>['database']

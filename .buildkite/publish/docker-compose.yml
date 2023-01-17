@@ -45,17 +45,18 @@ services:
       # Other vars !\ If not defined, they cannot be accessed
       # TODO: do an env var cleanup?
       - NPM_TOKEN
+      # Used to create a tag the prisma-engines repository
+      # After packages are published on npm
       - GITHUB_TOKEN
-      - UPDATE_STUDIO
       - BUILDKITE
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
       - RELEASE_PROMOTE_DEV
+      - ONLY_PACKAGES
       - PUBLISH_BUILD=true
       - REDIS_URL
       - MIGRATE_COMMIT
       - PRISMA_CLIENT_JS_COMMIT
-      - PRISMA2_COMMIT
       - PATCH_BRANCH
       - DRY_RUN
       - CI
@@ -130,7 +131,7 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:1f8c98f716649ac095bae78ead88f522eaf236e9e03baa770b6690d61cbbe29a
+    image: vitess/vttestserver:mysql80@sha256:70cb7e94d1f84ae2f1f34136f4c8c3a3dcb4b3bd95e3baaf6cf2df84572ea950
     restart: always
     ports:
       - 33807:33807
@@ -138,10 +139,9 @@ services:
       PORT: '33804' # unused in testing, but required by vttestserver
       KEYSPACES: 'keyspace' # unused in testing, but required by vttestserver
       NUM_SHARDS: '1' # unused in testing, but required by vttestserver
-
       MYSQL_BIND_HOST: '0.0.0.0'
       FOREIGN_KEY_MODE: 'disallow'
-      VT_DIALECT: 'mysql80'
+      TABLET_REFRESH_INTERVAL: '1s'
 
   mariadb:
     image: mariadb:10.7.3

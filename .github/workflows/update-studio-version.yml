@@ -1,4 +1,6 @@
 name: Update Studio Version
+run-name: Update Studio - version ${{ inputs.version }}
+
 on:
   workflow_dispatch:
     inputs:

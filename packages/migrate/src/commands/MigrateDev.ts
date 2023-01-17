@@ -20,8 +20,8 @@ import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import type { DbType } from '../utils/ensureDatabaseExists'
-import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
+import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
 import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
@@ -109,7 +109,8 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    await printDatasource(schemaPath)
+    const datasourceInfo = await getDatasourceInfo({ schemaPath })
+    printDatasource({ datasourceInfo })
 
     console.info() // empty line
 
@@ -126,7 +127,7 @@ ${chalk.bold('Examples')}
     })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
+    const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
     if (wasDbCreated) {
       console.info(wasDbCreated)
       console.info() // empty line
@@ -152,8 +153,10 @@ ${chalk.bold('Examples')}
           throw new MigrateDevEnvNonInteractiveError()
         }
 
-        const dbInfo = await getDbInfo(schemaPath)
-        const confirmedReset = await this.confirmReset(dbInfo, devDiagnostic.action.reason)
+        const confirmedReset = await this.confirmReset({
+          datasourceInfo,
+          reason: devDiagnostic.action.reason,
+        })
 
         console.info() // empty line
 
@@ -349,32 +352,47 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
     return ''
   }
 
-  private async confirmReset(
-    {
-      schemaWord,
-      dbType,
-      dbName,
-      dbLocation,
-    }: {
-      schemaWord?: 'database'
-      dbType?: DbType
-      dbName?: string
-      dbLocation?: string
-    },
-    reason: string,
-  ): Promise<boolean> {
-    const mssqlMessage = `We need to reset the database.
-Do you want to continue? ${chalk.red('All data will be lost')}.`
-
-    const message = `We need to reset the ${dbType} ${schemaWord} "${dbName}" at "${dbLocation}".
-Do you want to continue? ${chalk.red('All data will be lost')}.`
-
+  private async confirmReset({
+    datasourceInfo,
+    reason,
+  }: {
+    datasourceInfo: DatasourceInfo
+    reason: string
+  }): Promise<boolean> {
+    // Log the reason of why a reset is needed to the user
     console.info(reason)
 
+    let messageFirstLine = ''
+
+    if (['PostgreSQL', 'SQL Server'].includes(datasourceInfo.prettyProvider!)) {
+      if (datasourceInfo.schemas?.length) {
+        messageFirstLine = `We need to reset the following schemas: "${datasourceInfo.schemas.join(', ')}"`
+      } else if (datasourceInfo.schema) {
+        messageFirstLine = `We need to reset the "${datasourceInfo.schema}" schema`
+      } else {
+        messageFirstLine = `We need to reset the database schema`
+      }
+    } else {
+      messageFirstLine = `We need to reset the ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}"`
+    }
+
+    if (datasourceInfo.dbLocation) {
+      messageFirstLine += ` at "${datasourceInfo.dbLocation}"`
+    }
+
+    const messageForPrompt = `${messageFirstLine}
+Do you want to continue? ${chalk.red('All data will be lost')}.`
+
+    // For testing purposes we log the message
+    // An alternative would be to find a way to capture the prompt message from jest tests
+    // (attempted without success)
+    if (Boolean((prompt as any)._injected?.length) === true) {
+      console.info(messageForPrompt)
+    }
     const confirmation = await prompt({
       type: 'confirm',
       name: 'value',
-      message: dbType === 'SQL Server' ? mssqlMessage : message,
+      message: messageForPrompt,
     })
 
     return confirmation.value

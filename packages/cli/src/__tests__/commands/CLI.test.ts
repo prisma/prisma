@@ -87,7 +87,7 @@ it('help flag', async () => {
 })
 
 it('unknown command', async () => {
-  await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrowError()
+  await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrow()
 })
 
 it('introspect should include deprecation warning', async () => {

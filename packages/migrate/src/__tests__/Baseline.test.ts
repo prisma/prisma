@@ -68,6 +68,8 @@ describe('Baselining', () => {
       [+] Added tables
         - Blog
 
+      We need to reset the SQLite database "dev.db" at "file:./dev.db"
+      Do you want to continue? All data will be lost.
 
     `)
     ctx.mocked['console.info'].mockReset()

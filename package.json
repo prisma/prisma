@@ -34,8 +34,8 @@
     "@types/benchmark": "2.1.2",
     "@types/fs-extra": "9.0.13",
     "@types/glob": "8.0.0",
-    "@types/graphviz": "0.0.34",
-    "@types/node": "14.18.33",
+    "@types/graphviz": "0.0.35",
+    "@types/node": "14.18.36",
     "@types/node-fetch": "2.6.2",
     "@types/redis": "2.8.32",
     "@types/resolve": "1.20.2",
@@ -52,7 +52,7 @@
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-eslint-comments": "3.2.0",
     "eslint-plugin-import": "2.26.0",
-    "eslint-plugin-jest": "27.1.6",
+    "eslint-plugin-jest": "27.1.7",
     "eslint-plugin-prettier": "4.2.1",
     "eslint-plugin-simple-import-sort": "8.0.0",
     "eventemitter3": "4.0.7",
@@ -84,7 +84,8 @@
     "ts-toolbelt": "9.6.0",
     "tty-browserify": "0.0.1",
     "typescript": "4.8.4",
-    "util": "0.12.5"
+    "util": "0.12.5",
+    "zx": "7.1.1"
   },
   "pnpm": {
     "peerDependencyRules": {

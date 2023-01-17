@@ -38,7 +38,6 @@ export async function ensureBinariesExist() {
     [cliQueryEngineBinaryType]: binaryDir,
     [BinaryType.migrationEngine]: binaryDir,
     [BinaryType.introspectionEngine]: binaryDir,
-    [BinaryType.prismaFmt]: binaryDir,
   }
   debug(`binaries to download ${Object.keys(binaries).join(', ')}`)
   await download({
@@ -61,35 +60,27 @@ export { enginesVersion } from '@prisma/engines-version'
 
 path.join(__dirname, '../query-engine-darwin')
 path.join(__dirname, '../introspection-engine-darwin')
-path.join(__dirname, '../prisma-fmt-darwin')
 
 path.join(__dirname, '../query-engine-darwin-arm64')
 path.join(__dirname, '../introspection-engine-darwin-arm64')
-path.join(__dirname, '../prisma-fmt-darwin-arm64')
 
 path.join(__dirname, '../query-engine-debian-openssl-1.0.x')
 path.join(__dirname, '../introspection-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../prisma-fmt-debian-openssl-1.0.x')
 
 path.join(__dirname, '../query-engine-debian-openssl-1.1.x')
 path.join(__dirname, '../introspection-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../prisma-fmt-debian-openssl-1.1.x')
 
 path.join(__dirname, '../query-engine-debian-openssl-3.0.x')
 path.join(__dirname, '../introspection-engine-debian-openssl-3.0.x')
-path.join(__dirname, '../prisma-fmt-debian-openssl-3.0.x')
 
 path.join(__dirname, '../query-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../introspection-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../prisma-fmt-rhel-openssl-1.0.x')
 
 path.join(__dirname, '../query-engine-rhel-openssl-1.1.x')
 path.join(__dirname, '../introspection-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../prisma-fmt-rhel-openssl-1.1.x')
 
 path.join(__dirname, '../query-engine-rhel-openssl-3.0.x')
 path.join(__dirname, '../introspection-engine-rhel-openssl-3.0.x')
-path.join(__dirname, '../prisma-fmt-rhel-openssl-3.0.x')
 
 // Node API
 path.join(__dirname, '../libquery_engine-darwin.dylib.node')
@@ -101,6 +92,7 @@ path.join(__dirname, '../libquery_engine-linux-arm64-openssl-1.0.x.so.node')
 path.join(__dirname, '../libquery_engine-linux-arm64-openssl-1.1.x.so.node')
 path.join(__dirname, '../libquery_engine-linux-arm64-openssl-3.0.x.so.node')
 path.join(__dirname, '../libquery_engine-linux-musl.so.node')
+path.join(__dirname, '../libquery_engine-linux-musl-openssl-3.0.x.so.node')
 path.join(__dirname, '../libquery_engine-rhel-openssl-1.0.x.so.node')
 path.join(__dirname, '../libquery_engine-rhel-openssl-1.1.x.so.node')
 path.join(__dirname, '../libquery_engine-rhel-openssl-3.0.x.so.node')

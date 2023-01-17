@@ -78,6 +78,7 @@ describe('getGenerators', () => {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
+            "schemas": [],
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -161,6 +162,7 @@ describe('getGenerators', () => {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
+            "schemas": [],
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -252,6 +254,7 @@ describe('getGenerators', () => {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
+            "schemas": [],
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -343,6 +346,7 @@ describe('getGenerators', () => {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
+            "schemas": [],
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -435,6 +439,7 @@ describe('getGenerators', () => {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
+            "schemas": [],
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
@@ -541,6 +546,7 @@ describe('getGenerators', () => {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
+            "schemas": [],
             "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
