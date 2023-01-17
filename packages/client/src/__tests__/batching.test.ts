@@ -81,6 +81,7 @@ describe('batching', () => {
       [
         {
           containsWrite: false,
+          customFetch: undefined,
           headers: {
             traceparent: 00-10-10-00,
           },
@@ -203,6 +204,7 @@ describe('batching', () => {
     expect(requests).toMatchInlineSnapshot(`
       [
         {
+          customFetch: undefined,
           headers: {
             traceparent: 00-10-10-00,
           },
@@ -224,6 +226,7 @@ describe('batching', () => {
           transaction: undefined,
         },
         {
+          customFetch: undefined,
           headers: {
             traceparent: 00-10-10-00,
           },
@@ -321,6 +324,7 @@ describe('batching', () => {
     expect(requests).toMatchInlineSnapshot(`
       [
         {
+          customFetch: undefined,
           headers: {
             traceparent: 00-10-10-00,
           },
@@ -347,6 +351,7 @@ describe('batching', () => {
           transaction: undefined,
         },
         {
+          customFetch: undefined,
           headers: {
             traceparent: 00-10-10-00,
           },
