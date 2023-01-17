@@ -19,11 +19,16 @@ async function bench(): Promise<void> {
 
 bench()
   .then()
-  .catch((err) => console.error(err))
+  .catch((err) => {
+    console.error(err)
+    process.exit(1)
+  })
 
 async function benchQueryEngineSize() {
+  // benchmark library size
   printSize('./node_modules/.prisma/client/libquery_engine-debian-openssl-1.1.x.so.node')
 
+  // benchmark binary size
   await setup(ClientEngineType.Binary)
   printSize('./node_modules/.prisma/client/query-engine-debian-openssl-1.1.x')
 }
