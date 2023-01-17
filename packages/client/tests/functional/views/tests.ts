@@ -32,6 +32,7 @@ testMatrix.setupTestSuite(
       if (suiteConfig.provider === 'mongodb') {
         // alterstament dont work with mongodb because
         // - no support for DbExecute
+        // @ts-test-if: provider === 'mongodb'
         await prisma.$runCommandRaw({
           create: 'UserInfo',
           viewOn: 'User',
@@ -60,7 +61,7 @@ testMatrix.setupTestSuite(
 
     test('should simple query a view', async () => {
       const user = await prisma.userInfo.findFirst()
-      expect(user.id).toEqual(fakeUser.id)
+      expect(user?.id).toEqual(fakeUser.id)
     })
 
     test('should query a view with where', async () => {
@@ -72,7 +73,7 @@ testMatrix.setupTestSuite(
 
       expect(users[0]).toBeDefined()
 
-      expect(users[0].id).toEqual(fakeUser.id)
+      expect(users[0]?.id).toEqual(fakeUser.id)
     })
 
     test('should query views with a related column', async () => {
@@ -82,7 +83,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(user.bio).toEqual(fakeProfile.bio)
+      expect(user?.bio).toEqual(fakeProfile.bio)
     })
   },
   {
@@ -105,70 +106,3 @@ testMatrix.setupTestSuite(
     },
   },
 )
-
-// db.createView('UserInfo', 'User', [
-//   {
-//     $lookup: {
-//       from: 'Profile',
-//       localField: '_id',
-//       foreignField: 'userId',
-//       as: 'ProfileData',
-//     },
-//   },
-//   {
-//     $project: {
-//       _id: 1,
-//       email: 1,
-//       name: 1,
-//       bio: '$ProfileData.bio',
-//     },
-//   },
-//   { $unwind: '$bio' },
-// ])
-
-// prisma.$runCommandRaw({
-//   create: 'UserInfo',
-//   documents: [
-//     {
-//       $lookup: {
-//         from: 'Profile',
-//         localField: '_id',
-//         foreignField: 'userId',
-//         as: 'ProfileData',
-//       },
-//     },
-//     {
-//       $project: {
-//         _id: 1,
-//         email: 1,
-//         name: 1,
-//         bio: '$ProfileData.bio',
-//       },
-//     },
-//     { $unwind: '$bio' },
-//   ],
-// })
-
-// await prisma.$runCommandRaw({
-//   create: 'UserInfo',
-//   viewOn: 'user',
-//   pipeline: [
-//     {
-//       $lookup: {
-//         from: 'Profile',
-//         localField: '_id',
-//         foreignField: 'userId',
-//         as: 'ProfileData',
-//       },
-//     },
-//     {
-//       $project: {
-//         _id: 1,
-//         email: 1,
-//         name: 1,
-//         bio: '$ProfileData.bio',
-//       },
-//     },
-//     { $unwind: '$bio' },
-//   ],
-// })
