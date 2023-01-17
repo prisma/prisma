@@ -52,6 +52,7 @@ services:
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
       - RELEASE_PROMOTE_DEV
+      - ONLY_PACKAGES
       - PUBLISH_BUILD=true
       - REDIS_URL
       - MIGRATE_COMMIT
