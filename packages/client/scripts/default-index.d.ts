@@ -1,4 +1,4 @@
-import runtime from '@prisma/client/runtime'
+import * as runtime from '@prisma/client/runtime'
 
 /**
  * ##  Prisma Client ʲˢ
