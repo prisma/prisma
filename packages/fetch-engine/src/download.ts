@@ -31,7 +31,6 @@ export enum BinaryType {
   libqueryEngine = 'libquery-engine',
   migrationEngine = 'migration-engine',
   introspectionEngine = 'introspection-engine',
-  prismaFmt = 'prisma-fmt',
 }
 export type BinaryDownloadConfiguration = {
   [binary in BinaryType]?: string // that is a path to the binary download location
@@ -57,7 +56,6 @@ const BINARY_TO_ENV_VAR = {
   [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
   [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
   [BinaryType.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
-  [BinaryType.prismaFmt]: 'PRISMA_FMT_BINARY',
 }
 
 type BinaryDownloadJob = {

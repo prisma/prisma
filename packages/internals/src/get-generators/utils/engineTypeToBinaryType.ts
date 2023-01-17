@@ -16,9 +16,6 @@ export function engineTypeToBinaryType(engineType: EngineType): BinaryType {
   if (engineType === 'libqueryEngine') {
     return BinaryType.libqueryEngine
   }
-  if (engineType === 'prismaFmt') {
-    return BinaryType.prismaFmt
-  }
 
   throw new Error(`Could not convert engine type ${engineType}`)
 }
