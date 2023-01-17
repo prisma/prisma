@@ -1,0 +1,8 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = "prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY"
+}
