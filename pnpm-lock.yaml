@@ -35,7 +35,7 @@ importers:
       eslint-plugin-import: 2.26.0
       eslint-plugin-jest: 27.1.7
       eslint-plugin-prettier: 4.2.1
-      eslint-plugin-simple-import-sort: 8.0.0
+      eslint-plugin-simple-import-sort: 9.0.0
       eventemitter3: 4.0.7
       execa: 5.1.1
       fs-extra: 11.1.0
@@ -94,7 +94,7 @@ importers:
       eslint-plugin-import: 2.26.0_jnohwm7eexgw7uduhweedcbnpe
       eslint-plugin-jest: 27.1.7_dh5zoy5tprom2j3yddxus2umce
       eslint-plugin-prettier: 4.2.1_v7o5sx5x3wbs57ifz6wc4f76we
-      eslint-plugin-simple-import-sort: 8.0.0_eslint@8.27.0
+      eslint-plugin-simple-import-sort: 9.0.0_eslint@8.27.0
       eventemitter3: 4.0.7
       execa: 5.1.1
       fs-extra: 11.1.0
@@ -6381,8 +6381,8 @@ packages:
       prettier-linter-helpers: 1.0.0
     dev: true
 
-  /eslint-plugin-simple-import-sort/8.0.0_eslint@8.27.0:
-    resolution: {integrity: sha512-bXgJQ+lqhtQBCuWY/FUWdB27j4+lqcvXv5rUARkzbeWLwea+S5eBZEQrhnO+WgX3ZoJHVj0cn943iyXwByHHQw==}
+  /eslint-plugin-simple-import-sort/9.0.0_eslint@8.27.0:
+    resolution: {integrity: sha512-PtrLjyXP8kjRneWT1n0b99y/2Fyup37we7FVoWsI61/O7x4ztLohzhep/pxI/cYlECr/cQ2j6utckdvWpVwXNA==}
     peerDependencies:
       eslint: '>=5.0.0'
     dependencies:
