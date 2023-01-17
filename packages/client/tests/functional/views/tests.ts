@@ -81,6 +81,13 @@ testMatrix.setupTestSuite(
             { $unwind: '$bio' },
           ])
         `
+      } else if (provider === 'mysql') {
+        return `
+          CREATE VIEW UserInfo 
+          AS SELECT u.id, email, name, p.bio
+          FROM User u
+          LEFT JOIN Profile p ON u.id = p.userId
+        `
       } else {
         return `
           CREATE VIEW "UserInfo" 
