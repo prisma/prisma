@@ -30,7 +30,9 @@ type Args = O.Optional<O.Update<typeof checkedArgs, any, string>>
 export const forbiddenCmdWithDataProxyFlagMessage = (command: string) => `
 Using the Data Proxy (connection URL starting with protocol ${chalk.green(
   'prisma://',
-)}) is not supported for this CLI command ${chalk.green(`prisma ${command}`)} yet.
+)}) is not supported for this CLI command ${chalk.green(`prisma ${command}`)} yet. ${
+  command === 'studio' ? '' : "Please use a direct connection to your database via the datasource 'directUrl' setting."
+}
 
 More information about Data Proxy: ${link('https://pris.ly/d/data-proxy-cli')}
 `
