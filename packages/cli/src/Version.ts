@@ -83,9 +83,6 @@ export class Version implements Command {
         .with({ 'introspection-engine': P.select() }, (currEngineInfo) => {
           return ['Introspection Engine', currEngineInfo]
         })
-        .with({ 'format-binary': P.select() }, (currEngineInfo) => {
-          return ['Format Binary', currEngineInfo]
-        })
         .exhaustive()
     })
 
