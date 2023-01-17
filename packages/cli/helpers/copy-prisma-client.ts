@@ -1,3 +1,4 @@
+import fg from 'fast-glob'
 import { copySync } from 'fs-extra'
 import path from 'path'
 
@@ -9,10 +10,14 @@ const clientPath = path.dirname(require.resolve('@prisma/client'))
 const clientPkg = require('@prisma/client/package.json')
 
 // we compute the paths of the files that would get npm published
-const clientFiles = (clientPkg.files ?? []).map((file: string) => path.join(clientPath, file))
+// this uses a glob library to understand patterns in files.
+// Using tooling from npm would be even better, but it is in magnitudes slower compared to this approach.
+// Ideally, it would be great if we could remove this somehow.
+const clientFiles = fg.sync(clientPkg.files, { cwd: clientPath, dot: true, onlyFiles: false })
 
 // we copy each file that we found in pkg to a new destination
 for (const file of clientFiles) {
-  const dest = path.join(clientCopyPath, path.basename(file))
-  copySync(file, dest, { recursive: true, overwrite: true })
+  const from = path.join(clientPath, file)
+  const to = path.join(clientCopyPath, file)
+  copySync(from, to, { overwrite: true, recursive: true })
 }

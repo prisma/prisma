@@ -1,7 +1,6 @@
 import indent from 'indent-string'
 
 import { DMMF } from '../../runtime/dmmf-types'
-import { lowerCase } from '../../runtime/utils/common'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
@@ -11,12 +10,24 @@ import { InputField } from './Input'
 import { ifExtensions } from './utils/ifExtensions'
 
 export class ArgsType implements Generatable {
+  private generatedName: string | null = null
+  private comment: string | null = null
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
     protected readonly genericsInfo: GenericArgsInfo,
     protected readonly action?: DMMF.ModelAction,
   ) {}
+  public setGeneratedName(name: string): this {
+    this.generatedName = name
+    return this
+  }
+
+  public setComment(comment: string): this {
+    this.comment = comment
+    return this
+  }
+
   public toTS(): string {
     const { action, args } = this
     const { name } = this.type
@@ -72,16 +83,16 @@ export class ArgsType implements Generatable {
     }
 
     argsToGenerate.push(...args)
-    const modelArgName = getModelArgName(name, action)
+    const generatedName = this.generatedName ?? getModelArgName(name, action)
     if (action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findFirst) {
-      return this.generateFindMethodArgs(action, name, argsToGenerate, modelArgName)
+      return this.generateFindMethodArgs(action, name, argsToGenerate, generatedName)
     }
 
     return `
 /**
- * ${name} ${action ? action : 'without action'}
+ * ${this.getGeneratedComment()}
  */
-export type ${modelArgName}${ifExtensions(
+export type ${generatedName}${ifExtensions(
       '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
       '',
     )} = {
@@ -115,7 +126,7 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.gene
 }
 
 /**
- * ${name}: ${action}
+ * ${this.getGeneratedComment()}
  */
 export interface ${modelArgName}${ifExtensions(
       '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
@@ -128,6 +139,10 @@ export interface ${modelArgName}${ifExtensions(
   rejectOnNotFound?: RejectOnNotFound
 }
       `
+  }
+
+  private getGeneratedComment() {
+    return this.comment ?? `${this.type.name} ${this.action ?? 'without action'}`
   }
 }
 

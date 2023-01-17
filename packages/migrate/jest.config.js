@@ -16,7 +16,6 @@ module.exports = {
     'setupPostgres.ts',
     'test-MigrateEngineCommands.ts',
     'test-handlePanic.ts',
-    'test-interactivelyCreateDatabase.ts',
   ],
   // to get rid of "jest-haste-map: Haste module naming collision: package name"
   modulePathIgnorePatterns: ['<rootDir>/src/__tests__/fixtures/'],

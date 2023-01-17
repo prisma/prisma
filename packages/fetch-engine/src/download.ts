@@ -3,7 +3,7 @@ import { getNodeAPIName, getos, getPlatform, isNodeAPISupported, Platform, platf
 import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
-import makeDir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import pFilter from 'p-filter'
 import path from 'path'
 import tempDir from 'temp-dir'
@@ -422,7 +422,7 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
 
   try {
     fs.accessSync(targetDir, fs.constants.W_OK)
-    await makeDir(targetDir)
+    await ensureDir(targetDir)
   } catch (e) {
     if (options.failSilent || (e as NodeJS.ErrnoException).code !== 'EACCES') {
       return
@@ -505,7 +505,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   const dir = eval('__dirname')
   if (dir.startsWith('/snapshot/')) {
     const targetDir = path.join(tempDir, 'prisma-binaries')
-    await makeDir(targetDir)
+    await ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
     const data = await readFile(file)
     await writeFile(target, data)

@@ -6,11 +6,13 @@ import type { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import { lowerCase } from '../../runtime/utils/common'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
+import * as ts from '../ts-builders'
 import {
   getAggregateArgsName,
   getAggregateGetName,
   getAggregateInputType,
   getAggregateName,
+  getArgName,
   getAvgAggregateName,
   getCountAggregateInputName,
   getCountAggregateOutputName,
@@ -23,6 +25,7 @@ import {
   getMaxAggregateName,
   getMinAggregateName,
   getModelArgName,
+  getModelFieldArgsName,
   getReturnType,
   getSelectName,
   getSumAggregateName,
@@ -40,6 +43,7 @@ import { ModelFieldRefs } from './ModelFieldRefs'
 import { ModelOutputField, OutputType } from './Output'
 import { PayloadType } from './Payload'
 import { SchemaOutputType } from './SchemaOutput'
+import { buildIncludeType, buildScalarSelectType, buildSelectType } from './SelectInclude'
 import { getModelActions } from './utils/getModelActions'
 import { ifExtensions } from './utils/ifExtensions'
 
@@ -75,6 +79,18 @@ export class Model implements Generatable {
         argsTypes.push(new MinimalArgsType(field.args, this.type, this.genericsInfo, action as DMMF.ModelAction))
       } else if (action !== 'groupBy' && action !== 'aggregate') {
         argsTypes.push(new ArgsType(field.args, this.type, this.genericsInfo, action as DMMF.ModelAction))
+      }
+    }
+
+    for (const field of this.type.fields) {
+      if (field.args.length) {
+        if (field.outputType.location === 'outputObjectTypes' && typeof field.outputType.type === 'object') {
+          argsTypes.push(
+            new ArgsType(field.args, field.outputType.type, this.genericsInfo)
+              .setGeneratedName(getModelFieldArgsName(field, this.model.name))
+              .setComment(`${this.model.name}.${field.name}`),
+          )
+        }
       }
     }
 
@@ -266,7 +282,42 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     const modelLine = `Model ${model.name}\n`
     const docs = `${modelLine}${docLines}`
 
-    return `${buildComment(docs)}export type ${model.name} = {
+    return ifExtensions(
+      () => {
+        return `export type ${
+          model.name
+        }Payload<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
+${indent(
+  `objects: {
+${indent(
+  model.fields
+    .filter((f) => f.kind === 'object')
+    .map((field) => new ModelOutputField(this.dmmf, field, false).toTS())
+    .join('\n'),
+  TAB_SIZE,
+)}
+}`,
+  TAB_SIZE,
+)}
+${indent(
+  `scalars: runtime.Types.Extensions.GetResult<{
+${indent(
+  model.fields
+    .filter((f) => f.kind === 'scalar' || f.kind === 'enum')
+    .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
+    .join('\n'),
+  TAB_SIZE,
+)}
+}, ExtArgs['result']['${lowerCase(model.name)}']>`,
+  TAB_SIZE,
+)}
+}
+
+${buildComment(docs)}export type ${model.name} = ${model.name}Payload['scalars']
+`
+      },
+      () => {
+        return `${buildComment(docs)}export type ${model.name} = {
 ${indent(
   model.fields
     .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
@@ -276,35 +327,20 @@ ${indent(
 )}
 }
 `
+      },
+    )
   }
   public toTS(): string {
     const { model, outputType } = this
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
-      ? `\nexport type ${getIncludeName(model.name)}${ifExtensions(
-          '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-          '',
-        )} = {
-${indent(
-  outputType.fields
-    .filter((f) => {
-      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
-      return f.outputType.location === 'outputObjectTypes' && !this.dmmf.typeMap[fieldTypeName]
-    })
-    .map((f) => {
-      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
-      return (
-        `${f.name}?: boolean` +
-        (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions('<ExtArgs>', '')}`
-          : '')
-      )
-    })
-    .join('\n'),
-  TAB_SIZE,
-)}
-} \n`
+      ? ts.stringify(
+          buildIncludeType({ modelName: this.model.name, dmmf: this.dmmf, fields: this.outputType.fields }),
+          {
+            newLine: 'both',
+          },
+        )
       : ''
 
     return `
@@ -316,40 +352,19 @@ ${!this.dmmf.typeMap[model.name] ? this.getAggregationTypes() : ''}
 
 ${!this.dmmf.typeMap[model.name] ? this.getGroupByTypes() : ''}
 
-export type ${getSelectName(model.name)}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = ${ifExtensions(() => `runtime.Types.Extensions.GetResultSelect<`, '')}{
-${indent(
-  outputType.fields
-    .filter((field) => ifExtensions(field.outputType.location === 'outputObjectTypes', true))
-    .map((f) => {
-      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
-      return (
-        `${f.name}?: boolean` +
-        (f.outputType.location === 'outputObjectTypes'
-          ? ` | ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions('<ExtArgs>', '')}`
-          : '')
-      )
-    })
-    .join('\n'),
-  TAB_SIZE,
-)}
-}${ifExtensions(() => ` & ${getSelectName(model.name)}Scalar, ExtArgs['result']['${lowerCase(model.name)}']>`, '')}
+${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.outputType.fields }))}
 ${ifExtensions(() => {
-  return `
-export type ${getSelectName(model.name)}Scalar = {
-${indent(
-  outputType.fields
-    .filter((field) => field.outputType.location === 'scalar' || field.outputType.location === 'enumTypes')
-    .map((f) => `${f.name}?: boolean`)
-    .join('\n'),
-  TAB_SIZE,
-)}
-}`
+  return ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.outputType.fields }), {
+    newLine: 'leading',
+  })
 }, '')}
 ${includeType}
-${new PayloadType(this.outputType, this.dmmf).toTS()}
+${ifExtensions(
+  `type ${model.name}GetPayload<S extends boolean | null | undefined | ${getArgName(
+    model.name,
+  )}> = runtime.Types.GetFindResult<${model.name}Payload, S>`,
+  new PayloadType(this.outputType, this.dmmf).toTS(),
+)}
 
 ${new ModelDelegate(this.outputType, this.dmmf, this.generator).toTS()}
 
@@ -406,11 +421,10 @@ ${
     ? `type ${countArgsName}${ifExtensions(
         '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
         '',
-      )} = Merge<
+      )} = 
   Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'> & {
     select?: ${getCountAggregateInputName(name)} | true
   }
->
 `
     : ''
 }
@@ -418,6 +432,13 @@ export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNot
       ', ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs',
       '',
     )}> {
+${ifExtensions(
+  `${indent(
+    `[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`,
+    TAB_SIZE,
+  )}`,
+  '',
+)}
 ${indent(
   nonAggregateActions
     .map(
@@ -554,13 +575,10 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions(
+${f.name}<T extends ${getFieldArgName(f, name)}${ifExtensions(
         '<ExtArgs> = {}',
         '= {}',
-      )}>(args?: Subset<T, ${getFieldArgName(f, !this.dmmf.typeMap[fieldTypeName])}${ifExtensions(
-        '<ExtArgs>',
-        '',
-      )}>): ${getReturnType({
+      )}>(args?: Subset<T, ${getFieldArgName(f, name)}${ifExtensions('<ExtArgs>', '')}>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
         hideCondition: false,

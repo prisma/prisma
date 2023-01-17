@@ -24,6 +24,7 @@ CREATE TABLE "transactional"."Post" (
 -- AddForeignKey
 ALTER TABLE "transactional"."Post" ADD CONSTRAINT "Post_authorId_fkey" FOREIGN KEY ("authorId") REFERENCES "base"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
+CREATE TYPE "base"."status" as enum ('ON','OFF');
 
 --
 -- tables names are renamed so they are identical
@@ -51,3 +52,5 @@ CREATE TABLE "transactional"."some_table" (
 
 -- AddForeignKey
 ALTER TABLE "transactional"."some_table" ADD CONSTRAINT "Post_authorId_fkey2" FOREIGN KEY ("authorId") REFERENCES "base"."some_table"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+CREATE TYPE "transactional"."status" as enum ('ON','OFF');

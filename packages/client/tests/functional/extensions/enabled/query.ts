@@ -50,6 +50,10 @@ testMatrix.setupTestSuite(
         query: {
           user: {
             findFirst({ args, query, operation, model }) {
+              if (args.select != undefined) {
+                // @ts-expect-error
+                args.select.email = undefined
+              }
               // @ts-expect-error
               args.include = undefined
               // @ts-expect-error
@@ -64,7 +68,7 @@ testMatrix.setupTestSuite(
           },
           post: {
             async findFirst({ args, query, operation, model }) {
-              expectTypeOf(args).not.toBeAny
+              expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
               expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
               expectTypeOf(model).toEqualTypeOf<'Post'>()
@@ -73,7 +77,7 @@ testMatrix.setupTestSuite(
 
               const data = await query(args)
 
-              expectTypeOf(data).not.toBeAny
+              expectTypeOf(data).not.toBeAny()
               expectTypeOf(data).toHaveProperty('id')
 
               return data
@@ -672,16 +676,17 @@ testMatrix.setupTestSuite(
         query: {
           $allModels: {
             async findFirst({ args, query, operation, model }) {
-              expectTypeOf(args).not.toBeAny
+              expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
               expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
-              expectTypeOf(model).toEqualTypeOf<'Post' | 'User'>()
+              type Model = typeof model & ('Post' | 'User')
+              expectTypeOf<Model>().toEqualTypeOf<'Post' | 'User'>()
 
               fnModel({ args, operation, model })
 
               const data = await query(args)
 
-              expectTypeOf(data).not.toBeAny
+              expectTypeOf(data).not.toBeAny()
               expectTypeOf(data).toHaveProperty('id')
 
               return data
@@ -735,7 +740,9 @@ testMatrix.setupTestSuite(
                 | 'groupBy'
                 | 'count'
               >()
-              expectTypeOf(model).toEqualTypeOf<'Post' | 'User'>()
+
+              type Model = typeof model & ('Post' | 'User')
+              expectTypeOf<Model>().toEqualTypeOf<'Post' | 'User'>()
 
               fnModel({ args, operation, model })
 
@@ -896,6 +903,9 @@ testMatrix.setupTestSuite(
           user: {
             async findFirst({ args, query, operation, model }) {
               const user = await query(args)
+
+              expectTypeOf(user).toHaveProperty('id').toEqualTypeOf<string | undefined>()
+
               // @ts-expect-error
               return query(user)
             },

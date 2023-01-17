@@ -17,6 +17,11 @@ describe('parseOpenSSLVersion', () => {
       content: `OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)`,
       expect: '3.0.x',
     },
+    {
+      name: 'openssl 3.1',
+      content: `OpenSSL 3.1.0 sometimes in 2023`,
+      expect: '3.0.x',
+    },
   ]
 
   test.each(tests)('$name', (t) => {
@@ -30,6 +35,16 @@ describe('parseLibSSLVersion', () => {
     {
       name: 'libssl 1.0',
       content: `/lib/libssl.so.1`,
+      expect: '1.0.x',
+    },
+    {
+      name: 'libssl 1.0.2k',
+      content: `/lib/libssl.so.1.0.2k`,
+      expect: '1.0.x',
+    },
+    {
+      name: 'libssl 10',
+      content: `/lib/libssl.so.10`,
       expect: '1.0.x',
     },
     {
@@ -50,6 +65,11 @@ describe('parseLibSSLVersion', () => {
     {
       name: 'libssl 3.0',
       content: `/lib/libssl.so.3`,
+      expect: '3.0.x',
+    },
+    {
+      name: 'libssl 3.1',
+      content: `/lib/libssl.so.3.1`,
       expect: '3.0.x',
     },
   ]

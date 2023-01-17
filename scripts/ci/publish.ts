@@ -477,7 +477,10 @@ async function getNextMinorStable() {
 
 // TODO: could probably use the semver package
 function getSemverFromPatchBranch(version: string) {
-  const regex = /(\d+)\.(\d+)\.x/
+  // the branch name must match
+  // number.number.x like 3.0.x or 2.29.x
+  // as an exact match, no character before or after
+  const regex = /^(\d+)\.(\d+)\.x$/
   const match = regex.exec(version)
 
   if (match) {
@@ -619,22 +622,6 @@ async function publish() {
 
     // TODO: investigate this
     const packagesWithVersions = await getNewPackageVersions(packages, prismaVersion)
-
-    // TODO: can be removed probably
-    if (process.env.UPDATE_STUDIO) {
-      console.log(chalk.bold(`UPDATE_STUDIO is set, so we only update Prisma Client and all dependants.`))
-
-      // We know, that Prisma Client and Prisma CLI are always part of the release.
-      // Therefore, also Migrate is also always part of the release, as it depends on Prisma Client.
-      // We can therefore safely update Studio, as migrate and Prisma CLI are depending on Studio
-      const latestStudioVersion = await runResult('.', 'npm info @prisma/studio-server version')
-      console.log(`UPDATE_STUDIO set true, so we're updating it to ${latestStudioVersion}`)
-      console.log(`Active branch`)
-      await run('.', 'git branch')
-      console.log(`Let's check out main!`)
-      await run('.', 'git checkout main')
-      await run('.', `pnpm update  -r @prisma/studio-server@${latestStudioVersion}`)
-    }
 
     if (!dryRun && args['--test']) {
       console.log(chalk.bold('\nTesting all packages...'))
@@ -1020,7 +1007,7 @@ async function publishPackages(
     }
   }
 
-  if (process.env.UPDATE_STUDIO || process.env.PATCH_BRANCH) {
+  if (process.env.PATCH_BRANCH) {
     if (process.env.CI) {
       await run('.', `git config --global user.email "prismabots@gmail.com"`)
       await run('.', `git config --global user.name "prisma-bot"`)
@@ -1033,14 +1020,8 @@ async function publishPackages(
     )
   }
 
-  if (process.env.UPDATE_STUDIO) {
-    await run('.', `git stash`, dryRun)
-    await run('.', `git checkout main`, dryRun)
-    await run('.', `git stash pop`, dryRun)
-  }
-
-  // for now only push when studio is being updated
-  if (!process.env.BUILDKITE || process.env.UPDATE_STUDIO || process.env.PATCH_BRANCH) {
+  // TODO: remove?
+  if (!process.env.BUILDKITE || process.env.PATCH_BRANCH) {
     const repo = path.join(__dirname, '../../../')
     // commit and push it :)
     // we try catch this, as this is not necessary for CI to succeed
@@ -1059,7 +1040,7 @@ async function publishPackages(
         console.log(`\n${chalk.bold('Skipping')} committing changes, as they're already committed`)
       } else {
         console.log(`\nCommitting changes`)
-        const message = process.env.UPDATE_STUDIO ? 'Bump Studio' : 'Bump versions'
+        const message = 'Bump versions'
         await commitChanges(repo, `${message} [skip ci]`, dryRun)
       }
       const branch = process.env.PATCH_BRANCH

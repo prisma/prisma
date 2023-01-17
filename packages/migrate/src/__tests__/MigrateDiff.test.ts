@@ -1,3 +1,6 @@
+// describeIf is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
 import { jestConsoleContext, jestContext } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 
@@ -27,35 +30,35 @@ describe('migrate diff', () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse([])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --from-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--from-empty'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --to-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--to-empty'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --from-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--from-empty', '--from-url=file:dev.db'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --to-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--to-empty', '--to-url=file:dev.db'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if schema does no exists, --from-schema-datasource', async () => {
@@ -360,7 +363,6 @@ describe('migrate diff', () => {
       })
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -382,7 +384,6 @@ describe('migrate diff', () => {
       `)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should use env var from .env file with --from-schema-datasource', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -400,7 +401,6 @@ describe('migrate diff', () => {
             `)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
@@ -567,7 +567,6 @@ describe('migrate diff', () => {
       })
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlserver')
 

@@ -10,11 +10,18 @@ import { reduce } from '../../../../../helpers/blaze/reduce'
 const testsRoot = path.resolve(__dirname, '..')
 
 function getAllTestSuiteTypeChecks(fileNames: string[]) {
+  const options = ts.convertCompilerOptionsFromJson(
+    require('../../../../../tsconfig.build.regular.json').compilerOptions,
+    path.dirname(expect.getState().testPath),
+  ).options
+
+  // currently used to resolve `@prisma/client/runtime` for client extensions for default-index.d.ts
+  // this tells it that imports from `@prisma/client/runtime` should be resolved to the runtime folder
+  options.paths ??= {}
+  options.paths['@prisma/client/runtime'] = [path.resolve(__dirname, '..', '..', '..', 'runtime')]
+
   const program = ts.createProgram(fileNames, {
-    ...ts.convertCompilerOptionsFromJson(
-      require('../../../../../tsconfig.build.regular.json').compilerOptions,
-      path.dirname(expect.getState().testPath),
-    ).options,
+    ...options,
     skipLibCheck: false,
     noEmit: true,
   })
@@ -41,10 +48,9 @@ describe('typescript', () => {
     .sync('./**/.generated/**/*.ts', {
       ignore: ['./**/.generated/**/*.d.ts', './**/.generated/**/_schema*'],
     })
-    // global.d.ts does not really needs typechecking, but
-    // since no sources import it directly, it has to be included
-    // in the source set in order for global `describeIf` and `testIf` to
-    // be discovered
+    // global.d.ts does not really need typechecking, but since no sources
+    // import it directly, it has to be included in the source set in order for
+    // global `describeIf` and `testIf` to be discovered
     .concat([path.resolve(__dirname, '..', 'globals.d.ts')])
 
   const suiteChecks = getAllTestSuiteTypeChecks(suitePaths)

@@ -29,7 +29,7 @@ describe('format', () => {
 
   it('should throw if schema is broken', async () => {
     ctx.fixture('example-project/prisma')
-    await expect(Format.new().parse(['--schema=broken.prisma'])).rejects.toThrowError()
+    await expect(Format.new().parse(['--schema=broken.prisma'])).rejects.toThrow()
   })
 
   it('should succeed and show a warning on stderr (preview feature deprecated)', async () => {
@@ -47,9 +47,7 @@ describe('format', () => {
 
   it('should throw with an error and show a warning on stderr (preview feature deprecated)', async () => {
     ctx.fixture('lint-warnings')
-    await expect(Format.new().parse(['--schema=preview-feature-deprecated-and-error.prisma'])).rejects.toThrowError(
-      'P1012',
-    )
+    await expect(Format.new().parse(['--schema=preview-feature-deprecated-and-error.prisma'])).rejects.toThrow('P1012')
 
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`

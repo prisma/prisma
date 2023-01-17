@@ -48,7 +48,6 @@ services:
       # Used to create a tag the prisma-engines repository
       # After packages are published on npm
       - GITHUB_TOKEN
-      - UPDATE_STUDIO
       - BUILDKITE
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
@@ -57,7 +56,6 @@ services:
       - REDIS_URL
       - MIGRATE_COMMIT
       - PRISMA_CLIENT_JS_COMMIT
-      - PRISMA2_COMMIT
       - PATCH_BRANCH
       - DRY_RUN
       - CI
@@ -132,7 +130,7 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:1469c3ee165a8aeaaa118e97a7cf0b173bbef3f3491c52e2211118401017eaf7
+    image: vitess/vttestserver:mysql80@sha256:70cb7e94d1f84ae2f1f34136f4c8c3a3dcb4b3bd95e3baaf6cf2df84572ea950
     restart: always
     ports:
       - 33807:33807
@@ -140,10 +138,9 @@ services:
       PORT: '33804' # unused in testing, but required by vttestserver
       KEYSPACES: 'keyspace' # unused in testing, but required by vttestserver
       NUM_SHARDS: '1' # unused in testing, but required by vttestserver
-
       MYSQL_BIND_HOST: '0.0.0.0'
       FOREIGN_KEY_MODE: 'disallow'
-      VT_DIALECT: 'mysql80'
+      TABLET_REFRESH_INTERVAL: '1s'
 
   mariadb:
     image: mariadb:10.7.3

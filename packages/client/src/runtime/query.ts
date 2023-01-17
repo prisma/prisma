@@ -851,11 +851,10 @@ export function selectionToFields({
   return Object.entries(selection).reduce((acc, [name, value]: any) => {
     const field = outputType.fieldMap ? outputType.fieldMap[name] : outputType.fields.find((f) => f.name === name)
 
-    if (computedFields?.[name]) {
-      return acc
-    }
-
     if (!field) {
+      if (computedFields?.[name]) {
+        return acc
+      }
       // if the field name is incorrect, we ignore the args and child fields altogether
       acc.push(
         new Field({
