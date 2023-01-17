@@ -36,15 +36,15 @@ testMatrix.setupTestSuite(
     })
 
     test('should query a view with where', async () => {
-      const user = await prisma.userInfo.findMany({
+      const users = await prisma.userInfo.findMany({
         where: {
           email: fakeUser.email,
         },
       })
 
-      expect(user).toBeDefined()
+      expect(users[0]).toBeDefined()
 
-      expect(user.id).toEqual(fakeUser.id)
+      expect(users[0].id).toEqual(fakeUser.id)
     })
 
     test('should query views with a related column', async () => {
