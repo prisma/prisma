@@ -300,7 +300,8 @@ async function binaryNeedsToBeDownloaded(
         return true
       }
     } else if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
-      debug(`Missing Cached Checksum File: ${sha256FilePath}`)
+      // If the env var is truthy we do not error if the checksum file is missing
+      debug(`The checksum file: ${sha256FilePath} is missing but this was ignored as the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is truthy.`)
       return false
     } else {
       return true

@@ -36,12 +36,13 @@ async function fetchChecksum(url: string): Promise<string | null> {
     // So we split it by whitespace and just get the hash, as that's what we're interested in
     const [checksum] = body.split(/\s+/)
     if (!/^[a-f0-9]{64}$/gi.test(checksum)) {
-      throw new Error(`Unable to parse checksum from response body for ${checksumUrl}`)
+      throw new Error(`Unable to parse checksum from ${checksumUrl} - response body: ${body}`)
     }
     return checksum
   } catch (error) {
     if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
-      debug(error)
+      debug(`fetchChecksum() failed and was ignored as the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is truthy.\nError: ${error}`)
+
       return null
     }
     throw error
@@ -104,12 +105,12 @@ export async function downloadZip(
           const hash = await hashPromise
           const zippedHash = await zippedHashPromise
 
-          if (zippedSha256 != null && zippedSha256 !== zippedHash) {
-            return reject(new Error(`sha256 of ${url} (zipped) should be ${zippedSha256} but is ${zippedHash}`))
+          if (zippedSha256 !== null && zippedSha256 !== zippedHash) {
+            return reject(new Error(`sha256 checksum of ${url} (zipped) should be ${zippedSha256} but is ${zippedHash}`))
           }
 
-          if (sha256 != null && sha256 !== hash) {
-            return reject(new Error(`sha256 of ${url} (unzipped) should be ${sha256} but is ${hash}`))
+          if (sha256 !== null && sha256 !== hash) {
+            return reject(new Error(`sha256 checksum of ${url} (unzipped) should be ${sha256} but is ${hash}`))
           }
         })
       } finally {
