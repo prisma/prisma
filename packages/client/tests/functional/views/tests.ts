@@ -28,6 +28,34 @@ testMatrix.setupTestSuite(
           },
         },
       })
+
+      if (suiteConfig.provider === 'mongodb') {
+        // alterstament dont work with mongodb because
+        // - no support for DbExecute
+        await prisma.$runCommandRaw({
+          create: 'UserInfo',
+          viewOn: 'User',
+          pipeline: [
+            {
+              $lookup: {
+                from: 'Profile',
+                localField: '_id',
+                foreignField: 'userId',
+                as: 'ProfileData',
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+                email: 1,
+                name: 1,
+                bio: '$ProfileData.bio',
+              },
+            },
+            { $unwind: '$bio' },
+          ],
+        })
+      }
     })
 
     test('should simple query a view', async () => {
@@ -59,29 +87,7 @@ testMatrix.setupTestSuite(
   },
   {
     alterStatementCallback: (provider) => {
-      if (provider === 'mongodb') {
-        return `
-          db.createView('UserInfo', 'User', [
-            {
-              $lookup: {
-                from: 'Profile',
-                localField: '_id',
-                foreignField: 'userId',
-                as: 'ProfileData',
-              },
-            },
-            {
-              $project: {
-                _id: 1,
-                email: 1,
-                name: 1,
-                bio: '$ProfileData.bio',
-              },
-            },
-            { $unwind: '$bio' },
-          ])
-        `
-      } else if (provider === 'mysql') {
+      if (provider === 'mysql') {
         return `
           CREATE VIEW UserInfo 
           AS SELECT u.id, email, name, p.bio
@@ -99,3 +105,70 @@ testMatrix.setupTestSuite(
     },
   },
 )
+
+// db.createView('UserInfo', 'User', [
+//   {
+//     $lookup: {
+//       from: 'Profile',
+//       localField: '_id',
+//       foreignField: 'userId',
+//       as: 'ProfileData',
+//     },
+//   },
+//   {
+//     $project: {
+//       _id: 1,
+//       email: 1,
+//       name: 1,
+//       bio: '$ProfileData.bio',
+//     },
+//   },
+//   { $unwind: '$bio' },
+// ])
+
+// prisma.$runCommandRaw({
+//   create: 'UserInfo',
+//   documents: [
+//     {
+//       $lookup: {
+//         from: 'Profile',
+//         localField: '_id',
+//         foreignField: 'userId',
+//         as: 'ProfileData',
+//       },
+//     },
+//     {
+//       $project: {
+//         _id: 1,
+//         email: 1,
+//         name: 1,
+//         bio: '$ProfileData.bio',
+//       },
+//     },
+//     { $unwind: '$bio' },
+//   ],
+// })
+
+// await prisma.$runCommandRaw({
+//   create: 'UserInfo',
+//   viewOn: 'user',
+//   pipeline: [
+//     {
+//       $lookup: {
+//         from: 'Profile',
+//         localField: '_id',
+//         foreignField: 'userId',
+//         as: 'ProfileData',
+//       },
+//     },
+//     {
+//       $project: {
+//         _id: 1,
+//         email: 1,
+//         name: 1,
+//         bio: '$ProfileData.bio',
+//       },
+//     },
+//     { $unwind: '$bio' },
+//   ],
+// })

@@ -23,8 +23,8 @@ export default testMatrix.setupSchema(({ provider }) => {
     model Profile {
       id ${idForProvider(provider)}
       bio       String
-      user      User   @relation(fields: [userId], references: [id])
-      userId    String    @unique
+      user      User      @relation(fields: [userId], references: [id])
+      userId    ${provider === 'mongodb' ? 'String @db.ObjectId' : 'String'} @unique
     }
 
     view UserInfo {
