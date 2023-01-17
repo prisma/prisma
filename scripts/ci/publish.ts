@@ -626,9 +626,13 @@ async function publish() {
     // TODO: investigate this
     const packagesWithVersions = await getNewPackageVersions(packages, prismaVersion)
 
-    if (!dryRun && args['--test'] && !onlyPackages && !skipPackages) {
-      console.log(chalk.bold('\nTesting all packages...'))
-      await testPackages(packages, getPublishOrder(packages))
+    if (!dryRun && args['--test']) {
+      if (onlyPackages || skipPackages) {
+        console.log(chalk.bold('\nTesting all packages was skipped because onlyPackages or skipPackages is set.'))
+      } else {
+        console.log(chalk.bold('\nTesting all packages...'))
+        await testPackages(packages, getPublishOrder(packages))
+      }
     }
 
     if (args['--publish'] || dryRun) {
