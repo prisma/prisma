@@ -626,7 +626,7 @@ async function publish() {
     // TODO: investigate this
     const packagesWithVersions = await getNewPackageVersions(packages, prismaVersion)
 
-    if (!dryRun && args['--test']) {
+    if (!dryRun && args['--test'] && !onlyPackages && !skipPackages) {
       console.log(chalk.bold('\nTesting all packages...'))
       await testPackages(packages, getPublishOrder(packages))
     }
