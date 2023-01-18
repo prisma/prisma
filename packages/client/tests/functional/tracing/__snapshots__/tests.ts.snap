@@ -82,6 +82,12 @@ exports[`tracing (provider=cockroachdb) tracing connect should trace the implici
 }
 `;
 
+exports[`tracing (provider=cockroachdb) tracing metrics should trace metrics 1`] = `
+{
+  children: [],
+}
+`;
+
 exports[`tracing (provider=cockroachdb) tracing on $raw methods $executeRaw 1`] = `
 {
   children: [
@@ -1425,6 +1431,12 @@ exports[`tracing (provider=mongodb) tracing connect should trace the implicit $c
 }
 `;
 
+exports[`tracing (provider=mongodb) tracing metrics should trace metrics 1`] = `
+{
+  children: [],
+}
+`;
+
 exports[`tracing (provider=mongodb) tracing on crud methods create 1`] = `
 {
   children: [
@@ -2455,6 +2467,12 @@ exports[`tracing (provider=mysql) tracing connect should trace the implicit $con
     links: [],
     name: prisma:client:operation,
   },
+}
+`;
+
+exports[`tracing (provider=mysql) tracing metrics should trace metrics 1`] = `
+{
+  children: [],
 }
 `;
 
@@ -3801,6 +3819,12 @@ exports[`tracing (provider=postgresql) tracing connect should trace the implicit
 }
 `;
 
+exports[`tracing (provider=postgresql) tracing metrics should trace metrics 1`] = `
+{
+  children: [],
+}
+`;
+
 exports[`tracing (provider=postgresql) tracing on $raw methods $executeRaw 1`] = `
 {
   children: [
@@ -5144,6 +5168,12 @@ exports[`tracing (provider=sqlite) tracing connect should trace the implicit $co
 }
 `;
 
+exports[`tracing (provider=sqlite) tracing metrics should trace metrics 1`] = `
+{
+  children: [],
+}
+`;
+
 exports[`tracing (provider=sqlite) tracing on $raw methods $queryRaw 1`] = `
 {
   children: [
@@ -6413,6 +6443,12 @@ exports[`tracing (provider=sqlserver) tracing connect should trace the implicit 
     links: [],
     name: prisma:client:operation,
   },
+}
+`;
+
+exports[`tracing (provider=sqlserver) tracing metrics should trace metrics 1`] = `
+{
+  children: [],
 }
 `;
 

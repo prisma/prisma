@@ -845,6 +845,23 @@ testMatrix.setupTestSuite(
         expect(tree.span.name).toEqual('prisma:client:disconnect')
       })
     })
+
+    describe('tracing metrics', () => {
+      let _prisma: PrismaClient
+
+      beforeAll(async () => {
+        _prisma = newPrismaClient()
+        await _prisma.$connect()
+      })
+
+      test('should trace metrics', async () => {
+        await _prisma.$metrics.json()
+
+        const tree = await waitForSpanTree()
+
+        expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
+      })
+    })
   },
   {
     skipDataProxy: {
