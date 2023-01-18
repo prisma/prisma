@@ -1,3 +1,4 @@
+import path from 'path'
 import * as stackTraceParser from 'stacktrace-parser'
 
 import { ErrorFormat } from '../getPrismaClient'
@@ -32,17 +33,22 @@ class EnabledCallSite implements CallSite {
     // TODO: more resilient logic to check that it's not relative to cwd
     const frame = stackFrames.find((t) => {
       // Here we are trying to find the location in the user's code which caused the error
+      if (!t.file) {
+        return false
+      }
+
+      // convert windows path to posix path
+      const posixFile = t.file.split(path.sep).join('/')
       return (
-        t.file &&
-        t.file !== '<anonymous>' && // Ignore as we can not read an <anonymous> file
-        !t.file.includes('@prisma') && // Internal, unbundled code
-        !t.file.includes('/packages/client/src/runtime/') && // Runtime sources when source maps are used
-        !t.file.endsWith('/runtime/binary.js') && // Bundled runtimes
-        !t.file.endsWith('/runtime/library.js') &&
-        !t.file.endsWith('/runtime/data-proxy.js') &&
-        !t.file.endsWith('/runtime/edge.js') &&
-        !t.file.endsWith('/runtime/edge-esm.js') &&
-        !t.file.startsWith('internal/') && // We don't want internal nodejs files
+        posixFile !== '<anonymous>' && // Ignore as we can not read an <anonymous> file
+        !posixFile.includes('@prisma') && // Internal, unbundled code
+        !posixFile.includes('/packages/client/src/runtime/') && // Runtime sources when source maps are used
+        !posixFile.endsWith('/runtime/binary.js') && // Bundled runtimes
+        !posixFile.endsWith('/runtime/library.js') &&
+        !posixFile.endsWith('/runtime/data-proxy.js') &&
+        !posixFile.endsWith('/runtime/edge.js') &&
+        !posixFile.endsWith('/runtime/edge-esm.js') &&
+        !posixFile.startsWith('internal/') && // We don't want internal nodejs files
         !t.methodName.includes('new ') && // "new CallSite" call and maybe other constructors
         !t.methodName.includes('getCallSite') && // getCallSite function from this module
         !t.methodName.includes('Proxy.') && // Model proxies
