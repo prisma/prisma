@@ -810,7 +810,7 @@ COMMIT;`,
       throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
     }
 
-    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!.replace(
+    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
       'tests-migrate',
       'tests-migrate-db-execute',
     )
