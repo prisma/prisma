@@ -40,6 +40,8 @@ class EnabledCallSite implements CallSite {
         !t.file.endsWith('/runtime/binary.js') && // Bundled runtimes
         !t.file.endsWith('/runtime/library.js') &&
         !t.file.endsWith('/runtime/data-proxy.js') &&
+        !t.file.endsWith('/runtime/edge.js') &&
+        !t.file.endsWith('/runtime/edge-esm.js') &&
         !t.file.startsWith('internal/') && // We don't want internal nodejs files
         !t.methodName.includes('new ') && // "new CallSite" call and maybe other constructors
         !t.methodName.includes('getCallSite') && // getCallSite function from this module

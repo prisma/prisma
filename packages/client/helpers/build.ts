@@ -48,6 +48,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   outfile: 'runtime/edge',
   bundle: true,
   minify: true,
+  sourcemap: 'linked',
   legalComments: 'none',
   emitTypes: false,
   define: {
