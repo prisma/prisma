@@ -16,7 +16,7 @@ import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma, PrismaClient } from './node_modules/@prisma/client'
 
 type Tree = {
   span: ReadableSpan
@@ -105,7 +105,7 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider }, _suiteMeta, clientMeta) => {
     jest.retryTimes(3)
 
     beforeEach(async () => {
@@ -843,6 +843,54 @@ testMatrix.setupTestSuite(
         const tree = await waitForSpanTree()
 
         expect(tree.span.name).toEqual('prisma:client:disconnect')
+      })
+    })
+
+    describe('logging and tracing', () => {
+      let _prisma: PrismaClient
+
+      beforeAll(async () => {
+        _prisma = newPrismaClient({
+          log: [
+            {
+              emit: 'event',
+              level: 'query',
+            },
+          ],
+        })
+        await _prisma.$connect()
+      })
+
+      test('should trace and log at the same time', async () => {
+        const queryLogPromise = new Promise<Prisma.QueryEvent>((resolve) => {
+          _prisma.$on('query', (data) => {
+            if ('query' in data) {
+              resolve(data)
+            }
+          })
+        })
+
+        await _prisma.user.findMany()
+
+        const queryLogEvents = await queryLogPromise
+        expect(queryLogEvents).toHaveProperty('query')
+        expect(queryLogEvents).toHaveProperty('duration')
+        expect(queryLogEvents).toHaveProperty('timestamp')
+
+        if (provider === 'mongodb') {
+          expect(queryLogEvents.query).toContain('db.User.aggregate')
+        } else {
+          expect(queryLogEvents.query).toContain('SELECT')
+        }
+
+        if (!clientMeta.dataProxy) {
+          expect(queryLogEvents).toHaveProperty('params')
+          expect(queryLogEvents).toHaveProperty('target')
+        }
+
+        const tree = await waitForSpanTree()
+
+        expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
       })
     })
   },

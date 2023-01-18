@@ -1,5 +1,77 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`tracing (provider=cockroachdb) logging and tracing should trace and log at the same time 1`] = `
+{
+  children: [
+    {
+      children: [],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    {
+      children: [
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.type: <dbType>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:connection,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.statement: <dbStatement>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:engine,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+  ],
+  span: {
+    attributes: {
+      method: findMany,
+      model: User,
+      name: User.findMany,
+    },
+    kind: 0,
+    links: [],
+    name: prisma:client:operation,
+  },
+}
+`;
+
 exports[`tracing (provider=cockroachdb) tracing connect should trace the implicit $connect call 1`] = `
 {
   children: [
@@ -1343,6 +1415,78 @@ exports[`tracing (provider=cockroachdb) tracing with middleware tracing with mid
 }
 `;
 
+exports[`tracing (provider=mongodb) logging and tracing should trace and log at the same time 1`] = `
+{
+  children: [
+    {
+      children: [],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    {
+      children: [
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.type: <dbType>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:connection,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.statement: <dbStatement>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:engine,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+  ],
+  span: {
+    attributes: {
+      method: findMany,
+      model: User,
+      name: User.findMany,
+    },
+    kind: 0,
+    links: [],
+    name: prisma:client:operation,
+  },
+}
+`;
+
 exports[`tracing (provider=mongodb) tracing connect should trace the implicit $connect call 1`] = `
 {
   children: [
@@ -2368,6 +2512,78 @@ exports[`tracing (provider=mongodb) tracing with middleware tracing with middlew
       method: create,
       model: User,
       name: User.create,
+    },
+    kind: 0,
+    links: [],
+    name: prisma:client:operation,
+  },
+}
+`;
+
+exports[`tracing (provider=mysql) logging and tracing should trace and log at the same time 1`] = `
+{
+  children: [
+    {
+      children: [],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    {
+      children: [
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.type: <dbType>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:connection,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.statement: <dbStatement>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:engine,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+  ],
+  span: {
+    attributes: {
+      method: findMany,
+      model: User,
+      name: User.findMany,
     },
     kind: 0,
     links: [],
@@ -3719,6 +3935,78 @@ exports[`tracing (provider=mysql) tracing with middleware tracing with middlewar
 }
 `;
 
+exports[`tracing (provider=postgresql) logging and tracing should trace and log at the same time 1`] = `
+{
+  children: [
+    {
+      children: [],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    {
+      children: [
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.type: <dbType>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:connection,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.statement: <dbStatement>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:engine,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+  ],
+  span: {
+    attributes: {
+      method: findMany,
+      model: User,
+      name: User.findMany,
+    },
+    kind: 0,
+    links: [],
+    name: prisma:client:operation,
+  },
+}
+`;
+
 exports[`tracing (provider=postgresql) tracing connect should trace the implicit $connect call 1`] = `
 {
   children: [
@@ -5062,6 +5350,78 @@ exports[`tracing (provider=postgresql) tracing with middleware tracing with midd
 }
 `;
 
+exports[`tracing (provider=sqlite) logging and tracing should trace and log at the same time 1`] = `
+{
+  children: [
+    {
+      children: [],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    {
+      children: [
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.type: <dbType>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:connection,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.statement: <dbStatement>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:engine,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+  ],
+  span: {
+    attributes: {
+      method: findMany,
+      model: User,
+      name: User.findMany,
+    },
+    kind: 0,
+    links: [],
+    name: prisma:client:operation,
+  },
+}
+`;
+
 exports[`tracing (provider=sqlite) tracing connect should trace the implicit $connect call 1`] = `
 {
   children: [
@@ -6326,6 +6686,78 @@ exports[`tracing (provider=sqlite) tracing with middleware tracing with middlewa
       method: create,
       model: User,
       name: User.create,
+    },
+    kind: 0,
+    links: [],
+    name: prisma:client:operation,
+  },
+}
+`;
+
+exports[`tracing (provider=sqlserver) logging and tracing should trace and log at the same time 1`] = `
+{
+  children: [
+    {
+      children: [],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:client:serialize,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+    {
+      children: [
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.type: <dbType>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:connection,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {
+              db.statement: <dbStatement>,
+            },
+            kind: 0,
+            links: [],
+            name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+      ],
+      span: {
+        attributes: {},
+        kind: 0,
+        links: [],
+        name: prisma:engine,
+        parentSpanId: <parentSpanId>,
+      },
+    },
+  ],
+  span: {
+    attributes: {
+      method: findMany,
+      model: User,
+      name: User.findMany,
     },
     kind: 0,
     links: [],
