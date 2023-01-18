@@ -855,7 +855,7 @@ testMatrix.setupTestSuite(
       })
 
       testIf(!clientMeta.dataProxy)('should trace metrics', async () => {
-        // @ts-test-if: !clientMeta.dataProxy
+        // @ts-ignore - cannot use magic comment here 'clientMeta'
         await _prisma.$metrics.json()
 
         const tree = await waitForSpanTree()
