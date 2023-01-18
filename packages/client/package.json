@@ -117,7 +117,7 @@
     "mariadb": "3.0.2",
     "memfs": "3.4.10",
     "mssql": "9.0.1",
-    "node-fetch": "2.6.7",
+    "node-fetch": "2.6.8",
     "pg": "8.8.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
@@ -148,7 +148,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.9.0-44.b29121153404aa8eda60ec38e41e477cc1c0ee66"
+    "@prisma/engines-version": "4.10.0-2.ce7229c9a6e207469e9acaea129189449a697af1"
   },
   "sideEffects": false
 }
