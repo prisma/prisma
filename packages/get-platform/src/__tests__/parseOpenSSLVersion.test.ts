@@ -72,6 +72,11 @@ describe('parseLibSSLVersion', () => {
       content: `/lib/libssl.so.3.1`,
       expect: '3.0.x',
     },
+    {
+      name: 'undefined',
+      content: `/lib/libssl3.so`,
+      expect: undefined,
+    },
   ]
 
   test.each(tests)('$name', (t) => {

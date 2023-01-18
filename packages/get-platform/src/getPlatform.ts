@@ -55,14 +55,27 @@ export async function getos(): Promise<GetOSResult> {
   }
 
   const distro = await resolveDistro()
+  const archFromUname = await getArchFromUname()
 
+  const usesOfficialEngines = !(
+    process.env.PRISMA_QUERY_ENGINE_BINARY ||
+    process.env.PRISMA_QUERY_ENGINE_LIBRARY ||
+    process.env.PRISMA_MIGRATION_ENGINE_BINARY
+  )
   if (distro === 'musl' && arch !== 'x64') {
-    throw new Error(
-      `Prisma only supports Linux Alpine on the amd64 (x86_64) system architecture. If you're running Prisma on Docker, please use Docker Buildx to simulate the amd64 architecture on your device as explained by this comment: https://github.com/prisma/prisma/issues/8478#issuecomment-1355209706`,
-    )
+    if (usesOfficialEngines) {
+      throw new Error(
+        `Prisma only supports Linux Alpine on the amd64 (x86_64) system architecture. If you're running Prisma on Docker, please use Docker Buildx to simulate the amd64 architecture on your device as explained by this comment: https://github.com/prisma/prisma/issues/8478#issuecomment-1355209706`,
+      )
+    } else {
+      warnOnce(
+        'alpine:not-x64',
+        `Prisma only officially supports Linux Alpine on the amd64 (x86_64) system architecture. We're detecting that you're using your own Prisma engines, so Prisma should work as intended as long as you've compiled the engines for your system architecture "${archFromUname}".`,
+      )
+    }
   }
 
-  const libssl = await getSSLVersion({ arch, distro })
+  const libssl = await getSSLVersion({ arch, archFromUname, distro })
 
   return {
     platform: 'linux',
@@ -159,6 +172,7 @@ function sanitiseSSLVersion(version: string): NonNullable<GetOSResult['libssl']>
 type GetOpenSSLVersionParams = {
   arch: Arch
   distro: GetOSResult['distro']
+  archFromUname: Awaited<ReturnType<typeof getArchFromUname>>
 }
 
 /**
@@ -171,15 +185,13 @@ type GetOpenSSLVersionParams = {
  * This function never throws.
  */
 export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOSResult['libssl'] | undefined> {
-  const archFromUname = await getArchFromUname()
-
   const libsslSpecificPaths = match(args)
     .with({ distro: 'musl' }, () => {
       /* Linux Alpine */
       debug('Trying platform-specific paths for "alpine"')
       return ['/lib']
     })
-    .with({ distro: 'debian' }, () => {
+    .with({ distro: 'debian' }, ({ archFromUname }) => {
       /* Linux Debian, Ubuntu, etc */
       debug('Trying platform-specific paths for "debian" (and "ubuntu")')
       return [`/usr/lib/${archFromUname}-linux-gnu`, `/lib/${archFromUname}-linux-gnu`]
@@ -189,9 +201,9 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
       debug('Trying platform-specific paths for "rhel"')
       return ['/lib64', '/usr/lib64']
     })
-    .otherwise(({ distro, arch }) => {
+    .otherwise(({ distro, arch, archFromUname }) => {
       /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
-      debug(`Don't know any platform-specific paths for "${distro}" on ${arch}`)
+      debug(`Don't know any platform-specific paths for "${distro}" on ${arch} (${archFromUname}))`)
       return []
     })
 
