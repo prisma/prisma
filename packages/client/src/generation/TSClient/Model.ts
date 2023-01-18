@@ -129,7 +129,7 @@ ${indent(
   groupByRootField.args
     .map((arg) => {
       arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.groupBy, arg)
-      return new InputField(arg, false, arg.name === 'by', this.genericsInfo).toTS()
+      return new InputField(arg, arg.name === 'by', this.genericsInfo).toTS()
     })
     .concat(
       groupByType.fields
@@ -248,7 +248,7 @@ ${indent(
   aggregateRootField.args
     .map((arg) => {
       arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, arg)
-      return new InputField(arg, false, false, this.genericsInfo).toTS()
+      return new InputField(arg, false, this.genericsInfo).toTS()
     })
     .concat(
       aggregateType.fields.map((f) => {
