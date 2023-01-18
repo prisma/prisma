@@ -49,6 +49,7 @@ export interface GenerateClientOptions {
   binaryPaths: BinaryPaths
   testMode?: boolean
   copyRuntime?: boolean
+  copyRuntimeSourceMaps?: boolean
   engineVersion: string
   clientVersion: string
   activeProvider: string
@@ -197,6 +198,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     binaryPaths,
     testMode,
     copyRuntime,
+    copyRuntimeSourceMaps = false,
     clientVersion,
     engineVersion,
     activeProvider,
@@ -273,6 +275,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
         from: runtimeSourceDir,
         to: copyTarget,
         edge: dataProxy,
+        sourceMaps: copyRuntimeSourceMaps,
         runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
       })
     }
@@ -558,14 +561,19 @@ type CopyRuntimeOptions = {
   to: string
   edge: boolean
   runtimeName: string
+  sourceMaps: boolean
 }
 
-async function copyRuntimeFiles({ from, to, edge, runtimeName }: CopyRuntimeOptions) {
+async function copyRuntimeFiles({ from, to, edge, runtimeName, sourceMaps }: CopyRuntimeOptions) {
   const files = ['index.d.ts']
   if (edge) {
     files.push('edge.js', 'edge-esm.js')
   } else {
     files.push(`${runtimeName}.js`, `${runtimeName}.d.ts`)
+  }
+
+  if (sourceMaps) {
+    files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))
   }
 
   await Promise.all(files.map((file) => copyFile(path.join(from, file), path.join(to, file))))

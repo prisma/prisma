@@ -5,9 +5,9 @@
   "main": "index.ts",
   "scripts": {
     "dbpush": "prisma db push --skip-generate",
-    "generate": "prisma generate",
-    "test": "ts-node index.ts",
-    "debug": "node -r ts-node/register --inspect-brk index.ts"
+    "generate": "PRISMA_COPY_RUNTIME_SOURCEMAPS=1 prisma generate",
+    "test": "node -r ts-node/register --enable-source-maps index.ts",
+    "debug": "node -r ts-node/register --enable-source-maps index.ts"
   },
   "keywords": [],
   "author": "",
