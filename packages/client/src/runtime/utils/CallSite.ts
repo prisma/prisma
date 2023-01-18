@@ -36,10 +36,10 @@ class EnabledCallSite implements CallSite {
         t.file &&
         t.file !== '<anonymous>' && // Ignore as we can not read an <anonymous> file
         !t.file.includes('@prisma') && // Internal, unbundled code
-        !t.file.includes('getPrismaClient') &&
-        !t.file.includes('runtime/binary') &&
-        !t.file.includes('runtime/library') &&
-        !t.file.includes('runtime/data-proxy') &&
+        !t.file.includes('/packages/client/src/runtime/') && // Runtime sources when source maps are used
+        !t.file.endsWith('/runtime/binary.js') && // Bundled runtimes
+        !t.file.endsWith('/runtime/library.js') &&
+        !t.file.endsWith('/runtime/data-proxy.js') &&
         !t.file.startsWith('internal/') && // We don't want internal nodejs files
         !t.methodName.includes('new ') && // "new CallSite" call and maybe other constructors
         !t.methodName.includes('getCallSite') && // getCallSite function from this module
@@ -47,6 +47,7 @@ class EnabledCallSite implements CallSite {
         t.methodName.split('.').length < 4
       )
     })
+
     if (!frame || !frame.file) {
       return null
     }
