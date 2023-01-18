@@ -105,7 +105,7 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider }, _suiteMeta, clientMeta) => {
     jest.retryTimes(3)
 
     beforeEach(async () => {
@@ -854,7 +854,8 @@ testMatrix.setupTestSuite(
         await _prisma.$connect()
       })
 
-      test('should trace metrics', async () => {
+      testIf(!clientMeta.dataProxy)('should trace metrics', async () => {
+        // @ts-test-if: !clientMeta.dataProxy
         await _prisma.$metrics.json()
 
         const tree = await waitForSpanTree()
