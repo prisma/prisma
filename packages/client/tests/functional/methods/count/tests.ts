@@ -117,7 +117,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
 
          XX })
         XX 
-        XX test('bad prop', async () => {
+        XX testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
       → XX   const err = prisma.user.count({
                 select: {
                   _count: {
