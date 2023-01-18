@@ -3,7 +3,7 @@ import { existsSync } from 'fs'
 import fs from 'fs/promises'
 import path from 'path'
 
-import { setupQueryEngine } from '../../commonUtils/setupQueryEngine'
+import { setupQueryEngine } from '../../_utils/setupQueryEngine'
 import { generateMemoryUsageReport } from './generateMemoryUsageReport'
 import { MemoryTestDir } from './MemoryTestDir'
 import { runMemoryTest, TestResult } from './runMemoryTest'

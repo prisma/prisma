@@ -38,7 +38,7 @@
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --verbose",
-    "test:ecosystem": "node -r esbuild-register tests/ecosystem/_utils/run.ts",
+    "test:e2e": "node -r esbuild-register tests/e2e/_utils/run.ts",
     "test:functional": "node -r esbuild-register helpers/functional-test/run-tests.ts",
     "test:memory": "node -r esbuild-register helpers/memory-tests.ts",
     "test:functional:code": "node -r esbuild-register helpers/functional-test/run-tests.ts --no-types",
@@ -117,7 +117,7 @@
     "mariadb": "3.0.2",
     "memfs": "3.4.10",
     "mssql": "9.0.1",
-    "node-fetch": "2.6.7",
+    "node-fetch": "2.6.8",
     "pg": "8.8.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
@@ -148,7 +148,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.9.0-35.00a612efe3dc92e8a10bcc379d2c20ff7ea12f35"
+    "@prisma/engines-version": "4.10.0-2.ce7229c9a6e207469e9acaea129189449a697af1"
   },
   "sideEffects": false
 }

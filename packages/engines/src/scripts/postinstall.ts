@@ -29,7 +29,6 @@ async function main() {
       [cliQueryEngineBinaryType]: baseDir,
       [BinaryType.migrationEngine]: baseDir,
       [BinaryType.introspectionEngine]: baseDir,
-      [BinaryType.prismaFmt]: baseDir,
     }
 
     await download({

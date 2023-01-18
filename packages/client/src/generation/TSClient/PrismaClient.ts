@@ -13,27 +13,26 @@ import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
 import { ifExtensions } from './utils/ifExtensions'
-import { Patch, Patch3 } from './utils/Patch'
 
 function clientExtensionsResultDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const resultGenericParams = (modelName: string) => {
-    return `R_${modelName}_Needs extends Record<string, runtime.Types.Extensions.GetResultSelect<Prisma.${modelName}SelectScalar, ExtArgs['result']['${lowerCase(
+    return `R_${modelName}_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.${modelName}SelectScalar, ExtArgs['result']['${lowerCase(
       modelName,
     )}']>>`
   }
 
   const genericParams = [
     ...modelNames.flatMap(resultGenericParams),
-    `R extends runtime.Types.Extensions.Args['result'] = {}`,
+    `R extends runtime.Types.Extensions.UserArgs['result'] = {}`,
   ].join(',\n    ')
 
   const resultParam = (modelName: string) => {
     return `${lowerCase(modelName)}?: {
         [K in keyof R_${modelName}_Needs]: {
           needs: R_${modelName}_Needs[K]
-          compute: (data: Prisma.${modelName}GetPayload<{ select: R_${modelName}_Needs[K] }, ExtArgs>) => unknown
+          compute: (data: runtime.Types.GetResult<${modelName}Payload<ExtArgs>, { select: R_${modelName}_Needs[K] }, 'findUniqueOrThrow'>) => unknown
         }
       }`
   }
@@ -55,18 +54,20 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const modelParam = (modelName: string) => {
-    return `${lowerCase(modelName)}?: { [K: symbol]: PrismaClient<never, never, false, ExtArgs>['${lowerCase(
+    return `${lowerCase(
       modelName,
-    )}'] }`
+    )}?: { [K: symbol]: { ctx: runtime.Types.Extensions.GetModel<Prisma.${modelName}Delegate<false, ExtArgs>, ExtArgs['model']['${lowerCase(
+      modelName,
+    )}']> } }`
   }
 
   const params = `{
-      $allModels?: Record<string, unknown>
+      $allModels?: {}
       ${modelNames.map(modelParam).join('\n      ')}
     }`
 
   return {
-    genericParams: `M extends runtime.Types.Extensions.Args['model'] = {}`,
+    genericParams: `M extends runtime.Types.Extensions.UserArgs['model'] = {}`,
     params,
   }
 }
@@ -75,6 +76,9 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const prismaNamespaceDefinitions = `export type TypeMap<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
+    meta: {
+      modelProps: ${modelNames.map((mn) => `'${lowerCase(mn)}'`).join(' | ')}
+    },
     model: {${modelNames.reduce((acc, modelName) => {
       const actions = getModelActions(this.dmmf, modelName)
 
@@ -84,6 +88,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
       ${action}: {
         args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
         result: runtime.Types.Utils.OptionalFlat<${modelName}>
+        payload: ${modelName}Payload<ExtArgs>
       }`
       }, '')}
     }`
@@ -128,7 +133,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     }`
 
   return {
-    genericParams: `Q extends runtime.Types.Extensions.Args['query'] = {}`,
+    genericParams: `Q extends runtime.Types.Extensions.UserArgs['query'] = {}`,
     params: `${allModelsParam} & ${concreteModelParams}`,
     prismaNamespaceDefinitions,
   }
@@ -136,8 +141,8 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
 
 function clientExtensionsClientDefinition(this: PrismaClientClass) {
   return {
-    genericParams: `C extends runtime.Types.Extensions.Args['client'] = {}`,
-    params: `{ [K: symbol]: runtime.Types.Extensions.GetClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client'], {}> }`,
+    genericParams: `C extends runtime.Types.Extensions.UserArgs['client'] = {}`,
+    params: `{ [K: symbol]: { ctx: runtime.Types.Extensions.GetClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client']> } }`,
   }
 }
 
@@ -146,15 +151,13 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
   const model = clientExtensionsModelDefinition.call(this)
   const client = clientExtensionsClientDefinition.call(this)
   const query = clientExtensionsQueryDefinition.call(this)
-  const lcModelNames = Object.keys(this.dmmf.getModelMap()).map(lowerCase)
-  const modelNameUnion = lcModelNames.map((m) => `'${m}'`).join(' | ')
   const genericParams = [result.genericParams, model.genericParams, query.genericParams, client.genericParams]
   const genericVars = genericParams.map((gp) => gp.replace(/ extends .*/g, ','))
 
   return {
     signature: `${name === 'defineExtension' ? name : `${name}: { extArgs: ExtArgs } & (`}<
     ${genericParams.join(',\n    ')},
-    Args extends runtime.Types.Extensions.Args = { result: R, model: M, query: Q, client: C },${
+    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, Q, C>, ${
       name === 'defineExtension'
         ? `
     ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs,`
@@ -169,15 +172,11 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
       name === 'defineExtension'
         ? '(client: any) => PrismaClient<any, any, any, Args>'
         : `runtime.Types.Extensions.GetClient<PrismaClient<T, U, GlobalReject, {
-  result: '$allModels' extends keyof Args['result']
-  ? { [K in ${modelNameUnion}]: ${Patch3(`Args['result'][K]`, `Args['result']['$allModels']`, `ExtArgs['result'][K]`)} }
-  : { [K in (keyof Args['result'] | keyof ExtArgs['result'])]: ${Patch(`Args['result'][K]`, `ExtArgs['result'][K]`)} }
-  model: '$allModels' extends keyof Args['model']
-  ? { [K in ${modelNameUnion}]: ${Patch3(`Args['model'][K]`, `Args['model']['$allModels']`, `ExtArgs['model'][K]`)} }
-  : { [K in (keyof Args['model'] | keyof ExtArgs['model'])]: ${Patch(`Args['model'][K]`, `ExtArgs['model'][K]`)} }
-  client: ${Patch(`Args['client']`, `ExtArgs['client']`)}
-  query: {}
-  }>, Args['client'], ExtArgs['client']>`
+    result: ExtArgs['result'] & Record<string, Args['result']['$allModels'] & {}> & Args['result']
+    model: ExtArgs['model'] & Record<string, Args['model']['$allModels'] & {}> & Args['model']
+    client: ExtArgs['client'] & Args['client'],
+    query: {}
+  }>, ExtArgs['client'] & Args['client']>`
     }${name === 'defineExtension' ? '' : ')'};`,
     prismaNamespaceDefinitions: `${query.prismaNamespaceDefinitions}
 export type ExtensionArgs<
@@ -242,7 +241,7 @@ function batchingTransactionDefinition(this: PrismaClientClass) {
     method.addParameter(ts.parameter('options', options).optional())
   }
 
-  return '\n' + ts.stringify(method, { indentLevel: 1 })
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
 function interactiveTransactionDefinition(this: PrismaClientClass) {
@@ -270,7 +269,7 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
     .addParameter(ts.parameter('options', options).optional())
     .setReturnType(returnType)
 
-  return '\n' + ts.stringify(method, { indentLevel: 1 })
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
 function queryRawDefinition(this: PrismaClientClass) {
@@ -356,7 +355,7 @@ function metricDefinition(this: PrismaClientClass) {
     )
     .readonly()
 
-  return '\n' + ts.stringify(property, { indentLevel: 1 })
+  return ts.stringify(property, { indentLevel: 1, newLine: 'leading' })
 }
 
 function runCommandRawDefinition(this: PrismaClientClass) {
@@ -382,7 +381,7 @@ function runCommandRawDefinition(this: PrismaClientClass) {
       Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
     `)
 
-  return '\n' + ts.stringify(method, { indentLevel: 1 })
+  return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
 export class PrismaClientClass implements Generatable {

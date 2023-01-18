@@ -56,16 +56,13 @@ export type ConnectorType =
   | 'mongodb'
   | 'sqlite'
   | 'postgresql'
+  | 'postgres' // TODO: we could normalize postgres to postgresql this in engines to reduce the complexity?
   | 'sqlserver'
   | 'cockroachdb'
 
   // TODO: this should be removed in favor of `'sqlserver'`, as per `getConfig({ ... }).datasources[0]?.provider` from a schema with `provider = "sqlserver"`
   // 'jdbc:sqlserver' has been removed in https://github.com/prisma/prisma-engines/pull/2830
   | 'jdbc:sqlserver'
-
-// TODO: this is also a valid provider as returned by `getConfig({ ... }).datasources[0]?.provider` from a schema with `provider = "postgres"`,
-// but adding it would currently break the TypeScript compilation.
-// | 'postgres'
 
 export interface DataSource {
   name: string
@@ -81,7 +78,6 @@ export type BinaryPaths = {
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
   introspectionEngine?: { [binaryTarget: string]: string }
-  prismaFmt?: { [binaryTarget: string]: string }
 }
 
 /** The options passed to the generator implementations */
@@ -100,7 +96,7 @@ export type GeneratorOptions = {
   dataProxy: boolean
 }
 
-export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
+export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine'
 
 export type GeneratorManifest = {
   prettyName?: string

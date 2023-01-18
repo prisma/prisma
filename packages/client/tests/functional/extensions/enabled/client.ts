@@ -1,3 +1,5 @@
+import { expectTypeOf } from 'expect-type'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -57,7 +59,11 @@ testMatrix.setupTestSuite(() => {
       client: {
         $extMethod1,
         $extMethod2() {
-          this.$extMethod1()
+          const ctx = Prisma.getExtensionContext(this)
+
+          expectTypeOf(ctx).toHaveProperty('$extMethod1').toEqualTypeOf($extMethod1)
+
+          ctx.$extMethod1()
         },
       },
     })
@@ -136,6 +142,8 @@ testMatrix.setupTestSuite(() => {
           $extMethod2() {
             const ctx = Prisma.getExtensionContext(this)
 
+            expectTypeOf(ctx).toHaveProperty('$extMethod1').toEqualTypeOf($extMethod1)
+
             ctx.$extMethod1()
           },
         },
@@ -151,6 +159,8 @@ testMatrix.setupTestSuite(() => {
       client: {
         $findAllUsers() {
           const ctx = Prisma.getExtensionContext(this)
+
+          expectTypeOf(ctx).toHaveProperty('user').toHaveProperty('findMany').toMatchTypeOf<Function>()
 
           return ctx.user.findMany({})
         },

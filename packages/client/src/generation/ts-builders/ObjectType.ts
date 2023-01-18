@@ -1,11 +1,13 @@
-import { BasicBuilder } from './BasicBuilder'
 import { Method } from './Method'
 import { Property } from './Property'
+import { TypeBuilder } from './TypeBuilder'
 import { Writer } from './Writer'
 
 type ObjectTypeItem = Method | Property
 
-export class ObjectType implements BasicBuilder {
+export class ObjectType extends TypeBuilder {
+  needsParenthesisWhenIndexed = true
+
   private items: ObjectTypeItem[] = []
   private inline = false
 
@@ -37,7 +39,7 @@ export class ObjectType implements BasicBuilder {
           writer.writeLine(item)
         }
       })
-      .writeLine('}')
+      .write('}')
   }
 
   private writeInline(writer: Writer) {

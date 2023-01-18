@@ -56,6 +56,7 @@ ${chalk.bold('Options')}
                 --schema   Custom path to your Prisma schema
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
+               --schemas   Specify the database schemas to introspect. This overrides the schemas defined in the datasource block of your Prisma schema.
 
 ${chalk.bold('Examples')}
 
@@ -95,6 +96,7 @@ Set composite types introspection depth to 2 levels
       '--url': String,
       '--print': Boolean,
       '--schema': String,
+      '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
       // deprecated
@@ -180,12 +182,18 @@ Set composite types introspection depth to 2 levels
           const firstDatasource = config.datasources[0] ? config.datasources[0] : undefined
 
           if (input.url) {
-            const providerFromSchema = firstDatasource?.provider
+            let providerFromSchema = firstDatasource?.provider
+            // Both postgres and postgresql are valid provider
+            // We need to remove the alias for the error logic below
+            if (providerFromSchema === 'postgres') {
+              providerFromSchema = 'postgresql'
+            }
+
             // protocolToConnectorType ensures that the protocol from `input.url` is valid or throws
             // TODO: better error handling with better error message
             // Related https://github.com/prisma/prisma/issues/14732
             const providerFromUrl = protocolToConnectorType(`${input.url.split(':')[0]}:`)
-            const schema = `${this.urlToDatasource(input.url, providerFromSchema)}\n${removeDatasource(rawSchema)}`
+            const schema = `${this.urlToDatasource(input.url, providerFromSchema)}\n\n${removeDatasource(rawSchema)}`
 
             // if providers are different the engine would return a misleading error
             // So we check here and return a better error
@@ -233,8 +241,8 @@ Set composite types introspection depth to 2 levels
       )
       .run()
 
-    // Re-Introspection is not supported on MongoDB
     if (schemaPath) {
+      // Re-Introspection is not supported on MongoDB
       const schema = await getSchema(args['--schema'])
 
       const modelRegex = /\s*model\s*(\w+)\s*{/
@@ -272,6 +280,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
         schema,
         force: args['--force'],
         compositeTypeDepth: args['--composite-type-depth'],
+        schemas: args['--schemas']?.split(','),
       })
 
       introspectionSchema = introspectionResult.datamodel
@@ -336,7 +345,8 @@ Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again.
         // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
         // '--url' argument is different than the one written in the schema.prisma file.
         // We should throw another error earlier in case the URL protocol is not compatible with the schema provider.
-        throw new Error(`${chalk.red(`${e.code}`)} Introspection failed as your current Prisma schema file is invalid
+        throw new Error(`${chalk.red(`${e.message}`)}
+Introspection failed as your current Prisma schema file is invalid
 
 Please fix your current schema manually (using either ${chalk.green(
           getCommandWithExecutor('prisma validate'),

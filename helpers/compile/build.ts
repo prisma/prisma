@@ -124,7 +124,7 @@ async function dependencyCheck(options: BuildOptions) {
   const buildPromise = esbuild.build({
     entryPoints: glob.sync('**/*.{j,t}s', {
       // We don't check dependencies in ecosystem tests because tests are isolated from the build.
-      ignore: ['./src/__tests__/**/*', './tests/ecosystem/**/*'],
+      ignore: ['./src/__tests__/**/*', './tests/e2e/**/*'],
       gitignore: true,
     }),
     logLevel: 'silent', // there will be errors
@@ -145,10 +145,10 @@ async function dependencyCheck(options: BuildOptions) {
  * @param options
  */
 export async function build(options: BuildOptions[]) {
-  // When we trigger pnpm pack we actually don't want to build again to go faster.
-  // We re-use what has been already build; and also implies you ran pnpm run watch/dev/build before hand.
-  // In the future, I think I'll enable a full build + packaging mode to be much closer to reality, this could be done on CI.
-  if (process.env.ECOSYSTEM === 'true') return
+  // When we trigger pnpm pack for e2e tests we actually don't want to always
+  // build again to go faster. We re-use what has been already build; and also
+  // implies you ran pnpm run watch/dev/build before hand.
+  if (process.env.SKIP_BUILD === 'true') return
 
   void transduce.async(options, dependencyCheck)
 
