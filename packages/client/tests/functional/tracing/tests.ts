@@ -847,10 +847,8 @@ testMatrix.setupTestSuite(
     })
 
     describe('logging and tracing', () => {
-      let _prisma: PrismaClient
-
-      beforeAll(async () => {
-        _prisma = newPrismaClient({
+      test('should trace and log at the same time', async () => {
+        const _prisma = newPrismaClient({
           log: [
             {
               emit: 'event',
@@ -858,10 +856,9 @@ testMatrix.setupTestSuite(
             },
           ],
         })
-        await _prisma.$connect()
-      })
 
-      test('should trace and log at the same time', async () => {
+        await _prisma.$connect()
+
         const queryLogPromise = new Promise<Prisma.QueryEvent>((resolve) => {
           _prisma.$on('query', (data) => {
             if ('query' in data) {
