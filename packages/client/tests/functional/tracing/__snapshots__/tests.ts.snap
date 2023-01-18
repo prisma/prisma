@@ -5352,72 +5352,12 @@ exports[`tracing (provider=postgresql) tracing with middleware tracing with midd
 
 exports[`tracing (provider=sqlite) logging and tracing should trace and log at the same time 1`] = `
 {
-  children: [
-    {
-      children: [],
-      span: {
-        attributes: {},
-        kind: 0,
-        links: [],
-        name: prisma:client:serialize,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.type: <dbType>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:connection,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-      ],
-      span: {
-        attributes: {},
-        kind: 0,
-        links: [],
-        name: prisma:engine,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-  ],
+  children: [],
   span: {
-    attributes: {
-      method: findMany,
-      model: User,
-      name: User.findMany,
-    },
+    attributes: {},
     kind: 0,
     links: [],
-    name: prisma:client:operation,
+    name: prisma:client:connect,
   },
 }
 `;
