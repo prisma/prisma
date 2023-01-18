@@ -37,7 +37,7 @@
     "hasha": "5.2.2",
     "http-proxy-agent": "5.0.0",
     "https-proxy-agent": "5.0.1",
-    "node-fetch": "2.6.7",
+    "node-fetch": "2.6.8",
     "p-filter": "2.1.0",
     "p-map": "4.0.0",
     "p-retry": "4.6.2",
