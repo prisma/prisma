@@ -96,7 +96,7 @@ export type ${generatedName}${ifExtensions(
       '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
       '',
     )} = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
+${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
   }
@@ -122,7 +122,7 @@ export type ${baseTypeName}${ifExtensions(
       '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
       '',
     )} = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
+${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 
 /**
@@ -174,7 +174,7 @@ ${indent(
   args
     .map((arg) => {
       const noEnumerable = arg.inputTypes.some((input) => input.type === 'Json') && arg.name === 'pipeline'
-      return new InputField(arg, false, noEnumerable, this.genericsInfo).toTS()
+      return new InputField(arg, noEnumerable, this.genericsInfo).toTS()
     })
     .join('\n'),
   TAB_SIZE,
