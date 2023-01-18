@@ -47,7 +47,6 @@ testMatrix.setupTestSuite(
         expect(queryLogEvents).toHaveProperty('target')
       }
 
-      await client.$disconnect()
     })
 
     test('should log queries inside a ITX', async () => {
