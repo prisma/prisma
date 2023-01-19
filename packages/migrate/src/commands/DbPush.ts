@@ -17,7 +17,7 @@ import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
-import { ensureDatabaseExists, getDbInfo } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { DbPushForceFlagRenamedError, DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
@@ -97,15 +97,14 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    await printDatasource(schemaPath)
-
-    const dbInfo = await getDbInfo(schemaPath)
+    const datasourceInfo = await getDatasourceInfo({ schemaPath })
+    printDatasource({ datasourceInfo })
 
     const migrate = new Migrate(schemaPath)
 
     try {
       // Automatically create the database if it doesn't exist
-      const wasDbCreated = await ensureDatabaseExists('push', true, schemaPath)
+      const wasDbCreated = await ensureDatabaseExists('push', schemaPath)
       if (wasDbCreated) {
         console.info() // empty line
         console.info(wasDbCreated)
@@ -124,13 +123,29 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
         migrate.stop()
         throw e
       }
-      if (dbInfo.dbName && dbInfo.dbLocation) {
-        console.info(
-          `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
-        )
-      } else {
-        console.info(`The ${dbInfo.dbType} ${dbInfo.schemaWord} was successfully reset.`)
+
+      let successfulResetMsg = `The ${datasourceInfo.prettyProvider} database`
+      if (datasourceInfo.dbName) {
+        successfulResetMsg += ` "${datasourceInfo.dbName}"`
       }
+
+      const schemasLength = datasourceInfo.schemas?.length || 0
+      // If schemas are defined in the datasource block, print them
+      if (datasourceInfo.schemas && schemasLength > 0) {
+        successfulResetMsg += ` schema${schemasLength > 1 ? 's' : ''} "${datasourceInfo.schemas.join(', ')}"`
+      }
+      // Otherwise, print the schema if it's defined in the connection string
+      else if (datasourceInfo.schema) {
+        successfulResetMsg += ` schema "${datasourceInfo.schema}"`
+      }
+
+      if (datasourceInfo.dbLocation) {
+        successfulResetMsg += ` at "${datasourceInfo.dbLocation}"`
+      }
+
+      successfulResetMsg += ` ${schemasLength > 1 ? 'were' : 'was'} successfully reset.`
+      console.info(successfulResetMsg)
+
       wasDatabaseReset = true
     }
 
@@ -184,12 +199,12 @@ ${chalk.bold.redBright('All data will be lost.')}
       try {
         // Reset first to remove all structure and data
         await migrate.reset()
-        if (dbInfo.dbName && dbInfo.dbLocation) {
+        if (datasourceInfo.dbName && datasourceInfo.dbLocation) {
           console.info(
-            `The ${dbInfo.dbType} ${dbInfo.schemaWord} "${dbInfo.dbName}" from "${dbInfo.dbLocation}" was successfully reset.`,
+            `The ${datasourceInfo.prettyProvider} database "${datasourceInfo.dbName}" from "${datasourceInfo.dbLocation}" was successfully reset.`,
           )
         } else {
-          console.info(`The ${dbInfo.dbType} ${dbInfo.schemaWord} was successfully reset.`)
+          console.info(`The ${datasourceInfo.prettyProvider} database was successfully reset.`)
         }
         wasDatabaseReset = true
 
@@ -251,7 +266,7 @@ ${chalk.bold.redBright('All data will be lost.')}
       const migrationSuccessMongoMessage = 'Your database indexes are now in sync with your Prisma schema.'
 
       // this is safe, as if the protocol was unknown, we would have already exited the program with an error
-      const provider = protocolToConnectorType(`${dbInfo.url?.split(':')[0]}:`)
+      const provider = protocolToConnectorType(`${datasourceInfo.url?.split(':')[0]}:`)
 
       console.info(
         `\n${rocketEmoji}${

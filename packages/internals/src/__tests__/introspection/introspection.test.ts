@@ -54,12 +54,6 @@ test('introspection basic', async () => {
       "table_count": 3,
     }
   `)
-  const databases = await engine.listDatabases(schema)
-  expect(databases).toMatchInlineSnapshot(`
-    [
-      "blog.db",
-    ]
-  `)
 
   const dbVersion = await engine.getDatabaseVersion(schema)
   expect(dbVersion.length > 0).toBe(true)
@@ -70,6 +64,5 @@ test('introspection basic', async () => {
 
   const json = JSON.parse(description)
   expect(typeof json).toBe('object')
-
   engine.stop()
 })

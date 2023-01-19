@@ -69,11 +69,14 @@ export type IntrospectionWarnings =
   | IntrospectionWarningsCustomIndexNameReintro
   | IntrospectionWarningsCustomPrimaryKeyNamesReintro
   | IntrospectionWarningsRelationsReintro
+  | IntrospectionWarningsTopLevelItemNameIsADupe
+  // MongoDB below
   | IntrospectionWarningsMongoMultipleTypes
   | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
   | IntrospectionWarningsMongoFieldsWithUnknownTypes
   | IntrospectionWarningsMongoFieldsWithEmptyNames
 
+type AffectedTopLevel = { type: 'Model' | 'Enum'; name: string }
 type AffectedModel = { model: string }
 type AffectedModelAndIndex = { model: string; index_db_name: string }
 type AffectedModelAndField = { model: string; field: string }
@@ -98,6 +101,7 @@ interface IntrospectionWarning {
   code: number
   message: string
   affected:
+    | AffectedTopLevel[]
     | AffectedModel[]
     | AffectedModelAndIndex[]
     | AffectedModelAndField[]
@@ -193,6 +197,10 @@ interface IntrospectionWarningsRelationsReintro extends IntrospectionWarning {
   code: 19
   affected: AffectedModel[]
 }
+interface IntrospectionWarningsTopLevelItemNameIsADupe extends IntrospectionWarning {
+  code: 20
+  affected: AffectedTopLevel[]
+}
 
 // MongoDB starts at 101 see
 // https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs#L39-L43
@@ -261,25 +269,25 @@ export class IntrospectionEngine {
   public getDatabaseVersion(schema: string): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema }))
   }
+
+  /**
+   * @deprecated Use `MigrateEngine.introspect()` instead from `@prisma/migrate` package
+   */
   public introspect(
     schema: string,
     force?: Boolean,
     compositeTypeDepth = -1, // optional, only for mongodb
+    schemas?: String[],
   ): Promise<{
     datamodel: string
     warnings: IntrospectionWarnings[]
     version: IntrospectionSchemaVersion
   }> {
     this.lastUrl = schema
-    return this.runCommand(this.getRPCPayload('introspect', { schema, force, compositeTypeDepth }))
+    return this.runCommand(this.getRPCPayload('introspect', { schema, schemas, force, compositeTypeDepth }))
   }
   public debugPanic(): Promise<any> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
-  }
-  // TODO Dead Code?
-  public listDatabases(schema: string): Promise<string[]> {
-    this.lastUrl = schema
-    return this.runCommand(this.getRPCPayload('listDatabases', { schema }))
   }
   public getDatabaseMetadata(schema: string): Promise<{ size_in_bytes: number; table_count: number }> {
     this.lastUrl = schema

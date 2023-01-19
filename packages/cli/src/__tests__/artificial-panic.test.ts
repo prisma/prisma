@@ -21,18 +21,26 @@ describe('artificial-panic introspection', () => {
     process.env = { ...OLD_ENV }
   })
 
-  it('introspection-engine', async () => {
+  it('migration-engine', async () => {
     ctx.fixture('artificial-panic')
-    expect.assertions(5)
-    process.env.FORCE_PANIC_INTROSPECTION_ENGINE = '1'
+    expect.assertions(6)
+    process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
 
     const command = new DbPull()
     try {
       await command.parse(['--print'])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`[/some/rust/path:0:0] This is the debugPanic artificial panic`)
+      expect(e).toMatchInlineSnapshot(`
+        Error in migration engine.
+        Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
+
+        Please create an issue with your \`schema.prisma\` at
+        https://github.com/prisma/prisma/issues/new
+
+      `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
+      expect(e.schemaPath).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
         // This is your Prisma schema file,
         // learn more about it in the docs: https://pris.ly/d/prisma-schema
@@ -43,13 +51,12 @@ describe('artificial-panic introspection', () => {
 
         datasource db {
           provider = "postgresql"
-          url      = env("DATABASE_URL")
+          url      = "postgres://user:password@randomhost:5432"
         }
 
       `),
         expect(e).toMatchObject({
-          area: 'INTROSPECTION_CLI',
-          schemaPath: undefined,
+          area: 'LIFT_CLI',
         })
     }
   })
@@ -112,7 +119,7 @@ describe('artificial-panic get-config', () => {
 
         datasource db {
           provider = "postgresql"
-          url      = env("DATABASE_URL")
+          url      = "postgres://user:password@randomhost:5432"
         }
 
       `)
@@ -152,7 +159,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
 
         datasource db {
           provider = "postgresql"
-          url      = env("DATABASE_URL")
+          url      = "postgres://user:password@randomhost:5432"
         }
 
       `)
@@ -184,7 +191,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
 
         datasource db {
           provider = "postgresql"
-          url      = env("DATABASE_URL")
+          url      = "postgres://user:password@randomhost:5432"
         }
 
       `)

@@ -1,3 +1,6 @@
+// describeIf is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
 import { jestConsoleContext, jestContext } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 
@@ -27,35 +30,35 @@ describe('migrate diff', () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse([])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --from-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--from-empty'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --to-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--to-empty'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --from-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--from-empty', '--from-url=file:dev.db'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --to-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--to-empty', '--to-url=file:dev.db'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if schema does no exists, --from-schema-datasource', async () => {
@@ -339,12 +342,12 @@ describe('migrate diff', () => {
   })
 
   describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-    const connectionString = (
-      process.env.TEST_COCKROACH_URI_MIGRATE || 'postgresql://prisma@localhost:26257/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-diff')
-
+    if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
+      throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
+    }
+    const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE?.replace('tests-migrate', 'tests-migrate-diff')
     const setupParams = {
-      connectionString,
+      connectionString: connectionString!,
       dirname: '',
     }
 
@@ -360,13 +363,12 @@ describe('migrate diff', () => {
       })
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
       const result = MigrateDiff.new().parse([
         '--from-url',
-        connectionString,
+        connectionString!,
         '--to-schema-datamodel=./prisma/schema.prisma',
         '--script',
       ])
@@ -382,7 +384,6 @@ describe('migrate diff', () => {
       `)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should use env var from .env file with --from-schema-datasource', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -400,11 +401,10 @@ describe('migrate diff', () => {
             `)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-url', connectionString, '--to-url=file:dev.db', '--script'])
+      const result = MigrateDiff.new().parse(['--from-url', connectionString!, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Error in migration engine.
               Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
@@ -417,9 +417,7 @@ describe('migrate diff', () => {
   })
 
   describe('postgresql', () => {
-    const connectionString = (
-      process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-diff')
+    const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-diff')
 
     const setupParams: SetupParams = {
       connectionString,
@@ -492,9 +490,7 @@ describe('migrate diff', () => {
   })
 
   describe('mysql', () => {
-    const connectionString = (
-      process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-diff')
+    const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-diff')
 
     const setupParams: SetupParams = {
       connectionString,
@@ -550,11 +546,10 @@ describe('migrate diff', () => {
   })
 
   describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
-    const jdbcConnectionString = (
-      process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-      'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-    ).replace('tests-migrate', 'tests-migrate-diff')
-
+    if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
+    }
+    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace('tests-migrate', 'tests-migrate-diff')
     const setupParams: SetupParams = {
       connectionString: process.env.TEST_MSSQL_URI!,
       dirname: '',
@@ -572,13 +567,12 @@ describe('migrate diff', () => {
       })
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlserver')
 
       const result = MigrateDiff.new().parse([
         '--from-url',
-        jdbcConnectionString,
+        jdbcConnectionString!,
         '--to-schema-datamodel=./prisma/schema.prisma',
         '--script',
       ])
@@ -613,7 +607,7 @@ describe('migrate diff', () => {
     it('should fail for 2 different connectors --from-url=jdbcConnectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-url', jdbcConnectionString, '--to-url=file:dev.db', '--script'])
+      const result = MigrateDiff.new().parse(['--from-url', jdbcConnectionString!, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Error in migration engine.
               Reason: [/some/rust/path:0:0] Missing column native type in mssql_renderer::render_column_type()

@@ -114,7 +114,7 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining('Argument set for create.content.set must not be null'),
         }),

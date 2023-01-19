@@ -21,12 +21,12 @@ describe('validate', () => {
 
   it('should throw if schema is invalid', async () => {
     ctx.fixture('example-project/prisma')
-    await expect(Validate.new().parse(['--schema=broken.prisma'])).rejects.toThrowError('Prisma schema validation')
+    await expect(Validate.new().parse(['--schema=broken.prisma'])).rejects.toThrow('Prisma schema validation')
   })
 
   it('should throw if env var is not set', async () => {
     ctx.fixture('example-project/prisma')
-    await expect(Validate.new().parse(['--schema=env-does-not-exists.prisma'])).rejects.toThrowError(
+    await expect(Validate.new().parse(['--schema=env-does-not-exists.prisma'])).rejects.toThrow(
       'Environment variable not found',
     )
   })
@@ -46,7 +46,7 @@ describe('validate', () => {
 
   it('should throw with an error and show a warning on stderr (preview feature deprecated)', async () => {
     ctx.fixture('lint-warnings')
-    await expect(Validate.new().parse(['--schema=preview-feature-deprecated-and-error.prisma'])).rejects.toThrowError(
+    await expect(Validate.new().parse(['--schema=preview-feature-deprecated-and-error.prisma'])).rejects.toThrow(
       'P1012',
     )
 

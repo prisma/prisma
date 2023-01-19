@@ -11,8 +11,8 @@ sandbox
 introspection-engine*
 query-engine*
 migration-engine*
-prisma-fmt*
 libquery_engine*
+libquery-engine*
 query_engine-windows.dll.node
 
 *tmp.db

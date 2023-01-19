@@ -41,4 +41,38 @@ testMatrix.setupTestSuite(() => {
 
     expect(data?.id).toBe(vars.postId2)
   })
+
+  test('findUnique with nested where on optional 1:1 not found', async () => {
+    const data = await prisma.user.findUnique({
+      where: {
+        id: vars.userId,
+      },
+      include: {
+        payment: {
+          where: {
+            ccn: 'not there',
+          },
+        },
+      },
+    })
+
+    expect(data?.payment).toBeNull()
+  })
+
+  test('findUnique with nested where on optional 1:1 found', async () => {
+    const data = await prisma.user.findUnique({
+      where: {
+        id: vars.userId,
+      },
+      include: {
+        payment: {
+          where: {
+            ccn: vars.ccn,
+          },
+        },
+      },
+    })
+
+    expect(data?.payment).not.toBeNull()
+  })
 })

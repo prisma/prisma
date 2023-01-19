@@ -1,6 +1,6 @@
 import { ErrorArea, handlePanic, isCi, RustPanic } from '@prisma/internals'
 import fs from 'fs'
-import mkdir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import { dirname, join, resolve } from 'path'
 import prompt from 'prompts'
@@ -40,7 +40,7 @@ async function writeFiles(
 ): Promise<string> {
   for (const name in files) {
     const filepath = join(root, name)
-    await mkdir(dirname(filepath))
+    await ensureDir(dirname(filepath))
     await writeFile(filepath, dedent(files[name]))
   }
   // return the test path
@@ -56,7 +56,7 @@ describe('handlePanic migrate', () => {
     jest.resetModules() // most important - it clears the cache
     process.env = { ...OLD_ENV } // make a copy
     process.cwd = () => testRootDir
-    await mkdir(testRootDir)
+    await ensureDir(testRootDir)
   })
   afterEach(() => {
     process.cwd = oldProcessCwd
@@ -69,6 +69,7 @@ describe('handlePanic migrate', () => {
     io.restore()
   })
 
+  // Note: this error is never used
   const error = new RustPanic(
     'Some error message!',
     '',
@@ -77,7 +78,7 @@ describe('handlePanic migrate', () => {
     resolve(join('fixtures', 'blog', 'prisma', 'schema.prisma')),
   )
   const packageJsonVersion = '0.0.0'
-  const engineVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
+  const enginesVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
   const command = 'something-test'
 
   it('test interactive engine panic', async () => {
@@ -117,8 +118,15 @@ describe('handlePanic migrate', () => {
       // No to create new issue
       setTimeout(() => sendKeystrokes(io).then(), 5)
       // This allows this test to be run in the CI
+      const getDatabaseVersionSafe = () => Promise.resolve(undefined)
       try {
-        await handlePanic(err, packageJsonVersion, engineVersion, command)
+        await handlePanic({
+          error: err,
+          cliVersion: packageJsonVersion,
+          enginesVersion,
+          command,
+          getDatabaseVersionSafe,
+        })
       } catch (err) {
         error = err
       }

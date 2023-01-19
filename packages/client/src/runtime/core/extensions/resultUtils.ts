@@ -2,7 +2,7 @@ import { mapObjectValues } from '@prisma/internals'
 
 import { Cache } from '../../../generation/Cache'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
-import { Args, ResultArgsFieldCompute, ResultModelArgs } from './$extends'
+import { Args, ResultArg, ResultArgsFieldCompute } from './$extends'
 import { Selection } from './visitQueryResult'
 import { wrapExtensionCallback } from './wrapExtensionCallback'
 
@@ -45,33 +45,38 @@ export function getComputedFields(
 
   return resolveDependencies({
     ...previousComputedFields,
-    ...getComputedFieldsFromModel(extension.name, extension.result.$allModels),
-    ...getComputedFieldsFromModel(extension.name, extension.result[jsName]),
+    ...getComputedFieldsFromModel(extension.name, previousComputedFields, extension.result.$allModels),
+    ...getComputedFieldsFromModel(extension.name, previousComputedFields, extension.result[jsName]),
   })
 }
 
 export function resolveDependencies(computedFields: ComputedFieldsMap): ComputedFieldsMap {
   const cache = new Cache<string, string[]>()
-  const resolveNeeds = (fieldName: string) => {
+  const resolveNeeds = (fieldName: string, visitedFields: Set<string>) => {
     return cache.getOrCreate(fieldName, () => {
-      if (computedFields[fieldName]) {
-        return computedFields[fieldName].needs.flatMap(resolveNeeds)
+      if (visitedFields.has(fieldName)) {
+        return [fieldName]
       }
-      return [fieldName]
+      visitedFields.add(fieldName)
+      if (!computedFields[fieldName]) {
+        return [fieldName]
+      }
+      return computedFields[fieldName].needs.flatMap((fieldDep) => resolveNeeds(fieldDep, visitedFields))
     })
   }
 
   return mapObjectValues(computedFields, (field) => {
     return {
       ...field,
-      needs: resolveNeeds(field.name),
+      needs: resolveNeeds(field.name, new Set()),
     }
   })
 }
 
 function getComputedFieldsFromModel(
   name: string | undefined,
-  modelResult: ResultModelArgs | undefined,
+  previousComputedFields: ComputedFieldsMap | undefined,
+  modelResult: ResultArg | undefined,
 ): ComputedFieldsMap {
   if (!modelResult) {
     return {}
@@ -80,8 +85,22 @@ function getComputedFieldsFromModel(
   return mapObjectValues(modelResult, ({ needs, compute }, fieldName) => ({
     name: fieldName,
     needs: needs ? Object.keys(needs).filter((key) => needs[key]) : [],
-    compute: wrapExtensionCallback(name, compute),
+    compute: wrapExtensionCallback(name, composeCompute(previousComputedFields, fieldName, compute)),
   }))
+}
+
+function composeCompute(
+  previousComputedFields: ComputedFieldsMap | undefined,
+  fieldName: string,
+  nextCompute: ResultArgsFieldCompute,
+): ResultArgsFieldCompute {
+  const previousCompute = previousComputedFields?.[fieldName]?.compute
+  if (!previousCompute) {
+    return nextCompute
+  }
+  return (model) => {
+    return nextCompute({ ...model, [fieldName]: previousCompute(model) })
+  }
 }
 
 export function applyComputedFieldsToSelection(

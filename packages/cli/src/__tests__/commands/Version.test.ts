@@ -2,7 +2,7 @@ import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType, download } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/get-platform'
 import { engineEnvVarMap, jestConsoleContext, jestContext } from '@prisma/internals'
-import makeDir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import path from 'path'
 
 import packageJson from '../../../package.json'
@@ -24,12 +24,11 @@ describe('version', () => {
     'version with custom binaries (Node-API)',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
-      await makeDir(enginesDir)
+      await ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
-          'prisma-fmt': enginesDir,
           'libquery-engine': enginesDir,
         },
         version,
@@ -73,12 +72,11 @@ describe('version', () => {
     'version with custom binaries',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
-      await makeDir(enginesDir)
+      await ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
           'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
-          'prisma-fmt': enginesDir,
           'query-engine': enginesDir,
         },
         version,
@@ -118,7 +116,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
 
   // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
   // Currently, the engine version of @prisma/prisma-fmt-wasm isn't necessarily the same as the enginesVersion
-  str = str.replace(new RegExp('([0-9]+.[0-9]+.[0-9]+-[0-9]+.)([a-z0-9]{40})', 'g'), 'CLI_VERSION.ENGINE_VERSION')
+  str = str.replace(/([0-9]+\.[0-9]+\.[0-9]+-[0-9]+\.)([a-z0-9-]+)/g, 'CLI_VERSION.ENGINE_VERSION')
 
   // replace engine version hash
   const defaultEngineVersion = enginesVersion

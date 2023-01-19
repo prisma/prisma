@@ -1,0 +1,10 @@
+services:
+  test:
+    build:
+      dockerfile: ./standard.dockerfile
+    volumes:
+      - ../:/e2e
+      - ../../../:/client
+      - ../.cache:/root/.cache
+      - ../.cache/pnpmcache:/root/.local/share/pnpm/store/v3
+      - ../.cache/npmcache:/root/.npm

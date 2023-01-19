@@ -1,3 +1,5 @@
+import { expectTypeOf } from 'expect-type'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -291,5 +293,296 @@ testMatrix.setupTestSuite(() => {
     })
 
     expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(`Error caused by an extension: Fail!`)
+  })
+
+  test('custom method re-using input types to augment them via intersection', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T, A>(
+            this: T,
+            args: PrismaNamespace.Exact<
+              A,
+              PrismaNamespace.Args<T, 'findUniqueOrThrow'> & {
+                cache: boolean
+              }
+            >,
+          ): A {
+            return args as any as A
+          },
+        },
+      },
+    })
+
+    const args = xprisma.user.findFirstOrCreate({
+      cache: true,
+      where: {
+        id: '1',
+      },
+    })
+
+    expectTypeOf(args).toHaveProperty('cache').toEqualTypeOf<true>()
+    expectTypeOf(args).toHaveProperty('where').toEqualTypeOf<{ id: '1' }>()
+  })
+
+  test('custom method re-using input types to augment them via mapped type', () => {
+    type Nullable<T> = {
+      [K in keyof T]: T[K] | null
+    }
+
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T, A>(
+            this: T,
+            args: PrismaNamespace.Exact<A, Nullable<PrismaNamespace.Args<T, 'findUniqueOrThrow'>>>,
+          ): A {
+            return args as any as A
+          },
+        },
+      },
+    })
+
+    const args = xprisma.user.findFirstOrCreate({
+      include: null,
+      where: {
+        id: '1',
+      },
+    })
+
+    expectTypeOf(args).toHaveProperty('include').toEqualTypeOf<null>()
+    expectTypeOf(args).toHaveProperty('where').toEqualTypeOf<{ id: '1' }>()
+  })
+
+  test('custom method re-using output to augment it via intersection', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T, A>(
+            this: T,
+            args: PrismaNamespace.Exact<A, PrismaNamespace.Args<T, 'findUniqueOrThrow'>>,
+          ): PrismaNamespace.Result<T, A, 'findUniqueOrThrow'> & { extra: boolean } {
+            return {} as any
+          },
+        },
+      },
+    })
+
+    const data = xprisma.user.findFirstOrCreate({
+      where: {
+        id: '1',
+      },
+    })
+
+    expectTypeOf(data).toHaveProperty('extra').toEqualTypeOf<boolean>()
+    expectTypeOf(data).toHaveProperty('id').toEqualTypeOf<string>()
+    expectTypeOf(data).toHaveProperty('email').toEqualTypeOf<string>()
+    expectTypeOf(data).toHaveProperty('firstName').toEqualTypeOf<string>()
+    expectTypeOf(data).toHaveProperty('lastName').toEqualTypeOf<string>()
+  })
+
+  test('custom method re-using payload output types', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T>(this: T) {
+            return {} as PrismaNamespace.Payload<T, 'findUniqueOrThrow'>
+          },
+        },
+      },
+    })
+
+    const data = xprisma.user.findFirstOrCreate()
+
+    expectTypeOf<typeof data>().toHaveProperty('scalars').toMatchTypeOf<object>()
+    expectTypeOf<typeof data>().toHaveProperty('objects').toMatchTypeOf<object>()
+    expectTypeOf<typeof data['scalars']>().toHaveProperty('id').toMatchTypeOf<string>()
+    expectTypeOf<typeof data['objects']>().toHaveProperty('posts').toMatchTypeOf<object>()
+    expectTypeOf<typeof data['objects']['posts']>().toMatchTypeOf<object[]>()
+    expectTypeOf<typeof data['objects']['posts'][0]>().toMatchTypeOf<object>()
+    expectTypeOf<typeof data['objects']['posts'][0]>().toHaveProperty('scalars').toMatchTypeOf<object>()
+    expectTypeOf<typeof data['objects']['posts'][0]>().toHaveProperty('objects').toMatchTypeOf<object>()
+  })
+
+  test('custom method that uses exact for narrowing inputs', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T, A>(
+            this: T,
+            args: PrismaNamespace.Exact<
+              A,
+              {
+                guestName: string
+                foodChoice: ('starters' | 'main' | 'desert' | 'drink')[]
+                allergies: string[]
+                vegan: boolean
+              }
+            >,
+          ): A {
+            return {} as any
+          },
+        },
+      },
+    })
+
+    const data = xprisma.user.findFirstOrCreate({
+      allergies: ['nuts'],
+      foodChoice: ['starters', 'main'],
+      guestName: 'John',
+      vegan: false,
+    })
+
+    expectTypeOf(data).toEqualTypeOf<{
+      allergies: ['nuts']
+      foodChoice: ['starters', 'main']
+      guestName: 'John'
+      vegan: false
+    }>()
+
+    void xprisma.user.findFirstOrCreate({
+      // @ts-expect-error
+      allergies: 'invalid',
+      // @ts-expect-error
+      foodChoice: ['starters', 'invalid'],
+      // @ts-expect-error
+      guestName: null,
+      // @ts-expect-error
+      vegan: 'invalid',
+    })
+  })
+
+  test('custom method that uses exact for narrowing generic inputs', () => {
+    type Pick<T, K extends string | number | symbol> = {
+      [P in keyof T as P extends K ? P : never]: T[P]
+    }
+
+    type Input<T> = {
+      where: Pick<PrismaNamespace.Args<T, 'findMany'>['where'], keyof PrismaNamespace.Payload<T, 'findMany'>['scalars']>
+      include: PrismaNamespace.Args<T, 'findMany'>['include']
+    }
+
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          findFirstOrCreate<T, A>(this: T, args: PrismaNamespace.Exact<A, Input<T>>): A {
+            return {} as any
+          },
+        },
+      },
+    })
+
+    const data = xprisma.user.findFirstOrCreate({
+      where: {
+        email: 'test',
+        // @ts-expect-error
+        posts: {
+          none: {
+            id: '1',
+          },
+        },
+      },
+      include: {},
+    })
+
+    expectTypeOf(data).toEqualTypeOf<{
+      where: {
+        email: 'test'
+        posts: {
+          none: {
+            id: '1'
+          }
+        }
+      }
+      include: {}
+    }>()
+  })
+
+  test('getExtension context on specific model and non-generic this', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        user: {
+          myCustomCallB() {},
+          myCustomCallA() {
+            const ctx = Prisma.getExtensionContext(this)
+
+            expect(ctx.name).toEqual('User')
+
+            return ctx
+          },
+        },
+      },
+    })
+
+    const ctx = xprisma.user.myCustomCallA()
+    expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string>()
+    expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
+    expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
+  })
+
+  test('getExtension context on generic model and non-generic this', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          myCustomCallB() {},
+          myCustomCallA() {
+            const ctx = Prisma.getExtensionContext(this)
+
+            expect(ctx.name).toEqual('User')
+
+            return ctx
+          },
+        },
+      },
+    })
+
+    const ctx = xprisma.user.myCustomCallA()
+    expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string>()
+    expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
+    expectTypeOf(ctx).not.toHaveProperty('update')
+  })
+
+  test('getExtension context on specific model and generic this', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        user: {
+          myCustomCallB() {},
+          myCustomCallA<T>(this: T) {
+            const ctx = Prisma.getExtensionContext(this)
+
+            expect(ctx.name).toEqual('User')
+
+            return ctx
+          },
+        },
+      },
+    })
+
+    const ctx = xprisma.user.myCustomCallA()
+    expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string>()
+    expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
+    expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
+  })
+
+  test('getExtension context on generic model and generic this', () => {
+    const xprisma = prisma.$extends({
+      model: {
+        $allModels: {
+          myCustomCallB() {},
+          myCustomCallA<T>(this: T) {
+            const ctx = Prisma.getExtensionContext(this)
+
+            expect(ctx.name).toEqual('User')
+
+            return ctx
+          },
+        },
+      },
+    })
+
+    const ctx = xprisma.user.myCustomCallA()
+    expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string>()
+    expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
+    expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
   })
 })
