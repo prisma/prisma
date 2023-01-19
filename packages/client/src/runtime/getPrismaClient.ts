@@ -138,7 +138,6 @@ export interface PrismaClientOptions {
    */
   __internal?: {
     debug?: boolean
-    hooks?: Hooks
     engine?: {
       cwd?: string
       binaryPath?: string
@@ -149,16 +148,6 @@ export interface PrismaClientOptions {
 }
 
 export type Unpacker = (data: any) => any
-
-export type HookParams = {
-  query: string
-  path: string[]
-  rootField?: string
-  typeName?: string
-  document: any
-  clientMethod: string
-  args: any
-}
 
 export type Action = keyof typeof DMMF.ModelAction | 'executeRaw' | 'queryRaw' | 'runCommandRaw'
 
@@ -185,17 +174,6 @@ export type InternalRequestParams = {
   /** Used to "desugar" a user input into an "expanded" one */
   argsMapper?: (args?: UserArgs) => UserArgs
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
-
-// only used by the .use() hooks
-export type AllHookArgs = {
-  params: HookParams
-  fetch: (params: HookParams) => Promise<any>
-}
-
-// TODO: drop hooks 💣
-export type Hooks = {
-  beforeRequest?: (options: HookParams) => any
-}
 
 /* Types for Logging */
 export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -333,7 +311,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _errorFormat: ErrorFormat
     _clientEngineType: ClientEngineType
     _tracingConfig: TracingConfig
-    _hooks?: Hooks
     _metrics: MetricsClient
     _getConfigPromise?: Promise<{
       datasources: DataSource[]
@@ -384,10 +361,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         const useDebug = internal.debug === true
         if (useDebug) {
           Debug.enable('prisma:client')
-        }
-
-        if (internal.hooks) {
-          this._hooks = internal.hooks
         }
 
         let cwd = path.resolve(config.dirname, config.relativePath)
@@ -479,7 +452,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         this._engine = this.getEngine()
         void this._getActiveProvider()
 
-        this._fetcher = new RequestHandler(this, this._hooks, logEmitter) as any
+        this._fetcher = new RequestHandler(this, logEmitter) as any
 
         if (options.log) {
           for (const log of options.log) {

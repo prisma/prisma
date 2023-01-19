@@ -89,14 +89,12 @@ function getRequestInfo(request: Request) {
 
 export class RequestHandler {
   client: Client
-  hooks: any
   dataloader: DataLoader<Request>
   private logEmmitter?: EventEmitter
 
-  constructor(client: Client, hooks?: any, logEmitter?: EventEmitter) {
+  constructor(client: Client, logEmitter?: EventEmitter) {
     this.logEmmitter = logEmitter
     this.client = client
-    this.hooks = hooks
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
         const info = getRequestInfo(requests[0])
@@ -158,19 +156,6 @@ export class RequestHandler {
     otelParentCtx,
     otelChildCtx,
   }: RequestParams) {
-    if (this.hooks && this.hooks.beforeRequest) {
-      const query = String(document)
-      this.hooks.beforeRequest({
-        query,
-        path: dataPath,
-        rootField,
-        typeName,
-        document,
-        isList,
-        clientMethod,
-        args,
-      })
-    }
     try {
       /**
        * If there's an engine hook, use it here
