@@ -1300,12 +1300,16 @@ function warnAboutRejectOnNotFound(
   if (rejectOnNotFound) {
     const key = `rejectOnNotFound.${model ?? ''}.${action}`
 
-    let warningMessage = '`rejectOnNotFound` option is deprecated and will be removed in Prisma 5'
+    const deprecatedMessage = '`rejectOnNotFound` option is deprecated and will be removed in Prisma 5'
+    let replacementMessage = 'Please use `findUniqueOrThrow` and `findFirstOrThrow` methods instead'
+
     const replacementAction = rejectOnNotFoundReplacements[action]
     if (replacementAction) {
       const replacementCall = model ? `prisma.${model}.${replacementAction}` : `prisma.${replacementAction}`
-      warningMessage += `. Please use \`${replacementCall}\` method instead`
+      replacementMessage = `Please use \`${replacementCall}\` method instead`
     }
+
+    const warningMessage = `${deprecatedMessage}. ${replacementMessage}`
 
     warnOnce(key, warningMessage)
   }
