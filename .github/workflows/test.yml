@@ -488,7 +488,7 @@ jobs:
                 message: `Add memory results for PR ${context.issue.number}`,
                 content: fs.readFileSync(localReport, 'base64'),
               });
-              console.log(`::set-output name=url::${url}`)
+              core.setOutput('url', url);
             }
 
       - name: Find report comment
