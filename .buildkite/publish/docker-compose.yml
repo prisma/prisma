@@ -52,6 +52,7 @@ services:
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
       - RELEASE_PROMOTE_DEV
+      - ONLY_PACKAGES
       - PUBLISH_BUILD=true
       - REDIS_URL
       - MIGRATE_COMMIT
@@ -130,7 +131,7 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:5a198ebdba279ea06b3654e676291da41fe7930b81b9a73682aa49085c538481
+    image: vitess/vttestserver:mysql80@sha256:1924ce05dce58173590540f9ab7f218ac7507aa4379e8feaa56738263dda7b19
     restart: always
     ports:
       - 33807:33807

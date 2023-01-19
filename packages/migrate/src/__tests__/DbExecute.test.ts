@@ -1,3 +1,6 @@
+// describeIf is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
 import { jestConsoleContext, jestContext } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
@@ -256,9 +259,7 @@ COMMIT;`,
   })
 
   describe('postgresql', () => {
-    const connectionString = (
-      process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-execute')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
@@ -457,13 +458,17 @@ COMMIT;`,
   })
 
   describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-    const connectionString = (
-      process.env.TEST_COCKROACH_URI_MIGRATE || 'postgresql://prisma@localhost:26257/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
-
+    if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
+      throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
+    }
+    // Without `|| ''`, the conditional test would return
+    // a Type Error on `undefined.replace()` even though the test is skipped
+    const connectionString = (process.env.TEST_COCKROACH_URI_MIGRATE || '').replace(
+      'tests-migrate',
+      'tests-migrate-db-execute',
+    )
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
-
     const setupParams = {
       connectionString,
       dirname: '',
@@ -486,7 +491,6 @@ DROP SCHEMA IF EXISTS "test-dbexecute";
 CREATE SCHEMA "test-dbexecute";
 DROP SCHEMA "test-dbexecute";`
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -495,7 +499,6 @@ DROP SCHEMA "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     }, 10000)
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should use env var from .env file', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -511,7 +514,6 @@ DROP SCHEMA "test-dbexecute";`
             `)
     }, 10000)
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -529,7 +531,6 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     }, 10000)
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -538,7 +539,6 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass with empty --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -567,7 +567,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
       expect.assertions(2)
@@ -589,7 +588,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url provider with --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
       expect.assertions(2)
@@ -608,7 +606,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1001 error with unreachable url with --file --url', async () => {
       ctx.fixture('schema-only-cockroachdb')
       expect.assertions(2)
@@ -632,7 +629,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with invalid SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -650,9 +646,7 @@ COMMIT;`,
   })
 
   describe('mysql', () => {
-    const connectionString = (
-      process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-execute')
 
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MYSQL_URI_MIGRATE = connectionString
@@ -812,14 +806,16 @@ COMMIT;`,
   })
 
   describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
-    const jdbcConnectionString = (
-      process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-      'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
+    }
 
+    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
+      'tests-migrate',
+      'tests-migrate-db-execute',
+    )
     // Update env var because it's the one that is used in the schemas tested
     process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
-
     const setupParams: SetupParams = {
       connectionString: process.env.TEST_MSSQL_URI!,
       dirname: '',
@@ -842,7 +838,6 @@ DROP DATABASE IF EXISTS "test-dbexecute";
 CREATE DATABASE "test-dbexecute";
 DROP DATABASE "test-dbexecute";`
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -859,7 +854,6 @@ DROP DATABASE "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -868,7 +862,6 @@ DROP DATABASE "test-dbexecute";`
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should pass using a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -888,7 +881,6 @@ COMMIT;`,
 
     // Limitation of sqlserver
     // DROP DATABASE statement cannot be used inside a user transaction.
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail if DROP DATABASE in a transaction with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -910,7 +902,6 @@ COMMIT;`,
             `)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -932,7 +923,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1013 error with invalid url provider with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -951,7 +941,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with P1001 error with unreachable url with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -975,7 +964,6 @@ COMMIT;`,
       }
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 
@@ -988,7 +976,6 @@ COMMIT;`,
             `)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail with invalid SQL error from database with --file --schema', async () => {
       ctx.fixture('schema-only-sqlserver')
 

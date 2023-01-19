@@ -43,6 +43,13 @@ export class MigrateEngine {
   private lastError: MigrateEngineLogLine['fields'] | null = null
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
+
+  // `latestSchema` is set to the latest schema that was used in `introspect()`
+  private latestSchema?: string
+
+  // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
+  public isRunning = false
+
   constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: MigrateEngineOptions) {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
@@ -135,11 +142,43 @@ export class MigrateEngine {
     return this.runCommand(this.getRPCPayload('evaluateDataLoss', args))
   }
 
+  public getDatabaseDescription(schema: string): Promise<string> {
+    return this.runCommand(this.getRPCPayload('getDatabaseDescription', { schema }))
+  }
+
   /**
    * Get the database version for error reporting.
+   * - TODO: this command currently requires the engine to be initialized with a schema path.
+   *   The IntrospectionEngine supported reading a database version from an inline schema or URL instead,
+   *   which if more flexible and fundamental for the error reporting use case. We should add that here too.
+   * - TODO: re-expose publicly once https://github.com/prisma/prisma-private/issues/203 is closed.
    */
-  public getDatabaseVersion(): Promise<string> {
-    return this.runCommand(this.getRPCPayload('getDatabaseVersion', undefined))
+  private getDatabaseVersion({ schema }: EngineArgs.GetDatabaseVersionParams): Promise<string> {
+    return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema: this.schemaPath }))
+  }
+
+  /**
+   * Given a Prisma schema, introspect the database definitions and update the schema with the results.
+   * `compositeTypeDepth` is optional, and only required for MongoDB.
+   */
+  public async introspect({
+    schema,
+    force = false,
+    compositeTypeDepth = -1, // cannot be undefined
+    schemas,
+  }: EngineArgs.IntrospectParams): Promise<EngineArgs.IntrospectResult> {
+    this.latestSchema = schema
+
+    try {
+      const introspectResult = await this.runCommand(
+        this.getRPCPayload('introspect', { schema, force, compositeTypeDepth, schemas }),
+      )
+      return introspectResult
+    } finally {
+      // stop the engine after either a successful or failed introspection, to emulate how the
+      // introspection engine used to work.
+      this.stop()
+    }
   }
 
   /**
@@ -203,7 +242,10 @@ export class MigrateEngine {
   /* eslint-enable @typescript-eslint/no-unsafe-return */
 
   public stop(): void {
-    this.child!.kill()
+    if (this.child) {
+      this.child.kill()
+      this.isRunning = false
+    }
   }
 
   private rejectAll(err: any): void {
@@ -296,6 +338,8 @@ export class MigrateEngine {
           },
         })
 
+        this.isRunning = true
+
         this.child.on('error', (err) => {
           console.error('[migration-engine] error: %s', err)
           this.rejectAll(err)
@@ -316,7 +360,8 @@ export class MigrateEngine {
                 stackTrace,
                 this.lastRequest,
                 ErrorArea.LIFT_CLI,
-                this.schemaPath,
+                /* schemaPath */ this.schemaPath,
+                /* schema */ this.latestSchema,
               ),
             )
           }
@@ -404,7 +449,8 @@ export class MigrateEngine {
                   response.error.data.message,
                   this.lastRequest,
                   ErrorArea.LIFT_CLI,
-                  this.schemaPath,
+                  /* schemaPath */ this.schemaPath,
+                  /* schema */ this.latestSchema,
                 ),
               )
             } else if (response.error.data?.message) {
@@ -458,6 +504,7 @@ export class MigrateEngine {
 
 /** The full message with context we return to the user in case of engine panic. */
 function serializePanic(log: string): string {
+  // TODO: https://github.com/prisma/prisma/issues/17268
   return `${chalk.red.bold('Error in migration engine.\nReason: ')}${log}
 
 Please create an issue with your \`schema.prisma\` at

@@ -28,11 +28,12 @@ describeIf(process.platform === 'linux')('connection-limit-mysql', () => {
   test('the client cannot query the db with 152 connections already open', async () => {
     expect.assertions(1)
     const PrismaClient = await getTestClient()
+    const connectionString = process.env.TEST_MYSQL_ISOLATED_URI!
 
     for (let i = 0; i <= 155; i++) {
       const client = new PrismaClient({
         datasources: {
-          db: { url: process.env.TEST_MYSQL_ISOLATED_URI },
+          db: { url: connectionString },
         },
       })
       clients.push(client)

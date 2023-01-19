@@ -7,6 +7,7 @@ import { buildComment } from '../utils/types/buildComment'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { wrapComment } from './helpers'
+import { ifExtensions } from './utils/ifExtensions'
 
 export class ModelOutputField implements Generatable {
   constructor(
@@ -25,7 +26,21 @@ export class ModelOutputField implements Generatable {
     const nullableStr = !field.isRequired && !field.isList ? ' | null' : ''
     const namespaceStr = useNamespace && needsNamespace(field.type, this.dmmf) ? `Prisma.` : ''
 
-    return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+    return ifExtensions(
+      () => {
+        if (field.kind === 'object') {
+          fieldType = `${fieldType}Payload`
+          return `${buildComment(field.documentation)}${
+            field.name
+          }: ${namespaceStr}${fieldType}<ExtArgs>${arrayStr}${nullableStr}`
+        }
+
+        return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+      },
+      () => {
+        return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+      },
+    )
   }
 }
 

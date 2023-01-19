@@ -10,8 +10,6 @@ function iterateAndCallQueryCallbacks(
   queryCbs: RequiredArgs['query'][string][string][],
   i = 0,
 ) {
-  if (queryCbs.length === 0) return client._executeRequest(params)
-
   return createPrismaPromise((transaction, lock) => {
     // allow query extensions to re-wrap in transactions
     // this will automatically discard the prev batch tx
@@ -31,9 +29,12 @@ function iterateAndCallQueryCallbacks(
       model: params.model,
       operation: params.action,
       args: klona(params.args ?? {}),
-      query: (args) => {
-        params.args = args
-        return iterateAndCallQueryCallbacks(client, params, queryCbs, i + 1)
+      // @ts-expect-error because not part of public API
+      __internalParams: params,
+      query: (args, __internalParams = params) => {
+        __internalParams.args = args
+
+        return iterateAndCallQueryCallbacks(client, __internalParams, queryCbs, i + 1)
       },
     })
   })

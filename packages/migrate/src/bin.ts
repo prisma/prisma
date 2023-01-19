@@ -19,6 +19,7 @@ import { MigrateDiff } from './commands/MigrateDiff'
 import { MigrateReset } from './commands/MigrateReset'
 import { MigrateResolve } from './commands/MigrateResolve'
 import { MigrateStatus } from './commands/MigrateStatus'
+import { getDatabaseVersionSafe } from './utils/getDatabaseVersionSafe'
 
 process.on('uncaughtException', (e) => {
   console.log(e)
@@ -88,7 +89,13 @@ main()
   })
   .catch((error) => {
     if (error.rustStack) {
-      handlePanic(error, packageJson.version, enginesVersion, commandArray.join(' '))
+      handlePanic({
+        error,
+        cliVersion: packageJson.version,
+        enginesVersion,
+        command: commandArray.join(' '),
+        getDatabaseVersionSafe,
+      })
         .catch((e) => {
           if (Debug.enabled('migrate')) {
             console.error(chalk.redBright.bold('Error: ') + e.stack)

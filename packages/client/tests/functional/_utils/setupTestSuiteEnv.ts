@@ -1,6 +1,6 @@
+import { faker } from '@faker-js/faker'
 import { assertNever } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
-import cuid from 'cuid'
 import fs from 'fs-extra'
 import path from 'path'
 import { match } from 'ts-pattern'
@@ -128,9 +128,13 @@ export async function setupTestSuiteDatabase(
     await DbPush.new().parse(dbpushParams)
 
     if (alterStatementCallback) {
+      const provider = suiteConfig.matrixOptions['provider'] as Providers
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
-      const provider = suiteConfig.matrixOptions['provider'] as Providers
+
+      if (provider === 'mongodb') {
+        throw new Error('DbExecute not supported with mongodb')
+      }
 
       await fs.promises.mkdir(`${prismaDir}/migrations/${timestamp}`, { recursive: true })
       await fs.promises.writeFile(`${prismaDir}/migrations/migration_lock.toml`, `provider = "${provider}"`)
@@ -204,7 +208,7 @@ export type DatasourceInfo = {
 export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientMeta: ClientMeta): DatasourceInfo {
   const provider = suiteConfig['provider'] as Providers
   const providerFlavor = suiteConfig['providerFlavor'] as ProviderFlavor | undefined
-  const dbId = cuid()
+  const dbId = `${faker.random.alphaNumeric(5)}-${process.pid}-${Date.now()}`
 
   const { envVarName, newURI } = match(providerFlavor)
     .with(undefined, () => {

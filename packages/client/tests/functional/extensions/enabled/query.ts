@@ -68,7 +68,7 @@ testMatrix.setupTestSuite(
           },
           post: {
             async findFirst({ args, query, operation, model }) {
-              expectTypeOf(args).not.toBeAny
+              expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
               expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
               expectTypeOf(model).toEqualTypeOf<'Post'>()
@@ -77,7 +77,7 @@ testMatrix.setupTestSuite(
 
               const data = await query(args)
 
-              expectTypeOf(data).not.toBeAny
+              expectTypeOf(data).not.toBeAny()
               expectTypeOf(data).toHaveProperty('id')
 
               return data
@@ -676,7 +676,7 @@ testMatrix.setupTestSuite(
         query: {
           $allModels: {
             async findFirst({ args, query, operation, model }) {
-              expectTypeOf(args).not.toBeAny
+              expectTypeOf(args).not.toBeAny()
               expectTypeOf(query).toBeFunction()
               expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
               type Model = typeof model & ('Post' | 'User')
@@ -686,7 +686,7 @@ testMatrix.setupTestSuite(
 
               const data = await query(args)
 
-              expectTypeOf(data).not.toBeAny
+              expectTypeOf(data).not.toBeAny()
               expectTypeOf(data).toHaveProperty('id')
 
               return data
@@ -903,6 +903,9 @@ testMatrix.setupTestSuite(
           user: {
             async findFirst({ args, query, operation, model }) {
               const user = await query(args)
+
+              expectTypeOf(user).toHaveProperty('id').toEqualTypeOf<string | undefined>()
+
               // @ts-expect-error
               return query(user)
             },
