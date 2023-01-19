@@ -480,7 +480,7 @@ describe('postgresql - missing database', () => {
 
 describe('postgresql', () => {
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql'),
   }
 
@@ -605,7 +605,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     jest.setTimeout(20_000)
   }
 
-  const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_URI) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
+  }
+  const connectionString = process.env.TEST_MSSQL_URI!
   const setupParams: SetupParams = {
     connectionString,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'sqlserver-multi-schema'),
@@ -784,7 +787,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
 
 describe('postgresql-multi-schema', () => {
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multi-schema'),
   }
 
@@ -1053,7 +1056,7 @@ describe('postgresql-multi-schema', () => {
 
 describe('postgresql-extensions', () => {
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-extensions'),
   }
 
@@ -1183,8 +1186,11 @@ describe('postgresql-extensions', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+  if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI) {
+    throw new Error('You must set a value for process.env.TEST_COCKROACH_URI. See TESTING.md')
+  }
   const defaultParams = {
-    connectionString: process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests',
+    connectionString: process.env.TEST_COCKROACH_URI!,
   }
 
   async function testSetup(setupDirname = 'cockroachdb', options = { withFixture: false }) {
@@ -1288,7 +1294,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
 describe('mysql', () => {
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_MYSQL_URI || 'mysql://root:root@localhost:3306/tests',
+    connectionString: process.env.TEST_MYSQL_URI!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'mysql'),
   }
 
@@ -1338,15 +1344,19 @@ describe('mysql', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
-  const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_URI) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
+  }
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
+  }
+
   const setupParams: SetupParams = {
-    connectionString,
+    connectionString: process.env.TEST_MSSQL_URI!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'sqlserver'),
   }
   const databaseName = 'tests-migrate'
-  const JDBC_URI =
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-    `sqlserver://localhost:1433;database=${databaseName};user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;`
+  const JDBC_URI = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!
 
   beforeAll(async () => {
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
@@ -1391,8 +1401,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
-  const MONGO_URI =
-    process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
+  const MONGO_URI = process.env.TEST_MONGO_URI_MIGRATE!
 
   if (isMacOrWindowsCI) {
     jest.setTimeout(60_000)

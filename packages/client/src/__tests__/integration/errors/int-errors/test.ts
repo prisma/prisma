@@ -9,7 +9,7 @@ describe('int-errors', () => {
   beforeAll(async () => {
     await generateTestClient()
     const { PrismaClient } = require('@prisma/client')
-    let originalConnectionString = process.env.TEST_MYSQL_URI || 'mysql://root:root@localhost:3306/tests'
+    let originalConnectionString = process.env.TEST_MYSQL_URI
 
     originalConnectionString += '-signed-int'
 

@@ -12,9 +12,11 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('blog-env-mssql', () => {
   const requests: any[] = []
 
   beforeAll(async () => {
-    const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+    if (!process.env.TEST_MSSQL_URI) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
+    }
     const setupParams: SetupParams = {
-      connectionString,
+      connectionString: process.env.TEST_MSSQL_URI,
       dirname: __dirname,
     }
 
