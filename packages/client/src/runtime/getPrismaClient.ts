@@ -34,6 +34,9 @@ import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { UserArgs } from './core/model/UserArgs'
+import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
+import { ProtocolEncoder } from './core/protocol/common'
+import { GraphQLProtocolEncoder } from './core/protocol/graphql'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import { InteractiveTransactionOptions, PrismaPromise, PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
@@ -43,7 +46,6 @@ import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
-import { makeDocument, transformDocument } from './query'
 import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
@@ -148,8 +150,6 @@ export interface PrismaClientOptions {
 }
 
 export type Unpacker = (data: any) => any
-
-export type Action = keyof typeof DMMF.ModelAction | 'executeRaw' | 'queryRaw' | 'runCommandRaw'
 
 export type InternalRequestParams = {
   /**
@@ -262,29 +262,6 @@ export interface GetPrismaClientConfig {
    * @remarks only used for the purpose of data proxy
    */
   inlineSchemaHash?: string
-}
-
-export const actionOperationMap = {
-  findUnique: 'query',
-  findUniqueOrThrow: 'query',
-  findFirst: 'query',
-  findFirstOrThrow: 'query',
-  findMany: 'query',
-  count: 'query',
-  create: 'mutation',
-  createMany: 'mutation',
-  update: 'mutation',
-  updateMany: 'mutation',
-  upsert: 'mutation',
-  delete: 'mutation',
-  deleteMany: 'mutation',
-  executeRaw: 'mutation',
-  queryRaw: 'mutation',
-  aggregate: 'query',
-  groupBy: 'query',
-  runCommandRaw: 'mutation',
-  findRaw: 'query',
-  aggregateRaw: 'query',
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -1088,7 +1065,6 @@ new PrismaClient({
     async _executeRequest({
       args,
       clientMethod,
-      jsModelName,
       dataPath,
       callsite,
       action,
@@ -1100,73 +1076,36 @@ new PrismaClient({
       unpacker,
       otelParentCtx,
     }: InternalRequestParams) {
-      if (this._dmmf === undefined) {
-        this._dmmf = await this._getDmmf({ clientMethod, callsite })
-      }
+      const protocolEncoder = await this._getProtocolEncoder({ clientMethod, callsite })
 
       // execute argument transformation before execution
       args = argsMapper ? argsMapper(args) : args
-
-      let rootField: string | undefined
-      const operation = actionOperationMap[action]
-
-      if (action === 'executeRaw' || action === 'queryRaw' || action === 'runCommandRaw') {
-        rootField = action
-      }
-
-      let mapping
-      if (model !== undefined) {
-        mapping = this._dmmf?.mappingsMap[model]
-        if (mapping === undefined) {
-          throw new Error(`Could not find mapping for model ${model}`)
-        }
-
-        rootField = mapping[action === 'count' ? 'aggregate' : action]
-      }
-
-      if (operation !== 'query' && operation !== 'mutation') {
-        throw new Error(`Invalid operation ${operation} for action ${action}`)
-      }
-
-      const field = this._dmmf?.rootFieldMap[rootField!]
-
-      if (field === undefined) {
-        throw new Error(
-          `Could not find rootField ${rootField} for action ${action} for model ${model} on rootType ${operation}`,
-        )
-      }
-
-      const { isList } = field.outputType
-      const typeName = getOutputTypeName(field.outputType.type)
-      const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(action, typeName, args, this._rejectOnNotFound)
-      warnAboutRejectOnNotFound(rejectOnNotFound, jsModelName, action)
-
-      const serializationFn = () => {
-        const document = makeDocument({
-          dmmf: this._dmmf!,
-          rootField: rootField!,
-          rootTypeName: operation,
-          select: args,
-          modelName: model,
-          extensions: this._extensions,
-        })
-
-        document.validate(args, false, clientMethod, this._errorFormat, callsite)
-
-        return transformDocument(document)
-      }
 
       const spanOptions: SpanOptions = {
         name: 'serialize',
         enabled: this._tracingConfig.enabled,
       }
 
-      const document = await runInChildSpan(spanOptions, serializationFn)
+      let rejectOnNotFound: RejectOnNotFound
+      if (model) {
+        rejectOnNotFound = getRejectOnNotFound(action, model, args, this._rejectOnNotFound)
+        warnAboutRejectOnNotFound(rejectOnNotFound, model, action)
+      }
+
+      const message = await runInChildSpan(spanOptions, () =>
+        protocolEncoder.createMessage({
+          model,
+          action,
+          args,
+          clientMethod,
+          callsite,
+          extensions: this._extensions,
+        }),
+      )
 
       // as printJsonWithErrors takes a bit of compute
       // we only want to do it, if debug is enabled for 'prisma-client'
       if (Debug.enabled('prisma:client')) {
-        const query = String(document!)
         debug(`Prisma Client call:`)
         debug(
           `prisma.${clientMethod}(${printJsonWithErrors({
@@ -1177,19 +1116,17 @@ new PrismaClient({
           })})`,
         )
         debug(`Generated request:`)
-        debug(query + '\n')
+        debug(message.toDebugString() + '\n')
       }
 
       await lock /** @see {@link getLockCountPromise} */
 
       return this._fetcher.request({
-        document,
+        protocolMessage: message,
+        modelName: model,
         clientMethod,
-        typeName,
         dataPath,
         rejectOnNotFound,
-        isList,
-        rootField: rootField!,
         callsite,
         args,
         extensions: this._extensions,
@@ -1209,6 +1146,15 @@ new PrismaClient({
         this._fetcher.handleAndLogRequestError({ ...params, error })
       }
     })
+
+    _getProtocolEncoder = callOnce(
+      async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>): Promise<ProtocolEncoder> => {
+        if (this._dmmf === undefined) {
+          this._dmmf = await this._getDmmf(params)
+        }
+        return new GraphQLProtocolEncoder(this._dmmf, this._errorFormat)
+      },
+    )
 
     get $metrics(): MetricsClient {
       if (!this._hasPreviewFlag('metrics')) {
@@ -1291,7 +1237,9 @@ function warnAboutRejectOnNotFound(
 ): void {
   if (rejectOnNotFound) {
     const replacementAction = rejectOnNotFoundReplacements[action]
-    const replacementCall = model ? `prisma.${model}.${replacementAction}` : `prisma.${replacementAction}`
+    const replacementCall = model
+      ? `prisma.${dmmfToJSModelName(model)}.${replacementAction}`
+      : `prisma.${replacementAction}`
     const key = `rejectOnNotFound.${model ?? ''}.${action}`
 
     warnOnce(
