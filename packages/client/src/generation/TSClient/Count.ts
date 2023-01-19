@@ -53,13 +53,16 @@ export class Count implements Generatable {
 
 ${outputType.toTS()}
 
-export type ${getSelectName(name)}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = {}>', '')} = {
+export type ${getSelectName(name)}${ifExtensions(
+      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
+      '',
+    )} = {
 ${indent(
   type.fields
     .map((field) => {
       const types = ['boolean']
       if (field.outputType.location === 'outputObjectTypes') {
-        types.push(getFieldArgName(field))
+        types.push(getFieldArgName(field, this.type.name))
       }
 
       // TODO: what should happen if both args and output types are present?

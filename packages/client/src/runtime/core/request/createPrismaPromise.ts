@@ -17,11 +17,11 @@ export function createPrismaPromise(
     try {
       // promises cannot be triggered twice after resolving
       if (cached === true) {
-        return (promise ??= callback(transaction, lock))
+        return (promise ??= valueToPromise(callback(transaction, lock)))
       }
 
       // but for batch tx we need to trigger them again
-      return callback(transaction, lock)
+      return valueToPromise(callback(transaction, lock))
     } catch (error) {
       // if the callback throws, then we reject the promise
       // and that is because exceptions are not always async
@@ -60,4 +60,12 @@ function createItx(transaction: InteractiveTransactionOptions | undefined): Pris
     return { kind: 'itx', ...transaction }
   }
   return undefined
+}
+
+function valueToPromise<T>(thing: T): PrismaPromise<T> {
+  if (typeof thing['then'] === 'function') {
+    return thing as Promise<T>
+  }
+
+  return Promise.resolve(thing)
 }

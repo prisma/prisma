@@ -2,7 +2,7 @@ import { PrismaClientKnownRequestError } from '@prisma/engine-core'
 
 import { waitForBatch } from './waitForBatch'
 
-test('resolves when all promises succesfully resolve', async () => {
+test('resolves when all promises successfully resolve', async () => {
   const result = await waitForBatch([Promise.resolve(1), Promise.resolve(2), Promise.resolve(3)])
 
   expect(result).toEqual([1, 2, 3])

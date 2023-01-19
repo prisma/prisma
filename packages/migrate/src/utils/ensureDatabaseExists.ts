@@ -26,7 +26,7 @@ export async function getDbInfo(schemaPath?: string): Promise<{
   schema?: string // only for postgres right now (but SQL Server has this concept too)
 }> {
   const datamodel = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel })
+  const config = await getConfig({ datamodel, ignoreEnvVarErrors: false })
   const activeDatasource = config.datasources?.[0]
 
   if (!activeDatasource) {
@@ -89,7 +89,7 @@ export async function getDbInfo(schemaPath?: string): Promise<{
 // if false: throw error
 export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<Boolean | Error> {
   const datamodel = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel })
+  const config = await getConfig({ datamodel, ignoreEnvVarErrors: false })
   const activeDatasource = config.datasources[0]
 
   if (!activeDatasource) {
@@ -110,7 +110,7 @@ export async function ensureCanConnectToDatabase(schemaPath?: string): Promise<B
 
 export async function ensureDatabaseExists(action: MigrateAction, forceCreate = false, schemaPath?: string) {
   const datamodel = await getSchema(schemaPath)
-  const config = await getConfig({ datamodel })
+  const config = await getConfig({ datamodel, ignoreEnvVarErrors: false })
   const activeDatasource = config.datasources[0]
 
   if (!activeDatasource) {

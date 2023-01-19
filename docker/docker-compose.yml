@@ -32,9 +32,8 @@ services:
 
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
-
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:4ffef09870e55574187e78dfd1c719c79b12c17b6d1e911852728d549a5cf022
+    image: vitess/vttestserver:mysql80@sha256:5a198ebdba279ea06b3654e676291da41fe7930b81b9a73682aa49085c538481
     restart: always
     ports:
       - 33807:33807
@@ -50,32 +49,7 @@ services:
       NUM_SHARDS: '1' # unused in testing, but required by vttestserver
       MYSQL_BIND_HOST: '0.0.0.0'
       FOREIGN_KEY_MODE: 'disallow'
-      VT_DIALECT: 'mysql80'
-
-  #  vitess-test-5_7:
-  #     image: vitess/vttestserver:mysql57@sha256:2b132a22d08b3b227d9391f8f58ed7ab5c081ca07bf0f87a0c166729124d360a
-  #     restart: always
-  #     ports:
-  #       - 33577:33577
-  #     environment:
-  #       PORT: 33574
-  #       KEYSPACES: "test"
-  #       NUM_SHARDS: "1"
-  #       MYSQL_BIND_HOST: "0.0.0.0"
-  #       FOREIGN_KEY_MODE: "disallow"
-  #
-  # vitess-shadow-5_7:
-  #   image: vitess/vttestserver:mysql57@sha256:2b132a22d08b3b227d9391f8f58ed7ab5c081ca07bf0f87a0c166729124d360a
-  #   restart: always
-  #   ports:
-  #     - 33578:33577
-  #   environment:
-  #     PORT: 33574
-  #     KEYSPACES: "shadow"
-  #     NUM_SHARDS: "1"
-  #     MYSQL_BIND_HOST: "0.0.0.0"
-  #     FOREIGN_KEY_MODE: "disallow"
-  #
+      TABLET_REFRESH_INTERVAL: '1s'
 
   mysql:
     image: mysql:8.0

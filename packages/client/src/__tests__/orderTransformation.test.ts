@@ -3,6 +3,7 @@ import stripAnsi from 'strip-ansi'
 import { enums } from '../fixtures/enums'
 import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 describe('where transformation', () => {
   let dmmf
@@ -21,6 +22,7 @@ describe('where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     document.validate(select, false)
     expect(String(document)).toMatchInlineSnapshot(`
@@ -75,6 +77,7 @@ describe('where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(String(document)).toMatchInlineSnapshot(`
       query {
@@ -171,6 +174,7 @@ type UserOrderByWithRelationInput {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       query {
@@ -198,6 +202,7 @@ type UserOrderByWithRelationInput {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       query {

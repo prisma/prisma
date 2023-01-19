@@ -96,7 +96,7 @@ jobs:
             The base branch for this PR is: main
             This automatic PR updates the engines to version `${{ github.event.inputs.version }}`.
             This will get automatically merged if all the tests pass.
-            :warning! If this PR needs to be updated, first remove the `automerge` label before pushing to avoid automerge to merge without waiting for tests.
+            :warning: If this PR needs to be updated, first remove the `automerge` label before pushing to avoid automerge to merge without waiting for tests.
             ## Packages
             | Package | NPM URL |
             |---------|---------|

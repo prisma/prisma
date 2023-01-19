@@ -1,6 +1,6 @@
 datasource db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
   schemas  = ["does-not-exist"]
 }
 

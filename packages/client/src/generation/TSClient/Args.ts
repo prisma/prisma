@@ -11,12 +11,24 @@ import { InputField } from './Input'
 import { ifExtensions } from './utils/ifExtensions'
 
 export class ArgsType implements Generatable {
+  private generatedName: string | null = null
+  private comment: string | null = null
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
     protected readonly genericsInfo: GenericArgsInfo,
     protected readonly action?: DMMF.ModelAction,
   ) {}
+  public setGeneratedName(name: string): this {
+    this.generatedName = name
+    return this
+  }
+
+  public setComment(comment: string): this {
+    this.comment = comment
+    return this
+  }
+
   public toTS(): string {
     const { action, args } = this
     const { name } = this.type
@@ -72,16 +84,19 @@ export class ArgsType implements Generatable {
     }
 
     argsToGenerate.push(...args)
-    const modelArgName = getModelArgName(name, action)
+    const generatedName = this.generatedName ?? getModelArgName(name, action)
     if (action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findFirst) {
-      return this.generateFindMethodArgs(action, name, argsToGenerate, modelArgName)
+      return this.generateFindMethodArgs(action, name, argsToGenerate, generatedName)
     }
 
     return `
 /**
- * ${name} ${action ? action : 'without action'}
+ * ${this.getGeneratedComment()}
  */
-export type ${modelArgName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = {}>', '')} = {
+export type ${generatedName}${ifExtensions(
+      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
+      '',
+    )} = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
@@ -104,15 +119,18 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.gene
 /**
  * ${name} base type for ${action} actions
  */
-export type ${baseTypeName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = {}>', '')} = {
+export type ${baseTypeName}${ifExtensions(
+      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
+      '',
+    )} = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 
 /**
- * ${name}: ${action}
+ * ${this.getGeneratedComment()}
  */
 export interface ${modelArgName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = {}>',
+      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
       '',
     )} extends ${baseTypeName}${ifExtensions('<ExtArgs>', '')} {
  /**
@@ -122,6 +140,10 @@ export interface ${modelArgName}${ifExtensions(
   rejectOnNotFound?: RejectOnNotFound
 }
       `
+  }
+
+  private getGeneratedComment() {
+    return this.comment ?? `${this.type.name} ${this.action ?? 'without action'}`
   }
 }
 
@@ -145,7 +167,10 @@ export class MinimalArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${this.generatedTypeName}${ifExtensions('<ExtArgs extends runtime.Types.Extensions.Args = {}>', '')} = {
+export type ${this.generatedTypeName}${ifExtensions(
+      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
+      '',
+    )} = {
 ${indent(
   args
     .map((arg) => {

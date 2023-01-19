@@ -744,53 +744,48 @@ testMatrix.setupTestSuite(
             },
           )
 
-          // Currently failing
-          // Issue https://github.com/prisma/prisma/issues/14759
-          test.failing(
-            '[update] nested child [connect] should succeed if the relationship already existed',
-            async () => {
-              await prisma[userModel].update({
-                where: { id: '1' },
-                data: {
-                  profile: {
-                    connect: { id: '1' },
-                  },
+          test('[update] nested child [connect] should succeed if the relationship already existed', async () => {
+            await prisma[userModel].update({
+              where: { id: '1' },
+              data: {
+                profile: {
+                  connect: { id: '1' },
                 },
-              })
+              },
+            })
 
-              expect(
-                await prisma[userModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                },
-              ])
+            expect(
+              await prisma[userModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1',
+                enabled: null,
+              },
+              {
+                id: '2',
+                enabled: null,
+              },
+            ])
 
-              expect(
-                await prisma[profileModel].findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  enabled: null,
-                  userId: '1',
-                },
-                {
-                  id: '2',
-                  enabled: null,
-                  userId: '2',
-                },
-              ])
-            },
-          )
+            expect(
+              await prisma[profileModel].findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1',
+                enabled: null,
+                userId: '1',
+              },
+              {
+                id: '2',
+                enabled: null,
+                userId: '2',
+              },
+            ])
+          })
         })
       })
 

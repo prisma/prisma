@@ -10,7 +10,7 @@ import packageJson from '../../../package.json'
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.libqueryEngine
-const version = '5a2e5869b69a983e279380ec68596b71beae9eff'
+const version = '39190b250ebc338586e25e6da45e5e783bc8a635'
 
 describe('version', () => {
   // Node-API Tests
@@ -118,7 +118,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
 
   // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
   // Currently, the engine version of @prisma/prisma-fmt-wasm isn't necessarily the same as the enginesVersion
-  str = str.replace(new RegExp('([0-9]+.[0-9]+.[0-9]+-[0-9]+.)([a-z0-9]{40})', 'g'), 'CLI_VERSION.ENGINE_VERSION')
+  str = str.replace(/([0-9]+\.[0-9]+\.[0-9]+-[0-9]+\.)([a-z0-9-]+)/g, 'CLI_VERSION.ENGINE_VERSION')
 
   // replace engine version hash
   const defaultEngineVersion = enginesVersion

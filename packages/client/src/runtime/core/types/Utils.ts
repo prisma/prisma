@@ -1,4 +1,4 @@
-export type EmptyToUnknown<T> = T extends unknown ? ({} extends T ? unknown : T) : never
+export type EmptyToUnknown<T> = T
 
 export type NeverToUnknown<T> = [T] extends [never] ? unknown : T
 
@@ -25,14 +25,30 @@ export type PatchDeep<O1, O2, O = O1 & O2> = {
 
 export type Omit<T, K extends string | number | symbol> = {
   [P in keyof T as P extends K ? never : P]: T[P]
-} & unknown
+}
 
 export type Pick<T, K extends string | number | symbol> = {
   [P in keyof T as P extends K ? P : never]: T[P]
-} & unknown
+}
+
+/**
+ * Patches 3 objects on top of each other with minimal looping.
+ * This is a more efficient way of doing `PatchFlat<A, PatchFlat<B, C>>`
+ */
+export type PatchFlat3<A, B, C> = A & {
+  [K in Exclude<keyof B | keyof C, keyof A>]: K extends keyof B ? B[K] : C[K & keyof C]
+}
 
 export type Compute<T> = T extends Function
   ? T
   : {
       [K in keyof T]: T[K]
     } & unknown
+
+export type OptionalFlat<T> = {
+  [K in keyof T]?: T[K]
+}
+
+export type ReadonlyDeep<T> = {
+  readonly [K in keyof T]: ReadonlyDeep<T[K]>
+}

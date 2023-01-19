@@ -52,22 +52,22 @@ describe('generator', () => {
 
     if (getClientEngineType() === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
-        Object {
+        {
           defaultOutput: .prisma/client,
           prettyName: Prisma Client,
           requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: Array [
+          requiresEngines: [
             libqueryEngine,
           ],
         }
       `)
     } else {
       expect(manifest).toMatchInlineSnapshot(`
-        Object {
+        {
           defaultOutput: .prisma/client,
           prettyName: Prisma Client,
           requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: Array [
+          requiresEngines: [
             queryEngine,
           ],
         }
@@ -75,12 +75,12 @@ describe('generator', () => {
     }
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        binaryTargets: Array [],
-        config: Object {},
+      {
+        binaryTargets: [],
+        config: {},
         name: client,
-        previewFeatures: Array [],
-        provider: Object {
+        previewFeatures: [],
+        provider: {
           fromEnvVar: null,
           value: prisma-client-js,
         },
@@ -126,7 +126,7 @@ describe('generator', () => {
       })
     } catch (e) {
       expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
-        Schema validation error - Error (query-engine-NORMALIZED)
+        Prisma schema validation - (query-engine-NORMALIZED)
         Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:10
@@ -245,22 +245,22 @@ describe('generator', () => {
 
     if (getClientEngineType(generator.config) === ClientEngineType.Library) {
       expect(manifest).toMatchInlineSnapshot(`
-        Object {
+        {
           defaultOutput: .prisma/client,
           prettyName: Prisma Client,
           requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: Array [
+          requiresEngines: [
             libqueryEngine,
           ],
         }
       `)
     } else {
       expect(manifest).toMatchInlineSnapshot(`
-        Object {
+        {
           defaultOutput: .prisma/client,
           prettyName: Prisma Client,
           requiresEngineVersion: ENGINE_VERSION_TEST,
-          requiresEngines: Array [
+          requiresEngines: [
             queryEngine,
           ],
         }
@@ -268,12 +268,12 @@ describe('generator', () => {
     }
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        binaryTargets: Array [],
-        config: Object {},
+      {
+        binaryTargets: [],
+        config: {},
         name: client,
-        previewFeatures: Array [],
-        provider: Object {
+        previewFeatures: [],
+        provider: {
           fromEnvVar: null,
           value: prisma-client-js,
         },

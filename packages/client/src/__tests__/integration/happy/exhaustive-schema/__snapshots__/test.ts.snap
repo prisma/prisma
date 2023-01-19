@@ -615,31 +615,6 @@ export class PrismaClient<
     ? T['rejectOnNotFound']
     : false
       > {
-      /**
-       * @private
-       */
-      private fetcher;
-      /**
-       * @private
-       */
-      private readonly dmmf;
-      /**
-       * @private
-       */
-      private connectionPromise?;
-      /**
-       * @private
-       */
-      private disconnectionPromise?;
-      /**
-       * @private
-       */
-      private readonly engineConfig;
-      /**
-       * @private
-       */
-      private readonly measurePerformance;
-
     /**
    * ##  Prisma Client ʲˢ
    * 
@@ -733,6 +708,8 @@ export class PrismaClient<
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
   $transaction<P extends PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<UnwrapTuple<P>>;
+
+  $transaction<R>(fn: (prisma: Prisma.TransactionClient) => Promise<R>, options?: {maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel}): Promise<R>;
 
       /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
@@ -1069,9 +1046,9 @@ export namespace Prisma {
     [K in keyof T]-?: {} extends Prisma__Pick<T, K> ? never : K
   }[keyof T]
 
-  export type TruthyKeys<T> = {
-    [key in keyof T]: T[key] extends false | undefined | null ? never : key
-  }[keyof T]
+  export type TruthyKeys<T> = keyof {
+    [K in keyof T as T[K] extends false | undefined | null ? never : K]: K
+  }
 
   export type TrueKeys<T> = TruthyKeys<Prisma__Pick<T, RequiredKeys<T>>>
 
@@ -1369,6 +1346,7 @@ export namespace Prisma {
     db?: Datasource
   }
 
+  export type DefaultPrismaClient = PrismaClient
   export type RejectOnNotFound = boolean | ((error: Error) => Error)
   export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
   export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
@@ -1509,6 +1487,11 @@ export namespace Prisma {
   // tested in getLogLevel.test.ts
   export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;
 
+  /**
+   * \`PrismaClient\` proxy available in interactive transactions.
+   */
+  export type TransactionClient = Omit<Prisma.DefaultPrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>
+
   export type Datasource = {
     url?: string
   }
@@ -1539,7 +1522,7 @@ export namespace Prisma {
     ? UserCountOutputType 
     : S extends { select: any } & (UserCountOutputTypeArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
+    [P in TruthyKeys<S['select']>]:
     P extends keyof UserCountOutputType ? UserCountOutputType[P] : never
   } 
       : UserCountOutputType
@@ -1583,7 +1566,7 @@ export namespace Prisma {
     ? MCountOutputType 
     : S extends { select: any } & (MCountOutputTypeArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
+    [P in TruthyKeys<S['select']>]:
     P extends keyof MCountOutputType ? MCountOutputType[P] : never
   } 
       : MCountOutputType
@@ -1627,7 +1610,7 @@ export namespace Prisma {
     ? NCountOutputType 
     : S extends { select: any } & (NCountOutputTypeArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
+    [P in TruthyKeys<S['select']>]:
     P extends keyof NCountOutputType ? NCountOutputType[P] : never
   } 
       : NCountOutputType
@@ -1671,7 +1654,7 @@ export namespace Prisma {
     ? OneOptionalCountOutputType 
     : S extends { select: any } & (OneOptionalCountOutputTypeArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
+    [P in TruthyKeys<S['select']>]:
     P extends keyof OneOptionalCountOutputType ? OneOptionalCountOutputType[P] : never
   } 
       : OneOptionalCountOutputType
@@ -1929,13 +1912,13 @@ export namespace Prisma {
     S extends undefined ? never :
     S extends { include: any } & (PostArgs | PostFindManyArgs)
     ? Post  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'author' ? UserGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'author' ? UserGetPayload<S['include'][P]> :  never
   } 
     : S extends { select: any } & (PostArgs | PostFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'author' ? UserGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof Post ? Post[P] : never
+    [P in TruthyKeys<S['select']>]:
+        P extends 'author' ? UserGetPayload<S['select'][P]> :  P extends keyof Post ? Post[P] : never
   } 
       : Post
 
@@ -2360,7 +2343,7 @@ export namespace Prisma {
   }
 
   /**
-   * Post: findUnique
+   * Post findUnique
    */
   export interface PostFindUniqueArgs extends PostFindUniqueArgsBase {
    /**
@@ -2450,7 +2433,7 @@ export namespace Prisma {
   }
 
   /**
-   * Post: findFirst
+   * Post findFirst
    */
   export interface PostFindFirstArgs extends PostFindFirstArgsBase {
    /**
@@ -3017,13 +3000,13 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
-    posts?: boolean | PostFindManyArgs
+    posts?: boolean | UserPostsArgs
     _count?: boolean | UserCountOutputTypeArgs
   }
 
 
   export type UserInclude = {
-    posts?: boolean | PostFindManyArgs
+    posts?: boolean | UserPostsArgs
     _count?: boolean | UserCountOutputTypeArgs
   } 
 
@@ -3033,15 +3016,15 @@ export namespace Prisma {
     S extends undefined ? never :
     S extends { include: any } & (UserArgs | UserFindManyArgs)
     ? User  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'posts' ? Array < PostGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
-        P extends '_count' ? UserCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'posts' ? Array < PostGetPayload<S['include'][P]>>  :
+        P extends '_count' ? UserCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : S extends { select: any } & (UserArgs | UserFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'posts' ? Array < PostGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends '_count' ? UserCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof User ? User[P] : never
+    [P in TruthyKeys<S['select']>]:
+        P extends 'posts' ? Array < PostGetPayload<S['select'][P]>>  :
+        P extends '_count' ? UserCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof User ? User[P] : never
   } 
       : User
 
@@ -3415,7 +3398,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    posts<T extends PostFindManyArgs= {}>(args?: Subset<T, PostFindManyArgs>): PrismaPromise<Array<PostGetPayload<T>>| Null>;
+    posts<T extends UserPostsArgs= {}>(args?: Subset<T, UserPostsArgs>): PrismaPromise<Array<PostGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -3466,7 +3449,7 @@ export namespace Prisma {
   }
 
   /**
-   * User: findUnique
+   * User findUnique
    */
   export interface UserFindUniqueArgs extends UserFindUniqueArgsBase {
    /**
@@ -3556,7 +3539,7 @@ export namespace Prisma {
   }
 
   /**
-   * User: findFirst
+   * User findFirst
    */
   export interface UserFindFirstArgs extends UserFindFirstArgsBase {
    /**
@@ -3817,6 +3800,29 @@ export namespace Prisma {
      * 
     **/
     where?: UserWhereInput
+  }
+
+
+  /**
+   * User.posts
+   */
+  export type UserPostsArgs = {
+    /**
+     * Select specific fields to fetch from the Post
+     * 
+    **/
+    select?: PostSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: PostInclude | null
+    where?: PostWhereInput
+    orderBy?: Enumerable<PostOrderByWithRelationInput>
+    cursor?: PostWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Enumerable<PostScalarFieldEnum>
   }
 
 
@@ -4103,7 +4109,7 @@ export namespace Prisma {
 
   export type MSelect = {
     id?: boolean
-    n?: boolean | NFindManyArgs
+    n?: boolean | MNArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -4121,7 +4127,7 @@ export namespace Prisma {
 
 
   export type MInclude = {
-    n?: boolean | NFindManyArgs
+    n?: boolean | MNArgs
     _count?: boolean | MCountOutputTypeArgs
   } 
 
@@ -4131,15 +4137,15 @@ export namespace Prisma {
     S extends undefined ? never :
     S extends { include: any } & (MArgs | MFindManyArgs)
     ? M  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'n' ? Array < NGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
-        P extends '_count' ? MCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'n' ? Array < NGetPayload<S['include'][P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : S extends { select: any } & (MArgs | MFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'n' ? Array < NGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends '_count' ? MCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof M ? M[P] : never
+    [P in TruthyKeys<S['select']>]:
+        P extends 'n' ? Array < NGetPayload<S['select'][P]>>  :
+        P extends '_count' ? MCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof M ? M[P] : never
   } 
       : M
 
@@ -4513,7 +4519,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    n<T extends NFindManyArgs= {}>(args?: Subset<T, NFindManyArgs>): PrismaPromise<Array<NGetPayload<T>>| Null>;
+    n<T extends MNArgs= {}>(args?: Subset<T, MNArgs>): PrismaPromise<Array<NGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -4564,7 +4570,7 @@ export namespace Prisma {
   }
 
   /**
-   * M: findUnique
+   * M findUnique
    */
   export interface MFindUniqueArgs extends MFindUniqueArgsBase {
    /**
@@ -4654,7 +4660,7 @@ export namespace Prisma {
   }
 
   /**
-   * M: findFirst
+   * M findFirst
    */
   export interface MFindFirstArgs extends MFindFirstArgsBase {
    /**
@@ -4915,6 +4921,29 @@ export namespace Prisma {
      * 
     **/
     where?: MWhereInput
+  }
+
+
+  /**
+   * M.n
+   */
+  export type MNArgs = {
+    /**
+     * Select specific fields to fetch from the N
+     * 
+    **/
+    select?: NSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: NInclude | null
+    where?: NWhereInput
+    orderBy?: Enumerable<NOrderByWithRelationInput>
+    cursor?: NWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Enumerable<NScalarFieldEnum>
   }
 
 
@@ -5201,7 +5230,7 @@ export namespace Prisma {
 
   export type NSelect = {
     id?: boolean
-    m?: boolean | MFindManyArgs
+    m?: boolean | NMArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -5219,7 +5248,7 @@ export namespace Prisma {
 
 
   export type NInclude = {
-    m?: boolean | MFindManyArgs
+    m?: boolean | NMArgs
     _count?: boolean | NCountOutputTypeArgs
   } 
 
@@ -5229,15 +5258,15 @@ export namespace Prisma {
     S extends undefined ? never :
     S extends { include: any } & (NArgs | NFindManyArgs)
     ? N  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'm' ? Array < MGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
-        P extends '_count' ? NCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'm' ? Array < MGetPayload<S['include'][P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : S extends { select: any } & (NArgs | NFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'm' ? Array < MGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends '_count' ? NCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof N ? N[P] : never
+    [P in TruthyKeys<S['select']>]:
+        P extends 'm' ? Array < MGetPayload<S['select'][P]>>  :
+        P extends '_count' ? NCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof N ? N[P] : never
   } 
       : N
 
@@ -5611,7 +5640,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    m<T extends MFindManyArgs= {}>(args?: Subset<T, MFindManyArgs>): PrismaPromise<Array<MGetPayload<T>>| Null>;
+    m<T extends NMArgs= {}>(args?: Subset<T, NMArgs>): PrismaPromise<Array<MGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -5662,7 +5691,7 @@ export namespace Prisma {
   }
 
   /**
-   * N: findUnique
+   * N findUnique
    */
   export interface NFindUniqueArgs extends NFindUniqueArgsBase {
    /**
@@ -5752,7 +5781,7 @@ export namespace Prisma {
   }
 
   /**
-   * N: findFirst
+   * N findFirst
    */
   export interface NFindFirstArgs extends NFindFirstArgsBase {
    /**
@@ -6013,6 +6042,29 @@ export namespace Prisma {
      * 
     **/
     where?: NWhereInput
+  }
+
+
+  /**
+   * N.m
+   */
+  export type NMArgs = {
+    /**
+     * Select specific fields to fetch from the M
+     * 
+    **/
+    select?: MSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: MInclude | null
+    where?: MWhereInput
+    orderBy?: Enumerable<MOrderByWithRelationInput>
+    cursor?: MWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Enumerable<MScalarFieldEnum>
   }
 
 
@@ -6299,7 +6351,7 @@ export namespace Prisma {
 
   export type OneOptionalSelect = {
     id?: boolean
-    many?: boolean | ManyRequiredFindManyArgs
+    many?: boolean | OneOptionalManyArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -6317,7 +6369,7 @@ export namespace Prisma {
 
 
   export type OneOptionalInclude = {
-    many?: boolean | ManyRequiredFindManyArgs
+    many?: boolean | OneOptionalManyArgs
     _count?: boolean | OneOptionalCountOutputTypeArgs
   } 
 
@@ -6327,15 +6379,15 @@ export namespace Prisma {
     S extends undefined ? never :
     S extends { include: any } & (OneOptionalArgs | OneOptionalFindManyArgs)
     ? OneOptional  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'many' ? Array < ManyRequiredGetPayload<Exclude<S['include'], undefined | null>[P]>>  :
-        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<Exclude<S['include'], undefined | null>[P]> :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'many' ? Array < ManyRequiredGetPayload<S['include'][P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['include'][P]> :  never
   } 
     : S extends { select: any } & (OneOptionalArgs | OneOptionalFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'many' ? Array < ManyRequiredGetPayload<Exclude<S['select'], undefined | null>[P]>>  :
-        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<Exclude<S['select'], undefined | null>[P]> :  P extends keyof OneOptional ? OneOptional[P] : never
+    [P in TruthyKeys<S['select']>]:
+        P extends 'many' ? Array < ManyRequiredGetPayload<S['select'][P]>>  :
+        P extends '_count' ? OneOptionalCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof OneOptional ? OneOptional[P] : never
   } 
       : OneOptional
 
@@ -6709,7 +6761,7 @@ export namespace Prisma {
     constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
     readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 
-    many<T extends ManyRequiredFindManyArgs= {}>(args?: Subset<T, ManyRequiredFindManyArgs>): PrismaPromise<Array<ManyRequiredGetPayload<T>>| Null>;
+    many<T extends OneOptionalManyArgs= {}>(args?: Subset<T, OneOptionalManyArgs>): PrismaPromise<Array<ManyRequiredGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -6760,7 +6812,7 @@ export namespace Prisma {
   }
 
   /**
-   * OneOptional: findUnique
+   * OneOptional findUnique
    */
   export interface OneOptionalFindUniqueArgs extends OneOptionalFindUniqueArgsBase {
    /**
@@ -6850,7 +6902,7 @@ export namespace Prisma {
   }
 
   /**
-   * OneOptional: findFirst
+   * OneOptional findFirst
    */
   export interface OneOptionalFindFirstArgs extends OneOptionalFindFirstArgsBase {
    /**
@@ -7111,6 +7163,29 @@ export namespace Prisma {
      * 
     **/
     where?: OneOptionalWhereInput
+  }
+
+
+  /**
+   * OneOptional.many
+   */
+  export type OneOptionalManyArgs = {
+    /**
+     * Select specific fields to fetch from the ManyRequired
+     * 
+    **/
+    select?: ManyRequiredSelect | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     * 
+    **/
+    include?: ManyRequiredInclude | null
+    where?: ManyRequiredWhereInput
+    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
+    cursor?: ManyRequiredWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: Enumerable<ManyRequiredScalarFieldEnum>
   }
 
 
@@ -7435,13 +7510,13 @@ export namespace Prisma {
     S extends undefined ? never :
     S extends { include: any } & (ManyRequiredArgs | ManyRequiredFindManyArgs)
     ? ManyRequired  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'one' ? OneOptionalGetPayload<Exclude<S['include'], undefined | null>[P]> | null :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'one' ? OneOptionalGetPayload<S['include'][P]> | null :  never
   } 
     : S extends { select: any } & (ManyRequiredArgs | ManyRequiredFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'one' ? OneOptionalGetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof ManyRequired ? ManyRequired[P] : never
+    [P in TruthyKeys<S['select']>]:
+        P extends 'one' ? OneOptionalGetPayload<S['select'][P]> | null :  P extends keyof ManyRequired ? ManyRequired[P] : never
   } 
       : ManyRequired
 
@@ -7866,7 +7941,7 @@ export namespace Prisma {
   }
 
   /**
-   * ManyRequired: findUnique
+   * ManyRequired findUnique
    */
   export interface ManyRequiredFindUniqueArgs extends ManyRequiredFindUniqueArgsBase {
    /**
@@ -7956,7 +8031,7 @@ export namespace Prisma {
   }
 
   /**
-   * ManyRequired: findFirst
+   * ManyRequired findFirst
    */
   export interface ManyRequiredFindFirstArgs extends ManyRequiredFindFirstArgsBase {
    /**
@@ -8541,13 +8616,13 @@ export namespace Prisma {
     S extends undefined ? never :
     S extends { include: any } & (OptionalSide1Args | OptionalSide1FindManyArgs)
     ? OptionalSide1  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'opti' ? OptionalSide2GetPayload<Exclude<S['include'], undefined | null>[P]> | null :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'opti' ? OptionalSide2GetPayload<S['include'][P]> | null :  never
   } 
     : S extends { select: any } & (OptionalSide1Args | OptionalSide1FindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'opti' ? OptionalSide2GetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof OptionalSide1 ? OptionalSide1[P] : never
+    [P in TruthyKeys<S['select']>]:
+        P extends 'opti' ? OptionalSide2GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide1 ? OptionalSide1[P] : never
   } 
       : OptionalSide1
 
@@ -8972,7 +9047,7 @@ export namespace Prisma {
   }
 
   /**
-   * OptionalSide1: findUnique
+   * OptionalSide1 findUnique
    */
   export interface OptionalSide1FindUniqueArgs extends OptionalSide1FindUniqueArgsBase {
    /**
@@ -9062,7 +9137,7 @@ export namespace Prisma {
   }
 
   /**
-   * OptionalSide1: findFirst
+   * OptionalSide1 findFirst
    */
   export interface OptionalSide1FindFirstArgs extends OptionalSide1FindFirstArgsBase {
    /**
@@ -9635,13 +9710,13 @@ export namespace Prisma {
     S extends undefined ? never :
     S extends { include: any } & (OptionalSide2Args | OptionalSide2FindManyArgs)
     ? OptionalSide2  & {
-    [P in TrueKeys<S['include']>]:
-        P extends 'opti' ? OptionalSide1GetPayload<Exclude<S['include'], undefined | null>[P]> | null :  never
+    [P in TruthyKeys<S['include']>]:
+        P extends 'opti' ? OptionalSide1GetPayload<S['include'][P]> | null :  never
   } 
     : S extends { select: any } & (OptionalSide2Args | OptionalSide2FindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
-        P extends 'opti' ? OptionalSide1GetPayload<Exclude<S['select'], undefined | null>[P]> | null :  P extends keyof OptionalSide2 ? OptionalSide2[P] : never
+    [P in TruthyKeys<S['select']>]:
+        P extends 'opti' ? OptionalSide1GetPayload<S['select'][P]> | null :  P extends keyof OptionalSide2 ? OptionalSide2[P] : never
   } 
       : OptionalSide2
 
@@ -10066,7 +10141,7 @@ export namespace Prisma {
   }
 
   /**
-   * OptionalSide2: findUnique
+   * OptionalSide2 findUnique
    */
   export interface OptionalSide2FindUniqueArgs extends OptionalSide2FindUniqueArgsBase {
    /**
@@ -10156,7 +10231,7 @@ export namespace Prisma {
   }
 
   /**
-   * OptionalSide2: findFirst
+   * OptionalSide2 findFirst
    */
   export interface OptionalSide2FindFirstArgs extends OptionalSide2FindFirstArgsBase {
    /**
@@ -10706,7 +10781,7 @@ export namespace Prisma {
     ? A 
     : S extends { select: any } & (AArgs | AFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
+    [P in TruthyKeys<S['select']>]:
     P extends keyof A ? A[P] : never
   } 
       : A
@@ -11126,7 +11201,7 @@ export namespace Prisma {
   }
 
   /**
-   * A: findUnique
+   * A findUnique
    */
   export interface AFindUniqueArgs extends AFindUniqueArgsBase {
    /**
@@ -11206,7 +11281,7 @@ export namespace Prisma {
   }
 
   /**
-   * A: findFirst
+   * A findFirst
    */
   export interface AFindFirstArgs extends AFindFirstArgsBase {
    /**
@@ -11681,7 +11756,7 @@ export namespace Prisma {
     ? B 
     : S extends { select: any } & (BArgs | BFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
+    [P in TruthyKeys<S['select']>]:
     P extends keyof B ? B[P] : never
   } 
       : B
@@ -12101,7 +12176,7 @@ export namespace Prisma {
   }
 
   /**
-   * B: findUnique
+   * B findUnique
    */
   export interface BFindUniqueArgs extends BFindUniqueArgsBase {
    /**
@@ -12181,7 +12256,7 @@ export namespace Prisma {
   }
 
   /**
-   * B: findFirst
+   * B findFirst
    */
   export interface BFindFirstArgs extends BFindFirstArgsBase {
    /**
@@ -12626,7 +12701,7 @@ export namespace Prisma {
     ? C 
     : S extends { select: any } & (CArgs | CFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
+    [P in TruthyKeys<S['select']>]:
     P extends keyof C ? C[P] : never
   } 
       : C
@@ -13046,7 +13121,7 @@ export namespace Prisma {
   }
 
   /**
-   * C: findUnique
+   * C findUnique
    */
   export interface CFindUniqueArgs extends CFindUniqueArgsBase {
    /**
@@ -13126,7 +13201,7 @@ export namespace Prisma {
   }
 
   /**
-   * C: findFirst
+   * C findFirst
    */
   export interface CFindFirstArgs extends CFindFirstArgsBase {
    /**
@@ -13593,7 +13668,7 @@ export namespace Prisma {
     ? D 
     : S extends { select: any } & (DArgs | DFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
+    [P in TruthyKeys<S['select']>]:
     P extends keyof D ? D[P] : never
   } 
       : D
@@ -14013,7 +14088,7 @@ export namespace Prisma {
   }
 
   /**
-   * D: findUnique
+   * D findUnique
    */
   export interface DFindUniqueArgs extends DFindUniqueArgsBase {
    /**
@@ -14093,7 +14168,7 @@ export namespace Prisma {
   }
 
   /**
-   * D: findFirst
+   * D findFirst
    */
   export interface DFindFirstArgs extends DFindFirstArgsBase {
    /**
@@ -14514,7 +14589,7 @@ export namespace Prisma {
     ? E 
     : S extends { select: any } & (EArgs | EFindManyArgs)
       ? {
-    [P in TrueKeys<S['select']>]:
+    [P in TruthyKeys<S['select']>]:
     P extends keyof E ? E[P] : never
   } 
       : E
@@ -14934,7 +15009,7 @@ export namespace Prisma {
   }
 
   /**
-   * E: findUnique
+   * E findUnique
    */
   export interface EFindUniqueArgs extends EFindUniqueArgsBase {
    /**
@@ -15014,7 +15089,7 @@ export namespace Prisma {
   }
 
   /**
-   * E: findFirst
+   * E findFirst
    */
   export interface EFindFirstArgs extends EFindFirstArgsBase {
    /**

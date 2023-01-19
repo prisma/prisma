@@ -7,7 +7,7 @@ describe('modify-client', () => {
     const users = await prisma.user.findMany()
 
     expect(users).toMatchInlineSnapshot(`
-      Array [
+      [
         override,
       ]
     `)
@@ -17,7 +17,7 @@ describe('modify-client', () => {
     prisma.profile = ['override']
 
     expect(prisma.profile).toMatchInlineSnapshot(`
-      Array [
+      [
         override,
       ]
     `)
@@ -31,7 +31,7 @@ describe('modify-client', () => {
     const users = await client.user.findMany()
     client.prop = 'another value'
 
-    expect(users).toMatchInlineSnapshot(`Array []`)
+    expect(users).toMatchInlineSnapshot(`[]`)
     expect(client.prop).toMatchInlineSnapshot(`another value`)
 
     await client.$disconnect()
@@ -45,13 +45,13 @@ describe('modify-client', () => {
     client.prop2 = 'another value'
 
     expect(Object.keys(client).filter((k) => !k.startsWith('_'))).toMatchInlineSnapshot(`
-      Array [
+      [
         $extends,
+        prop,
+        prop2,
         user,
         profile,
         post,
-        prop,
-        prop2,
       ]
     `)
 
@@ -67,7 +67,7 @@ describe('modify-client', () => {
     const client = new ExtendedClient()
 
     expect(client.$connect()).toMatchInlineSnapshot(`
-      Array [
+      [
         override,
       ]
     `)

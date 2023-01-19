@@ -122,6 +122,7 @@ ${chalk.bold('Examples')}
     })
     await getConfig({
       datamodel: schema,
+      ignoreEnvVarErrors: false,
     })
 
     // Automatically create the database if it doesn't exist

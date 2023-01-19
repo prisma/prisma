@@ -12,8 +12,8 @@ test('validator', async () => {
   const data = await prisma.user.findMany({ select })
 
   expect(data).toMatchInlineSnapshot(`
-    Array [
-      Object {
+    [
+      {
         id: 576eddf9-2434-421f-9a86-58bede16fd95,
       },
     ]
