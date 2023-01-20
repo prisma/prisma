@@ -19,15 +19,11 @@ test('Blog fixture: Postgres', async () => {
 
   await setupPostgres(SetupParams).catch((e) => console.error(e))
 
-  const requests: any[] = []
   const errorLogs: any[] = []
   const prisma = new PrismaClient({
     errorFormat: 'colorless',
     __internal: {
       measurePerformance: true,
-      hooks: {
-        beforeRequest: (request) => requests.push(request),
-      },
     },
     datasources: {
       db: {
