@@ -664,7 +664,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaryTargets: [platform],
           version: CURRENT_ENGINES_HASH,
         }),
-      ).rejects.toThrow(/^sha256 of .+ \(zipped\) should be .+ but is .+$/)
+      ).rejects.toThrow(/^sha256 checksum of .+ \(zipped\) should be .+ but is .+$/)
     })
 
     test('if checksum download fails, logs warning but does not throw', async () => {
