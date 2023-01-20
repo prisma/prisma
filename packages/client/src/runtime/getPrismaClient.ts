@@ -17,7 +17,15 @@ import {
   TracingConfig,
 } from '@prisma/engine-core'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
+import {
+  callOnce,
+  ClientEngineType,
+  getClientEngineType,
+  getConfig,
+  logger,
+  tryLoadEnvs,
+  warnOnce,
+} from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
@@ -296,6 +304,14 @@ const BatchTxIdCounter = {
   },
 }
 
+function convertDatasources(datasources: DatasourceOverwrite[]): Record<string, string> {
+  const obj = Object.create(null)
+  for (const { name, url } of datasources) {
+    obj[name] = url
+  }
+  return obj
+}
+
 export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
@@ -322,6 +338,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
     _extensions: MergedExtensionsList
+
+    _datamodel: string
+    _datasourceOverrides: Record<string, string>
 
     constructor(optionsArg?: PrismaClientOptions) {
       if (optionsArg) {
@@ -409,12 +428,17 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           this._dmmf = new DMMFHelper(rawDmmf)
         }
 
+        const datamodelPath = path.join(config.dirname, config.filename ?? 'schema.prisma')
+        this._datamodel = fs.readFileSync(datamodelPath, 'utf-8')
+
+        this._datasourceOverrides = datasources ? convertDatasources(datasources) : {}
+
         this._engineConfig = {
           cwd,
           dirname: config.dirname,
           enableDebugLogs: useDebug,
           allowTriggerPanic: engineConfig.allowTriggerPanic,
-          datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
+          datamodelPath,
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
           datasources,
@@ -577,7 +601,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
     async _getActiveProvider(): Promise<void> {
       try {
-        const configResult = await this._engine.getConfig()
+        const configResult = await getConfig({
+          datamodel: this._datamodel,
+          datasourceOverrides: this._datasourceOverrides,
+          ignoreEnvVarErrors: true,
+        })
         this._activeProvider = configResult.datasources[0].activeProvider
       } catch (e) {
         // it's ok to silently fail

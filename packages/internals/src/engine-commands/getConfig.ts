@@ -38,6 +38,7 @@ export type GetConfigOptions = {
   datamodelPath?: string
   retry?: number
   ignoreEnvVarErrors?: boolean
+  datasourceOverrides?: Record<string, string>
 }
 
 type GetConfigErrorInit = {
@@ -128,7 +129,7 @@ async function getConfigWasm(options: GetConfigOptions) {
 
         const params = JSON.stringify({
           prismaSchema: options.datamodel,
-          datasourceOverrides: {},
+          datasourceOverrides: options.datasourceOverrides ?? {},
           ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
           env: process.env,
         })
