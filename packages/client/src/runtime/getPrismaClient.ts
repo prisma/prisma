@@ -41,8 +41,8 @@ import { BaseDMMFHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
-import type { EngineMiddleware, Namespace, QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
-import { Middlewares } from './MiddlewareHandler'
+import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
+import { MiddlewareHandler } from './MiddlewareHandler'
 import { makeDocument, transformDocument } from './query'
 import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
@@ -316,7 +316,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       datasources: DataSource[]
       generators: GeneratorConfig[]
     }>
-    _middlewares: Middlewares = new Middlewares()
+    _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
     _rejectOnNotFound?: InstanceRejectOnNotFound
@@ -493,20 +493,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * Hook a middleware into the client
      * @param middleware to hook
      */
-    $use<T>(middleware: QueryMiddleware<T>)
-    $use<T>(namespace: 'all', cb: QueryMiddleware<T>) // TODO: 'all' actually means 'query', to be changed
-    $use<T>(namespace: 'engine', cb: EngineMiddleware<T>)
-    $use<T>(arg0: Namespace | QueryMiddleware<T>, arg1?: QueryMiddleware | EngineMiddleware<T>) {
-      // TODO use a mixin and move this into MiddlewareHandler
-      if (typeof arg0 === 'function') {
-        this._middlewares.query.use(arg0 as QueryMiddleware)
-      } else if (arg0 === 'all') {
-        this._middlewares.query.use(arg1 as QueryMiddleware)
-      } else if (arg0 === 'engine') {
-        this._middlewares.engine.use(arg1 as EngineMiddleware)
-      } else {
-        throw new Error(`Invalid middleware ${arg0}`)
-      }
+    $use<T>(middleware: QueryMiddleware<T>) {
+      this._middlewares.use(middleware as QueryMiddleware<unknown>)
     }
 
     $on(eventType: EngineEventType, callback: (event: any) => void) {
@@ -1053,7 +1041,7 @@ new PrismaClient({
         // prepare recursive fn that will pipe params through middlewares
         const consumer = (changedMiddlewareParams: QueryMiddlewareParams) => {
           // if this `next` was called and there's some more middlewares
-          const nextMiddleware = this._middlewares.query.get(++index)
+          const nextMiddleware = this._middlewares.get(++index)
 
           if (nextMiddleware) {
             // we pass the modified params down to the next one, & repeat
@@ -1204,7 +1192,6 @@ new PrismaClient({
         rootField: rootField!,
         callsite,
         args,
-        engineHook: this._middlewares.engine.get(0),
         extensions: this._extensions,
         headers,
         transaction,

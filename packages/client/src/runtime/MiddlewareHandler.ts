@@ -19,19 +19,9 @@ export type QueryMiddlewareParams = {
   args: any // TODO remove any, does this make sense, what is args?
 }
 
-export type EngineMiddleware<T = unknown> = (
-  params: EngineMiddlewareParams,
-  next: (params: EngineMiddlewareParams) => Promise<{ data: T; elapsed: number }>,
-) => Promise<{ data: T; elapsed: number }>
-
-export type EngineMiddlewareParams = {
-  document: Document
-  runInTransaction?: boolean
-}
-
 export type Namespace = 'all' | 'engine'
 
-class MiddlewareHandler<M extends Function> {
+export class MiddlewareHandler<M extends Function> {
   private _middlewares: M[] = []
 
   use(middleware: M) {
@@ -49,9 +39,4 @@ class MiddlewareHandler<M extends Function> {
   length() {
     return this._middlewares.length
   }
-}
-
-export class Middlewares {
-  query = new MiddlewareHandler<QueryMiddleware>()
-  engine = new MiddlewareHandler<EngineMiddleware>()
 }
