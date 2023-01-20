@@ -493,8 +493,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * Hook a middleware into the client
      * @param middleware to hook
      */
-    $use<T>(middleware: QueryMiddleware<T>) {
-      this._middlewares.use(middleware as QueryMiddleware<unknown>)
+    $use<T>(middleware: QueryMiddleware) {
+      this._middlewares.use(middleware)
     }
 
     $on(eventType: EngineEventType, callback: (event: any) => void) {

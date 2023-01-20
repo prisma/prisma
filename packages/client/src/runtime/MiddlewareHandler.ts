@@ -1,10 +1,10 @@
 import type { Action } from './getPrismaClient'
 import type { Document } from './query'
 
-export type QueryMiddleware<T = unknown> = (
+export type QueryMiddleware = (
   params: QueryMiddlewareParams,
-  next: (params: QueryMiddlewareParams) => Promise<T>,
-) => Promise<T>
+  next: (params: QueryMiddlewareParams) => Promise<unknown>,
+) => Promise<unknown>
 
 export type QueryMiddlewareParams = {
   /** The model this is executed on */
