@@ -101,18 +101,6 @@ export class DataProxyEngine extends Engine {
     return `https://${this.host}/${await this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
   }
 
-  // TODO: looks like activeProvider is the only thing
-  // used externally; verify that
-  async getConfig() {
-    return Promise.resolve({
-      datasources: [
-        {
-          activeProvider: this.config.activeProvider,
-        },
-      ],
-    } as GetConfigResult)
-  }
-
   getDmmf(): Promise<DMMF.Document> {
     // This code path should not be reachable, as it is handled upstream in `getPrismaClient`.
     throw new NotImplementedYetError('getDmmf is not yet supported', {
