@@ -93,6 +93,8 @@ export class LibraryEngine extends Engine {
     exitHooks.setListener(this, listener)
   }
 
+  // TODO: is there any example of someone calling this constructor without a custom library loader?
+  // TODO: replace this library loader with something that mirrors the "queryEngineCommons" implementation in `@prisma/internals`
   constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
     super()
 
@@ -418,6 +420,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.libraryStoppingPromise
   }
 
+  // TODO: deprecate in favor of the current implementation of getConfig in `@prisma/internals`
   async getConfig(): Promise<ConfigMetaFormat> {
     await this.libraryInstantiationPromise
 
@@ -429,6 +432,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     })
   }
 
+  // TODO: deprecate in favor of the current implementation of getDmmf in `@prisma/internals`
   async getDmmf(): Promise<DMMF.Document> {
     await this.start()
 
