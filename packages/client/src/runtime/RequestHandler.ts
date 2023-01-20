@@ -17,7 +17,6 @@ import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { DataLoader } from './DataLoader'
 import type { Client, LogEvent, Unpacker } from './getPrismaClient'
-import type { EngineMiddleware } from './MiddlewareHandler'
 import type { Document } from './query'
 import { Args, unpack } from './query'
 import { CallSite } from './utils/CallSite'
@@ -36,7 +35,6 @@ export type RequestParams = {
   callsite?: CallSite
   rejectOnNotFound?: RejectOnNotFound
   transaction?: PrismaPromiseTransaction
-  engineHook?: EngineMiddleware
   extensions: MergedExtensionsList
   args?: any
   headers?: Record<string, string>
@@ -147,7 +145,6 @@ export class RequestHandler {
     callsite,
     rejectOnNotFound,
     clientMethod,
-    engineHook,
     args,
     headers,
     transaction,
@@ -157,34 +154,16 @@ export class RequestHandler {
     otelChildCtx,
   }: RequestParams) {
     try {
-      /**
-       * If there's an engine hook, use it here
-       */
-      let data, elapsed
-      if (engineHook) {
-        const result = await engineHook(
-          {
-            document,
-            runInTransaction: Boolean(transaction),
-          },
-          (params) => {
-            return this.dataloader.request({ ...params, tracingConfig: this.client._tracingConfig })
-          },
-        )
-        data = result.data
-        elapsed = result.elapsed
-      } else {
-        const result = await this.dataloader.request({
-          document,
-          headers,
-          transaction,
-          otelParentCtx,
-          otelChildCtx,
-          tracingConfig: this.client._tracingConfig,
-        })
-        data = result?.data
-        elapsed = result?.elapsed
-      }
+      const result = await this.dataloader.request({
+        document,
+        headers,
+        transaction,
+        otelParentCtx,
+        otelChildCtx,
+        tracingConfig: this.client._tracingConfig,
+      })
+      const data = result?.data
+      const elapsed = result?.elapsed
 
       /**
        * Unpack
