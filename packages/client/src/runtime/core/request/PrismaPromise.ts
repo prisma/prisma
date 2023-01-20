@@ -1,10 +1,13 @@
 import { IsolationLevel } from '@prisma/engine-core'
 
+import { createPrismaPromise } from './createPrismaPromise'
+
 export type PrismaPromiseBatchTransaction = {
   kind: 'batch'
   id: number
   isolationLevel?: IsolationLevel
   index: number
+  lock?: PromiseLike<void>
 }
 
 export type PrismaPromiseInteractiveTransaction = {
@@ -57,5 +60,11 @@ export interface PrismaPromise<A> extends Promise<A> {
    * Called when executing a batch of regular tx
    * @param transaction transaction options for regular tx
    */
-  requestTransaction?(transaction: BatchTransactionOptions, lock?: PromiseLike<void>): PromiseLike<unknown>
+  requestTransaction?(transaction: BatchTransactionOptions): PromiseLike<unknown>
+}
+
+export class PrismaPromise<A> {
+  constructor(callback: (transaction?: PrismaPromiseTransaction) => PrismaPromise<unknown>) {
+    return createPrismaPromise(callback) as PrismaPromise<A>
+  }
 }

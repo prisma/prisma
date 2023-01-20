@@ -29,7 +29,7 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
-import { $extends, Args as Extension } from './core/extensions/$extends'
+import { $extends } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { MetricsClient } from './core/metrics/MetricsClient'
@@ -619,7 +619,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     $executeRawInternal(
       transaction: PrismaPromiseTransaction | undefined,
-      lock: PromiseLike<void> | undefined,
       query: string | TemplateStringsArray | Sql,
       ...values: RawValue[]
     ) {
@@ -727,9 +726,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * @returns
      */
     $executeRaw(query: TemplateStringsArray | Sql, ...values: any[]) {
-      return createPrismaPromise((transaction, lock) => {
+      return createPrismaPromise((tx) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as Sql).sql !== undefined) {
-          return this.$executeRawInternal(transaction, lock, query, ...values)
+          return this.$executeRawInternal(tx, query, ...values)
         }
 
         throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
@@ -751,8 +750,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $executeRawUnsafe(query: string, ...values: RawValue[]) {
-      return createPrismaPromise((transaction, lock) => {
-        return this.$executeRawInternal(transaction, lock, query, ...values)
+      return createPrismaPromise((tx) => {
+        return this.$executeRawInternal(tx, query, ...values)
       })
     }
 
@@ -769,15 +768,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         )
       }
 
-      return createPrismaPromise((transaction, lock) => {
+      return createPrismaPromise((tx) => {
         return this._request({
           args: { command: command },
           clientMethod: '$runCommandRaw',
           dataPath: [],
           action: 'runCommandRaw',
           callsite: getCallSite(this._errorFormat),
-          transaction: transaction,
-          lock,
+          transaction: tx,
         })
       })
     }
@@ -787,7 +785,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     async $queryRawInternal(
       transaction: PrismaPromiseTransaction | undefined,
-      lock: PromiseLike<void> | undefined,
       query: string | TemplateStringsArray | Sql,
       ...values: RawValue[]
     ) {
@@ -898,9 +895,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRaw(query: TemplateStringsArray | Sql, ...values: any[]) {
-      return createPrismaPromise((txId, lock) => {
+      return createPrismaPromise((tx) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as Sql).sql !== undefined) {
-          return this.$queryRawInternal(txId, lock, query, ...values)
+          return this.$queryRawInternal(tx, query, ...values)
         }
 
         throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
@@ -922,8 +919,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRawUnsafe(query: string, ...values: RawValue[]) {
-      return createPrismaPromise((txId, lock) => {
-        return this.$queryRawInternal(txId, lock, query, ...values)
+      return createPrismaPromise((tx) => {
+        return this.$queryRawInternal(tx, query, ...values)
       })
     }
 
@@ -978,7 +975,7 @@ new PrismaClient({
           )
         }
 
-        return request.requestTransaction?.({ id, index, isolationLevel: options?.isolationLevel }, lock) ?? request
+        return request.requestTransaction?.({ id, index, isolationLevel: options?.isolationLevel, lock }) ?? request
       })
 
       return waitForBatch(requests)

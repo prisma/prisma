@@ -10,18 +10,18 @@ import type { InteractiveTransactionOptions, PrismaPromise, PrismaPromiseTransac
  * @returns
  */
 export function createPrismaPromise(
-  callback: (transaction?: PrismaPromiseTransaction, lock?: PromiseLike<void>) => PrismaPromise<unknown>,
+  callback: (transaction?: PrismaPromiseTransaction) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
   let promise: PrismaPromise<unknown> | undefined
-  const _callback = (transaction?: PrismaPromiseTransaction, lock?: PromiseLike<void>, cached = true) => {
+  const _callback = (transaction?: PrismaPromiseTransaction, cached = true) => {
     try {
       // promises cannot be triggered twice after resolving
       if (cached === true) {
-        return (promise ??= valueToPromise(callback(transaction, lock)))
+        return (promise ??= valueToPromise(callback(transaction)))
       }
 
       // but for batch tx we need to trigger them again
-      return valueToPromise(callback(transaction, lock))
+      return valueToPromise(callback(transaction))
     } catch (error) {
       // if the callback throws, then we reject the promise
       // and that is because exceptions are not always async
@@ -42,11 +42,11 @@ export function createPrismaPromise(
 
     requestTransaction(transactionOptions, lock?: PromiseLike<void>) {
       const transaction = { kind: 'batch' as const, ...transactionOptions }
-      const promise = _callback(transaction, lock, false)
+      const promise = _callback(transaction, false)
 
       if (promise.requestTransaction) {
         // we want to have support for nested promises
-        return promise.requestTransaction(transaction, lock)
+        return promise.requestTransaction(transaction)
       }
 
       return promise
