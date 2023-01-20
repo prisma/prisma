@@ -563,10 +563,6 @@ export interface PrismaClientOptions {
   log?: Array<LogLevel | LogDefinition>
 }
 
-export type Hooks = {
-  beforeRequest?: (options: { query: string, path: string[], rootField?: string, typeName?: string, document: any }) => any
-}
-
 /* Types for Logging */
 export type LogLevel = 'info' | 'query' | 'warn' | 'error'
 export type LogDefinition = {

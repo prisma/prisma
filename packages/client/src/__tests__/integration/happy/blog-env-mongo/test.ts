@@ -6,7 +6,6 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
   let prisma: PrismaClient // Generated Client instance
-  const requests: any[] = []
 
   beforeAll(async () => {
     await generateTestClient()
@@ -16,9 +15,6 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       errorFormat: 'colorless',
       __internal: {
         measurePerformance: true,
-        hooks: {
-          beforeRequest: (r: any) => requests.push(r),
-        },
       },
       log: [
         {
@@ -48,11 +44,6 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
   test('does not leak connection strings in node_modules', () => {
     // @ts-ignore
     expect(prisma.internalDatasources).toBeUndefined()
-  })
-
-  test('invokes beforeRequest hook', async () => {
-    await prisma.user.findMany()
-    expect(requests.length).toBeGreaterThan(0)
   })
 
   test('can throw validation errors', async () => {
@@ -196,10 +187,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       Invalid \`prisma.post.create()\` invocation in
       /client/src/__tests__/integration/happy/blog-env-mongo/test.ts:0:0
 
-        179 })
-        180 
-        181 test('should throw Malformed ObjectID error: in 2 different fields', async () => {
-      → 182   const post = prisma.post.create(
+        170 })
+        171 
+        172 test('should throw Malformed ObjectID error: in 2 different fields', async () => {
+      → 173   const post = prisma.post.create(
       Inconsistent column data: Malformed ObjectID: invalid character 's' was found at index 0 in the provided hex string: "something invalid 1111" for the field 'id'.
     `)
   })
