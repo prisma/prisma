@@ -21,7 +21,7 @@ export type Arch = 'x32' | 'x64' | 'arm' | 'arm64' | 's390' | 's390x' | 'mipsel'
 export type GetOSResult = {
   platform: NodeJS.Platform
   arch: Arch
-  distro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos' | 'freebsd11' | 'freebsd12' | 'freebsd13'
+  targetDistro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos' | 'freebsd11' | 'freebsd12' | 'freebsd13'
 
   /**
    * Starting from version 3.0, OpenSSL is basically adopting semver, and will be API and ABI compatible within a major version.
@@ -40,7 +40,7 @@ export async function getos(): Promise<GetOSResult> {
       if (match) {
         return {
           platform: 'freebsd',
-          distro: `freebsd${match[1]}` as GetOSResult['distro'],
+          targetDistro: `freebsd${match[1]}` as GetOSResult['targetDistro'],
           arch,
         }
       }
@@ -54,25 +54,25 @@ export async function getos(): Promise<GetOSResult> {
     }
   }
 
-  const distro = await resolveDistro()
+  const targetDistro = await resolveDistro()
 
-  if (distro === 'musl' && arch !== 'x64') {
+  if (targetDistro === 'musl' && arch !== 'x64') {
     throw new Error(
       `Prisma only supports Linux Alpine on the amd64 (x86_64) system architecture. If you're running Prisma on Docker, please use Docker Buildx to simulate the amd64 architecture on your device as explained by this comment: https://github.com/prisma/prisma/issues/8478#issuecomment-1355209706`,
     )
   }
 
-  const libssl = await getSSLVersion({ arch, distro })
+  const libssl = await getSSLVersion({ arch, targetDistro })
 
   return {
     platform: 'linux',
     libssl,
-    distro,
+    targetDistro,
     arch,
   }
 }
 
-export function parseDistro(input: string): GetOSResult['distro'] {
+export function parseDistro(input: string): GetOSResult['targetDistro'] {
   const idRegex = /^ID="?([^"\n]*)"?$/im
   const idLikeRegex = /^ID_LIKE="?([^"\n]*)"?$/im
 
@@ -101,7 +101,7 @@ export function parseDistro(input: string): GetOSResult['distro'] {
   return
 }
 
-export async function resolveDistro(): Promise<undefined | GetOSResult['distro']> {
+export async function resolveDistro(): Promise<undefined | GetOSResult['targetDistro']> {
   // https://github.com/retrohacker/getos/blob/master/os.json
   const osReleaseFile = '/etc/os-release'
   const alpineReleaseFile = '/etc/alpine-release'
@@ -158,7 +158,7 @@ function sanitiseSSLVersion(version: string): NonNullable<GetOSResult['libssl']>
 
 type GetOpenSSLVersionParams = {
   arch: Arch
-  distro: GetOSResult['distro']
+  targetDistro: GetOSResult['targetDistro']
 }
 
 /**
@@ -174,24 +174,24 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
   const archFromUname = await getArchFromUname()
 
   const libsslSpecificPaths = match(args)
-    .with({ distro: 'musl' }, () => {
+    .with({ targetDistro: 'musl' }, () => {
       /* Linux Alpine */
       debug('Trying platform-specific paths for "alpine"')
       return ['/lib']
     })
-    .with({ distro: 'debian' }, () => {
+    .with({ targetDistro: 'debian' }, () => {
       /* Linux Debian, Ubuntu, etc */
       debug('Trying platform-specific paths for "debian" (and "ubuntu")')
       return [`/usr/lib/${archFromUname}-linux-gnu`, `/lib/${archFromUname}-linux-gnu`]
     })
-    .with({ distro: 'rhel' }, () => {
+    .with({ targetDistro: 'rhel' }, () => {
       /* Linux Red Hat, OpenSuse etc */
       debug('Trying platform-specific paths for "rhel"')
       return ['/lib64', '/usr/lib64']
     })
-    .otherwise(({ distro, arch }) => {
+    .otherwise(({ targetDistro, arch }) => {
       /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
-      debug(`Don't know any platform-specific paths for "${distro}" on ${arch}`)
+      debug(`Don't know any platform-specific paths for "${targetDistro}" on ${arch}`)
       return []
     })
 
@@ -222,7 +222,7 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
     'ldconfig -p | sed "s/.*=>s*//" | sed "s|.*/||" | grep libssl | sort',
 
     /**
-     * Fall back to the rhel-specific paths (although "distro" isn't detected as rhel) when the "ldconfig" command fails.
+     * Fall back to the rhel-specific paths (although "targetDistro" isn't detected as rhel) when the "ldconfig" command fails.
      */
     'ls /lib64 | grep libssl',
     'ls /usr/lib64 | grep libssl',
@@ -264,7 +264,7 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
 }
 
 export async function getPlatform(): Promise<Platform> {
-  const { platform, distro, arch, libssl } = await getos()
+  const { platform, targetDistro, arch, libssl } = await getos()
 
   // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
   const defaultLibssl = '1.1.x' as const
@@ -272,8 +272,8 @@ export async function getPlatform(): Promise<Platform> {
     /**
      * Ask the user to install openssl manually, and provide some additional instructions based on the detected Linux distro.
      */
-    const additionalMessage = match({ distro })
-      .with({ distro: 'debian' }, () => {
+    const additionalMessage = match({ targetDistro })
+      .with({ targetDistro: 'debian' }, () => {
         return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with `node:lts-slim`, which already ships with OpenSSL installed."
       })
       .otherwise(() => {
@@ -289,7 +289,7 @@ ${additionalMessage}`,
 
   // sometimes we fail to detect the distro in use, so we default to debian
   const defaultDistro = 'debian' as const
-  if (platform === 'linux' && distro === undefined) {
+  if (platform === 'linux' && targetDistro === undefined) {
     warnOnce(
       'distro:undefined',
       `Prisma failed to detect the Linux distro in use, and may not work as expected. Defaulting to "${defaultDistro}".`,
@@ -310,7 +310,7 @@ ${additionalMessage}`,
   }
 
   if (platform === 'freebsd') {
-    return distro as Platform
+    return targetDistro as Platform
   }
 
   if (platform === 'openbsd') {
@@ -321,7 +321,7 @@ ${additionalMessage}`,
     return 'netbsd'
   }
 
-  if (platform === 'linux' && distro === 'nixos') {
+  if (platform === 'linux' && targetDistro === 'nixos') {
     return 'linux-nixos'
   }
 
@@ -335,7 +335,7 @@ ${additionalMessage}`,
     return `linux-arm-openssl-${libssl || defaultLibssl}` as Platform
   }
 
-  if (platform === 'linux' && distro === 'musl') {
+  if (platform === 'linux' && targetDistro === 'musl') {
     const base = 'linux-musl'
     if (!libssl) {
       return base
@@ -351,8 +351,8 @@ ${additionalMessage}`,
   }
 
   // when the platform is linux
-  if (platform === 'linux' && distro && libssl) {
-    return `${distro}-openssl-${libssl}` as Platform
+  if (platform === 'linux' && targetDistro && libssl) {
+    return `${targetDistro}-openssl-${libssl}` as Platform
   }
 
   if (platform !== 'linux') {
@@ -367,9 +367,9 @@ ${additionalMessage}`,
     return `${defaultDistro}-openssl-${libssl}`
   }
 
-  // if just the distro is known, fallback to latest OpenSSL 1.1
-  if (distro) {
-    return `${distro}-openssl-${defaultLibssl}` as Platform
+  // if just the targetDistro is known, fallback to latest OpenSSL 1.1
+  if (targetDistro) {
+    return `${targetDistro}-openssl-${defaultLibssl}` as Platform
   }
 
   // use the debian build with OpenSSL 1.1 as a last resort

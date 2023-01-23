@@ -80,8 +80,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
   const os = await getos()
 
-  if (os.distro && ['nixos'].includes(os.distro)) {
-    console.error(`${chalk.yellow('Warning')} Precompiled engine files are not available for ${os.distro}.`)
+  if (os.targetDistro && ['nixos'].includes(os.targetDistro)) {
+    console.error(`${chalk.yellow('Warning')} Precompiled engine files are not available for ${os.targetDistro}.`)
   } else if (['freebsd11', 'freebsd12', 'freebsd13', 'openbsd', 'netbsd'].includes(platform)) {
     console.error(
       `${chalk.yellow(
