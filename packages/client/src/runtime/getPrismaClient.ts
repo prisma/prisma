@@ -312,10 +312,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientEngineType: ClientEngineType
     _tracingConfig: TracingConfig
     _metrics: MetricsClient
-    _getConfigPromise?: Promise<{
-      datasources: DataSource[]
-      generators: GeneratorConfig[]
-    }>
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
@@ -450,7 +446,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         this._engine = this.getEngine()
-        void this._getActiveProvider()
 
         this._fetcher = new RequestHandler(this, logEmitter) as any
 
@@ -539,7 +534,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       delete this._connectionPromise
       this._engine = this.getEngine()
       delete this._disconnectionPromise
-      delete this._getConfigPromise
     }
 
     /**
@@ -560,15 +554,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         if (!this._dataProxy) {
           this._dmmf = undefined
         }
-      }
-    }
-
-    async _getActiveProvider(): Promise<void> {
-      try {
-        const configResult = await this._engine.getConfig()
-        this._activeProvider = configResult.datasources[0].activeProvider
-      } catch (e) {
-        // it's ok to silently fail
       }
     }
 
@@ -1046,7 +1031,7 @@ new PrismaClient({
           if (nextMiddleware) {
             // we pass the modified params down to the next one, & repeat
             // calling `next` calls the consumer again with the new params
-            return runInChildSpan(spanOptions.middleware, async (span) => {
+            return runInChildSpan(spanOptions.middleware, (span) => {
               // we call `span.end()` _before_ calling the next middleware
               return nextMiddleware(changedMiddlewareParams, (p) => (span?.end(), consumer(p)))
             })
