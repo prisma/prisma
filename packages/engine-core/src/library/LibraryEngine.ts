@@ -418,17 +418,6 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.libraryStoppingPromise
   }
 
-  async getConfig(): Promise<ConfigMetaFormat> {
-    await this.libraryInstantiationPromise
-
-    return this.library!.getConfig({
-      datamodel: this.datamodel,
-      datasourceOverrides: this.datasourceOverrides,
-      ignoreEnvVarErrors: true,
-      env: process.env,
-    })
-  }
-
   async getDmmf(): Promise<DMMF.Document> {
     await this.start()
 
