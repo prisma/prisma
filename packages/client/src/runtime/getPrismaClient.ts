@@ -1094,7 +1094,7 @@ new PrismaClient({
 
       const message = await runInChildSpan(spanOptions, () =>
         protocolEncoder.createMessage({
-          model,
+          modelName: model,
           action,
           args,
           clientMethod,

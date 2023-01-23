@@ -32,7 +32,14 @@ const actionOperationMap: Record<Action, 'query' | 'mutation'> = {
 export class GraphQLProtocolEncoder implements ProtocolEncoder {
   constructor(private dmmf: DMMFHelper, private errorFormat: ErrorFormat) {}
 
-  createMessage({ action, model, args, extensions, clientMethod, callsite }: CreateMessageOptions): ProtocolMessage {
+  createMessage({
+    action,
+    modelName,
+    args,
+    extensions,
+    clientMethod,
+    callsite,
+  }: CreateMessageOptions): ProtocolMessage {
     let rootField: string | undefined
     const operation = actionOperationMap[action]
 
@@ -41,10 +48,10 @@ export class GraphQLProtocolEncoder implements ProtocolEncoder {
     }
 
     let mapping
-    if (model !== undefined) {
-      mapping = this.dmmf?.mappingsMap[model]
+    if (modelName !== undefined) {
+      mapping = this.dmmf?.mappingsMap[modelName]
       if (mapping === undefined) {
-        throw new Error(`Could not find mapping for model ${model}`)
+        throw new Error(`Could not find mapping for model ${modelName}`)
       }
 
       rootField = mapping[action === 'count' ? 'aggregate' : action]
@@ -58,22 +65,16 @@ export class GraphQLProtocolEncoder implements ProtocolEncoder {
 
     if (field === undefined) {
       throw new Error(
-        `Could not find rootField ${rootField} for action ${action} for model ${model} on rootType ${operation}`,
+        `Could not find rootField ${rootField} for action ${action} for model ${modelName} on rootType ${operation}`,
       )
     }
-
-    // TODO: figure out if can be done in PrismaClient iteself
-    // const { isList } = field.outputType
-    // const typeName = getOutputTypeName(field.outputType.type)
-    // const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(action, typeName, args, this._rejectOnNotFound)
-    // warnAboutRejectOnNotFound(rejectOnNotFound, jsModelName, action)
 
     const document = makeDocument({
       dmmf: this.dmmf,
       rootField: rootField!,
       rootTypeName: operation,
       select: args,
-      modelName: model,
+      modelName,
       extensions: extensions,
     })
 
@@ -122,7 +123,6 @@ export class GraphQLMessage implements ProtocolMessage {
   deserializeResponse(data: unknown, dataPath: string[]): unknown {
     const rootField = this.getRootField()
 
-    // TODO: figure out what it is
     const unpackPath: string[] = []
     if (rootField) {
       unpackPath.push(rootField)

@@ -15,7 +15,7 @@ export interface ProtocolMessage {
 
 export type CreateMessageOptions = {
   action: Action
-  model?: string
+  modelName?: string
   args: JsArgs
   extensions: MergedExtensionsList
   clientMethod: string

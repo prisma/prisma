@@ -1,5 +1,6 @@
 import { faker } from '@faker-js/faker'
 
+import { waitFor } from '../_utils/tests/waitFor'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -11,7 +12,7 @@ const id2 = faker.database.mongodbObjectId()
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  () => {
     let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
     let queriesExecuted = 0
 
@@ -33,7 +34,9 @@ testMatrix.setupTestSuite(
         prisma.user.findUnique({ where: { id: id2 } }),
       ])
 
-      expect(queriesExecuted).toBe(1)
+      await waitFor(() => {
+        expect(queriesExecuted).toBe(1)
+      })
     })
 
     test('does not batch different models', async () => {
@@ -42,7 +45,10 @@ testMatrix.setupTestSuite(
         prisma.post.findUnique({ where: { id: id2 } }),
       ])
 
-      expect(queriesExecuted).toBe(2)
+      // binary engine can retry requests sometimes, that's why we
+      // can't know for sure how many queries will be logged. All we
+      // know is that it should not be 1 query in any case
+      await waitFor(() => expect(queriesExecuted).toBeGreaterThan(1))
     })
 
     test('does not batch different where', async () => {
@@ -51,7 +57,7 @@ testMatrix.setupTestSuite(
         prisma.user.findUnique({ where: { email: 'user@example.com' } }),
       ])
 
-      expect(queriesExecuted).toBe(2)
+      await waitFor(() => expect(queriesExecuted).toBeGreaterThan(1))
     })
 
     test('does not batch different select', async () => {
@@ -60,7 +66,7 @@ testMatrix.setupTestSuite(
         prisma.user.findUnique({ where: { id: id2 } }),
       ])
 
-      expect(queriesExecuted).toBe(2)
+      await waitFor(() => expect(queriesExecuted).toBeGreaterThan(1))
     })
   },
   {
