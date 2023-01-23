@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.10.0-14.653fbd40602f72fa5beb86d4f8e73d8427ed683b",
+    "@prisma/engines-version": "4.10.0-17.integration-log-capture-prep-refactoring-8cdb1dd75d861ffce14714603bcdd172e7f0a116",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.14",
