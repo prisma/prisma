@@ -3,7 +3,7 @@ import * as miniProxy from '@prisma/mini-proxy'
 import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
 
-import { setupQueryEngine } from '../../tests/commonUtils/setupQueryEngine'
+import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
 

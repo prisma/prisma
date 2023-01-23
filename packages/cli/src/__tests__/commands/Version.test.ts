@@ -28,7 +28,6 @@ describe('version', () => {
       const binaryPaths = await download({
         binaries: {
           'migration-engine': enginesDir,
-          'prisma-fmt': enginesDir,
           'libquery-engine': enginesDir,
         },
         version,
@@ -76,7 +75,6 @@ describe('version', () => {
       const binaryPaths = await download({
         binaries: {
           'migration-engine': enginesDir,
-          'prisma-fmt': enginesDir,
           'query-engine': enginesDir,
         },
         version,

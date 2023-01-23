@@ -128,9 +128,13 @@ export async function setupTestSuiteDatabase(
     await DbPush.new().parse(dbpushParams)
 
     if (alterStatementCallback) {
+      const provider = suiteConfig.matrixOptions['provider'] as Providers
       const prismaDir = path.dirname(schemaPath)
       const timestamp = new Date().getTime()
-      const provider = suiteConfig.matrixOptions['provider'] as Providers
+
+      if (provider === 'mongodb') {
+        throw new Error('DbExecute not supported with mongodb')
+      }
 
       await fs.promises.mkdir(`${prismaDir}/migrations/${timestamp}`, { recursive: true })
       await fs.promises.writeFile(`${prismaDir}/migrations/migration_lock.toml`, `provider = "${provider}"`)

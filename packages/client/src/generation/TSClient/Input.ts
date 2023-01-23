@@ -13,25 +13,18 @@ import { ifExtensions } from './utils/ifExtensions'
 export class InputField implements Generatable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
-    protected readonly prefixFilter = false,
     protected readonly noEnumerable = false,
     protected readonly genericsInfo: GenericArgsInfo,
     protected readonly source?: string,
   ) {}
   public toTS(): string {
-    const property = buildInputField(this.field, this.prefixFilter, this.noEnumerable, this.genericsInfo, this.source)
+    const property = buildInputField(this.field, this.noEnumerable, this.genericsInfo, this.source)
     return ts.stringify(property)
   }
 }
 
-function buildInputField(
-  field: DMMF.SchemaArg,
-  prefixFilter = false,
-  noEnumerable = false,
-  genericsInfo: GenericArgsInfo,
-  source?: string,
-) {
-  const tsType = buildAllFieldTypes(field.inputTypes, prefixFilter, noEnumerable, genericsInfo, source)
+function buildInputField(field: DMMF.SchemaArg, noEnumerable = false, genericsInfo: GenericArgsInfo, source?: string) {
+  const tsType = buildAllFieldTypes(field.inputTypes, noEnumerable, genericsInfo, source)
 
   const tsProperty = ts.property(field.name, tsType)
   if (!field.isRequired) {
@@ -54,11 +47,10 @@ function buildInputField(
 
 function buildSingleFieldType(
   t: DMMF.SchemaArgInputType,
-  prefixFilter: boolean,
   noEnumerable = false, // used for group by, there we need an Array<> for "by"
   genericsInfo: GenericArgsInfo,
   source?: string,
-): ts.AnyTypeBuilder {
+): ts.TypeBuilder {
   let type: ts.NamedType
   if (typeof t.type === 'string') {
     if (t.type === 'Null') {
@@ -73,15 +65,7 @@ function buildSingleFieldType(
       return union
     }
 
-    if (!scalarType) {
-      type = namedInputType(t.type)
-    } else if (Array.isArray(scalarType)) {
-      type = ts.unionType(scalarType.map(namedInputType))
-    } else {
-      type = namedInputType(scalarType)
-    }
-  } else if (prefixFilter) {
-    type = namedInputType(`Base${t.type.name}`)
+    type = namedInputType(scalarType ?? t.type)
   } else {
     type = namedInputType(t.type.name)
   }
@@ -111,7 +95,7 @@ function namedInputType(typeName: string) {
   return ts.namedType(JSOutputTypeToInputType[typeName] ?? typeName)
 }
 
-function wrapList(type: ts.AnyTypeBuilder, noEnumerable: boolean): ts.AnyTypeBuilder {
+function wrapList(type: ts.TypeBuilder, noEnumerable: boolean): ts.TypeBuilder {
   return noEnumerable ? ts.array(type) : ts.namedType('Enumerable').addGenericArgument(type)
 }
 
@@ -129,11 +113,10 @@ function wrapList(type: ts.AnyTypeBuilder, noEnumerable: boolean): ts.AnyTypeBui
  */
 function buildAllFieldTypes(
   inputTypes: DMMF.SchemaArgInputType[],
-  prefixFilter: boolean,
   noEnumerable = false,
   genericsInfo: GenericArgsInfo,
   source?: string,
-): ts.AnyTypeBuilder {
+): ts.TypeBuilder {
   const pairMap: Record<string, number> = Object.create(null)
 
   const singularPairIndexes = new Set<number>()
@@ -161,12 +144,10 @@ function buildAllFieldTypes(
   const otherTypes = filteredInputTypes.filter((t) => t.location !== 'inputObjectTypes')
 
   const tsInputObjectTypes = inputObjectTypes.map((type) =>
-    buildSingleFieldType(type, prefixFilter, noEnumerable, genericsInfo, source),
+    buildSingleFieldType(type, noEnumerable, genericsInfo, source),
   )
 
-  const tsOtherTypes = otherTypes.map((type) =>
-    buildSingleFieldType(type, prefixFilter, noEnumerable, genericsInfo, source),
-  )
+  const tsOtherTypes = otherTypes.map((type) => buildSingleFieldType(type, noEnumerable, genericsInfo, source))
 
   if (tsOtherTypes.length === 0) {
     return xorTypes(tsInputObjectTypes)
@@ -179,7 +160,7 @@ function buildAllFieldTypes(
   return ts.unionType(xorTypes(tsInputObjectTypes)).addVariants(tsOtherTypes)
 }
 
-function xorTypes(types: ts.AnyTypeBuilder[]) {
+function xorTypes(types: ts.TypeBuilder[]) {
   return types.reduce((prev, curr) => ts.namedType('XOR').addGenericArgument(prev).addGenericArgument(curr))
 }
 
@@ -198,7 +179,7 @@ ${indent(
     .map((arg) => {
       // This disables enumerable on JsonFilter path argument
       const noEnumerable = type.name.includes('Json') && type.name.includes('Filter') && arg.name === 'path'
-      return new InputField(arg, false, noEnumerable, this.genericsInfo, source).toTS()
+      return new InputField(arg, noEnumerable, this.genericsInfo, source).toTS()
     })
     .join('\n'),
   TAB_SIZE,

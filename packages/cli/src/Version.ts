@@ -80,9 +80,6 @@ export class Version implements Command {
         .with({ 'migration-engine': P.select() }, (currEngineInfo) => {
           return ['Migration Engine', currEngineInfo]
         })
-        .with({ 'format-binary': P.select() }, (currEngineInfo) => {
-          return ['Format Binary', currEngineInfo]
-        })
         .exhaustive()
     })
 

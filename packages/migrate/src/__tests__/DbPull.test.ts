@@ -65,11 +65,7 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO (https://github.com/prisma/prisma/issues/13077): Windows: fails with
-  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-  testIf(process.platform !== 'win32')('basic introspection with --url', async () => {
+  test('basic introspection with --url', async () => {
     ctx.fixture('introspection/sqlite')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', 'file:dev.db'])
@@ -138,11 +134,7 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO: Windows: fails with
-  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-  testIf(process.platform !== 'win32')('should succeed when schema and db do match using --url', async () => {
+  test('should succeed when schema and db do match using --url', async () => {
     ctx.fixture('introspect/prisma')
     const result = DbPull.new().parse(['--url=file:./dev.db'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -488,7 +480,7 @@ describe('postgresql - missing database', () => {
 
 describe('postgresql', () => {
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql'),
   }
 
@@ -613,7 +605,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     jest.setTimeout(20_000)
   }
 
-  const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_URI) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
+  }
+  const connectionString = process.env.TEST_MSSQL_URI!
   const setupParams: SetupParams = {
     connectionString,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'sqlserver-multi-schema'),
@@ -792,7 +787,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
 
 describe('postgresql-multi-schema', () => {
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multi-schema'),
   }
 
@@ -1061,7 +1056,7 @@ describe('postgresql-multi-schema', () => {
 
 describe('postgresql-extensions', () => {
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-extensions'),
   }
 
@@ -1191,8 +1186,11 @@ describe('postgresql-extensions', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+  if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI) {
+    throw new Error('You must set a value for process.env.TEST_COCKROACH_URI. See TESTING.md')
+  }
   const defaultParams = {
-    connectionString: process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests',
+    connectionString: process.env.TEST_COCKROACH_URI!,
   }
 
   async function testSetup(setupDirname = 'cockroachdb', options = { withFixture: false }) {
@@ -1273,11 +1271,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
-  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-  testIf(process.platform !== 'win32')('basic introspection (with cockroach schema) --url ', async () => {
+  test('basic introspection (with cockroach schema) --url ', async () => {
     await testSetup('cockroachdb', { withFixture: true })
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
@@ -1287,27 +1281,20 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
-  // Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-  //     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-  //     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-  testIf(process.platform !== 'win32')(
-    'basic introspection (with cockroach schema, cockroachdb native types) --url ',
-    async () => {
-      await testSetup('nativeTypes-cockroachdb', { withFixture: true })
-      const introspect = new DbPull()
-      const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    },
-  )
+  test('basic introspection (with cockroach schema, cockroachdb native types) --url ', async () => {
+    await testSetup('nativeTypes-cockroachdb', { withFixture: true })
+    const introspect = new DbPull()
+    const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
 })
 
 describe('mysql', () => {
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_MYSQL_URI || 'mysql://root:root@localhost:3306/tests',
+    connectionString: process.env.TEST_MYSQL_URI!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'mysql'),
   }
 
@@ -1357,15 +1344,19 @@ describe('mysql', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
-  const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_URI) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_URI. See TESTING.md')
+  }
+  if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+    throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
+  }
+
   const setupParams: SetupParams = {
-    connectionString,
+    connectionString: process.env.TEST_MSSQL_URI!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'sqlserver'),
   }
   const databaseName = 'tests-migrate'
-  const JDBC_URI =
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-    `sqlserver://localhost:1433;database=${databaseName};user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;`
+  const JDBC_URI = process.env.TEST_MSSQL_JDBC_URI_MIGRATE!
 
   beforeAll(async () => {
     await tearDownMSSQL(setupParams, databaseName).catch((e) => {
@@ -1409,13 +1400,8 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   })
 })
 
-// TODO: (https://github.com/prisma/prisma/issues/13077) Windows: fails with
-// Error: P1012 Introspection failed as your current Prisma schema file is invalid·
-//     Please fix your current schema manually, use prisma validate to confirm it is valid and then run this command again.
-//     Or run this command with the --force flag to ignore your current schema and overwrite it. All local modifications will be lost.
-describeIf(process.platform !== 'win32' && !process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
-  const MONGO_URI =
-    process.env.TEST_MONGO_URI_MIGRATE || 'mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin'
+describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
+  const MONGO_URI = process.env.TEST_MONGO_URI_MIGRATE!
 
   if (isMacOrWindowsCI) {
     jest.setTimeout(60_000)

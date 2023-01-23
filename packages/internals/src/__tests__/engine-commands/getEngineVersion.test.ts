@@ -11,11 +11,6 @@ describe('getEngineVersion', () => {
     expect(migrationEngineVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 
-  test('Prisma Fmt', async () => {
-    const prismaFmtVersion = await getEngineVersion(undefined, BinaryType.prismaFmt)
-    expect(prismaFmtVersion.split(' ')[1]).toMatch(enginesVersion)
-  })
-
   testIf(!useNodeAPI)('Query Engine', async () => {
     const queryEngineVersion = await getEngineVersion(undefined, BinaryType.queryEngine)
     expect(queryEngineVersion.split(' ')[1]).toMatch(enginesVersion)
