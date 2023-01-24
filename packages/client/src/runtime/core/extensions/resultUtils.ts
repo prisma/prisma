@@ -2,8 +2,8 @@ import { mapObjectValues } from '@prisma/internals'
 
 import { Cache } from '../../../generation/Cache'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
+import { Selection } from '../types/JsApi'
 import { Args, ResultArg, ResultArgsFieldCompute } from './$extends'
-import { Selection } from './visitQueryResult'
 import { wrapExtensionCallback } from './wrapExtensionCallback'
 
 export type ComputedField = {

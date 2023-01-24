@@ -59,7 +59,7 @@ jobs:
       - id: checkout
         uses: actions/checkout@v3
       - id: files
-        uses: Ana06/get-changed-files@v1.2 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
+        uses: Ana06/get-changed-files@v2.2.0 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
         with:
           format: 'json'
       - id: detect
@@ -488,7 +488,7 @@ jobs:
                 message: `Add memory results for PR ${context.issue.number}`,
                 content: fs.readFileSync(localReport, 'base64'),
               });
-              console.log(`::set-output name=url::${url}`)
+              core.setOutput('url', url);
             }
 
       - name: Find report comment

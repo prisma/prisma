@@ -10,6 +10,7 @@ import type {
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
+  EngineQuery,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
@@ -420,7 +421,6 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.libraryStoppingPromise
   }
 
-  // TODO: deprecate in favor of the current implementation of getConfig in `@prisma/internals`
   async getConfig(): Promise<ConfigMetaFormat> {
     await this.libraryInstantiationPromise
 
@@ -432,7 +432,6 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     })
   }
 
-  // TODO: deprecate in favor of the current implementation of getDmmf in `@prisma/internals`
   async getDmmf(): Promise<DMMF.Document> {
     await this.start()
 
@@ -450,9 +449,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return this.library?.debugPanic(message) as Promise<never>
   }
 
-  async request<T>({ query, headers = {} }: RequestOptions<undefined>): Promise<{ data: T; elapsed: number }> {
+  async request<T>(
+    query: EngineQuery,
+    { headers = {} }: RequestOptions<undefined>,
+  ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
-    const request: QueryEngineRequest = { query, variables: {} }
+    const request: QueryEngineRequest = { query: query.query, variables: {} }
     const headerStr = JSON.stringify(headers) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(request)
 
@@ -494,14 +496,13 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  async requestBatch<T>({
-    queries,
-    headers = {},
-    transaction,
-  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
+  async requestBatch<T>(
+    queries: EngineQuery[],
+    { headers = {}, transaction }: RequestBatchOptions,
+  ): Promise<BatchQueryEngineResult<T>[]> {
     debug('requestBatch')
     const request: QueryEngineBatchRequest = {
-      batch: queries.map((query) => ({ query, variables: {} })),
+      batch: queries.map(({ query }) => ({ query, variables: {} })),
       transaction: Boolean(transaction),
       isolationLevel: transaction?.isolationLevel,
     }
