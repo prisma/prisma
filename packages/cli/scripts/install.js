@@ -10,11 +10,11 @@ const pkgName = pkg.name
 
 // if we are in a Vercel (previously named Zeit Now) context (because NOW_BUILDER is truthy)
 // ensure that `prisma generate` is ran in the postinstall hook
-if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
-  ensurePostInstall().catch((e) => {
-    debug(e)
-  })
-}
+// if (process.env.INIT_CWD && process.env.NOW_BUILDER) {
+//   ensurePostInstall().catch((e) => {
+//     debug(e)
+//   })
+// }
 
 async function ensurePostInstall() {
   const initPkgPath = eval(`require('path').resolve(process.env.INIT_CWD, 'package.json')`)
