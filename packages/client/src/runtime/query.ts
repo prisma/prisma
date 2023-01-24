@@ -31,7 +31,7 @@ import {
   wrapWithList,
 } from './utils/common'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
-import { isDecimalJsLike, stringifyDecimalJsLike } from './utils/decimalJsLike'
+import { isDecimalJsLike } from './utils/decimalJsLike'
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
 import { filterObject } from './utils/filterObject'
@@ -642,7 +642,7 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
   }
 
   if (Decimal.isDecimal(value) || (inputType?.type === 'Decimal' && isDecimalJsLike(value))) {
-    return stringifyDecimalJsLike(value)
+    return JSON.stringify(value.toFixed())
   }
 
   if (inputType?.location === 'enumTypes' && typeof value === 'string') {

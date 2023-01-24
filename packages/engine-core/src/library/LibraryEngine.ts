@@ -8,8 +8,10 @@ import fs from 'fs'
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
+  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
+  EngineProtocol,
   EngineQuery,
   RequestBatchOptions,
   RequestOptions,
@@ -30,7 +32,6 @@ import type {
   QueryEngineLogLevel,
   QueryEnginePanicEvent,
   QueryEngineQueryEvent,
-  QueryEngineRequest,
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'
@@ -71,6 +72,7 @@ export class LibraryEngine extends Engine<undefined> {
   private libraryLoader: LibraryLoader
   private library?: Library
   private logEmitter: EventEmitter
+  private engineProtocol: EngineProtocol
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
@@ -117,6 +119,7 @@ Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextj
     this.logLevel = config.logLevel ?? 'error'
     this.libraryLoader = loader
     this.logEmitter = config.logEmitter
+    this.engineProtocol = config.engineProtocol
     this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -257,6 +260,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
             datasourceOverrides: this.datasourceOverrides,
             logLevel: this.logLevel,
             configDir: this.config.cwd,
+            engineProtocol: this.engineProtocol,
           },
           (log) => {
             weakThis.deref()?.logger(log)
@@ -471,9 +475,9 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
-    const request: QueryEngineRequest = { query: query.query, variables: {} }
+    // const request: QueryEngineRequest = { query: query.query, variables: {} }
     const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
-    const queryStr = JSON.stringify(request)
+    const queryStr = JSON.stringify(query)
 
     try {
       await this.start()
@@ -514,7 +518,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 
   async requestBatch<T>(
-    queries: EngineQuery[],
+    queries: EngineBatchQueries,
     { transaction, traceparent }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     debug('requestBatch')

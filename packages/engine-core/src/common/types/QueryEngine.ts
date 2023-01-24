@@ -1,6 +1,8 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 
+import { EngineProtocol } from '../Engine'
 import { RequestError } from '../errors/types/RequestError'
+import { JsonBatchQuery } from './JsonProtocol'
 import * as Transaction from './Transaction'
 
 // Events
@@ -63,6 +65,7 @@ export type QueryEngineConfig = {
   env: Record<string, string | undefined>
   logLevel: QueryEngineLogLevel
   telemetry?: QueryEngineTelemetry
+  engineProtocol: EngineProtocol
 }
 
 export type QueryEngineTelemetry = {
@@ -89,9 +92,11 @@ export type QueryEngineResultBatchQueryResult<T> =
       errors: RequestError[]
     }
 
-export type QueryEngineBatchRequest = {
+export type QueryEngineBatchRequest = QueryEngineBatchGraphQLRequest | JsonBatchQuery
+
+export type QueryEngineBatchGraphQLRequest = {
   batch: QueryEngineRequest[]
-  transaction: boolean
+  transaction?: boolean
   isolationLevel?: Transaction.IsolationLevel
 }
 

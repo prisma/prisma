@@ -3,6 +3,7 @@ import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper
 import { Fetch } from '../data-proxy/utils/request'
 import { TracingConfig } from '../tracing/getTracingConfig'
 import { EventEmitter } from './types/Events'
+import { JsonQuery } from './types/JsonProtocol'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
 import type { QueryEngineResult } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
@@ -34,9 +35,13 @@ export type InteractiveTransactionOptions<Payload> = Transaction.InteractiveTran
 
 export type GraphQLQuery = {
   query: string
+  variables: object
 }
 
-export type EngineQuery = GraphQLQuery // TODO: | JsonRequest
+export type EngineProtocol = 'graphql' | 'json'
+export type EngineQuery = GraphQLQuery | JsonQuery
+
+export type EngineBatchQueries = GraphQLQuery[] | JsonQuery[]
 
 export type RequestOptions<InteractiveTransactionPayload> = {
   traceparent?: string
@@ -70,7 +75,7 @@ export abstract class Engine<InteractiveTransactionPayload = unknown> {
     options: RequestOptions<InteractiveTransactionPayload>,
   ): Promise<QueryEngineResult<T>>
   abstract requestBatch<T>(
-    query: EngineQuery[],
+    queries: EngineBatchQueries,
     options: RequestBatchOptions<InteractiveTransactionPayload>,
   ): Promise<BatchQueryEngineResult<T>[]>
   abstract transaction(
@@ -108,7 +113,6 @@ export interface EngineConfig {
   enableDebugLogs?: boolean
   allowTriggerPanic?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
   prismaPath?: string
-  fetcher?: (query: string) => Promise<{ data?: any; error?: any }>
   generator?: GeneratorConfig
   datasources?: DatasourceOverwrite[]
   showColors?: boolean
@@ -121,6 +125,7 @@ export interface EngineConfig {
   engineEndpoint?: string
   activeProvider?: string
   logEmitter: EventEmitter
+  engineProtocol: EngineProtocol
 
   /**
    * The contents of the schema encoded into a string

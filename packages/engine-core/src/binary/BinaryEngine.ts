@@ -18,6 +18,7 @@ import { promisify } from 'util'
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
+  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
   EngineQuery,
@@ -885,8 +886,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       headers['X-transaction-id'] = interactiveTransaction.id
     }
 
-    this.currentRequestPromise = this.connection.post('/', stringifyQuery(query.query), headers)
-    this.lastQuery = query.query
+    this.currentRequestPromise = this.connection.post('/', JSON.stringify(query), headers)
+    // this.lastQuery = query.query
 
     try {
       const { data, headers } = await this.currentRequestPromise
@@ -924,7 +925,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async requestBatch<T>(
-    queries: EngineQuery[],
+    queries: EngineBatchQueries,
     { traceparent, transaction, numTry = 1, containsWrite }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     await this.start()
@@ -1168,11 +1169,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       meta: response.meta as Record<string, unknown>,
     })
   }
-}
-
-// faster than creating a new object and JSON.stringify it all the time
-function stringifyQuery(q: string) {
-  return `{"variables":{},"query":${JSON.stringify(q)}}`
 }
 
 function hookProcess(handler: string, exit = false) {

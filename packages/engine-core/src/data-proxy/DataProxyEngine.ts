@@ -3,6 +3,7 @@ import { DMMF } from '@prisma/generator-helper'
 
 import type {
   BatchQueryEngineResult,
+  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
   EngineQuery,
@@ -302,7 +303,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   async requestBatch<T>(
-    queries: EngineQuery[],
+    queries: EngineBatchQueries,
     { traceparent, transaction, customDataProxyFetch }: RequestBatchOptions<DataProxyTxInfoPayload>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     const interactiveTransaction = transaction?.kind === 'itx' ? transaction.options : undefined
