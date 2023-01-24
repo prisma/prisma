@@ -169,6 +169,18 @@ LOGO=archlinux
       },
     },
     {
+      name: 'majaro',
+      content: `
+ID=manjaro
+ID_LIKE=arch
+      `,
+      expect: {
+        targetDistro: 'debian',
+        familyDistro: 'arch',
+        originalDistro: 'manjaro',
+      },
+    },
+    {
       name: 'linux mint',
       content: `
 NAME="Linux Mint"
@@ -184,6 +196,18 @@ UBUNTU_CODENAME=xenial
         targetDistro: 'debian',
         familyDistro: 'debian',
         originalDistro: 'linuxmint',
+      },
+    },
+    {
+      name: 'red hat',
+      content: `
+ID=rhel
+ID_LIKE=fedora
+      `,
+      expect: {
+        targetDistro: 'rhel',
+        familyDistro: 'rhel',
+        originalDistro: 'rhel',
       },
     },
     {
