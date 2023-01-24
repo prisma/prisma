@@ -9,16 +9,15 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
-import { Args as ExtensionArgs } from './core/extensions/$extends'
 import { applyResultExtensions } from './core/extensions/applyResultExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
-import { IncludeSelect, visitQueryResult } from './core/extensions/visitQueryResult'
+import { visitQueryResult } from './core/extensions/visitQueryResult'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
+import { ProtocolMessage } from './core/protocol/common'
 import { PrismaPromiseTransaction } from './core/request/PrismaPromise'
+import { JsArgs } from './core/types/JsApi'
 import { DataLoader } from './DataLoader'
-import type { Client, LogEvent, Unpacker } from './getPrismaClient'
-import type { Document } from './query'
-import { Args, unpack } from './query'
+import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import { NotFoundError, RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
@@ -26,11 +25,9 @@ import { NotFoundError, RejectOnNotFound, throwIfNotFound } from './utils/reject
 const debug = Debug('prisma:client:request_handler')
 
 export type RequestParams = {
-  document: Document
+  modelName?: string
+  protocolMessage: ProtocolMessage
   dataPath: string[]
-  rootField: string
-  typeName: string
-  isList: boolean
   clientMethod: string
   callsite?: CallSite
   rejectOnNotFound?: RejectOnNotFound
@@ -51,7 +48,7 @@ export type HandleErrorParams = {
 }
 
 export type Request = {
-  document: Document
+  protocolMessage: ProtocolMessage
   transaction?: PrismaPromiseTransaction
   headers?: Record<string, string>
   otelParentCtx?: Context
@@ -62,7 +59,7 @@ export type Request = {
 type ApplyExtensionsParams = {
   result: object
   modelName: string
-  args: IncludeSelect
+  args: JsArgs
   extensions: MergedExtensionsList
 }
 
@@ -96,19 +93,18 @@ export class RequestHandler {
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
         const info = getRequestInfo(requests[0])
-        const queries = requests.map((r) => String(r.document))
+        const queries = requests.map((r) => r.protocolMessage.toEngineQuery())
         const traceparent = getTraceParent({ context: requests[0].otelParentCtx, tracingConfig: client._tracingConfig })
 
         if (traceparent) info.headers.traceparent = traceparent
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        const containsWrite = requests.some((r) => r.document.type === 'mutation')
+        const containsWrite = requests.some((r) => r.protocolMessage.isWrite())
 
         const batchTransaction = info.transaction?.kind === 'batch' ? info.transaction : undefined
 
-        return this.client._engine.requestBatch({
-          queries,
+        return this.client._engine.requestBatch(queries, {
           headers: info.headers,
           transaction: batchTransaction,
           containsWrite,
@@ -116,14 +112,12 @@ export class RequestHandler {
       },
       singleLoader: (request) => {
         const info = getRequestInfo(request)
-        const query = String(request.document)
         const interactiveTransaction = info.transaction?.kind === 'itx' ? info.transaction : undefined
 
-        return this.client._engine.request({
-          query,
+        return this.client._engine.request(request.protocolMessage.toEngineQuery(), {
           headers: info.headers,
           transaction: interactiveTransaction,
-          isWrite: request.document.type === 'mutation',
+          isWrite: request.protocolMessage.isWrite(),
         })
       },
       batchBy: (request) => {
@@ -131,18 +125,16 @@ export class RequestHandler {
           return `transaction-${request.transaction.id}`
         }
 
-        return batchFindUniqueBy(request)
+        return request.protocolMessage.getBatchId()
       },
     })
   }
 
   async request({
-    document,
+    protocolMessage,
     dataPath = [],
-    rootField,
-    typeName,
-    isList,
     callsite,
+    modelName,
     rejectOnNotFound,
     clientMethod,
     args,
@@ -154,27 +146,29 @@ export class RequestHandler {
     otelChildCtx,
   }: RequestParams) {
     try {
-      const result = await this.dataloader.request({
-        document,
+      const response = await this.dataloader.request({
+        protocolMessage,
         headers,
         transaction,
         otelParentCtx,
         otelChildCtx,
         tracingConfig: this.client._tracingConfig,
       })
-      const data = result?.data
-      const elapsed = result?.elapsed
+      const data = response?.data
+      const elapsed = response?.elapsed
 
       /**
        * Unpack
        */
-      const unpackResult = this.unpack(document, data, dataPath, rootField, unpacker)
-      throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
-      const extendedResult = this.applyResultExtensions({ result: unpackResult, modelName: typeName, args, extensions })
-      if (process.env.PRISMA_CLIENT_GET_TIME) {
-        return { data: extendedResult, elapsed }
+      let result = this.unpack(protocolMessage, data, dataPath, unpacker)
+      throwIfNotFound(result, clientMethod, modelName, rejectOnNotFound)
+      if (modelName) {
+        result = this.applyResultExtensions({ result, modelName, args, extensions })
       }
-      return extendedResult
+      if (process.env.PRISMA_CLIENT_GET_TIME) {
+        return { data: result, elapsed }
+      }
+      return result
     } catch (error) {
       this.handleAndLogRequestError({ error, clientMethod, callsite, transaction })
     }
@@ -254,21 +248,17 @@ export class RequestHandler {
     }
     return message
   }
-  unpack(document, data, path, rootField, unpacker?: Unpacker) {
-    if (data?.data) {
-      data = data.data
+
+  unpack(message: ProtocolMessage, data: unknown, dataPath: string[], unpacker?: Unpacker) {
+    if (!data) {
+      return data
     }
-    // to lift up _all in count
-    if (unpacker) {
-      data[rootField] = unpacker(data[rootField])
+    if (data['data']) {
+      data = data['data']
     }
 
-    const getPath: any[] = []
-    if (rootField) {
-      getPath.push(rootField)
-    }
-    getPath.push(...path.filter((p) => p !== 'select' && p !== 'include'))
-    return unpack({ document, data, path: getPath })
+    const deserializeResponse = message.deserializeResponse(data, dataPath)
+    return unpacker ? unpacker(deserializeResponse) : deserializeResponse
   }
 
   applyResultExtensions({ result, modelName, args, extensions }: ApplyExtensionsParams) {
@@ -298,38 +288,4 @@ export class RequestHandler {
 
 function isMismatchingBatchIndex(error: any, transaction: PrismaPromiseTransaction | undefined) {
   return hasBatchIndex(error) && transaction?.kind === 'batch' && error.batchRequestIdx !== transaction.index
-}
-
-/**
- * Determines which `findUnique` queries can be batched together so that the
- * query engine can collapse/optimize the queries into a single one. This is
- * especially useful for GQL to generate more efficient queries.
- *
- * @see https://www.prisma.io/docs/guides/performance-and-optimization/query-optimization-performance
- * @param request
- * @returns
- */
-function batchFindUniqueBy(request: Request) {
-  // if it's not a findUnique query then we don't attempt optimizing
-  if (!request.document.children[0].name.startsWith('findUnique')) {
-    return undefined
-  }
-
-  // we generate a string for the fields we have used in the `where`
-  const args = request.document.children[0].args?.args
-    .map((a) => {
-      if (a.value instanceof Args) {
-        return `${a.key}-${a.value.args.map((a) => a.key).join(',')}`
-      }
-      return a.key
-    })
-    .join(',')
-
-  // we generate a string for the fields we have used in the `includes`
-  const selectionSet = request.document.children[0].children!.join(',')
-
-  // queries that share this token will be batched and collapsed altogether
-  return `${request.document.children[0].name}|${args}|${selectionSet}`
-  // this way, the query engine will be able to collapse into a single call
-  // and that is because all the queries share their `where` and `includes`
 }
