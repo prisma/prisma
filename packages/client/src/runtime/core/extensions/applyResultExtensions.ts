@@ -7,9 +7,9 @@ import {
   createCompositeProxy,
   removeProperties,
 } from '../compositeProxy'
+import { Selection } from '../types/JsApi'
 import { MergedExtensionsList } from './MergedExtensionsList'
 import { ComputedField } from './resultUtils'
-import { Selection } from './visitQueryResult'
 
 type ApplyExtensionsArgs = {
   result: object

@@ -1,4 +1,4 @@
-import type { Action } from './getPrismaClient'
+import { Action } from './core/types/JsApi'
 import type { Document } from './query'
 
 export type QueryMiddleware = (
