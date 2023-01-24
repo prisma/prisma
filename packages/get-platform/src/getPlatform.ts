@@ -114,10 +114,10 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
    * Fedora       => ID=fedora                                     => targetDistro=rhel, familyDistro=rhel
    */
 
-  const distroInfo = match(id)
+  const distroInfo = match({ id, idLike })
     .with(
-      'alpine',
-      (originalDistro) =>
+      { id: 'alpine' },
+      ({ id: originalDistro }) =>
         ({
           targetDistro: 'musl',
           familyDistro: originalDistro,
@@ -125,8 +125,8 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
         } as const),
     )
     .with(
-      'raspbian',
-      (originalDistro) =>
+      { id: 'raspbian' },
+      ({ id: originalDistro }) =>
         ({
           targetDistro: 'arm',
           familyDistro: 'debian',
@@ -134,8 +134,8 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
         } as const),
     )
     .with(
-      'nixos',
-      (originalDistro) =>
+      { id: 'nixos' },
+      ({ id: originalDistro }) =>
         ({
           targetDistro: 'nixos',
           originalDistro,
@@ -143,9 +143,9 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
         } as const),
     )
     .with(
-      'debian',
-      'ubuntu',
-      (originalDistro) =>
+      { id: 'debian' },
+      { id: 'ubuntu' },
+      ({ id: originalDistro }) =>
         ({
           targetDistro: 'debian',
           familyDistro: 'debian',
@@ -153,41 +153,44 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
         } as const),
     )
     .with(
-      'rhel',
-      'centos',
-      'fedora',
-      (originalDistro) =>
+      { id: 'rhel' },
+      { id: 'centos' },
+      { id: 'fedora' },
+      ({ id: originalDistro }) =>
         ({
           targetDistro: 'rhel',
           familyDistro: 'rhel',
           originalDistro,
         } as const),
     )
-    .otherwise((originalDistro) => {
-      if (idLike.includes('debian') || idLike.includes('ubuntu')) {
-        return {
+    .when(
+      ({ idLike }) => idLike.includes('debian') || idLike.includes('ubuntu'),
+      ({ id: originalDistro }) =>
+        ({
           targetDistro: 'debian',
           familyDistro: 'debian',
           originalDistro,
-        } as const
-      }
-
-      if (id === 'arch' || idLike.includes('arch')) {
-        return {
+        } as const),
+    )
+    .when(
+      ({ idLike }) => id === 'arch' || idLike.includes('arch'),
+      ({ id: originalDistro }) =>
+        ({
           targetDistro: 'debian',
           familyDistro: 'arch',
           originalDistro,
-        } as const
-      }
-
-      if (idLike.includes('centos') || idLike.includes('fedora') || idLike.includes('rhel')) {
-        return {
+        } as const),
+    )
+    .when(
+      ({ idLike }) => idLike.includes('centos') || idLike.includes('fedora') || idLike.includes('rhel'),
+      ({ id: originalDistro }) =>
+        ({
           targetDistro: 'rhel',
           familyDistro: 'rhel',
           originalDistro,
-        } as const
-      }
-
+        } as const),
+    )
+    .otherwise(({ id: originalDistro }) => {
       /* Generic distro info fallback */
       return {
         targetDistro: undefined,
