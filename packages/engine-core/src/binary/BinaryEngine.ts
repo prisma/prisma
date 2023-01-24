@@ -849,11 +849,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return this.getConfigPromise
   }
 
-  /**
-   * Note: although we decided to port `getConfig` to WebAssembly in `@prisma/prisma-fmt-wasm` and remove it
-   * from `libquery`, we decided to keep it into the `query-engine` binary for the foreseeable future.
-   * @deprecated
-   */
   private async _getConfig(): Promise<GetConfigResult> {
     const prismaPath = await this.getPrismaPath()
 
