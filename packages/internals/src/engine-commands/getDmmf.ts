@@ -10,7 +10,8 @@ import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
-import { ErrorArea, isExecaErrorCausedByRustPanic, RustPanic } from '../panic'
+import { ErrorArea, isExecaErrorCausedByRustPanic, isWasmPanic, RustPanic } from '../panic'
+import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
   createDebugErrorType,
@@ -86,6 +87,16 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
   const cliEngineBinaryType = getCliQueryEngineBinaryType()
   const dmmf: DMMF.Document = await match(cliEngineBinaryType)
+    .when(
+      () => true,
+      () => {
+        return getDmmfWasm(options)
+      },
+    )
+
+    /**
+     * @deprecated
+     */
     .with(BinaryType.libqueryEngine, () => {
       return getDmmfNodeAPI(options)
     })
@@ -97,6 +108,109 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
     })
     .exhaustive()
   return dmmf
+}
+
+async function getDmmfWasm(options: GetDMMFOptions) {
+  const debugErrorType = createDebugErrorType(debug, 'getDmmfWasm')
+  debug(`Using getDmmf Wasm`)
+
+  const dmmfEither = pipe(
+    E.tryCatch(
+      () => {
+        if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
+          debug('Triggering a Rust panic...')
+          prismaFmt.debug_panic()
+        }
+
+        const params = JSON.stringify({
+          prismaSchema: options.datamodel,
+        })
+
+        const data = prismaFmt.get_dmmf(params)
+        return data
+      },
+      (e) => ({
+        type: 'wasm-error' as const,
+        reason: '(get-dmmf wasm)',
+        error: e as Error,
+      }),
+    ),
+    E.map((result) => ({ result })),
+    E.chainW(({ result }) =>
+      // NOTE: this should never fail, as we expect returned values to be valid JSON-serializable strings
+      E.tryCatch(
+        () => JSON.parse(result) as DMMF.Document,
+        (e) => ({
+          type: 'parse-json' as const,
+          reason: 'Unable to parse JSON',
+          error: e as Error,
+        }),
+      ),
+    ),
+  )
+
+  if (E.isRight(dmmfEither)) {
+    debug('dmmf data retrieved without errors in getDmmf Wasm')
+    const { right: data } = dmmfEither
+    return Promise.resolve(data)
+  }
+
+  /**
+   * Check which error to throw.
+   */
+  const error = match(dmmfEither.left)
+    .with({ type: 'wasm-error' }, (e) => {
+      debugErrorType(e)
+
+      /**
+       * Capture and propagate possible Wasm panics.
+       */
+      if (isWasmPanic(e.error)) {
+        const wasmError = e.error as Error
+        const panic = new RustPanic(
+          /* message */ wasmError.message,
+          /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
+          /* request */ '@prisma/prisma-fmt-wasm get_dmmf',
+          ErrorArea.FMT_CLI,
+          /* schemaPath */ options.prismaPath,
+          /* schema */ options.datamodel,
+        )
+        return panic
+      }
+
+      /*
+       * Extract the actual error by attempting to JSON-parse the error message.
+       */
+      const errorOutput = e.error.message
+      const actualError = pipe(
+        E.tryCatch(
+          () => JSON.parse(errorOutput),
+          () => {
+            debug(`Couldn't apply JSON.parse to "${errorOutput}"`)
+            return new GetDmmfError({ _tag: 'unparsed', message: errorOutput, reason: e.reason })
+          },
+        ),
+        E.map((errorOutputAsJSON: Record<string, string>) => {
+          const { error_code: errorCode } = errorOutputAsJSON as { error_code: string | undefined }
+
+          return new GetDmmfError({
+            _tag: 'parsed',
+            message: errorOutputAsJSON.message,
+            reason: createSchemaValidationError(e.reason),
+            errorCode,
+          })
+        }),
+        E.getOrElseW(identity),
+      )
+
+      return actualError
+    })
+    .otherwise((e) => {
+      debugErrorType(e)
+      return new GetDmmfError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
+    })
+
+  throw error
 }
 
 async function getDmmfNodeAPI(options: GetDMMFOptions) {
