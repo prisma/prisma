@@ -1229,7 +1229,7 @@ function warnAboutRejectOnNotFound(
     const replacementAction = rejectOnNotFoundReplacements[action]
     if (replacementAction) {
       const replacementCall = model
-        ? `prisma.${model}.${replacementAction}`
+        ? `prisma.${dmmfToJSModelName(model)}.${replacementAction}`
         : `prisma.${replacementAction}`
       replacementMessage = `Please use \`${replacementCall}\` method instead`
     }
