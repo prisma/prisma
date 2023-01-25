@@ -417,7 +417,7 @@ describe('migrate diff', () => {
   })
 
   describe('postgresql', () => {
-    const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-diff')
+    const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!
 
     const setupParams: SetupParams = {
       connectionString,
