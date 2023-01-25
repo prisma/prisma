@@ -1,4 +1,5 @@
-import type { Action, Client } from '../../getPrismaClient'
+import type { Client } from '../../getPrismaClient'
+import { Action } from '../types/JsApi'
 import { aggregate } from './aggregates/aggregate'
 import { count } from './aggregates/count'
 import { groupBy } from './aggregates/groupBy'

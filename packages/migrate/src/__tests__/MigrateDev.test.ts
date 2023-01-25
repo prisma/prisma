@@ -942,9 +942,7 @@ describe('sqlite', () => {
 })
 
 describe('postgresql', () => {
-  const connectionString = (
-    process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-  ).replace('tests-migrate', 'tests-migrate-dev')
+  const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   // Update env var because it's the one that is used in the schemas tested
   process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
@@ -1224,19 +1222,18 @@ describe('postgresql', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-  const connectionString = (
-    process.env.TEST_COCKROACH_URI_MIGRATE || 'postgresql://prisma@localhost:26257/tests-migrate'
-  ).replace('tests-migrate', 'tests-migrate-dev')
-
+  if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
+    throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
+  }
+  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE?.replace('tests-migrate', 'tests-migrate-dev')
   // Update env var because it's the one that is used in the schemas tested
   process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
-  process.env.TEST_COCKROACH_SHADOWDB_URI_MIGRATE = connectionString.replace(
+  process.env.TEST_COCKROACH_SHADOWDB_URI_MIGRATE = connectionString?.replace(
     'tests-migrate-dev',
     'tests-migrate-dev-shadowdb',
   )
-
   const setupParams = {
-    connectionString,
+    connectionString: connectionString!,
     dirname: '',
   }
 
@@ -1412,9 +1409,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 })
 
 describe('mysql', () => {
-  const connectionString = (
-    process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
-  ).replace('tests-migrate', 'tests-migrate-dev')
+  const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   // Update env var because it's the one that is used in the schemas tested
   process.env.TEST_MYSQL_URI_MIGRATE = connectionString
@@ -1626,7 +1621,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     jest.setTimeout(20_000)
   }
 
-  const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
+  const connectionString = process.env.TEST_MSSQL_URI!
 
   // Update env var because it's the one that is used in the schemas tested
   process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(

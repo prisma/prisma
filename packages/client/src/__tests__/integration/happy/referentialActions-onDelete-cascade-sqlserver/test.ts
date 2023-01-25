@@ -8,8 +8,11 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 let prisma
 describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions(sqlserver)', () => {
   beforeAll(async () => {
+    if (!process.env.TEST_MSSQL_JDBC_URI) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI. See TESTING.md')
+    }
     await migrateDb({
-      connectionString: process.env.TEST_MSSQL_JDBC_URI!,
+      connectionString: process.env.TEST_MSSQL_JDBC_URI,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()

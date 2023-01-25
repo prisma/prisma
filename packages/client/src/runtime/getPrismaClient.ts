@@ -34,6 +34,9 @@ import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { UserArgs } from './core/model/UserArgs'
+import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
+import { ProtocolEncoder } from './core/protocol/common'
+import { GraphQLProtocolEncoder } from './core/protocol/graphql'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import { InteractiveTransactionOptions, PrismaPromise, PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
@@ -41,9 +44,8 @@ import { BaseDMMFHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
-import type { EngineMiddleware, Namespace, QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
-import { Middlewares } from './MiddlewareHandler'
-import { makeDocument, transformDocument } from './query'
+import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
+import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
@@ -138,7 +140,6 @@ export interface PrismaClientOptions {
    */
   __internal?: {
     debug?: boolean
-    hooks?: Hooks
     engine?: {
       cwd?: string
       binaryPath?: string
@@ -149,18 +150,6 @@ export interface PrismaClientOptions {
 }
 
 export type Unpacker = (data: any) => any
-
-export type HookParams = {
-  query: string
-  path: string[]
-  rootField?: string
-  typeName?: string
-  document: any
-  clientMethod: string
-  args: any
-}
-
-export type Action = keyof typeof DMMF.ModelAction | 'executeRaw' | 'queryRaw' | 'runCommandRaw'
 
 export type InternalRequestParams = {
   /**
@@ -185,17 +174,6 @@ export type InternalRequestParams = {
   /** Used to "desugar" a user input into an "expanded" one */
   argsMapper?: (args?: UserArgs) => UserArgs
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
-
-// only used by the .use() hooks
-export type AllHookArgs = {
-  params: HookParams
-  fetch: (params: HookParams) => Promise<any>
-}
-
-// TODO: drop hooks 💣
-export type Hooks = {
-  beforeRequest?: (options: HookParams) => any
-}
 
 /* Types for Logging */
 export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -286,29 +264,6 @@ export interface GetPrismaClientConfig {
   inlineSchemaHash?: string
 }
 
-export const actionOperationMap = {
-  findUnique: 'query',
-  findUniqueOrThrow: 'query',
-  findFirst: 'query',
-  findFirstOrThrow: 'query',
-  findMany: 'query',
-  count: 'query',
-  create: 'mutation',
-  createMany: 'mutation',
-  update: 'mutation',
-  updateMany: 'mutation',
-  upsert: 'mutation',
-  delete: 'mutation',
-  deleteMany: 'mutation',
-  executeRaw: 'mutation',
-  queryRaw: 'mutation',
-  aggregate: 'query',
-  groupBy: 'query',
-  runCommandRaw: 'mutation',
-  findRaw: 'query',
-  aggregateRaw: 'query',
-}
-
 const TX_ID = Symbol.for('prisma.client.transaction.id')
 
 const BatchTxIdCounter = {
@@ -333,13 +288,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _errorFormat: ErrorFormat
     _clientEngineType: ClientEngineType
     _tracingConfig: TracingConfig
-    _hooks?: Hooks
     _metrics: MetricsClient
-    _getConfigPromise?: Promise<{
-      datasources: DataSource[]
-      generators: GeneratorConfig[]
-    }>
-    _middlewares: Middlewares = new Middlewares()
+    _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
     _rejectOnNotFound?: InstanceRejectOnNotFound
@@ -384,10 +334,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         const useDebug = internal.debug === true
         if (useDebug) {
           Debug.enable('prisma:client')
-        }
-
-        if (internal.hooks) {
-          this._hooks = internal.hooks
         }
 
         let cwd = path.resolve(config.dirname, config.relativePath)
@@ -477,9 +423,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         this._engine = this.getEngine()
-        void this._getActiveProvider()
 
-        this._fetcher = new RequestHandler(this, this._hooks, logEmitter) as any
+        this._fetcher = new RequestHandler(this, logEmitter) as any
 
         if (options.log) {
           for (const log of options.log) {
@@ -520,20 +465,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * Hook a middleware into the client
      * @param middleware to hook
      */
-    $use<T>(middleware: QueryMiddleware<T>)
-    $use<T>(namespace: 'all', cb: QueryMiddleware<T>) // TODO: 'all' actually means 'query', to be changed
-    $use<T>(namespace: 'engine', cb: EngineMiddleware<T>)
-    $use<T>(arg0: Namespace | QueryMiddleware<T>, arg1?: QueryMiddleware | EngineMiddleware<T>) {
-      // TODO use a mixin and move this into MiddlewareHandler
-      if (typeof arg0 === 'function') {
-        this._middlewares.query.use(arg0 as QueryMiddleware)
-      } else if (arg0 === 'all') {
-        this._middlewares.query.use(arg1 as QueryMiddleware)
-      } else if (arg0 === 'engine') {
-        this._middlewares.engine.use(arg1 as EngineMiddleware)
-      } else {
-        throw new Error(`Invalid middleware ${arg0}`)
-      }
+    $use<T>(middleware: QueryMiddleware) {
+      this._middlewares.use(middleware)
     }
 
     $on(eventType: EngineEventType, callback: (event: any) => void) {
@@ -578,7 +511,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       delete this._connectionPromise
       this._engine = this.getEngine()
       delete this._disconnectionPromise
-      delete this._getConfigPromise
     }
 
     /**
@@ -599,15 +531,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         if (!this._dataProxy) {
           this._dmmf = undefined
         }
-      }
-    }
-
-    async _getActiveProvider(): Promise<void> {
-      try {
-        const configResult = await this._engine.getConfig()
-        this._activeProvider = configResult.datasources[0].activeProvider
-      } catch (e) {
-        // it's ok to silently fail
       }
     }
 
@@ -1080,12 +1003,12 @@ new PrismaClient({
         // prepare recursive fn that will pipe params through middlewares
         const consumer = (changedMiddlewareParams: QueryMiddlewareParams) => {
           // if this `next` was called and there's some more middlewares
-          const nextMiddleware = this._middlewares.query.get(++index)
+          const nextMiddleware = this._middlewares.get(++index)
 
           if (nextMiddleware) {
             // we pass the modified params down to the next one, & repeat
             // calling `next` calls the consumer again with the new params
-            return runInChildSpan(spanOptions.middleware, async (span) => {
+            return runInChildSpan(spanOptions.middleware, (span) => {
               // we call `span.end()` _before_ calling the next middleware
               return nextMiddleware(changedMiddlewareParams, (p) => (span?.end(), consumer(p)))
             })
@@ -1127,7 +1050,6 @@ new PrismaClient({
     async _executeRequest({
       args,
       clientMethod,
-      jsModelName,
       dataPath,
       callsite,
       action,
@@ -1139,73 +1061,36 @@ new PrismaClient({
       unpacker,
       otelParentCtx,
     }: InternalRequestParams) {
-      if (this._dmmf === undefined) {
-        this._dmmf = await this._getDmmf({ clientMethod, callsite })
-      }
+      const protocolEncoder = await this._getProtocolEncoder({ clientMethod, callsite })
 
       // execute argument transformation before execution
       args = argsMapper ? argsMapper(args) : args
-
-      let rootField: string | undefined
-      const operation = actionOperationMap[action]
-
-      if (action === 'executeRaw' || action === 'queryRaw' || action === 'runCommandRaw') {
-        rootField = action
-      }
-
-      let mapping
-      if (model !== undefined) {
-        mapping = this._dmmf?.mappingsMap[model]
-        if (mapping === undefined) {
-          throw new Error(`Could not find mapping for model ${model}`)
-        }
-
-        rootField = mapping[action === 'count' ? 'aggregate' : action]
-      }
-
-      if (operation !== 'query' && operation !== 'mutation') {
-        throw new Error(`Invalid operation ${operation} for action ${action}`)
-      }
-
-      const field = this._dmmf?.rootFieldMap[rootField!]
-
-      if (field === undefined) {
-        throw new Error(
-          `Could not find rootField ${rootField} for action ${action} for model ${model} on rootType ${operation}`,
-        )
-      }
-
-      const { isList } = field.outputType
-      const typeName = getOutputTypeName(field.outputType.type)
-      const rejectOnNotFound: RejectOnNotFound = getRejectOnNotFound(action, typeName, args, this._rejectOnNotFound)
-      warnAboutRejectOnNotFound(rejectOnNotFound, jsModelName, action)
-
-      const serializationFn = () => {
-        const document = makeDocument({
-          dmmf: this._dmmf!,
-          rootField: rootField!,
-          rootTypeName: operation,
-          select: args,
-          modelName: model,
-          extensions: this._extensions,
-        })
-
-        document.validate(args, false, clientMethod, this._errorFormat, callsite)
-
-        return transformDocument(document)
-      }
 
       const spanOptions: SpanOptions = {
         name: 'serialize',
         enabled: this._tracingConfig.enabled,
       }
 
-      const document = await runInChildSpan(spanOptions, serializationFn)
+      let rejectOnNotFound: RejectOnNotFound
+      if (model) {
+        rejectOnNotFound = getRejectOnNotFound(action, model, args, this._rejectOnNotFound)
+        warnAboutRejectOnNotFound(rejectOnNotFound, model, action)
+      }
+
+      const message = await runInChildSpan(spanOptions, () =>
+        protocolEncoder.createMessage({
+          modelName: model,
+          action,
+          args,
+          clientMethod,
+          callsite,
+          extensions: this._extensions,
+        }),
+      )
 
       // as printJsonWithErrors takes a bit of compute
       // we only want to do it, if debug is enabled for 'prisma-client'
       if (Debug.enabled('prisma:client')) {
-        const query = String(document!)
         debug(`Prisma Client call:`)
         debug(
           `prisma.${clientMethod}(${printJsonWithErrors({
@@ -1216,22 +1101,19 @@ new PrismaClient({
           })})`,
         )
         debug(`Generated request:`)
-        debug(query + '\n')
+        debug(message.toDebugString() + '\n')
       }
 
       await lock /** @see {@link getLockCountPromise} */
 
       return this._fetcher.request({
-        document,
+        protocolMessage: message,
+        modelName: model,
         clientMethod,
-        typeName,
         dataPath,
         rejectOnNotFound,
-        isList,
-        rootField: rootField!,
         callsite,
         args,
-        engineHook: this._middlewares.engine.get(0),
         extensions: this._extensions,
         headers,
         transaction,
@@ -1249,6 +1131,15 @@ new PrismaClient({
         this._fetcher.handleAndLogRequestError({ ...params, error })
       }
     })
+
+    _getProtocolEncoder = callOnce(
+      async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>): Promise<ProtocolEncoder> => {
+        if (this._dmmf === undefined) {
+          this._dmmf = await this._getDmmf(params)
+        }
+        return new GraphQLProtocolEncoder(this._dmmf, this._errorFormat)
+      },
+    )
 
     get $metrics(): MetricsClient {
       if (!this._hasPreviewFlag('metrics')) {
@@ -1331,7 +1222,9 @@ function warnAboutRejectOnNotFound(
 ): void {
   if (rejectOnNotFound) {
     const replacementAction = rejectOnNotFoundReplacements[action]
-    const replacementCall = model ? `prisma.${model}.${replacementAction}` : `prisma.${replacementAction}`
+    const replacementCall = model
+      ? `prisma.${dmmfToJSModelName(model)}.${replacementAction}`
+      : `prisma.${replacementAction}`
     const key = `rejectOnNotFound.${model ?? ''}.${action}`
 
     warnOnce(

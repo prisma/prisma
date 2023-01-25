@@ -231,13 +231,13 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
      * `unknown option to 's'` error (see https://stackoverflow.com/a/9366940/6174476) - which would silently
      * fail with error code 0.
      */
-    'ldconfig -p | sed "s/.*=>s*//" | sed "s|.*/||" | grep ssl | sort',
+    'ldconfig -p | sed "s/.*=>s*//" | sed "s|.*/||" | grep libssl | sort',
 
     /**
      * Fall back to the rhel-specific paths (although "distro" isn't detected as rhel) when the "ldconfig" command fails.
      */
-    'ls /lib64 | grep ssl',
-    'ls /usr/lib64 | grep ssl',
+    'ls /lib64 | grep libssl',
+    'ls /usr/lib64 | grep libssl',
   ])
 
   if (libsslFilename) {

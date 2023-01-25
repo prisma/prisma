@@ -5,6 +5,7 @@ import type {
   BatchQueryEngineResult,
   EngineConfig,
   EngineEventType,
+  EngineQuery,
   GetConfigResult,
   InlineDatasource,
   InteractiveTransactionOptions,
@@ -101,18 +102,6 @@ export class DataProxyEngine extends Engine {
     return `https://${this.host}/${await this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
   }
 
-  // TODO: looks like activeProvider is the only thing
-  // used externally; verify that
-  async getConfig() {
-    return Promise.resolve({
-      datasources: [
-        {
-          activeProvider: this.config.activeProvider,
-        },
-      ],
-    } as GetConfigResult)
-  }
-
   getDmmf(): Promise<DMMF.Document> {
     // This code path should not be reachable, as it is handled upstream in `getPrismaClient`.
     throw new NotImplementedYetError('getDmmf is not yet supported', {
@@ -144,25 +133,26 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>({ query, headers = {}, transaction }: RequestOptions<DataProxyTxInfoPayload>) {
+  request<T>({ query }: EngineQuery, { headers = {}, transaction }: RequestOptions<DataProxyTxInfoPayload>) {
     this.logEmitter.emit('query', { query })
 
     // TODO: `elapsed`?
     return this.requestInternal<T>({ query, variables: {} }, headers, transaction)
   }
 
-  async requestBatch<T>({
-    queries,
-    headers = {},
-    transaction,
-  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
+  async requestBatch<T>(
+    queries: EngineQuery[],
+    { headers = {}, transaction }: RequestBatchOptions,
+  ): Promise<BatchQueryEngineResult<T>[]> {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
-      query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,
+      query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries
+        .map((q) => q.query)
+        .join('\n')}`,
     })
 
     const body: QueryEngineBatchRequest = {
-      batch: queries.map((query) => ({ query, variables: {} })),
+      batch: queries.map(({ query }) => ({ query, variables: {} })),
       transaction: isTransaction,
       isolationLevel: transaction?.isolationLevel,
     }

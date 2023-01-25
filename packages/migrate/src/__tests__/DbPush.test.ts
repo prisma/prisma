@@ -307,7 +307,7 @@ describe('push', () => {
 
 describe('postgresql', () => {
   const setupParams: SetupParams = {
-    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate',
+    connectionString: process.env.TEST_POSTGRES_URI_MIGRATE!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql'),
   }
 
@@ -404,10 +404,11 @@ describe('postgresql-multi-schema', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_MONGODB)('push existing-db with mongodb', () => {
+  if (!process.env.TEST_SKIP_MONGODB && !process.env.TEST_MONGO_URI_MIGRATE_EXISTING_DB) {
+    throw new Error('You must set a value for process.env.TEST_MONGO_URI_MIGRATE_EXISTING_DB')
+  }
   const setupParams: SetupParams = {
-    connectionString:
-      process.env.TEST_MONGO_URI_MIGRATE_EXISTING_DB ||
-      'mongodb://root:prisma@localhost:27017/tests-migrate-existing-db?authSource=admin',
+    connectionString: process.env.TEST_MONGO_URI_MIGRATE_EXISTING_DB!,
     dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'existing-db-warnings-mongodb'),
   }
 
