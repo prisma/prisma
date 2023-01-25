@@ -595,6 +595,28 @@ describe('postgresql', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
+
+  test('introspection works with directUrl from env var', async () => {
+    ctx.fixture('schema-only-data-proxy')
+    const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from with-directUrl-env.prisma
+      Datasource "db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+
+      - Introspecting based on datasource defined in with-directUrl-env.prisma
+
+      ✔ Introspected 2 models and wrote them into with-directUrl-env.prisma in XXXms
+            
+      Run prisma generate to generate Prisma Client.
+
+    `)
+    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
 })
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {

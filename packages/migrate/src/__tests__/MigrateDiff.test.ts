@@ -487,6 +487,14 @@ describe('migrate diff', () => {
 
       `)
     })
+
+    it('should work if directUrl is set as an env var', async () => {
+      ctx.fixture('schema-only-data-proxy')
+      const result = MigrateDiff.new().parse(['--from-schema-datasource', 'with-directUrl-env.prisma', '--to-empty'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`No difference detected.`)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
   })
 
   describe('mysql', () => {

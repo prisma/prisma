@@ -41,16 +41,19 @@ describe('common', () => {
 
     `)
   })
-  it('should fail if url is prisma://', async () => {
+  it('should work if directUrl is set as an env var', async () => {
     ctx.fixture('schema-only-data-proxy')
-    const result = MigrateDeploy.new().parse([])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+    const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(`No pending migrations to apply.`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from with-directUrl-env.prisma
+      Datasource "db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
-      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma migrate deploy yet. Please use a direct connection to your database via the datasource 'directUrl' setting.
+      No migration found in prisma/migrations
 
-      More information about Data Proxy: https://pris.ly/d/data-proxy-cli
 
     `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
 

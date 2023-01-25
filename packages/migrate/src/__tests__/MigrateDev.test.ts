@@ -1219,6 +1219,21 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(`Canceled by user.`)
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
+
+  it('should work if directUrl is set as env var', async () => {
+    ctx.fixture('schema-only-data-proxy')
+    const result = MigrateDev.new().parse(['--schema', 'with-directUrl-env.prisma', '--name=first'])
+
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Prisma schema loaded from with-directUrl-env.prisma
+      Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+
+      Already in sync, no schema change or pending migration was found.
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+  })
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {

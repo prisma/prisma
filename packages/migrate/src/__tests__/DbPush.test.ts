@@ -351,16 +351,19 @@ describe('postgresql', () => {
   it('should work if url is prisma:// and directUrl defined', async () => {
     ctx.fixture('schema-only-data-proxy')
 
-    prompt.inject(['y'])
+    prompt.inject(['n'])
 
     const result = DbPush.new().parse(['--schema', 'with-directUrl-env.prisma'])
-    await expect(result).resolves
+    await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
-      Environment variables loaded from prisma/.env
-      Prisma schema loaded from prisma/schema.prisma
-      Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
+      Prisma schema loaded from with-directUrl-env.prisma
+      Datasource "db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
-      The PostgreSQL database "tests-migrate" schema "public" at "localhost:5432" was successfully reset.
+      ⚠️  There might be data loss when applying the changes:
+
+        • You are about to drop the \`User\` table, which is not empty (1 rows).
+
+
 
       Your database is now in sync with your Prisma schema. Done in XXXms
     `)
