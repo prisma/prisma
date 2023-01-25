@@ -81,7 +81,7 @@ jobs:
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
-          alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@danstarns,@jkomyno'
+          alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@jkomyno'
 
       - name: 'Set current job url in SLACK_FOOTER env var'
         if: ${{ failure() && github.ref == 'refs/heads/main' }}
