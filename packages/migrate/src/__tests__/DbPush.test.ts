@@ -347,6 +347,25 @@ describe('postgresql', () => {
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
+
+  it('should work if url is prisma:// and directUrl defined', async () => {
+    ctx.fixture('schema-only-data-proxy')
+
+    prompt.inject(['y'])
+
+    const result = DbPush.new().parse(['--schema', 'with-directUrl-env.prisma'])
+    await expect(result).resolves
+    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+      Environment variables loaded from prisma/.env
+      Prisma schema loaded from prisma/schema.prisma
+      Datasource "my_db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
+
+      The PostgreSQL database "tests-migrate" schema "public" at "localhost:5432" was successfully reset.
+
+      Your database is now in sync with your Prisma schema. Done in XXXms
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
 })
 
 describe('postgresql-multi-schema', () => {
