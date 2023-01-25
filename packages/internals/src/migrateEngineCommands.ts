@@ -161,7 +161,7 @@ export async function dropDatabase(connectionString: string, cwd = process.cwd()
 
       throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
     } else {
-      throw new Error(`Migration engine exited. ${_e}`)
+      throw new Error(`Migration engine exited. ${e}`)
     }
   }
 }
