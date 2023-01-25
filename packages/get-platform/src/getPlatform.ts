@@ -43,7 +43,7 @@ export type GetOSResult = {
    * Starting from version 3.0, OpenSSL is basically adopting semver, and will be API and ABI compatible within a major version.
    */
   libssl?: typeof supportedLibSSLVersions[number]
-} & Partial<DistroInfo>
+} & DistroInfo
 
 export async function getos(): Promise<GetOSResult> {
   const platform = os.platform()
