@@ -421,7 +421,7 @@ importers:
       p-retry: 4.6.2
       strip-ansi: 6.0.1
       typescript: 4.8.4
-      undici: 5.15.0
+      undici: 5.16.0
     dependencies:
       '@opentelemetry/api': 1.3.0
       '@opentelemetry/sdk-trace-base': 1.8.0_@opentelemetry+api@1.3.0
@@ -436,7 +436,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
-      undici: 5.15.0
+      undici: 5.16.0
     devDependencies:
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.24_@swc+core@1.3.14
@@ -808,7 +808,7 @@ importers:
       mariadb: 3.0.2
       mock-stdin: 1.0.0
       mongoose: ^6.5.0
-      mssql: 9.1.0
+      mssql: 9.1.1
       pg: 8.8.0
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -829,7 +829,7 @@ importers:
       log-update: 4.0.0
       mariadb: 3.0.2
       mongoose: 6.7.0
-      mssql: 9.1.0
+      mssql: 9.1.1
       pg: 8.8.0
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -9972,8 +9972,8 @@ packages:
       - supports-color
     dev: true
 
-  /mssql/9.1.0:
-    resolution: {integrity: sha512-rAsD7xfOkzSUqmNMoWX9YT43QfxbabIbrhEuf/PGRCzhWCzwHf25jxNgaoAwqT7vcb5/1irDCi6l6DG05ZGEEQ==}
+  /mssql/9.1.1:
+    resolution: {integrity: sha512-m0yTx9xzUtTvJpWJHqknUXUDPRnJXZYOOFNygnNIXn1PBkLsC/rkXQdquObd+M0ZPlBhGC00Jg28zG0wCl7VWg==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
@@ -12647,8 +12647,8 @@ packages:
       has-symbols: 1.0.3
       which-boxed-primitive: 1.0.2
 
-  /undici/5.15.0:
-    resolution: {integrity: sha512-wCAZJDyjw9Myv+Ay62LAoB+hZLPW9SmKbQkbHIhMw/acKSlpn7WohdMUc/Vd4j1iSMBO0hWwU8mjB7a5p5bl8g==}
+  /undici/5.16.0:
+    resolution: {integrity: sha512-KWBOXNv6VX+oJQhchXieUznEmnJMqgXMbs0xxH2t8q/FUAWSJvOSr/rMaZKnX5RIVq7JDn0JbP4BOnKG2SGXLQ==}
     engines: {node: '>=12.18'}
     dependencies:
       busboy: 1.6.0
