@@ -73,7 +73,7 @@ describe('parseLibSSLVersion', () => {
       expect: '3.0.x',
     },
     {
-      name: 'undefined',
+      name: 'The "nss" library must not be mistakenly parsed as "libssl"',
       content: `/lib/libssl3.so`,
       expect: undefined,
     },
