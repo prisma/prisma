@@ -28,6 +28,8 @@ function removeSeedlingEmoji(str: string) {
   return str.replace('🌱  ', '')
 }
 
+const originalEnv = { ...process.env }
+
 describe('common', () => {
   it('invalid schema', async () => {
     ctx.fixture('schema-only-sqlite')
@@ -944,25 +946,34 @@ describe('sqlite', () => {
 describe('postgresql', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
-  // Update env var because it's the one that is used in the schemas tested
-  process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-  process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE = connectionString.replace(
-    'tests-migrate-dev',
-    'tests-migrate-dev-shadowdb',
-  )
-
   const setupParams: SetupParams = {
     connectionString,
     dirname: '',
   }
 
-  beforeEach(async () => {
-    await setupPostgres(setupParams).catch((e) => {
+  beforeAll(async () => {
+    await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
+  beforeEach(async () => {
+    await setupPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE = connectionString.replace(
+      'tests-migrate-dev',
+      'tests-migrate-dev-shadowdb',
+    )
+  })
+
   afterEach(async () => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
@@ -1241,24 +1252,35 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
   }
   const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE?.replace('tests-migrate', 'tests-migrate-dev')
-  // Update env var because it's the one that is used in the schemas tested
-  process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
-  process.env.TEST_COCKROACH_SHADOWDB_URI_MIGRATE = connectionString?.replace(
-    'tests-migrate-dev',
-    'tests-migrate-dev-shadowdb',
-  )
+
   const setupParams = {
     connectionString: connectionString!,
     dirname: '',
   }
 
-  beforeEach(async () => {
-    await setupCockroach(setupParams).catch((e) => {
+  beforeAll(async () => {
+    await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
+  beforeEach(async () => {
+    await setupCockroach(setupParams).catch((e) => {
+      console.error(e)
+    })
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
+    process.env.TEST_COCKROACH_SHADOWDB_URI_MIGRATE = connectionString?.replace(
+      'tests-migrate-dev',
+      'tests-migrate-dev-shadowdb',
+    )
+  })
+
   afterEach(async () => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
     await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
@@ -1426,25 +1448,34 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 describe('mysql', () => {
   const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
-  // Update env var because it's the one that is used in the schemas tested
-  process.env.TEST_MYSQL_URI_MIGRATE = connectionString
-  process.env.TEST_MYSQL_SHADOWDB_URI_MIGRATE = connectionString.replace(
-    'tests-migrate-dev',
-    'tests-migrate-dev-shadowdb',
-  )
-
   const setupParams: SetupParams = {
     connectionString,
     dirname: '',
   }
 
-  beforeEach(async () => {
-    await setupMysql(setupParams).catch((e) => {
+  beforeAll(async () => {
+    await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
+  beforeEach(async () => {
+    await setupMysql(setupParams).catch((e) => {
+      console.error(e)
+    })
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_MYSQL_URI_MIGRATE = connectionString
+    process.env.TEST_MYSQL_SHADOWDB_URI_MIGRATE = connectionString.replace(
+      'tests-migrate-dev',
+      'tests-migrate-dev-shadowdb',
+    )
+  })
+
   afterEach(async () => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
     await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
@@ -1636,37 +1667,39 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     jest.setTimeout(20_000)
   }
 
-  const connectionString = process.env.TEST_MSSQL_URI!
-
-  // Update env var because it's the one that is used in the schemas tested
-  process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
-    'tests-migrate',
-    'tests-migrate-dev',
-  )
-  process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
-    'tests-migrate-shadowdb',
-    'tests-migrate-dev-shadowdb',
-  )
-
+  const databaseName = 'tests-migrate-dev'
   const setupParams: SetupParams = {
-    connectionString,
+    connectionString: process.env.TEST_MSSQL_URI!,
     dirname: '',
   }
 
   beforeAll(async () => {
-    await tearDownMSSQL(setupParams, 'tests-migrate-dev').catch((e) => {
+    await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
   })
 
   beforeEach(async () => {
-    await setupMSSQL(setupParams, 'tests-migrate-dev').catch((e) => {
+    await setupMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
+      'tests-migrate',
+      databaseName,
+    )
+    process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
+      'tests-migrate-shadowdb',
+      `${databaseName}-shadowdb`,
+    )
   })
 
   afterEach(async () => {
-    await tearDownMSSQL(setupParams, 'tests-migrate-dev').catch((e) => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
   })

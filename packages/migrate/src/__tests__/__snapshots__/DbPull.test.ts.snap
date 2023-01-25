@@ -38,7 +38,7 @@ model users {
 exports[`SQL Server basic introspection --url 2`] = `
 datasource db {
   provider = "sqlserver"
-  url      = "sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 }
 
 model jobs {
@@ -633,7 +633,7 @@ model your_url {
 exports[`postgresql basic introspection --url 2`] = `
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull"
 }
 
 model Post {
@@ -708,7 +708,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema"
   schemas  = ["base", "does-not-exist"]
 }
 
@@ -745,7 +745,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema"
   schemas  = ["base", "transactional"]
 }
 
@@ -813,7 +813,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema"
   schemas  = ["base"]
 }
 
@@ -845,7 +845,7 @@ enum status {
 exports[`postgresql-multi-schema --url with \`?schema=base\` should succeed 2`] = `
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate?schema=base"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema?schema=base"
 }
 
 model User {
@@ -877,7 +877,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema"
   schemas  = ["base"]
 }
 
@@ -1057,7 +1057,7 @@ exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist"
 exports[`sqlserver-multi-schema --url with \`?schema=base\` should succeed 2`] = `
 datasource db {
   provider = "sqlserver"
-  url      = "sqlserver://localhost:1433;database=tests-migrate-multi-schema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
+  url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-multi-schema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
 }
 
 model some_table {
@@ -1084,7 +1084,7 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
   schemas  = ["base", "transactional"]
 }
 
@@ -1104,13 +1104,11 @@ model base_some_table {
   @@schema("base")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
 model transactional_some_table {
-  id    String @db.NVarChar(1)
+  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   title String @db.NVarChar(1)
 
   @@map("some_table")
-  @@ignore
   @@schema("transactional")
 }
 
@@ -1134,7 +1132,7 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
   schemas  = ["base"]
 }
 
@@ -1164,7 +1162,7 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
   schemas  = ["base", "does-not-exist"]
 }
 

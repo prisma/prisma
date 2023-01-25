@@ -49,8 +49,6 @@ describe('common', () => {
       Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate", schema "public" at "localhost:5432"
 
-      PostgreSQL database tests-migrate created at localhost:5432
-
       No migration found in prisma/migrations
 
 
