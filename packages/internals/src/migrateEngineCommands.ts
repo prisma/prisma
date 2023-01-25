@@ -98,7 +98,7 @@ export async function canConnectToDatabase(
         throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
       }
     } else {
-      throw new Error(`Migration engine exited.`)
+      throw new Error(`Migration engine exited. ${_e}`)
     }
   }
 
@@ -136,7 +136,7 @@ export async function createDatabase(connectionString: string, cwd = process.cwd
         throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
       }
     } else {
-      throw new Error(`Migration engine exited.`)
+      throw new Error(`Migration engine exited. ${_e}`)
     }
   }
 }
@@ -161,7 +161,7 @@ export async function dropDatabase(connectionString: string, cwd = process.cwd()
 
       throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
     } else {
-      throw new Error(`Migration engine exited.`)
+      throw new Error(`Migration engine exited. ${_e}`)
     }
   }
 }
