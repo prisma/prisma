@@ -3,7 +3,7 @@
 ⚠️ **Warning**: This package is intended for Prisma's internal use.
 Its release cycle does not follow SemVer, which means we might release breaking changes (change APIs, remove functionality) without any prior warning.
 
-The postinstall hook of this package downloads all Prisma engines available for the current platform, namely the Query Engine, Migration Engine, Introspection Engine and Prisma Format from the Prisma CDN.
+The postinstall hook of this package downloads all Prisma engines available for the current platform, namely the Query Engine and the Migration Engine from the Prisma CDN.
 
 The engines version to be downloaded are directly determined by the version of its `@prisma/engines-version` dependency.
 
