@@ -374,7 +374,8 @@ export async function getPlatform(): Promise<Platform> {
   const defaultLibssl = '1.1.x' as const
   if (platform === 'linux' && libssl === undefined) {
     /**
-     * Ask the user to install openssl manually, and provide some additional instructions based on the detected Linux distro family.
+     * Ask the user to install libssl manually, and provide some additional instructions based on the detected Linux distro family.
+     * TODO: we should also provide a pris.ly link to a documentation page with more details on how to install libssl.
      */
     const additionalMessage = match({ familyDistro })
       .with({ familyDistro: 'debian' }, () => {
@@ -394,10 +395,11 @@ ${additionalMessage}`,
   // sometimes we fail to detect the distro in use, so we default to debian
   const defaultDistro = 'debian' as const
   if (platform === 'linux' && targetDistro === undefined) {
+    // TODO: provide a pris.ly link to a documentation page with a short tutorial on what users can do
+    // to run prisma if they hit this case
     warnOnce(
       'distro:undefined',
-      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built for "${defaultDistro}". While these engines are likely to work on your system, Prisma may not work as expected.
-Please run \`prisma generate\` and \`prisma db push\` to chat that Prisma is working correctly on your system.`,
+      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built for "${defaultDistro}".`,
     )
   }
 
