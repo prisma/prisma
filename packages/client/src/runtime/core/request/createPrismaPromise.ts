@@ -16,7 +16,7 @@ export function createPrismaPromise(
   const _callback = (transaction?: PrismaPromiseTransaction) => {
     try {
       // promises cannot be triggered twice after resolving
-      if ((transaction?.kind !== 'batch') === true) {
+      if (transaction === undefined || transaction?.kind === 'itx') {
         return (promise ??= valueToPromise(callback(transaction)))
       }
 
