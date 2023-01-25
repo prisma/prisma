@@ -1,6 +1,6 @@
 import { isPromiseLike, mapObjectValues } from '@prisma/internals'
 
-import { omit } from '../../../../../../helpers/blaze/omit'
+import { omit } from '../../../omit'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import { isPrismaPromise } from '../request/isPrismaPromise'
 
@@ -46,7 +46,6 @@ export function wrapExtensionCallback<ResultT, ThisT, Args extends unknown[]>(
       const result = fn.apply(this, args)
 
       if (isPrismaPromise(result)) {
-        // eslint-disable-next-line @typescript-eslint/unbound-method
         const promise = createPrismaPromise((transaction) => {
           return result.catch((error) => Promise.reject(new PrismaClientExtensionError(name, error)), transaction)
         })
