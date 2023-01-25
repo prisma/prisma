@@ -335,7 +335,7 @@ testMatrix.setupTestSuite(
     })
 
     // skipping data proxy because query count isn't the same
-    testIf(provider !== 'mongodb' && process.platform !== 'win32' && !!process.env.DATA_PROXY)(
+    testIf(provider !== 'mongodb' && process.platform !== 'win32' && !process.env.DATA_PROXY)(
       'batching of PrismaPromise returning custom model methods',
       async () => {
         const fnEmitter = jest.fn()
