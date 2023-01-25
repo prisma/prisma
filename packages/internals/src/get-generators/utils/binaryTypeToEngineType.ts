@@ -2,10 +2,6 @@ import { BinaryType } from '@prisma/fetch-engine'
 import type { EngineType } from '@prisma/generator-helper'
 
 export function binaryTypeToEngineType(binaryType: string): EngineType {
-  if (binaryType === BinaryType.introspectionEngine) {
-    return 'introspectionEngine'
-  }
-
   if (binaryType === BinaryType.migrationEngine) {
     return 'migrationEngine'
   }

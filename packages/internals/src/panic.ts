@@ -35,6 +35,7 @@ export enum ErrorArea {
   LIFT_CLI = 'LIFT_CLI',
   // Looks unused, could probably be removed
   PHOTON_STUDIO = 'PHOTON_STUDIO',
+  // Unused since 4.9.0 and now using `LIFT_CLI`
   INTROSPECTION_CLI = 'INTROSPECTION_CLI',
   FMT_CLI = 'FMT_CLI',
   QUERY_ENGINE_BINARY_CLI = 'QUERY_ENGINE_BINARY_CLI',

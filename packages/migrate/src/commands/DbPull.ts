@@ -12,8 +12,6 @@ import {
   getSchema,
   getSchemaPath,
   HelpError,
-  IntrospectionSchemaVersion,
-  IntrospectionWarnings,
   link,
   loadEnvFile,
   protocolToConnectorType,
@@ -24,6 +22,7 @@ import path from 'path'
 import { match } from 'ts-pattern'
 
 import { MigrateEngine } from '../MigrateEngine'
+import type { EngineArgs } from '../types'
 import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { NoSchemaFoundError } from '../utils/errors'
 import { printDatasource } from '../utils/printDatasource'
@@ -273,8 +272,8 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
     const before = Date.now()
     let introspectionSchema = ''
-    let introspectionWarnings: IntrospectionWarnings[]
-    let introspectionSchemaVersion: IntrospectionSchemaVersion
+    let introspectionWarnings: EngineArgs.IntrospectionWarnings[]
+    let introspectionSchemaVersion: EngineArgs.IntrospectionSchemaVersion
     try {
       const introspectionResult = await engine.introspect({
         schema,
@@ -427,7 +426,7 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
     return ''
   }
 
-  private getWarningMessage(warnings: IntrospectionWarnings[]): string | undefined {
+  private getWarningMessage(warnings: EngineArgs.IntrospectionWarnings[]): string | undefined {
     if (warnings.length > 0) {
       let message = `\n*** WARNING ***\n`
 

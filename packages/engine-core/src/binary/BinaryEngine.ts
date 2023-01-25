@@ -20,6 +20,7 @@ import type {
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
+  EngineQuery,
   GetConfigResult,
   RequestBatchOptions,
   RequestOptions,
@@ -842,13 +843,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
-  async getConfig(): Promise<GetConfigResult> {
-    if (!this.getConfigPromise) {
-      this.getConfigPromise = this._getConfig()
-    }
-    return this.getConfigPromise
-  }
-
   private async _getConfig(): Promise<GetConfigResult> {
     const prismaPath = await this.getPrismaPath()
 
@@ -899,18 +893,19 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return this.lastVersion
   }
 
-  async request<T>({
-    query,
-    headers = {},
-    numTry = 1,
-    isWrite,
-    transaction,
-  }: RequestOptions<undefined>): Promise<QueryEngineResult<T>> {
+  async request<T>(
+    query: EngineQuery,
+    { headers = {}, numTry = 1, isWrite, transaction }: RequestOptions<undefined>,
+  ): Promise<QueryEngineResult<T>> {
     await this.start()
 
     // TODO: we don't need the transactionId "runtime header" anymore, we can use the txInfo object here
-    this.currentRequestPromise = this.connection.post('/', stringifyQuery(query), runtimeHeadersToHttpHeaders(headers))
-    this.lastQuery = query
+    this.currentRequestPromise = this.connection.post(
+      '/',
+      stringifyQuery(query.query),
+      runtimeHeadersToHttpHeaders(headers),
+    )
+    this.lastQuery = query.query
 
     try {
       const { data, headers } = await this.currentRequestPromise
@@ -940,24 +935,21 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       // retry
       if (numTry <= MAX_REQUEST_RETRIES && shouldRetry && !isWrite) {
         logger('trying a retry now')
-        return this.request({ query, headers, numTry: numTry + 1, isWrite, transaction })
+        return this.request(query, { headers, numTry: numTry + 1, isWrite, transaction })
       }
 
       throw error
     }
   }
 
-  async requestBatch<T>({
-    queries,
-    headers = {},
-    transaction,
-    numTry = 1,
-    containsWrite,
-  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
+  async requestBatch<T>(
+    queries: EngineQuery[],
+    { headers = {}, transaction, numTry = 1, containsWrite }: RequestBatchOptions,
+  ): Promise<BatchQueryEngineResult<T>[]> {
     await this.start()
 
     const request: QueryEngineBatchRequest = {
-      batch: queries.map((query) => ({ query, variables: {} })),
+      batch: queries.map(({ query }) => ({ query, variables: {} })),
       transaction: Boolean(transaction),
       isolationLevel: transaction?.isolationLevel,
     }
@@ -989,8 +981,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         if (shouldRetry && !containsWrite) {
           // retry
           if (numTry <= MAX_REQUEST_RETRIES) {
-            return this.requestBatch({
-              queries,
+            return this.requestBatch(queries, {
               headers,
               transaction,
               numTry: numTry + 1,

@@ -10,7 +10,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
   let prisma: any = null
   let PrismaHelpers: any = null
   let setupParams: SetupParams
-  const requests: any[] = []
   // const errorLogs: any[] = []
 
   beforeAll(async () => {
@@ -35,9 +34,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
       errorFormat: 'colorless',
       __internal: {
         measurePerformance: true,
-        hooks: {
-          beforeRequest: (request) => requests.push(request),
-        },
       },
       datasources: {
         db: {

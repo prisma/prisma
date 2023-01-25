@@ -2,6 +2,7 @@
 // @ts-check
 
 const { stdin } = process
+const fs = require('fs')
 
 // From https://github.com/sindresorhus/get-stdin/blob/main/index.js
 async function getStdin() {
@@ -49,7 +50,10 @@ async function main() {
   }
 
   console.log('jobsToRun:', jobsToRun)
-  console.log('::set-output name=jobs::' + jobsToRun.join())
+  if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+    fs.appendFileSync(process.env.GITHUB_OUTPUT, `jobs=${jobsToRun.join()}\n`)
+    console.debug('jobsToRun added to GITHUB_OUTPUT')
+  }
 }
 
 main().then(function () {

@@ -25,8 +25,13 @@ export type BatchTransactionOptions = {
 
 export type InteractiveTransactionOptions<Payload> = Transaction.Info<Payload>
 
-export type RequestOptions<InteractiveTransactionPayload> = {
+export type GraphQLQuery = {
   query: string
+}
+
+export type EngineQuery = GraphQLQuery // TODO: | JsonRequest
+
+export type RequestOptions<InteractiveTransactionPayload> = {
   headers?: QueryEngineRequestHeaders
   numTry?: number
   transaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
@@ -34,7 +39,6 @@ export type RequestOptions<InteractiveTransactionPayload> = {
 }
 
 export type RequestBatchOptions = {
-  queries: string[]
   headers?: QueryEngineRequestHeaders
   transaction?: BatchTransactionOptions
   numTry?: number
@@ -48,11 +52,10 @@ export abstract class Engine {
   abstract on(event: EngineEventType, listener: (args?: any) => any): void
   abstract start(): Promise<void>
   abstract stop(): Promise<void>
-  abstract getConfig(): Promise<GetConfigResult>
   abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
-  abstract request<T>(options: RequestOptions<unknown>): Promise<QueryEngineResult<T>>
-  abstract requestBatch<T>(options: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]>
+  abstract request<T>(query: EngineQuery, options: RequestOptions<unknown>): Promise<QueryEngineResult<T>>
+  abstract requestBatch<T>(query: EngineQuery[], options: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]>
   abstract transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,

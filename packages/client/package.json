@@ -89,7 +89,7 @@
     "@types/fs-extra": "9.0.13",
     "@types/jest": "29.2.4",
     "@types/js-levenshtein": "1.1.1",
-    "@types/mssql": "8.1.1",
+    "@types/mssql": "8.1.2",
     "@types/node": "14.18.36",
     "@types/pg": "8.6.6",
     "@types/yeoman-generator": "5.2.11",
@@ -148,7 +148,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.10.0-9.b1a5e7ba604b956346152a577d7eb2b71b949d78"
+    "@prisma/engines-version": "4.10.0-32.4d34471b51ecdd7f655c157023ed292f950705bd"
   },
   "sideEffects": false
 }
