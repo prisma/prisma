@@ -1,5 +1,9 @@
 import { isPromiseLike, mapObjectValues } from '@prisma/internals'
 
+import { omit } from '../../../../../../helpers/blaze/omit'
+import { createPrismaPromise } from '../request/createPrismaPromise'
+import { isPrismaPromise } from '../request/isPrismaPromise'
+
 export class PrismaClientExtensionError extends Error {
   constructor(public extensionName: string | undefined, cause: unknown) {
     super(`${getTitleFromExtensionName(extensionName)}: ${getMessageFromCause(cause)}`, { cause })
@@ -40,7 +44,16 @@ export function wrapExtensionCallback<ResultT, ThisT, Args extends unknown[]>(
   return function (...args) {
     try {
       const result = fn.apply(this, args)
-      if (isPromiseLike(result)) {
+
+      if (isPrismaPromise(result)) {
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        const promise = createPrismaPromise((transaction) => {
+          return result.catch((error) => Promise.reject(new PrismaClientExtensionError(name, error)), transaction)
+        })
+
+        // we keep all other fields stored in the original promise
+        return Object.assign(promise, omit(result, ['then', 'catch', 'finally', 'requestTransaction'])) as ResultT
+      } else if (isPromiseLike(result)) {
         return result.then(undefined, (error) => Promise.reject(new PrismaClientExtensionError(name, error))) as ResultT
       }
       return result
