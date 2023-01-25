@@ -5,6 +5,7 @@ import os from 'os'
 import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
+import { link } from './link'
 import { Platform } from './platforms'
 import { warnOnce } from './warnOnce'
 
@@ -57,22 +58,13 @@ export async function getos(): Promise<GetOSResult> {
   const distro = await resolveDistro()
   const archFromUname = await getArchFromUname()
 
-  const usesOfficialEngines = !(
-    process.env.PRISMA_QUERY_ENGINE_BINARY ||
-    process.env.PRISMA_QUERY_ENGINE_LIBRARY ||
-    process.env.PRISMA_MIGRATION_ENGINE_BINARY
-  )
-  if (distro === 'musl' && arch !== 'x64') {
-    if (usesOfficialEngines) {
-      throw new Error(
-        `Prisma only supports Linux Alpine on the amd64 (x86_64) system architecture. If you're running Prisma on Docker, please use Docker Buildx to simulate the amd64 architecture on your device as explained by this comment: https://github.com/prisma/prisma/issues/8478#issuecomment-1355209706`,
-      )
-    } else {
-      warnOnce(
-        'alpine:not-x64',
-        `Prisma only officially supports Linux Alpine on the amd64 (x86_64) system architecture. We're detecting that you're using your own Prisma engines, so Prisma should work as intended as long as you've compiled the engines for your system architecture "${archFromUname}".`,
-      )
-    }
+  // TODO: add 'arm64' to the `[...].includes(arch)` check once we have arm64 engines for Alpine
+  if (distro === 'musl' && !['amd64'].includes(arch)) {
+    warnOnce(
+      'alpine:unsupported-arch',
+      `Prisma only officially supports Linux Alpine on the amd64 (x86_64) system architecture. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".
+If you are using Prisma on Docker, please refer to ${link('https://pris.ly/d/docker-alpine')}`,
+    )
   }
 
   const libssl = await getSSLVersion({ arch, archFromUname, distro })
