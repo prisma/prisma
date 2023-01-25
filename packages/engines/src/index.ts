@@ -58,6 +58,13 @@ export { enginesVersion } from '@prisma/engines-version'
  */
 
 path.join(__dirname, '../query-engine-darwin')
+path.join(__dirname, '../query-engine-darwin-arm64')
+path.join(__dirname, '../query-engine-debian-openssl-1.0.x')
+path.join(__dirname, '../query-engine-debian-openssl-1.1.x')
+path.join(__dirname, '../query-engine-debian-openssl-3.0.x')
+path.join(__dirname, '../query-engine-rhel-openssl-1.0.x')
+path.join(__dirname, '../query-engine-rhel-openssl-1.1.x')
+path.join(__dirname, '../query-engine-rhel-openssl-3.0.x')
 
 // Node API
 path.join(__dirname, '../libquery_engine-darwin.dylib.node')
