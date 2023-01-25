@@ -1,7 +1,7 @@
 import { PrismaClientKnownRequestError } from '@prisma/engine-core'
 import { isError } from '@prisma/internals'
 
-import type { Action } from '../getPrismaClient'
+import { Action } from '../core/types/JsApi'
 import { clientVersion } from './clientVersion'
 
 export type RejectOnNotFound = boolean | ((error: Error) => Error) | undefined
@@ -63,23 +63,24 @@ const REGEX = /(findUnique|findFirst)/
  * Throws an error based on the current rejectOnNotFound configuration
  * @param data
  * @param clientMethod
- * @param typeName
+ * @param modelName
  * @param [rejectOnNotFound]
  */
 export function throwIfNotFound(
-  data: any,
+  data: unknown,
   clientMethod: string,
-  typeName: string,
+  modelName: string | undefined,
   rejectOnNotFound?: RejectOnNotFound,
 ) {
+  modelName ??= 'record'
   if (rejectOnNotFound && !data && REGEX.exec(clientMethod)) {
     if (typeof rejectOnNotFound === 'boolean' && rejectOnNotFound) {
-      throw new NotFoundError(`No ${typeName} found`)
+      throw new NotFoundError(`No ${modelName} found`)
     } else if (typeof rejectOnNotFound === 'function') {
-      throw rejectOnNotFound(new NotFoundError(`No ${typeName} found`))
+      throw rejectOnNotFound(new NotFoundError(`No ${modelName} found`))
     } else if (isError(rejectOnNotFound)) {
       throw rejectOnNotFound
     }
-    throw new NotFoundError(`No ${typeName} found`)
+    throw new NotFoundError(`No ${modelName} found`)
   }
 }
