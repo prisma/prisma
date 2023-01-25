@@ -375,6 +375,60 @@ testMatrix.setupTestSuite(
       },
     )
 
+    // skipping data proxy because query count isn't the same
+    testIf(provider !== 'mongodb' && process.platform !== 'win32' && !process.env.DATA_PROXY)(
+      'batching of PrismaPromise returning custom model methods and query',
+      async () => {
+        const fnEmitter = jest.fn()
+
+        // @ts-expect-error
+        prisma.$on('query', fnEmitter)
+
+        const xprisma = prisma
+          .$extends({
+            model: {
+              user: {
+                fn() {
+                  const ctx = Prisma.getExtensionContext(this)
+                  return Object.assign(ctx.findFirst(), { prop: 'value' })
+                },
+              },
+            },
+          })
+          .$extends({
+            query: {
+              $allModels: {
+                async $allOperations({ query, args }) {
+                  // test if await has any side effects
+                  const data = await query(args)
+
+                  return data
+                },
+              },
+            },
+          })
+
+        const data = await xprisma.$transaction([xprisma.user.fn(), xprisma.user.fn()])
+
+        expect(data).toMatchInlineSnapshot(`
+                [
+                  null,
+                  null,
+                ]
+              `)
+
+        await waitFor(() => {
+          expect(fnEmitter).toHaveBeenCalledTimes(4)
+          expect(fnEmitter.mock.calls).toMatchObject([
+            [{ query: expect.stringContaining('BEGIN') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('SELECT') }],
+            [{ query: expect.stringContaining('COMMIT') }],
+          ])
+        })
+      },
+    )
+
     test('error in extension methods without name', () => {
       const xprisma = prisma.$extends({
         model: {
