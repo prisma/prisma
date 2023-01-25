@@ -113,7 +113,6 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
    * Alma Linux   => ID="almalinux", ID_LIKE="rhel centos fedora"  => targetDistro=rhel, familyDistro=rhel
    * Fedora       => ID=fedora                                     => targetDistro=rhel, familyDistro=rhel
    */
-
   const distroInfo = match({ id, idLike })
     .with(
       { id: 'alpine' },
