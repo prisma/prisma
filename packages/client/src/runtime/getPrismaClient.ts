@@ -164,9 +164,10 @@ export type InternalRequestParams = {
    * for warnings or error messages
    */
   jsModelName?: string
+  // Extra headers for data proxy.
+  // TODO: remove after https://github.com/prisma/prisma/pull/17356 is merged
+  headers?: Record<string, string>
   callsite?: CallSite
-  /** Headers metadata that will be passed to the Engine */
-  headers?: Record<string, string> // TODO what is this
   transaction?: PrismaPromiseTransaction
   unpacker?: Unpacker // TODO what is this
   lock?: PromiseLike<void>
@@ -847,35 +848,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       })
     }
 
-    __internal_triggerPanic(fatal: boolean) {
-      if (!this._engineConfig.allowTriggerPanic) {
-        throw new Error(`In order to use .__internal_triggerPanic(), please enable it like so:
-new PrismaClient({
-  __internal: {
-    engine: {
-      allowTriggerPanic: true
-    }
-  }
-})`)
-      }
-
-      // TODO: make a `fatal` boolean instead & let be handled in `engine-core`
-      // in `runtimeHeadersToHttpHeaders` maybe add a shared in `Engine`
-      const headers: Record<string, string> = fatal ? { 'X-DEBUG-FATAL': '1' } : { 'X-DEBUG-NON-FATAL': '1' }
-
-      return this._request({
-        action: 'queryRaw',
-        args: {
-          query: 'SELECT 1',
-          parameters: undefined,
-        },
-        clientMethod: 'queryRaw',
-        dataPath: [],
-        headers,
-        callsite: getCallSite(this._errorFormat),
-      })
-    }
-
     /**
      * Execute a batch of requests in a transaction
      * @param requests
@@ -1115,11 +1087,11 @@ new PrismaClient({
         callsite,
         args,
         extensions: this._extensions,
-        headers,
         transaction,
         unpacker,
         otelParentCtx,
         otelChildCtx: context.active(),
+        customDataProxyHeaders: headers,
       })
     }
 

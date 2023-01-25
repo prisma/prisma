@@ -13,6 +13,7 @@ import type {
   EngineQuery,
   RequestBatchOptions,
   RequestOptions,
+  TransactionOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -38,6 +39,8 @@ import type {
   SyncRustError,
 } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
+import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
+import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
@@ -60,7 +63,7 @@ const knownPlatforms: Platform[] = [...platforms, 'native']
 let engineInstanceCount = 0
 const exitHooks = new ExitHooks()
 
-export class LibraryEngine extends Engine {
+export class LibraryEngine extends Engine<undefined> {
   private engine?: QueryEngineInstance
   private libraryInstantiationPromise?: Promise<void>
   private libraryStartingPromise?: Promise<void>
@@ -122,9 +125,21 @@ export class LibraryEngine extends Engine {
     }
   }
 
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info<undefined>>
-  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
-  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
+  async transaction(
+    action: 'start',
+    headers: Tx.TransactionHeaders,
+    options?: Tx.Options,
+  ): Promise<Tx.InteractiveTransactionInfo<undefined>>
+  async transaction(
+    action: 'commit',
+    headers: Tx.TransactionHeaders,
+    info: Tx.InteractiveTransactionInfo<undefined>,
+  ): Promise<undefined>
+  async transaction(
+    action: 'rollback',
+    headers: Tx.TransactionHeaders,
+    info: Tx.InteractiveTransactionInfo<undefined>,
+  ): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
@@ -155,7 +170,7 @@ export class LibraryEngine extends Engine {
       })
     }
 
-    return response as Tx.Info<undefined> | undefined
+    return response as Tx.InteractiveTransactionInfo<undefined> | undefined
   }
 
   private async instantiateLibrary(): Promise<void> {
@@ -438,16 +453,16 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
   async request<T>(
     query: EngineQuery,
-    { headers = {} }: RequestOptions<undefined>,
+    { traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
     const request: QueryEngineRequest = { query: query.query, variables: {} }
-    const headerStr = JSON.stringify(headers) // object equivalent to http headers for the library
+    const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(request)
 
     try {
       await this.start()
-      this.executingQueryPromise = this.engine?.query(queryStr, headerStr, headers.transactionId)
+      this.executingQueryPromise = this.engine?.query(queryStr, headerStr, interactiveTransaction?.id)
 
       this.lastQuery = queryStr
       const data = this.parseEngineResponse<any>(await this.executingQueryPromise)
@@ -485,18 +500,18 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
 
   async requestBatch<T>(
     queries: EngineQuery[],
-    { headers = {}, transaction }: RequestBatchOptions,
+    { transaction, traceparent }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     debug('requestBatch')
-    const request: QueryEngineBatchRequest = {
-      batch: queries.map(({ query }) => ({ query, variables: {} })),
-      transaction: Boolean(transaction),
-      isolationLevel: transaction?.isolationLevel,
-    }
+    const request = getBatchRequestPayload(queries, transaction)
     await this.start()
 
     this.lastQuery = JSON.stringify(request)
-    this.executingQueryPromise = this.engine!.query(this.lastQuery, JSON.stringify(headers), headers.transactionId)
+    this.executingQueryPromise = this.engine!.query(
+      this.lastQuery,
+      JSON.stringify({ traceparent }),
+      getInteractiveTransactionId(transaction),
+    )
     const result = await this.executingQueryPromise
     const data = this.parseEngineResponse<any>(result)
 

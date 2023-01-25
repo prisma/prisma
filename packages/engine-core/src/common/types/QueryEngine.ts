@@ -89,12 +89,6 @@ export type QueryEngineResultBatchQueryResult<T> =
       errors: RequestError[]
     }
 
-export type QueryEngineRequestHeaders = {
-  traceparent?: string
-  transactionId?: string
-  fatal?: string // TODO
-}
-
 export type QueryEngineBatchRequest = {
   batch: QueryEngineRequest[]
   transaction: boolean
