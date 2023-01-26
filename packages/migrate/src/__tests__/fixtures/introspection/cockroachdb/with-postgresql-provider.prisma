@@ -4,5 +4,5 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("TEST_COCKROACH_URI")
+  url      = env("TEST_COCKROACH_URI_MIGRATE")
 }
