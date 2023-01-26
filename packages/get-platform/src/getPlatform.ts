@@ -59,7 +59,7 @@ export async function getos(): Promise<GetOSResult> {
   const archFromUname = await getArchFromUname()
 
   // TODO: add 'arm64' to the `[...].includes(arch)` check once we have arm64 engines for Alpine
-  if (distro === 'musl' && !['amd64'].includes(arch)) {
+  if (distro === 'musl' && !['x64'].includes(arch)) {
     warnOnce(
       'alpine:unsupported-arch',
       `Prisma only officially supports Linux Alpine on the amd64 (x86_64) system architecture. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".
