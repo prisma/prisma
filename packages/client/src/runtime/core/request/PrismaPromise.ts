@@ -7,13 +7,15 @@ export type PrismaPromiseBatchTransaction = {
   index: number
 }
 
-export type PrismaPromiseInteractiveTransaction = {
+export type PrismaPromiseInteractiveTransaction<PayloadType = unknown> = {
   kind: 'itx'
   id: string
-  payload: unknown
+  payload: PayloadType
 }
 
-export type PrismaPromiseTransaction = PrismaPromiseBatchTransaction | PrismaPromiseInteractiveTransaction
+export type PrismaPromiseTransaction<PayloadType = unknown> =
+  | PrismaPromiseBatchTransaction
+  | PrismaPromiseInteractiveTransaction<PayloadType>
 
 export type BatchTransactionOptions = Omit<PrismaPromiseBatchTransaction, 'kind'>
 export type InteractiveTransactionOptions = Omit<PrismaPromiseInteractiveTransaction, 'kind'>
