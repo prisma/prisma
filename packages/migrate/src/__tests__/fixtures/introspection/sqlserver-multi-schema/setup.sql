@@ -1,4 +1,4 @@
-USE [tests-migrate-multi-schema];
+USE [tests-migrate-db-pull-multi-schema];
 
 IF NOT EXISTS ( SELECT  *
                 FROM    sys.schemas
