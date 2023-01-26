@@ -3,12 +3,8 @@ import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper
 import { TracingConfig } from '../tracing/getTracingConfig'
 import { EventEmitter } from './types/Events'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
-import type { QueryEngineRequestHeaders, QueryEngineResult } from './types/QueryEngine'
+import type { QueryEngineResult } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
-
-export interface FilterConstructor {
-  new (config: EngineConfig): Engine
-}
 
 export type NullableEnvValue = {
   fromEnvVar: string | null
@@ -23,7 +19,17 @@ export type BatchTransactionOptions = {
   isolationLevel?: Transaction.IsolationLevel
 }
 
-export type InteractiveTransactionOptions<Payload> = Transaction.Info<Payload>
+export type TransactionOptions<InteractiveTransactionPayload> =
+  | {
+      kind: 'itx'
+      options: InteractiveTransactionOptions<InteractiveTransactionPayload>
+    }
+  | {
+      kind: 'batch'
+      options: BatchTransactionOptions
+    }
+
+export type InteractiveTransactionOptions<Payload> = Transaction.InteractiveTransactionInfo<Payload>
 
 export type GraphQLQuery = {
   query: string
@@ -32,44 +38,53 @@ export type GraphQLQuery = {
 export type EngineQuery = GraphQLQuery // TODO: | JsonRequest
 
 export type RequestOptions<InteractiveTransactionPayload> = {
-  headers?: QueryEngineRequestHeaders
+  traceparent?: string
   numTry?: number
-  transaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
+  interactiveTransaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
   isWrite: boolean
+  customDataProxyHeaders?: Record<string, string>
 }
 
-export type RequestBatchOptions = {
-  headers?: QueryEngineRequestHeaders
-  transaction?: BatchTransactionOptions
+export type RequestBatchOptions<InteractiveTransactionPayload> = {
+  transaction?: TransactionOptions<InteractiveTransactionPayload>
+  traceparent?: string
   numTry?: number
   containsWrite: boolean
+  // TODO: remove after https://github.com/prisma/prisma/pull/17356 is merged
+  customDataProxyHeaders?: Record<string, string>
 }
 
 export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error
 
 // TODO Move shared logic in here
-export abstract class Engine {
+export abstract class Engine<InteractiveTransactionPayload = unknown> {
   abstract on(event: EngineEventType, listener: (args?: any) => any): void
   abstract start(): Promise<void>
   abstract stop(): Promise<void>
   abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
-  abstract request<T>(query: EngineQuery, options: RequestOptions<unknown>): Promise<QueryEngineResult<T>>
-  abstract requestBatch<T>(query: EngineQuery[], options: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]>
+  abstract request<T>(
+    query: EngineQuery,
+    options: RequestOptions<InteractiveTransactionPayload>,
+  ): Promise<QueryEngineResult<T>>
+  abstract requestBatch<T>(
+    query: EngineQuery[],
+    options: RequestBatchOptions<InteractiveTransactionPayload>,
+  ): Promise<BatchQueryEngineResult<T>[]>
   abstract transaction(
     action: 'start',
     headers: Transaction.TransactionHeaders,
     options?: Transaction.Options,
-  ): Promise<Transaction.Info<unknown>>
+  ): Promise<Transaction.InteractiveTransactionInfo<unknown>>
   abstract transaction(
     action: 'commit',
     headers: Transaction.TransactionHeaders,
-    info: Transaction.Info<unknown>,
+    info: Transaction.InteractiveTransactionInfo<unknown>,
   ): Promise<void>
   abstract transaction(
     action: 'rollback',
     headers: Transaction.TransactionHeaders,
-    info: Transaction.Info<unknown>,
+    info: Transaction.InteractiveTransactionInfo<unknown>,
   ): Promise<void>
 
   abstract metrics(options: MetricsOptionsJson): Promise<Metrics>

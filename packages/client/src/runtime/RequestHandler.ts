@@ -1,6 +1,14 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
-import { EventEmitter, getTraceParent, hasBatchIndex, TracingConfig } from '@prisma/engine-core'
+import {
+  EventEmitter,
+  getTraceParent,
+  hasBatchIndex,
+  InteractiveTransactionOptions,
+  TracingConfig,
+  TransactionOptions,
+} from '@prisma/engine-core'
+import { assertNever } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 
 import {
@@ -14,7 +22,7 @@ import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { visitQueryResult } from './core/extensions/visitQueryResult'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { ProtocolMessage } from './core/protocol/common'
-import { PrismaPromiseTransaction } from './core/request/PrismaPromise'
+import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { JsArgs } from './core/types/JsApi'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
@@ -32,6 +40,7 @@ export type RequestParams = {
   callsite?: CallSite
   rejectOnNotFound?: RejectOnNotFound
   transaction?: PrismaPromiseTransaction
+  customDataProxyHeaders?: Record<string, string>
   extensions: MergedExtensionsList
   args?: any
   headers?: Record<string, string>
@@ -50,7 +59,7 @@ export type HandleErrorParams = {
 export type Request = {
   protocolMessage: ProtocolMessage
   transaction?: PrismaPromiseTransaction
-  headers?: Record<string, string>
+  customDataProxyHeaders?: Record<string, string>
   otelParentCtx?: Context
   otelChildCtx?: Context
   tracingConfig?: TracingConfig
@@ -63,25 +72,6 @@ type ApplyExtensionsParams = {
   extensions: MergedExtensionsList
 }
 
-function getRequestInfo(request: Request) {
-  const transaction = request.transaction
-  const headers = request.headers ?? {}
-  const traceparent = getTraceParent({ tracingConfig: request.tracingConfig })
-
-  if (transaction?.kind === 'itx') {
-    headers.transactionId = transaction.id
-  }
-
-  if (traceparent !== undefined) {
-    headers.traceparent = traceparent
-  }
-
-  return {
-    transaction,
-    headers,
-  }
-}
-
 export class RequestHandler {
   client: Client
   dataloader: DataLoader<Request>
@@ -92,32 +82,31 @@ export class RequestHandler {
     this.client = client
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        const info = getRequestInfo(requests[0])
+        const transaction = requests[0].transaction
         const queries = requests.map((r) => r.protocolMessage.toEngineQuery())
         const traceparent = getTraceParent({ context: requests[0].otelParentCtx, tracingConfig: client._tracingConfig })
 
-        if (traceparent) info.headers.traceparent = traceparent
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
         const containsWrite = requests.some((r) => r.protocolMessage.isWrite())
 
-        const batchTransaction = info.transaction?.kind === 'batch' ? info.transaction : undefined
-
         return this.client._engine.requestBatch(queries, {
-          headers: info.headers,
-          transaction: batchTransaction,
+          traceparent,
+          transaction: getTransactionOptions(transaction),
           containsWrite,
+          customDataProxyHeaders: requests[0].customDataProxyHeaders,
         })
       },
       singleLoader: (request) => {
-        const info = getRequestInfo(request)
-        const interactiveTransaction = info.transaction?.kind === 'itx' ? info.transaction : undefined
+        const interactiveTransaction =
+          request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
         return this.client._engine.request(request.protocolMessage.toEngineQuery(), {
-          headers: info.headers,
-          transaction: interactiveTransaction,
+          traceparent: getTraceParent({ tracingConfig: request.tracingConfig }),
+          interactiveTransaction,
           isWrite: request.protocolMessage.isWrite(),
+          customDataProxyHeaders: request.customDataProxyHeaders,
         })
       },
       batchBy: (request) => {
@@ -138,21 +127,21 @@ export class RequestHandler {
     rejectOnNotFound,
     clientMethod,
     args,
-    headers,
     transaction,
     unpacker,
     extensions,
     otelParentCtx,
     otelChildCtx,
+    customDataProxyHeaders,
   }: RequestParams) {
     try {
       const response = await this.dataloader.request({
         protocolMessage,
-        headers,
         transaction,
         otelParentCtx,
         otelChildCtx,
         tracingConfig: this.client._tracingConfig,
+        customDataProxyHeaders,
       })
       const data = response?.data
       const elapsed = response?.elapsed
@@ -283,6 +272,41 @@ export class RequestHandler {
 
   get [Symbol.toStringTag]() {
     return 'RequestHandler'
+  }
+}
+
+function getTransactionOptions<PayloadType>(
+  transaction?: PrismaPromiseTransaction<PayloadType>,
+): TransactionOptions<PayloadType> | undefined {
+  if (!transaction) {
+    return undefined
+  }
+
+  if (transaction.kind === 'batch') {
+    return {
+      kind: 'batch',
+      options: {
+        isolationLevel: transaction.isolationLevel,
+      },
+    }
+  }
+
+  if (transaction.kind === 'itx') {
+    return {
+      kind: 'itx',
+      options: getItxTransactionOptions(transaction),
+    }
+  }
+
+  assertNever(transaction, 'Unknown transaction kind')
+}
+
+function getItxTransactionOptions<PayloadType>(
+  transaction: PrismaPromiseInteractiveTransaction<PayloadType>,
+): InteractiveTransactionOptions<PayloadType> {
+  return {
+    id: transaction.id,
+    payload: transaction.payload,
   }
 }
 
