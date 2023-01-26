@@ -99,12 +99,36 @@ export class RequestHandler {
           customDataProxyFetch: requests[0].customDataProxyFetch,
         })
       },
-      singleLoader: (request) => {
+      singleLoader: async (request) => {
+        const traceparent = getTraceParent({ tracingConfig: request.tracingConfig })
+        const engineQuery = request.protocolMessage.toEngineQuery()
+
+        if (request.transaction?.kind === 'batch') {
+          // if it is a single request within a batch transaction, we will execute it using batch endpoint
+          // because singular `request` can not start transactions or set isolation level
+          const response = await this.client._engine.requestBatch([engineQuery], {
+            traceparent,
+            containsWrite: request.protocolMessage.isWrite(),
+            customDataProxyHeaders: request.customDataProxyHeaders,
+            transaction: {
+              kind: 'batch',
+              options: {
+                isolationLevel: request.transaction.isolationLevel,
+              },
+            },
+          })
+          const result = response[0]
+          if (result instanceof Error) {
+            throw result
+          }
+          return result
+        }
+
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
-        return this.client._engine.request(request.protocolMessage.toEngineQuery(), {
-          traceparent: getTraceParent({ tracingConfig: request.tracingConfig }),
+        return this.client._engine.request(engineQuery, {
+          traceparent,
           interactiveTransaction,
           isWrite: request.protocolMessage.isWrite(),
           customDataProxyFetch: request.customDataProxyFetch,

@@ -73,6 +73,16 @@ testMatrix.setupTestSuite(
       expect(queries.find((q) => q.includes('SET TRANSACTION ISOLATION LEVEL'))).toBeUndefined()
     })
 
+    test('single query in a batch', async () => {
+      await prisma.$transaction([prisma.user.findFirst({})], {
+        isolationLevel: Prisma.TransactionIsolationLevel.ReadCommitted,
+      })
+
+      await waitFor(() => {
+        expect(queries).toContain('SET TRANSACTION ISOLATION LEVEL READ COMMITTED')
+      })
+    })
+
     test('invalid level generates run- and compile- time error', async () => {
       // @ts-expect-error
       const result = prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})], {
