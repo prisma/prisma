@@ -1058,47 +1058,44 @@ describe('postgresql-extensions', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-  if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI) {
-    throw new Error('You must set a value for process.env.TEST_COCKROACH_URI. See TESTING.md')
+  if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
+    throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
   }
+  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE?.replace('tests-migrate', 'tests-migrate-db-pull')
 
-  const connectionString = process.env.TEST_COCKROACH_URI!.replace('tests-migrate', 'tests-migrate-db-pull')
-  const defaultParams = {
-    connectionString,
-  }
-
-  async function testSetup(setupDirname = 'cockroachdb', options = { withFixture: false }) {
-    const baseDirname = path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection')
-    const setupParams = {
-      ...defaultParams,
-      // Note: at this location there is a setup.sql file
-      // which will be executed a SQL file so the database is not empty
-      dirname: path.join(baseDirname, setupDirname),
-    }
-
-    await setupCockroach(setupParams).catch((e) => {
-      console.error(e)
-    })
-
-    if (options.withFixture) {
-      ctx.fixture(`introspection/${setupDirname}`)
-    }
+  const setupParams = {
+    connectionString: connectionString!,
+    // Note: at this location there is a setup.sql file
+    // which will be executed a SQL file so the database is not empty
+    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'cockroachdb'),
   }
 
   beforeAll(async () => {
-    await tearDownCockroach(defaultParams).catch((e) => {
+    await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
+  })
+
+  beforeEach(async () => {
+    await setupCockroach(setupParams).catch((e) => {
+      console.error(e)
+    })
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
   })
 
   afterEach(async () => {
-    await tearDownCockroach(defaultParams).catch((e) => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
-  test('basic introspection (with cockroachdb schema)', async () => {
-    await testSetup('cockroachdb', { withFixture: true })
+  test('basic introspection (with cockroachdb provider)', async () => {
+    ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
     const result = introspect.parse(['--print'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -1107,30 +1104,10 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  test('basic introspection (with cockroachdb schema, cockroachdb native types)', async () => {
-    await testSetup('nativeTypes-cockroachdb', { withFixture: true })
+  test('basic introspection (with postgresql provider)', async () => {
+    ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  })
-
-  test('basic introspection (with postgresql schema)', async () => {
-    await testSetup('cockroachdb-with-postgresql-provider', { withFixture: true })
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print'])
-    await expect(result).resolves.toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  })
-
-  test('basic introspection (with postgresql schema, cockroachdb native types)', async () => {
-    await testSetup('nativeTypes-cockroachdb-with-postgresql-provider', { withFixture: true })
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print'])
+    const result = introspect.parse(['--print', '--schema', 'with-postgresql-provider.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -1138,29 +1115,35 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
   })
 
   test('basic introspection (no schema) --url', async () => {
-    await testSetup('cockroachdb')
+    ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  test('basic introspection (with cockroach schema) --url ', async () => {
-    await testSetup('cockroachdb', { withFixture: true })
+  test('basic introspection (with cockroach provider) --url ', async () => {
+    ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
+    const result = introspect.parse(['--print', '--url', setupParams.connectionString])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  test('basic introspection (with cockroach schema, cockroachdb native types) --url ', async () => {
-    await testSetup('nativeTypes-cockroachdb', { withFixture: true })
+  test('basic introspection (with cockroach provider) --url ', async () => {
+    ctx.fixture('introspection/cockroachdb')
     const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', defaultParams.connectionString])
+    const result = introspect.parse([
+      '--print',
+      '--url',
+      setupParams.connectionString,
+      '--schema',
+      'with-postgresql-provider.prisma',
+    ])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -1796,6 +1779,12 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  // TODO unskip in a following PR
+  // We need to find out why this test can fail and pass in CI...
+  // It was blocking the release pipeline
+  // Examples
+  // https://github.com/prisma/prisma/actions/runs/4013789656/jobs/6893546711 (most recent)
+  // https://buildkite.com/prisma/test-prisma-typescript/builds/18825#01855966-3d90-4362-b130-502021a1047b
   test.skip('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
     ctx.fixture('introspection/sqlserver-multi-schema')
     const introspect = new DbPull()
