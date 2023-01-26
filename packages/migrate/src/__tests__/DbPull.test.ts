@@ -1805,25 +1805,16 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                              // *** WARNING ***
-                              // 
-                              // The following models were commented out as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client.
-                              // - "transactional_some_table"
-                              // 
-                              // These models were renamed due to their names being duplicates in the Prisma Schema Language.
-                              // Code 20
-                              // [
-                              //   {
-                              //     "type": "Model",
-                              //     "name": "base_some_table"
-                              //   },
-                              //   {
-                              //     "type": "Model",
-                              //     "name": "transactional_some_table"
-                              //   }
-                              // ]
-                              // 
-                    `)
+      // *** WARNING ***
+      // 
+      // The following models were commented out as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client.
+      // - "transactional_some_table"
+      // 
+      // These models were renamed due to their names being duplicates in the Prisma Schema Language.
+      // - Model "base_some_table"
+      // - Model "transactional_some_table"
+      // 
+    `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
