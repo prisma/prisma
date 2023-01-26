@@ -398,11 +398,12 @@ ${additionalMessage}`,
   // sometimes we fail to detect the distro in use, so we default to debian
   const defaultDistro = 'debian' as const
   if (platform === 'linux' && targetDistro === undefined) {
-    // TODO: provide a pris.ly link to a documentation page with a short tutorial on what users can do
-    // to run prisma if they hit this case
     warnOnce(
       'distro:undefined',
-      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built for "${defaultDistro}".`,
+      `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".
+Please report your experience by creating an issue at ${link(
+        'https://github.com/prisma/prisma/issues',
+      )} so we can add your distro to the list of known supported distros.`,
     )
   }
 
