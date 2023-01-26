@@ -16,7 +16,7 @@ import {
   SpanOptions,
   TracingConfig,
 } from '@prisma/engine-core'
-import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import type { GeneratorConfig } from '@prisma/generator-helper'
 import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
@@ -38,7 +38,11 @@ import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { ProtocolEncoder } from './core/protocol/common'
 import { GraphQLProtocolEncoder } from './core/protocol/graphql'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
-import { InteractiveTransactionOptions, PrismaPromise, PrismaPromiseTransaction } from './core/request/PrismaPromise'
+import {
+  PrismaPromise,
+  PrismaPromiseInteractiveTransaction,
+  PrismaPromiseTransaction,
+} from './core/request/PrismaPromise'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { BaseDMMFHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
@@ -49,7 +53,6 @@ import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
-import { getOutputTypeName } from './utils/common'
 import { deserializeRawResults } from './utils/deserializeRawResults'
 import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
@@ -170,7 +173,6 @@ export type InternalRequestParams = {
   callsite?: CallSite
   transaction?: PrismaPromiseTransaction
   unpacker?: Unpacker // TODO what is this
-  lock?: PromiseLike<void>
   otelParentCtx?: Context
   /** Used to "desugar" a user input into an "expanded" one */
   argsMapper?: (args?: UserArgs) => UserArgs
@@ -540,7 +542,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     $executeRawInternal(
       transaction: PrismaPromiseTransaction | undefined,
-      lock: PromiseLike<void> | undefined,
       query: string | TemplateStringsArray | Sql,
       ...values: RawValue[]
     ) {
@@ -635,7 +636,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         action: 'executeRaw',
         callsite: getCallSite(this._errorFormat),
         transaction,
-        lock,
       })
     }
 
@@ -648,9 +648,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * @returns
      */
     $executeRaw(query: TemplateStringsArray | Sql, ...values: any[]) {
-      return createPrismaPromise((transaction, lock) => {
+      return createPrismaPromise((transaction) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as Sql).sql !== undefined) {
-          return this.$executeRawInternal(transaction, lock, query, ...values)
+          return this.$executeRawInternal(transaction, query, ...values)
         }
 
         throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
@@ -672,8 +672,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $executeRawUnsafe(query: string, ...values: RawValue[]) {
-      return createPrismaPromise((transaction, lock) => {
-        return this.$executeRawInternal(transaction, lock, query, ...values)
+      return createPrismaPromise((transaction) => {
+        return this.$executeRawInternal(transaction, query, ...values)
       })
     }
 
@@ -690,7 +690,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         )
       }
 
-      return createPrismaPromise((transaction, lock) => {
+      return createPrismaPromise((transaction) => {
         return this._request({
           args: { command: command },
           clientMethod: '$runCommandRaw',
@@ -698,7 +698,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           action: 'runCommandRaw',
           callsite: getCallSite(this._errorFormat),
           transaction: transaction,
-          lock,
         })
       })
     }
@@ -708,7 +707,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     async $queryRawInternal(
       transaction: PrismaPromiseTransaction | undefined,
-      lock: PromiseLike<void> | undefined,
       query: string | TemplateStringsArray | Sql,
       ...values: RawValue[]
     ) {
@@ -806,7 +804,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         action: 'queryRaw',
         callsite: getCallSite(this._errorFormat),
         transaction,
-        lock,
       }).then(deserializeRawResults)
     }
 
@@ -819,9 +816,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRaw(query: TemplateStringsArray | Sql, ...values: any[]) {
-      return createPrismaPromise((txId, lock) => {
+      return createPrismaPromise((transaction) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as Sql).sql !== undefined) {
-          return this.$queryRawInternal(txId, lock, query, ...values)
+          return this.$queryRawInternal(transaction, query, ...values)
         }
 
         throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
@@ -843,8 +840,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @returns
      */
     $queryRawUnsafe(query: string, ...values: RawValue[]) {
-      return createPrismaPromise((txId, lock) => {
-        return this.$queryRawInternal(txId, lock, query, ...values)
+      return createPrismaPromise((transaction) => {
+        return this.$queryRawInternal(transaction, query, ...values)
       })
     }
 
@@ -870,7 +867,9 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           )
         }
 
-        return request.requestTransaction?.({ id, index, isolationLevel: options?.isolationLevel }, lock) ?? request
+        const isolationLevel = options?.isolationLevel
+        const transaction = { kind: 'batch', id, index, isolationLevel, lock } as const
+        return request.requestTransaction?.(transaction) ?? request
       })
 
       return waitForBatch(requests)
@@ -895,7 +894,8 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       let result: unknown
       try {
         // execute user logic with a proxied the client
-        result = await callback(transactionProxy(this, { id: info.id, payload: info.payload }))
+        const transaction = { kind: 'itx', ...info } as const
+        result = await callback(transactionProxy(this, transaction))
 
         // it went well, then we commit the transaction
         await this._engine.transaction('commit', headers, info)
@@ -1029,7 +1029,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       headers,
       argsMapper,
       transaction,
-      lock,
       unpacker,
       otelParentCtx,
     }: InternalRequestParams) {
@@ -1076,7 +1075,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         debug(message.toDebugString() + '\n')
       }
 
-      await lock /** @see {@link getLockCountPromise} */
+      if (transaction?.kind === 'batch') {
+        /** @see {@link getLockCountPromise} */
+        await transaction.lock
+      }
 
       return this._fetcher.request({
         protocolMessage: message,
@@ -1145,7 +1147,7 @@ const forbidden: Array<string | symbol> = ['$connect', '$disconnect', '$on', '$t
  * @param transaction to be passed down to {@link RequestHandler}
  * @returns
  */
-function transactionProxy<T>(thing: T, transaction: InteractiveTransactionOptions): T {
+function transactionProxy<T>(thing: T, transaction: PrismaPromiseInteractiveTransaction): T {
   // we only wrap within a proxy if it's possible: if it's an object
   if (typeof thing !== 'object') return thing
 

@@ -10,13 +10,14 @@ function iterateAndCallQueryCallbacks(
   queryCbs: RequiredArgs['query'][string][string][],
   i = 0,
 ) {
-  return createPrismaPromise((transaction, lock) => {
+  return createPrismaPromise((transaction) => {
     // allow query extensions to re-wrap in transactions
     // this will automatically discard the prev batch tx
     if (transaction !== undefined) {
-      void params.lock?.then() // discard previous lock
+      if (params.transaction?.kind === 'batch') {
+        void params.transaction.lock.then() // discard
+      }
       params.transaction = transaction
-      params.lock = lock // assign newly acquired lock
     }
 
     // if we are done recursing, we execute the request
