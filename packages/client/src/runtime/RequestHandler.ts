@@ -109,7 +109,7 @@ export class RequestHandler {
           const response = await this.client._engine.requestBatch([engineQuery], {
             traceparent,
             containsWrite: request.protocolMessage.isWrite(),
-            customDataProxyHeaders: request.customDataProxyHeaders,
+            customDataProxyFetch: request.customDataProxyFetch,
             transaction: {
               kind: 'batch',
               options: {
