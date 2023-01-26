@@ -80,9 +80,6 @@ export class Version implements Command {
         .with({ 'migration-engine': P.select() }, (currEngineInfo) => {
           return ['Migration Engine', currEngineInfo]
         })
-        .with({ 'introspection-engine': P.select() }, (currEngineInfo) => {
-          return ['Introspection Engine', currEngineInfo]
-        })
         .exhaustive()
     })
 

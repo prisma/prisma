@@ -28,7 +28,6 @@ async function main() {
     const binaries: BinaryDownloadConfiguration = {
       [cliQueryEngineBinaryType]: baseDir,
       [BinaryType.migrationEngine]: baseDir,
-      [BinaryType.introspectionEngine]: baseDir,
     }
 
     await download({

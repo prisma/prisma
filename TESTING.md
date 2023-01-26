@@ -164,10 +164,6 @@ To change the default Rust artifacts' type used under the hood, you can set the 
 
 - run `FORCE_PANIC_MIGRATION_ENGINE=1 npx prisma migrate dev`
 
-### Trigger panic in Introspection Engine
-
-- run `FORCE_PANIC_INTROSPECTION_ENGINE=1 npx prisma db pull`
-
 ### Trigger panic in Formatter
 
 - run `FORCE_PANIC_PRISMA_FMT=1 npx prisma format`
