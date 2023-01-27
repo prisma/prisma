@@ -1,0 +1,149 @@
+import { jestConsoleContext, jestContext } from '@prisma/internal-utils'
+
+import { getPlatformInternal as getPlatform } from '../getPlatform'
+
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+
+describe('getPlatform', () => {
+  describe('linux', () => {
+    const platform = 'linux'
+
+    // test name convention: <originalDistro> (<familyDistro>), <arch> (<uname -m>), openssl-<libssl>
+
+    it('debian (debian), amd64 (x86_64), openssl-1.1.x', () => {
+      expect(
+        getPlatform({
+          platform,
+          libssl: '1.1.x',
+          arch: 'x64',
+          archFromUname: 'x86_64',
+          familyDistro: 'debian',
+          originalDistro: 'debian',
+          targetDistro: 'debian',
+        }),
+      ).toBe('debian-openssl-1.1.x')
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    })
+
+    it('alpine (alpine), amd64 (x86_64), openssl-3.0.x', () => {
+      expect(
+        getPlatform({
+          platform,
+          libssl: '3.0.x',
+          arch: 'x64',
+          archFromUname: 'x86_64',
+          familyDistro: 'alpine',
+          originalDistro: 'alpine',
+          targetDistro: 'musl',
+        }),
+      ).toBe('linux-musl-openssl-3.0.x')
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    })
+
+    it('alpine (alpine), arm64 (aarch64), openssl-3.0.x', () => {
+      expect(
+        getPlatform({
+          platform,
+          libssl: '3.0.x',
+          arch: 'arm64',
+          archFromUname: 'aarch64',
+          familyDistro: 'alpine',
+          originalDistro: 'alpine',
+          targetDistro: 'musl',
+        }),
+      ).toBe('linux-arm64-openssl-3.0.x')
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        "[33mprisma:warn[39m Prisma only officially supports Linux Alpine on the amd64 (x86_64) system architecture. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "aarch64".
+        If you are using Prisma on Docker, please refer to ]8;;https://pris.ly/d/docker-alpinehttps://pris.ly/d/docker-alpine]8;;"
+      `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    })
+
+    it('ubuntu (debian), amd64 (x86_64), openssl-undefined', () => {
+      expect(
+        getPlatform({
+          platform,
+          libssl: undefined,
+          arch: 'x64',
+          archFromUname: 'x86_64',
+          familyDistro: 'debian',
+          originalDistro: 'ubuntu',
+          targetDistro: 'debian',
+        }),
+      ).toBe('debian-openssl-1.1.x')
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        "[33mprisma:warn[39m Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+        Please manually install OpenSSL via \`apt-get update -y && apt-get install -y openssl\` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with \`node:lts-slim\`, which already ships with OpenSSL installed."
+      `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    })
+
+    it('arch (arch), amd64 (x86_64), openssl-undefined', () => {
+      expect(
+        getPlatform({
+          platform,
+          libssl: undefined,
+          arch: 'x64',
+          archFromUname: 'x86_64',
+          familyDistro: 'arch',
+          originalDistro: 'arch',
+          targetDistro: 'debian',
+        }),
+      ).toBe('debian-openssl-1.1.x')
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        "[33mprisma:warn[39m Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+        Please manually install OpenSSL and try installing Prisma again."
+      `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    })
+
+    it('unknown (unknown), amd64 (x86_64), openssl-3.0.x', () => {
+      expect(
+        getPlatform({
+          platform,
+          libssl: '3.0.x',
+          arch: 'x64',
+          archFromUname: 'x86_64',
+          familyDistro: undefined,
+          originalDistro: 'unknown',
+          targetDistro: undefined,
+        }),
+      ).toBe('debian-openssl-3.0.x')
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        "[33mprisma:warn[39m Prisma doesn't know which engines to download for the Linux distro "unknown". Falling back to Prisma engines built "debian".
+        Please report your experience by creating an issue at ]8;;https://github.com/prisma/prisma/issueshttps://github.com/prisma/prisma/issues]8;; so we can add your distro to the list of known supported distros."
+      `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    })
+
+    it('unknown (unknown), amd64 (x86_64), openssl-undefined', () => {
+      expect(
+        getPlatform({
+          platform,
+          libssl: undefined,
+          arch: 'x64',
+          archFromUname: 'x86_64',
+          familyDistro: undefined,
+          originalDistro: 'unknown',
+          targetDistro: undefined,
+        }),
+      ).toBe('debian-openssl-1.1.x')
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        "[33mprisma:warn[39m Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
+        Please manually install OpenSSL and try installing Prisma again.
+        [33mprisma:warn[39m Prisma doesn't know which engines to download for the Linux distro "unknown". Falling back to Prisma engines built "debian".
+        Please report your experience by creating an issue at ]8;;https://github.com/prisma/prisma/issueshttps://github.com/prisma/prisma/issues]8;; so we can add your distro to the list of known supported distros."
+      `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+    })
+  })
+})
