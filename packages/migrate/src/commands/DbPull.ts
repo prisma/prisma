@@ -456,23 +456,9 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
             .join('\n')
         } else if (warning.code === 4) {
           message += warning.affected.map((it) => `- Enum "${it.enm}", value: "${it.value}"`).join('\n')
-        } else if (
-          warning.code === 5 ||
-          warning.code === 6 ||
-          warning.code === 8 ||
-          warning.code === 11 ||
-          warning.code === 12 ||
-          warning.code === 13 ||
-          warning.code === 16
-        ) {
+        } else if (warning.code === 5 || warning.code === 6 || warning.code === 8) {
           message += warning.affected.map((it) => `- Model "${it.model}", field: "${it.field}"`).join('\n')
-        } else if (
-          warning.code === 7 ||
-          warning.code === 14 ||
-          warning.code === 15 ||
-          warning.code === 18 ||
-          warning.code === 19
-        ) {
+        } else if (warning.code === 7 || warning.code === 14 || warning.code === 18 || warning.code === 19) {
           message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
         } else if (warning.code === 20) {
           message += warning.affected
