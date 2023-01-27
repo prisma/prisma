@@ -259,7 +259,7 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
   const returnType = ts.promise(ts.namedType('R'))
   const callbackType = ts
     .functionType()
-    .addParameter(ts.parameter('prisma', ts.namedType('Prisma.TransactionClient')))
+    .addParameter(ts.parameter('prisma', ts.namedType('this')))
     .setReturnType(returnType)
 
   const method = ts
