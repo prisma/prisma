@@ -11,6 +11,7 @@
     "@prisma/engines-version",
     "@prisma/fetch-engine",
     "@prisma/get-platform",
+    "@prisma/internal-utils",
     "@prisma/prisma-fmt-wasm"
   ],
   "constraints": {

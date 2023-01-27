@@ -7,6 +7,8 @@
       "@prisma/client/runtime": ["./packages/client/runtime"],
       "@prisma/internals": ["./packages/internals/src"],
       "@prisma/internals/dist/*": ["./packages/internals/src/*"],
+      "@prisma/internal-utils": ["./packages/internal-utils/src"],
+      "@prisma/internal-utils/dist/*": ["./packages/internal-utils/src/*"],
       "@prisma/migrate": ["./packages/migrate/src"],
       "@prisma/generator-helper": ["./packages/generator-helper/src"],
       "@prisma/engine-core": ["./packages/engine-core/src"],
