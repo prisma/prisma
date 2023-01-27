@@ -154,7 +154,7 @@ type RawPackages = { [packageName: string]: RawPackage }
 
 export async function getPackages(): Promise<RawPackages> {
   const packagePaths = await globby(['packages/*/package.json'], {
-    ignore: ['**/node_modules/**', '**/examples/**', '**/fixtures/**'],
+    ignore: ['**/node_modules/**', '**/examples/**', '**/fixtures/**', 'packages/internal-utils/**'],
   })
   const packages = await Promise.all(
     packagePaths.map(async (p) => ({

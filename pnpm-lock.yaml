@@ -570,6 +570,7 @@ importers:
   packages/get-platform:
     specifiers:
       '@prisma/debug': workspace:*
+      '@prisma/internal-utils': workspace:*
       '@swc/core': 1.3.14
       '@swc/jest': 0.2.24
       '@types/jest': 29.2.4
@@ -581,6 +582,7 @@ importers:
       typescript: 4.8.4
     dependencies:
       '@prisma/debug': link:../debug
+      '@prisma/internal-utils': link:../internal-utils
       chalk: 4.1.2
       terminal-link: 2.1.1
       ts-pattern: 4.1.3
