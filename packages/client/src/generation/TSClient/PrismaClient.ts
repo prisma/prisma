@@ -259,7 +259,22 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
   const returnType = ts.promise(ts.namedType('R'))
   const callbackType = ts
     .functionType()
-    .addParameter(ts.parameter('prisma', ts.namedType('this')))
+    .addParameter(
+      ts.parameter(
+        'prisma',
+        ts
+          .namedType('Omit')
+          .addGenericArgument(ts.namedType('this'))
+          .addGenericArgument(
+            ts
+              .unionType(ts.stringLiteral('$connect'))
+              .addVariant(ts.stringLiteral('$disconnect'))
+              .addVariant(ts.stringLiteral('$on'))
+              .addVariant(ts.stringLiteral('$transaction'))
+              .addVariant(ts.stringLiteral('$use')),
+          ),
+      ),
+    )
     .setReturnType(returnType)
 
   const method = ts
