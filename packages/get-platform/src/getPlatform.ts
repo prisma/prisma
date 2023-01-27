@@ -34,14 +34,27 @@ export type DistroInfo = {
    */
   targetDistro?: 'rhel' | 'debian' | 'musl' | 'arm' | 'nixos' | 'freebsd11' | 'freebsd12' | 'freebsd13'
 }
-export type GetOSResult = {
-  platform: NodeJS.Platform
+type GetOsResultLinux = {
+  platform: 'linux'
   arch: Arch
+  archFromUname: string | undefined
   /**
    * Starting from version 3.0, OpenSSL is basically adopting semver, and will be API and ABI compatible within a major version.
    */
   libssl?: typeof supportedLibSSLVersions[number]
 } & DistroInfo
+
+export type GetOSResult =
+  | {
+      platform: Omit<NodeJS.Platform, 'linux'>
+      arch: Arch
+      targetDistro?: DistroInfo['targetDistro']
+      familyDistro?: never
+      originalDistro?: never
+      archFromUname?: never
+      libssl?: never
+    }
+  | GetOsResultLinux
 
 export async function getos(): Promise<GetOSResult> {
   const platform = os.platform()
@@ -71,21 +84,13 @@ export async function getos(): Promise<GetOSResult> {
   const distroInfo = await resolveDistro()
   const archFromUname = await getArchFromUname()
 
-  // TODO: add 'arm64' to the `[...].includes(arch)` check once we have arm64 engines for Alpine
-  if (distroInfo.targetDistro === 'musl' && !['x64'].includes(arch)) {
-    warnOnce(
-      'alpine:unsupported-arch',
-      `Prisma only officially supports Linux Alpine on the amd64 (x86_64) system architecture. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".
-If you are using Prisma on Docker, please refer to ${link('https://pris.ly/d/docker-alpine')}`,
-    )
-  }
-
   const libssl = await getSSLVersion({ arch, archFromUname, targetDistro: distroInfo.targetDistro })
 
   return {
     platform: 'linux',
     libssl,
     arch,
+    archFromUname,
     ...distroInfo,
   }
 }
@@ -224,7 +229,7 @@ export async function resolveDistro(): Promise<DistroInfo> {
  * Parse the OpenSSL version from the output of the openssl binary, e.g.
  * "OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)" -> "3.0.x"
  */
-export function parseOpenSSLVersion(input: string): GetOSResult['libssl'] | undefined {
+export function parseOpenSSLVersion(input: string): GetOsResultLinux['libssl'] | undefined {
   const match = /^OpenSSL\s(\d+\.\d+)\.\d+/.exec(input)
   if (match) {
     const partialVersion = `${match[1]}.x`
@@ -238,7 +243,7 @@ export function parseOpenSSLVersion(input: string): GetOSResult['libssl'] | unde
  * Parse the OpenSSL version from the output of the libssl.so file, e.g.
  * "libssl.so.3" -> "3.0.x"
  */
-export function parseLibSSLVersion(input: string): GetOSResult['libssl'] | undefined {
+export function parseLibSSLVersion(input: string): GetOsResultLinux['libssl'] | undefined {
   const match = /libssl\.so\.(\d)(\.\d)?/.exec(input)
   if (match) {
     const partialVersion = `${match[1]}${match[2] ?? '.0'}.x`
@@ -248,7 +253,7 @@ export function parseLibSSLVersion(input: string): GetOSResult['libssl'] | undef
   return undefined
 }
 
-function sanitiseSSLVersion(version: string): NonNullable<GetOSResult['libssl']> {
+function sanitiseSSLVersion(version: string): NonNullable<GetOsResultLinux['libssl']> {
   if (isLibssl1x(version)) {
     return version
   }
@@ -258,7 +263,7 @@ function sanitiseSSLVersion(version: string): NonNullable<GetOSResult['libssl']>
    */
   const versionSplit = version.split('.')
   versionSplit[1] = '0'
-  return versionSplit.join('.') as NonNullable<GetOSResult['libssl']>
+  return versionSplit.join('.') as NonNullable<GetOsResultLinux['libssl']>
 }
 
 type GetOpenSSLVersionParams = {
@@ -276,7 +281,7 @@ type GetOpenSSLVersionParams = {
  *
  * This function never throws.
  */
-export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOSResult['libssl'] | undefined> {
+export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOsResultLinux['libssl'] | undefined> {
   const libsslSpecificPaths = match(args)
     .with({ targetDistro: 'musl' }, () => {
       /* Linux Alpine */
@@ -373,7 +378,16 @@ export async function getPlatform(): Promise<Platform> {
 }
 
 export function getPlatformInternal(args: GetOSResult): Platform {
-  const { platform, arch, libssl, targetDistro, familyDistro, originalDistro } = args
+  const { platform, arch, archFromUname, libssl, targetDistro, familyDistro, originalDistro } = args
+
+  // TODO: add 'arm64' to the `[...].includes(arch)` check once we have arm64 engines for Alpine
+  if (targetDistro === 'musl' && !['x64'].includes(arch)) {
+    warnOnce(
+      'alpine:unsupported-arch',
+      `Prisma only officially supports Linux Alpine on the amd64 (x86_64) system architecture. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".
+If you are using Prisma on Docker, please refer to ${link('https://pris.ly/d/docker-alpine')}`,
+    )
+  }
 
   // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
   const defaultLibssl = '1.1.x' as const
