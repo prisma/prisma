@@ -12,7 +12,7 @@ testMatrix.setupTestSuite(
 
       await expect(prisma.testModel.findMany()).rejects.toThrow(
         expect.objectContaining({
-          code: 'P2020',
+          code: 'P2023',
           message: expect.stringContaining(
             // Error message ends in two different strings depending on input: "... to `BigInt`" or "... to `Int`"
             'Inconsistent column data: Could not convert from `BigDecimal(18446744072438800000)` to',
