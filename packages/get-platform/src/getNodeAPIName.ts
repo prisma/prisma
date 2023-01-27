@@ -1,6 +1,6 @@
 // Why is this in getPlatform... because of our dependency tree
 
-import { Platform } from './platforms'
+import { type Platform } from '@prisma/internal-utils'
 
 const NODE_API_QUERY_ENGINE_URL_BASE = 'libquery_engine'
 

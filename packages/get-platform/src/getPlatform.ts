@@ -1,13 +1,10 @@
 import Debug from '@prisma/debug'
+import { type Platform, link, warnOnce } from '@prisma/internal-utils'
 import cp from 'child_process'
 import fs from 'fs'
 import os from 'os'
 import { match } from 'ts-pattern'
 import { promisify } from 'util'
-
-import { link } from './link'
-import { Platform } from './platforms'
-import { warnOnce } from './warnOnce'
 
 const readFile = promisify(fs.readFile)
 const exec = promisify(cp.exec)
@@ -371,7 +368,12 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
 }
 
 export async function getPlatform(): Promise<Platform> {
-  const { platform, arch, libssl, targetDistro, familyDistro, originalDistro } = await getos()
+  const args = await getos()
+  return getPlatformInternal(args)
+}
+
+export function getPlatformInternal(args: GetOSResult): Platform {
+  const { platform, arch, libssl, targetDistro, familyDistro, originalDistro } = args
 
   // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
   const defaultLibssl = '1.1.x' as const
