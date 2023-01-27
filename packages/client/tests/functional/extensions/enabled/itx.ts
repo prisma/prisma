@@ -84,17 +84,7 @@ testMatrix.setupTestSuite(() => {
       expectTypeOf(userA?.fullName).toEqualTypeOf<string>()
     })
 
-    await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-      Invalid \`tx.user.create()\` invocation in
-      /client/tests/functional/extensions/enabled/itx.ts:0:0
-
-        XX   },
-        XX })
-        XX 
-      → XX const userB = await tx.user.create(
-      Unique constraint failed on the fields: (\`email\`)
-    `)
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
     const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
@@ -174,13 +164,7 @@ testMatrix.setupTestSuite(() => {
       })
     })
 
-    await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-      Error caused by an extension: 
-      Invalid \`prisma.user.create()\` invocation:
-
-
-      Unique constraint failed on the fields: (\`email\`)
-    `)
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
     const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
