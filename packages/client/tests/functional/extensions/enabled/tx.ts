@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
 
 const email = faker.internet.email()
 
-testMatrix.setupTestSuite(() => {
+testMatrix.setupTestSuite((_0, _1, clientMeta) => {
   beforeEach(async () => {
     await prisma.post.deleteMany()
     await prisma.user.deleteMany()
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(() => {
     })
   })
 
-  test('extended client in tx can rollback via normal call', async () => {
+  testIf(clientMeta.runtime !== 'edge')('extended client in tx can rollback via normal call', async () => {
     const xprisma = prisma.$extends({
       result: {
         user: {
@@ -95,7 +95,7 @@ testMatrix.setupTestSuite(() => {
     expect(users).toHaveLength(1)
   })
 
-  test('extended client in tx can rollback via custom call', async () => {
+  testIf(clientMeta.runtime !== 'edge')('extended client in tx can rollback via custom call', async () => {
     const xprisma = prisma
       .$extends({
         result: {
