@@ -554,7 +554,6 @@ export class Prisma__${name}Client<T, Null = never${ifExtensions(
       ', ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs',
       '',
     )}> implements PrismaPromise<T> {
-  [prisma]: true;
   private readonly _dmmf;
   private readonly _queryType;
   private readonly _rootField;
@@ -566,8 +565,8 @@ export class Prisma__${name}Client<T, Null = never${ifExtensions(
   private _isList;
   private _callsite;
   private _requestPromise?;
+  readonly [Symbol.toStringTag]: 'PrismaPromise';
   constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
-  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 ${indent(
   fields
     .filter((f) => f.outputType.location === 'outputObjectTypes' && f.name !== '_count')
