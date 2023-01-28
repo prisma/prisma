@@ -125,7 +125,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -208,7 +208,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -253,7 +253,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -320,11 +320,11 @@ jobs:
 
       # Run the functional test suite
       - run: pnpm run test:functional
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
       - run: pnpm run test-notypes
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
         working-directory: packages/client
 
       - uses: codecov/codecov-action@v3
@@ -341,7 +341,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -419,7 +419,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -535,7 +535,7 @@ jobs:
     runs-on: buildjet-4vcpu-ubuntu-2004
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -581,7 +581,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-integration-tests-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-integration-tests-') }}
 
     strategy:
       fail-fast: false
@@ -655,7 +655,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
 
     strategy:
       fail-fast: false
@@ -727,7 +727,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
 
     strategy:
       fail-fast: false
@@ -809,7 +809,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
 
     strategy:
       fail-fast: false
@@ -869,7 +869,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
 
     strategy:
       fail-fast: false
@@ -1136,7 +1136,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Test packages/internals
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
         run: pnpm run test --testTimeout=40000
         working-directory: packages/internals
         env:
@@ -1146,14 +1146,14 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/internals/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-internals-') }}
         with:
           files: ./packages/internals/src/__tests__/coverage/clover.xml
           flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
           name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/client (old suite)
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
         run: pnpm run test-notypes --testTimeout=40000
         working-directory: packages/client
         env:
@@ -1167,14 +1167,14 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/migrate
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
         run: pnpm run test --testTimeout=40000
         working-directory: packages/migrate
         env:
@@ -1184,14 +1184,14 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/migrate/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-migrate-') }}
         with:
           files: ./packages/migrate/src/__tests__/coverage/clover.xml
           flags: migrate,${{ matrix.os }},${{ matrix.queryEngine }}
           name: migrate-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/cli
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
         run: pnpm run test --testTimeout=40000
         working-directory: packages/cli
         env:
@@ -1201,14 +1201,14 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/cli/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' || contains(needs.detect_jobs_to_run.outputs.jobs, '-cli-') }}
         with:
           files: ./packages/cli/src/__tests__/coverage/clover.xml
           flags: cli,${{ matrix.os }},${{ matrix.queryEngine }}
           name: cli-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/debug
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         run: pnpm run test
         working-directory: packages/debug
         env:
@@ -1218,14 +1218,14 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/debug/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         with:
           files: ./packages/debug/src/__tests__/coverage/clover.xml
           flags: debug,${{ matrix.os }},library,binary
           name: debug-${{ matrix.os }}
 
       - name: Test packages/engine-core
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         run: pnpm run test
         working-directory: packages/engine-core
         env:
@@ -1235,14 +1235,14 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/engine-core/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         with:
           files: ./packages/engine-core/src/__tests__/coverage/clover.xml
           flags: engine-core,${{ matrix.os }},library,binary
           name: engine-core-${{ matrix.os }}
 
       - name: Test packages/generator-helper
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         run: pnpm run test
         working-directory: packages/generator-helper
         env:
@@ -1252,14 +1252,14 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/generator-helper/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         with:
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
 
       - name: Test packages/get-platform
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         run: pnpm run test
         working-directory: packages/get-platform
         env:
@@ -1269,14 +1269,14 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/get-platform/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         with:
           files: ./packages/get-platform/src/__tests__/coverage/clover.xml
           flags: get-platform,${{ matrix.os }},library,binary
           name: get-platform-${{ matrix.os }}
 
       - name: Test packages/fetch-engine
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         run: pnpm run test
         working-directory: packages/fetch-engine
         env:
@@ -1286,14 +1286,14 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/fetch-engine/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         with:
           files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
           flags: fetch-engine,${{ matrix.os }},library,binary
           name: fetch-engine-${{ matrix.os }}
 
       - name: Test packages/engines
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         run: pnpm run test
         working-directory: packages/engines
         env:
@@ -1303,7 +1303,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/engines/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || ${{ github.event_name == 'schedule' }} }}
+        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || github.event_name == 'schedule' }}
         with:
           files: ./packages/engines/src/__tests__/coverage/clover.xml
           flags: engines,${{ matrix.os }},library,binary
