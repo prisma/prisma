@@ -8,6 +8,7 @@ import {
   Engine,
   EngineConfig,
   EngineEventType,
+  Fetch,
   getTraceParent,
   getTracingConfig,
   LibraryEngine,
@@ -16,7 +17,6 @@ import {
   SpanOptions,
   TracingConfig,
 } from '@prisma/engine-core'
-import { Fetch } from '@prisma/engine-core/dist/data-proxy/utils/request'
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'

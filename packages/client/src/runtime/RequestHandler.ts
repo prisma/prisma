@@ -2,13 +2,13 @@ import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import {
   EventEmitter,
+  Fetch,
   getTraceParent,
   hasBatchIndex,
   InteractiveTransactionOptions,
   TracingConfig,
   TransactionOptions,
 } from '@prisma/engine-core'
-import { Fetch } from '@prisma/engine-core/dist/data-proxy/utils/request'
 import { assertNever } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 
