@@ -15,6 +15,18 @@ testMatrix.setupTestSuite(() => {
   const originalRequest = https.request
   const randomId = randomBytes(12).toString('hex')
 
+  beforeAll(async () => {
+    // this also warms up the dataproxy (schema upload)
+    await prisma.user.create({
+      data: {
+        id: randomId,
+        email: 'john@doe.io',
+        firstName: 'John',
+        lastName: 'Doe',
+      },
+    })
+  })
+
   beforeEach(() => {
     mockedRequest = jest.fn()
     https.request = (...args: any[]) => {
@@ -27,39 +39,7 @@ testMatrix.setupTestSuite(() => {
     https.request = originalRequest
   })
 
-  testIf(process.env.DATA_PROXY !== undefined)('changing http headers via headers property', async () => {
-    const xprisma = prisma.$extends({
-      query: {
-        $allModels: {
-          findUnique(operation) {
-            const { __internalParams, query, args } = operation as any as {
-              query: (...args: any[]) => Promise<any>
-              __internalParams: any
-              args: any
-            }
-
-            __internalParams.headers = {
-              ...__internalParams.headers,
-              'x-custom-header': 'hello',
-            }
-
-            return query(args, __internalParams)
-          },
-        },
-      },
-    })
-
-    const data = await xprisma.user.findUnique({ where: { id: randomId } })
-
-    expect(data).toBe(null)
-    // for the first call, the data proxy client will do some additional requests that aren't relevant
-    expect(mockedRequest.mock.calls[0][1].headers).not.toHaveProperty('x-custom-header') // checks version
-    expect(mockedRequest.mock.calls[1][1].headers).toHaveProperty('x-custom-header') // tries to send query
-    expect(mockedRequest.mock.calls[2][1].headers).not.toHaveProperty('x-custom-header') // uploads schema
-    expect(mockedRequest.mock.calls[3][1].headers).toHaveProperty('x-custom-header', 'hello') // sends query
-  })
-
-  testIf(process.env.DATA_PROXY !== undefined)('changing http headers via custom fetch', async () => {
+  test('changing http headers via custom fetch', async () => {
     const xprisma = prisma.$extends({
       query: {
         $allModels: {
@@ -94,8 +74,76 @@ testMatrix.setupTestSuite(() => {
 
     const data = await xprisma.user.findUnique({ where: { id: randomId } })
 
-    expect(data).toBe(null)
+    expect(data).toHaveProperty('id', randomId)
 
     expect(mockedRequest.mock.calls[0][1].headers).toHaveProperty('x-custom-header', 'hello')
+  })
+
+  test('confirm that custom fetch cascades like a middleware', async () => {
+    const xprisma = prisma
+      .$extends({
+        query: {
+          $allModels: {
+            findUnique(operation) {
+              const { __internalParams, query, args } = operation as any as {
+                query: (...args: any[]) => Promise<any>
+                __internalParams: any
+                args: any
+              }
+
+              __internalParams.customFetch = (fetch) => {
+                return (url, args) => fetch(url, { ...args, order: [1] })
+              }
+
+              return query(args, __internalParams)
+            },
+          },
+        },
+      })
+      .$extends({
+        query: {
+          $allModels: {
+            findUnique(operation) {
+              const { __internalParams, query, args } = operation as any as {
+                query: (...args: any[]) => Promise<any>
+                __internalParams: any
+                args: any
+              }
+
+              __internalParams.customFetch = (fetch) => {
+                return (url, args) => fetch(url, { ...args, order: [...args.order, 2] })
+              }
+
+              return query(args, __internalParams)
+            },
+          },
+        },
+      })
+      .$extends({
+        query: {
+          $allModels: {
+            findUnique(operation) {
+              const { __internalParams, query, args } = operation as any as {
+                query: (...args: any[]) => Promise<any>
+                __internalParams: any
+                args: any
+              }
+
+              __internalParams.customFetch = (fetch) => {
+                return (url, args) => {
+                  expect(args.order).toEqual([1, 2])
+                  return fetch(url, args)
+                }
+              }
+
+              return query(args, __internalParams)
+            },
+          },
+        },
+      })
+
+    const data = await xprisma.user.findUnique({ where: { id: randomId } }).catch()
+
+    expect(data).toHaveProperty('id', randomId)
   })
 })
