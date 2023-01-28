@@ -1,9 +1,7 @@
 node_modules
 query-engine*
 libquery_engine*
-introspection-engine*
 migration-engine*
-prisma-fmt*
 libquery*
 /engines
 /debug.d.ts

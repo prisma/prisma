@@ -25,6 +25,9 @@ export type Commit = {
   parentCommits: string[]
 }
 
+const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split(',') : null
+const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
+
 async function getLatestChanges(): Promise<string[]> {
   return getChangesFromCommit(await getLatestCommit('.'))
 }
@@ -624,8 +627,12 @@ async function publish() {
     const packagesWithVersions = await getNewPackageVersions(packages, prismaVersion)
 
     if (!dryRun && args['--test']) {
-      console.log(chalk.bold('\nTesting all packages...'))
-      await testPackages(packages, getPublishOrder(packages))
+      if (onlyPackages || skipPackages) {
+        console.log(chalk.bold('\nTesting all packages was skipped because onlyPackages or skipPackages is set.'))
+      } else {
+        console.log(chalk.bold('\nTesting all packages...'))
+        await testPackages(packages, getPublishOrder(packages))
+      }
     }
 
     if (args['--publish'] || dryRun) {
@@ -992,8 +999,7 @@ async function publishPackages(
         })
       }
 
-      const skipPackages: string[] = []
-      if (!skipPackages.includes(pkgName)) {
+      if (!isSkipped(pkgName)) {
         /*
          *  About `--no-git-checks`
          *  By default, `pnpm publish` will make some checks before actually publishing a new version of your package.
@@ -1050,6 +1056,18 @@ async function publishPackages(
       console.error(`Ignoring this error, continuing`)
     }
   }
+}
+
+function isSkipped(pkgName) {
+  if (skipPackages && skipPackages.includes(pkgName)) {
+    return true
+  }
+
+  if (onlyPackages && !onlyPackages.includes(pkgName)) {
+    return true
+  }
+
+  return false
 }
 
 async function acquireLock(branch: string): Promise<() => void> {

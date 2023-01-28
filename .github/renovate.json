@@ -3,7 +3,7 @@
   "extends": ["config:base", ":disableRateLimiting", ":noUnscheduledUpdates"],
   "schedule": ["before 7am every weekday", "every weekend"],
   "semanticCommits": "enabled",
-  "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@danstarns", "@jkomyno"],
+  "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": [
     "sqlite3",

@@ -6,19 +6,9 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.libqueryEngine
 
 describe('getEngineVersion', () => {
-  test('Introspection Engine', async () => {
-    const introspectionEngineVersion = await getEngineVersion(undefined, BinaryType.introspectionEngine)
-    expect(introspectionEngineVersion.split(' ')[1]).toMatch(enginesVersion)
-  })
-
   test('Migration Engine', async () => {
     const migrationEngineVersion = await getEngineVersion(undefined, BinaryType.migrationEngine)
     expect(migrationEngineVersion.split(' ')[1]).toMatch(enginesVersion)
-  })
-
-  test('Prisma Fmt', async () => {
-    const prismaFmtVersion = await getEngineVersion(undefined, BinaryType.prismaFmt)
-    expect(prismaFmtVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 
   testIf(!useNodeAPI)('Query Engine', async () => {

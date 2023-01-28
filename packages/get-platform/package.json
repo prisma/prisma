@@ -24,7 +24,8 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "chalk": "4.1.2",
-    "ts-pattern": "4.0.6"
+    "terminal-link": "2.1.1",
+    "ts-pattern": "4.1.3"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",

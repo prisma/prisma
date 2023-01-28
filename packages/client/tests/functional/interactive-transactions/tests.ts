@@ -296,6 +296,35 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
     },
   )
 
+  testIf(clientMeta.runtime !== 'edge')('batching rollback within callback', async () => {
+    const result = prisma.$transaction(async (tx) => {
+      await Promise.all([
+        tx.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        }),
+        tx.user.create({
+          data: {
+            email: 'user_2@website.com',
+          },
+        }),
+      ])
+
+      await tx.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+    })
+
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+
   /**
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library

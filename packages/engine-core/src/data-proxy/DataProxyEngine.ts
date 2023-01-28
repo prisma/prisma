@@ -5,6 +5,7 @@ import type {
   BatchQueryEngineResult,
   EngineConfig,
   EngineEventType,
+  EngineQuery,
   GetConfigResult,
   InlineDatasource,
   InteractiveTransactionOptions,
@@ -16,13 +17,10 @@ import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUn
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import {
-  QueryEngineBatchRequest,
-  QueryEngineRequestHeaders,
-  QueryEngineResult,
-  QueryEngineResultBatchQueryResult,
-} from '../common/types/QueryEngine'
+import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
+import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
+import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -44,9 +42,16 @@ type DataProxyTxInfoPayload = {
   endpoint: string
 }
 
-type DataProxyTxInfo = Tx.Info<DataProxyTxInfoPayload>
+type DataProxyTxInfo = Tx.InteractiveTransactionInfo<DataProxyTxInfoPayload>
 
-export class DataProxyEngine extends Engine {
+type RequestInternalOptions = {
+  body: Record<string, unknown>
+  customFetch?: (fetch: Fetch) => Fetch
+  traceparent?: string
+  interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
+}
+
+export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   private inlineSchema: string
   readonly inlineSchemaHash: string
   private inlineDatasources: Record<string, InlineDatasource>
@@ -101,18 +106,6 @@ export class DataProxyEngine extends Engine {
     return `https://${this.host}/${await this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
   }
 
-  // TODO: looks like activeProvider is the only thing
-  // used externally; verify that
-  async getConfig() {
-    return Promise.resolve({
-      datasources: [
-        {
-          activeProvider: this.config.activeProvider,
-        },
-      ],
-    } as GetConfigResult)
-  }
-
   getDmmf(): Promise<DMMF.Document> {
     // This code path should not be reachable, as it is handled upstream in `getPrismaClient`.
     throw new NotImplementedYetError('getDmmf is not yet supported', {
@@ -144,31 +137,41 @@ export class DataProxyEngine extends Engine {
     }
   }
 
-  request<T>({ query, headers = {}, transaction, customFetch }: RequestOptions<DataProxyTxInfoPayload>) {
+  request<T>(
+    { query }: EngineQuery,
+    { traceparent, interactiveTransaction, customFetch }: RequestOptions<DataProxyTxInfoPayload>,
+  ) {
     this.logEmitter.emit('query', { query })
-
     // TODO: `elapsed`?
-    return this.requestInternal<T>({ query, variables: {} }, headers, transaction, customFetch)
+    return this.requestInternal<T>({
+      body: { query, variables: {} },
+      traceparent,
+      interactiveTransaction,
+      customFetch,
+    })
   }
 
-  async requestBatch<T>({
-    queries,
-    headers = {},
-    transaction,
-    customFetch,
-  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
+  async requestBatch<T>(
+    queries: EngineQuery[],
+    { traceparent, transaction, customFetch }: RequestBatchOptions<DataProxyTxInfoPayload>,
+  ): Promise<BatchQueryEngineResult<T>[]> {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
-      query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries.join('\n')}`,
+      query: `Batch${isTransaction ? ' in transaction' : ''} (${queries.length}):\n${queries
+        .map((q) => q.query)
+        .join('\n')}`,
     })
 
-    const body: QueryEngineBatchRequest = {
-      batch: queries.map((query) => ({ query, variables: {} })),
-      transaction: isTransaction,
-      isolationLevel: transaction?.isolationLevel,
-    }
+    const interactiveTransaction = transaction?.kind === 'itx' ? transaction.options : undefined
 
-    const { batchResult, elapsed } = await this.requestInternal<T, true>(body, headers, undefined, customFetch)
+    const body = getBatchRequestPayload(queries, transaction)
+
+    const { batchResult, elapsed } = await this.requestInternal<T, true>({
+      body,
+      customFetch,
+      interactiveTransaction,
+      traceparent,
+    })
 
     return batchResult.map((result) => {
       if ('errors' in result && result.errors.length > 0) {
@@ -181,26 +184,37 @@ export class DataProxyEngine extends Engine {
     })
   }
 
-  private requestInternal<T, Batch extends boolean = false>(
-    body: Record<string, any>,
-    headers: QueryEngineRequestHeaders,
-    itx?: InteractiveTransactionOptions<DataProxyTxInfoPayload>,
-    customFetch?: (fetch: Fetch) => Fetch,
-  ): Promise<
+  private requestInternal<T, Batch extends boolean = false>({
+    body,
+    traceparent,
+    customFetch,
+    interactiveTransaction,
+  }: RequestInternalOptions): Promise<
     Batch extends true ? { batchResult: QueryEngineResultBatchQueryResult<T>[]; elapsed: number } : QueryEngineResult<T>
   > {
     return this.withRetry({
       actionGerund: 'querying',
       callback: async ({ logHttpCall }) => {
-        const url = itx ? `${itx.payload.endpoint}/graphql` : await this.url('graphql')
+        const url = interactiveTransaction
+          ? `${interactiveTransaction.payload.endpoint}/graphql`
+          : await this.url('graphql')
 
         logHttpCall(url)
+
+        const headers: Record<string, string> = {}
+        if (traceparent) {
+          headers.traceparent = traceparent
+        }
+
+        if (interactiveTransaction) {
+          headers['X-transaction-id'] = interactiveTransaction.id
+        }
 
         const response = await request(
           url,
           {
             method: 'POST',
-            headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
+            headers: { ...headers, ...this.headers },
             body: JSON.stringify(body),
             clientVersion: this.clientVersion,
           },
@@ -264,7 +278,7 @@ export class DataProxyEngine extends Engine {
 
           const response = await request(url, {
             method: 'POST',
-            headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
+            headers: { ...headers, ...this.headers },
             body,
             clientVersion: this.clientVersion,
           })
@@ -284,7 +298,7 @@ export class DataProxyEngine extends Engine {
 
           const response = await request(url, {
             method: 'POST',
-            headers: { ...runtimeHeadersToHttpHeaders(headers), ...this.headers },
+            headers: { ...headers, ...this.headers },
             clientVersion: this.clientVersion,
           })
 
@@ -434,16 +448,4 @@ export class DataProxyEngine extends Engine {
       throw error
     }
   }
-}
-
-/**
- * Convert runtime headers to HTTP headers expected by the Data Proxy by removing the transactionId runtime header.
- */
-function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
-  if (headers.transactionId) {
-    const httpHeaders = { ...headers }
-    delete httpHeaders.transactionId
-    return httpHeaders
-  }
-  return headers
 }

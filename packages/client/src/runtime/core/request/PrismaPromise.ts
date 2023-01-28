@@ -7,19 +7,18 @@ export type PrismaPromiseBatchTransaction = {
   id: number
   isolationLevel?: IsolationLevel
   index: number
-  lock?: PromiseLike<void>
+  lock: PromiseLike<void>
 }
 
-export type PrismaPromiseInteractiveTransaction = {
+export type PrismaPromiseInteractiveTransaction<PayloadType = unknown> = {
   kind: 'itx'
   id: string
-  payload: unknown
+  payload: PayloadType
 }
 
-export type PrismaPromiseTransaction = PrismaPromiseBatchTransaction | PrismaPromiseInteractiveTransaction
-
-export type BatchTransactionOptions = Omit<PrismaPromiseBatchTransaction, 'kind'>
-export type InteractiveTransactionOptions = Omit<PrismaPromiseInteractiveTransaction, 'kind'>
+export type PrismaPromiseTransaction<PayloadType = unknown> =
+  | PrismaPromiseBatchTransaction
+  | PrismaPromiseInteractiveTransaction<PayloadType>
 
 /**
  * Prisma's `Promise` that is backwards-compatible. All additions on top of the
@@ -31,40 +30,34 @@ export interface PrismaPromise<A> extends Promise<A> {
    * Extension of the original `.then` function
    * @param onfulfilled same as regular promises
    * @param onrejected same as regular promises
-   * @param transaction interactive transaction options
+   * @param transaction transaction options
    */
   then<R1 = A, R2 = never>(
     onfulfilled?: (value: A) => R1 | PromiseLike<R1>,
     onrejected?: (error: unknown) => R2 | PromiseLike<R2>,
-    transaction?: InteractiveTransactionOptions,
+    transaction?: PrismaPromiseTransaction,
   ): Promise<R1 | R2>
 
   /**
    * Extension of the original `.catch` function
    * @param onrejected same as regular promises
-   * @param transaction interactive transaction options
+   * @param transaction transaction options
    */
   catch<R = never>(
     onrejected?: ((reason: any) => R | PromiseLike<R>) | undefined | null,
-    transaction?: InteractiveTransactionOptions,
+    transaction?: PrismaPromiseTransaction,
   ): Promise<A | R>
 
   /**
    * Extension of the original `.finally` function
    * @param onfinally same as regular promises
-   * @param transaction interactive transaction options
+   * @param transaction transaction options
    */
-  finally(onfinally?: (() => void) | undefined | null, transaction?: InteractiveTransactionOptions): Promise<A>
+  finally(onfinally?: (() => void) | undefined | null, transaction?: PrismaPromiseTransaction): Promise<A>
 
   /**
    * Called when executing a batch of regular tx
-   * @param transaction transaction options for regular tx
+   * @param transaction transaction options for batch tx
    */
-  requestTransaction?(transaction: BatchTransactionOptions): PromiseLike<unknown>
-}
-
-export class PrismaPromise<A> {
-  constructor(callback: (transaction?: PrismaPromiseTransaction) => PrismaPromise<unknown>) {
-    return createPrismaPromise(callback) as PrismaPromise<A>
-  }
+  requestTransaction?(transaction: PrismaPromiseBatchTransaction): PromiseLike<unknown>
 }

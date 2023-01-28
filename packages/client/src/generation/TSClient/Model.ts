@@ -129,7 +129,7 @@ ${indent(
   groupByRootField.args
     .map((arg) => {
       arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.groupBy, arg)
-      return new InputField(arg, false, arg.name === 'by', this.genericsInfo).toTS()
+      return new InputField(arg, arg.name === 'by', this.genericsInfo).toTS()
     })
     .concat(
       groupByType.fields
@@ -248,7 +248,7 @@ ${indent(
   aggregateRootField.args
     .map((arg) => {
       arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, arg)
-      return new InputField(arg, false, false, this.genericsInfo).toTS()
+      return new InputField(arg, false, this.genericsInfo).toTS()
     })
     .concat(
       aggregateType.fields.map((f) => {
@@ -556,7 +556,6 @@ export class Prisma__${name}Client<T, Null = never${ifExtensions(
     )}> implements PrismaPromise<T> {
   [prisma]: true;
   private readonly _dmmf;
-  private readonly _fetcher;
   private readonly _queryType;
   private readonly _rootField;
   private readonly _clientMethod;
@@ -567,7 +566,7 @@ export class Prisma__${name}Client<T, Null = never${ifExtensions(
   private _isList;
   private _callsite;
   private _requestPromise?;
-  constructor(_dmmf: runtime.DMMFClass, _fetcher: PrismaClientFetcher, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
+  constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
   readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 ${indent(
   fields

@@ -138,7 +138,7 @@ type UnwrapTuple<Tuple extends readonly unknown[]> = {
   [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
 };
 `,
-  ts: (hideFetcher?: boolean) => `export import DMMF = runtime.DMMF
+  ts: () => `export import DMMF = runtime.DMMF
 
 /**
  * Prisma Errors
@@ -583,19 +583,6 @@ export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
 
 type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
-${
-  !hideFetcher
-    ? `class PrismaClientFetcher {
-  private readonly prisma;
-  private readonly debug;
-  private readonly hooks?;
-  constructor(prisma: PrismaClient<any, any>, debug?: boolean, hooks?: Hooks | undefined);
-  request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T>;
-  sanitizeMessage(message: string): string;
-  protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
-}`
-    : ''
-}
 `,
 })
 

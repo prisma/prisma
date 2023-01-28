@@ -16,7 +16,7 @@ export type Options = {
   isolationLevel?: IsolationLevel
 }
 
-export type Info<Payload = unknown> = {
+export type InteractiveTransactionInfo<Payload = unknown> = {
   /**
    * Transaction ID returned by the query engine.
    */

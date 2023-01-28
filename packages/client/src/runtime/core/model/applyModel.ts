@@ -87,7 +87,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
         const callSite = getCallSite(client._errorFormat) // used for showing better errors
 
-        return createPrismaPromise((transaction, lock) => {
+        return createPrismaPromise((transaction) => {
           const params: InternalRequestParams = {
             // data and its dataPath for nested results
             args: userArgs,
@@ -103,7 +103,6 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
 
             // transaction information
             transaction,
-            lock,
 
             // stack trace
             callsite: callSite,

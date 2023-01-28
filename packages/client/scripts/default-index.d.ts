@@ -12,7 +12,7 @@ import * as runtime from '@prisma/client/runtime'
  * ```
  *
  *
- * Read more in our [docs](https://github.com/prisma/prisma/blob/main/docs/prisma-client-js/api.md).
+ * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client).
  */
 export declare const PrismaClient: any
 
@@ -28,7 +28,7 @@ export declare const PrismaClient: any
  * ```
  *
  *
- * Read more in our [docs](https://github.com/prisma/prisma/blob/main/docs/prisma-client-js/api.md).
+ * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client).
  */
 export declare type PrismaClient = any
 
