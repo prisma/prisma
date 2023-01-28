@@ -39,7 +39,7 @@ testMatrix.setupTestSuite(() => {
     https.request = originalRequest
   })
 
-  test('changing http headers via custom fetch', async () => {
+  testIf(process.env.DATA_PROXY !== undefined)('changing http headers via custom fetch', async () => {
     const xprisma = prisma.$extends({
       query: {
         $allModels: {
@@ -79,7 +79,7 @@ testMatrix.setupTestSuite(() => {
     expect(mockedRequest.mock.calls[0][1].headers).toHaveProperty('x-custom-header', 'hello')
   })
 
-  test('confirm that custom fetch cascades like a middleware', async () => {
+  testIf(process.env.DATA_PROXY !== undefined)('confirm that custom fetch cascades like a middleware', async () => {
     const xprisma = prisma
       .$extends({
         query: {
