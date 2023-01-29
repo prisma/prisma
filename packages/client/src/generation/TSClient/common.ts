@@ -138,7 +138,7 @@ type UnwrapTuple<Tuple extends readonly unknown[]> = {
 `,
   ts: () => `export import DMMF = runtime.DMMF
 
-export type Prisma.PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
+export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
 
 /**
  * Prisma Errors
