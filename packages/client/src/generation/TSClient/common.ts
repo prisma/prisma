@@ -133,12 +133,12 @@ export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVer
   tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
 type UnwrapTuple<Tuple extends readonly unknown[]> = {
-  [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends Prisma.Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
+  [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
 };
 `,
   ts: () => `export import DMMF = runtime.DMMF
 
-export type Prisma.PrismaPromise<T> = runtime.Types.Public.Prisma.PrismaPromise<T>
+export type Prisma.PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
 
 /**
  * Prisma Errors
