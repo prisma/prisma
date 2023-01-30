@@ -244,13 +244,13 @@ export function getReturnType({
   if (actionName === 'aggregate') return `Promise<${getAggregateGetName(name)}<T>>`
 
   if (actionName === 'findRaw' || actionName === 'aggregateRaw') {
-    return `PrismaPromise<JsonObject>`
+    return `Prisma.PrismaPromise<JsonObject>`
   }
 
   const isList = actionName === DMMF.ModelAction.findMany
 
   if (actionName === 'deleteMany' || actionName === 'updateMany' || actionName === 'createMany') {
-    return `PrismaPromise<BatchPayload>`
+    return `Prisma.PrismaPromise<BatchPayload>`
   }
 
   /**
@@ -259,7 +259,7 @@ export function getReturnType({
   if (isList || hideCondition) {
     const listOpen = isList ? 'Array<' : ''
     const listClose = isList ? '>' : ''
-    const promiseOpen = renderPromise ? 'PrismaPromise<' : ''
+    const promiseOpen = renderPromise ? 'Prisma.PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
     return `${promiseOpen}${ifExtensions('', listOpen)}${getPayloadName(name)}<${ifExtensions(

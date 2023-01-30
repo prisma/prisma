@@ -24,6 +24,11 @@ export type Payload<T, F extends Operation> =
   ? T[symbol]['types'][F]['payload']
   : never
 
+// we don't expose our internal types to keep the API secret
+export interface PrismaPromise<T> extends Promise<T> {
+  [Symbol.toStringTag]: 'PrismaPromise'
+}
+
 export { type Operation }
 
 export { type Exact }
