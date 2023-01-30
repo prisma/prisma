@@ -277,7 +277,7 @@ exports[`introspection: findMany on column_name_that_becomes_empty_string: warni
       },
     ],
     code: 1,
-    message: The following models were commented out as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client.,
+    message: The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client.,
   },
   {
     affected: [
