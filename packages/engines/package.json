@@ -8,7 +8,7 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "4.10.0-55.72a1092eb7dc85c2622b1291d13ddff9fb83cb42",
+    "@prisma/engines-version": "4.10.0-56.integration-get-dmmf-wasm-handle-errors-7e5bb4fceecd0a115f8e99a78b2d1827e58c708f",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@swc/core": "1.3.14",
