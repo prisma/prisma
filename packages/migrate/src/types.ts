@@ -156,8 +156,13 @@ export namespace EngineArgs {
   }
 
   // See prisma-engines
-  // SQL https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
-  // Mongo https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs
+  // SQL databases:
+  // Previously at https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
+  // Now at https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/sql-introspection-connector/src/warnings/generators.rs
+  //
+  // MongoDB:
+  // https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs
+
   export type IntrospectionWarnings =
     | IntrospectionWarningsUnhandled
     | IntrospectionWarningsInvalidReintro
