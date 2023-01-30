@@ -29,7 +29,7 @@ import { SchemaMissingError } from './errors/SchemaMissingError'
 import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
-import { request } from './utils/request'
+import { Fetch, request } from './utils/request'
 
 const MAX_RETRIES = 10
 
@@ -46,7 +46,7 @@ type DataProxyTxInfo = Tx.InteractiveTransactionInfo<DataProxyTxInfoPayload>
 
 type RequestInternalOptions = {
   body: Record<string, unknown>
-  customHeaders?: Record<string, string>
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
   traceparent?: string
   interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
 }
@@ -139,7 +139,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
   request<T>(
     { query }: EngineQuery,
-    { traceparent, interactiveTransaction, customDataProxyHeaders }: RequestOptions<DataProxyTxInfoPayload>,
+    { traceparent, interactiveTransaction, customDataProxyFetch }: RequestOptions<DataProxyTxInfoPayload>,
   ) {
     this.logEmitter.emit('query', { query })
     // TODO: `elapsed`?
@@ -147,13 +147,13 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       body: { query, variables: {} },
       traceparent,
       interactiveTransaction,
-      customHeaders: customDataProxyHeaders,
+      customDataProxyFetch,
     })
   }
 
   async requestBatch<T>(
     queries: EngineQuery[],
-    { traceparent, transaction, customDataProxyHeaders }: RequestBatchOptions<DataProxyTxInfoPayload>,
+    { traceparent, transaction, customDataProxyFetch }: RequestBatchOptions<DataProxyTxInfoPayload>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
@@ -168,7 +168,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
     const { batchResult, elapsed } = await this.requestInternal<T, true>({
       body,
-      customHeaders: customDataProxyHeaders,
+      customDataProxyFetch,
       interactiveTransaction,
       traceparent,
     })
@@ -187,7 +187,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   private requestInternal<T, Batch extends boolean = false>({
     body,
     traceparent,
-    customHeaders,
+    customDataProxyFetch,
     interactiveTransaction,
   }: RequestInternalOptions): Promise<
     Batch extends true ? { batchResult: QueryEngineResultBatchQueryResult<T>[]; elapsed: number } : QueryEngineResult<T>
@@ -201,7 +201,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
         logHttpCall(url)
 
-        const headers: Record<string, string> = { ...customHeaders }
+        const headers: Record<string, string> = {}
         if (traceparent) {
           headers.traceparent = traceparent
         }
@@ -210,12 +210,16 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
           headers['X-transaction-id'] = interactiveTransaction.id
         }
 
-        const response = await request(url, {
-          method: 'POST',
-          headers: { ...headers, ...this.headers },
-          body: JSON.stringify(body),
-          clientVersion: this.clientVersion,
-        })
+        const response = await request(
+          url,
+          {
+            method: 'POST',
+            headers: { ...headers, ...this.headers },
+            body: JSON.stringify(body),
+            clientVersion: this.clientVersion,
+          },
+          customDataProxyFetch,
+        )
 
         if (!response.ok) {
           debug('graphql response status', response.status)

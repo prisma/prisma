@@ -11,6 +11,9 @@ function iterateAndCallQueryCallbacks(
   i = 0,
 ) {
   return createPrismaPromise((transaction) => {
+    // we need to keep track of the previous customDataProxyFetch
+    const prevCustomFetch = params.customDataProxyFetch ?? ((f) => f)
+
     // allow query extensions to re-wrap in transactions
     // this will automatically discard the prev batch tx
     if (transaction !== undefined) {
@@ -33,6 +36,10 @@ function iterateAndCallQueryCallbacks(
       // @ts-expect-error because not part of public API
       __internalParams: params,
       query: (args, __internalParams = params) => {
+        // we need to keep track of the current customDataProxyFetch
+        // this is to cascade customDataProxyFetch like a middleware
+        const currCustomFetch = __internalParams.customDataProxyFetch ?? ((f) => f)
+        __internalParams.customDataProxyFetch = (f) => prevCustomFetch(currCustomFetch(f))
         __internalParams.args = args
 
         return iterateAndCallQueryCallbacks(client, __internalParams, queryCbs, i + 1)

@@ -15,8 +15,10 @@ export type RequestResponse = O.Required<
   'text' | 'json' | 'url' | 'ok' | 'status'
 >
 
+export type Fetch = typeof nodeFetch
+
 // fetch is global on edge runtime
-declare let fetch: typeof nodeFetch
+declare let fetch: Fetch
 
 /**
  * Isomorphic `fetch` that imitates `fetch` via `https` when on Node.js.
@@ -27,15 +29,16 @@ declare let fetch: typeof nodeFetch
 export async function request(
   url: string,
   options: RequestOptions & { clientVersion: string },
+  customFetch: (fetch: Fetch) => Fetch = (fetch) => fetch,
 ): Promise<RequestResponse> {
   const clientVersion = options.clientVersion
   const jsRuntimeName = getJSRuntimeName()
 
   try {
     if (jsRuntimeName === 'browser') {
-      return await fetch(url, options)
+      return await customFetch(fetch)(url, options)
     } else {
-      return await nodeFetch(url, options)
+      return await customFetch(nodeFetch)(url, options)
     }
   } catch (e) {
     const message = e.message ?? 'Unknown error'

@@ -1,5 +1,6 @@
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 
+import { Fetch } from '../data-proxy/utils/request'
 import { TracingConfig } from '../tracing/getTracingConfig'
 import { EventEmitter } from './types/Events'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
@@ -42,7 +43,8 @@ export type RequestOptions<InteractiveTransactionPayload> = {
   numTry?: number
   interactiveTransaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
   isWrite: boolean
-  customDataProxyHeaders?: Record<string, string>
+  // only used by the data proxy engine
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
 export type RequestBatchOptions<InteractiveTransactionPayload> = {
@@ -50,8 +52,8 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
   traceparent?: string
   numTry?: number
   containsWrite: boolean
-  // TODO: remove after https://github.com/prisma/prisma/pull/17356 is merged
-  customDataProxyHeaders?: Record<string, string>
+  // only used by the data proxy engine
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
 export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error

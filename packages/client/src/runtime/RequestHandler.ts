@@ -2,6 +2,7 @@ import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import {
   EventEmitter,
+  Fetch,
   getTraceParent,
   hasBatchIndex,
   InteractiveTransactionOptions,
@@ -40,13 +41,13 @@ export type RequestParams = {
   callsite?: CallSite
   rejectOnNotFound?: RejectOnNotFound
   transaction?: PrismaPromiseTransaction
-  customDataProxyHeaders?: Record<string, string>
   extensions: MergedExtensionsList
   args?: any
   headers?: Record<string, string>
   unpacker?: Unpacker
   otelParentCtx?: Context
   otelChildCtx?: Context
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
 export type HandleErrorParams = {
@@ -59,10 +60,10 @@ export type HandleErrorParams = {
 export type Request = {
   protocolMessage: ProtocolMessage
   transaction?: PrismaPromiseTransaction
-  customDataProxyHeaders?: Record<string, string>
   otelParentCtx?: Context
   otelChildCtx?: Context
   tracingConfig?: TracingConfig
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
 type ApplyExtensionsParams = {
@@ -95,7 +96,7 @@ export class RequestHandler {
           traceparent,
           transaction: getTransactionOptions(transaction),
           containsWrite,
-          customDataProxyHeaders: requests[0].customDataProxyHeaders,
+          customDataProxyFetch: requests[0].customDataProxyFetch,
         })
       },
       singleLoader: (request) => {
@@ -106,7 +107,7 @@ export class RequestHandler {
           traceparent: getTraceParent({ tracingConfig: request.tracingConfig }),
           interactiveTransaction,
           isWrite: request.protocolMessage.isWrite(),
-          customDataProxyHeaders: request.customDataProxyHeaders,
+          customDataProxyFetch: request.customDataProxyFetch,
         })
       },
       batchBy: (request) => {
@@ -132,7 +133,7 @@ export class RequestHandler {
     extensions,
     otelParentCtx,
     otelChildCtx,
-    customDataProxyHeaders,
+    customDataProxyFetch,
   }: RequestParams) {
     try {
       const response = await this.dataloader.request({
@@ -141,7 +142,7 @@ export class RequestHandler {
         otelParentCtx,
         otelChildCtx,
         tracingConfig: this.client._tracingConfig,
-        customDataProxyHeaders,
+        customDataProxyFetch,
       })
       const data = response?.data
       const elapsed = response?.elapsed
