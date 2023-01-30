@@ -8,6 +8,7 @@ import {
   Engine,
   EngineConfig,
   EngineEventType,
+  Fetch,
   getTraceParent,
   getTracingConfig,
   LibraryEngine,
@@ -28,7 +29,7 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
-import { $extends, Args as Extension } from './core/extensions/$extends'
+import { $extends } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { MetricsClient } from './core/metrics/MetricsClient'
@@ -168,14 +169,14 @@ export type InternalRequestParams = {
    */
   jsModelName?: string
   // Extra headers for data proxy.
-  // TODO: remove after https://github.com/prisma/prisma/pull/17356 is merged
-  headers?: Record<string, string>
   callsite?: CallSite
   transaction?: PrismaPromiseTransaction
   unpacker?: Unpacker // TODO what is this
   otelParentCtx?: Context
   /** Used to "desugar" a user input into an "expanded" one */
   argsMapper?: (args?: UserArgs) => UserArgs
+  /** Used for Accelerate client extension via Data Proxy */
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 /* Types for Logging */
@@ -1026,11 +1027,11 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       callsite,
       action,
       model,
-      headers,
       argsMapper,
       transaction,
       unpacker,
       otelParentCtx,
+      customDataProxyFetch,
     }: InternalRequestParams) {
       const protocolEncoder = await this._getProtocolEncoder({ clientMethod, callsite })
 
@@ -1093,7 +1094,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         unpacker,
         otelParentCtx,
         otelChildCtx: context.active(),
-        customDataProxyHeaders: headers,
+        customDataProxyFetch,
       })
     }
 

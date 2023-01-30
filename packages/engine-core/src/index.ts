@@ -18,6 +18,7 @@ export { getOriginalBinaryTargetsValue, printGeneratorConfig } from './common/ut
 export { fixBinaryTargets } from './common/utils/util'
 export { plusX } from './common/utils/util'
 export { DataProxyEngine } from './data-proxy/DataProxyEngine'
+export type { Fetch } from './data-proxy/utils/request'
 export { LibraryEngine } from './library/LibraryEngine'
 export * as NodeAPILibraryTypes from './library/types/Library'
 export * from './tracing'

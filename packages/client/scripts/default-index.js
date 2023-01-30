@@ -15,9 +15,14 @@ function defineExtension(ext) {
   return (client) => client.$extends(ext)
 }
 
+function getExtensionContext(that) {
+  return that
+}
+
 module.exports = {
   PrismaClient,
   Prisma: {
     defineExtension,
+    getExtensionContext,
   },
 }
