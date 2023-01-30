@@ -64,7 +64,7 @@ jobs:
         uses: Ana06/get-changed-files@v2.2.0 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
         with:
           format: 'json'
-        continue-on-error: true
+        continue-on-error: true # This allow this job to fail (e.g. for scheduled runs), and then the `detect` step below will default to `all`
       - id: detect
         run: ./.github/workflows/scripts/detect-jobs-to-run.js <<<'${{ steps.files.outputs.all }}'
 
