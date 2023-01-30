@@ -135,7 +135,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
        * Capture and propagate possible Wasm panics.
        */
       if (isWasmPanic(e.error)) {
-        const wasmError = e.error as Error
+        const wasmError = e.error
         const panic = new RustPanic(
           /* message */ wasmError.message,
           /* rustStack */ wasmError.stack || 'NO_BACKTRACE',

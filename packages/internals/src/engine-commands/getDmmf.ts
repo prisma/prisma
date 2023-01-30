@@ -10,7 +10,7 @@ import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
-import { ErrorArea, isExecaErrorCausedByRustPanic, isWasmPanic, RustPanic } from '../panic'
+import { ErrorArea, isExecaErrorCausedByRustPanic, isWasmPanic, RustPanic, WasmPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import {
@@ -129,11 +129,12 @@ async function getDmmfWasm(options: GetDMMFOptions) {
         const data = prismaFmt.get_dmmf(params)
         return data
       },
-      (e) => ({
-        type: 'wasm-error' as const,
-        reason: '(get-dmmf wasm)',
-        error: e as Error,
-      }),
+      (e) =>
+        ({
+          type: 'wasm-error' as const,
+          reason: '(get-dmmf wasm)',
+          error: e as string | WasmPanic,
+        } as const),
     ),
     E.map((result) => ({ result })),
     E.chainW(({ result }) =>
@@ -165,8 +166,8 @@ async function getDmmfWasm(options: GetDMMFOptions) {
       /**
        * Capture and propagate possible Wasm panics.
        */
-      if (isWasmPanic(e.error)) {
-        const wasmError = e.error as Error
+      if (isWasmPanic<string>(e.error)) {
+        const wasmError = e.error
         const panic = new RustPanic(
           /* message */ wasmError.message,
           /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
@@ -181,34 +182,21 @@ async function getDmmfWasm(options: GetDMMFOptions) {
       /*
        * Extract the actual error by attempting to JSON-parse the error message.
        */
-      const errorOutput = e.error.message
-      const actualError = pipe(
-        E.tryCatch(
-          () => JSON.parse(errorOutput),
-          () => {
-            debug(`Couldn't apply JSON.parse to "${errorOutput}"`)
-            return new GetDmmfError({ _tag: 'unparsed', message: errorOutput, reason: e.reason })
-          },
-        ),
-        E.map((errorOutputAsJSON: Record<string, string>) => {
-          const { error_code: errorCode } = errorOutputAsJSON as { error_code: string | undefined }
-
-          return new GetDmmfError({
-            _tag: 'parsed',
-            message: errorOutputAsJSON.message,
-            reason: createSchemaValidationError(e.reason),
-            errorCode,
-          })
-        }),
-        E.getOrElseW(identity),
-      )
+      const errorOutput = e.error
+      const actualError = new GetDmmfError({
+        _tag: 'parsed',
+        message: errorOutput,
+        reason: createSchemaValidationError(e.reason),
+        errorCode: 'P1012',
+      })
 
       return actualError
     })
-    .otherwise((e) => {
+    .with({ type: 'parse-json' }, (e) => {
       debugErrorType(e)
       return new GetDmmfError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
     })
+    .exhaustive()
 
   throw error
 }

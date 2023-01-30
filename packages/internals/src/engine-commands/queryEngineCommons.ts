@@ -135,7 +135,7 @@ export function unlinkTempDatamodelPath(options: { datamodelPath?: string }, tem
 
 export const createDebugErrorType =
   (debug: (formatter: any, ...args: any[]) => void, fnName: string) =>
-  ({ type, reason, error }: { type: string; reason: string; error: Error }) => {
+  ({ type, reason, error }: { type: string; reason: string; error: Error | string }) => {
     debug(`error of type "${type}" in ${fnName}:\n`, { reason, error })
   }
 
