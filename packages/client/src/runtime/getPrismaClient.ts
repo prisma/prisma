@@ -176,7 +176,7 @@ export type InternalRequestParams = {
   /** Used to "desugar" a user input into an "expanded" one */
   argsMapper?: (args?: UserArgs) => UserArgs
   /** Used for Accelerate client extension via Data Proxy */
-  customFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
 
 /* Types for Logging */
@@ -1031,7 +1031,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       transaction,
       unpacker,
       otelParentCtx,
-      customFetch,
+      customDataProxyFetch,
     }: InternalRequestParams) {
       const protocolEncoder = await this._getProtocolEncoder({ clientMethod, callsite })
 
@@ -1094,7 +1094,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         unpacker,
         otelParentCtx,
         otelChildCtx: context.active(),
-        customFetch,
+        customDataProxyFetch,
       })
     }
 

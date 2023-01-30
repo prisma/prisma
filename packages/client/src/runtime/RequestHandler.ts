@@ -47,7 +47,7 @@ export type RequestParams = {
   unpacker?: Unpacker
   otelParentCtx?: Context
   otelChildCtx?: Context
-  customFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
 export type HandleErrorParams = {
@@ -63,7 +63,7 @@ export type Request = {
   otelParentCtx?: Context
   otelChildCtx?: Context
   tracingConfig?: TracingConfig
-  customFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
 type ApplyExtensionsParams = {
@@ -96,7 +96,7 @@ export class RequestHandler {
           traceparent,
           transaction: getTransactionOptions(transaction),
           containsWrite,
-          customFetch: requests[0].customFetch,
+          customDataProxyFetch: requests[0].customDataProxyFetch,
         })
       },
       singleLoader: (request) => {
@@ -107,7 +107,7 @@ export class RequestHandler {
           traceparent: getTraceParent({ tracingConfig: request.tracingConfig }),
           interactiveTransaction,
           isWrite: request.protocolMessage.isWrite(),
-          customFetch: request.customFetch,
+          customDataProxyFetch: request.customDataProxyFetch,
         })
       },
       batchBy: (request) => {
@@ -133,7 +133,7 @@ export class RequestHandler {
     extensions,
     otelParentCtx,
     otelChildCtx,
-    customFetch,
+    customDataProxyFetch,
   }: RequestParams) {
     try {
       const response = await this.dataloader.request({
@@ -142,7 +142,7 @@ export class RequestHandler {
         otelParentCtx,
         otelChildCtx,
         tracingConfig: this.client._tracingConfig,
-        customFetch,
+        customDataProxyFetch,
       })
       const data = response?.data
       const elapsed = response?.elapsed

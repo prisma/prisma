@@ -46,7 +46,7 @@ type DataProxyTxInfo = Tx.InteractiveTransactionInfo<DataProxyTxInfoPayload>
 
 type RequestInternalOptions = {
   body: Record<string, unknown>
-  customFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
   traceparent?: string
   interactiveTransaction?: InteractiveTransactionOptions<DataProxyTxInfoPayload>
 }
@@ -139,7 +139,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
   request<T>(
     { query }: EngineQuery,
-    { traceparent, interactiveTransaction, customFetch }: RequestOptions<DataProxyTxInfoPayload>,
+    { traceparent, interactiveTransaction, customDataProxyFetch }: RequestOptions<DataProxyTxInfoPayload>,
   ) {
     this.logEmitter.emit('query', { query })
     // TODO: `elapsed`?
@@ -147,13 +147,13 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       body: { query, variables: {} },
       traceparent,
       interactiveTransaction,
-      customFetch,
+      customDataProxyFetch,
     })
   }
 
   async requestBatch<T>(
     queries: EngineQuery[],
-    { traceparent, transaction, customFetch }: RequestBatchOptions<DataProxyTxInfoPayload>,
+    { traceparent, transaction, customDataProxyFetch }: RequestBatchOptions<DataProxyTxInfoPayload>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     const isTransaction = Boolean(transaction)
     this.logEmitter.emit('query', {
@@ -168,7 +168,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
     const { batchResult, elapsed } = await this.requestInternal<T, true>({
       body,
-      customFetch,
+      customDataProxyFetch,
       interactiveTransaction,
       traceparent,
     })
@@ -187,7 +187,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   private requestInternal<T, Batch extends boolean = false>({
     body,
     traceparent,
-    customFetch,
+    customDataProxyFetch,
     interactiveTransaction,
   }: RequestInternalOptions): Promise<
     Batch extends true ? { batchResult: QueryEngineResultBatchQueryResult<T>[]; elapsed: number } : QueryEngineResult<T>
@@ -218,7 +218,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
             body: JSON.stringify(body),
             clientVersion: this.clientVersion,
           },
-          customFetch,
+          customDataProxyFetch,
         )
 
         if (!response.ok) {

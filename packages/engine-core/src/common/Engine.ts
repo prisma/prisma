@@ -44,7 +44,7 @@ export type RequestOptions<InteractiveTransactionPayload> = {
   interactiveTransaction?: InteractiveTransactionOptions<InteractiveTransactionPayload>
   isWrite: boolean
   // only used by the data proxy engine
-  customFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
 export type RequestBatchOptions<InteractiveTransactionPayload> = {
@@ -53,7 +53,7 @@ export type RequestBatchOptions<InteractiveTransactionPayload> = {
   numTry?: number
   containsWrite: boolean
   // only used by the data proxy engine
-  customFetch?: (fetch: Fetch) => Fetch
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
 export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error

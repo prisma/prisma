@@ -46,7 +46,7 @@ testMatrix.setupTestSuite(() => {
               args: any
             }
 
-            __internalParams.customFetch = (fetch) => {
+            __internalParams.customDataProxyFetch = (fetch) => {
               return async (url, options) => {
                 options.headers = {
                   ...options.headers,
@@ -87,7 +87,7 @@ testMatrix.setupTestSuite(() => {
                 args: any
               }
 
-              __internalParams.customFetch = (fetch) => {
+              __internalParams.customDataProxyFetch = (fetch) => {
                 return (url, args) => fetch(url, { ...args, order: [1] })
               }
 
@@ -106,7 +106,7 @@ testMatrix.setupTestSuite(() => {
                 args: any
               }
 
-              __internalParams.customFetch = (fetch) => {
+              __internalParams.customDataProxyFetch = (fetch) => {
                 return (url, args) => fetch(url, { ...args, order: [...args.order, 2] })
               }
 
@@ -125,7 +125,7 @@ testMatrix.setupTestSuite(() => {
                 args: any
               }
 
-              __internalParams.customFetch = (fetch) => {
+              __internalParams.customDataProxyFetch = (fetch) => {
                 return (url, args) => {
                   expect(args.order).toEqual([1, 2])
                   return fetch(url, args)
