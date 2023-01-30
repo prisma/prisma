@@ -1,0 +1,7 @@
+{
+  "extends": "../../tsconfig.build.regular.json",
+  "include": [
+    "**/*",
+  ],
+  "exclude": []
+}
