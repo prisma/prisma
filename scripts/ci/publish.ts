@@ -456,6 +456,8 @@ export async function getAllVersionsPublishedFor(pkgs: Packages, channel: string
 }
 
 /**
+ * Only used when publishing to the `dev` and `integration` npm channels
+ * (see `getNewDevVersion()` and `getNewIntegrationVersion()`)
  * @returns The next minor version for the `latest` channel
  * Example: If latest is `4.9.0` it will return `4.10.0`
  */
