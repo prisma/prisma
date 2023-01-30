@@ -30,7 +30,9 @@ export type Operation =
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 export type GetFindResult<P extends Payload, A> = 
-  A extends { select: infer S } | { include: infer S }
+  A extends 
+  | { select: infer S } & Record<string, unknown>
+  | { include: infer S } & Record<string, unknown>
   ? {
       [K in keyof S as S[K] extends false | undefined | null ? never : K]:
         S[K] extends true
@@ -50,7 +52,7 @@ export type GetFindResult<P extends Payload, A> =
             : K extends '_count'
               ? Count<GetFindResult<P, S[K]>>
               : never
-  } & (A extends { include: any } ? P['scalars'] : unknown)
+  }& (A extends { include: any } & Record<string, unknown> ? P['scalars'] : unknown)
   : P['scalars']
 
 type GetCountResult<P, A> =

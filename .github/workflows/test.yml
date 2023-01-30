@@ -43,8 +43,8 @@ on:
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
   schedule:
-    - cron: "*/15 3-5 * * *"
-  
+    - cron: '*/15 3-5 * * *'
+
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
   PRISMA_TELEMETRY_INFORMATION: 'prisma test.yml'
