@@ -28,11 +28,7 @@ testMatrix.setupTestSuite(() => {
   })
 
   beforeEach(() => {
-    mockedRequest = jest.fn()
-    https.request = (...args: any[]) => {
-      mockedRequest(args[0], args[1], args[2])
-      return originalRequest(args[0], args[1], args[2])
-    }
+   mockedRequest = jest.spyOn(https, 'request')
   })
 
   afterEach(() => {
