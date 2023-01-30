@@ -850,7 +850,7 @@ testMatrix.setupTestSuite(
       })
 
       await expect(xprisma.user.findFirst({})).rejects.toThrowErrorMatchingInlineSnapshot(
-        `Error caused by extension "Faulty query ext": All is lost!`,
+        `Cannot create property 'clientVersion' on string 'All is lost!'`,
       )
     })
 
@@ -866,7 +866,7 @@ testMatrix.setupTestSuite(
       })
 
       await expect(xprisma.user.findFirst({})).rejects.toThrowErrorMatchingInlineSnapshot(
-        `Error caused by an extension: All is lost!`,
+        `Cannot create property 'clientVersion' on string 'All is lost!'`,
       )
     })
 

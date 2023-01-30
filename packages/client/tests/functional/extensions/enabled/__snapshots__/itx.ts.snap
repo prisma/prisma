@@ -61,7 +61,7 @@ Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
 exports[`extensions.enabled.itx (provider=postgresql) extended client in itx can rollback via custom call 1`] = `
-Error caused by an extension: 
+
 Invalid \`prisma.user.create()\` invocation:
 
 
