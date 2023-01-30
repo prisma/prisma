@@ -46,7 +46,6 @@ testMatrix.setupTestSuite(
         expect(queryLogEvents).toHaveProperty('params')
         expect(queryLogEvents).toHaveProperty('target')
       }
-
     })
 
     test('should log queries inside a ITX', async () => {

@@ -152,7 +152,7 @@ ${indent(
 
 ${new OutputType(this.dmmf, groupByType).toTS()}
 
-type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = PrismaPromise<
+type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma.PrismaPromise<
   Array<
     PickArray<${groupByType.name}, T['by']> &
       {
@@ -457,7 +457,7 @@ ${
     ? `${indent(getMethodJSDoc(DMMF.ModelAction.count, mapping, modelOrType), TAB_SIZE)}
   count<T extends ${countArgsName}>(
     args?: Subset<T, ${countArgsName}>,
-  ): PrismaPromise<
+  ): Prisma.PrismaPromise<
     T extends _Record<'select', any>
       ? T['select'] extends true
         ? number
@@ -472,7 +472,7 @@ ${
     ? `${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, modelOrType), TAB_SIZE)}
   aggregate<T extends ${getAggregateArgsName(name)}>(args: Subset<T, ${getAggregateArgsName(
         name,
-      )}>): PrismaPromise<${getAggregateGetName(name)}<T>>
+      )}>): Prisma.PrismaPromise<${getAggregateGetName(name)}<T>>
 `
     : ''
 }
@@ -538,7 +538,7 @@ ${
       }[OrderFields]
   >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
         name,
-      )}<T> : PrismaPromise<InputErrors>`
+      )}<T> : Prisma.PrismaPromise<InputErrors>`
     : ''
 }
 ${fieldsProxy}
@@ -553,8 +553,7 @@ ${fieldsProxy}
 export class Prisma__${name}Client<T, Null = never${ifExtensions(
       ', ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs',
       '',
-    )}> implements PrismaPromise<T> {
-  [prisma]: true;
+    )}> implements Prisma.PrismaPromise<T> {
   private readonly _dmmf;
   private readonly _queryType;
   private readonly _rootField;
@@ -566,8 +565,8 @@ export class Prisma__${name}Client<T, Null = never${ifExtensions(
   private _isList;
   private _callsite;
   private _requestPromise?;
+  readonly [Symbol.toStringTag]: 'PrismaPromise';
   constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
-  readonly [Symbol.toStringTag]: 'PrismaClientPromise';
 ${indent(
   fields
     .filter((f) => f.outputType.location === 'outputObjectTypes' && f.name !== '_count')

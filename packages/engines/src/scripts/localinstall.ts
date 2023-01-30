@@ -17,7 +17,6 @@ async function main() {
     [BinaryType.queryEngine]: path.join(cacheDir, BinaryType.queryEngine),
     [BinaryType.libqueryEngine]: path.join(cacheDir, BinaryType.libqueryEngine),
     [BinaryType.migrationEngine]: path.join(cacheDir, BinaryType.migrationEngine),
-    [BinaryType.introspectionEngine]: path.join(cacheDir, BinaryType.introspectionEngine),
   }
 
   if (branch !== undefined) {
@@ -64,7 +63,6 @@ async function main() {
       [BinaryType.libqueryEngine]: path.join(folder, 'libquery_engine'.concat(libExt)),
       [BinaryType.queryEngine]: path.join(folder, BinaryType.queryEngine.concat(binExt)),
       [BinaryType.migrationEngine]: path.join(folder, BinaryType.migrationEngine.concat(binExt)),
-      [BinaryType.introspectionEngine]: path.join(folder, BinaryType.introspectionEngine.concat(binExt)),
     }
 
     for (const [binaryType, outputPath] of Object.entries(engineOutputPaths)) {

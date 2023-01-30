@@ -12,7 +12,7 @@ import runtime from '@prisma/client/runtime'
  * ```
  *
  *
- * Read more in our [docs](https://github.com/prisma/prisma/blob/main/docs/prisma-client-js/api.md).
+ * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client).
  */
 export declare const PrismaClient: any
 
@@ -28,7 +28,7 @@ export declare const PrismaClient: any
  * ```
  *
  *
- * Read more in our [docs](https://github.com/prisma/prisma/blob/main/docs/prisma-client-js/api.md).
+ * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client).
  */
 export declare type PrismaClient = any
 
@@ -82,4 +82,5 @@ export namespace Prisma {
   export type Payload<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Payload<T, F> & {}
   export type Result<T, A, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Result<T, A, F> & {}
   export type Exact<T, W> = runtime.Types.Public.Exact<T, W> & {}
+  export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T> & {}
 }

@@ -30,5 +30,5 @@ export function promise(resultType: TypeBuilder): NamedType {
 }
 
 export function prismaPromise(resultType: TypeBuilder): NamedType {
-  return new NamedType('PrismaPromise').addGenericArgument(resultType)
+  return new NamedType('Prisma.PrismaPromise').addGenericArgument(resultType)
 }
