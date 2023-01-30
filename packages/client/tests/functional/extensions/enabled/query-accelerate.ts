@@ -11,7 +11,7 @@ declare const prisma: PrismaClient
  * Tests for underlying query component features used by Prisma Accelerate
  */
 testMatrix.setupTestSuite(() => {
-  let mockedRequest: jest.Mock
+  let mockedRequest: jest.SpyInstance<any>
   const originalRequest = https.request
   const randomId = randomBytes(12).toString('hex')
 
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(() => {
   })
 
   beforeEach(() => {
-   mockedRequest = jest.spyOn(https, 'request')
+    mockedRequest = jest.spyOn(https, 'request')
   })
 
   afterEach(() => {
