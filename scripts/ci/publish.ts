@@ -273,7 +273,7 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
 
   console.log(`getNewDevVersion: Next minor stable: ${nextStable}`)
 
-  const versions = await getLatestVersionPublishedFor(packages, 'dev', nextStable + '-dev')
+  const versions = await getAllVersionsPublishedFor(packages, 'dev', nextStable + '-dev')
   const maxDev = getMaxDevVersionIncrement(versions)
 
   const version = `${nextStable}-dev.${maxDev + 1}`
@@ -299,7 +299,7 @@ async function getNewIntegrationVersion(packages: Packages, branch: string): Pro
   const branchWithoutPrefix = branch.replace(/^integration\//, '')
   const versionNameSlug = `${nextStable}-integration-${slugify(branchWithoutPrefix)}`
 
-  const versions = await getLatestVersionPublishedFor(packages, 'integration', versionNameSlug)
+  const versions = await getAllVersionsPublishedFor(packages, 'integration', versionNameSlug)
   const maxIntegration = getMaxIntegrationVersionIncrement(versions)
 
   const version = `${versionNameSlug}.${maxIntegration + 1}`
@@ -366,7 +366,7 @@ async function getNewPatchDevVersion(packages: Packages, patchBranch: string): P
   const currentPatch = await getCurrentPatchForPatchVersions(patchMajorMinor)
   const newPatch = currentPatch + 1
   const newVersion = `${patchMajorMinor.major}.${patchMajorMinor.minor}.${newPatch}`
-  const versions = [...(await getLatestVersionPublishedFor(packages, 'dev', newVersion))]
+  const versions = [...(await getAllVersionsPublishedFor(packages, 'dev', newVersion))]
   const maxIncrement = getMaxPatchVersionIncrement(versions)
 
   return `${newVersion}-dev.${maxIncrement + 1}`
@@ -420,7 +420,13 @@ function getMaxPatchVersionIncrement(versions: string[]): number {
   return Math.max(...increments, 0)
 }
 
-export async function getLatestVersionPublishedFor(pkgs: Packages, channel: string, prefix: string): Promise<string[]> {
+/**
+ * @param pkgs
+ * @param channel
+ * @param prefix
+ * @returns All versions published on npm for a given channel and prefix
+ */
+export async function getAllVersionsPublishedFor(pkgs: Packages, channel: string, prefix: string): Promise<string[]> {
   // We check the versions for the `@prisma/debug` package
   // Why?
   // Because `@prisma/debug` is the first package that will be published
@@ -449,6 +455,10 @@ export async function getLatestVersionPublishedFor(pkgs: Packages, channel: stri
   return [...new Set(await values(pkg))]
 }
 
+/**
+ * @returns The next minor version for the `latest` channel
+ * Example: If latest is `4.9.0` it will return `4.10.0`
+ */
 async function getNextMinorStable() {
   // We check the Prisma CLI `latest` version
   const remoteVersion = await runResult('.', 'npm info prisma version')
