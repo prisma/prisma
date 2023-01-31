@@ -56,6 +56,9 @@ export function getEffectiveUrl(ds: DataSource): EnvValue {
   return ds.url
 }
 
+/**
+ * Wasm'd version of `getConfig`.
+ */
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const debugErrorType = createDebugErrorType(debug, 'getConfigWasm')
   debug(`Using getConfig Wasm`)

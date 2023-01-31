@@ -50,11 +50,14 @@ export function isExecaErrorCausedByRustPanic<E extends ExecaError>(error: E) {
   return error.exitCode === 101 || error.stderr?.includes('panicked at')
 }
 
-export type WasmPanic = Error & { __wasmPanic: true }
+/**
+ * Branded type for Wasm panics.
+ */
+export type WasmPanic = Error & { name: 'RuntimeError' }
 
 /**
  * Returns true if the given error is a Wasm panic.
  */
-export function isWasmPanic<T>(error: Error | T): error is WasmPanic {
-  return (error as Error).name === 'RuntimeError'
+export function isWasmPanic(error: Error): error is WasmPanic {
+  return error.name === 'RuntimeError'
 }

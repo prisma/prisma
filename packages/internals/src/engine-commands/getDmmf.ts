@@ -49,15 +49,13 @@ ${detailsHeader} ${message}`
   }
 }
 
+/**
+ * Wasm'd version of `getDMMF`.
+ */
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   // TODO: substitute this warning with `prismaFmt.lint()`
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
 
-  const dmmf = await getDmmfWasm(options)
-  return dmmf
-}
-
-async function getDmmfWasm(options: GetDMMFOptions) {
   const debugErrorType = createDebugErrorType(debug, 'getDmmfWasm')
   debug(`Using getDmmf Wasm`)
 
@@ -113,7 +111,7 @@ async function getDmmfWasm(options: GetDMMFOptions) {
       /**
        * Capture and propagate possible Wasm panics.
        */
-      if (isWasmPanic<string>(e.error)) {
+      if (isWasmPanic(e.error)) {
         const wasmError = e.error
         const panic = new RustPanic(
           /* message */ wasmError.message,
