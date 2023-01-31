@@ -8,8 +8,8 @@ import testMatrix from './_matrix'
 // @ts-ignore this is just for type checks
 declare let prisma: import('@prisma/client').PrismaClient
 
-// @ts-ignore
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 // 1:1 relation
 async function createXItems({ count }) {
