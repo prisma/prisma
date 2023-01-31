@@ -3,6 +3,7 @@ import {
   extractPreviewFeatures,
   getClientEngineType,
   getConfig,
+  getDMMF,
   getEnvPaths,
   getRelativeSchemaPath,
   mapPreviewFeatures,
@@ -14,7 +15,6 @@ import path from 'path'
 import { parse } from 'stacktrace-parser'
 import { promisify } from 'util'
 
-import { getDMMF } from '../generation/getDMMF'
 import type { GetPrismaClientConfig } from '../runtime/getPrismaClient'
 import { getPrismaClient } from '../runtime/getPrismaClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
