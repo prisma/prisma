@@ -627,6 +627,7 @@ importers:
 
   packages/integration-tests:
     specifiers:
+      '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
       '@sindresorhus/slugify': 1.1.2
@@ -654,6 +655,7 @@ importers:
       typescript: 4.8.4
       verror: 1.10.1
     devDependencies:
+      '@prisma/get-platform': link:../get-platform
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
       '@sindresorhus/slugify': 1.1.2
