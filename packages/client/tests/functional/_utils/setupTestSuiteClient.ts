@@ -1,8 +1,7 @@
-import { getConfig, parseEnvValue } from '@prisma/internals'
+import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import path from 'path'
 
 import { generateClient } from '../../../src/generation/generateClient'
-import { getDMMF } from '../../../src/generation/getDMMF'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import {
   getTestSuiteFolderPath,
