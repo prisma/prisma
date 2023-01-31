@@ -1,4 +1,4 @@
-import { arg, Command, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/internals'
+import { arg, Command, format, formatSchema, getDMMF, HelpError } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -34,7 +34,6 @@ Or specify a Prisma schema path
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
-    const before = Date.now()
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -65,9 +64,8 @@ Or specify a Prisma schema path
     }
 
     fs.writeFileSync(schemaPath, output)
-    const after = Date.now()
 
-    return `Formatted ${chalk.underline(schemaPath)} in ${formatms(after - before)} 🚀`
+    return `Formatted ${chalk.underline(schemaPath)}.`
   }
 
   public help(error?: string): string | HelpError {
