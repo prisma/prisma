@@ -849,9 +849,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(xprisma.user.findFirst({})).rejects.toThrowErrorMatchingInlineSnapshot(
-        `Cannot create property 'clientVersion' on string 'All is lost!'`,
-      )
+      await expect(xprisma.user.findFirst({})).rejects.toMatchInlineSnapshot(`All is lost!`)
     })
 
     test('errors in with no extension name', async () => {
@@ -865,9 +863,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(xprisma.user.findFirst({})).rejects.toThrowErrorMatchingInlineSnapshot(
-        `Cannot create property 'clientVersion' on string 'All is lost!'`,
-      )
+      await expect(xprisma.user.findFirst({})).rejects.toMatchInlineSnapshot(`All is lost!`)
     })
 
     test('empty args becomes an empty object', async () => {
