@@ -22,16 +22,22 @@ async function getStdin() {
 }
 
 async function main() {
+  const jobsToRun = []
   const stdinData = await getStdin()
-  console.log('stdin:', stdinData)
+  console.debug('stdin:', stdinData)
+
+  // If the stdin is empty, we run all jobs
+  // It happens if the get-changed-files-action fails (e.g. if ran on a schedule)
+  if (!stdinData) {
+    console.log('Stdin is empty (expected some JSON as a string) - running all jobs as fallback.')
+    jobsToRun.push('-all-')
+  }
 
   /**
    * @type string[]
    **/
   const filesChanged = JSON.parse(stdinData)
-  console.log('filesChanged:', filesChanged)
-
-  const jobsToRun = []
+  console.debug('filesChanged:', filesChanged)
 
   // If changes are located only in one of the paths below
   if (filesChanged.every((fileChanged) => fileChanged.startsWith('packages/cli/'))) {

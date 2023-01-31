@@ -43,7 +43,9 @@ on:
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
   schedule:
-    - cron: '*/15 3-5 * * *'
+    # https://crontab.guru - “At every 15th minute past every hour from 3 through 5.”
+    # - cron: '*/15 3-5 * * *'
+    - cron: '*/15 * * * *' # to debug
 
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
@@ -66,7 +68,7 @@ jobs:
           format: 'json'
         continue-on-error: true # This allow this job to fail (e.g. for scheduled runs), and then the `detect` step below will default to `all`
       - id: detect
-        run: ./.github/workflows/scripts/detect-jobs-to-run.js <<<'${{ steps.files.outputs.all }}'
+        run: ./.github/workflows/scripts/detect-jobs-to-run.js <<< '${{ steps.files.outputs.all }}'
 
   # From https://github.com/marketplace/actions/skip-duplicate-actions
   # This action cleans up previously running instances of a workflow on the same branch.
