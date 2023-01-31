@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`extensions.enabled.itx (provider=cockroachdb) extended client in itx can rollback via custom call 1`] = `
-Error caused by an extension: 
+
 Invalid \`prisma.user.create()\` invocation:
 
 
@@ -21,7 +21,7 @@ Unique constraint failed on the fields: (\`email\`)
 `;
 
 exports[`extensions.enabled.itx (provider=mongodb) extended client in itx can rollback via custom call 1`] = `
-Error caused by an extension: 
+
 Invalid \`prisma.user.create()\` invocation:
 
 
@@ -41,7 +41,7 @@ Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
 exports[`extensions.enabled.itx (provider=mysql) extended client in itx can rollback via custom call 1`] = `
-Error caused by an extension: 
+
 Invalid \`prisma.user.create()\` invocation:
 
 
@@ -81,7 +81,7 @@ Unique constraint failed on the fields: (\`email\`)
 `;
 
 exports[`extensions.enabled.itx (provider=sqlite) extended client in itx can rollback via custom call 1`] = `
-Error caused by an extension: 
+
 Invalid \`prisma.user.create()\` invocation:
 
 
@@ -101,7 +101,7 @@ Unique constraint failed on the fields: (\`email\`)
 `;
 
 exports[`extensions.enabled.itx (provider=sqlserver) extended client in itx can rollback via custom call 1`] = `
-Error caused by an extension: 
+
 Invalid \`prisma.user.create()\` invocation:
 
 
