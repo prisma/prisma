@@ -1,7 +1,7 @@
 import { Providers } from '../../_utils/providers'
 import { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
 
-export function schema_1to1({
+export function schema_same_actions({
   id,
   provider,
   referentialActionLineOutput,
@@ -17,7 +17,7 @@ model Main {
   id ${id}
 
   alice   Alice?  @relation(fields: [aliceId], references: [id] ${referentialActionLine})
-  aliceId String? 
+  aliceId String?
 
   bob Bob?
 }
@@ -31,7 +31,7 @@ model Bob {
   id ${id}
 
   main   Main   @relation(fields: [mainId], references: [id] ${referentialActionLine})
-  mainId String @unique 
+  mainId String @unique
 }
   `
 }
