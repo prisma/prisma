@@ -28,8 +28,14 @@ async function main() {
   /**
    * @type string[]
    **/
-  const filesChanged = JSON.parse(stdinData)
-  console.log('filesChanged:', filesChanged)
+  if(stdinData !== "") {
+    const filesChanged = JSON.parse(stdinData)
+    console.log('filesChanged:', filesChanged)
+  } else {
+    const filesChanged = []
+    console.log('no filesChanged')
+  }
+  
 
   const jobsToRun = []
 
