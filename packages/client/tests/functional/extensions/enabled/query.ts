@@ -849,9 +849,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(xprisma.user.findFirst({})).rejects.toThrowErrorMatchingInlineSnapshot(
-        `Error caused by extension "Faulty query ext": All is lost!`,
-      )
+      await expect(xprisma.user.findFirst({})).rejects.toMatchInlineSnapshot(`All is lost!`)
     })
 
     test('errors in with no extension name', async () => {
@@ -865,9 +863,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(xprisma.user.findFirst({})).rejects.toThrowErrorMatchingInlineSnapshot(
-        `Error caused by an extension: All is lost!`,
-      )
+      await expect(xprisma.user.findFirst({})).rejects.toMatchInlineSnapshot(`All is lost!`)
     })
 
     test('empty args becomes an empty object', async () => {

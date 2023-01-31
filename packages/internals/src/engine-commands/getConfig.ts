@@ -2,13 +2,13 @@ import Debug from '@prisma/debug'
 import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import * as E from 'fp-ts/Either'
-import { identity, pipe } from 'fp-ts/lib/function'
-import { match, P } from 'ts-pattern'
+import { pipe } from 'fp-ts/lib/function'
+import { match } from 'ts-pattern'
 
-import { ErrorArea, isWasmPanic, RustPanic } from '../panic'
+import { ErrorArea, isWasmPanic, RustPanic, WasmPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
-import { createDebugErrorType, createSchemaValidationError } from './queryEngineCommons'
+import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
 
 const debug = Debug('prisma:getConfig')
 
@@ -27,28 +27,8 @@ export type GetConfigOptions = {
   ignoreEnvVarErrors?: boolean
 }
 
-type GetConfigErrorInit = {
-  // e.g., `Schema parsing - Error while interacting with query-engine-node-api library`
-  reason: string
-
-  // e.g., Error validating model "public": The model name \`public\` is invalid.
-  message: string
-} & (
-  | {
-      // parsed as JSON
-      readonly _tag: 'parsed'
-
-      // e.g., `P1012`
-      errorCode?: string
-    }
-  | {
-      // text
-      readonly _tag: 'unparsed'
-    }
-)
-
 export class GetConfigError extends Error {
-  constructor(params: GetConfigErrorInit) {
+  constructor(params: QueryEngineErrorInit) {
     const constructedErrorMessage = match(params)
       .with({ _tag: 'parsed' }, ({ errorCode, message, reason }) => {
         const errorCodeMessage = errorCode ? `Error code: ${errorCode}` : ''
@@ -76,6 +56,9 @@ export function getEffectiveUrl(ds: DataSource): EnvValue {
   return ds.url
 }
 
+/**
+ * Wasm'd version of `getConfig`.
+ */
 export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
   const debugErrorType = createDebugErrorType(debug, 'getConfigWasm')
   debug(`Using getConfig Wasm`)
@@ -101,7 +84,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
       (e) => ({
         type: 'wasm-error' as const,
         reason: '(get-config wasm)',
-        error: e as Error,
+        error: e as Error | WasmPanic,
       }),
     ),
     E.map((result) => ({ result })),
@@ -148,7 +131,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
       }
 
       const errorOutput = e.error.message
-      return parseConfigError({ errorOutput, reason: e.reason })
+      return new GetConfigError(parseQueryEngineError({ errorOutput, reason: e.reason }))
     })
     .otherwise((e) => {
       debugErrorType(e)
@@ -156,46 +139,4 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     })
 
   throw error
-}
-
-type ParseConfigError = {
-  errorOutput: string
-  reason: string
-}
-
-function parseConfigError({ errorOutput, reason }: ParseConfigError): GetConfigError {
-  const actualError = pipe(
-    E.tryCatch(
-      () => JSON.parse(errorOutput),
-      () => {
-        debug(`Coudln't apply JSON.parse to "${errorOutput}"`)
-        return new GetConfigError({ _tag: 'unparsed', message: errorOutput, reason })
-      },
-    ),
-    E.map((errorOutputAsJSON: Record<string, string>) => {
-      const defaultMessage = chalk.redBright(errorOutputAsJSON.message)
-      const getConfigErrorInit = match(errorOutputAsJSON)
-        .with({ error_code: 'P1012' }, (eJSON) => {
-          return {
-            reason: createSchemaValidationError(reason),
-            errorCode: eJSON.error_code,
-          }
-        })
-        .with({ error_code: P.string }, (eJSON) => {
-          return {
-            reason,
-            errorCode: eJSON.error_code,
-          }
-        })
-        .otherwise(() => {
-          return {
-            reason,
-          }
-        })
-
-      return new GetConfigError({ _tag: 'parsed', message: defaultMessage, ...getConfigErrorInit })
-    }),
-    E.getOrElse(identity),
-  )
-  return actualError
 }

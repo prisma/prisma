@@ -8,7 +8,7 @@ import { match } from 'ts-pattern'
 import { ErrorArea, isWasmPanic, RustPanic, WasmPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
-import { createDebugErrorType, createSchemaValidationError } from './queryEngineCommons'
+import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
 
 const debug = Debug('prisma:getDMMF')
 
@@ -27,28 +27,8 @@ export type GetDMMFOptions = {
   previewFeatures?: string[]
 }
 
-type GetDmmfErrorInit = {
-  // e.g., `Schema parsing - Error while interacting with query-engine-node-api library`
-  reason: string
-
-  // e.g., Error validating model "public": The model name \`public\` is invalid.
-  message: string
-} & (
-  | {
-      // JSON
-      readonly _tag: 'parsed'
-
-      // e.g., `P1012`
-      errorCode?: string
-    }
-  | {
-      // text
-      readonly _tag: 'unparsed'
-    }
-)
-
 export class GetDmmfError extends Error {
-  constructor(params: GetDmmfErrorInit) {
+  constructor(params: QueryEngineErrorInit) {
     const constructedErrorMessage = match(params)
       .with({ _tag: 'parsed' }, ({ errorCode, message, reason }) => {
         const errorCodeMessage = errorCode ? `Error code: ${errorCode}` : ''
@@ -69,15 +49,13 @@ ${detailsHeader} ${message}`
   }
 }
 
+/**
+ * Wasm'd version of `getDMMF`.
+ */
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   // TODO: substitute this warning with `prismaFmt.lint()`
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
 
-  const dmmf = await getDmmfWasm(options)
-  return dmmf
-}
-
-async function getDmmfWasm(options: GetDMMFOptions) {
   const debugErrorType = createDebugErrorType(debug, 'getDmmfWasm')
   debug(`Using getDmmf Wasm`)
 
@@ -100,7 +78,7 @@ async function getDmmfWasm(options: GetDMMFOptions) {
         ({
           type: 'wasm-error' as const,
           reason: '(get-dmmf wasm)',
-          error: e as string | WasmPanic,
+          error: e as Error | WasmPanic,
         } as const),
     ),
     E.map((result) => ({ result })),
@@ -133,7 +111,7 @@ async function getDmmfWasm(options: GetDMMFOptions) {
       /**
        * Capture and propagate possible Wasm panics.
        */
-      if (isWasmPanic<string>(e.error)) {
+      if (isWasmPanic(e.error)) {
         const wasmError = e.error
         const panic = new RustPanic(
           /* message */ wasmError.message,
@@ -149,15 +127,8 @@ async function getDmmfWasm(options: GetDMMFOptions) {
       /*
        * Extract the actual error by attempting to JSON-parse the error message.
        */
-      const errorOutput = e.error
-      const actualError = new GetDmmfError({
-        _tag: 'parsed',
-        message: errorOutput,
-        reason: createSchemaValidationError(e.reason),
-        errorCode: 'P1012',
-      })
-
-      return actualError
+      const errorOutput = e.error.message
+      return new GetDmmfError(parseQueryEngineError({ errorOutput, reason: e.reason }))
     })
     .with({ type: 'parse-json' }, (e) => {
       debugErrorType(e)
