@@ -48,7 +48,7 @@ function iterateAndCallQueryCallbacks(
   })
 }
 
-export function applyQueryExtensions(client: Client, params: InternalRequestParams) {
+export function applyQueryExtensions(client: Client, params: InternalRequestParams): Promise<any> {
   const { jsModelName, action } = params
 
   // query extensions only apply to model-bound operations (for now)

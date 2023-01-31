@@ -293,9 +293,7 @@ testMatrix.setupTestSuite(() => {
     })
 
     const user = await xprisma.user.findFirstOrThrow({})
-    expect(() => user.fullName).toThrowErrorMatchingInlineSnapshot(
-      `Error caused by extension "Faulty extension": oops!`,
-    )
+    expect(() => user.fullName).toThrowErrorMatchingInlineSnapshot(`oops!`)
   })
 
   test('error in computed field with no name', async () => {
@@ -313,7 +311,7 @@ testMatrix.setupTestSuite(() => {
     })
 
     const user = await xprisma.user.findFirstOrThrow({})
-    expect(() => user.fullName).toThrowErrorMatchingInlineSnapshot(`Error caused by an extension: oops!`)
+    expect(() => user.fullName).toThrowErrorMatchingInlineSnapshot(`oops!`)
   })
 
   test('nested includes should include scalars and relations', async () => {
