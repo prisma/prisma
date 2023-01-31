@@ -1,7 +1,7 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import stripAnsi from 'strip-ansi'
 
 import { MigrateDiff } from '../commands/MigrateDiff'

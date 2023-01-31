@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'

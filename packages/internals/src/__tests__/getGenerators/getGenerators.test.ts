@@ -1,12 +1,11 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import { getPlatform } from '@prisma/get-platform'
+import { getPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { getGenerators } from '../../get-generators/getGenerators'
 import { resolveBinary } from '../../resolveBinary'
-import { jestConsoleContext, jestContext } from '../../utils/jestContext'
 import { omit } from '../../utils/omit'
 import { pick } from '../../utils/pick'
 

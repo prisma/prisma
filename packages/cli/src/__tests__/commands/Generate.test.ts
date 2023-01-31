@@ -1,4 +1,5 @@
-import { getClientEngineType, jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { Generate } from '../../Generate'
@@ -87,7 +88,7 @@ describe('--schema from project directory', () => {
     ctx.fixture('generate-from-project-dir')
     const absoluteSchemaPath = path.resolve('./doesnotexists.prisma')
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    await expect(result).rejects.toThrowError(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
+    await expect(result).rejects.toThrow(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
   })
 })
 
@@ -149,7 +150,7 @@ describe('--schema from parent directory', () => {
 
     const absoluteSchemaPath = path.resolve('./subdirectory/doesnotexists.prisma')
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    await expect(result).rejects.toThrowError(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
+    await expect(result).rejects.toThrow(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
   })
 })
 

@@ -1,4 +1,5 @@
-import { jestConsoleContext, jestContext, serializeQueryEngineName } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { serializeQueryEngineName } from '@prisma/internals'
 
 import { Validate } from '../../Validate'
 

@@ -1,4 +1,5 @@
-import { createDatabase, getConfig, getSchema, getSchemaPath, jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { getSchemaPath } from '@prisma/internals'
 
 import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
 
