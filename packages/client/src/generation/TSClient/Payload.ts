@@ -14,7 +14,7 @@ export class PayloadType implements Generatable {
     protected readonly type: OutputType,
     protected readonly dmmf: DMMFHelper,
     protected readonly findMany = true,
-  ) {}
+  ) { }
 
   public toTS(): string {
     const { type } = this
@@ -77,26 +77,56 @@ export type ${getPayloadName(name)}<S extends boolean | null | undefined | ${arg
 
     const typeName = ifExtensions(`_${type.name}`, type.name)
 
-    const selectPrefix = projection === Projection.select ? ` P extends keyof ${typeName} ? ${typeName}[P] :` : ''
+    const isSelect = projection === Projection.select
+    const selectPrefix = isSelect ? ` P extends keyof ${typeName} ? ${typeName}[P] :` : ''
+    const selectPartial = projection === Projection.select ?
+      `
+    ` : ''
 
-    return `{
-  [P in TruthyKeys<S['${projection}']>]:
-${indent(
-  relations
-    .map(
-      (f) =>
-        `P extends '${f.name}' ? ${this.wrapType(
-          f,
-          `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]${ifExtensions(
-            ', ExtArgs',
-            '',
-          )}>`,
-        )} :`,
-    )
-    .join('\n'),
-  6,
-)} ${selectPrefix} never
-} `
+    const possiblyPartialContent = `{
+      [P in TruthyKeys<S['${projection}']>]:
+    ${indent(
+      relations
+        .map(
+          (f) =>
+            `P extends '${f.name}' ? ${this.wrapType(
+              f,
+              `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]${ifExtensions(
+                ', ExtArgs',
+                '',
+              )}>`,
+            )} :`,
+        )
+        .join('\n'),
+      6,
+    )} ${selectPrefix} never
+    }`
+
+
+
+    const wrapWithPartial = (shouldWrap: boolean, content: string) => {
+      return shouldWrap ? `Partial<${content}>` : content
+    }
+
+    const alwaysThereContent = !isSelect ? '' : `{
+      [P in ActuallyTruthyKeys<S['${projection}']>]:
+    ${indent(
+      relations
+        .map(
+          (f) =>
+            `P extends '${f.name}' ? ${this.wrapType(
+              f,
+              `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]${ifExtensions(
+                ', ExtArgs',
+                '',
+              )}>`,
+            )} :`,
+        )
+        .join('\n'),
+      6,
+    )} ${selectPrefix} never
+    }`
+    return wrapWithPartial(isSelect, possiblyPartialContent)
   }
   private wrapType(field: DMMF.SchemaField, str: string): string {
     const { outputType } = field
