@@ -229,7 +229,11 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
+      '@prisma/engines-version': 4.10.0-56.integration-get-dmmf-wasm-handle-errors-7e5bb4fceecd0a115f8e99a78b2d1827e58c708f
       '@prisma/fetch-engine': workspace:*
+      '@prisma/generator-helper': workspace:*
+      '@prisma/get-platform': workspace:*
+      '@prisma/instrumentation': workspace:*
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
       '@prisma/mini-proxy': 0.3.0
