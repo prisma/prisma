@@ -1,19 +1,27 @@
 import type { IncomingMessage } from 'http'
 import type Https from 'https'
-import type { RequestInit, Response } from 'node-fetch'
-import type { O } from 'ts-toolbelt'
 
 import { RequestError } from '../errors/NetworkError'
 import { getJSRuntimeName } from './getJSRuntimeName'
 
 // our implementation handles less
-export type RequestOptions = O.Patch<{ headers?: { [k: string]: string }; body?: string }, RequestInit>
+export type RequestOptions = {
+  method?: string
+  headers?: Record<string, string>
+  body?: string
+}
 
 type Headers = Record<string, string | string[] | undefined>
-export type RequestResponse = O.Required<
-  O.Optional<O.Patch<{ text: () => string; headers: Headers }, Response>>,
-  'text' | 'json' | 'url' | 'ok' | 'status'
->
+
+export type RequestResponse = {
+  ok: boolean
+  url: string
+  statusText?: string
+  status: number
+  headers: Headers
+  text: () => Promise<string>
+  json: () => Promise<any>
+}
 
 export type Fetch = typeof nodeFetch
 
@@ -78,8 +86,8 @@ function buildOptions(options: RequestOptions): Https.RequestOptions {
  */
 function buildResponse(incomingData: Buffer[], response: IncomingMessage): RequestResponse {
   return {
-    text: () => Buffer.concat(incomingData).toString(),
-    json: () => JSON.parse(Buffer.concat(incomingData).toString()),
+    text: () => Promise.resolve(Buffer.concat(incomingData).toString()),
+    json: () => Promise.resolve(JSON.parse(Buffer.concat(incomingData).toString())),
     ok: response.statusCode! >= 200 && response.statusCode! <= 299,
     status: response.statusCode!,
     url: response.url!,
@@ -105,7 +113,10 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
     // we execute the https request and build a fetch response out of it
     const request = https.request(url, httpsOptions, (response) => {
       // eslint-disable-next-line prettier/prettier
-      const { statusCode, headers: { location } } = response
+      const {
+        statusCode,
+        headers: { location },
+      } = response
 
       if (statusCode! >= 301 && statusCode! <= 399 && location) {
         if (location.startsWith('http') === false) {
