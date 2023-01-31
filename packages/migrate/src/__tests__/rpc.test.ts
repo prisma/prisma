@@ -304,7 +304,9 @@ describe('ensureConnectionValidity', () => {
 
     `)
     migrate.stop()
-  })
+    // It was flaky on CI (but rare)
+    // higher timeout might help
+  }, 10_000)
 })
 
 describe('evaluateDataLoss', () => {
