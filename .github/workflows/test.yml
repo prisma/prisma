@@ -235,7 +235,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
