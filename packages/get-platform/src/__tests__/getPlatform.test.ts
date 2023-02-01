@@ -1,14 +1,16 @@
-import { getPlatform, getPlatformInternal } from '../getPlatform'
+import { getPlatformInternal, getPlatformMemoized } from '../getPlatform'
 import { jestConsoleContext, jestContext } from '../test-utils'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-describe('getPlatform', () => {
-  it('repeated invocations are idempotent', async () => {
-    const platformFirst = await getPlatform()
-    const platformSecond = await getPlatform()
+describe('getPlatformMemoized', () => {
+  it('repeated invocations are idempotent and memoized', async () => {
+    const platformFirst = await getPlatformMemoized()
+    const platformSecond = await getPlatformMemoized()
 
-    expect(platformFirst).toBe(platformSecond)
+    expect(platformFirst.platform).toBe(platformSecond.platform)
+    expect(platformFirst.memoized).toBeFalsy()
+    expect(platformSecond.memoized).toBeTruthy()
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)

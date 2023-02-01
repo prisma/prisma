@@ -375,16 +375,21 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
   return undefined
 }
 
+export async function getPlatform(): Promise<Platform> {
+  const { platform } = await getPlatformMemoized()
+  return platform
+}
+
 let memoizedPlatform: Platform | undefined
 
-export async function getPlatform(): Promise<Platform> {
+export async function getPlatformMemoized(): Promise<{ platform: Platform; memoized: boolean }> {
   if (memoizedPlatform) {
-    return Promise.resolve(memoizedPlatform)
+    return Promise.resolve({ platform: memoizedPlatform, memoized: true })
   }
 
   const args = await getos()
   memoizedPlatform = getPlatformInternal(args)
-  return memoizedPlatform
+  return { platform: memoizedPlatform, memoized: false }
 }
 
 /**
