@@ -54,11 +54,6 @@ export async function generateInFolder({
   const clientGenerator = config.generators[0]
   const clientEngineType = getClientEngineType(clientGenerator)
 
-  const dmmf = await getDMMF({
-    datamodel,
-    previewFeatures,
-  })
-
   const outputDir = transpile
     ? path.join(projectDir, 'node_modules/@prisma/client')
     : path.join(projectDir, '@prisma/client')
@@ -122,6 +117,12 @@ export async function generateInFolder({
             [platform]: queryEngineBinaryPath,
           },
         }
+
+  // TODO: use engine.getDmmf()
+  const dmmf = await getDMMF({
+    datamodel,
+    previewFeatures,
+  })
 
   await generateClient({
     binaryPaths,
