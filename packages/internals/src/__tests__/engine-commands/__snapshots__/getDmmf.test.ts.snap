@@ -23804,14 +23804,6 @@ exports[`getDMMF success big schema read via datamodel path 1`] = `140496894`;
 
 exports[`getDMMF success chinook introspected schema 1`] = `903623`;
 
-exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 1`] = `
-{
-  "enums": [],
-  "models": [],
-  "types": [],
-}
-`;
-
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
   "datamodel": {
