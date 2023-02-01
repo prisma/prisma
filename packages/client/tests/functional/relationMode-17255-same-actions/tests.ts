@@ -65,6 +65,16 @@ testMatrix.setupTestSuite(
         'onUpdate: Restrict, NoAction, SetNull',
         () => {
           test('relationMode=foreignKeys [update] main with nested delete alice should fail', async () => {
+            const errors = {
+              DEFAULT:
+                "The change you are trying to make would violate the required relation 'BobToMain' between the `Bob` and `Main` models.",
+              // It's inverted for Restrict only?
+              Restrict:
+                "The change you are trying to make would violate the required relation 'AliceToMain' between the `Alice` and `Main` models.",
+              NoAction:
+                "The change you are trying to make would violate the required relation 'AliceToMain' between the `Alice` and `Main` models.",
+            }
+
             const bobCountBefore = await prisma.bob.count()
 
             // now, update the main instance and delete alice
@@ -82,15 +92,7 @@ testMatrix.setupTestSuite(
                   [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                 },
-                prisma: {
-                  DEFAULT:
-                    "The change you are trying to make would violate the required relation 'BobToMain' between the `Bob` and `Main` models.",
-                  // It's inverted for Restrict only?
-                  Restrict:
-                    "The change you are trying to make would violate the required relation 'AliceToMain' between the `Alice` and `Main` models.",
-                  NoAction:
-                    "The change you are trying to make would violate the required relation 'AliceToMain' between the `Alice` and `Main` models.",
-                },
+                prisma: errors[onDelete],
               }),
             )
 
