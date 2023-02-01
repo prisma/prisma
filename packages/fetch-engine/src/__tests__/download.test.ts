@@ -537,6 +537,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       binaries: {
         'query-engine': __dirname,
       },
+      version: FIXED_ENGINES_HASH,
     })
     const dummyPath = e['query-engine']![Object.keys(e['query-engine']!)[0]]!
     const targetPath = path.join(
@@ -551,6 +552,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       binaries: {
         'query-engine': path.join(__dirname, 'all'),
       },
+      version: FIXED_ENGINES_HASH,
       binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
     })
     expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
