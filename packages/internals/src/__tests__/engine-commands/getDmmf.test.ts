@@ -98,9 +98,9 @@ describe('getDMMF', () => {
         await getDMMF({ datamodelPath: './404/it-does-not-exist' })
       } catch (e) {
         expect(isRustPanic(e)).toBe(false)
-        expect(e.message).toMatchInlineSnapshot(`
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
           "Error while trying to read the datamodel path
-          [31m[1mDetails:[22m[39m ENOENT: no such file or directory, open './404/it-does-not-exist'
+          Details: ENOENT: no such file or directory, open './404/it-does-not-exist'
           Datamodel path: "./404/it-does-not-exist"
           [Context: getDmmf]
 
