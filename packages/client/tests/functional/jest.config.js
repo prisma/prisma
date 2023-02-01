@@ -5,6 +5,8 @@ const path = require('path')
 const runtimeDir = path.dirname(require.resolve('../../runtime'))
 const packagesDir = path.resolve('..', '..', '..')
 
+const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
+
 module.exports = () => {
   const configCommon = {
     testMatch: ['**/*.ts', '!(**/*.d.ts)', '!(**/_utils/**)', '!(**/_*.ts)', '!(**/.generated/**)'],
@@ -29,9 +31,9 @@ module.exports = () => {
       ],
     ],
     globalSetup: './_utils/globalSetup.js',
-    snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
+    snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
     setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
-    testTimeout: 60_000,
+    testTimeout: isMacOrWindowsCI ? 100_000 : 30_000,
     collectCoverage: process.env.CI ? true : false,
   }
 

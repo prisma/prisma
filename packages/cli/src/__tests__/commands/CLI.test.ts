@@ -1,4 +1,4 @@
-import { handlePanic, jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import {
   DbCommand,
   DbPull,

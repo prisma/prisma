@@ -208,9 +208,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    expect(() => xprisma.$fail()).toThrowErrorMatchingInlineSnapshot(
-      `Error caused by extension "Faulty client extension": What a terrible failure`,
-    )
+    expect(() => xprisma.$fail()).toThrowErrorMatchingInlineSnapshot(`What a terrible failure`)
   })
 
   test('error in async extension method', async () => {
@@ -223,9 +221,7 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    await expect(() => xprisma.$fail()).rejects.toThrowErrorMatchingInlineSnapshot(
-      `Error caused by extension "Faulty async extension": What a terrible failure`,
-    )
+    await expect(() => xprisma.$fail()).rejects.toThrowErrorMatchingInlineSnapshot(`What a terrible failure`)
   })
 
   test('error in extension method with no name', () => {
@@ -237,8 +233,6 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    expect(() => xprisma.$fail()).toThrowErrorMatchingInlineSnapshot(
-      `Error caused by an extension: What a terrible failure`,
-    )
+    expect(() => xprisma.$fail()).toThrowErrorMatchingInlineSnapshot(`What a terrible failure`)
   })
 })

@@ -943,81 +943,76 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       // this is the otel context that is active at the callsite
       internalParams.otelParentCtx = context.active()
 
-      try {
-        // make sure that we don't leak extra properties to users
-        const params: QueryMiddlewareParams = {
-          args: internalParams.args,
-          dataPath: internalParams.dataPath,
-          runInTransaction: Boolean(internalParams.transaction),
-          action: internalParams.action,
-          model: internalParams.model,
-        }
-
-        // span options for opentelemetry instrumentation
-        const spanOptions = {
-          middleware: {
-            name: 'middleware',
-            enabled: this._tracingConfig.middleware,
-            attributes: { method: '$use' },
-            active: false,
-          } as SpanOptions,
-          operation: {
-            name: 'operation',
-            enabled: this._tracingConfig.enabled,
-            attributes: {
-              method: params.action,
-              model: params.model,
-              name: `${params.model}.${params.action}`,
-            },
-          } as SpanOptions,
-        }
-
-        let index = -1
-        // prepare recursive fn that will pipe params through middlewares
-        const consumer = (changedMiddlewareParams: QueryMiddlewareParams) => {
-          // if this `next` was called and there's some more middlewares
-          const nextMiddleware = this._middlewares.get(++index)
-
-          if (nextMiddleware) {
-            // we pass the modified params down to the next one, & repeat
-            // calling `next` calls the consumer again with the new params
-            return runInChildSpan(spanOptions.middleware, (span) => {
-              // we call `span.end()` _before_ calling the next middleware
-              return nextMiddleware(changedMiddlewareParams, (p) => (span?.end(), consumer(p)))
-            })
-          }
-
-          // no middleware? then we just proceed with request execution
-          // before we send the execution request, we use the changed params
-          const { runInTransaction, ...changedRequestParams } = changedMiddlewareParams
-          const requestParams = {
-            ...internalParams,
-            ...changedRequestParams,
-          }
-
-          // if middleware switched off `runInTransaction`, unset
-          // `transaction` property on request as well so it will be executed outside
-          // of transaction
-          if (!runInTransaction) {
-            requestParams.transaction = undefined
-          }
-
-          return applyQueryExtensions(this, requestParams) // also executes the query
-        }
-
-        return await runInChildSpan(spanOptions.operation, () => {
-          if (NODE_CLIENT) {
-            // https://github.com/prisma/prisma/issues/3148 not for edge client
-            const asyncRes = new AsyncResource('prisma-client-request')
-            return asyncRes.runInAsyncScope(() => consumer(params))
-          }
-
-          return consumer(params)
-        })
-      } catch (e: any) {
-        e.clientVersion = this._clientVersion
-        throw e
+      // make sure that we don't leak extra properties to users
+      const params: QueryMiddlewareParams = {
+        args: internalParams.args,
+        dataPath: internalParams.dataPath,
+        runInTransaction: Boolean(internalParams.transaction),
+        action: internalParams.action,
+        model: internalParams.model,
       }
+
+      // span options for opentelemetry instrumentation
+      const spanOptions = {
+        middleware: {
+          name: 'middleware',
+          enabled: this._tracingConfig.middleware,
+          attributes: { method: '$use' },
+          active: false,
+        } as SpanOptions,
+        operation: {
+          name: 'operation',
+          enabled: this._tracingConfig.enabled,
+          attributes: {
+            method: params.action,
+            model: params.model,
+            name: `${params.model}.${params.action}`,
+          },
+        } as SpanOptions,
+      }
+
+      let index = -1
+      // prepare recursive fn that will pipe params through middlewares
+      const consumer = (changedMiddlewareParams: QueryMiddlewareParams) => {
+        // if this `next` was called and there's some more middlewares
+        const nextMiddleware = this._middlewares.get(++index)
+
+        if (nextMiddleware) {
+          // we pass the modified params down to the next one, & repeat
+          // calling `next` calls the consumer again with the new params
+          return runInChildSpan(spanOptions.middleware, (span) => {
+            // we call `span.end()` _before_ calling the next middleware
+            return nextMiddleware(changedMiddlewareParams, (p) => (span?.end(), consumer(p)))
+          })
+        }
+
+        // no middleware? then we just proceed with request execution
+        // before we send the execution request, we use the changed params
+        const { runInTransaction, ...changedRequestParams } = changedMiddlewareParams
+        const requestParams = {
+          ...internalParams,
+          ...changedRequestParams,
+        }
+
+        // if middleware switched off `runInTransaction`, unset
+        // `transaction` property on request as well so it will be executed outside
+        // of transaction
+        if (!runInTransaction) {
+          requestParams.transaction = undefined
+        }
+
+        return applyQueryExtensions(this, requestParams) // also executes the query
+      }
+
+      return await runInChildSpan(spanOptions.operation, () => {
+        if (NODE_CLIENT) {
+          // https://github.com/prisma/prisma/issues/3148 not for edge client
+          const asyncRes = new AsyncResource('prisma-client-request')
+          return asyncRes.runInAsyncScope(() => consumer(params))
+        }
+
+        return consumer(params)
+      })
     }
 
     async _executeRequest({
@@ -1033,69 +1028,74 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       otelParentCtx,
       customDataProxyFetch,
     }: InternalRequestParams) {
-      const protocolEncoder = await this._getProtocolEncoder({ clientMethod, callsite })
+      try {
+        const protocolEncoder = await this._getProtocolEncoder({ clientMethod, callsite })
 
-      // execute argument transformation before execution
-      args = argsMapper ? argsMapper(args) : args
+        // execute argument transformation before execution
+        args = argsMapper ? argsMapper(args) : args
 
-      const spanOptions: SpanOptions = {
-        name: 'serialize',
-        enabled: this._tracingConfig.enabled,
-      }
+        const spanOptions: SpanOptions = {
+          name: 'serialize',
+          enabled: this._tracingConfig.enabled,
+        }
 
-      let rejectOnNotFound: RejectOnNotFound
-      if (model) {
-        rejectOnNotFound = getRejectOnNotFound(action, model, args, this._rejectOnNotFound)
-        warnAboutRejectOnNotFound(rejectOnNotFound, model, action)
-      }
+        let rejectOnNotFound: RejectOnNotFound
+        if (model) {
+          rejectOnNotFound = getRejectOnNotFound(action, model, args, this._rejectOnNotFound)
+          warnAboutRejectOnNotFound(rejectOnNotFound, model, action)
+        }
 
-      const message = await runInChildSpan(spanOptions, () =>
-        protocolEncoder.createMessage({
-          modelName: model,
-          action,
-          args,
-          clientMethod,
-          callsite,
-          extensions: this._extensions,
-        }),
-      )
-
-      // as printJsonWithErrors takes a bit of compute
-      // we only want to do it, if debug is enabled for 'prisma-client'
-      if (Debug.enabled('prisma:client')) {
-        debug(`Prisma Client call:`)
-        debug(
-          `prisma.${clientMethod}(${printJsonWithErrors({
-            ast: args,
-            keyPaths: [],
-            valuePaths: [],
-            missingItems: [],
-          })})`,
+        const message = await runInChildSpan(spanOptions, () =>
+          protocolEncoder.createMessage({
+            modelName: model,
+            action,
+            args,
+            clientMethod,
+            callsite,
+            extensions: this._extensions,
+          }),
         )
-        debug(`Generated request:`)
-        debug(message.toDebugString() + '\n')
-      }
 
-      if (transaction?.kind === 'batch') {
-        /** @see {@link getLockCountPromise} */
-        await transaction.lock
-      }
+        // as printJsonWithErrors takes a bit of compute
+        // we only want to do it, if debug is enabled for 'prisma-client'
+        if (Debug.enabled('prisma:client')) {
+          debug(`Prisma Client call:`)
+          debug(
+            `prisma.${clientMethod}(${printJsonWithErrors({
+              ast: args,
+              keyPaths: [],
+              valuePaths: [],
+              missingItems: [],
+            })})`,
+          )
+          debug(`Generated request:`)
+          debug(message.toDebugString() + '\n')
+        }
 
-      return this._fetcher.request({
-        protocolMessage: message,
-        modelName: model,
-        clientMethod,
-        dataPath,
-        rejectOnNotFound,
-        callsite,
-        args,
-        extensions: this._extensions,
-        transaction,
-        unpacker,
-        otelParentCtx,
-        otelChildCtx: context.active(),
-        customDataProxyFetch,
-      })
+        if (transaction?.kind === 'batch') {
+          /** @see {@link getLockCountPromise} */
+          await transaction.lock
+        }
+
+        return this._fetcher.request({
+          protocolMessage: message,
+          modelName: model,
+          clientMethod,
+          dataPath,
+          rejectOnNotFound,
+          callsite,
+          args,
+          extensions: this._extensions,
+          transaction,
+          unpacker,
+          otelParentCtx,
+          otelChildCtx: context.active(),
+          customDataProxyFetch,
+        })
+      } catch (e) {
+        e.clientVersion = this._clientVersion
+        throw e
+      }
     }
 
     _getDmmf = callOnce(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
