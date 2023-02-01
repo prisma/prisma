@@ -387,6 +387,9 @@ export async function getPlatform(): Promise<Platform> {
   return memoizedPlatform
 }
 
+/**
+ * This function is only exported for testing purposes.
+ */
 export function getPlatformInternal(args: GetOSResult): Platform {
   const { platform, arch, archFromUname, libssl, targetDistro, familyDistro, originalDistro } = args
 

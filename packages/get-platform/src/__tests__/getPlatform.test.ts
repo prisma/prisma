@@ -1,9 +1,21 @@
-import { getPlatformInternal as getPlatform } from '../getPlatform'
+import { getPlatform, getPlatformInternal } from '../getPlatform'
 import { jestConsoleContext, jestContext } from '../test-utils'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('getPlatform', () => {
+  it('repeated invocations are idempotent', async () => {
+    const platformFirst = await getPlatform()
+    const platformSecond = await getPlatform()
+
+    expect(platformFirst).toBe(platformSecond)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
+
+describe('getPlatformInternal', () => {
   describe('linux', () => {
     const platform = 'linux'
 
@@ -11,7 +23,7 @@ describe('getPlatform', () => {
 
     it('debian (debian), amd64 (x86_64), openssl-1.1.x', () => {
       expect(
-        getPlatform({
+        getPlatformInternal({
           platform,
           libssl: '1.1.x',
           arch: 'x64',
@@ -28,7 +40,7 @@ describe('getPlatform', () => {
 
     it('alpine (alpine), amd64 (x86_64), openssl-3.0.x', () => {
       expect(
-        getPlatform({
+        getPlatformInternal({
           platform,
           libssl: '3.0.x',
           arch: 'x64',
@@ -45,7 +57,7 @@ describe('getPlatform', () => {
 
     it('alpine (alpine), arm64 (aarch64), openssl-3.0.x', () => {
       expect(
-        getPlatform({
+        getPlatformInternal({
           platform,
           libssl: '3.0.x',
           arch: 'arm64',
@@ -65,7 +77,7 @@ describe('getPlatform', () => {
 
     it('ubuntu (debian), amd64 (x86_64), openssl-undefined', () => {
       expect(
-        getPlatform({
+        getPlatformInternal({
           platform,
           libssl: undefined,
           arch: 'x64',
@@ -85,7 +97,7 @@ describe('getPlatform', () => {
 
     it('arch (arch), amd64 (x86_64), openssl-undefined', () => {
       expect(
-        getPlatform({
+        getPlatformInternal({
           platform,
           libssl: undefined,
           arch: 'x64',
@@ -105,7 +117,7 @@ describe('getPlatform', () => {
 
     it('unknown (unknown), amd64 (x86_64), openssl-3.0.x', () => {
       expect(
-        getPlatform({
+        getPlatformInternal({
           platform,
           libssl: '3.0.x',
           arch: 'x64',
@@ -125,7 +137,7 @@ describe('getPlatform', () => {
 
     it('unknown (unknown), amd64 (x86_64), openssl-undefined', () => {
       expect(
-        getPlatform({
+        getPlatformInternal({
           platform,
           libssl: undefined,
           arch: 'x64',
