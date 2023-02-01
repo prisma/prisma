@@ -144,113 +144,51 @@ testMatrix.setupTestSuite(
         )
 
         describeIf(['DEFAULT'].includes(onDelete))('onDelete: DEFAULT', () => {
-          // Note: on MongoDB it fails with
-          // The change you are trying to make would violate the required relation 'BobToMain' between the `Bob` and `Main` models.
-          testIf(isRelationMode_foreignKeys)(
-            'relationMode=foreignKeys [update] main with nested delete alice should succeed',
-            async () => {
-              const bobCountBefore = await prisma.bob.count()
+          test('[update] main with nested delete alice should succeed', async () => {
+            const bobCountBefore = await prisma.bob.count()
 
-              // now, update the main instance and delete alice
-              await prisma.main.update({
-                where: { id: '1' },
-                data: { alice: { delete: true } },
-              })
+            // now, update the main instance and delete alice
+            await prisma.main.update({
+              where: { id: '1' },
+              data: { alice: { delete: true } },
+            })
 
-              const bobCountAfter = await prisma.bob.count()
-              // No deletion should happen
-              expect(bobCountAfter).toEqual(bobCountBefore)
+            const bobCountAfter = await prisma.bob.count()
+            // No deletion should happen
+            expect(bobCountAfter).toEqual(bobCountBefore)
 
-              expect(
-                await prisma.main.findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  // We expect that aliceId turns null
-                  aliceId: null,
-                },
-                { id: '2', aliceId: '2' },
-              ])
-              expect(
-                await prisma.bob.findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  mainId: '1',
-                },
-                { id: '2', mainId: '2' },
-              ])
-              expect(
-                await prisma.alice.findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                // We expect the deletion of "1" to happen
-                { id: '2' },
-              ])
-            },
-          )
-
-          testIf(isRelationMode_prisma)(
-            'relationMode=prisma [update] main with nested delete alice should fail',
-            async () => {
-              const bobCountBefore = await prisma.bob.count()
-
-              // now, update the main instance and delete alice
-              await expect(
-                prisma.main.update({
-                  where: { id: '1' },
-                  data: { alice: { delete: true } },
-                }),
-              ).rejects.toThrow(
-                conditionalError.snapshot({
-                  prisma: errors[onDelete],
-                }),
-              )
-
-              const bobCountAfter = await prisma.bob.count()
-              // No deletion should happen
-              expect(bobCountAfter).toEqual(bobCountBefore)
-
-              expect(
-                await prisma.main.findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  // We expect the that aliceId stays the same
-                  aliceId: '1',
-                },
-                { id: '2', aliceId: '2' },
-              ])
-              expect(
-                await prisma.bob.findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                  mainId: '1',
-                },
-                { id: '2', mainId: '2' },
-              ])
-              expect(
-                await prisma.alice.findMany({
-                  orderBy: { id: 'asc' },
-                }),
-              ).toEqual([
-                {
-                  id: '1',
-                },
-                { id: '2' },
-              ])
-            },
-          )
+            expect(
+              await prisma.main.findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1',
+                // We expect that aliceId turns null
+                aliceId: null,
+              },
+              { id: '2', aliceId: '2' },
+            ])
+            expect(
+              await prisma.bob.findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              {
+                id: '1',
+                mainId: '1',
+              },
+              { id: '2', mainId: '2' },
+            ])
+            expect(
+              await prisma.alice.findMany({
+                orderBy: { id: 'asc' },
+              }),
+            ).toEqual([
+              // We expect the deletion of "1" to happen
+              { id: '2' },
+            ])
+          })
         })
 
         describeIf(['Cascade'].includes(onDelete))('onDelete: Cascade', () => {
@@ -293,7 +231,6 @@ testMatrix.setupTestSuite(
             ])
           })
 
-          // Fails if not Cascade on MongoDB
           test('[update] main with nested disconnect alice should succeed', async () => {
             const bobCountBefore = await prisma.bob.count()
 
@@ -342,56 +279,6 @@ testMatrix.setupTestSuite(
               { id: '2' },
             ])
           })
-        })
-
-        // Fails if not Cascade on MongoDB
-        testIf(!isMongoDB)('[update] main with nested disconnect alice should succeed', async () => {
-          const bobCountBefore = await prisma.bob.count()
-
-          // now, update the main instance and delete alice
-          await prisma.main.update({
-            where: { id: '1' },
-            data: { alice: { disconnect: true } },
-          })
-
-          const bobCountAfter = await prisma.bob.count()
-
-          // No deletion should happen
-          expect(bobCountAfter).toEqual(bobCountBefore)
-
-          expect(
-            await prisma.main.findMany({
-              orderBy: { id: 'asc' },
-            }),
-          ).toEqual([
-            {
-              id: '1',
-              // We expect the disconnect to happen
-              aliceId: null,
-            },
-            { id: '2', aliceId: '2' },
-          ])
-          expect(
-            await prisma.bob.findMany({
-              orderBy: { id: 'asc' },
-            }),
-          ).toEqual([
-            {
-              id: '1',
-              mainId: '1',
-            },
-            { id: '2', mainId: '2' },
-          ])
-          expect(
-            await prisma.alice.findMany({
-              orderBy: { id: 'asc' },
-            }),
-          ).toEqual([
-            {
-              id: '1',
-            },
-            { id: '2' },
-          ])
         })
       })
     })
