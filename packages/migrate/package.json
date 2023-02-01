@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.10.0-61.5cb8c36d6b81f775275971664983f06409ed8c6d",
+    "@prisma/engines-version": "4.10.0-63.integration-get-dmmf-wasm-handle-errors-5c66df116302959d5852ec3e41908703d8273e61",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.14",
