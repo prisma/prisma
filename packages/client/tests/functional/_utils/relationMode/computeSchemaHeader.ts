@@ -23,7 +23,7 @@ export function computeSchemaHeader({
 
   const url = match({ provider, providerFlavor })
     .with({ provider: Providers.SQLITE }, () => `"file:test.db"`)
-    .otherwise(({ providerFlavor }) => `env("DATABASE_URI_${providerFlavor || provider}")`)
+    .otherwise(({ providerFlavor }) => `env("DATABASE_URI_${providerFlavor}")`)
 
   const schemaHeader = /* Prisma */ `
 generator client {
