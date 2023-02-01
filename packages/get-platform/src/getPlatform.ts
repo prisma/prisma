@@ -6,8 +6,8 @@ import { match } from 'ts-pattern'
 import { promisify } from 'util'
 
 import { link } from './link'
+import { warn } from './logger'
 import { Platform } from './platforms'
-import { warnOnce } from './warnOnce'
 
 const readFile = promisify(fs.readFile)
 const exec = promisify(cp.exec)
@@ -376,17 +376,31 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
 }
 
 export async function getPlatform(): Promise<Platform> {
-  const args = await getos()
-  return getPlatformInternal(args)
+  const { platform } = await getPlatformMemoized()
+  return platform
 }
 
+let memoizedPlatform: Platform | undefined
+
+export async function getPlatformMemoized(): Promise<{ platform: Platform; memoized: boolean }> {
+  if (memoizedPlatform) {
+    return Promise.resolve({ platform: memoizedPlatform, memoized: true })
+  }
+
+  const args = await getos()
+  memoizedPlatform = getPlatformInternal(args)
+  return { platform: memoizedPlatform, memoized: false }
+}
+
+/**
+ * This function is only exported for testing purposes.
+ */
 export function getPlatformInternal(args: GetOSResult): Platform {
   const { platform, arch, archFromUname, libssl, targetDistro, familyDistro, originalDistro } = args
 
   // TODO: add 'arm64' to the `[...].includes(arch)` check once we have arm64 engines for Alpine
   if (targetDistro === 'musl' && !['x64'].includes(arch)) {
-    warnOnce(
-      'alpine:unsupported-arch',
+    warn(
       `Prisma only officially supports Linux Alpine on the amd64 (x86_64) system architecture. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".
 If you are using Prisma on Docker, please refer to ${link('https://pris.ly/d/docker-alpine')}`,
     )
@@ -407,8 +421,7 @@ If you are using Prisma on Docker, please refer to ${link('https://pris.ly/d/doc
         return 'Please manually install OpenSSL and try installing Prisma again.'
       })
 
-    warnOnce(
-      'libssl:undefined',
+    warn(
       `Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-${defaultLibssl}".
 ${additionalMessage}`,
     )
@@ -417,8 +430,7 @@ ${additionalMessage}`,
   // sometimes we fail to detect the distro in use, so we default to debian
   const defaultDistro = 'debian' as const
   if (platform === 'linux' && targetDistro === undefined) {
-    warnOnce(
-      'distro:undefined',
+    warn(
       `Prisma doesn't know which engines to download for the Linux distro "${originalDistro}". Falling back to Prisma engines built "${defaultDistro}".
 Please report your experience by creating an issue at ${link(
         'https://github.com/prisma/prisma/issues',
@@ -486,10 +498,7 @@ Please report your experience by creating an issue at ${link(
   }
 
   if (platform !== 'linux') {
-    warnOnce(
-      'platform:undefined',
-      `Prisma detected unknown OS "${platform}" and may not work as expected. Defaulting to "linux".`,
-    )
+    warn(`Prisma detected unknown OS "${platform}" and may not work as expected. Defaulting to "linux".`)
   }
 
   // if just OpenSSL is known, fallback to debian with a specific libssl version
