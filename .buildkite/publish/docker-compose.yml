@@ -70,15 +70,13 @@ services:
       - postgres_isolated
       - mysql
       - mysql_isolated
+      - vitess-8
       - mariadb
       - mssql
       - mongo
       - mongodb_migrate
       - mongodb_migrate_seed
       - cockroachdb
-  # TODO: uncomment when we test vitess in client functional test suite
-  # Currently we only test `relationMode` tests in GitHub Actions
-  #      - vitess-8
 
   postgres:
     image: postgres:10
