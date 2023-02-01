@@ -1036,6 +1036,7 @@ jobs:
           echo "TEST_SKIP_MSSQL=true" >> $GITHUB_ENV
           echo "TEST_SKIP_MONGODB=true" >> $GITHUB_ENV
           echo "TEST_SKIP_COCKROACHDB=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_VITESS=true" >> $GITHUB_ENV
           echo "TEST_MONGO_URI_MIGRATE=mongodb://localhost:27017/tests-migrate" >> $GITHUB_ENV
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
