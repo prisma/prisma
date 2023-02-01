@@ -7,6 +7,5 @@ This is almost the same schema but using the same referential actions everywhere
 How to run these tests?
 
 ```sh
-RELATION_MODE= pnpm run test:functional:code --relation-mode-tests-only relationMode-1-1-17255
-RELATION_MODE=prisma pnpm run test:functional:code --relation-mode-tests-only relationMode-1-1-17255
+pnpm run test:functional:code relationMode-17255-same-actions
 ```

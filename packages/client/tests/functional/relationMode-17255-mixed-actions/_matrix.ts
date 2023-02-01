@@ -1,15 +1,11 @@
 import { defineMatrix } from '../_utils/defineMatrix'
 import { computeMatrix } from '../_utils/relationMode/computeMatrix'
 
-const RelationModeEnv = process.env.RELATION_MODE
-if (RelationModeEnv && RelationModeEnv !== 'prisma' && RelationModeEnv !== 'foreignKeys') {
-  throw new Error(`RELATION_MODE must be either "prisma" or "foreignKeys" but was "${RelationModeEnv}"`)
-}
+// Run on all databases
+// once with relation=prisma
+// once with relation=foreignKeys
 
-type RelationMode = 'prisma' | 'foreignKeys' | ''
-const relationMode: RelationMode = (RelationModeEnv as RelationMode) || ''
-
-const defaultMatrix = computeMatrix({ relationMode })
+const defaultMatrix = [...computeMatrix({ relationMode: 'prisma' }), ...computeMatrix({ relationMode: 'foreignKeys' })]
 // console.log(defaultMatrix)
 
 // SetNull on MongoDB fails with:
