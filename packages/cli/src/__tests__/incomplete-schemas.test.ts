@@ -31,7 +31,7 @@ CREATE TABLE 'test-dbexecute' ("id" INTEGER PRIMARY KEY);
 DROP TABLE 'test-dbexecute';`
 
 function urlIsMissingValidationError(source: 'getDmmf' | 'getConfig') {
-  const header = source === 'getDmmf' ? 'query-engine-NORMALIZED' : 'get-config wasm'
+  const header = source === 'getDmmf' ? 'get-dmmf wasm' : 'get-config wasm'
   return `
   Prisma schema validation - (${header})
   Error code: P1012
@@ -258,6 +258,15 @@ describe('[wasm] incomplete-schemas', () => {
       ctx.fixture('incomplete-schemas/datasource-block-no-url/prisma')
     })
 
+    it('validate', async () => {
+      expect.assertions(1)
+      try {
+        await Validate.new().parse([])
+      } catch (e) {
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('getDmmf'))
+      }
+    })
+
     it('format', async () => {
       expect.assertions(1)
 
@@ -279,6 +288,11 @@ describe('[wasm] incomplete-schemas', () => {
     it('format', async () => {
       const result = await Format.new().parse([])
       expect(result).toMatch(/^Formatted (.*) in \d+ms 🚀$/)
+    })
+
+    it('validate', async () => {
+      const result = await Validate.new().parse([])
+      expect(result).toMatch(/^The schema at (.*) is valid 🚀$/)
     })
   })
 
@@ -350,31 +364,9 @@ describe('[wasm] incomplete-schemas', () => {
 })
 
 describe('[normalized library/binary] incomplete-schemas', () => {
-  describe('datasource-block-no-url', () => {
-    beforeEach(() => {
-      ctx.fixture('incomplete-schemas/datasource-block-no-url/prisma')
-    })
-
-    it('validate', async () => {
-      expect.assertions(1)
-      try {
-        await Validate.new().parse([])
-      } catch (e) {
-        expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
-          urlIsMissingValidationError('getDmmf'),
-        )
-      }
-    })
-  })
-
   describe('empty-schema', () => {
     beforeEach(() => {
       ctx.fixture('incomplete-schemas/empty-schema/prisma')
-    })
-
-    it('validate', async () => {
-      const result = await Validate.new().parse([])
-      expect(result).toMatch(/^The schema at (.*) is valid 🚀$/)
     })
 
     it('db push', async () => {
