@@ -13,6 +13,10 @@ const ctx = jestContext
 // @ts-ignore
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
+/**
+ * Note: under the hood, these artificial-panic tests uses the Wasm'd `getConfig` and `getDMMF` definitions
+ */
+
 describe('artificial-panic introspection', () => {
   // backup env vars
   const OLD_ENV = { ...process.env }

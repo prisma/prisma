@@ -53,7 +53,8 @@ ${detailsHeader} ${message}`
  * Wasm'd version of `getDMMF`.
  */
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
-  // TODO: substitute this warning with `prismaFmt.lint()`
+  // TODO: substitute this warning with `prismaFmt.lint()`.
+  // See https://github.com/prisma/prisma/issues/16538
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
 
   const debugErrorType = createDebugErrorType(debug, 'getDmmfWasm')
