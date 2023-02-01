@@ -1,7 +1,8 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestContext, serializeQueryEngineName } from '@prisma/internals'
+import { jestContext } from '@prisma/get-platform'
+import { serializeQueryEngineName } from '@prisma/internals'
 import { DbExecute, DbPull, DbPush, MigrateDev, MigrateReset } from '@prisma/migrate'
 import fs from 'fs'
 import stripAnsi from 'strip-ansi'

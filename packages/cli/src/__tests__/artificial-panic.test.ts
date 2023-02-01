@@ -1,4 +1,5 @@
-import { isRustPanic, jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { isRustPanic } from '@prisma/internals'
 import { DbPull } from '@prisma/migrate'
 
 import { Format } from '../Format'
