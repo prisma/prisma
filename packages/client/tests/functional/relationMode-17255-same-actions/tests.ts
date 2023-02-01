@@ -50,7 +50,7 @@ testMatrix.setupTestSuite(
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
 
-    describe('issue-17255', () => {
+    describe('not-original', () => {
       beforeEach(async () => {
         // The order is important here
         const queries = [prisma.bob.deleteMany(), prisma.main.deleteMany(), prisma.alice.deleteMany()]

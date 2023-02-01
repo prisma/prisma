@@ -39,7 +39,7 @@ async function createXItems({ count }) {
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    describe('1:1 issue 17255', () => {
+    describe('original', () => {
       beforeEach(async () => {
         // The order is important here
         const queries = [prisma.bob.deleteMany(), prisma.main.deleteMany(), prisma.alice.deleteMany()]
