@@ -444,7 +444,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       binaries: {
         'query-engine': baseDir,
       },
-      version: FIXED_ENGINES_HASH,
+      version: CURRENT_ENGINES_HASH,
     })
 
     fs.writeFileSync(targetPath, 'incorrect-binary')
@@ -454,7 +454,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       binaries: {
         'query-engine': baseDir,
       },
-      version: FIXED_ENGINES_HASH,
+      version: CURRENT_ENGINES_HASH,
     })
 
     expect(fs.existsSync(targetPath)).toBe(true)
@@ -468,8 +468,8 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaries: {
           'query-engine': __dirname,
         },
-        version: FIXED_ENGINES_HASH,
         binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        version: CURRENT_ENGINES_HASH,
       }),
     ).rejects.toThrowErrorMatchingInlineSnapshot(
       `"Unknown binaryTarget marvin and no custom engine files were provided"`,
@@ -484,8 +484,8 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaries: {
           'query-engine': __dirname,
         },
-        version: FIXED_ENGINES_HASH,
         binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+        version: CURRENT_ENGINES_HASH,
       })
     } catch (err: any) {
       expect(stripAnsi(err.message)).toMatchInlineSnapshot(
@@ -499,6 +499,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       binaries: {
         'query-engine': __dirname,
       },
+      version: CURRENT_ENGINES_HASH,
     })
     const dummyPath = e['query-engine']![Object.keys(e['query-engine']!)[0]]!
     const targetPath = path.join(
@@ -514,6 +515,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         'query-engine': path.join(__dirname, 'all'),
       },
       binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
+      version: CURRENT_ENGINES_HASH,
     })
     expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
   })

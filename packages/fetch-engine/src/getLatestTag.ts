@@ -85,9 +85,9 @@ async function getFirstFinishedCommit(branch: string, commits: string[]): Promis
         console.log(
           `${chalk.blueBright(
             'info',
-          )} The engine commit ${commit} is not yet done. We're skipping it as we're in dev. Missing urls: ${
+          )} The engine commit ${commit} is not yet built?. We're skipping it. Missing urls (${
             missing.length
-          }`,
+          }):\n${missing.join('\n')}`,
         )
       }
     }
@@ -97,20 +97,30 @@ async function getFirstFinishedCommit(branch: string, commits: string[]): Promis
 export async function urlExists(url) {
   try {
     const res = await fetch(url, {
+      // So we don't download the whole file
       method: 'HEAD',
       agent: getProxyAgent(url) as any,
     })
 
     const headers = fromEntries(res.headers.entries())
     if (res.status > 200) {
-      // console.error(res, headers)
+      console.error(`url: ${url} failed - http code > 200: ${res.status}`)
+      console.error(res, headers)
     }
-    if (parseInt(headers['content-length']) > 0) {
-      return res.status < 300
+    const bodyLength = parseInt(headers['content-length'] || '0', 10)
+    if (bodyLength > 0) {
+      // If status is < 300 and body is not empty, it exists
+      // Success!
+      if (res.status < 300) {
+        return true
+      } else {
+        console.error(`url: ${url} failed - http code >= 300: ${res.status}`)
+        console.error(res, headers)
+        return false
+      }
     }
   } catch (e) {
-    //
-    // console.error(e)
+    console.error(`urlExists("${url}") failed:`, e)
   }
   return false
 }
