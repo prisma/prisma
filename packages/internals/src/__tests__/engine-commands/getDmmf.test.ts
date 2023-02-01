@@ -93,7 +93,7 @@ describe('getDMMF', () => {
       }
     })
 
-    test(`fails when reading a datamodel path that doesn't exist`, async () => {
+    testIf(process.platform !== 'win32')(`fails when reading a datamodel path that doesn't exist`, async () => {
       expect.assertions(2)
 
       try {
@@ -197,12 +197,10 @@ describe('getDMMF', () => {
   })
 
   describe('success', () => {
-    testIf(process.platform !== 'win32')(
-      `if a datamodel is provided, succeeds even when a non-existing datamodel path is given`,
-      async () => {
-        expect.assertions(2)
+    test(`if a datamodel is provided, succeeds even when a non-existing datamodel path is given`, async () => {
+      expect.assertions(2)
 
-        const datamodel = /* prisma */ `
+      const datamodel = /* prisma */ `
         generator client {
           provider = "prisma-client-js"
         }
@@ -213,17 +211,16 @@ describe('getDMMF', () => {
         }
       `
 
-        const dmmf = await getDMMF({ datamodel, datamodelPath: './404/it-does-not-exist' })
-        expect(dmmf.datamodel).toMatchInlineSnapshot(`
+      const dmmf = await getDMMF({ datamodel, datamodelPath: './404/it-does-not-exist' })
+      expect(dmmf.datamodel).toMatchInlineSnapshot(`
           {
             "enums": [],
             "models": [],
             "types": [],
           }
         `)
-        expect(dmmf).toMatchSnapshot()
-      },
-    )
+      expect(dmmf).toMatchSnapshot()
+    })
 
     test('simple model, no datasource', async () => {
       const dmmf = await getDMMF({
