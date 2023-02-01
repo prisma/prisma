@@ -3,6 +3,8 @@ import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper
 import chalk from 'chalk'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
+import * as TE from 'fp-ts/TaskEither'
+import fs from 'fs'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, isWasmPanic, RustPanic, WasmPanic } from '../panic'
@@ -60,41 +62,66 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
   const debugErrorType = createDebugErrorType(debug, 'getDmmfWasm')
   debug(`Using getDmmf Wasm`)
 
-  const dmmfEither = pipe(
-    E.tryCatch(
+  const dmmfPipeline = pipe(
+    TE.tryCatch(
       () => {
-        if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
-          debug('Triggering a Rust panic...')
-          prismaFmt.debug_panic()
+        if (options.datamodel) {
+          debug('Using given datamodel')
+          return Promise.resolve(options.datamodel)
         }
 
-        const params = JSON.stringify({
-          prismaSchema: options.datamodel,
-        })
-
-        const data = prismaFmt.get_dmmf(params)
-        return data
+        debug(`Reading datamodel from the given datamodel path ${options.datamodelPath!}`)
+        return fs.promises.readFile(options.datamodelPath!, 'utf-8')
       },
       (e) =>
         ({
-          type: 'wasm-error' as const,
-          reason: '(get-dmmf wasm)',
-          error: e as Error | WasmPanic,
+          type: 'read-datamodel-path' as const,
+          reason: 'Error while trying to read the datamodel path',
+          error: e as Error,
+          datamodelPath: options.datamodelPath,
         } as const),
     ),
-    E.map((result) => ({ result })),
-    E.chainW(({ result }) =>
-      // NOTE: this should never fail, as we expect returned values to be valid JSON-serializable strings
-      E.tryCatch(
-        () => JSON.parse(result) as DMMF.Document,
-        (e) => ({
-          type: 'parse-json' as const,
-          reason: 'Unable to parse JSON',
-          error: e as Error,
-        }),
-      ),
-    ),
+    TE.chainW((datamodel) => {
+      return pipe(
+        E.tryCatch(
+          () => {
+            if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
+              debug('Triggering a Rust panic...')
+              prismaFmt.debug_panic()
+            }
+
+            const params = JSON.stringify({
+              prismaSchema: datamodel,
+            })
+
+            const data = prismaFmt.get_dmmf(params)
+            return data
+          },
+          (e) =>
+            ({
+              type: 'wasm-error' as const,
+              reason: '(get-dmmf wasm)',
+              error: e as Error | WasmPanic,
+            } as const),
+        ),
+        E.map((result) => ({ result })),
+        E.chainW(({ result }) =>
+          // NOTE: this should never fail, as we expect returned values to be valid JSON-serializable strings
+          E.tryCatch(
+            () => JSON.parse(result) as DMMF.Document,
+            (e) => ({
+              type: 'parse-json' as const,
+              reason: 'Unable to parse JSON',
+              error: e as Error,
+            }),
+          ),
+        ),
+        TE.fromEither,
+      )
+    }),
   )
+
+  const dmmfEither = await dmmfPipeline()
 
   if (E.isRight(dmmfEither)) {
     debug('dmmf data retrieved without errors in getDmmf Wasm')
@@ -106,6 +133,14 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
    * Check which error to throw.
    */
   const error = match(dmmfEither.left)
+    .with({ type: 'read-datamodel-path' }, (e) => {
+      debugErrorType(e)
+      return new GetDmmfError({
+        _tag: 'unparsed',
+        message: `${e.error.message}\nDatamodel path: "${e.datamodelPath}"`,
+        reason: e.reason,
+      })
+    })
     .with({ type: 'wasm-error' }, (e) => {
       debugErrorType(e)
 
