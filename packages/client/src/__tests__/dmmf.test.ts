@@ -1,7 +1,5 @@
-import { serializeQueryEngineName } from '@prisma/internals'
+import { getDMMF, serializeQueryEngineName } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
-
-import { getDMMF } from '../generation/getDMMF'
 
 describe('dmmf', () => {
   test('dmmf enum filter mysql', async () => {

@@ -1,4 +1,5 @@
-import { getDMMF } from '../generation/getDMMF'
+import { getDMMF } from '@prisma/internals'
+
 import { DMMFClass, makeDocument } from '../runtime'
 
 export const recommender = /* Prisma */ `
