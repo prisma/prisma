@@ -23800,7 +23800,7 @@ exports[`getDMMF success @@unique model 1`] = `
 }
 `;
 
-exports[`getDMMF success big schema 1`] = `140496894`;
+exports[`getDMMF success big schema read via datamodel path 1`] = `140496894`;
 
 exports[`getDMMF success chinook introspected schema 1`] = `903623`;
 

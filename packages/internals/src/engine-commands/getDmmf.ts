@@ -71,7 +71,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
         }
 
         debug(`Reading datamodel from the given datamodel path ${options.datamodelPath!}`)
-        return fs.promises.readFile(options.datamodelPath!, 'utf-8')
+        return fs.promises.readFile(options.datamodelPath!, { encoding: 'utf-8' })
       },
       (e) =>
         ({

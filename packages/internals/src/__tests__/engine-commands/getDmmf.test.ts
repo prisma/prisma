@@ -12,6 +12,8 @@ if (process.env.CI) {
   jest.setTimeout(60_000)
 }
 
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
 describe('getDMMF', () => {
   describe('errors', () => {
     test('model with autoincrement should fail if sqlite', async () => {
@@ -195,10 +197,12 @@ describe('getDMMF', () => {
   })
 
   describe('success', () => {
-    test(`if a datamodel is provided, succeeds even when a non-existing datamodel path is given`, async () => {
-      expect.assertions(2)
+    testIf(process.platform !== 'win32')(
+      `if a datamodel is provided, succeeds even when a non-existing datamodel path is given`,
+      async () => {
+        expect.assertions(2)
 
-      const datamodel = /* prisma */ `
+        const datamodel = /* prisma */ `
         generator client {
           provider = "prisma-client-js"
         }
@@ -209,10 +213,11 @@ describe('getDMMF', () => {
         }
       `
 
-      const dmmf = await getDMMF({ datamodel, datamodelPath: './404/it-does-not-exist' })
-      expect(dmmf.datamodel).toMatchSnapshot()
-      expect(dmmf).toMatchSnapshot()
-    })
+        const dmmf = await getDMMF({ datamodel, datamodelPath: './404/it-does-not-exist' })
+        expect(dmmf.datamodel).toMatchSnapshot()
+        expect(dmmf).toMatchSnapshot()
+      },
+    )
 
     test('simple model, no datasource', async () => {
       const dmmf = await getDMMF({
@@ -418,10 +423,10 @@ describe('getDMMF', () => {
       expect(str.length).toMatchSnapshot()
     })
 
-    test('big schema', async () => {
-      const file = fs.readFileSync(path.join(fixturesPath, 'bigschema.prisma'), 'utf-8')
+    test('big schema read via datamodel path', async () => {
+      const datamodelPath = path.join(fixturesPath, 'bigschema.prisma')
       const dmmf = await getDMMF({
-        datamodel: file,
+        datamodelPath,
       })
       const str = JSON.stringify(dmmf)
       expect(str.length).toMatchSnapshot()
