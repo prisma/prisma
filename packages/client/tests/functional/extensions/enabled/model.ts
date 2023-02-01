@@ -273,9 +273,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(
-        `Error caused by extension "Faulty model": Fail!`,
-      )
+      expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(`Fail!`)
     })
 
     test('error in async methods', async () => {
@@ -290,9 +288,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(
-        `Error caused by extension "Faulty model": Fail!`,
-      )
+      await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`Fail!`)
     })
 
     test('error in async PrismaPromise methods', async () => {
@@ -314,24 +310,24 @@ testMatrix.setupTestSuite(
       })
 
       await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`
-      Error caused by extension "Faulty model": 
-      Invalid \`prisma.user.findUnique()\` invocation:
 
-      {
-        badInput: true,
-        ~~~~~~~~
-      + where: {
-      +   id?: String,
-      +   email?: String
-      + }
-      }
+        Invalid \`prisma.user.findUnique()\` invocation:
 
-      Unknown arg \`badInput\` in badInput for type User. Did you mean \`select\`?
-      Argument where is missing.
+        {
+          badInput: true,
+          ~~~~~~~~
+        + where: {
+        +   id?: String,
+        +   email?: String
+        + }
+        }
 
-      Note: Lines with + are required
+        Unknown arg \`badInput\` in badInput for type User. Did you mean \`select\`?
+        Argument where is missing.
 
-    `)
+        Note: Lines with + are required
+
+      `)
     })
 
     // skipping data proxy because query count isn't the same
@@ -440,7 +436,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(`Error caused by an extension: Fail!`)
+      expect(() => xprisma.user.fail()).toThrowErrorMatchingInlineSnapshot(`Fail!`)
     })
 
     test('custom method re-using input types to augment them via intersection', () => {
