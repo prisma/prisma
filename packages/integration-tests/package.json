@@ -12,6 +12,7 @@
     "directory": "packages/integration-tests"
   },
   "devDependencies": {
+    "@prisma/get-platform": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@sindresorhus/slugify": "1.1.2",

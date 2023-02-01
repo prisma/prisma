@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import execa from 'execa'
 
 import { DbSeed } from '../commands/DbSeed'

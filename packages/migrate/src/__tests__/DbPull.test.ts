@@ -1,7 +1,7 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get-platform'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
