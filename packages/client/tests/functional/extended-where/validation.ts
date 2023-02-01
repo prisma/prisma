@@ -1,3 +1,4 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
 import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
@@ -8,7 +9,7 @@ declare let prisma: PrismaClient
 
 // arbitrarily chose delete operation to test errors for invalid inputs
 testMatrix.setupTestSuite((_0, _1, { runtime }) => {
-  testIf(runtime !== 'edge')('where and no keys provided', async () => {
+  testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('where and no keys provided', async () => {
     const result = prisma.user.delete({
       // @ts-expect-error
       where: {},
@@ -43,7 +44,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
     `)
   })
 
-  testIf(runtime !== 'edge')('where and missing unique keys', async () => {
+  testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('where and missing unique keys', async () => {
     const result = prisma.user.delete({
       // @ts-expect-error
       where: {

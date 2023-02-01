@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -98,7 +100,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     `)
   })
 
-  testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
+  testIf(clientMeta.runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('bad prop', async () => {
     const err = prisma.user.count({
       select: {
         _all: true,
