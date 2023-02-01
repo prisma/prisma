@@ -321,7 +321,21 @@ async function getCurrentPatchForPatchVersions(patchMajorMinor: { major: number;
   // "3.0.1",
   // "3.0.2"
   // ]
-  let versions = JSON.parse(await runResult('.', 'npm view @prisma/client@* version --json'))
+
+  // We retry a few times if it fails
+  // npm can have some hiccups
+  const remoteVersionsString = await pRetry(
+    async () => {
+      return await runResult('.', 'npm view @prisma/client@* version --json')
+    },
+    {
+      retries: 6,
+      onFailedAttempt: (e) => {
+        console.error(e)
+      },
+    },
+  )
+  let versions = JSON.parse(remoteVersionsString)
 
   // inconsistent npm api
   if (!Array.isArray(versions)) {
@@ -440,7 +454,19 @@ export async function getAllVersionsPublishedFor(pkgs: Packages, channel: string
       pkgVersions.push(pkg.version)
     }
 
-    const remoteVersionsString = await runResult('.', `npm info ${pkg.name} versions --json`)
+    // We retry a few times if it fails
+    // npm can have some hiccups
+    const remoteVersionsString = await pRetry(
+      async () => {
+        return await runResult('.', `npm info ${pkg.name} versions --json`)
+      },
+      {
+        retries: 6,
+        onFailedAttempt: (e) => {
+          console.error(e)
+        },
+      },
+    )
     const remoteVersions: string = JSON.parse(remoteVersionsString)
 
     for (const remoteVersion of remoteVersions) {
@@ -463,9 +489,20 @@ export async function getAllVersionsPublishedFor(pkgs: Packages, channel: string
  */
 async function getNextMinorStable() {
   // We check the Prisma CLI `latest` version
-  const remoteVersion = await runResult('.', 'npm info prisma version')
-
-  return increaseMinor(remoteVersion)
+  // We retry a few times if it fails
+  // npm can have some hiccups
+  const remoteVersionString = await pRetry(
+    async () => {
+      return await runResult('.', `npm info prisma version`)
+    },
+    {
+      retries: 6,
+      onFailedAttempt: (e) => {
+        console.error(e)
+      },
+    },
+  )
+  return increaseMinor(remoteVersionString)
 }
 
 // TODO: could probably use the semver package
@@ -861,7 +898,20 @@ async function patch(pkg: Package) {
   if (pkg.name === '@prisma/integration-tests') {
     return localVersion
   }
-  const npmVersion = await runResult('.', `npm info ${pkg.name} version`)
+
+  // We retry a few times if it fails
+  // npm can have some hiccups
+  const npmVersion = await pRetry(
+    async () => {
+      return await runResult('.', `npm info ${pkg.name} version`)
+    },
+    {
+      retries: 6,
+      onFailedAttempt: (e) => {
+        console.error(e)
+      },
+    },
+  )
 
   const maxVersion = semver.maxSatisfying([localVersion, npmVersion], '*', {
     loose: true,
