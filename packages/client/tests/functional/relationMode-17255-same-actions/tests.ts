@@ -49,11 +49,6 @@ testMatrix.setupTestSuite(
 
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
-    // @ts-expect-error
-    const isMongoDB = suiteConfig.provider === Providers.MONGODB
-    const isSQLite = suiteConfig.provider === Providers.SQLITE
-    const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
-    const isRelationMode_foreignKeys = !isRelationMode_prisma
 
     describe('1:1 issue 17255', () => {
       beforeEach(async () => {
