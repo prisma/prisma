@@ -148,7 +148,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.10.0-64.integration-get-dmmf-wasm-handle-errors-3d4278979c9faf9b522074a40a7988576e3018da"
+    "@prisma/engines-version": "4.10.0-65.323c8a1169351067817dd9f83076b2f8afad856c"
   },
   "sideEffects": false
 }

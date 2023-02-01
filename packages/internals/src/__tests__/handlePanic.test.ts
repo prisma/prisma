@@ -1,3 +1,4 @@
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import { join, resolve } from 'path'
@@ -5,7 +6,7 @@ import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import tempy from 'tempy'
 
-import { ErrorArea, jestConsoleContext, jestContext, RustPanic } from '..'
+import { ErrorArea, RustPanic } from '..'
 import * as sendPanicUtils from '../sendPanic'
 import * as githubUtils from '../utils/getGitHubIssueUrl'
 import { handlePanic } from '../utils/handlePanic'
