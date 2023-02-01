@@ -1,3 +1,4 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
 import { getTestClient } from '../../../../utils/getTestClient'
 
 describe('aggregations', () => {
@@ -100,22 +101,23 @@ describe('aggregations', () => {
       }
     `)
 
-    try {
-      await prisma.user.aggregate({
-        where: {
-          age: {
-            gt: -1,
+    if (getQueryEngineProtocol() !== 'json') {
+      try {
+        await prisma.user.aggregate({
+          where: {
+            age: {
+              gt: -1,
+            },
           },
-        },
-        skip: 0,
-        take: 10000,
-        _avg: {
-          age: true,
-          email: true,
-        },
-      })
-    } catch (err) {
-      expect(err.message).toMatchInlineSnapshot(`
+          skip: 0,
+          take: 10000,
+          _avg: {
+            age: true,
+            email: true,
+          },
+        })
+      } catch (err) {
+        expect(err.message).toMatchInlineSnapshot(`
 
         Invalid \`prisma.user.aggregate()\` invocation in
         /client/src/__tests__/integration/happy/aggregations/test.ts:0:0
@@ -142,6 +144,7 @@ describe('aggregations', () => {
         Unknown field \`email\` for select statement on model UserAvgAggregateOutputType. Available options are listed in green. Did you mean \`age\`?
 
       `)
+      }
     }
 
     await prisma.$disconnect()

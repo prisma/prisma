@@ -98,6 +98,7 @@ test('allows to pass it decimal-like object', () => {
           d: [12, 5000000],
           e: 1,
           s: 1,
+          toFixed: () => '12.5',
         },
       },
     },

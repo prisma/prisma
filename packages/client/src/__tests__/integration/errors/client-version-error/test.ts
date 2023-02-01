@@ -1,6 +1,9 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('client-version-error', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+testIf(getQueryEngineProtocol() !== 'json')('client-version-error', async () => {
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   try {
