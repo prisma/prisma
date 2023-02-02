@@ -22,7 +22,7 @@ export function computeSchemaHeader({
   const relationModeLine = provider === Providers.MONGODB || !relationMode ? '' : `relationMode = "${relationMode}"`
 
   const url = match({ provider, providerFlavor })
-    .with({ provider: Providers.SQLITE }, () => `"file:test.db"`)
+    .with({ provider: Providers.SQLITE }, () => `"file:./test.db"`)
     .otherwise(({ providerFlavor }) => `env("DATABASE_URI_${providerFlavor}")`)
 
   const schemaHeader = /* Prisma */ `
