@@ -418,7 +418,16 @@ describe('getDMMF', () => {
     })
 
     test('chinook introspected schema', async () => {
-      const file = fs.readFileSync(path.join(fixturesPath, 'chinook.prisma'), 'utf-8')
+      const file = await fs.promises.readFile(path.join(fixturesPath, 'chinook.prisma'), 'utf-8')
+      const dmmf = await getDMMF({
+        datamodel: file,
+      })
+      const str = JSON.stringify(dmmf)
+      expect(str.length).toMatchSnapshot()
+    })
+
+    test('odoo introspected schema', async () => {
+      const file = await fs.promises.readFile(path.join(fixturesPath, 'odoo.prisma'), 'utf-8')
       const dmmf = await getDMMF({
         datamodel: file,
       })

@@ -23921,6 +23921,8 @@ exports[`getDMMF success if a datamodel is provided, succeeds even when a non-ex
 }
 `;
 
+exports[`getDMMF success odoo introspected schema 1`] = `134276315`;
+
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
   "enums": [],
