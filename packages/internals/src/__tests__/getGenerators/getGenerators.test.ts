@@ -840,6 +840,8 @@ describe('getGenerators', () => {
   })
 
   test('fail if generator not found', async () => {
+    expect.assertions(1)
+
     const aliases = {
       'predefined-generator-1': {
         generatorPath: generatorPath,
@@ -855,13 +857,17 @@ describe('getGenerators', () => {
       },
     }
 
-    await expect(
-      getGenerators({
+    try {
+      await getGenerators({
         schemaPath: path.join(__dirname, 'multiple-generators-schema.prisma'),
         dataProxy: false,
         providerAliases: aliases,
         generatorNames: ['client_1', 'invalid_generator'],
-      }),
-    ).rejects.toThrowErrorMatchingSnapshot()
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(
+        `"The generator invalid_generator specified via --generator does not exist in your Prisma schema"`,
+      )
+    }
   })
 })
