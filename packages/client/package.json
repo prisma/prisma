@@ -117,7 +117,7 @@
     "mariadb": "3.0.2",
     "memfs": "3.4.10",
     "mssql": "9.0.1",
-    "node-fetch": "2.6.8",
+    "node-fetch": "2.6.9",
     "pg": "8.8.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
