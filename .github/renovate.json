@@ -128,6 +128,16 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
+      "groupName": "opentelemetry packages",
+      "packagePatterns": ["^@opentelemetry/"],
+      "schedule": ["before 7am on Wednesday"]
+    },
+    {
+      "groupName": "esbuild packages",
+      "packagePatterns": ["^esbuild"],
+      "schedule": ["before 7am on Wednesday"]
+    },
+    {
       "groupName": "react-prisma",
       "automerge": "true",
       "paths": ["packages/react-prisma/**"],
