@@ -66,10 +66,16 @@ testMatrix.setupTestSuite(
     const isRelationMode_foreignKeys = !isRelationMode_prisma
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
+    // Looking at CI results
+    // 30s was often not enough for vitess
+    // so we put it back to 60s for now in this case
+    if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
+      jest.setTimeout(60_000)
+    }
+
     /**
      * 1:n relationship
      */
-
     describe('1:n mandatory (explicit)', () => {
       const userModel = 'userOneToMany'
       const postModel = 'postOneToMany'

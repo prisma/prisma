@@ -1,4 +1,5 @@
 import { Providers } from '../_utils/providers'
+import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
@@ -115,10 +116,16 @@ testMatrix.setupTestSuite(
     const isRelationMode_foreignKeys = !isRelationMode_prisma
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
+    // Looking at CI results
+    // 30s was often not enough for vitess
+    // so we put it back to 60s for now in this case
+    if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
+      jest.setTimeout(60_000)
+    }
+
     /**
      * m:n relationship
      */
-
     describeIf(!isMongoDB)('m:n mandatory (explicit) - SQL Databases', () => {
       const postModel = 'PostManyToMany'
       const categoryModel = 'CategoryManyToMany'
