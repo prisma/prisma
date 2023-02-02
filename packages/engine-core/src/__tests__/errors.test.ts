@@ -12,7 +12,7 @@ const response = (body: string, code?: number, requestId?: string): RequestRespo
   ok: false,
   status: code || 400,
   headers: {
-    'Prisma-Request-Id': requestId,
+    'prisma-request-id': requestId,
   },
 })
 
