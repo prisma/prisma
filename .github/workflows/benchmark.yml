@@ -32,6 +32,7 @@ on:
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
+  workflow_dispatch:
 
 env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma benchmark.yml'
