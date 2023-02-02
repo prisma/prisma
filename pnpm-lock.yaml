@@ -146,7 +146,7 @@ importers:
       '@types/jest': 29.2.4
       '@types/rimraf': 3.0.2
       chalk: 4.1.2
-      checkpoint-client: 1.1.21
+      checkpoint-client: 1.1.23
       debug: 4.3.4
       dotenv: 16.0.3
       esbuild: 0.15.13
@@ -189,7 +189,7 @@ importers:
       '@types/jest': 29.2.4
       '@types/rimraf': 3.0.2
       chalk: 4.1.2
-      checkpoint-client: 1.1.21
+      checkpoint-client: 1.1.23
       debug: 4.3.4
       dotenv: 16.0.3
       esbuild: 0.15.13
@@ -702,7 +702,7 @@ importers:
       archiver: 5.3.1
       arg: 5.0.2
       chalk: 4.1.2
-      checkpoint-client: 1.1.21
+      checkpoint-client: 1.1.23
       cli-truncate: 2.1.0
       dotenv: 16.0.3
       esbuild: 0.15.13
@@ -752,7 +752,7 @@ importers:
       archiver: 5.3.1
       arg: 5.0.2
       chalk: 4.1.2
-      checkpoint-client: 1.1.21
+      checkpoint-client: 1.1.23
       cli-truncate: 2.1.0
       dotenv: 16.0.3
       escape-string-regexp: 4.0.0
@@ -5532,8 +5532,8 @@ packages:
       uuid: 8.3.2
     dev: true
 
-  /checkpoint-client/1.1.21:
-    resolution: {integrity: sha512-bcrcnJncn6uGhj06IIsWvUBPyJWK1ZezDbLCJ//IQEYXkUobhGvOOBlHe9K5x0ZMkAZGinPB4T+lTUmFz/acWQ==}
+  /checkpoint-client/1.1.23:
+    resolution: {integrity: sha512-NrGvMiH1fUcZwrYc0Z+YTn7q9ysV0kPgVyDKZ5jrfIerFJuSllvyGsY7bHeQSEiljaIaUP1Q/xutZ8q1s7PGzg==}
     dependencies:
       ci-info: 3.3.0
       env-paths: 2.2.1
