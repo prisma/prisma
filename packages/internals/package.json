@@ -51,7 +51,7 @@
     "archiver": "5.3.1",
     "arg": "5.0.2",
     "chalk": "4.1.2",
-    "checkpoint-client": "1.1.21",
+    "checkpoint-client": "1.1.23",
     "cli-truncate": "2.1.0",
     "dotenv": "16.0.3",
     "escape-string-regexp": "4.0.0",

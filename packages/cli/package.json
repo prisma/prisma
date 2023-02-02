@@ -77,7 +77,7 @@
     "@types/jest": "29.2.4",
     "@types/rimraf": "3.0.2",
     "chalk": "4.1.2",
-    "checkpoint-client": "1.1.21",
+    "checkpoint-client": "1.1.23",
     "debug": "4.3.4",
     "dotenv": "16.0.3",
     "esbuild": "0.15.13",
