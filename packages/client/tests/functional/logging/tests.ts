@@ -34,16 +34,13 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
     expect(queryLogEvents).toHaveProperty('query')
     expect(queryLogEvents).toHaveProperty('duration')
     expect(queryLogEvents).toHaveProperty('timestamp')
+    expect(queryLogEvents).toHaveProperty('params')
+    expect(queryLogEvents).toHaveProperty('target')
 
     if (suiteConfig.provider === 'mongodb') {
       expect(queryLogEvents.query).toContain('db.User.aggregate')
     } else {
       expect(queryLogEvents.query).toContain('SELECT')
-    }
-
-    if (!clientMeta.dataProxy) {
-      expect(queryLogEvents).toHaveProperty('params')
-      expect(queryLogEvents).toHaveProperty('target')
     }
   })
 
