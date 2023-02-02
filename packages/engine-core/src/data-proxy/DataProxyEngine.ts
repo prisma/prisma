@@ -57,7 +57,7 @@ type DataProxyLog = {
   name: string
   level: LogLevel
   timestamp: [number, number]
-  attributes: Record<string, unknown> & { duration_ms: number }
+  attributes: Record<string, unknown> & { duration_ms: number; params: string; target: string }
 }
 
 type DataProxyExtensions = {
@@ -92,7 +92,6 @@ class DataProxyHeaderBuilder {
     tracingConfig: TracingConfig
     logLevel: EngineConfig['logLevel']
     logQueries: boolean | undefined
-    engine: DataProxyEngine
   }) {
     this.apiKey = apiKey
     this.tracingConfig = tracingConfig
@@ -172,7 +171,6 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       tracingConfig: getTracingConfig(this.config.previewFeatures || []),
       logLevel: config.logLevel,
       logQueries: config.logQueries,
-      engine: this,
     })
 
     this.remoteClientVersion = P.then(() => getClientVersion(this.config))
@@ -203,11 +201,11 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
           case 'trace':
           case 'warn':
           case 'info':
-            // TODO these are propgated into the response.errors key
+            // TODO these are propagated into the response.errors key
             break
           case 'query': {
-            let dbQuery =
-              typeof log.attributes?.query === 'string' && log.attributes?.query ? log.attributes.query : log.name
+            let dbQuery = typeof log.attributes.query === 'string' ? log.attributes.query : ''
+
             if (!tracingConfig.enabled) {
               // The engine uses tracing to consolidate logs
               //  - and so we should strip the generated traceparent
@@ -221,8 +219,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
               query: dbQuery,
               timestamp: log.timestamp,
               duration: log.attributes.duration_ms,
-              // params: log.params - Missing
-              // target: log.target - Missing
+              params: log.attributes.params,
+              target: log.attributes.target,
             })
           }
         }
