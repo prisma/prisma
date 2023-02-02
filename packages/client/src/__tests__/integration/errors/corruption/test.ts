@@ -33,5 +33,5 @@ test('corruption of query engine binary', async () => {
     errorFormat: 'minimal',
   })
 
-  await expect(prisma.user.findMany()).rejects.toThrowError()
+  await expect(prisma.user.findMany()).rejects.toThrow()
 })
