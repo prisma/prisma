@@ -111,7 +111,7 @@ testMatrix.setupTestSuite(
           throw new Error('changed my mind, sorry')
         })
 
-        await expect(tx).rejects.toThrowError(/changed my mind/)
+        await expect(tx).rejects.toThrow(/changed my mind/)
 
         expect(
           await prisma.testModel.findRaw({
