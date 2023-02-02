@@ -19,7 +19,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      await expect(result).resolves.not.toThrowError()
+      await expect(result).resolves.not.toThrow()
     })
   },
   {

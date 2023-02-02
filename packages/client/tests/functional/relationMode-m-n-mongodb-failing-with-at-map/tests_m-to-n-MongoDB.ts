@@ -182,7 +182,7 @@ testMatrix.setupTestSuite(
               },
             }),
             // Runtime error
-          ).rejects.toThrowError('Unknown arg `id` in data.id for type PostManyToManyUpdateInput. Available args:')
+          ).rejects.toThrow('Unknown arg `id` in data.id for type PostManyToManyUpdateInput. Available args:')
 
           expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
             expectedFindManyPostModelIfNoChange,

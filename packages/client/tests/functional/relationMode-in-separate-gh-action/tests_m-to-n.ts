@@ -198,7 +198,7 @@ testMatrix.setupTestSuite(
                   categoryId: '99',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
@@ -358,7 +358,7 @@ testMatrix.setupTestSuite(
                   postId: '99',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
@@ -449,7 +449,7 @@ testMatrix.setupTestSuite(
                   categoryId: '99',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
@@ -643,7 +643,7 @@ testMatrix.setupTestSuite(
                   id: '3',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
@@ -690,7 +690,7 @@ testMatrix.setupTestSuite(
                   id: '1-cat-a-updated',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
@@ -891,7 +891,7 @@ testMatrix.setupTestSuite(
                 prisma[postModel].delete({
                   where: { id: '1' },
                 }),
-              ).rejects.toThrowError(
+              ).rejects.toThrow(
                 isSchemaUsingMap
                   ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                     // So we can ignore the error message here
@@ -929,7 +929,7 @@ testMatrix.setupTestSuite(
                 prisma[categoryModel].delete({
                   where: { id: '1-cat-a' },
                 }),
-              ).rejects.toThrowError(
+              ).rejects.toThrow(
                 isSchemaUsingMap
                   ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                     // So we can ignore the error message here
@@ -973,7 +973,7 @@ testMatrix.setupTestSuite(
               prisma[postModel].delete({
                 where: { id: '1' },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
@@ -1011,7 +1011,7 @@ testMatrix.setupTestSuite(
               prisma[categoryModel].delete({
                 where: { id: '1-cat-a' },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here

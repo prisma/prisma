@@ -83,7 +83,7 @@ testMatrix.setupTestSuite(({ provider }) => {
             orderId: orderId2,
           },
         }),
-      ).rejects.toThrowError(
+      ).rejects.toThrow(
         "The change you are trying to make would violate the required relation 'OrderToOrderStatusHistory' between the `Order` and `OrderStatusHistory` models.",
       )
     },

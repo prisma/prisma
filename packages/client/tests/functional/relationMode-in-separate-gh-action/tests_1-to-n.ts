@@ -128,7 +128,7 @@ testMatrix.setupTestSuite(
                   authorId: '1',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
@@ -162,7 +162,7 @@ testMatrix.setupTestSuite(
                 authorId: undefined, // this would actually be a type-error, but we don't have access to types here
               },
             }),
-          ).rejects.toThrowError('Argument author for data.author is missing.')
+          ).rejects.toThrow('Argument author for data.author is missing.')
         })
 
         test('[create] nested child [create] should succeed', async () => {
@@ -346,7 +346,7 @@ testMatrix.setupTestSuite(
                   id: '2',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
@@ -552,7 +552,7 @@ testMatrix.setupTestSuite(
                 prisma[userModel].delete({
                   where: { id: '1' },
                 }),
-              ).rejects.toThrowError(expectedError)
+              ).rejects.toThrow(expectedError)
 
               expect(
                 await prisma[userModel].findMany({
@@ -599,7 +599,7 @@ testMatrix.setupTestSuite(
                   prisma[userModel].delete({
                     where: { id: '1' },
                   }),
-                ).rejects.toThrowError(expectedError)
+                ).rejects.toThrow(expectedError)
 
                 expect(
                   await prisma[userModel].findMany({
@@ -644,7 +644,7 @@ testMatrix.setupTestSuite(
               prisma[userModel].delete({
                 where: { id: '1' },
               }),
-            ).rejects.toThrowError(expectedError)
+            ).rejects.toThrow(expectedError)
 
             expect(
               await prisma[userModel].findMany({
@@ -689,7 +689,7 @@ testMatrix.setupTestSuite(
               prisma[userModel].delete({
                 where: { id: '1' },
               }),
-            ).rejects.toThrowError(expectedError)
+            ).rejects.toThrow(expectedError)
 
             expect(
               await prisma[userModel].findMany({
