@@ -480,7 +480,7 @@ ${chalk.greenBright(
 ${chalk.gray(
   `Note, that by providing \`native\`, Prisma Client automatically resolves \`${platform}\`.
 Read more about deploying Prisma Client: ${chalk.underline(
-    'https://github.com/prisma/prisma/blob/main/docs/core/generators/prisma-client-js.md',
+    'https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators',
   )}`,
 )}\n`)
         } else {

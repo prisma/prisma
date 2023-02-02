@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
@@ -30,7 +30,7 @@ describe('Studio CLI', () => {
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet.
+      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
 
       More information about Data Proxy: https://pris.ly/d/data-proxy-cli
 

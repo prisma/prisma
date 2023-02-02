@@ -1,7 +1,7 @@
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType, download } from '@prisma/fetch-engine'
-import { getPlatform } from '@prisma/get-platform'
-import { engineEnvVarMap, jestConsoleContext, jestContext } from '@prisma/internals'
+import { getPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { engineEnvVarMap } from '@prisma/internals'
 import { ensureDir } from 'fs-extra'
 import path from 'path'
 
@@ -27,7 +27,6 @@ describe('version', () => {
       await ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
-          'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
           'libquery-engine': enginesDir,
         },
@@ -75,7 +74,6 @@ describe('version', () => {
       await ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
-          'introspection-engine': enginesDir,
           'migration-engine': enginesDir,
           'query-engine': enginesDir,
         },

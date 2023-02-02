@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import execa from 'execa'
 
 import { DbSeed } from '../commands/DbSeed'
@@ -59,8 +59,8 @@ describe('seed', () => {
     )
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 
-    // "high" number since npm install can sometimes be slow
-  }, 30_000)
+    // "high" number since `npm install` can sometimes be very slow
+  }, 60_000)
 
   it('seed.sh', async () => {
     ctx.fixture('seed-sqlite-sh')

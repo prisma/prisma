@@ -42,6 +42,10 @@ on:
       - '*.bench.ts'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
+  schedule:
+    # https://crontab.guru - “At every 15th minute past every hour from 3 through 5.”
+    - cron: '*/15 3-5 * * *'
+  workflow_dispatch:
 
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
@@ -59,11 +63,12 @@ jobs:
       - id: checkout
         uses: actions/checkout@v3
       - id: files
-        uses: Ana06/get-changed-files@v1.2 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
+        uses: Ana06/get-changed-files@v2.2.0 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
         with:
           format: 'json'
+        continue-on-error: true # This allow this job to fail (e.g. for scheduled runs), and then the `detect` step below will default to `all`
       - id: detect
-        run: ./.github/workflows/scripts/detect-jobs-to-run.js <<<'${{ steps.files.outputs.all }}'
+        run: ./.github/workflows/scripts/detect-jobs-to-run.js <<< '${{ steps.files.outputs.all }}'
 
   # From https://github.com/marketplace/actions/skip-duplicate-actions
   # This action cleans up previously running instances of a workflow on the same branch.
@@ -115,134 +120,6 @@ jobs:
         working-directory: ./
 
   #
-  # CLIENT test:functional relationMode
-  #
-  client-relationMode:
-    timeout-minutes: 60
-    runs-on: ${{ matrix.os }}
-
-    needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        # os: [buildjet-4vcpu-ubuntu-2004]
-        relationMode: ['', 'foreignKeys', 'prisma']
-        os: [ubuntu-latest]
-        node: [16]
-
-    env:
-      CI: true
-      SKIP_GIT: true
-      GITHUB_CONTEXT: ${{ toJson(github) }}
-      TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-      TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-      TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-      TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
-      TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-      TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
-      TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
-      TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
-      TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
-      TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
-      TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
-      TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
-      TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-      TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
-      TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
-      NODE_OPTIONS: '--max-old-space-size=8096'
-
-    steps:
-      - uses: actions/checkout@v3
-
-      - name: Set RELATION_MODE custom test env var
-        run: |
-          echo "RELATION_MODE=${{ matrix.relationMode }}"
-          if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
-
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
-
-      - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
-
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/scripts/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      # shouldn't take more than 15 minutes
-      - name: 1 to 1
-        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-1.ts
-        working-directory: packages/client
-
-      # shouldn't take more than 15 minutes
-      - name: 1 to n
-        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_1-to-n.ts
-        working-directory: packages/client
-
-      # shouldn't take more than 15 minutes
-      - name: m to n (SQL databases)
-        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n.ts
-        working-directory: packages/client
-
-      - name: m to n (MongoDB)
-        run: pnpm run test:functional:code --relation-mode-tests-only relationMode/tests_m-to-n-MongoDB.ts
-        working-directory: packages/client
-
-  #
-  # CLIENT test:e2e
-  #
-  client-e2e:
-    timeout-minutes: 15
-    runs-on: ${{ matrix.os }}
-
-    needs: detect_jobs_to_run
-    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
-
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        node: [16]
-
-    steps:
-      - uses: actions/checkout@v3
-
-      # Not currently needed, but we might need it in the future
-      # - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
-
-      - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
-
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-          node-version: ${{ matrix.node }}
-
-      - run: bash .github/workflows/scripts/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - run: pnpm run test:e2e --verbose
-        working-directory: packages/client
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          NODE_OPTIONS: '--max-old-space-size=8096'
-
-  #
   # CLIENT (without types test)
   #
   client:
@@ -276,6 +153,7 @@ jobs:
       TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
       TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
       TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
       TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -302,7 +180,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -359,7 +237,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -384,6 +262,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
           TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -397,6 +276,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+          TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
           TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -488,7 +368,7 @@ jobs:
                 message: `Add memory results for PR ${context.issue.number}`,
                 content: fs.readFileSync(localReport, 'base64'),
               });
-              console.log(`::set-output name=url::${url}`)
+              core.setOutput('url', url);
             }
 
       - name: Find report comment
@@ -523,6 +403,133 @@ jobs:
 
             ✅ Success
           edit-mode: replace
+
+  #
+  # CLIENT test:e2e
+  #
+  client-e2e:
+    timeout-minutes: 15
+    runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        node: [16]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      # Not currently needed, but we might need it in the future
+      # - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/scripts/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - run: pnpm run test:e2e --verbose
+        working-directory: packages/client
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+          NODE_OPTIONS: '--max-old-space-size=8096'
+
+  #
+  # CLIENT test:functional:code --relation-mode-tests-only for `relationMode-in-separate-gh-action` tests
+  #
+  client-relationMode:
+    timeout-minutes: 60
+    runs-on: ${{ matrix.os }}
+
+    needs: detect_jobs_to_run
+    if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        relationMode: ['', 'foreignKeys', 'prisma']
+        os: [ubuntu-latest]
+        node: [16]
+
+    env:
+      CI: true
+      SKIP_GIT: true
+      GITHUB_CONTEXT: ${{ toJson(github) }}
+      TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+      TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+      TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+      TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
+      TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+      TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
+      TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
+      TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
+      TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
+      TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
+      TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+      TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
+      TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
+      NODE_OPTIONS: '--max-old-space-size=8096'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set RELATION_MODE custom test env var
+        run: |
+          echo "RELATION_MODE=${{ matrix.relationMode }}"
+          if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
+
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+
+      - uses: pnpm/action-setup@v2.2.4
+        with:
+          version: 7
+
+      - uses: actions/setup-node@v3
+        with:
+          cache: 'pnpm'
+          node-version: ${{ matrix.node }}
+
+      - run: bash .github/workflows/scripts/setup.sh
+        env:
+          CI: true
+          SKIP_GIT: true
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      # shouldn't take more than 15 minutes
+      - name: 1 to 1
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
+        working-directory: packages/client
+
+      # shouldn't take more than 15 minutes
+      - name: 1 to n
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-n.ts
+        working-directory: packages/client
+
+      # shouldn't take more than 15 minutes
+      - name: m to n (SQL databases)
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n.ts
+        working-directory: packages/client
+
+      - name: m to n (MongoDB)
+        run: pnpm run test:functional:code --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n-MongoDB.ts
+        working-directory: packages/client
 
   #
   # CLIENT (types tests only)
@@ -1030,6 +1037,7 @@ jobs:
           echo "TEST_SKIP_MSSQL=true" >> $GITHUB_ENV
           echo "TEST_SKIP_MONGODB=true" >> $GITHUB_ENV
           echo "TEST_SKIP_COCKROACHDB=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_VITESS=true" >> $GITHUB_ENV
           echo "TEST_MONGO_URI_MIGRATE=mongodb://localhost:27017/tests-migrate" >> $GITHUB_ENV
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV

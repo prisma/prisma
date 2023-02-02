@@ -10,12 +10,15 @@ const baseUri = process.env.TEST_MSSQL_JDBC_URI
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-foreign-key-error(sqlserver)', () => {
   beforeAll(async () => {
-    process.env.TEST_MSSQL_JDBC_URI = process.env.TEST_MSSQL_JDBC_URI!.replace(
+    if (!process.env.TEST_MSSQL_JDBC_URI) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI. See TESTING.md')
+    }
+    process.env.TEST_MSSQL_JDBC_URI = process.env.TEST_MSSQL_JDBC_URI.replace(
       'master',
       'referentialActions-onDelete-default',
     )
     await migrateDb({
-      connectionString: process.env.TEST_MSSQL_JDBC_URI!,
+      connectionString: process.env.TEST_MSSQL_JDBC_URI,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
@@ -60,10 +63,10 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-fo
         Invalid \`prisma.user.delete()\` invocation in
         /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-sqlserver/test.ts:0:0
 
-          49 expect(await prisma.user.findMany()).toHaveLength(1)
-          50 
-          51 try {
-        → 52   await prisma.user.delete(
+          52 expect(await prisma.user.findMany()).toHaveLength(1)
+          53 
+          54 try {
+        → 55   await prisma.user.delete(
         Foreign key constraint failed on the field: \`Post_authorId_fkey (index)\`
       `)
     }

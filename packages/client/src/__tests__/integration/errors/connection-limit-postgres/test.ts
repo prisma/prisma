@@ -28,11 +28,12 @@ describeIf(process.platform === 'linux')('connection-limit-postgres', () => {
   test('the client cannot query the db with 100 connections already open', async () => {
     expect.assertions(1)
     const PrismaClient = await getTestClient()
+    const connectionString = process.env.TEST_POSTGRES_ISOLATED_URI!
 
     for (let i = 0; i <= 100; i++) {
       const client = new PrismaClient({
         datasources: {
-          db: { url: process.env.TEST_POSTGRES_ISOLATED_URI },
+          db: { url: connectionString },
         },
       })
       clients.push(client)

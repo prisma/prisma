@@ -3,7 +3,7 @@
   "extends": ["config:base", ":disableRateLimiting", ":noUnscheduledUpdates"],
   "schedule": ["before 7am every weekday", "every weekend"],
   "semanticCommits": "enabled",
-  "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@danstarns", "@jkomyno"],
+  "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "ignoreDeps": [
     "sqlite3",
@@ -125,6 +125,16 @@
       "groupName": "@swc/core for internals",
       "paths": ["packages/internals/**"],
       "packageNames": ["@swc/core"],
+      "schedule": ["before 7am on Wednesday"]
+    },
+    {
+      "groupName": "opentelemetry packages",
+      "packagePatterns": ["^@opentelemetry/"],
+      "schedule": ["before 7am on Wednesday"]
+    },
+    {
+      "groupName": "esbuild packages",
+      "packagePatterns": ["^esbuild"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
