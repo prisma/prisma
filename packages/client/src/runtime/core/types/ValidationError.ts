@@ -1,25 +1,13 @@
-export type ValidationError =
-  | {
-      kind: 'includeAndSelect'
-      selectionPath: string[]
-    }
-  | {
-      kind: 'includeOnScalar'
-      selectionPath: string[]
-      meta: {
-        outputType: OutputTypeDescription
-      }
-    }
+import { EngineValidationError, OutputTypeDescription } from '@prisma/engine-core'
 
-// TODO: engine-side validation errors
-
-export type OutputTypeDescription = {
-  name: string
-  fields?: OutputTypeDescriptionField[]
+export type IncludeAndSelectError = {
+  kind: 'includeAndSelect'
+  selectionPath: string[]
 }
 
-type OutputTypeDescriptionField = {
-  name: string
-  typeName: string
-  isRelation: boolean
+export type IncludeOnScalarError = {
+  kind: 'includeOnScalar'
+  selectionPath: string[]
+  outputType?: OutputTypeDescription
 }
+export type ValidationError = IncludeAndSelectError | IncludeOnScalarError | EngineValidationError
