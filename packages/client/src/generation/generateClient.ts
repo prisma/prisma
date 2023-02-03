@@ -1,8 +1,6 @@
 import { BinaryType, overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import type { Platform } from '@prisma/internals'
-import { ClientEngineType, getClientEngineType, getEngineVersion } from '@prisma/internals'
-import copy from '@timsuchanek/copy'
+import { assertNever, ClientEngineType, getClientEngineType, getEngineVersion, Platform } from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
@@ -51,6 +49,7 @@ export interface GenerateClientOptions {
   binaryPaths: BinaryPaths
   testMode?: boolean
   copyRuntime?: boolean
+  copyRuntimeSourceMaps?: boolean
   engineVersion: string
   clientVersion: string
   activeProvider: string
@@ -100,7 +99,7 @@ export async function buildClient({
   // we create a regular client that is fit for Node.js
   const nodeTsClient = new TSClient({
     ...tsClientOptions,
-    runtimeName: 'index',
+    runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
     runtimeDir: runtimeDirs.node,
   })
 
@@ -199,6 +198,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     binaryPaths,
     testMode,
     copyRuntime,
+    copyRuntimeSourceMaps = false,
     clientVersion,
     engineVersion,
     activeProvider,
@@ -271,12 +271,12 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     const copyTarget = path.join(outputDir, 'runtime')
     await ensureDir(copyTarget)
     if (runtimeSourceDir !== copyTarget) {
-      await copy({
+      await copyRuntimeFiles({
         from: runtimeSourceDir,
         to: copyTarget,
-        recursive: true,
-        parallelJobs: process.platform === 'win32' ? 1 : 20,
-        overwrite: true,
+        edge: dataProxy,
+        sourceMaps: copyRuntimeSourceMaps,
+        runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
       })
     }
   }
@@ -540,4 +540,41 @@ function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null 
     }
   }
   return null
+}
+
+function getNodeRuntimeName(engineType: ClientEngineType, dataProxy: boolean): string {
+  if (dataProxy) {
+    return 'data-proxy'
+  }
+  if (engineType === ClientEngineType.Binary) {
+    return 'binary'
+  }
+  if (engineType === ClientEngineType.Library) {
+    return 'library'
+  }
+
+  assertNever(engineType, 'Unknown engine type')
+}
+
+type CopyRuntimeOptions = {
+  from: string
+  to: string
+  edge: boolean
+  runtimeName: string
+  sourceMaps: boolean
+}
+
+async function copyRuntimeFiles({ from, to, edge, runtimeName, sourceMaps }: CopyRuntimeOptions) {
+  const files = ['index.d.ts']
+  if (edge) {
+    files.push('edge.js', 'edge-esm.js')
+  } else {
+    files.push(`${runtimeName}.js`, `${runtimeName}.d.ts`)
+  }
+
+  if (sourceMaps) {
+    files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))
+  }
+
+  await Promise.all(files.map((file) => copyFile(path.join(from, file), path.join(to, file))))
 }

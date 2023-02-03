@@ -33,7 +33,8 @@ import {
   Debug,
   objectEnumValues,
   makeStrictEnum,
-  Extensions
+  Extensions,
+  findSync
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
@@ -61,7 +62,8 @@ const {
   Debug,
   objectEnumValues,
   makeStrictEnum,
-  Extensions
+  Extensions,
+  findSync
 } = require('${runtimeDir}/${runtimeName}')
 `
 }

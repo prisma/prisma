@@ -44,6 +44,7 @@ if (process.argv[1] === __filename) {
         datasources: options.datasources,
         outputDir,
         copyRuntime: Boolean(options.generator.config.copyRuntime),
+        copyRuntimeSourceMaps: Boolean(process.env.PRISMA_COPY_RUNTIME_SOURCEMAPS),
         dmmf: options.dmmf,
         generator: options.generator,
         engineVersion: options.version,

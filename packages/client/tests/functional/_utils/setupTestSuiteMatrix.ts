@@ -10,6 +10,7 @@ import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
+export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
 
 /**
  * How does this work from a high level? What steps?
@@ -43,7 +44,7 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: Record<string, string>, suiteMeta: TestSuiteMeta, clientMeta: ClientMeta) => void,
+  tests: (suiteConfig: Record<string, string>, suiteMeta: TestCallbackSuiteMeta, clientMeta: ClientMeta) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
@@ -59,6 +60,7 @@ function setupTestSuiteMatrix(
   })
 
   for (const { name, suiteConfig, skip } of testPlan) {
+    const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
     const describeFn = skip ? describe.skip : describe
 
     describeFn(name, () => {
@@ -131,7 +133,7 @@ function setupTestSuiteMatrix(
         delete globalThis['newPrismaClient']
       }, 180_000)
 
-      tests(suiteConfig.matrixOptions, suiteMeta, clientMeta)
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta)
     })
   }
 }
