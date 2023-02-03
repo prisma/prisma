@@ -2,8 +2,8 @@
 const os = require('os')
 const path = require('path')
 
+const packagesDir = path.resolve(__dirname, '..', '..', '..')
 const runtimeDir = path.dirname(require.resolve('../../runtime'))
-const packagesDir = path.resolve('..', '..', '..')
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 
