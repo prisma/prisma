@@ -69,6 +69,7 @@ const ALTER_RE = /^(\s*alter\s)/i
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
+  const TARGET_ENGINE_TYPE: 'binary' | 'library' | 'data-proxy' | 'all'
 }
 
 // used by esbuild for tree-shaking
@@ -76,6 +77,13 @@ typeof globalThis === 'object' ? (globalThis.NODE_CLIENT = true) : 0
 
 function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
   return Array.isArray(arg)
+}
+
+if (typeof TARGET_ENGINE_TYPE !== 'undefined' && TARGET_ENGINE_TYPE === 'all') {
+  console.warn('imports from "@prisma/client/runtime" are deprecated.')
+  console.warn(
+    'Use "@prisma/client/runtime/library",  "@prisma/client/runtime/data-proxy" or  "@prisma/client/runtime/binary"',
+  )
 }
 
 // TODO also check/disallow for CREATE, DROP
@@ -454,12 +462,18 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     }
 
     getEngine(): Engine {
-      if (this._dataProxy === true) {
+      if (this._dataProxy === true && (TARGET_ENGINE_TYPE === 'data-proxy' || TARGET_ENGINE_TYPE === 'all')) {
         return new DataProxyEngine(this._engineConfig)
-      } else if (this._clientEngineType === ClientEngineType.Library) {
-        return NODE_CLIENT && new LibraryEngine(this._engineConfig)
-      } else if (this._clientEngineType === ClientEngineType.Binary) {
-        return NODE_CLIENT && new BinaryEngine(this._engineConfig)
+      } else if (
+        this._clientEngineType === ClientEngineType.Library &&
+        (TARGET_ENGINE_TYPE === 'library' || TARGET_ENGINE_TYPE === 'all')
+      ) {
+        return new LibraryEngine(this._engineConfig)
+      } else if (
+        this._clientEngineType === ClientEngineType.Binary &&
+        (TARGET_ENGINE_TYPE === 'binary' || TARGET_ENGINE_TYPE === 'all')
+      ) {
+        return new BinaryEngine(this._engineConfig)
       }
 
       throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`')
