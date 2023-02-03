@@ -16,6 +16,8 @@ export type Platform =
   | 'linux-arm-openssl-3.0.x'
   | 'linux-musl'
   | 'linux-musl-openssl-3.0.x'
+  | 'linux-musl-arm64-openssl-1.1.x'
+  | 'linux-musl-arm64-openssl-3.0.x'
   | 'linux-nixos'
   | 'windows'
   | 'freebsd11'
@@ -42,6 +44,8 @@ export const platforms: Array<Platform> = [
   'linux-arm-openssl-3.0.x',
   'linux-musl',
   'linux-musl-openssl-3.0.x',
+  'linux-musl-arm64-openssl-1.1.x',
+  'linux-musl-arm64-openssl-3.0.x',
   'linux-nixos',
   'windows',
   'freebsd11',
