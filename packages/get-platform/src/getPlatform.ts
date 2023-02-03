@@ -44,7 +44,7 @@ type GetOsResultLinux = {
   /**
    * Starting from version 3.0, OpenSSL is basically adopting semver, and will be API and ABI compatible within a major version.
    */
-  libssl?: typeof supportedLibSSLVersions[number]
+  libssl?: (typeof supportedLibSSLVersions)[number]
 } & DistroInfo
 
 export type GetOSResult =
@@ -246,7 +246,7 @@ export function parseOpenSSLVersion(input: string): GetOsResultLinux['libssl'] |
  * Parse the OpenSSL version from the output of the libssl.so file, e.g.
  * "libssl.so.3" -> "3.0.x"
  */
-export function parseLibSSLVersion(input: string): GetOsResultLinux['libssl'] | undefined {
+export function parseLibSSLVersion(input: string): GetOsResultLinux['libssl'] {
   const match = /libssl\.so\.(\d)(\.\d)?/.exec(input)
   if (match) {
     const partialVersion = `${match[1]}${match[2] ?? '.0'}.x`
@@ -256,17 +256,26 @@ export function parseLibSSLVersion(input: string): GetOsResultLinux['libssl'] | 
   return undefined
 }
 
-function sanitiseSSLVersion(version: string): NonNullable<GetOsResultLinux['libssl']> {
-  if (isLibssl1x(version)) {
-    return version
+function sanitiseSSLVersion(version: string): GetOsResultLinux['libssl'] {
+  const sanitisedVersion = (() => {
+    if (isLibssl1x(version)) {
+      return version
+    }
+
+    /**
+     * Sanitise OpenSSL 3+. E.g., '3.1.x' becomes '3.0.x'
+     */
+    const versionSplit = version.split('.')
+    versionSplit[1] = '0'
+    return versionSplit.join('.') as NonNullable<GetOsResultLinux['libssl']>
+  })()
+
+  /* Validate that we've parsed a libssl version we actually support */
+  if (supportedLibSSLVersions.includes(sanitisedVersion)) {
+    return sanitisedVersion
   }
 
-  /**
-   * Sanitise OpenSSL 3+. E.g., '3.1.x' becomes '3.0.x'
-   */
-  const versionSplit = version.split('.')
-  versionSplit[1] = '0'
-  return versionSplit.join('.') as NonNullable<GetOsResultLinux['libssl']>
+  return undefined
 }
 
 type GetOpenSSLVersionParams = {
@@ -281,6 +290,7 @@ type GetOpenSSLVersionParams = {
  * Older versions of libssl are preferred, e.g. "1.0.x" over "1.1.x", because of Vercel serverless
  * having different build and runtime environments, with the runtime environment having an old version
  * of libssl, and the build environment having both that old version and a newer version of libssl installed.
+ * Because of https://github.com/prisma/prisma/issues/17499, we explicitly filter out libssl 0.x.
  *
  * This function never throws.
  */
@@ -307,7 +317,10 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
       return []
     })
 
-  const libsslSpecificCommands = libsslSpecificPaths.map((path) => `ls ${path} | grep libssl.so`)
+  const excludeLibssl0x = 'grep -v "libssl.so.0"'
+  const libsslSpecificCommands = libsslSpecificPaths.map(
+    (path) => `ls -v "libssl.so.0*" ${path} | grep libssl.so | ${excludeLibssl0x}`,
+  )
   const libsslFilenameFromSpecificPath: string | undefined = await getFirstSuccessfulExec(libsslSpecificCommands)
 
   if (libsslFilenameFromSpecificPath) {
@@ -331,13 +344,14 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
      * `unknown option to 's'` error (see https://stackoverflow.com/a/9366940/6174476) - which would silently
      * fail with error code 0.
      */
-    'ldconfig -p | sed "s/.*=>s*//" | sed "s|.*/||" | grep libssl | sort',
+    `ldconfig -p | sed "s/.*=>s*//" | sed "s|.*/||" | grep libssl | sort | ${excludeLibssl0x}`,
 
     /**
-     * Fall back to the rhel-specific paths (although "targetDistro" isn't detected as rhel) when the "ldconfig" command fails.
+     * Fall back to the rhel-specific paths (although `familyDistro` isn't detected as rhel) when the `ldconfig` command fails.
      */
-    'ls /lib64 | grep libssl',
-    'ls /usr/lib64 | grep libssl',
+    `ls /lib64 | grep libssl | ${excludeLibssl0x}`,
+    `ls /usr/lib64 | grep libssl | ${excludeLibssl0x}`,
+    `ls /lib | grep libssl | ${excludeLibssl0x}`,
   ])
 
   if (libsslFilename) {
