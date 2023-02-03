@@ -87,7 +87,7 @@ export async function getos(): Promise<GetOSResult> {
   const distroInfo = await resolveDistro()
   const archFromUname = await getArchFromUname()
 
-  const libssl = await getSSLVersion({ arch, archFromUname, targetDistro: distroInfo.targetDistro })
+  const libssl = await getSSLVersion({ arch, archFromUname, familyDistro: distroInfo.familyDistro })
 
   return {
     platform: 'linux',
@@ -281,7 +281,7 @@ function sanitiseSSLVersion(version: string): GetOsResultLinux['libssl'] {
 type GetOpenSSLVersionParams = {
   arch: Arch
   archFromUname: Awaited<ReturnType<typeof getArchFromUname>>
-  targetDistro: DistroInfo['targetDistro']
+  familyDistro: DistroInfo['familyDistro']
 }
 
 /**
@@ -296,24 +296,24 @@ type GetOpenSSLVersionParams = {
  */
 export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOsResultLinux['libssl'] | undefined> {
   const libsslSpecificPaths = match(args)
-    .with({ targetDistro: 'musl' }, () => {
+    .with({ familyDistro: 'musl' }, () => {
       /* Linux Alpine */
       debug('Trying platform-specific paths for "alpine"')
       return ['/lib']
     })
-    .with({ targetDistro: 'debian' }, ({ archFromUname }) => {
+    .with({ familyDistro: 'debian' }, ({ archFromUname }) => {
       /* Linux Debian, Ubuntu, etc */
       debug('Trying platform-specific paths for "debian" (and "ubuntu")')
       return [`/usr/lib/${archFromUname}-linux-gnu`, `/lib/${archFromUname}-linux-gnu`]
     })
-    .with({ targetDistro: 'rhel' }, () => {
+    .with({ familyDistro: 'rhel' }, () => {
       /* Linux Red Hat, OpenSuse etc */
       debug('Trying platform-specific paths for "rhel"')
       return ['/lib64', '/usr/lib64']
     })
-    .otherwise(({ targetDistro, arch, archFromUname }) => {
+    .otherwise(({ familyDistro, arch, archFromUname }) => {
       /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
-      debug(`Don't know any platform-specific paths for "${targetDistro}" on ${arch} (${archFromUname})`)
+      debug(`Don't know any platform-specific paths for "${familyDistro}" on ${arch} (${archFromUname})`)
       return []
     })
 
