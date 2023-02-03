@@ -1,3 +1,5 @@
+import stripAnsi from 'strip-ansi'
+
 import { getPlatformInternal, getPlatformMemoized } from '../getPlatform'
 import { jestConsoleContext, jestContext } from '../test-utils'
 
@@ -68,12 +70,29 @@ describe('getPlatformInternal', () => {
           originalDistro: 'alpine',
           targetDistro: 'musl',
         }),
-      ).toBe('linux-arm64-openssl-3.0.x')
+      ).toBe('linux-musl-arm64-openssl-3.0.x')
       expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        prisma:warn Prisma only officially supports Linux Alpine on the amd64 (x86_64) system architecture. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "aarch64".
-        If you are using Prisma on Docker, please refer to https://pris.ly/d/docker-alpine
-      `)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+
+    it('alpine (alpine), arm (armv7l), openssl-3.0.x', () => {
+      expect(
+        getPlatformInternal({
+          platform,
+          libssl: '3.0.x',
+          arch: 'arm',
+          archFromUname: 'armv7l',
+          familyDistro: 'alpine',
+          originalDistro: 'alpine',
+          targetDistro: 'musl',
+        }),
+      ).toBe('linux-arm-openssl-3.0.x')
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      // TODO: can't currently use `toMatchInlineSnaphost` here because our snaphost serialiser slightly breaks it.
+      expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n') as string)).toBe(
+        `prisma:warn Prisma only officially supports Linux on amd64 (x86_64) and arm64 (aarch64) system architectures. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "armv7l".`,
+      )
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
