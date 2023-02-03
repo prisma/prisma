@@ -29,7 +29,7 @@ it('help flag', async () => {
 })
 
 it('unknown command', async () => {
-  await expect(MigrateCommand.new({}).parse(['doesnotexist'])).resolves.toThrowError()
+  await expect(MigrateCommand.new({}).parse(['doesnotexist'])).resolves.toThrow()
 })
 
 it('dev with --preview-feature flag', async () => {

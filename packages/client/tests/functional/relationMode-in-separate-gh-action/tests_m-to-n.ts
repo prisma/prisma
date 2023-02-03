@@ -1,4 +1,5 @@
 import { Providers } from '../_utils/providers'
+import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
 import testMatrix from './_matrix'
@@ -115,10 +116,16 @@ testMatrix.setupTestSuite(
     const isRelationMode_foreignKeys = !isRelationMode_prisma
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
+    // Looking at CI results
+    // 30s was often not enough for vitess
+    // so we put it back to 60s for now in this case
+    if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
+      jest.setTimeout(60_000)
+    }
+
     /**
      * m:n relationship
      */
-
     describeIf(!isMongoDB)('m:n mandatory (explicit) - SQL Databases', () => {
       const postModel = 'PostManyToMany'
       const categoryModel = 'CategoryManyToMany'
@@ -191,7 +198,7 @@ testMatrix.setupTestSuite(
                   categoryId: '99',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
@@ -351,7 +358,7 @@ testMatrix.setupTestSuite(
                   postId: '99',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
@@ -442,7 +449,7 @@ testMatrix.setupTestSuite(
                   categoryId: '99',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
@@ -636,7 +643,7 @@ testMatrix.setupTestSuite(
                   id: '3',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
@@ -683,7 +690,7 @@ testMatrix.setupTestSuite(
                   id: '1-cat-a-updated',
                 },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
@@ -884,7 +891,7 @@ testMatrix.setupTestSuite(
                 prisma[postModel].delete({
                   where: { id: '1' },
                 }),
-              ).rejects.toThrowError(
+              ).rejects.toThrow(
                 isSchemaUsingMap
                   ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                     // So we can ignore the error message here
@@ -922,7 +929,7 @@ testMatrix.setupTestSuite(
                 prisma[categoryModel].delete({
                   where: { id: '1-cat-a' },
                 }),
-              ).rejects.toThrowError(
+              ).rejects.toThrow(
                 isSchemaUsingMap
                   ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                     // So we can ignore the error message here
@@ -966,7 +973,7 @@ testMatrix.setupTestSuite(
               prisma[postModel].delete({
                 where: { id: '1' },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
@@ -1004,7 +1011,7 @@ testMatrix.setupTestSuite(
               prisma[categoryModel].delete({
                 where: { id: '1-cat-a' },
               }),
-            ).rejects.toThrowError(
+            ).rejects.toThrow(
               isSchemaUsingMap
                 ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
