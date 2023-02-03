@@ -89,7 +89,8 @@ describe('getPlatformInternal', () => {
         }),
       ).toBe('linux-arm-openssl-3.0.x')
       expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      // TODO: can't currently use `toMatchInlineSnaphost` here because our snaphost serialiser slightly breaks it.
+      // TODO: can't currently use `toMatchInlineSnaphost` here because our snaphost serialiser replaces "arm" with
+      // "TEST_PLATFORM" unnecessarily.
       expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n') as string)).toBe(
         `prisma:warn Prisma only officially supports Linux on amd64 (x86_64) and arm64 (aarch64) system architectures. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "armv7l".`,
       )
