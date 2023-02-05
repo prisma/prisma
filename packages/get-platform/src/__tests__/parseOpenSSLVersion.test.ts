@@ -28,6 +28,11 @@ describe('parseOpenSSLVersion', () => {
       expect: undefined,
     },
     {
+      name: 'openssl 2.0.1 is unsupported',
+      content: `OpenSSL 2.0.1`,
+      expect: undefined,
+    },
+    {
       name: 'openssl 4.0 is unsupported',
       content: `OpenSSL 4.0.1`,
       expect: undefined,
@@ -85,6 +90,11 @@ describe('parseLibSSLVersion', () => {
     {
       name: 'libssl.so.0.9.8 is unsupported',
       content: `/lib/libssl.so.0.9.8`,
+      expect: undefined,
+    },
+    {
+      name: 'libssl.so.2 is unsupported',
+      content: `/lib/libssl.so.2`,
       expect: undefined,
     },
     {
