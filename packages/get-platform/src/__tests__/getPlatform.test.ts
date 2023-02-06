@@ -1,4 +1,5 @@
 import stripAnsi from 'strip-ansi'
+import { C } from 'ts-toolbelt'
 
 import { getPlatformInternal, getPlatformMemoized } from '../getPlatform'
 import { jestConsoleContext, jestContext } from '../test-utils'
@@ -9,8 +10,7 @@ describe('getPlatformMemoized', () => {
   it('repeated invocations are idempotent and memoized', async () => {
     const platformFirst = await getPlatformMemoized()
     const platformSecond = await getPlatformMemoized()
-
-    expect(platformFirst.platform).toBe(platformSecond.platform)
+    expect(platformFirst.binaryTarget).toBe(platformSecond.binaryTarget)
     expect(platformFirst.memoized).toBeFalsy()
     expect(platformSecond.memoized).toBeTruthy()
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
