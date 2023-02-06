@@ -22,6 +22,21 @@ describe('parseOpenSSLVersion', () => {
       content: `OpenSSL 3.1.0 sometimes in 2023`,
       expect: '3.0.x',
     },
+    {
+      name: 'openssl 0.9.8 is unsupported',
+      content: `OpenSSL 0.9.8`,
+      expect: undefined,
+    },
+    {
+      name: 'openssl 2.0.1 is unsupported',
+      content: `OpenSSL 2.0.1`,
+      expect: undefined,
+    },
+    {
+      name: 'openssl 4.0 is unsupported',
+      content: `OpenSSL 4.0.1`,
+      expect: undefined,
+    },
   ]
 
   test.each(tests)('$name', (t) => {
@@ -71,6 +86,21 @@ describe('parseLibSSLVersion', () => {
       name: 'libssl 3.1',
       content: `/lib/libssl.so.3.1`,
       expect: '3.0.x',
+    },
+    {
+      name: 'libssl.so.0.9.8 is unsupported',
+      content: `/lib/libssl.so.0.9.8`,
+      expect: undefined,
+    },
+    {
+      name: 'libssl.so.2 is unsupported',
+      content: `/lib/libssl.so.2`,
+      expect: undefined,
+    },
+    {
+      name: 'libssl.so.4 is unsupported',
+      content: `/lib/libssl.so.4`,
+      expect: undefined,
     },
     {
       name: 'The "nss" library must not be mistakenly parsed as "libssl"',
