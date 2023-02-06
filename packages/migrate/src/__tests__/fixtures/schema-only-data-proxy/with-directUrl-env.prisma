@@ -4,8 +4,6 @@ generator client {
 
 datasource db {
     provider  = "postgresql"
-    url       = "prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY"
+    url       = env("TEST_DATA_PROXY_URL")
     directUrl = env("TEST_POSTGRES_URI_MIGRATE") // like this
 }
-    // directUrl = "postgres://prisma:prisma@localhost:5432/tests-migrateHELLOOO"
-    // url       = "prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY"
