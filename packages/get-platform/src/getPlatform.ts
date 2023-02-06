@@ -410,7 +410,7 @@ function isPlatformWithOSResultDefined(args: Partial<PlatformWithOSResult>): arg
  * Get the binary target and other system information (e.g., the libssl version to look for) for the current platform.
  */
 export async function getPlatformWithOSResult(): Promise<PlatformWithOSResult> {
-  const { memoized, ...rest } = await getPlatformMemoized()
+  const { memoized: _, ...rest } = await getPlatformMemoized()
   return rest
 }
 

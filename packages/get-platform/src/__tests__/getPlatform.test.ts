@@ -1,5 +1,4 @@
 import stripAnsi from 'strip-ansi'
-import { C } from 'ts-toolbelt'
 
 import { getPlatformInternal, getPlatformMemoized } from '../getPlatform'
 import { jestConsoleContext, jestContext } from '../test-utils'

@@ -29,9 +29,9 @@ export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput
       },
     )
     .when(
-      ({ message }) => hasLinkingProblem && message.includes('libcc_s'),
+      ({ message }) => hasLinkingProblem && message.includes('libgcc_s'),
       () => {
-        return `${systemLibraryNotFound('libcc_s')}. Please install it and try again.`
+        return `${systemLibraryNotFound('libgcc_s')}. Please install it and try again.`
       },
     )
     .when(
