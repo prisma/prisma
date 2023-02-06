@@ -5,10 +5,10 @@ import { match } from 'ts-pattern'
 type HandleLibraryLoadingErrorsInput = {
   e: Error
   platformInfo: PlatformWithOSResult
-  libQueryEnginePath: string
+  id: string
 }
 
-export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput) {
+export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput): string {
   const error = args.e as Error & { code?: string }
 
   const systemLibraryNotFound = (library: string) =>
@@ -18,7 +18,7 @@ export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput
     'https://pris.ly/d/system-requirements',
   )}`
 
-  const defaultErrorMessage = `Unable to load Node-API Library from ${chalk.dim(args.libQueryEnginePath)}.`
+  const errorTitle = `Unable to require(\`${chalk.dim(args.id)}\`).`
 
   const potentialReasonMessage = match({ message: error.message, code: error.code })
     .with({ code: 'ENOENT' }, () => `File does not exist.`)
@@ -57,5 +57,20 @@ export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput
       return `The Prisma engines do not seem to be compatible with your system. ${referToSystemRequirementsDocs}`
     })
 
-  return `${defaultErrorMessage} ${potentialReasonMessage}`
+  /**
+   * Example:
+   *
+   * Error: Unable to require(`/usr/src/app/node_modules/@prisma/engines/libquery_engine-linux-arm64-openssl-1.0.x.so.node`)
+   * Prisma has detected an incompatible version of the \`glibc\` C standard library installed in your system. This probably means your system may be too old to run Prisma. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements.
+   *
+   * Details: symbol __cxa_thread_atexit_impl, version GLIBC_2.18 not defined in file libc.so.6 with link time reference
+   *      at load (/usr/src/app/node_modules/prisma/build/index.js:93185:11)
+   *      at getEngineVersion (/usr/src/app/node_modules/prisma/build/index.js:93485:16)
+   *      at runMicrotasks (<anonymous>)
+   *      at processTicksAndRejections (internal/process/task_queues.js:95:5)
+   */
+  return `${errorTitle}
+${potentialReasonMessage}.
+
+Details: ${error.message}`
 }

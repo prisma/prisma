@@ -1,8 +1,10 @@
 import { EventEmitter } from 'events'
 
+import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
+import * as defaultLibraryLoaderUtils from '../library/DefaultLibraryLoader'
 import { LibraryEngine } from '../library/LibraryEngine'
 import { LibraryLoader } from '../library/types/Library'
 
@@ -90,6 +92,73 @@ jest.mock('fs', () => {
     ...original,
     readFileSync: jest.fn().mockReturnValue(''),
   }
+})
+
+/*
+describe('PrismaClientInitializationError', () => {
+  const engineConfig = {
+    datamodelPath: '/mock',
+    logEmitter: new EventEmitter(),
+    tracingConfig: {
+      enabled: false,
+      middleware: false,
+    },
+    env: {},
+  }
+
+  test('symbol not found', async () => {
+    expect.assertions(2)
+    const spyLoadTag = `Unable to require(\`/app/node_modules/.pnpm/prisma@x.x.x/node_modules/prisma/libquery_engine-linux-arm64-openssl-1.1.x.so.node\`)
+Error relocating /app/node_modules/.pnpm/prisma@x.x.x/node_modules/prisma/libquery_engine-linux-arm64-openssl-1.1.x.so.node: __res_init: symbol not found`
+
+    jest.mock('../library/DefaultLibraryLoader', () => {
+      return {
+        __esModule: true,
+        ...jest.requireActual('../library/DefaultLibraryLoader'),
+      }
+    })
+
+    const loadMock = jest.spyOn(defaultLibraryLoaderUtils, 'load').mockImplementation((id: string) => {
+      throw new Error(spyLoadTag)
+    })
+
+    const loader = new defaultLibraryLoaderUtils.DefaultLibraryLoader(engineConfig)
+
+    try {
+      await loader.loadLibrary()
+    } catch (e) {
+      expect(e).toBeInstanceOf(PrismaClientInitializationError)
+      expect(e.message).toMatchInlineSnapshot()
+    } finally {
+      loadMock.mockRestore()
+    }
+  })
+})
+*/
+
+test('responds to initialization error with PrismaClientInitializationError', async () => {
+  const loader: LibraryLoader = {
+    loadLibrary() {
+      return Promise.reject(new PrismaClientInitializationError('Initialization error', '0.0.0.'))
+    },
+  }
+
+  const engine = new LibraryEngine(
+    {
+      datamodelPath: '/mock',
+      logEmitter: new EventEmitter(),
+      tracingConfig: {
+        enabled: false,
+        middleware: false,
+      },
+      env: {},
+    },
+    loader,
+  )
+
+  await expect(engine.request({ query: 'query Foo { id }' }, { isWrite: false })).rejects.toBeInstanceOf(
+    PrismaClientInitializationError,
+  )
 })
 
 test('responds to panic GraphQL error with PrismaClientRustPanicError', async () => {

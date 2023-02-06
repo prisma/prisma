@@ -1,18 +1,24 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { getNodeAPIName, getPlatform, getPlatformWithOSResult, Platform } from '@prisma/get-platform'
+import type { Platform } from '@prisma/get-platform'
+import { getNodeAPIName, getPlatform, getPlatformWithOSResult } from '@prisma/get-platform'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
 
 import { EngineConfig } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
+import { handleLibraryLoadingErrors } from '../common/errors/utils/handleEngineLoadingErrors'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets } from '../common/utils/util'
-import { handleLibraryLoadingErrors } from '../handleEngineLoadingErrors'
 import { Library, LibraryLoader } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
+
+export function load<T>(id: string): T {
+  // this require needs to be resolved at runtime, tell webpack to ignore it
+  return eval('require')(id) as T
+}
 
 export class DefaultLibraryLoader implements LibraryLoader {
   private config: EngineConfig
@@ -32,13 +38,12 @@ export class DefaultLibraryLoader implements LibraryLoader {
 
     debug(`loadEngine using ${this.libQueryEnginePath}`)
     try {
-      // this require needs to be resolved at runtime, tell webpack to ignore it
-      return eval('require')(this.libQueryEnginePath) as Library
+      return load(this.libQueryEnginePath)
     } catch (e) {
       const errorMessage = handleLibraryLoadingErrors({
         e: e as Error,
         platformInfo,
-        libQueryEnginePath: this.libQueryEnginePath,
+        id: this.libQueryEnginePath,
       })
 
       throw new PrismaClientInitializationError(errorMessage, this.config.clientVersion!)
