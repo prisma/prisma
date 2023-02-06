@@ -44,17 +44,17 @@ export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput
     .when(
       ({ message }) => message.includes('GLIBC'),
       () => {
-        return `Prisma has detected an incompatible version of the \`glibc\` C standard library installed in your system. This probably means your system may be too old to run Prisma. ${referToSystemRequirementsDocs}`
+        return `Prisma has detected an incompatible version of the \`glibc\` C standard library installed in your system. This probably means your system may be too old to run Prisma. ${referToSystemRequirementsDocs}.`
       },
     )
     .when(
       ({ message }) => args.platformInfo.platform === 'linux' && message.includes('symbol not found'),
       () => {
-        return `The Prisma engines are not compatible with your system ${args.platformInfo.originalDistro} on (${args.platformInfo.archFromUname}) which uses the \`${args.platformInfo.binaryTarget}\` binaryTarget by default. ${referToSystemRequirementsDocs}`
+        return `The Prisma engines are not compatible with your system ${args.platformInfo.originalDistro} on (${args.platformInfo.archFromUname}) which uses the \`${args.platformInfo.binaryTarget}\` binaryTarget by default. ${referToSystemRequirementsDocs}.`
       },
     )
     .otherwise(() => {
-      return `The Prisma engines do not seem to be compatible with your system. ${referToSystemRequirementsDocs}`
+      return `The Prisma engines do not seem to be compatible with your system. ${referToSystemRequirementsDocs}.`
     })
 
   /**
@@ -70,7 +70,7 @@ export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput
    *      at processTicksAndRejections (internal/process/task_queues.js:95:5)
    */
   return `${errorTitle}
-${potentialReasonMessage}.
+${potentialReasonMessage}
 
 Details: ${error.message}`
 }
