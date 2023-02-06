@@ -47,7 +47,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-fmt-wasm": "4.10.0-76.77d5f190ecb9bf3906dd92740745d05467f415f6",
+    "@prisma/prisma-fmt-wasm": "4.10.0-78.integration-evie-direct-url-fix-6ae8d35f7be300e6622461bd3a74c7fc06132321",
     "archiver": "5.3.1",
     "arg": "5.0.2",
     "chalk": "4.1.2",
