@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
-import { getNodeAPIName, getPlatform, Platform } from '@prisma/get-platform'
+import { getNodeAPIName, getPlatform, getPlatformWithOSResult, Platform } from '@prisma/get-platform'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
@@ -9,6 +9,7 @@ import { EngineConfig } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets } from '../common/utils/util'
+import { handleLibraryLoadingErrors } from '../handleEngineLoadingErrors'
 import { Library, LibraryLoader } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
@@ -23,6 +24,8 @@ export class DefaultLibraryLoader implements LibraryLoader {
   }
 
   async loadLibrary(): Promise<Library> {
+    const platformInfo = await getPlatformWithOSResult()
+    this.platform = platformInfo.binaryTarget
     if (!this.libQueryEnginePath) {
       this.libQueryEnginePath = await this.getLibQueryEnginePath()
     }
@@ -32,26 +35,13 @@ export class DefaultLibraryLoader implements LibraryLoader {
       // this require needs to be resolved at runtime, tell webpack to ignore it
       return eval('require')(this.libQueryEnginePath) as Library
     } catch (e) {
-      if (fs.existsSync(this.libQueryEnginePath)) {
-        if (this.libQueryEnginePath.endsWith('.node')) {
-          throw new PrismaClientInitializationError(
-            `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, Library may be corrupt: ${
-              e.message
-            }`,
-            this.config.clientVersion!,
-          )
-        } else {
-          throw new PrismaClientInitializationError(
-            `Expected an Node-API Library but received ${chalk.dim(this.libQueryEnginePath)}`,
-            this.config.clientVersion!,
-          )
-        }
-      } else {
-        throw new PrismaClientInitializationError(
-          `Unable to load Node-API Library from ${chalk.dim(this.libQueryEnginePath)}, It does not exist`,
-          this.config.clientVersion!,
-        )
-      }
+      const errorMessage = handleLibraryLoadingErrors({
+        e: e as Error,
+        platformInfo,
+        libQueryEnginePath: this.libQueryEnginePath,
+      })
+
+      throw new PrismaClientInitializationError(errorMessage, this.config.clientVersion!)
     }
   }
 

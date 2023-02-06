@@ -386,7 +386,7 @@ export async function getPlatform(): Promise<Platform> {
   return binaryTarget
 }
 
-type PlatformWithOSResult = GetOSResult & { binaryTarget: Platform }
+export type PlatformWithOSResult = GetOSResult & { binaryTarget: Platform }
 
 function isPlatformWithOSResultDefined(args: Partial<PlatformWithOSResult>): args is PlatformWithOSResult {
   return args.binaryTarget !== undefined
