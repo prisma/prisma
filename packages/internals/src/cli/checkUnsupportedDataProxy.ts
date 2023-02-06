@@ -56,7 +56,7 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
       return forbiddenCmdWithDataProxyFlagMessage(command)
     }
 
-    // for all the args that represent a schema path ensure data proxy isn't used
+    // for all the args that represent a schema path (including implicit, default path) ensure data proxy isn't used
     if (argName.includes('schema')) {
       loadEnvFile(argValue, false)
 
