@@ -66,7 +66,7 @@ function normalizeNodeApiLibFilePath(str) {
 
 function normalizeBinaryFilePath(str) {
   // write a regex expression that matches strings ending with ".exe" followed by any number of space characters with an empty string:
-  return str.replace(/\.exe(\s+)?$/g, '$1')
+  return str.replace(/\.exe(\s+)?(\W.*)/g, '$1$2').replace(/\.exe$/g, '')
 }
 
 function normalizeMigrateTimestamps(str) {
