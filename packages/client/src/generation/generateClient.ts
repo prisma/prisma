@@ -563,7 +563,7 @@ type CopyRuntimeOptions = {
 }
 
 async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
-  const files = ['index.d.ts']
+  const files = ['index.d.ts', 'index-browser.js', 'index-browser.d.ts']
 
   files.push(`${runtimeName}.js`, `${runtimeName}.d.ts`)
 
