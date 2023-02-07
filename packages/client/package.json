@@ -148,7 +148,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.10.0-79.integration-evie-direct-url-fix-1df394d740069ed92a9c7ee705e09b3c44289b5a"
+    "@prisma/engines-version": "4.10.0-82.596e2c7f0ee39d24a00ef2d4f0247ab4e9baa374"
   },
   "sideEffects": false
 }
