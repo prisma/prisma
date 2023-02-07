@@ -1,4 +1,5 @@
-import { jestConsoleContext, jestContext, serializeQueryEngineName } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { serializeQueryEngineName } from '@prisma/internals'
 
 import { Validate } from '../../Validate'
 
@@ -83,7 +84,7 @@ describe('validate', () => {
         await Validate.new().parse(['--schema', './prisma/postgres.prisma'])
       } catch (e) {
         expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
-          Prisma schema validation - (query-engine-NORMALIZED)
+          Prisma schema validation - (get-dmmf wasm)
           Error code: P1012
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
             -->  schema.prisma:21
@@ -113,7 +114,7 @@ describe('validate', () => {
         await Validate.new().parse(['--schema', './prisma/postgres.prisma'])
       } catch (e) {
         expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
-          Prisma schema validation - (query-engine-NORMALIZED)
+          Prisma schema validation - (get-dmmf wasm)
           Error code: P1012
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
             -->  schema.prisma:21

@@ -1,8 +1,8 @@
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
-import { jestConsoleContext, jestContext } from '../..'
 import { formatSchema } from '../../engine-commands'
 import { fixturesPath } from '../__utils__/fixtures'
 

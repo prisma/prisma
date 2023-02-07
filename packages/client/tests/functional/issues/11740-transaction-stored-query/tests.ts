@@ -27,8 +27,8 @@ testMatrix.setupTestSuite(
         const query = prisma.resource.create({ data: { email: 'john@prisma.io' } })
 
         const fn = async () => {
-          await (query as any).requestTransaction()
-          await (query as any).requestTransaction()
+          await (query as any).requestTransaction({ kind: 'batch' })
+          await (query as any).requestTransaction({ kind: 'batch' })
         }
 
         await expect(fn()).rejects.toMatchPrismaErrorSnapshot()

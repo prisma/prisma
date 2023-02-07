@@ -22,7 +22,7 @@ export async function setupCockroach(options: { connectionString: string; dirnam
   if (dirname !== '') {
     // Connect to final db and populate
     const db = new Client({
-      connectionString: connectionString,
+      connectionString,
     })
     await db.connect()
     await db.query(fs.readFileSync(path.join(dirname, 'setup.sql'), 'utf-8'))

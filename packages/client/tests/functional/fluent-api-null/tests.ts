@@ -27,14 +27,14 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
   test('findFirstOrThrow', async () => {
     const result = prisma.resource.findFirstOrThrow().children()
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('findUniqueOrThrow', async () => {
     const result = prisma.resource.findUniqueOrThrow({ where: { id: nonExistingId } }).children()
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 
@@ -50,7 +50,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
   test('update', async () => {
     const result = prisma.resource.update({ where: { id: nonExistingId }, data: {} }).children()
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 
@@ -92,7 +92,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       },
     })
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 
@@ -103,7 +103,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       },
     })
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 
@@ -127,7 +127,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       },
     })
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 
@@ -173,7 +173,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       },
     })
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 
@@ -184,7 +184,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       },
     })
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 
@@ -208,7 +208,7 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
       },
     })
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 
@@ -228,14 +228,14 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
   test('findFirst with rejectOnNotFound', async () => {
     const result = prisma.resource.findFirst({ rejectOnNotFound: true }).children()
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 
   test('findUnique with rejectOnNotFound', async () => {
     const result = prisma.resource.findUnique({ where: { id: nonExistingId }, rejectOnNotFound: true }).children()
 
-    await expect(result).rejects.toThrowError()
+    await expect(result).rejects.toThrow()
     expectTypeOf(result).resolves.not.toBeNullable()
   })
 })

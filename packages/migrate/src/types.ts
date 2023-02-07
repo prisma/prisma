@@ -156,8 +156,13 @@ export namespace EngineArgs {
   }
 
   // See prisma-engines
-  // SQL https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
-  // Mongo https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs
+  // SQL databases:
+  // Previously at https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
+  // Now at https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/sql-introspection-connector/src/warnings/generators.rs
+  //
+  // MongoDB:
+  // https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs
+
   export type IntrospectionWarnings =
     | IntrospectionWarningsUnhandled
     | IntrospectionWarningsInvalidReintro
@@ -171,12 +176,7 @@ export namespace EngineArgs {
     | IntrospectionWarningsFieldMapReintro
     | IntrospectionWarningsEnumMapReintro
     | IntrospectionWarningsEnumValueMapReintro
-    | IntrospectionWarningsCuidReintro
-    | IntrospectionWarningsUuidReintro
-    | IntrospectionWarningsUpdatedAtReintro
     | IntrospectionWarningsWithoutColumns
-    | IntrospectionWarningsModelsWithIgnoreReintro
-    | IntrospectionWarningsFieldsWithIgnoreReintro
     | IntrospectionWarningsCustomIndexNameReintro
     | IntrospectionWarningsCustomPrimaryKeyNamesReintro
     | IntrospectionWarningsRelationsReintro
@@ -275,30 +275,17 @@ export namespace EngineArgs {
     code: 10
     affected: AffectedEnum[]
   }
-  interface IntrospectionWarningsCuidReintro extends IntrospectionWarning {
-    code: 11
-    affected: AffectedModelAndField[]
-  }
-  interface IntrospectionWarningsUuidReintro extends IntrospectionWarning {
-    code: 12
-    affected: AffectedModelAndField[]
-  }
-  interface IntrospectionWarningsUpdatedAtReintro extends IntrospectionWarning {
-    code: 13
-    affected: AffectedModelAndField[]
-  }
+  // Note that 11, 12 were removed in
+  // https://github.com/prisma/prisma-engines/commit/610625b0588e5b55e4c5116a68ea43b939de76d9
+  //
+  // Note that 13 was removed in
+  // https://github.com/prisma/prisma-engines/commit/5dfd619bdc254a38c54079cc8a238acc224b9bc7
   interface IntrospectionWarningsWithoutColumns extends IntrospectionWarning {
     code: 14
     affected: AffectedModel[]
   }
-  interface IntrospectionWarningsModelsWithIgnoreReintro extends IntrospectionWarning {
-    code: 15
-    affected: AffectedModel[]
-  }
-  interface IntrospectionWarningsFieldsWithIgnoreReintro extends IntrospectionWarning {
-    code: 16
-    affected: AffectedModelAndField[]
-  }
+  // Note that 15, and 16 were removed
+  // in https://github.com/prisma/prisma-engines/commit/bffd935029e462592819b33a080e8f8953b58acb
   interface IntrospectionWarningsCustomIndexNameReintro extends IntrospectionWarning {
     code: 17
     affected: AffectedModelAndIndex[]
@@ -311,7 +298,6 @@ export namespace EngineArgs {
     code: 19
     affected: AffectedModel[]
   }
-
   interface IntrospectionWarningsTopLevelItemNameIsADupe extends IntrospectionWarning {
     code: 20
     affected: AffectedTopLevel[]

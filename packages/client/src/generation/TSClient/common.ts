@@ -33,7 +33,8 @@ import {
   Debug,
   objectEnumValues,
   makeStrictEnum,
-  Extensions
+  Extensions,
+  findSync
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
@@ -61,7 +62,8 @@ const {
   Debug,
   objectEnumValues,
   makeStrictEnum,
-  Extensions
+  Extensions,
+  findSync
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -131,14 +133,14 @@ In case this error is unexpected for you, please report it in https://github.com
 
 export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
   tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
-declare const prisma: unique symbol
-export interface PrismaPromise<A> extends Promise<A> {[prisma]: true}
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
 type UnwrapTuple<Tuple extends readonly unknown[]> = {
-  [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
+  [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
 };
 `,
   ts: () => `export import DMMF = runtime.DMMF
+
+export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
 
 /**
  * Prisma Errors

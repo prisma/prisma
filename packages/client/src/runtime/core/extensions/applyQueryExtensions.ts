@@ -10,13 +10,17 @@ function iterateAndCallQueryCallbacks(
   queryCbs: RequiredArgs['query'][string][string][],
   i = 0,
 ) {
-  return createPrismaPromise((transaction, lock) => {
+  return createPrismaPromise((transaction) => {
+    // we need to keep track of the previous customDataProxyFetch
+    const prevCustomFetch = params.customDataProxyFetch ?? ((f) => f)
+
     // allow query extensions to re-wrap in transactions
     // this will automatically discard the prev batch tx
     if (transaction !== undefined) {
-      void params.lock?.then() // discard previous lock
+      if (params.transaction?.kind === 'batch') {
+        void params.transaction.lock.then() // discard
+      }
       params.transaction = transaction
-      params.lock = lock // assign newly acquired lock
     }
 
     // if we are done recursing, we execute the request
@@ -32,6 +36,10 @@ function iterateAndCallQueryCallbacks(
       // @ts-expect-error because not part of public API
       __internalParams: params,
       query: (args, __internalParams = params) => {
+        // we need to keep track of the current customDataProxyFetch
+        // this is to cascade customDataProxyFetch like a middleware
+        const currCustomFetch = __internalParams.customDataProxyFetch ?? ((f) => f)
+        __internalParams.customDataProxyFetch = (f) => prevCustomFetch(currCustomFetch(f))
         __internalParams.args = args
 
         return iterateAndCallQueryCallbacks(client, __internalParams, queryCbs, i + 1)
@@ -40,7 +48,7 @@ function iterateAndCallQueryCallbacks(
   })
 }
 
-export function applyQueryExtensions(client: Client, params: InternalRequestParams) {
+export function applyQueryExtensions(client: Client, params: InternalRequestParams): Promise<any> {
   const { jsModelName, action } = params
 
   // query extensions only apply to model-bound operations (for now)

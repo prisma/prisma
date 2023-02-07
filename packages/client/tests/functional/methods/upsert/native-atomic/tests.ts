@@ -205,7 +205,7 @@ testMatrix.setupTestSuite(
             name,
           },
         }),
-      ).rejects.toThrowError('Argument where of type UserWhereUniqueInput needs exactly one argument')
+      ).rejects.toThrow('Argument where of type UserWhereUniqueInput needs exactly one argument')
 
       const checker = new UpsertChecker(client)
 

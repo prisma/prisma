@@ -1,6 +1,6 @@
+import { getDMMF } from '@prisma/internals'
 import chalk from 'chalk'
 
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, objectEnumValues, transformDocument } from '../runtime'
 import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 

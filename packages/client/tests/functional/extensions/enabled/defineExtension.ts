@@ -8,6 +8,8 @@ import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@pr
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
+expectTypeOf<PrismaDefault.PrismaPromise<unknown>>().toEqualTypeOf<PrismaNamespace.PrismaPromise<unknown>>()
+
 function clientExtensionCallback() {
   return Prisma.defineExtension((client) => {
     return client.$extends({

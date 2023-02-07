@@ -38,7 +38,10 @@ services:
       # Functional test URLS
       - TEST_FUNCTIONAL_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/PRISMA_DB_NAME
       - TEST_FUNCTIONAL_MYSQL_URI=mysql://root:root@mysql:3306/PRISMA_DB_NAME
-      - TEST_FUNCTIONAL_VITESS_8_URI=mysql://root:root@localhost:33807/PRISMA_DB_NAME
+      - TEST_FUNCTIONAL_VITESS_8_URI=mysql://root:root@vitess-8:33807/PRISMA_DB_NAME
+      # Currently skipped because it failed with
+      # [2023-02-01T21:03:42Z]       target: test-vitess-80.0.primary: no healthy tablet available for 'keyspace:"test-vitess-80" shard:"0" tablet_type:PRIMARY'
+      - TEST_SKIP_VITESS=true
       - TEST_FUNCTIONAL_MSSQL_URI=sqlserver://mssql:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_FUNCTIONAL_MONGO_URI=mongodb://root:prisma@mongo:27018/PRISMA_DB_NAME?authSource=admin
       - TEST_FUNCTIONAL_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/PRISMA_DB_NAME
@@ -70,15 +73,13 @@ services:
       - postgres_isolated
       - mysql
       - mysql_isolated
+      # - vitess-8
       - mariadb
       - mssql
       - mongo
       - mongodb_migrate
       - mongodb_migrate_seed
       - cockroachdb
-  # TODO: uncomment when we test vitess in client functional test suite
-  # Currently we only test `relationMode` tests in GitHub Actions
-  #      - vitess-8
 
   postgres:
     image: postgres:10

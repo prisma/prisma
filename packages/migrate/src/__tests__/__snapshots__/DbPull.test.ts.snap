@@ -38,7 +38,7 @@ model users {
 exports[`SQL Server basic introspection --url 2`] = `
 datasource db {
   provider = "sqlserver"
-  url      = "sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 }
 
 model jobs {
@@ -70,9 +70,13 @@ model jobs {
 `;
 
 exports[`cockroachdb basic introspection (no schema) --url 2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
-  provider = "postgresql"
-  url      = "postgresql://prisma@localhost:26257/tests"
+  provider = "cockroachdb"
+  url      = "postgresql://prisma@localhost:26257/tests-migrate-db-pull"
 }
 
 model Post {
@@ -104,14 +108,14 @@ enum Role {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`cockroachdb basic introspection (with cockroach schema) --url  2`] = `
+exports[`cockroachdb basic introspection (with cockroach provider) --url  2`] = `
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "cockroachdb"
-  url      = "postgresql://prisma@localhost:26257/tests"
+  url      = "postgresql://prisma@localhost:26257/tests-migrate-db-pull"
 }
 
 model Post {
@@ -143,129 +147,14 @@ enum Role {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`cockroachdb basic introspection (with cockroach schema, cockroachdb native types) --url  2`] = `
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "cockroachdb"
-  url      = "postgresql://prisma@localhost:26257/tests"
-}
-
-model Post {
-  id                String  @id
-  title             String
-  content           String?
-  authorId          String?
-  exampleChar       String? @db.Char(1)
-  exampleCharLength String? @db.Char(16)
-  exampleBit        String? @db.Bit(1)
-  exampleBitLength  String? @db.Bit(16)
-  User              User?   @relation(fields: [authorId], references: [id])
-}
-
-model User {
-  id    String  @id
-  email String  @unique(map: "User.email") @db.String(32)
-  name  String? @db.String(32)
-  Post  Post[]
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-
-// introspectionSchemaVersion: NonPrisma,
-`;
-
-exports[`cockroachdb basic introspection (with cockroachdb schema) 2`] = `
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "cockroachdb"
-  url      = env("TEST_COCKROACH_URI")
-}
-
-model Post {
-  id        String    @id
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
-  published Boolean   @default(false)
-  title     String
-  content   String?
-  authorId  String?
-  jsonData  Json?
-  coinflips Boolean[]
-  User      User?     @relation(fields: [authorId], references: [id])
-}
-
-model User {
-  id    String  @id
-  email String  @unique(map: "User.email")
-  name  String?
-  Post  Post[]
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-
-// introspectionSchemaVersion: NonPrisma,
-`;
-
-exports[`cockroachdb basic introspection (with cockroachdb schema, cockroachdb native types) 2`] = `
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "cockroachdb"
-  url      = env("TEST_COCKROACH_URI")
-}
-
-model Post {
-  id                String  @id
-  title             String
-  content           String?
-  authorId          String?
-  exampleChar       String? @db.Char(1)
-  exampleCharLength String? @db.Char(16)
-  exampleBit        String? @db.Bit(1)
-  exampleBitLength  String? @db.Bit(16)
-  User              User?   @relation(fields: [authorId], references: [id])
-}
-
-model User {
-  id    String  @id
-  email String  @unique(map: "User.email") @db.String(32)
-  name  String? @db.String(32)
-  Post  Post[]
-}
-
-enum Role {
-  USER
-  ADMIN
-}
-
-
-// introspectionSchemaVersion: NonPrisma,
-`;
-
-exports[`cockroachdb basic introspection (with postgresql schema) 2`] = `
+exports[`cockroachdb basic introspection (with cockroach provider) --url  6`] = `
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("TEST_COCKROACH_URI")
+  url      = "postgresql://prisma@localhost:26257/tests-migrate-db-pull"
 }
 
 model Post {
@@ -297,32 +186,72 @@ enum Role {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`cockroachdb basic introspection (with postgresql schema, cockroachdb native types) 2`] = `
+exports[`cockroachdb basic introspection (with cockroachdb provider) 2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("TEST_COCKROACH_URI_MIGRATE")
+}
+
+model Post {
+  id        String    @id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
+  published Boolean   @default(false)
+  title     String
+  content   String?
+  authorId  String?
+  jsonData  Json?
+  coinflips Boolean[]
+  User      User?     @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email")
+  name  String?
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`cockroachdb basic introspection (with postgresql provider) 2`] = `
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("TEST_COCKROACH_URI")
+  url      = env("TEST_COCKROACH_URI_MIGRATE")
 }
 
 model Post {
-  id                String  @id
-  title             String  @db.VarChar
-  content           String?
-  authorId          String? @db.VarChar
-  exampleChar       String? @db.Char(1)
-  exampleCharLength String? @db.Char(16)
-  exampleBit        String? @db.Bit(1)
-  exampleBitLength  String? @db.Bit(16)
-  User              User?   @relation(fields: [authorId], references: [id])
+  id        String    @id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::TIMESTAMP"))
+  published Boolean   @default(false)
+  title     String
+  content   String?
+  authorId  String?
+  jsonData  Json?
+  coinflips Boolean[]
+  User      User?     @relation(fields: [authorId], references: [id])
 }
 
 model User {
   id    String  @id
   email String  @unique(map: "User.email")
-  name  String? @db.VarChar(32)
+  name  String?
   Post  Post[]
 }
 
@@ -633,7 +562,7 @@ model your_url {
 exports[`postgresql basic introspection --url 2`] = `
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull"
 }
 
 model Post {
@@ -708,7 +637,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema"
   schemas  = ["base", "does-not-exist"]
 }
 
@@ -745,7 +674,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema"
   schemas  = ["base", "transactional"]
 }
 
@@ -813,7 +742,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema"
   schemas  = ["base"]
 }
 
@@ -845,7 +774,7 @@ enum status {
 exports[`postgresql-multi-schema --url with \`?schema=base\` should succeed 2`] = `
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate?schema=base"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema?schema=base"
 }
 
 model User {
@@ -877,7 +806,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema"
   schemas  = ["base"]
 }
 
@@ -1057,7 +986,7 @@ exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist"
 exports[`sqlserver-multi-schema --url with \`?schema=base\` should succeed 2`] = `
 datasource db {
   provider = "sqlserver"
-  url      = "sqlserver://localhost:1433;database=tests-migrate-multi-schema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
+  url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-multi-schema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
 }
 
 model some_table {
@@ -1084,7 +1013,7 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
   schemas  = ["base", "transactional"]
 }
 
@@ -1104,13 +1033,11 @@ model base_some_table {
   @@schema("base")
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
 model transactional_some_table {
-  id    String @db.NVarChar(1)
+  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
   title String @db.NVarChar(1)
 
   @@map("some_table")
-  @@ignore
   @@schema("transactional")
 }
 
@@ -1134,7 +1061,7 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
   schemas  = ["base"]
 }
 
@@ -1164,7 +1091,7 @@ generator client {
 
 datasource db {
   provider = "sqlserver"
-  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE_MULTI_SCHEMA")
+  url      = env("TEST_MSSQL_JDBC_URI_MIGRATE")
   schemas  = ["base", "does-not-exist"]
 }
 
