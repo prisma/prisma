@@ -61,7 +61,7 @@ export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput
    * Example:
    *
    * Error: Unable to require(`/usr/src/app/node_modules/@prisma/engines/libquery_engine-linux-arm64-openssl-1.0.x.so.node`)
-   * Prisma has detected an incompatible version of the \`glibc\` C standard library installed in your system. This probably means your system may be too old to run Prisma. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements.
+   * Prisma has detected an incompatible version of the \`glibc\` C standard library installed in your system. This probably means your system may be too old to run Prisma. Please refer to the documentation about Prisma's system requirements: https://pris.ly/d/system-requirements
    *
    * Details: symbol __cxa_thread_atexit_impl, version GLIBC_2.18 not defined in file libc.so.6 with link time reference
    *      at load (/usr/src/app/node_modules/prisma/build/index.js:93185:11)
