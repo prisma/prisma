@@ -14,5 +14,6 @@
   node -r 'esbuild-register' _steps.ts \
 ) > /$LOGS_FILE.logs.txt 2>&1 ; \
 EXIT_CODE=$? && \
-mv /$LOGS_FILE.logs.txt /e2e/$NAME/.logs.$EXIT_CODE.txt && \
+mv /$LOGS_FILE.logs.txt /e2e/$NAME/.logs.$EXIT_CODE.txt && \  # copy logs and append exit code
+cp -r /test/tests/* /e2e/$NAME/tests/ && \                    # copy jest files for snapshots
 exit $EXIT_CODE
