@@ -612,11 +612,6 @@ describe('postgresql', () => {
     ctx.fixture('schema-only-data-proxy')
     const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'])
 
-    /**
-     * This fails with:
-     * Error code: P1012
-     * error: Error validating datasource `db`: the URL must start with the protocol `postgresql://` or `postgres://`.
-     */
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from with-directUrl-env.prisma
