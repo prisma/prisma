@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.10.0-82.596e2c7f0ee39d24a00ef2d4f0247ab4e9baa374",
+    "@prisma/engines-version": "4.10.0-83.integration-evie-partition-tables-fix-0c08c4bf9d6ec24df1142c87016ffac6ca85b118",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.32",
