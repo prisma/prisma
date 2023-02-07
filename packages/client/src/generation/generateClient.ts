@@ -274,7 +274,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       await copyRuntimeFiles({
         from: runtimeSourceDir,
         to: copyTarget,
-        edge: dataProxy,
         sourceMaps: copyRuntimeSourceMaps,
         runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
       })
@@ -559,17 +558,17 @@ function getNodeRuntimeName(engineType: ClientEngineType, dataProxy: boolean): s
 type CopyRuntimeOptions = {
   from: string
   to: string
-  edge: boolean
   runtimeName: string
   sourceMaps: boolean
 }
 
-async function copyRuntimeFiles({ from, to, edge, runtimeName, sourceMaps }: CopyRuntimeOptions) {
+async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
   const files = ['index.d.ts']
-  if (edge) {
+
+  files.push(`${runtimeName}.js`, `${runtimeName}.d.ts`)
+
+  if (runtimeName === 'data-proxy') {
     files.push('edge.js', 'edge-esm.js')
-  } else {
-    files.push(`${runtimeName}.js`, `${runtimeName}.d.ts`)
   }
 
   if (sourceMaps) {
