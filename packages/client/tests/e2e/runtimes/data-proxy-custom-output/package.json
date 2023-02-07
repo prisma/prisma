@@ -8,6 +8,7 @@
   },
   "devDependencies": {
     "@types/node": "16.18.11 ",
-    "prisma": "../prisma-0.0.0.tgz"
+    "prisma": "../prisma-0.0.0.tgz",
+    "expect-type": "0.15.0"
   }
 }
