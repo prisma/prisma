@@ -21,3 +21,10 @@ services:
       service: test
     environment:
       - NAME=community/publish-extensions
+
+  runtimes-data-proxy-custom-output:
+    extends:
+      file: docker-compose-common.yml
+      service: test
+    environment:
+      - NAME=runtimes/data-proxy-custom-output
