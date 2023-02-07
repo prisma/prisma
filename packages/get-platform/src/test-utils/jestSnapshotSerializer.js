@@ -65,7 +65,7 @@ function normalizeNodeApiLibFilePath(str) {
 }
 
 function normalizeBinaryFilePath(str) {
-  return str.replace(/query-engine-TEST_PLATFORM\.exe/, 'query-engine-TEST_PLATFORM')
+  return str.replace(/\.exe/, '')
 }
 
 function normalizeMigrateTimestamps(str) {
