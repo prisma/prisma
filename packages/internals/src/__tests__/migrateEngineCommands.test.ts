@@ -1,3 +1,4 @@
+import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import tempy from 'tempy'
 
 import { credentialsToUri, uriToCredentials } from '../convertCredentials'
@@ -65,10 +66,15 @@ describe('createDatabase', () => {
   })
 
   test('sqlite - invalid cwd (file path instead of directory)', async () => {
-    await expect(createDatabase('file:./doesnotexist.db', tempy.file())).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Migration engine exited. Error: Command failed with ENOENT: /app/packages/engines/migration-engine-debian-openssl-1.1.x cli --datasource <REDACTED> can-connect-to-database
-spawn /app/packages/engines/migration-engine-debian-openssl-1.1.x ENOENT"`,
-    )
+    expect.assertions(1)
+    try {
+      await createDatabase('file:./doesnotexist.db', tempy.file())
+    } catch (e) {
+      expect(serialize(e)).toMatchInlineSnapshot(`
+        "Migration engine exited. Error: Command failed with ENOENT: /engines/migration-engine-TEST_PLATFORM cli --datasource <REDACTED> can-connect-to-database
+        spawn /engines/migration-engine-TEST_PLATFORM ENOENT"
+      `)
+    }
   })
 
   test('postgresql - create database', async () => {
