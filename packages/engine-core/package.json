@@ -30,8 +30,8 @@
     "prepublishOnly": "pnpm run build"
   },
   "dependencies": {
-    "@opentelemetry/sdk-trace-base": "^1.8.0",
     "@opentelemetry/api": "^1.3.0",
+    "@opentelemetry/sdk-trace-base": "^1.8.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engines": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
@@ -43,6 +43,7 @@
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.2",
     "strip-ansi": "6.0.1",
+    "ts-pattern": "4.1.3",
     "undici": "5.16.0"
   },
   "files": [

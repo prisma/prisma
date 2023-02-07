@@ -1,5 +1,7 @@
 export { getNodeAPIName } from './getNodeAPIName'
-export { getos, getPlatform } from './getPlatform'
+export type { PlatformWithOSResult } from './getPlatform'
+export { getos, getPlatform, getPlatformWithOSResult } from './getPlatform'
 export { isNodeAPISupported } from './isNodeAPISupported'
+export { link } from './link'
 export { type Platform, platforms } from './platforms'
 export * from './test-utils'

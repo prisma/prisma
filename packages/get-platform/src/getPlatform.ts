@@ -59,6 +59,9 @@ export type GetOSResult =
     }
   | GetOsResultLinux
 
+/**
+ * For internal use only. This public export will be eventually removed in favor of `getPlatformWithOSResult`.
+ */
 export async function getos(): Promise<GetOSResult> {
   const platform = os.platform()
   const arch = process.arch as Arch
@@ -389,21 +392,39 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
   return undefined
 }
 
+/**
+ * Get the binary target for the current platform, e.g. `linux-musl-arm64-openssl-3.0.x` for Linux Alpine on arm64.
+ */
 export async function getPlatform(): Promise<Platform> {
-  const { platform } = await getPlatformMemoized()
-  return platform
+  const { binaryTarget } = await getPlatformMemoized()
+  return binaryTarget
 }
 
-let memoizedPlatform: Platform | undefined
+export type PlatformWithOSResult = GetOSResult & { binaryTarget: Platform }
 
-export async function getPlatformMemoized(): Promise<{ platform: Platform; memoized: boolean }> {
-  if (memoizedPlatform) {
-    return Promise.resolve({ platform: memoizedPlatform, memoized: true })
+function isPlatformWithOSResultDefined(args: Partial<PlatformWithOSResult>): args is PlatformWithOSResult {
+  return args.binaryTarget !== undefined
+}
+
+/**
+ * Get the binary target and other system information (e.g., the libssl version to look for) for the current platform.
+ */
+export async function getPlatformWithOSResult(): Promise<PlatformWithOSResult> {
+  const { memoized: _, ...rest } = await getPlatformMemoized()
+  return rest
+}
+
+let memoizedPlatformWithInfo: Partial<PlatformWithOSResult> = {}
+
+export async function getPlatformMemoized(): Promise<PlatformWithOSResult & { memoized: boolean }> {
+  if (isPlatformWithOSResultDefined(memoizedPlatformWithInfo)) {
+    return Promise.resolve({ ...memoizedPlatformWithInfo, memoized: true })
   }
 
   const args = await getos()
-  memoizedPlatform = getPlatformInternal(args)
-  return { platform: memoizedPlatform, memoized: false }
+  const binaryTarget = getPlatformInternal(args)
+  memoizedPlatformWithInfo = { ...args, binaryTarget }
+  return { ...(memoizedPlatformWithInfo as PlatformWithOSResult), memoized: false }
 }
 
 /**
