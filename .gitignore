@@ -39,6 +39,7 @@ pnpm-debug.log
 esm
 reproductions/*
 !reproductions/basic-sqlite
+!reproductions/missing-env
 !reproductions/tracing
 !reproductions/pnpm-workspace.yaml
 
