@@ -2,7 +2,6 @@ import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
-import { SchemaLoader } from '@prisma/internals'
 import chalk from 'chalk'
 
 import type {
@@ -41,6 +40,7 @@ import type {
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
+import { SchemaLoader } from '../common/utils/schemaLoader'
 import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
