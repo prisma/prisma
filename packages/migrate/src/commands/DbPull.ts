@@ -15,6 +15,7 @@ import {
   link,
   loadEnvFile,
   protocolToConnectorType,
+  SchemaLoader,
 } from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -172,7 +173,8 @@ Set composite types introspection depth to 2 levels
       .when(
         (input): input is { url: string | undefined; schemaPath: string } => input.schemaPath !== null,
         async (input) => {
-          const rawSchema = fs.readFileSync(input.schemaPath, 'utf-8')
+          const schemaLoader = new SchemaLoader()
+          const rawSchema = schemaLoader.loadSync(input.schemaPath)
           const config = await getConfig({
             datamodel: rawSchema,
             ignoreEnvVarErrors: true,

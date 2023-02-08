@@ -1,4 +1,4 @@
-import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
+import { getConfig, getDMMF, parseEnvValue, SchemaLoader } from '@prisma/internals'
 import fs from 'fs/promises'
 import path from 'path'
 
@@ -6,7 +6,8 @@ import { generateClient } from '../../../src/generation/generateClient'
 import { MemoryTestDir } from './MemoryTestDir'
 
 export async function generateMemoryTestClient(testDir: MemoryTestDir) {
-  const schema = await fs.readFile(testDir.schemaFilePath, 'utf8')
+  const schemaLoader = new SchemaLoader()
+  const schema = await schemaLoader.load(testDir.schemaFilePath)
   const dmmf = await getDMMF({ datamodel: schema, datamodelPath: testDir.schemaFilePath })
   const config = await getConfig({
     datamodel: schema,

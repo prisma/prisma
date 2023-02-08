@@ -1,3 +1,4 @@
+import { SchemaLoader } from '@prisma/internals'
 import chalk from 'chalk'
 import childProcess from 'child_process'
 import { once } from 'events'
@@ -100,7 +101,8 @@ async function runTestProcess(testDir: MemoryTestDir) {
  * @returns
  */
 async function readTestResults(testDir: MemoryTestDir) {
-  return (await fs.readFile(testDir.resultsPath, 'utf-8'))
+  const schemaLoader = new SchemaLoader()
+  return (await schemaLoader.load(testDir.resultsPath))
     .split('\n')
     .slice(WARMUP_ITERATIONS) // do not take warmup iterations count into account
     .filter((line) => line !== '')

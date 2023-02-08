@@ -10,10 +10,10 @@ import {
   lintSchema,
   loadEnvFile,
   logger,
+  SchemaLoader,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
-import fs from 'fs'
 
 /**
  * $ prisma validate
@@ -65,7 +65,9 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    const schema = fs.readFileSync(schemaPath, 'utf-8')
+    const schemaLoader = new SchemaLoader()
+
+    const schema = schemaLoader.loadSync(schemaPath)
 
     const { lintDiagnostics } = handleLintPanic(
       () => {

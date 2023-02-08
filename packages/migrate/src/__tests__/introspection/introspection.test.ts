@@ -1,4 +1,4 @@
-import fs from 'fs'
+import { SchemaLoader } from '@prisma/internals'
 import path from 'path'
 
 import { MigrateEngine } from '../../MigrateEngine'
@@ -8,8 +8,8 @@ test('introspection basic', async () => {
     projectDir: __dirname,
     schemaPath: 'schema.prisma',
   })
-
-  const schema = await fs.promises.readFile(path.join(__dirname, 'schema.prisma'), { encoding: 'utf-8' })
+  const schemaLoader = new SchemaLoader()
+  const schema = await schemaLoader.load(path.join(__dirname, 'schema.prisma'))
 
   const result = await engine.introspect({ schema })
   expect(result).toMatchInlineSnapshot(`

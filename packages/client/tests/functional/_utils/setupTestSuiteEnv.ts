@@ -1,5 +1,5 @@
 import { faker } from '@faker-js/faker'
-import { assertNever } from '@prisma/internals'
+import { assertNever, SchemaLoader } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
 import fs from 'fs-extra'
 import path from 'path'
@@ -97,7 +97,12 @@ export async function setupTestSuiteSchema(
 ) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
-  await fs.writeFile(schemaPath, schema)
+  const schemaLoader = new SchemaLoader()
+  try {
+    await schemaLoader.save(schema)
+  } catch {
+    await fs.writeFile(schemaPath, schema)
+  }
 }
 
 /**

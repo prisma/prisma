@@ -14,6 +14,7 @@ import { createErrorReport, ErrorKind, makeErrorReportCompleted, uploadZip } fro
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
 import { mapScalarValues, maskSchema } from './utils/maskSchema'
+import { SchemaLoader } from './utils/schemaLoader'
 
 const debug = Debug('prisma:sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
@@ -36,7 +37,8 @@ export async function sendPanic({
   try {
     const schema: string | undefined = match(error)
       .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
-        return fs.readFileSync(err.schemaPath, 'utf-8')
+        const schemaLoader = new SchemaLoader()
+        return schemaLoader.loadSync(err.schemaPath)
       })
       .with({ schema: P.when((schema) => Boolean(schema)) }, (err) => err.schema)
       .otherwise(() => undefined)
@@ -117,7 +119,8 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
   // add schema file
   // Note: the following reads `error.schemaPath` for the second time, we could just re-use
   // `maskedSchema` from the `sendPanic` function's scope.
-  const schemaFile = maskSchema(fs.readFileSync(error.schemaPath, 'utf-8'))
+  const schemaLoader = new SchemaLoader()
+  const schemaFile = maskSchema(schemaLoader.loadSync(error.schemaPath))
   zip.append(schemaFile, { name: path.basename(error.schemaPath) })
 
   if (fs.existsSync(schemaDir)) {
@@ -128,7 +131,8 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
     })
 
     for (const filePath of filePaths) {
-      let file = fs.readFileSync(path.resolve(schemaDir, filePath), 'utf-8')
+      const schemaLoader = new SchemaLoader()
+      let file = schemaLoader.loadSync(path.resolve(schemaDir, filePath))
       if (filePath.endsWith('schema.prisma') || filePath.endsWith(path.basename(error.schemaPath))) {
         // Remove credentials from schema datasource url
         file = maskSchema(file)
@@ -141,7 +145,8 @@ async function makeErrorZip(error: RustPanic): Promise<Buffer> {
 
   return new Promise((resolve, reject) => {
     outputFile.on('close', () => {
-      const buffer = fs.readFileSync(tmpFileObj.name)
+      const schemaLoader = new SchemaLoader()
+      const buffer = schemaLoader.loadBufferSync(tmpFileObj.name)
       resolve(buffer)
     })
 

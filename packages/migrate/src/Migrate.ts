@@ -1,8 +1,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
-import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/internals'
+import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync, SchemaLoader } from '@prisma/internals'
 import chalk from 'chalk'
-import fs from 'fs'
 import logUpdate from 'log-update'
 import path from 'path'
 
@@ -53,7 +52,8 @@ export class Migrate {
   public getPrismaSchema(): string {
     if (!this.schemaPath) throw new Error('this.schemaPath is undefined')
 
-    return fs.readFileSync(this.schemaPath, 'utf-8')
+    const schemaLoader = new SchemaLoader()
+    return schemaLoader.loadSync(this.schemaPath)
   }
 
   public reset(): Promise<void> {

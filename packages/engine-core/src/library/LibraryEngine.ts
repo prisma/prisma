@@ -2,8 +2,8 @@ import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
+import { SchemaLoader } from '@prisma/internals'
 import chalk from 'chalk'
-import fs from 'fs'
 
 import type {
   BatchQueryEngineResult,
@@ -99,8 +99,8 @@ export class LibraryEngine extends Engine<undefined> {
 
   constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
     super()
-
-    this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
+    const schemaLoader = new SchemaLoader()
+    this.datamodel = schemaLoader.loadSync(config.datamodelPath)
     this.config = config
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false

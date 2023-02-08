@@ -1,7 +1,7 @@
 import fs from 'fs'
 import { match } from 'ts-pattern'
 
-import { logger } from '..'
+import { logger, SchemaLoader } from '..'
 import { ErrorArea, RustPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 import { getLintWarningsAsText, lintSchema } from './lintSchema'
@@ -43,9 +43,8 @@ export async function formatSchema(
       if (!fs.existsSync(_schemaPath)) {
         throw new Error(`Schema at ${schemaPath} does not exist.`)
       }
-
-      const _schema = fs.readFileSync(_schemaPath, { encoding: 'utf8' })
-      return _schema
+      const _schemaLoader = new SchemaLoader()
+      return _schemaLoader.loadSync(_schemaPath)
     })
     .exhaustive()
 

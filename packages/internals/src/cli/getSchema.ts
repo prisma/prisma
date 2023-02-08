@@ -6,8 +6,9 @@ import type { NormalizedPackageJson } from 'read-pkg-up'
 import readPkgUp from 'read-pkg-up'
 import { promisify } from 'util'
 
+import { SchemaLoader } from '..'
+
 const exists = promisify(fs.exists)
-const readFile = promisify(fs.readFile)
 
 /**
  * Async
@@ -262,7 +263,9 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
     )
   }
 
-  return readFile(schemaPath, 'utf-8')
+  const schemaLoader = new SchemaLoader()
+
+  return schemaLoader.load(schemaPath)
 }
 
 /**
@@ -393,7 +396,9 @@ export function getSchemaSync(schemaPathFromArgs?: string): string {
     )
   }
 
-  return fs.readFileSync(schemaPath, 'utf-8')
+  const schemaLoader = new SchemaLoader()
+
+  return schemaLoader.loadSync(schemaPath)
 }
 
 function getJson(stdout: string): any {

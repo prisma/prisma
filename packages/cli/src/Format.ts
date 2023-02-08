@@ -1,7 +1,6 @@
-import { arg, Command, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/internals'
+import { arg, Command, format, formatms, formatSchema, getDMMF, HelpError, SchemaLoader } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
-import fs from 'fs'
 
 /**
  * $ prisma format
@@ -64,7 +63,9 @@ Or specify a Prisma schema path
       throw e
     }
 
-    fs.writeFileSync(schemaPath, output)
+    const schemaLoader = new SchemaLoader()
+
+    schemaLoader.saveSync(output)
     const after = Date.now()
 
     return `Formatted ${chalk.underline(schemaPath)} in ${formatms(after - before)} 🚀`
