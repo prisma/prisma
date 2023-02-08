@@ -3,7 +3,6 @@ import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
 import chalk from 'chalk'
-import fs from 'fs'
 
 import type {
   BatchQueryEngineResult,
@@ -41,6 +40,7 @@ import type {
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
+import { SchemaLoader } from '../common/utils/schemaLoader'
 import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
@@ -99,8 +99,8 @@ export class LibraryEngine extends Engine<undefined> {
 
   constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
     super()
-
-    this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
+    const schemaLoader = new SchemaLoader()
+    this.datamodel = schemaLoader.loadSync(config.datamodelPath)
     this.config = config
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false

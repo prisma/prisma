@@ -2,7 +2,7 @@ import chalk from 'chalk'
 import fs from 'fs'
 import { O } from 'ts-toolbelt'
 
-import { getConfig, getEffectiveUrl, getSchemaPath, link } from '..'
+import { getConfig, getEffectiveUrl, getSchemaPath, link, SchemaLoader } from '..'
 import { loadEnvFile } from '../utils/loadEnvFile'
 
 /**
@@ -60,7 +60,8 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
     if (argName.includes('schema')) {
       loadEnvFile(argValue, false)
 
-      const datamodel = await fs.promises.readFile(argValue, 'utf-8')
+      const schemaLoader = new SchemaLoader()
+      const datamodel = await schemaLoader.load(argValue)
       const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
       const url = command === 'studio' ? config.datasources[0]?.url : getEffectiveUrl(config.datasources[0])
       const urlFromValue = url.value

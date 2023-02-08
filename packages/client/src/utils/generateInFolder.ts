@@ -9,6 +9,7 @@ import {
   getDMMF,
   getPackedPackage,
   mapPreviewFeatures,
+  SchemaLoader,
 } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import fs from 'fs'
@@ -47,7 +48,8 @@ export async function generateInFolder({
   }
 
   const schemaPath = getSchemaPath(projectDir)
-  const datamodel = fs.readFileSync(schemaPath, 'utf-8')
+  const schemaLoader = new SchemaLoader()
+  const datamodel = schemaLoader.loadSync(schemaPath)
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))

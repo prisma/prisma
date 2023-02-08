@@ -4,9 +4,9 @@ import chalk from 'chalk'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
-import fs from 'fs'
 import { match } from 'ts-pattern'
 
+import { SchemaLoader } from '..'
 import { ErrorArea, isWasmPanic, RustPanic, WasmPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
@@ -71,7 +71,8 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
         }
 
         debug(`Reading datamodel from the given datamodel path ${options.datamodelPath!}`)
-        return fs.promises.readFile(options.datamodelPath!, { encoding: 'utf-8' })
+        const _schemaLoader = new SchemaLoader()
+        return _schemaLoader.load(options.datamodelPath!)
       },
       (e) =>
         ({

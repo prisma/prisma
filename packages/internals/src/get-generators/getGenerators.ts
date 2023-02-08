@@ -11,7 +11,7 @@ import fs from 'fs'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF } from '..'
+import { getConfig, getDMMF, SchemaLoader } from '..'
 import { Generator } from '../Generator'
 import type { GeneratorPaths } from '../predefinedGeneratorResolvers'
 import { predefinedGeneratorResolvers } from '../predefinedGeneratorResolvers'
@@ -108,8 +108,8 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
       prismaPath = binaryPathsWithEngineType[queryEngineBinaryType]![platform]
     }
   }
-
-  const datamodel = fs.readFileSync(schemaPath, 'utf-8')
+  const schemaLoader = new SchemaLoader()
+  const datamodel = schemaLoader.loadSync(schemaPath)
 
   const config = await getConfig({
     datamodel,

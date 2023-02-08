@@ -12,15 +12,13 @@ import {
   keyBy,
   loadEnvFile,
   pick,
+  SchemaLoader,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint, MigrateEngine } from '@prisma/migrate'
 import chalk from 'chalk'
 import equal from 'fast-deep-equal'
-import fs from 'fs'
 import path from 'path'
-import { promisify } from 'util'
 
-const readFile = promisify(fs.readFile)
 type IncorrectFieldTypes = Array<{
   localField: DMMF.Field
   remoteField: DMMF.Field
@@ -75,7 +73,9 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    const schema = await readFile(schemaPath, 'utf-8')
+    const schemaLoader = new SchemaLoader()
+
+    const schema = await schemaLoader.load(schemaPath)
     const localDmmf = await getDMMF({ datamodel: schema })
     const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
 
