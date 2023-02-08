@@ -191,6 +191,7 @@ export async function dropTestSuiteDatabase(
 }
 
 export type DatasourceInfo = {
+  directEnvVarName: string
   envVarName: string
   databaseUrl: string
   dataProxyUrl?: string
@@ -222,6 +223,9 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
       return { envVarName, newURI }
     })
 
+  // when testing with `directUrl` is required
+  const directEnvVarName = `DIRECT_${envVarName}`
+
   let databaseUrl = newURI
   // Vitess takes about 1 minute to create a database the first time
   // So we can reuse the same database for all tests
@@ -243,6 +247,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   }
 
   return {
+    directEnvVarName,
     envVarName,
     databaseUrl,
     dataProxyUrl,
