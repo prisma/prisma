@@ -15,6 +15,8 @@ if (process.env.CI) {
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('getDMMF', () => {
+  // Note: to run these tests locally, prepend the env vars `FORCE_COLOR=0` and `CI=1` to your test command,
+  // as `chalk` follows different conventions than the Rust `colored` crate (and uses `FORCE_COLOR=0` to disable colors rather than `NO_COLOR=1`).
   describe('colors', () => {
     // backup env vars
     const OLD_ENV = { ...process.env }
@@ -41,17 +43,17 @@ describe('getDMMF', () => {
         await getDMMF({ datamodel })
       } catch (e) {
         expect(e.message).toMatchInlineSnapshot(`
-          "[91m[1mPrisma schema validation[22m[39m - (get-dmmf wasm)
+          "Prisma schema validation - (get-dmmf wasm)
           Error code: P1012
-          [91m[1;91merror[0m: [1mError validating: This line is invalid. It does not start with any known Prisma schema keyword.[0m[39m
-          [91m  [1;94m-->[0m  [4mschema.prisma:2[0m[39m
-          [91m[1;94m   | [0m[39m
-          [91m[1;94m 1 | [0m[39m
-          [91m[1;94m 2 | [0m        [1;91mdatasource db {[0m[39m
-          [91m[1;94m 3 | [0m      [39m
-          [91m[1;94m   | [0m[39m
-          [91m[39m
-          [91mValidation Error Count: 1[39m
+          [1;91merror[0m: [1mError validating: This line is invalid. It does not start with any known Prisma schema keyword.[0m
+            [1;94m-->[0m  [4mschema.prisma:2[0m
+          [1;94m   | [0m
+          [1;94m 1 | [0m
+          [1;94m 2 | [0m        [1;91mdatasource db {[0m
+          [1;94m 3 | [0m      
+          [1;94m   | [0m
+
+          Validation Error Count: 1
           [Context: getDmmf]
 
           Prisma CLI Version : 0.0.0"
@@ -73,7 +75,7 @@ describe('getDMMF', () => {
         await getDMMF({ datamodel })
       } catch (e) {
         expect(e.message).toMatchInlineSnapshot(`
-          "[91m[1mPrisma schema validation[22m[39m - (get-dmmf wasm)
+          "Prisma schema validation - (get-dmmf wasm)
           Error code: P1012
           error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
             -->  schema.prisma:2
