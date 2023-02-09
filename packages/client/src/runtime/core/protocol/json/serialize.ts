@@ -49,7 +49,7 @@ export type SerializeParams = {
 }
 
 export function serializeJsonQuery({ modelName, action, args, baseDmmf, extensions }: SerializeParams): JsonQuery {
-  const context = new SerializeContext(baseDmmf, extensions, [], modelName)
+  const context = new SerializeContext(action, baseDmmf, extensions, [], modelName)
   return {
     modelName,
     action: jsActionToProtocolAction[action],
@@ -82,7 +82,7 @@ function serializeSelectionSet(
 
   const selectionSet: JsonSelectionSet = {}
 
-  if (context.model) {
+  if (context.model && !context.isRawAction()) {
     selectionSet.$composites = true
     selectionSet.$scalars = true
   }
@@ -213,6 +213,7 @@ function isRawParameters(value: JsInputValue): value is RawParameters {
 class SerializeContext {
   public readonly model: DMMF.Model | undefined
   constructor(
+    public readonly action: Action,
     private baseDMMF: BaseDMMFHelper,
     private extensions: MergedExtensionsList,
     public path: string[],
@@ -222,6 +223,10 @@ class SerializeContext {
       // TODO: throw if not found
       this.model = this.baseDMMF.modelMap[modelName]
     }
+  }
+
+  isRawAction() {
+    return ['executeRaw', 'queryRaw', 'runCommandRaw', 'findRaw', 'aggregateRaw'].includes(this.action)
   }
 
   getComputedFields() {
@@ -238,6 +243,6 @@ class SerializeContext {
   atField(fieldName: string) {
     const field = this.findField(fieldName)
     const modelName = field?.kind === 'object' ? field.type : undefined
-    return new SerializeContext(this.baseDMMF, this.extensions, this.path.concat(fieldName), modelName)
+    return new SerializeContext(this.action, this.baseDMMF, this.extensions, this.path.concat(fieldName), modelName)
   }
 }

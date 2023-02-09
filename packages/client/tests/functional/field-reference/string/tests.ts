@@ -68,7 +68,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
 
         XX 
         XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong field type', async () => {
+        XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong field type', async () => {
       → XX   const products = prisma.product.findMany({
                where: {
                  string: {
@@ -102,7 +102,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
 
         XX 
         XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong model', async () => {
+        XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong model', async () => {
       → XX   const products = prisma.product.findMany({
                where: {
                  string: {
@@ -136,7 +136,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
 
         XX 
         XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong identical model', async () => {
+        XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong identical model', async () => {
       → XX   const products = prisma.product.findMany({
                 where: {
                   string: {

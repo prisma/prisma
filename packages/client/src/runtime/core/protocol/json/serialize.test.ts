@@ -152,7 +152,45 @@ test('executeRaw', () => {
   `)
 })
 
-// TODO: different actions
+test('findRaw', () => {
+  expect(
+    serialize({
+      action: 'findRaw',
+      modelName: 'User',
+      args: {},
+    }),
+  ).toMatchInlineSnapshot(`
+    {
+      "modelName": "User",
+      "action": "findRaw",
+      "query": {
+        "arguments": {},
+        "selection": {}
+      }
+    }
+  `)
+})
+
+test('aggregateRaw', () => {
+  expect(
+    serialize({
+      action: 'aggregateRaw',
+      modelName: 'User',
+      args: { pipeline: [] },
+    }),
+  ).toMatchInlineSnapshot(`
+    {
+      "modelName": "User",
+      "action": "aggregateRaw",
+      "query": {
+        "arguments": {
+          "pipeline": []
+        },
+        "selection": {}
+      }
+    }
+  `)
+})
 
 test('no args', () => {
   expect(serialize({ modelName: 'User', action: 'findMany' })).toMatchInlineSnapshot(`
