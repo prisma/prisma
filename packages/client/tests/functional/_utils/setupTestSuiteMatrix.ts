@@ -5,7 +5,7 @@ import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
-import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, MatrixOptions } from './types'
 
@@ -75,9 +75,9 @@ function setupTestSuiteMatrix(
         globalThis['loaded'] = await setupTestSuiteClient({
           suiteMeta,
           suiteConfig,
-          skipDb: options?.skipDb,
           datasourceInfo,
           clientMeta,
+          skipDb: options?.skipDb,
           alterStatementCallback: options?.alterStatementCallback,
         })
 
@@ -121,8 +121,9 @@ function setupTestSuiteMatrix(
         }
         clients.length = 0
         if (!options?.skipDb) {
-          const datasourceInfo = globalThis['datasourceInfo']
+          const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
+          process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
           await dropTestSuiteDatabase(suiteMeta, suiteConfig)
         }
         process.env = originalEnv
