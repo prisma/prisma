@@ -838,6 +838,13 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
+  async getConfig(): Promise<GetConfigResult> {
+    if (!this.getConfigPromise) {
+      this.getConfigPromise = this._getConfig()
+    }
+    return this.getConfigPromise
+  }
+
   private async _getConfig(): Promise<GetConfigResult> {
     const prismaPath = await this.getPrismaPath()
 
