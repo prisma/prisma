@@ -15,6 +15,83 @@ if (process.env.CI) {
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('getDMMF', () => {
+  describe('colors', () => {
+    // backup env vars
+    const OLD_ENV = { ...process.env }
+    const { NO_COLOR: _, ...OLD_ENV_WITHOUT_NO_COLOR } = OLD_ENV
+
+    beforeEach(() => {
+      jest.resetModules()
+      process.env = { ...OLD_ENV_WITHOUT_NO_COLOR }
+    })
+
+    afterEach(() => {
+      // reset env vars to backup state
+      process.env = { ...OLD_ENV }
+    })
+
+    test('failures should have colors by default', async () => {
+      process.env = OLD_ENV_WITHOUT_NO_COLOR
+      expect.assertions(1)
+      const datamodel = `
+        datasource db {
+      `
+
+      try {
+        await getDMMF({ datamodel })
+      } catch (e) {
+        expect(e.message).toMatchInlineSnapshot(`
+          "[91m[1mPrisma schema validation[22m[39m - (get-dmmf wasm)
+          Error code: P1012
+          [91m[1;91merror[0m: [1mError validating: This line is invalid. It does not start with any known Prisma schema keyword.[0m[39m
+          [91m  [1;94m-->[0m  [4mschema.prisma:2[0m[39m
+          [91m[1;94m   | [0m[39m
+          [91m[1;94m 1 | [0m[39m
+          [91m[1;94m 2 | [0m        [1;91mdatasource db {[0m[39m
+          [91m[1;94m 3 | [0m      [39m
+          [91m[1;94m   | [0m[39m
+          [91m[39m
+          [91mValidation Error Count: 1[39m
+          [Context: getDmmf]
+
+          Prisma CLI Version : 0.0.0"
+        `)
+      }
+    })
+
+    // Note(jkomyno): failing because the colored crate used in Wasm forces the coloring on tty.
+    // On standard terminals, the NO_COLOR env var is actually working as expected (it prints plain uncolored text).
+    // See: https://github.com/prisma/prisma-private/issues/210
+    test.failing('failures should not have colors when the NO_COLOR env var is set', async () => {
+      process.env.NO_COLOR = '1'
+      expect.assertions(1)
+      const datamodel = `
+        datasource db {
+      `
+
+      try {
+        await getDMMF({ datamodel })
+      } catch (e) {
+        expect(e.message).toMatchInlineSnapshot(`
+          "[91m[1mPrisma schema validation[22m[39m - (get-dmmf wasm)
+          Error code: P1012
+          error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
+            -->  schema.prisma:2
+             | 
+           1 | 
+           2 |         datasource db {
+           3 |       
+             | 
+
+          Validation Error Count: 1
+          [Context: getDmmf]
+
+          Prisma CLI Version : 0.0.0"
+        `)
+      }
+    })
+  })
+
   describe('errors', () => {
     test('model with autoincrement should fail if sqlite', async () => {
       expect.assertions(1)
