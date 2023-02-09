@@ -10,7 +10,7 @@ import { assertNever } from '@prisma/internals'
 import Decimal from 'decimal.js'
 
 import { BaseDMMFHelper } from '../../../dmmf'
-import { ObjectEnumValue } from '../../../object-enums'
+import { ObjectEnumValue, objectEnumValues } from '../../../object-enums'
 import { isDecimalJsLike } from '../../../utils/decimalJsLike'
 import { MergedExtensionsList } from '../../extensions/MergedExtensionsList'
 import { applyComputedFieldsToSelection } from '../../extensions/resultUtils'
@@ -168,6 +168,9 @@ function serializeArgumentsValue(jsValue: Exclude<JsInputValue, undefined>): Jso
   }
 
   if (jsValue instanceof ObjectEnumValue) {
+    if (jsValue !== objectEnumValues.instances[jsValue._getName()]) {
+      throw new Error('Invalid ObjectEnumValue')
+    }
     return { $type: 'Enum', value: jsValue._getName() }
   }
 
