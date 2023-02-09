@@ -21,7 +21,7 @@ describe('getDMMF', () => {
     const { NO_COLOR: _, ...OLD_ENV_WITHOUT_NO_COLOR } = OLD_ENV
 
     beforeEach(() => {
-      jest.resetModules()
+      // jest.resetModules()
       process.env = { ...OLD_ENV_WITHOUT_NO_COLOR }
     })
 
@@ -59,10 +59,10 @@ describe('getDMMF', () => {
       }
     })
 
-    // Note(jkomyno): failing because the colored crate used in Wasm forces the coloring on tty.
+    // Note(jkomyno): this fails locally because the colored crate used in Wasm forces the coloring on tty (but apparently not on CI?).
     // On standard terminals, the NO_COLOR env var is actually working as expected (it prints plain uncolored text).
     // See: https://github.com/prisma/prisma-private/issues/210
-    test.failing('failures should not have colors when the NO_COLOR env var is set', async () => {
+    test('failures should not have colors when the NO_COLOR env var is set', async () => {
       process.env.NO_COLOR = '1'
       expect.assertions(1)
       const datamodel = `
