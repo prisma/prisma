@@ -5,13 +5,13 @@ export type MatrixOptions = {
     from: `${Providers}`[]
     reason: string
   }
-  skipDb?: boolean
   skipDefaultClientInstance?: boolean
   skipDataProxy?: {
     runtimes: ClientRuntime[]
     reason: string
   }
-  // SQL Migraiton to apply after inital generated migration
+  skipDb?: boolean
+  // SQL Migration to apply after initial generated migration
   alterStatementCallback?: AlterStatementCallback
 }
 
