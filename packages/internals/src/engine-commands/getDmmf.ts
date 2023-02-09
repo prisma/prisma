@@ -90,10 +90,11 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
               prismaFmt.debug_panic()
             }
 
+            const noColor = Boolean(process.env.NO_COLOR)
             const params = JSON.stringify({
               prismaSchema: datamodel,
+              noColor,
             })
-
             const data = prismaFmt.get_dmmf(params)
             return data
           },
