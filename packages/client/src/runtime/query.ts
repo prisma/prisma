@@ -1362,7 +1362,7 @@ function tryInferArgs(
   const { isNullable, isRequired } = arg
 
   if (value === null && !isNullable && !isRequired) {
-    // we don't need to execute this ternery if not necessary
+    // we don't need to execute this ternary if not necessary
     const isAtLeastOne = isInputArgType(inputType.type)
       ? inputType.type.constraints.minNumFields !== null && inputType.type.constraints.minNumFields > 0
       : false

@@ -125,7 +125,7 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
       // `ENAMETOOLONG: name too long` as this is used for the directory name
 
       // For `relationMode` tests
-      // we hardcode how it lookks like for test results
+      // we hardcode how it looks like for test results
       if (config.relationMode !== undefined) {
         const providerFlavorStr = config.providerFlavor === undefined ? '' : `providerFlavor=${config.providerFlavor},`
         return `relationMode=${config.relationMode},provider=${config.provider},${providerFlavorStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
@@ -146,7 +146,7 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
 export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Record<string, string>) {
   const schemaStr = require(suiteMeta._schemaPath).default(matrixOptions)
 
-  // By default, mini-proxy distiguishes different engine instances using inline schema hash
+  // By default, mini-proxy distinguishes different engine instances using inline schema hash
   // In case 2 tests are running in parallel with identical schema, this can cause all kinds of problems
   // Adding a unique comment at the top of schema file forces them to have different hash and avoids
   // those problems
