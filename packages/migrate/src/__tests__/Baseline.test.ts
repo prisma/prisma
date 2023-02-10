@@ -10,7 +10,7 @@ import { MigrateResolve } from '../commands/MigrateResolve'
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 // Disable prompts
-process.env.GITHUB_ACTIONS = '1'
+process.env.CI = '1'
 // Disable generate
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
@@ -55,6 +55,7 @@ describe('Baselining', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       Drift detected: Your database schema is not in sync with your migration history.
 
@@ -80,6 +81,7 @@ describe('Baselining', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 

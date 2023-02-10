@@ -21,6 +21,7 @@ dist/
 .prisma
 .pnpm-store
 
+.idea
 .vscode
 !.vscode/launch.json.default
 coverage

@@ -26,6 +26,7 @@ import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
 import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
+import { printCiStatus } from '../utils/printCiStatus'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { printMigrationId } from '../utils/printMigrationId'
@@ -111,6 +112,7 @@ ${chalk.bold('Examples')}
 
     const datasourceInfo = await getDatasourceInfo({ schemaPath })
     printDatasource({ datasourceInfo })
+    printCiStatus()
 
     console.info() // empty line
 

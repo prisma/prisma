@@ -18,6 +18,7 @@ import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabase
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
 import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
+import { printCiStatus } from '../utils/printCiStatus'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
 import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
@@ -91,6 +92,7 @@ ${chalk.bold('Examples')}
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    printCiStatus()
 
     throwUpgradeErrorIfOldMigrate(schemaPath)
 

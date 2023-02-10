@@ -20,7 +20,7 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 // Disable prompts
-process.env.GITHUB_ACTIONS = '1'
+process.env.CI = '1'
 // Disable generate
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
@@ -166,6 +166,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:dev.db
 
@@ -185,6 +186,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:dev.db
 
@@ -226,6 +228,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:dev.db
 
@@ -315,12 +318,14 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:dev.db
 
       Enter a name for the new migration:
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_some_draft\`
 
@@ -354,6 +359,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/empty.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:dev.db
 
@@ -381,11 +387,13 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:dev.db
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 
@@ -412,6 +420,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       Drift detected: Your database schema is not in sync with your migration history.
 
@@ -457,6 +466,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       Drift detected: Your database schema is not in sync with your migration history.
 
@@ -492,6 +502,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       The migration \`20201231000000_test\` was modified after it was applied.
       We need to reset the SQLite database "dev.db" at "file:dev.db"
@@ -526,6 +537,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       - Drift detected: Your database schema is not in sync with your migration history.
 
@@ -577,6 +589,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:dev.db
 
@@ -599,6 +612,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
     `)
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(``)
@@ -625,10 +639,12 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       Already in sync, no schema change or pending migration was found.
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
     `)
     expect(ctx.mocked['console.log'].mock.calls).toEqual([])
@@ -643,6 +659,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_draft\`
 
@@ -666,6 +683,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_draft\`
 
@@ -706,6 +724,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
 
     `)
@@ -725,6 +744,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
 
     `)
@@ -742,6 +762,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
 
       Applying migration \`20201231000000_\`
@@ -776,6 +797,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
 
       Migration cancelled.
@@ -801,6 +823,7 @@ describe('sqlite', () => {
     expect(removeSeedlingEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:./dev.db
 
@@ -835,6 +858,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:./dev.db
 
@@ -868,6 +892,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:./dev.db
 
@@ -902,6 +927,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:./dev.db
 
@@ -934,6 +960,7 @@ describe('sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:./dev.db
 
@@ -990,6 +1017,7 @@ describe('postgresql', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 
@@ -1014,6 +1042,7 @@ describe('postgresql', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 
@@ -1060,6 +1089,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 
@@ -1118,10 +1148,12 @@ describe('postgresql', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      CI environment detected: "CI" is set
 
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 
@@ -1146,6 +1178,7 @@ describe('postgresql', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 
@@ -1224,6 +1257,7 @@ describe('postgresql', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/multiSchema.prisma
       Datasource "my_db": PostgreSQL database "tests-migrate-dev", schemas "schema1, schema2" at "localhost:5432"
+      CI environment detected: "CI" is set
 
       Enter a name for the new migration:
     `)
@@ -1239,6 +1273,7 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+      CI environment detected: "CI" is set
 
       Already in sync, no schema change or pending migration was found.
     `)
@@ -1297,6 +1332,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 
@@ -1321,6 +1357,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev-shadowdb", schema "public" at "localhost:26257"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 
@@ -1343,6 +1380,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 
@@ -1367,6 +1405,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 
@@ -1401,10 +1440,12 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      CI environment detected: "CI" is set
 
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 
@@ -1429,6 +1470,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
       Environment variables loaded from prisma/.env
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": CockroachDB database "tests-migrate-dev", schema "public" at "localhost:26257"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 
@@ -1491,6 +1533,7 @@ describe('mysql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 
@@ -1514,6 +1557,7 @@ describe('mysql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 
@@ -1617,9 +1661,11 @@ describe('mysql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      CI environment detected: "CI" is set
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 
@@ -1643,6 +1689,7 @@ describe('mysql', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": MySQL database "tests-migrate-dev" at "localhost:3306"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 
@@ -1714,6 +1761,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 
@@ -1737,6 +1785,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/shadowdb.prisma
       Datasource "my_db": SQL Server database
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 
@@ -1758,6 +1807,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_\`
 
@@ -1839,9 +1889,11 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
+      CI environment detected: "CI" is set
 
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 
@@ -1865,6 +1917,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQL Server database
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_first\`
 

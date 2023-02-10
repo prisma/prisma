@@ -14,6 +14,7 @@ export class NoSchemaFoundError extends Error {
     )
   }
 }
+
 export class OldMigrateDetectedError extends Error {
   constructor() {
     super(

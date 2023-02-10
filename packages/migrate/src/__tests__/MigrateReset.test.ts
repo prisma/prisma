@@ -3,6 +3,9 @@ import prompt from 'prompts'
 
 import { MigrateReset } from '../commands/MigrateReset'
 
+// Disable prompts
+process.env.CI = '1'
+
 process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
@@ -75,6 +78,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
 
       Applying migration \`20201231000000_init\`
@@ -98,6 +102,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       Applying migration \`20201231000000_init\`
 
@@ -121,6 +126,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:dev.db
 
@@ -148,6 +154,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
 
       Database reset successful
@@ -169,6 +176,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
 
       Reset cancelled.
@@ -198,6 +206,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:./dev.db
 
@@ -227,6 +236,7 @@ describe('reset', () => {
     expect(removeSeedlingEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:./dev.db
 
@@ -256,6 +266,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:./dev.db
 
@@ -284,6 +295,7 @@ describe('reset', () => {
     expect(removeSeedlingEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
         Prisma schema loaded from prisma/schema.prisma
         Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+        CI environment detected: "CI" is set
 
         SQLite database dev.db created at file:./dev.db
 
@@ -312,6 +324,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "db": SQLite database "dev.db" at "file:./dev.db"
+      CI environment detected: "CI" is set
 
       SQLite database dev.db created at file:./dev.db
 
@@ -333,6 +346,7 @@ describe('reset', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
+      CI environment detected: "CI" is set
 
 
       Applying migration \`20201231000000_init\`
