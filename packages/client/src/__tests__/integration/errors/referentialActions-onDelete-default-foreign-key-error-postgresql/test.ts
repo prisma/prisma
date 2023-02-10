@@ -37,7 +37,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', ()
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like penguins' },
+          create: { bio: 'I like pinguins' },
         },
       },
     })

@@ -31,7 +31,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(sqlite)', () => 
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like penguins' },
+          create: { bio: 'I like pinguins' },
         },
       },
     })

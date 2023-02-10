@@ -44,7 +44,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-fo
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like penguins' },
+          create: { bio: 'I like pinguins' },
         },
       },
     })
