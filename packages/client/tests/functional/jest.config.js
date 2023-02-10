@@ -18,23 +18,26 @@ module.exports = () => {
       escapeRegex(runtimeDir),
       `${escapeRegex(packagesDir)}[\\/][^\\/]+[\\/]dist[\\/]`,
     ],
-    reporters: [
-      'default',
-      [
-        'jest-junit',
-        {
-          addFileAttribute: 'true',
-          ancestorSeparator: ' › ',
-          classNameTemplate: '{classname}',
-          titleTemplate: '{title}',
-        },
-      ],
-    ],
+    reporters: ['default'],
     globalSetup: './_utils/globalSetup.js',
     snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
     setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
     testTimeout: isMacOrWindowsCI ? 100_000 : 30_000,
     collectCoverage: process.env.CI ? true : false,
+  }
+
+  if (process.env['JEST_JUNIT_DISABLE'] !== 'true') {
+    configCommon.reporters.push([
+      'jest-junit',
+      {
+        addFileAttribute: 'true',
+        ancestorSeparator: ' › ',
+        classNameTemplate: (vars) => {
+          return vars.classname.replace(/ \(provider=.*?\)/g, '')
+        },
+        titleTemplate: '{title}',
+      },
+    ])
   }
 
   if (os.platform() === 'win32') {

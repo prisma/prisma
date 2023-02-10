@@ -132,6 +132,8 @@ async function main(): Promise<number | void> {
       }
 
       if (!args['--no-types']) {
+        // Disable JUnit output for typescript tests
+        process.env.JEST_JUNIT_DISABLE = 'true'
         jestCli.withArgs(['--', 'typescript']).run()
       }
     }
