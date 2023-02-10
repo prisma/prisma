@@ -231,11 +231,8 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   // So we can reuse the same database for all tests
   // It has a significant impact on the test runtime
   // Example: 60s -> 3s
-  if (providerFlavor === ProviderFlavors.VITESS_8) {
-    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
-  } else {
-    databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
-  }
+  databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
+
   let dataProxyUrl: string | undefined
 
   if (clientMeta.dataProxy) {
