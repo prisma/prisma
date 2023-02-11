@@ -95,10 +95,14 @@ export async function canConnectToDatabase(
           message: error.fields.message,
         }
       } else {
-        throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
+        throw new Error(
+          `Migration engine error (canConnectToDatabase):\n${logs
+            .map((log) => log.fields.message)
+            .join('\n')}\n\n${_e}`,
+        )
       }
     } else {
-      throw new Error(`Migration engine exited. ${_e}`)
+      throw new Error(`Migration engine exited (canConnectToDatabase). ${_e}`)
     }
   }
 
@@ -133,10 +137,12 @@ export async function createDatabase(connectionString: string, cwd = process.cwd
       if (error && error.fields.error_code && error.fields.message) {
         throw new Error(`${error.fields.error_code}: ${error.fields.message}`)
       } else {
-        throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
+        throw new Error(
+          `Migration engine error (createDatabase):\n${logs.map((log) => log.fields.message).join('\n')}\n\n${_e}`,
+        )
       }
     } else {
-      throw new Error(`Migration engine exited. ${_e}`)
+      throw new Error(`Migration engine exited (createDatabase). ${_e}`)
     }
   }
 }
@@ -155,13 +161,17 @@ export async function dropDatabase(connectionString: string, cwd = process.cwd()
       // We should not arrive here normally
       throw Error(`An error occurred during the drop: ${JSON.stringify(result, undefined, 2)}`)
     }
-  } catch (e: any) {
-    if (e.stderr) {
-      const logs = parseJsonFromStderr(e.stderr)
+  } catch (_e: any) {
+    const e = _e as execa.ExecaError
 
-      throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
+    if (e.stderr) {
+      const logs = parseJsonFromStderr(_e.stderr)
+
+      throw new Error(
+        `Migration engine error (dropDatabase):\n${logs.map((log) => log.fields.message).join('\n')}\n\n${_e}`,
+      )
     } else {
-      throw new Error(`Migration engine exited. ${e}`)
+      throw new Error(`Migration engine exited (dropDatabase). ${_e}`)
     }
   }
 }
