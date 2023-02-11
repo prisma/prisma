@@ -116,14 +116,6 @@ export async function setupTestSuiteDatabase(
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     const dbpushParams = ['--schema', schemaPath, '--skip-generate']
-    const providerFlavor = suiteConfig.matrixOptions['providerFlavor'] as ProviderFlavor | undefined
-    // `--force-reset` is great but only using it where it's necessary makes the
-    // tests faster Since we have full isolation of tests / database, we do not
-    // need to force reset but we currently break isolation for Vitess (for
-    // faster tests), so it's good to force reset in this case
-    if (providerFlavor === ProviderFlavors.VITESS_8) {
-      dbpushParams.push('--force-reset')
-    }
     await DbPush.new().parse(dbpushParams)
 
     if (alterStatementCallback) {
@@ -230,11 +222,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   // So we can reuse the same database for all tests
   // It has a significant impact on the test runtime
   // Example: 60s -> 3s
-  if (providerFlavor === ProviderFlavors.VITESS_8) {
-    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
-  } else {
-    databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
-  }
+  databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
 
   let dataProxyUrl: string | undefined
 

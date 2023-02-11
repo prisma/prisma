@@ -108,8 +108,6 @@ async function main(): Promise<number | void> {
   // If the flag is not provided we want to ignore `relationMode` tests
   if (!args['--relation-mode-tests-only']) {
     jestArgs.push('--testPathIgnorePatterns', 'relationMode-in-separate-gh-action')
-  } else {
-    jestArgs.push('--runInBand')
   }
 
   if (args['--onlyChanged']) {
