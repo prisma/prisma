@@ -46,7 +46,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions(sqlserver)', () => 
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like pinguins' },
+          create: { bio: 'I like penguins' },
         },
       },
     })
