@@ -1,3 +1,6 @@
+import { EventEmitter } from 'events'
+
+import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
@@ -34,6 +37,7 @@ function setupMockLibraryEngine() {
   const engine = new LibraryEngine(
     {
       datamodelPath: '/mock',
+      logEmitter: new EventEmitter(),
       tracingConfig: {
         enabled: false,
         middleware: false,
@@ -89,6 +93,31 @@ jest.mock('fs', () => {
   }
 })
 
+test('responds to initialization error with PrismaClientInitializationError', async () => {
+  const loader: LibraryLoader = {
+    loadLibrary() {
+      return Promise.reject(new PrismaClientInitializationError('Initialization error', '0.0.0.'))
+    },
+  }
+
+  const engine = new LibraryEngine(
+    {
+      datamodelPath: '/mock',
+      logEmitter: new EventEmitter(),
+      tracingConfig: {
+        enabled: false,
+        middleware: false,
+      },
+      env: {},
+    },
+    loader,
+  )
+
+  await expect(engine.request({ query: 'query Foo { id }' }, { isWrite: false })).rejects.toBeInstanceOf(
+    PrismaClientInitializationError,
+  )
+})
+
 test('responds to panic GraphQL error with PrismaClientRustPanicError', async () => {
   const { engine, rustEngineMock } = setupMockLibraryEngine()
 
@@ -98,7 +127,7 @@ test('responds to panic GraphQL error with PrismaClientRustPanicError', async ()
     }),
   )
 
-  await expect(engine.request({ query: 'query Foo { id }', isWrite: false })).rejects.toBeInstanceOf(
+  await expect(engine.request({ query: 'query Foo { id }' }, { isWrite: false })).rejects.toBeInstanceOf(
     PrismaClientRustPanicError,
   )
 })
@@ -112,7 +141,7 @@ test('responds to panic GraphQL error with an error, containing github link', as
     }),
   )
 
-  await expect(engine.request({ query: 'query Foo { id }', isWrite: false })).rejects.toMatchObject({
+  await expect(engine.request({ query: 'query Foo { id }' }, { isWrite: false })).rejects.toMatchObject({
     message: expect.stringContaining('https://github.com/prisma/prisma/issues'),
   })
 })
@@ -122,7 +151,7 @@ test('responds to panic exception with PrismaClientRustPanicError', async () => 
 
   rustEngineMock.query.mockRejectedValue(panicException())
 
-  await expect(engine.request({ query: 'query Foo { id }', isWrite: false })).rejects.toBeInstanceOf(
+  await expect(engine.request({ query: 'query Foo { id }' }, { isWrite: false })).rejects.toBeInstanceOf(
     PrismaClientRustPanicError,
   )
 })
@@ -132,7 +161,7 @@ test('responds to panic exception with an error, containing github link', async 
 
   rustEngineMock.query.mockRejectedValue(panicException())
 
-  await expect(engine.request({ query: 'query Foo { id }', isWrite: false })).rejects.toMatchObject({
+  await expect(engine.request({ query: 'query Foo { id }' }, { isWrite: false })).rejects.toMatchObject({
     message: expect.stringContaining('https://github.com/prisma/prisma/issues'),
   })
 })
@@ -146,7 +175,7 @@ test('responds to known error with PrismaClientKnownRequestError', async () => {
     }),
   )
 
-  await expect(engine.request({ query: 'query Foo { id }', isWrite: false })).rejects.toBeInstanceOf(
+  await expect(engine.request({ query: 'query Foo { id }' }, { isWrite: false })).rejects.toBeInstanceOf(
     PrismaClientKnownRequestError,
   )
 })
@@ -160,7 +189,7 @@ test('responds to unknown error with PrismaClientUnknownRequestError', async () 
     }),
   )
 
-  await expect(engine.request({ query: 'query Foo { id }', isWrite: false })).rejects.toBeInstanceOf(
+  await expect(engine.request({ query: 'query Foo { id }' }, { isWrite: false })).rejects.toBeInstanceOf(
     PrismaClientUnknownRequestError,
   )
 })
@@ -174,7 +203,7 @@ test('responds to a non panic error without github link', async () => {
     }),
   )
 
-  await expect(engine.request({ query: 'query Foo { id }', isWrite: false })).rejects.toMatchObject({
+  await expect(engine.request({ query: 'query Foo { id }' }, { isWrite: false })).rejects.toMatchObject({
     message: expect.not.stringContaining('https://github.com/'),
   })
 })

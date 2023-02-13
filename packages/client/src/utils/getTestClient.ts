@@ -1,5 +1,6 @@
 import { getPlatform } from '@prisma/get-platform'
 import {
+  ClientEngineType,
   extractPreviewFeatures,
   getClientEngineType,
   getConfig,
@@ -40,6 +41,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const platform = await getPlatform()
   const clientEngineType = getClientEngineType(generator!)
+  ;(global as any).TARGET_ENGINE_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'
 
   await ensureTestClientQueryEngine(clientEngineType, platform)
 

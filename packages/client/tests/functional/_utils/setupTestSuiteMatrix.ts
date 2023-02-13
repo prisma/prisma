@@ -4,12 +4,14 @@ import path from 'path'
 import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
+import { ProviderFlavors } from './relationMode/ProviderFlavor'
 import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
-import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
+export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
 
 /**
  * How does this work from a high level? What steps?
@@ -43,7 +45,7 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: Record<string, string>, suiteMeta: TestSuiteMeta, clientMeta: ClientMeta) => void,
+  tests: (suiteConfig: Record<string, string>, suiteMeta: TestCallbackSuiteMeta, clientMeta: ClientMeta) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
@@ -59,6 +61,7 @@ function setupTestSuiteMatrix(
   })
 
   for (const { name, suiteConfig, skip } of testPlan) {
+    const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
     const describeFn = skip ? describe.skip : describe
 
     describeFn(name, () => {
@@ -73,9 +76,9 @@ function setupTestSuiteMatrix(
         globalThis['loaded'] = await setupTestSuiteClient({
           suiteMeta,
           suiteConfig,
-          skipDb: options?.skipDb,
           datasourceInfo,
           clientMeta,
+          skipDb: options?.skipDb,
           alterStatementCallback: options?.alterStatementCallback,
         })
 
@@ -118,9 +121,10 @@ function setupTestSuiteMatrix(
           }
         }
         clients.length = 0
-        if (!options?.skipDb) {
-          const datasourceInfo = globalThis['datasourceInfo']
+        if (!options?.skipDb && suiteConfig.matrixOptions['providerFlavor'] !== ProviderFlavors.VITESS_8) {
+          const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
+          process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
           await dropTestSuiteDatabase(suiteMeta, suiteConfig)
         }
         process.env = originalEnv
@@ -131,7 +135,7 @@ function setupTestSuiteMatrix(
         delete globalThis['newPrismaClient']
       }, 180_000)
 
-      tests(suiteConfig.matrixOptions, suiteMeta, clientMeta)
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta)
     })
   }
 }

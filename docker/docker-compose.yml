@@ -33,7 +33,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:1924ce05dce58173590540f9ab7f218ac7507aa4379e8feaa56738263dda7b19
+    image: vitess/vttestserver:mysql80@sha256:c951a0d0d2679f8f800a214f2a03096727fe5474370de2e9adffe6a1674862ae
     restart: always
     ports:
       - 33807:33807
@@ -49,6 +49,7 @@ services:
       NUM_SHARDS: '1' # unused in testing, but required by vttestserver
       MYSQL_BIND_HOST: '0.0.0.0'
       FOREIGN_KEY_MODE: 'disallow'
+      MYSQL_MAX_CONNECTIONS: 100000
       TABLET_REFRESH_INTERVAL: '1s'
 
   mysql:

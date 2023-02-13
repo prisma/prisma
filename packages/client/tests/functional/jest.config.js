@@ -2,8 +2,10 @@
 const os = require('os')
 const path = require('path')
 
+const packagesDir = path.resolve(__dirname, '..', '..', '..')
 const runtimeDir = path.dirname(require.resolve('../../runtime'))
-const packagesDir = path.resolve('..', '..', '..')
+
+const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 
 module.exports = () => {
   const configCommon = {
@@ -16,23 +18,29 @@ module.exports = () => {
       escapeRegex(runtimeDir),
       `${escapeRegex(packagesDir)}[\\/][^\\/]+[\\/]dist[\\/]`,
     ],
-    reporters: [
-      'default',
-      [
-        'jest-junit',
-        {
-          addFileAttribute: 'true',
-          ancestorSeparator: ' › ',
-          classNameTemplate: '{classname}',
-          titleTemplate: '{title}',
-        },
-      ],
-    ],
+    reporters: ['default'],
     globalSetup: './_utils/globalSetup.js',
-    snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
+    snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
     setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
-    testTimeout: 60_000,
+    testTimeout: isMacOrWindowsCI ? 100_000 : 30_000,
     collectCoverage: process.env.CI ? true : false,
+  }
+
+  if (process.env['JEST_JUNIT_DISABLE'] !== 'true') {
+    configCommon.reporters.push([
+      'jest-junit',
+      {
+        addFileAttribute: 'true',
+        ancestorSeparator: ' › ',
+        classNameTemplate: (vars) => {
+          return vars.classname
+            .replace(/(\(.*)provider=\w+,? ?(.*\))/, '$1$2')
+            .replace(/(\(.*)providerFlavor=\w+,? ?(.*\))/, '$1$2')
+            .replace(' ()', '')
+        },
+        titleTemplate: '{title}',
+      },
+    ])
   }
 
   if (os.platform() === 'win32') {

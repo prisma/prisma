@@ -35,6 +35,7 @@ export enum ErrorArea {
   LIFT_CLI = 'LIFT_CLI',
   // Looks unused, could probably be removed
   PHOTON_STUDIO = 'PHOTON_STUDIO',
+  // Unused since 4.9.0 and now using `LIFT_CLI`
   INTROSPECTION_CLI = 'INTROSPECTION_CLI',
   FMT_CLI = 'FMT_CLI',
   QUERY_ENGINE_BINARY_CLI = 'QUERY_ENGINE_BINARY_CLI',
@@ -50,8 +51,13 @@ export function isExecaErrorCausedByRustPanic<E extends ExecaError>(error: E) {
 }
 
 /**
+ * Branded type for Wasm panics.
+ */
+export type WasmPanic = Error & { name: 'RuntimeError' }
+
+/**
  * Returns true if the given error is a Wasm panic.
  */
-export function isWasmPanic(error: Error): boolean {
+export function isWasmPanic(error: Error): error is WasmPanic {
   return error.name === 'RuntimeError'
 }

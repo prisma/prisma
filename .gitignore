@@ -8,7 +8,6 @@ pnpm-debug.log
 sandbox
 .DS_Store
 
-introspection-engine*
 query-engine*
 migration-engine*
 libquery_engine*

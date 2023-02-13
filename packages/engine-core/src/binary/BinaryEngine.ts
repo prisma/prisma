@@ -20,6 +20,7 @@ import type {
   DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
+  EngineQuery,
   GetConfigResult,
   RequestBatchOptions,
   RequestOptions,
@@ -36,14 +37,9 @@ import { convertLog, getMessage, isRustErrorLog } from '../common/errors/utils/l
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type {
-  EngineSpanEvent,
-  QueryEngineBatchRequest,
-  QueryEngineRequestHeaders,
-  QueryEngineResult,
-  QueryEngineResultBatchQueryResult,
-} from '../common/types/QueryEngine'
+import type { EngineSpanEvent, QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
+import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets, plusX } from '../common/utils/util'
 import byline from '../tools/byline'
@@ -83,7 +79,7 @@ const socketPaths: string[] = []
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
-export class BinaryEngine extends Engine {
+export class BinaryEngine extends Engine<undefined> {
   private logEmitter: EventEmitter
   private showColors: boolean
   private logQueries: boolean
@@ -899,18 +895,22 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     return this.lastVersion
   }
 
-  async request<T>({
-    query,
-    headers = {},
-    numTry = 1,
-    isWrite,
-    transaction,
-  }: RequestOptions<undefined>): Promise<QueryEngineResult<T>> {
+  async request<T>(
+    query: EngineQuery,
+    { traceparent, numTry = 1, isWrite, interactiveTransaction }: RequestOptions<undefined>,
+  ): Promise<QueryEngineResult<T>> {
     await this.start()
+    const headers: Record<string, string> = {}
+    if (traceparent) {
+      headers.traceparent = traceparent
+    }
 
-    // TODO: we don't need the transactionId "runtime header" anymore, we can use the txInfo object here
-    this.currentRequestPromise = this.connection.post('/', stringifyQuery(query), runtimeHeadersToHttpHeaders(headers))
-    this.lastQuery = query
+    if (interactiveTransaction) {
+      headers['X-transaction-id'] = interactiveTransaction.id
+    }
+
+    this.currentRequestPromise = this.connection.post('/', stringifyQuery(query.query), headers)
+    this.lastQuery = query.query
 
     try {
       const { data, headers } = await this.currentRequestPromise
@@ -940,30 +940,33 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       // retry
       if (numTry <= MAX_REQUEST_RETRIES && shouldRetry && !isWrite) {
         logger('trying a retry now')
-        return this.request({ query, headers, numTry: numTry + 1, isWrite, transaction })
+        return this.request(query, { traceparent, numTry: numTry + 1, isWrite, interactiveTransaction })
       }
 
       throw error
     }
   }
 
-  async requestBatch<T>({
-    queries,
-    headers = {},
-    transaction,
-    numTry = 1,
-    containsWrite,
-  }: RequestBatchOptions): Promise<BatchQueryEngineResult<T>[]> {
+  async requestBatch<T>(
+    queries: EngineQuery[],
+    { traceparent, transaction, numTry = 1, containsWrite }: RequestBatchOptions<undefined>,
+  ): Promise<BatchQueryEngineResult<T>[]> {
     await this.start()
 
-    const request: QueryEngineBatchRequest = {
-      batch: queries.map((query) => ({ query, variables: {} })),
-      transaction: Boolean(transaction),
-      isolationLevel: transaction?.isolationLevel,
+    const headers: Record<string, string> = {}
+    if (traceparent) {
+      headers.traceparent = traceparent
     }
 
+    const itx = transaction?.kind === 'itx' ? transaction.options : undefined
+    if (itx) {
+      headers['X-transaction-id'] = itx.id
+    }
+
+    const request = getBatchRequestPayload(queries, transaction)
+
     this.lastQuery = JSON.stringify(request)
-    this.currentRequestPromise = this.connection.post('/', this.lastQuery, runtimeHeadersToHttpHeaders(headers))
+    this.currentRequestPromise = this.connection.post('/', this.lastQuery, headers)
 
     return this.currentRequestPromise
       .then(({ data, headers }) => {
@@ -989,9 +992,8 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         if (shouldRetry && !containsWrite) {
           // retry
           if (numTry <= MAX_REQUEST_RETRIES) {
-            return this.requestBatch({
-              queries,
-              headers,
+            return this.requestBatch(queries, {
+              traceparent,
               transaction,
               numTry: numTry + 1,
               containsWrite,
@@ -1010,9 +1012,21 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
    * @param options to change the default timeouts
    * @param info transaction information for the QE
    */
-  async transaction(action: 'start', headers: Tx.TransactionHeaders, options?: Tx.Options): Promise<Tx.Info<undefined>>
-  async transaction(action: 'commit', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
-  async transaction(action: 'rollback', headers: Tx.TransactionHeaders, info: Tx.Info<undefined>): Promise<undefined>
+  async transaction(
+    action: 'start',
+    headers: Tx.TransactionHeaders,
+    options?: Tx.Options,
+  ): Promise<Tx.InteractiveTransactionInfo<undefined>>
+  async transaction(
+    action: 'commit',
+    headers: Tx.TransactionHeaders,
+    info: Tx.InteractiveTransactionInfo<undefined>,
+  ): Promise<undefined>
+  async transaction(
+    action: 'rollback',
+    headers: Tx.TransactionHeaders,
+    info: Tx.InteractiveTransactionInfo<undefined>,
+  ): Promise<undefined>
   async transaction(action: any, headers: Tx.TransactionHeaders, arg?: any) {
     await this.start()
 
@@ -1024,11 +1038,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       })
 
       const result = await Connection.onHttpError(
-        this.connection.post<Tx.Info<undefined>>(
-          '/transaction/start',
-          jsonOptions,
-          runtimeHeadersToHttpHeaders(headers),
-        ),
+        this.connection.post<Tx.InteractiveTransactionInfo<undefined>>('/transaction/start', jsonOptions, headers),
         (result) => this.transactionHttpErrorHandler(result),
       )
 
@@ -1187,18 +1197,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
 // faster than creating a new object and JSON.stringify it all the time
 function stringifyQuery(q: string) {
   return `{"variables":{},"query":${JSON.stringify(q)}}`
-}
-
-/**
- * Convert runtime headers to HTTP headers expected by the Query Engine.
- */
-function runtimeHeadersToHttpHeaders(headers: QueryEngineRequestHeaders): Record<string, string | undefined> {
-  if (headers.transactionId) {
-    const { transactionId, ...httpHeaders } = headers
-    httpHeaders['X-transaction-id'] = transactionId
-    return httpHeaders
-  }
-  return headers
 }
 
 function hookProcess(handler: string, exit = false) {

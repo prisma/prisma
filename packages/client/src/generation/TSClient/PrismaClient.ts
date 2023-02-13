@@ -100,7 +100,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     const queryArgs = `runtime.Types.Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model'][${modelName}][${operationName}]['args']>`
     const queryResult = `Prisma.TypeMap<ExtArgs>['model'][${modelName}][${operationName}]['result']`
     const inputQueryBase = `model: ${modelName}, operation: ${operationName}, args: ${queryArgs}`
-    const inputQueryCbBase = `query: (args: ${queryArgs}) => PrismaPromise<${queryResult}>`
+    const inputQueryCbBase = `query: (args: ${queryArgs}) => Prisma.PrismaPromise<${queryResult}>`
     const inputQuery = `{ ${inputQueryBase}, ${inputQueryCbBase} }`
 
     return `(args: ${inputQuery}) => Promise<${queryResult}>`
@@ -259,7 +259,22 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
   const returnType = ts.promise(ts.namedType('R'))
   const callbackType = ts
     .functionType()
-    .addParameter(ts.parameter('prisma', ts.namedType('Prisma.TransactionClient')))
+    .addParameter(
+      ts.parameter(
+        'prisma',
+        ts
+          .namedType('Omit')
+          .addGenericArgument(ts.namedType('this'))
+          .addGenericArgument(
+            ts
+              .unionType(ts.stringLiteral('$connect'))
+              .addVariant(ts.stringLiteral('$disconnect'))
+              .addVariant(ts.stringLiteral('$on'))
+              .addVariant(ts.stringLiteral('$transaction'))
+              .addVariant(ts.stringLiteral('$use')),
+          ),
+      ),
+    )
     .setReturnType(returnType)
 
   const method = ts
@@ -288,7 +303,7 @@ function queryRawDefinition(this: PrismaClientClass) {
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
-  $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<T>;
+  $queryRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<T>;
 
   /**
    * Performs a raw query and returns the \`SELECT\` data.
@@ -300,7 +315,7 @@ function queryRawDefinition(this: PrismaClientClass) {
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
-  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<T>;`
+  $queryRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<T>;`
 }
 
 function executeRawDefinition(this: PrismaClientClass) {
@@ -319,7 +334,7 @@ function executeRawDefinition(this: PrismaClientClass) {
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
-  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): PrismaPromise<number>;
+  $executeRaw<T = unknown>(query: TemplateStringsArray | Prisma.Sql, ...values: any[]): Prisma.PrismaPromise<number>;
 
   /**
    * Executes a raw query and returns the number of affected rows.
@@ -331,7 +346,7 @@ function executeRawDefinition(this: PrismaClientClass) {
    * 
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/raw-database-access).
    */
-  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): PrismaPromise<number>;`
+  $executeRawUnsafe<T = unknown>(query: string, ...values: any[]): Prisma.PrismaPromise<number>;`
 }
 
 function metricDefinition(this: PrismaClientClass) {
@@ -561,10 +576,6 @@ export interface PrismaClientOptions {
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
    */
   log?: Array<LogLevel | LogDefinition>
-}
-
-export type Hooks = {
-  beforeRequest?: (options: { query: string, path: string[], rootField?: string, typeName?: string, document: any }) => any
 }
 
 /* Types for Logging */

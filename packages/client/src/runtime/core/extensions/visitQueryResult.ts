@@ -1,19 +1,13 @@
 import { DMMF } from '@prisma/generator-helper'
 
 import { BaseDMMFHelper } from '../../dmmf'
+import { JsArgs, Selection } from '../types/JsApi'
 
-export type IncludeSelect = {
-  select?: Selection
-  include?: Selection
-}
-
-export type Selection = Record<string, boolean | IncludeSelect>
-
-type ModelVisitor = (value: object, model: DMMF.Model, queryArgs: IncludeSelect) => object | undefined
+type ModelVisitor = (value: object, model: DMMF.Model, queryArgs: JsArgs) => object | undefined
 
 type VisitParams = {
   result: object
-  args: IncludeSelect
+  args: JsArgs
   model: DMMF.Model
   dmmf: BaseDMMFHelper
   visitor: ModelVisitor
@@ -53,7 +47,7 @@ export function visitQueryResult({ visitor, result, args, dmmf, model }: VisitPa
 }
 
 type VisitNestedParams = {
-  includeOrSelect: IncludeSelect
+  includeOrSelect: Selection
   result: object
   parentModel: DMMF.Model
   dmmf: BaseDMMFHelper

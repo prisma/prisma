@@ -1,5 +1,21 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`--schema from parent directory --generator: should fail - multiple invalid generator names 1`] = `The generators invalid_client, invalid_client_2 specified via --generator do not exist in your Prisma schema`;
+
+exports[`--schema from parent directory --generator: should fail - single invalid generator name 1`] = `The generator invalid_client specified via --generator does not exist in your Prisma schema`;
+
+exports[`--schema from parent directory --generator: should work - valid generator names 1`] = `
+
+✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./generated/client in XXXms
+
+✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./generated/client_3 in XXXms
+You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+\`\`\`
+import { PrismaClient } from './generated/client'
+const prisma = new PrismaClient()
+\`\`\`
+`;
+
 exports[`using cli should work with a custom output dir 1`] = `
 Prisma schema loaded from prisma/schema.prisma
 

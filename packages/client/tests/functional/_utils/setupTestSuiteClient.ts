@@ -1,8 +1,7 @@
-import { getConfig, parseEnvValue } from '@prisma/internals'
+import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import path from 'path'
 
 import { generateClient } from '../../../src/generation/generateClient'
-import { getDMMF } from '../../../src/generation/getDMMF'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import {
   getTestSuiteFolderPath,
@@ -23,16 +22,16 @@ import { AlterStatementCallback, ClientMeta, ClientRuntime } from './types'
 export async function setupTestSuiteClient({
   suiteMeta,
   suiteConfig,
-  skipDb,
   datasourceInfo,
   clientMeta,
+  skipDb,
   alterStatementCallback,
 }: {
   suiteMeta: TestSuiteMeta
   suiteConfig: NamedTestSuiteConfig
-  skipDb?: boolean
   datasourceInfo: DatasourceInfo
   clientMeta: ClientMeta
+  skipDb?: boolean
   alterStatementCallback?: AlterStatementCallback
 }) {
   const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
@@ -44,6 +43,9 @@ export async function setupTestSuiteClient({
 
   await setupTestSuiteFiles(suiteMeta, suiteConfig)
   await setupTestSuiteSchema(suiteMeta, suiteConfig, schema)
+
+  process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
+
   if (!skipDb) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
     await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)

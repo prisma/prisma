@@ -30,7 +30,7 @@ const args = arg(
     '--no-mini-proxy-server': Boolean,
     // Enable debug logs in the bundled Mini-Proxy server
     '--mini-proxy-debug': Boolean,
-    // Since `relationMode` tests need to be run with 2 different values
+    // Since `relationMode-in-separate-gh-action` tests need to be run with 2 different values
     // `foreignKeys` and `prisma`
     // We run them separately in a GitHub Action matrix for now
     // Also the typescript tests fail and it might not be easily fixable
@@ -106,8 +106,10 @@ async function main(): Promise<number | void> {
 
   // See flag description above.
   // If the flag is not provided we want to ignore `relationMode` tests
-  if (!args['--relation-mode-tests-only']) {
-    jestArgs.push('--testPathIgnorePatterns', 'relationMode')
+  if (args['--relation-mode-tests-only']) {
+    jestArgs.push('--runInBand')
+  } else {
+    jestArgs.push('--testPathIgnorePatterns', 'relationMode-in-separate-gh-action')
   }
 
   if (args['--onlyChanged']) {
@@ -132,6 +134,8 @@ async function main(): Promise<number | void> {
       }
 
       if (!args['--no-types']) {
+        // Disable JUnit output for typescript tests
+        process.env.JEST_JUNIT_DISABLE = 'true'
         jestCli.withArgs(['--', 'typescript']).run()
       }
     }

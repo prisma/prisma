@@ -51,38 +51,6 @@ describe('middleware', () => {
     await db.$disconnect()
   })
 
-  test('engine middleware', async () => {
-    const PrismaClient = await getTestClient()
-    const db = new PrismaClient()
-
-    const engineResults: any[] = []
-
-    db.$use('engine', async (params, next) => {
-      const result = await next(params)
-      engineResults.push(result)
-      return result
-    })
-
-    await db.user.findMany()
-    await db.post.findMany()
-    expect(engineResults.map((r) => r.data)).toEqual([
-      {
-        data: {
-          findManyUser: [],
-        },
-      },
-      {
-        data: {
-          findManyPost: [],
-        },
-      },
-    ])
-    expect(typeof engineResults[0].elapsed).toEqual('number')
-    expect(typeof engineResults[1].elapsed).toEqual('number')
-
-    await db.$disconnect()
-  })
-
   test('modify params', async () => {
     const PrismaClient = await getTestClient()
     const db = new PrismaClient()

@@ -33,7 +33,6 @@ function buildDirnameFind(defaultRelativeOutdir: string, runtimePath: string) {
   const serverlessRelativeOutdir = defaultRelativeOutdir.split(path.sep).slice(1).join(path.sep)
 
   return `
-const { findSync } = require('${runtimePath}')
 const fs = require('fs')
 
 // some frameworks or bundlers replace or totally remove __dirname
