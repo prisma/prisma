@@ -55,27 +55,13 @@ setupTestSuite(({ contentProperty }) => {
     })
 
     if (contentProperty === 'required') {
-<<<<<<< HEAD
-      await expect(result).rejects.toThrow(
-        expect.objectContaining({
-          message: expect.stringContaining('Argument set for data.content.set must not be null'),
-        }),
-      )
-||||||| parent of d0c72a525 (Skip validation composite errors)
-      await expect(result).rejects.toThrowError(
-        expect.objectContaining({
-          message: expect.stringContaining('Argument set for data.0.content.set must not be null'),
-        }),
-      )
-=======
       if (getQueryEngineProtocol() !== 'json') {
         await expect(result).rejects.toThrow(
           expect.objectContaining({
-            message: expect.stringContaining('Argument set for data.0.content.set must not be null'),
+            message: expect.stringContaining('Argument set for data.content.set must not be null'),
           }),
         )
       }
->>>>>>> d0c72a525 (Skip validation composite errors)
     } else {
       await expect(result).resolves.toEqual({ count: 1 })
     }
@@ -91,19 +77,6 @@ setupTestSuite(({ contentProperty }) => {
     })
 
     if (contentProperty === 'required') {
-<<<<<<< HEAD
-      await expect(comment).rejects.toThrow(
-        expect.objectContaining({
-          message: expect.stringContaining('Got invalid value null on prisma.createManyComment'),
-        }),
-      )
-||||||| parent of d0c72a525 (Skip validation composite errors)
-      await expect(comment).rejects.toThrowError(
-        expect.objectContaining({
-          message: expect.stringContaining('Got invalid value null on prisma.createManyComment'),
-        }),
-      )
-=======
       if (getQueryEngineProtocol() !== 'json') {
         await expect(comment).rejects.toThrow(
           expect.objectContaining({
@@ -111,7 +84,6 @@ setupTestSuite(({ contentProperty }) => {
           }),
         )
       }
->>>>>>> d0c72a525 (Skip validation composite errors)
     } else {
       await expect(comment).resolves.toEqual({ count: 1 })
     }
