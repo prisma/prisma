@@ -17,7 +17,7 @@ import {
   SpanOptions,
   TracingConfig,
 } from '@prisma/engine-core'
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
@@ -301,6 +301,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _clientEngineType: ClientEngineType
     _tracingConfig: TracingConfig
     _metrics: MetricsClient
+    _getConfigPromise?: Promise<{
+      datasources: DataSource[]
+      generators: GeneratorConfig[]
+    }>
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
@@ -435,6 +439,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         this._engine = this.getEngine()
+        void this._getActiveProvider()
 
         this._fetcher = new RequestHandler(this, logEmitter) as any
 
@@ -529,6 +534,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       delete this._connectionPromise
       this._engine = this.getEngine()
       delete this._disconnectionPromise
+      delete this._getConfigPromise
     }
 
     /**
@@ -549,6 +555,15 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         if (!this._dataProxy) {
           this._dmmf = undefined
         }
+      }
+    }
+
+    async _getActiveProvider(): Promise<void> {
+      try {
+        const configResult = await this._engine.getConfig()
+        this._activeProvider = configResult.datasources[0].activeProvider
+      } catch (e) {
+        // it's ok to silently fail
       }
     }
 

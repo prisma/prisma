@@ -15,8 +15,11 @@ testMatrix.setupTestSuite(
     skipDefaultClientInstance: true,
     skipDb: true,
     skipDataProxy: {
-      runtimes: ['edge', 'node'],
-      reason: 'Data Proxy has always failed in this case. Will fix later.',
+      runtimes: ['node', 'edge'],
+      reason: `
+        Fails with Data Proxy: error is an instance of InvalidDatasourceError
+        Datasource "db" references an environment variable "INVALID_DATABASE_URI" that is not set.
+      `,
     },
   },
 )

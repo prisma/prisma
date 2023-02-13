@@ -116,12 +116,11 @@ export async function setupTestSuiteDatabase(
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     const dbpushParams = ['--schema', schemaPath, '--skip-generate']
-    const providerFlavor = suiteConfig['providerFlavor'] as ProviderFlavor | undefined
-    // `--force-reset` is great but only using it where necessary makes the tests faster
-    // Since we have full isolation of tests / database,
-    // we do not need to force reset
-    // But we currently break isolation for Vitess (for faster tests),
-    // so it's good to force reset in this case
+    const providerFlavor = suiteConfig.matrixOptions['providerFlavor'] as ProviderFlavor | undefined
+    // `--force-reset` is great but only using it where it's necessary makes the
+    // tests faster Since we have full isolation of tests / database, we do not
+    // need to force reset but we currently break isolation for Vitess (for
+    // faster tests), so it's good to force reset in this case
     if (providerFlavor === ProviderFlavors.VITESS_8) {
       dbpushParams.push('--force-reset')
     }
@@ -191,6 +190,7 @@ export async function dropTestSuiteDatabase(
 }
 
 export type DatasourceInfo = {
+  directEnvVarName: string
   envVarName: string
   databaseUrl: string
   dataProxyUrl?: string
@@ -222,6 +222,9 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
       return { envVarName, newURI }
     })
 
+  // when testing with `directUrl` is required
+  const directEnvVarName = `DIRECT_${envVarName}`
+
   let databaseUrl = newURI
   // Vitess takes about 1 minute to create a database the first time
   // So we can reuse the same database for all tests
@@ -232,6 +235,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   } else {
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
   }
+
   let dataProxyUrl: string | undefined
 
   if (clientMeta.dataProxy) {
@@ -243,6 +247,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   }
 
   return {
+    directEnvVarName,
     envVarName,
     databaseUrl,
     dataProxyUrl,
