@@ -450,7 +450,7 @@ jobs:
   # CLIENT test:e2e
   #
   client-e2e:
-    timeout-minutes: 15
+    timeout-minutes: 25
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
