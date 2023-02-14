@@ -466,7 +466,7 @@ jobs:
       - uses: actions/checkout@v3
 
       # Not currently needed, but we might need it in the future
-      # - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
