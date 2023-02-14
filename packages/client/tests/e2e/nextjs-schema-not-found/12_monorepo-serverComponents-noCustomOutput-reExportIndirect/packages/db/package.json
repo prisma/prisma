@@ -8,9 +8,9 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "18.11.18",
-    "prisma": "4.9.0"
+    "prisma": "../prisma-0.0.0.tgz"
   },
   "dependencies": {
-    "@prisma/client": "4.9.0"
+    "@prisma/client": "../prisma-client-0.0.0.tgz"
   }
 }
