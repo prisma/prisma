@@ -95,14 +95,14 @@ async function main() {
   const errors = findErrors.stdout.split('\n').filter((v) => v.length > 0)
   const success = findSuccess.stdout.split('\n').filter((v) => v.length > 0)
   if (errors.length > 0) {
-    console.log(`🛑 ${errors.length} tests failed with`, errors)
-
     if (args['--verbose'] === true) {
       for (const error of errors) {
         console.log(`📄 ${error}`)
         await $`cat ${error}`
       }
     }
+
+    console.log(`🛑 ${errors.length} tests failed with`, errors)
 
     process.exit(1)
   } else {
