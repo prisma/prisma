@@ -7,7 +7,6 @@ import {
 } from '@prisma/engine-core'
 import { DMMF } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
-import Decimal from 'decimal.js'
 
 import { BaseDMMFHelper } from '../../../dmmf'
 import { ObjectEnumValue, objectEnumValues } from '../../../object-enums'
@@ -88,20 +87,24 @@ function serializeSelectionSet(
   }
 
   if (include) {
-    for (const [key, value] of Object.entries(include)) {
-      if (value === true) {
-        selectionSet[key] = {
-          selection: {
-            $composites: true,
-            $scalars: true,
-          },
-        }
-      } else if (typeof value === 'object') {
-        selectionSet[key] = serializeFieldSelection(value, context.atField(key))
-      }
-    }
+    addIncludedRelations(selectionSet, include, context)
   }
   return selectionSet
+}
+
+function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection, context: SerializeContext) {
+  for (const [key, value] of Object.entries(include)) {
+    if (value === true) {
+      selectionSet[key] = {
+        selection: {
+          $composites: true,
+          $scalars: true,
+        },
+      }
+    } else if (typeof value === 'object') {
+      selectionSet[key] = serializeFieldSelection(value, context.atField(key))
+    }
+  }
 }
 
 function createExplicitSelection(select: Selection, context: SerializeContext) {

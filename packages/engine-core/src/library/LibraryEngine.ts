@@ -475,7 +475,6 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
-    // const request: QueryEngineRequest = { query: query.query, variables: {} }
     const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
     const queryStr = JSON.stringify(query)
 

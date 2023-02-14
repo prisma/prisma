@@ -886,8 +886,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       headers['X-transaction-id'] = interactiveTransaction.id
     }
 
-    this.currentRequestPromise = this.connection.post('/', JSON.stringify(query), headers)
-    // this.lastQuery = query.query
+    const queryStr = JSON.stringify(query)
+    this.currentRequestPromise = this.connection.post('/', queryStr, headers)
+    this.lastQuery = queryStr
 
     try {
       const { data, headers } = await this.currentRequestPromise
