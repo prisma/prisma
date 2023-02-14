@@ -24,10 +24,10 @@ testIf(getQueryEngineProtocol() !== 'json')('invalid-input', async () => {
       Invalid \`prisma.user.create()\` invocation in
       /client/src/__tests__/integration/errors/invalid-input/test.ts:0:0
 
-         7 await prisma.user.deleteMany()
-         8 
-         9 try {
-      → 10   await prisma.user.create({
+        10 await prisma.user.deleteMany()
+        11 
+        12 try {
+      → 13   await prisma.user.create({
                data: {
                  email: 'a@a.de',
                  posts: {

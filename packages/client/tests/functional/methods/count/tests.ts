@@ -117,9 +117,9 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       Invalid \`prisma.user.count()\` invocation in
       /client/tests/functional/methods/count/tests.ts:0:0
 
-         XX })
+        XX })
         XX 
-        XX testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
+        XX testIf(clientMeta.runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('bad prop', async () => {
       → XX   const err = prisma.user.count({
                 select: {
                   _count: {

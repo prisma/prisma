@@ -30,10 +30,10 @@ testIf(getQueryEngineProtocol() !== 'json')('union validation', async () => {
       Invalid \`prisma.organization.create()\` invocation in
       /client/src/__tests__/integration/errors/union-validation/test.ts:0:0
 
-         8 const prisma = new PrismaClient()
-         9 
-        10 try {
-      → 11   await prisma.organization.create({
+        10 const prisma = new PrismaClient()
+        11 
+        12 try {
+      → 13   await prisma.organization.create({
                data: {
                  fullName: 'name',
                  accounts: {
