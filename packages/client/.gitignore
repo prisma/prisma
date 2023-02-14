@@ -14,5 +14,5 @@ junit.xml
 .cache
 prisma-0.0.0.tgz
 prisma-client-0.0.0.tgz
-.logs.txt
-.logs.*.txt
+LOGS.txt
+LOGS.*.txt

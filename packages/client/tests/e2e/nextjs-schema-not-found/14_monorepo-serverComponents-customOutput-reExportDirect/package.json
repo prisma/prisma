@@ -1,0 +1,6 @@
+{
+  "devDependencies": {
+    "@prisma/client": "4.9.0",
+    "prisma": "4.9.0"
+  }
+}

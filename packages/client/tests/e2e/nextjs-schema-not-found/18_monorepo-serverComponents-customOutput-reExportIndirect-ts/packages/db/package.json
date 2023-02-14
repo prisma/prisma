@@ -1,0 +1,16 @@
+{
+  "name": "db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {},
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "18.11.18",
+    "prisma": "4.9.0"
+  },
+  "dependencies": {
+    "@prisma/client": "4.9.0"
+  }
+}

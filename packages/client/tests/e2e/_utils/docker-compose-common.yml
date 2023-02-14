@@ -1,10 +1,12 @@
 services:
   test:
+    # network_mode: "host"
     build:
       dockerfile: ./standard.dockerfile
     volumes:
       - ../:/e2e
       - ../../../:/client
+      - ../../../../../:/repo
       - ../.cache:/root/.cache
       - ../.cache/pnpmcache:/root/.local/share/pnpm/store/v3
       - ../.cache/npmcache:/root/.npm
