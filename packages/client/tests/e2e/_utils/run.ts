@@ -33,11 +33,17 @@ async function main() {
   }
 
   console.log('🧹 Cleaning up old files')
-  await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
-  await $`docker compose -f ${__dirname}/docker-compose-clean.yml build`
-  await $`docker compose -f ${__dirname}/docker-compose-clean.yml up`
 
-  if (args['--clean'] === true) return
+  if (args['--clean'] === true) {
+    await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
+    await $`docker compose -f ${__dirname}/docker-compose-clean.yml build full-clean`
+    await $`docker compose -f ${__dirname}/docker-compose-clean.yml up full-clean`
+    return
+  } else {
+    await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
+    await $`docker compose -f ${__dirname}/docker-compose-clean.yml build pre-clean`
+    await $`docker compose -f ${__dirname}/docker-compose-clean.yml up pre-clean`
+  }
 
   console.log('🎠 Preparing e2e tests')
   // we first get all the paths we are going to need to run e2e tests

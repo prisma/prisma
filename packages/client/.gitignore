@@ -4,7 +4,6 @@
 /runtime
 /tests/memory/memory-report.html
 
-pnpm-lock.yaml
 *.tsbuildinfo
 junit.xml
 .DS_Store

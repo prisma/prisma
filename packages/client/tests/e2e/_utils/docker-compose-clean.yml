@@ -2,7 +2,18 @@ version: '3.7'
 
 services:
   # not an actual service, just a helper to clean up the workspace
-  clean:
+  pre-clean:
+    image: alpine
+    command:
+      - /bin/sh
+      - -c
+      - |
+        rm -fr /e2e/*.tgz
+        find /e2e -name "LOGS*.txt" -type f -exec rm -fr {} +
+    volumes:
+      - ../:/e2e
+
+  full-clean:
     image: alpine
     command:
       - /bin/sh
@@ -10,6 +21,6 @@ services:
       - |
         rm -fr /e2e/.cache
         rm -fr /e2e/*.tgz
-        find /e2e -name ".logs.*.txt" -type f -exec rm -fr {} +
+        find /e2e -name "LOGS*.txt" -type f -exec rm -fr {} +
     volumes:
       - ../:/e2e
