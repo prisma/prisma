@@ -3,7 +3,7 @@ import fs from 'fs/promises'
 import glob from 'globby'
 import os from 'os'
 import path from 'path'
-import { $, ProcessOutput } from 'zx'
+import { $, ProcessOutput, sleep } from 'zx'
 
 const args = arg(
   process.argv.slice(2),
@@ -110,7 +110,8 @@ async function main() {
   await $`docker build -f ${__dirname}/standard.dockerfile -t prisma-e2e-test-runner .`
 
   const dockerJobs = e2eTestNames.map((path) => {
-    return () => $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
+    return async () =>
+      await $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
   })
 
   let jobResults: (ProcessOutput & { name: string })[] = []
@@ -134,6 +135,7 @@ async function main() {
     for (const result of failedJobResults) {
       console.log(`🛑 ${result.name} failed with exit code`, result.exitCode)
       await $`cat ${path.resolve(__dirname, '..', result.name, 'LOGS.txt')}`
+      await sleep(50)
     }
   }
 
