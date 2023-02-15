@@ -12,12 +12,18 @@ import { handleLibraryLoadingErrors } from '../common/errors/utils/handleEngineL
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets } from '../common/utils/util'
 import { Library, LibraryLoader } from './types/Library'
+import { timeElapsedInMs } from './utils'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
 
 export function load<T>(id: string): T {
+  const engineSize = fs.statSync(id).size
+  const timeStartHr = process.hrtime.bigint()
   // this require needs to be resolved at runtime, tell webpack to ignore it
-  return eval('require')(id) as T
+  const library = eval('require')(id) as T
+  const timeEndHr = process.hrtime.bigint()
+  debug(`loaded ${id} (${engineSize} bytes) in ${timeElapsedInMs(timeStartHr, timeEndHr)} ms`)
+  return library
 }
 
 export class DefaultLibraryLoader implements LibraryLoader {

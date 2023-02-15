@@ -45,6 +45,7 @@ import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
+import { timeElapsedInMs } from './utils'
 
 const debug = Debug('prisma:client:libraryEngine')
 
@@ -238,6 +239,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
         // `this.engine` field will prevent native instance from being GCed. Using weak ref helps
         // to avoid this cycle
         const weakThis = new WeakRef(this)
+        const startTime = process.hrtime.bigint()
         this.engine = new this.QueryEngineConstructor(
           {
             datamodel: this.datamodel,
@@ -252,6 +254,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
             weakThis.deref()?.logger(log)
           },
         )
+        const endTime = process.hrtime.bigint()
+        debug(`engine constructor took ${timeElapsedInMs(startTime, endTime)} ms`)
         engineInstanceCount++
       } catch (_e) {
         const e = _e as Error
@@ -363,8 +367,11 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
           traceparent: getTraceParent({ tracingConfig: this.config.tracingConfig }),
         }
 
+        const startTime = process.hrtime.bigint()
         // TODO: not used yet by the engine
         await this.engine?.connect(JSON.stringify(headers))
+        const endTime = process.hrtime.bigint()
+        debug(`engine.connect took ${timeElapsedInMs(startTime, endTime)} ms`)
 
         this.libraryStarted = true
 
