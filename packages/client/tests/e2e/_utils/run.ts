@@ -8,7 +8,10 @@ import { $ } from 'zx'
 const args = arg(
   process.argv.slice(2),
   {
+    // see which comman,ds are run and the outputs of the failures
     '--verbose': Boolean,
+    // like run jest in band, useful for debugging and CI
+    '--runInBand': Boolean,
     // do not fully build cli and client packages before packing
     '--skipBuild': Boolean,
     // a way to cleanup created files that also works on linux
@@ -24,10 +27,13 @@ async function main() {
     process.exit(1)
   }
 
+  args['--runInBand'] = args['--runInBand'] ?? false
   args['--verbose'] = args['--verbose'] ?? false
   args['--skipBuild'] = args['--skipBuild'] ?? false
   args['--clean'] = args['--clean'] ?? false
   $.verbose = args['--verbose']
+
+  console.log(args['--runInBand'])
 
   if (args['--verbose'] === true) {
     await $`docker -v`
@@ -111,16 +117,25 @@ async function main() {
     return $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`
   })
 
-  const jobResults = (await Promise.allSettled(dockerJobs)).map((v, i) => Object.assign(v, { name: e2eTestNames[i] }))
-  const failedJobResults = jobResults.filter((r) => r.status === 'rejected') as (PromiseRejectedResult & {
-    name: string
-  })[]
-  const passedJobResults = jobResults.filter((r) => r.status === 'fulfilled') as (PromiseFulfilledResult<any> & {
-    name: string
-  })[]
+  let jobResults: (PromiseSettledResult<any> & { name: string })[] = []
+  if (args['--runInBand'] === true) {
+    console.log('🏃 Running tests in band')
+    for (const [index, job] of dockerJobs.entries()) {
+      const result = await Promise.allSettled([job]).then((v) => v[0])
+      jobResults.push(Object.assign(result, { name: e2eTestNames[index] }))
+    }
+  } else {
+    console.log('🏃 Running tests in parallel')
+    jobResults = (await Promise.allSettled(dockerJobs)).map((v, i) => {
+      return Object.assign(v, { name: e2eTestNames[i] })
+    })
+  }
+
+  const failedJobResults = jobResults.filter((r) => r.status === 'rejected')
+  const passedJobResults = jobResults.filter((r) => r.status === 'fulfilled')
 
   if (args['--verbose'] === true) {
-    for (const result of failedJobResults) {
+    for (const result of failedJobResults as (PromiseRejectedResult & { name: string })[]) {
       console.log(`🛑 ${result.name} failed with exit code`, result.reason.exitCode)
       await $`cat ${path.resolve(__dirname, '..', result.name, 'LOGS.txt')}`
     }
