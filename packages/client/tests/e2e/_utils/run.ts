@@ -99,30 +99,30 @@ async function main() {
   }
 
   const dockerVolumes = [
-    `${path.resolve(__dirname, '..')}/:/e2e`,
-    `${path.resolve(__dirname, '..', '..', '..')}/:/client`,
-    `${path.resolve(__dirname, '..', '..', '..', '..', '..')}/:/repo`,
-    `${path.resolve(__dirname, '..', '.cache')}/:/root/.cache`,
-    `${(await $`pnpm store path`.quiet()).stdout.trim()}/:/root/.local/share/pnpm/store/v3`,
-    `${path.resolve(__dirname, '..', '.cache', 'npmcache')}/:/root/.npm`,
+    `${path.resolve(__dirname, '..')}:/e2e`,
+    `${path.resolve(__dirname, '..', '..', '..')}:/client`,
+    `${path.resolve(__dirname, '..', '..', '..', '..', '..')}:/repo`,
+    `${path.resolve(__dirname, '..', '.cache')}:/root/.cache`,
+    `${(await $`pnpm store path`.quiet()).stdout.trim()}:/root/.local/share/pnpm/store/v3`,
   ]
   const dockerVolumeArgs = dockerVolumes.map((v) => `-v ${v}`).join(' ')
 
   await $`docker build -f ${__dirname}/standard.dockerfile -t prisma-e2e-test-runner .`
 
   const dockerJobs = e2eTestNames.map((path) => {
-    return $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
+    return () => $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
   })
 
   let jobResults: (ProcessOutput & { name: string })[] = []
   if (args['--runInBand'] === true) {
     console.log('🏃 Running tests in band')
     for (const [i, job] of dockerJobs.entries()) {
-      jobResults.push(Object.assign(await job, { name: e2eTestNames[i] }))
+      console.log(`💡 Running test ${i + 1}/${dockerJobs.length}`)
+      jobResults.push(Object.assign(await job(), { name: e2eTestNames[i] }))
     }
   } else {
     console.log('🏃 Running tests in parallel')
-    jobResults = (await Promise.all(dockerJobs)).map((result, i) => {
+    jobResults = (await Promise.all(dockerJobs.map((job) => job()))).map((result, i) => {
       return Object.assign(result, { name: e2eTestNames[i] })
     })
   }
