@@ -3,7 +3,7 @@ import fs from 'fs/promises'
 import glob from 'globby'
 import os from 'os'
 import path from 'path'
-import { $ } from 'zx'
+import { $, ProcessOutput, ProcessPromise } from 'zx'
 
 const args = arg(
   process.argv.slice(2),
@@ -114,29 +114,28 @@ async function main() {
   await $`docker build -f ${__dirname}/standard.dockerfile -t prisma-e2e-test-runner .`
 
   const dockerJobs = e2eTestNames.map((path) => {
-    return $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`
+    return $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`.nothrow()
   })
 
-  let jobResults: (PromiseSettledResult<any> & { name: string })[] = []
+  let jobResults: (ProcessOutput & { name: string })[] = []
   if (args['--runInBand'] === true) {
     console.log('🏃 Running tests in band')
-    for (const [index, job] of dockerJobs.entries()) {
-      const result = await Promise.allSettled([job]).then((v) => v[0])
-      jobResults.push(Object.assign(result, { name: e2eTestNames[index] }))
+    for (const [i, job] of dockerJobs.entries()) {
+      jobResults.push(Object.assign(await job, { name: e2eTestNames[i] }))
     }
   } else {
     console.log('🏃 Running tests in parallel')
-    jobResults = (await Promise.allSettled(dockerJobs)).map((v, i) => {
-      return Object.assign(v, { name: e2eTestNames[i] })
+    jobResults = (await Promise.all(dockerJobs)).map((result, i) => {
+      return Object.assign(result, { name: e2eTestNames[i] })
     })
   }
 
-  const failedJobResults = jobResults.filter((r) => r.status === 'rejected')
-  const passedJobResults = jobResults.filter((r) => r.status === 'fulfilled')
+  const failedJobResults = jobResults.filter((r) => r.exitCode !== 0)
+  const passedJobResults = jobResults.filter((r) => r.exitCode === 0)
 
   if (args['--verbose'] === true) {
-    for (const result of failedJobResults as (PromiseRejectedResult & { name: string })[]) {
-      console.log(`🛑 ${result.name} failed with exit code`, result.reason.exitCode)
+    for (const result of failedJobResults) {
+      console.log(`🛑 ${result.name} failed with exit code`, result.exitCode)
       await $`cat ${path.resolve(__dirname, '..', result.name, 'LOGS.txt')}`
     }
   }
