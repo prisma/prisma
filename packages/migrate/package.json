@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.11.0-23.1f2d45908d671ccbc5329131ec18665c16cc0cdd",
+    "@prisma/engines-version": "4.11.0-24.integration-capture-wasm-panics-543bfdafb66aa4ce6a35f6056bb4f7588c921df2",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.32",
