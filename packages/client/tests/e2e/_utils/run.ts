@@ -3,7 +3,7 @@ import fs from 'fs/promises'
 import glob from 'globby'
 import os from 'os'
 import path from 'path'
-import { $, ProcessOutput, ProcessPromise } from 'zx'
+import { $, ProcessOutput } from 'zx'
 
 const args = arg(
   process.argv.slice(2),
@@ -33,8 +33,6 @@ async function main() {
   args['--clean'] = args['--clean'] ?? false
   $.verbose = args['--verbose']
 
-  console.log(args['--runInBand'])
-
   if (args['--verbose'] === true) {
     await $`docker -v`
   }
@@ -43,7 +41,6 @@ async function main() {
   if (args['--clean'] === true) {
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml up full-clean`
-    return
   } else {
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml up pre-clean`
@@ -106,7 +103,7 @@ async function main() {
     `${path.resolve(__dirname, '..', '..', '..')}/:/client`,
     `${path.resolve(__dirname, '..', '..', '..', '..', '..')}/:/repo`,
     `${path.resolve(__dirname, '..', '.cache')}/:/root/.cache`,
-    `${path.resolve(__dirname, '..', '.cache', 'pnpmcache')}/:/root/.local/share/pnpm/store/v3`,
+    `${(await $`pnpm store path`.quiet()).stdout.trim()}/:/root/.local/share/pnpm/store/v3`,
     `${path.resolve(__dirname, '..', '.cache', 'npmcache')}/:/root/.npm`,
   ]
   const dockerVolumeArgs = dockerVolumes.map((v) => `-v ${v}`).join(' ')
