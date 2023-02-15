@@ -51,7 +51,6 @@ export class DefaultLibraryLoader implements LibraryLoader {
   }
 
   private async getLibQueryEnginePath(): Promise<string> {
-    // TODO Document ENV VAR
     const libPath = process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
     if (libPath && fs.existsSync(libPath) && libPath.endsWith('.node')) {
       return libPath
