@@ -143,7 +143,7 @@ async function main() {
     console.log(`✅ ${passedJobResults.length}/${jobResults.length} tests passed`)
     console.log(`🛑 ${failedJobResults.length}/${jobResults.length} tests failed`, failedJobLogPaths)
 
-    process.exit(1)
+    throw new Error('Some tests exited with a non-zero exit code')
   } else {
     console.log(`✅ All ${passedJobResults.length}/${jobResults.length} tests passed`)
   }
