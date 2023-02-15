@@ -31,8 +31,4 @@ OUTPUT_REMOVAL_REGEX="$PNPM_EXDEV_WARN_REGEX|$PNPM_FALLBACK_COPY_REGEX"
   export NODE_PATH="$(npm root --quiet -g)" && \
   node -r 'esbuild-register' _steps.ts \
 ) 2>&1 | grep -v -E --line-buffered "$OUTPUT_REMOVAL_REGEX" > /e2e/$NAME/LOGS.txt; \
-EXIT_CODE="${PIPESTATUS[0]}" && \
-sleep 1; \  # give the time to finish writing logs before renaming the file
-mv /e2e/$NAME/LOGS.txt /e2e/$NAME/LOGS.$EXIT_CODE.txt && \  # copy logs and append exit code
-cp -fr /test/tests/* /e2e/$NAME/tests/ && \                 # copy jest files for snapshots
-exit $EXIT_CODE
+exit ${PIPESTATUS[0]}

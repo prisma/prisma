@@ -1,5 +1,6 @@
 import { arg } from '@prisma/internals'
 import fs from 'fs/promises'
+import glob from 'globby'
 import os from 'os'
 import path from 'path'
 import { $ } from 'zx'
@@ -33,15 +34,12 @@ async function main() {
   }
 
   console.log('🧹 Cleaning up old files')
-
   if (args['--clean'] === true) {
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml build full-clean`
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml up full-clean`
     return
   } else {
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml build pre-clean`
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml up pre-clean`
   }
 
@@ -90,29 +88,53 @@ async function main() {
 
   console.log('🐳 Starting tests in docker')
   // tarball was created, ready to send it to docker and begin e2e tests
-  const testNames = args._.join(' ').replace(/\//g, '-')
-  await $`docker compose -f ${__dirname}/docker-compose.yml down --remove-orphans`
-  await $`docker compose -f ${__dirname}/docker-compose.yml build ${testNames}`
-  await $`docker compose -f ${__dirname}/docker-compose.yml up ${testNames}`
+  const testStepFiles = await glob('../**/_steps.ts', { cwd: __dirname })
+  let e2eTestNames = testStepFiles.map((p) => path.relative('..', path.dirname(p)))
+
+  if (args._.length > 0) {
+    e2eTestNames = e2eTestNames.filter((p) => args._.some((a) => p.includes(a)))
+  }
+
+  const dockerVolumes = [
+    `${path.resolve(__dirname, '..')}/:/e2e`,
+    `${path.resolve(__dirname, '..', '..', '..')}/:/client`,
+    `${path.resolve(__dirname, '..', '..', '..', '..', '..')}/:/repo`,
+    `${path.resolve(__dirname, '..', '.cache')}/:/root/.cache`,
+    `${path.resolve(__dirname, '..', '.cache', 'pnpmcache')}/:/root/.local/share/pnpm/store/v3`,
+    `${path.resolve(__dirname, '..', '.cache', 'npmcache')}/:/root/.npm`,
+  ]
+  const dockerVolumeArgs = dockerVolumes.map((v) => `-v ${v}`).join(' ')
+
+  await $`docker build -f ${__dirname}/standard.dockerfile -t prisma-e2e-test-runner .`
+
+  const dockerJobs = e2eTestNames.map((path) => {
+    return $`docker run --rm ${dockerVolumeArgs.split(' ')} -e "NAME=${path}" prisma-e2e-test-runner`
+  })
+
+  const jobResults = (await Promise.allSettled(dockerJobs)).map((v, i) => Object.assign(v, { name: e2eTestNames[i] }))
+  const failedJobResults = jobResults.filter((r) => r.status === 'rejected') as (PromiseRejectedResult & {
+    name: string
+  })[]
+  const passedJobResults = jobResults.filter((r) => r.status === 'fulfilled') as (PromiseFulfilledResult<any> & {
+    name: string
+  })[]
+
+  if (args['--verbose'] === true) {
+    for (const result of failedJobResults) {
+      console.log(`🛑 ${result.name} failed with exit code`, result.reason.exitCode)
+      await $`cat ${path.resolve(__dirname, '..', result.name, 'LOGS.txt')}`
+    }
+  }
 
   // let the tests run and gather a list of logs for containers that have failed
-  const findErrors = await $`find "$(pwd)" -not -name "LOGS.0.txt" -name "LOGS.*.txt"`
-  const findSuccess = await $`find "$(pwd)" -name "LOGS.0.txt"`
-  const errors = findErrors.stdout.split('\n').filter((v) => v.length > 0)
-  const success = findSuccess.stdout.split('\n').filter((v) => v.length > 0)
-  if (errors.length > 0) {
-    if (args['--verbose'] === true) {
-      for (const error of errors) {
-        console.log(`📄 ${error}`)
-        await $`cat ${error}`
-      }
-    }
-
-    console.log(`🛑 ${errors.length} tests failed with`, errors)
+  if (failedJobResults.length > 0) {
+    const failedJobLogPaths = failedJobResults.map((result) => path.resolve(__dirname, '..', result.name, 'LOGS.txt'))
+    console.log(`✅ ${passedJobResults.length}/${jobResults.length} tests passed`)
+    console.log(`🛑 ${failedJobResults.length}/${jobResults.length} tests failed`, failedJobLogPaths)
 
     process.exit(1)
   } else {
-    console.log(`✅ All ${success.length} tests passed`)
+    console.log(`✅ All ${passedJobResults.length}/${jobResults.length} tests passed`)
   }
 }
 
