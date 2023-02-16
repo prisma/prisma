@@ -243,7 +243,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
             datamodel: this.datamodel,
             env: process.env,
             logQueries: this.config.logQueries ?? false,
-            ignoreEnvVarErrors: false,
+            ignoreEnvVarErrors: true,
             datasourceOverrides: this.datasourceOverrides,
             logLevel: this.logLevel,
             configDir: this.config.cwd!,
@@ -432,17 +432,6 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     this.libraryStoppingPromise = runInChildSpan(spanConfig, stopFn)
 
     return this.libraryStoppingPromise
-  }
-
-  async getConfig(): Promise<ConfigMetaFormat> {
-    await this.libraryInstantiationPromise
-
-    return this.library!.getConfig({
-      datamodel: this.datamodel,
-      datasourceOverrides: this.datasourceOverrides,
-      ignoreEnvVarErrors: true,
-      env: process.env,
-    })
   }
 
   async getDmmf(): Promise<DMMF.Document> {

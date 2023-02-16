@@ -63,7 +63,6 @@ export abstract class Engine<InteractiveTransactionPayload = unknown> {
   abstract on(event: EngineEventType, listener: (args?: any) => any): void
   abstract start(): Promise<void>
   abstract stop(): Promise<void>
-  abstract getConfig(): Promise<GetConfigResult>
   abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
   abstract request<T>(
