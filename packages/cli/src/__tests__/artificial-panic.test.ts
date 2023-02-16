@@ -83,7 +83,9 @@ describe('artificial-panic formatter', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(e).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:105:5`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath.replace(/\\/g, '/')) // replace due to Windows CI
@@ -111,7 +113,9 @@ describe('artificial-panic get-config', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(e).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:105:5`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -151,7 +155,9 @@ describe('artificial-panic get-dmmf', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(e).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:105:5`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -183,7 +189,9 @@ describe('artificial-panic get-dmmf', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(e).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:105:5`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
