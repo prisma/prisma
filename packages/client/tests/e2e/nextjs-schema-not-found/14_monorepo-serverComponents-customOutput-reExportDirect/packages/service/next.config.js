@@ -6,9 +6,9 @@ module.exports = {
   experimental: {
     appDir: true,
   },
-  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+  webpack: (config, { isServer }) => {
     if (isServer) {
-      // config.plugins = [...config.plugins, new PrismaPlugin()]
+      config.plugins = [...config.plugins, new PrismaPlugin()]
     }
 
     return config

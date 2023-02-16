@@ -27,7 +27,8 @@ OUTPUT_REMOVAL_REGEX="$PNPM_EXDEV_WARN_REGEX|$PNPM_FALLBACK_COPY_REGEX"
   cp /e2e/jest.config.js /test/$NAME/jest.config.js && \
   cp /e2e/prisma-0.0.0.tgz /test/prisma-0.0.0.tgz && \
   cp /e2e/prisma-client-0.0.0.tgz /test/prisma-client-0.0.0.tgz && \
-  cd /test/$NAME && rm -fr node_modules && \
+  cd /test/$NAME && \
+  find . -name "node_modules" -type d -prune -exec rm -rf '{}' + && \
   export NODE_PATH="$(npm root --quiet -g)" && \
   node -r 'esbuild-register' _steps.ts \
 ) 2>&1 | grep -v -E --line-buffered "$OUTPUT_REMOVAL_REGEX" > /e2e/$NAME/LOGS.txt; \
