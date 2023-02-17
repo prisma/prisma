@@ -9,8 +9,7 @@ describe('getPlatformMemoized', () => {
   it('repeated invocations are idempotent and memoized', async () => {
     const platformFirst = await getPlatformMemoized()
     const platformSecond = await getPlatformMemoized()
-
-    expect(platformFirst.platform).toBe(platformSecond.platform)
+    expect(platformFirst.binaryTarget).toBe(platformSecond.binaryTarget)
     expect(platformFirst.memoized).toBeFalsy()
     expect(platformSecond.memoized).toBeTruthy()
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -37,6 +36,23 @@ describe('getPlatformInternal', () => {
           targetDistro: 'debian',
         }),
       ).toBe('debian-openssl-1.1.x')
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+
+    it('opensuse (suse), amd64 (x86_64), openssl-1.1.x', () => {
+      expect(
+        getPlatformInternal({
+          platform,
+          libssl: '1.1.x',
+          arch: 'x64',
+          archFromUname: 'x86_64',
+          familyDistro: 'rhel',
+          originalDistro: 'opensuse-tumbleweed',
+          targetDistro: 'rhel',
+        }),
+      ).toBe('rhel-openssl-1.1.x')
       expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
