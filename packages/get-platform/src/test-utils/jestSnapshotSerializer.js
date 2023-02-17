@@ -81,6 +81,11 @@ function normalizeRustError(str) {
   return str.replace(/\/rustc\/(.+)\//g, '/rustc/hash/').replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
 }
 
+function normalizeRustCodeLocation(str) {
+  // replaces strings like 'prisma-fmt/src/get_dmmf.rs:17:13' to 'prisma-fmt/src/get_dmmf.rs:0:0'
+  return str.replace(/(\w+\.rs):(\d+):(\d+)/g, '$1:0:0')
+}
+
 function normalizeArtificialPanic(str) {
   return str.replace(/(Command failed with exit code 101:) (.+) /g, '$1 prisma-engines-path ')
 }
@@ -145,6 +150,7 @@ module.exports = {
       // From Migrate/CLI package
       normalizeDbUrl,
       normalizeRustError,
+      normalizeRustCodeLocation,
       normalizeMigrateTimestamps,
       // artificial panic
       normalizeArtificialPanic,
