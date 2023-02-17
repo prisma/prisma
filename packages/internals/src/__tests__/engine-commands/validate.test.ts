@@ -1,3 +1,4 @@
+import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
@@ -171,8 +172,7 @@ describe('validate', () => {
       }
     })
 
-    // TODO: wait for https://github.com/prisma/prisma/pull/17950 to be merged
-    test.skip(`panics when the given datamodel isnt' a string`, () => {
+    test(`panics when the given datamodel isnt' a string`, () => {
       expect.assertions(3)
 
       try {
@@ -180,7 +180,7 @@ describe('validate', () => {
         validate({ datamodel: true })
       } catch (e) {
         expect(isRustPanic(e)).toBe(true)
-        expect(e.message).toMatchInlineSnapshot(`"unreachable"`)
+        expect(serialize(e.message)).toMatchInlineSnapshot(`"unreachable"`)
         expect(e.rustStack).toBeTruthy()
       }
     })
