@@ -1,0 +1,8 @@
+node_modules
+workbench/
+results/
+.DS_Store
+pnpm-debug.log
+config.json
+
+*.tsbuildinfo

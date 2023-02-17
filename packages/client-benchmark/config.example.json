@@ -1,0 +1,7 @@
+{
+  "aws": {
+    "region": "eu-central-1",
+    "executionRole": "arn:aws:iam:12345677:role/Role",
+    "memorySize": 1769
+  }
+}

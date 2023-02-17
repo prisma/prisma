@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.build.regular.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "moduleResolution": "node",
+    "module": "ES2022",
+    "target": "ES2022"
+  },
+  "include": ["src"]
+}

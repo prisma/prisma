@@ -1,0 +1,37 @@
+{
+  "name": "@prisma/client-benchmark",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prisma/prisma.git",
+    "directory": "packages/client-benchmark-tests"
+  },
+  "dependencies": {
+    "@aws-sdk/client-lambda": "^3.279.0",
+    "@opentelemetry/api": "1.4.0",
+    "@opentelemetry/core": "1.9.1",
+    "@opentelemetry/instrumentation": "0.35.1",
+    "@opentelemetry/resources": "1.9.1",
+    "@opentelemetry/sdk-trace-base": "1.9.1",
+    "@opentelemetry/sdk-trace-node": "1.9.1",
+    "@opentelemetry/semantic-conventions": "1.9.1",
+    "@types/node": "16.18.11",
+    "archiver": "5.3.1",
+    "arg": "5.0.2",
+    "aws-crt": "^1.15.14",
+    "csv-stringify": "^6.2.4",
+    "execa": "5.1.1",
+    "fast-glob": "3.2.12"
+  },
+  "scripts": {
+    "dev": "DEV=true node -r esbuild-register helpers/build.ts",
+    "build": "node -r esbuild-register helpers/build.ts",
+    "measure": "node dist/measureCli.js",
+    "plot": "gnuplot -p -c results/plot.gnuplot"
+  },
+  "devDependencies": {
+    "@types/archiver": "^5.3.1"
+  }
+}
