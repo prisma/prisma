@@ -53,7 +53,7 @@ describe('validate', () => {
           [1;94m   | [0m
 
           Validation Error Count: 1
-          [Context: getDmmf]
+          [Context: validate]
 
           Prisma CLI Version : 0.0.0"
         `)
@@ -85,7 +85,7 @@ describe('validate', () => {
              | 
 
           Validation Error Count: 1
-          [Context: getDmmf]
+          [Context: validate]
 
           Prisma CLI Version : 0.0.0"
         `)
@@ -130,7 +130,7 @@ describe('validate', () => {
              | 
 
           Validation Error Count: 2
-          [Context: getDmmf]
+          [Context: validate]
 
           Prisma CLI Version : 0.0.0"
         `)
@@ -165,7 +165,7 @@ describe('validate', () => {
              | 
 
           Validation Error Count: 1
-          [Context: getDmmf]
+          [Context: validate]
 
           Prisma CLI Version : 0.0.0"
         `)
@@ -249,7 +249,7 @@ describe('validate', () => {
              | 
 
           Validation Error Count: 3
-          [Context: getDmmf]
+          [Context: validate]
 
           Prisma CLI Version : 0.0.0"
         `)
