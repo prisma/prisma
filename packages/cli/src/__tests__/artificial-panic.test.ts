@@ -1,17 +1,12 @@
 import { jestContext } from '@prisma/get-platform'
+import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import { isRustPanic } from '@prisma/internals'
 import { DbPull } from '@prisma/migrate'
 
 import { Format } from '../Format'
 import { Validate } from '../Validate'
 
-const ctx = jestContext
-  .new()
-  // .add(jestConsoleContext())
-  .assemble()
-
-// @ts-ignore
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const ctx = jestContext.new().assemble()
 
 /**
  * Note: under the hood, these artificial-panic tests uses the Wasm'd `getConfig` and `getDMMF` definitions
@@ -83,7 +78,9 @@ describe('artificial-panic formatter', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(serialize(e.message)).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:0:0`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath.replace(/\\/g, '/')) // replace due to Windows CI
@@ -111,7 +108,9 @@ describe('artificial-panic get-config', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(serialize(e.message)).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:0:0`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -151,7 +150,9 @@ describe('artificial-panic get-dmmf', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(serialize(e.message)).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:0:0`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -183,7 +184,9 @@ describe('artificial-panic get-dmmf', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(serialize(e.message)).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:0:0`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
