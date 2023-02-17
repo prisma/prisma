@@ -1,4 +1,5 @@
 import prismaFmt from '@prisma/prisma-fmt-wasm'
+
 import { WasmPanicRegistry } from './WasmPanicRegistry'
 
 // Note: using `import { dependencies } from '../package.json'` here would break esbuild with seemingly unrelated errors.
@@ -14,4 +15,5 @@ export const prismaFmtVersion: string = dependencies['@prisma/prisma-fmt-wasm']
  * This allows us to retrieve the panic message from the Wasm panic hook,
  * which is not possible otherwise.
  */
+// TODO: rename to PRISMA_WASM_PANIC_REGISTRY
 globalThis.WASM_PANIC_REGISTRY = new WasmPanicRegistry()
