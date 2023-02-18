@@ -132,7 +132,7 @@ type Settings = {
   /**
    * The version of Prisma Engine to use.
    *
-   * @dynamicDefault The result of `@prisma/fetch-engine#getLatestTag`
+   * @dynamicDefault The result of `@prisma/fetch-engine#getLatestTag` // TODO Fix as file does not exist any more
    */
   engineVersion?: MaybePromise<string>
   /**
