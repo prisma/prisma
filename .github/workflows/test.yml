@@ -223,7 +223,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: ${{ github.event_name == 'schedule' }}
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
           path: packages/*/junit*.xml
@@ -325,7 +325,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: ${{ github.event_name == 'schedule' }}
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
           path: packages/*/junit*.xml
@@ -588,7 +588,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: ${{ github.event_name == 'schedule' }}
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
@@ -1161,7 +1161,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: ${{ github.event_name == 'schedule' }}
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
@@ -1418,7 +1418,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: ${{ github.event_name == 'schedule' }}
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
