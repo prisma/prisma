@@ -331,7 +331,7 @@ testMatrix.setupTestSuite(
     })
 
     // skipping data proxy because query count isn't the same
-    testIf(provider !== 'mongodb' && process.platform !== 'win32' && !process.env.DATA_PROXY)(
+    testIf(provider !== 'mongodb' && process.platform !== 'win32' && !process.env.TEST_DATA_PROXY)(
       'batching of PrismaPromise returning custom model methods',
       async () => {
         const fnEmitter = jest.fn()
@@ -372,7 +372,7 @@ testMatrix.setupTestSuite(
     )
 
     // skipping data proxy because query count isn't the same
-    testIf(provider !== 'mongodb' && process.platform !== 'win32' && !process.env.DATA_PROXY)(
+    testIf(provider !== 'mongodb' && process.platform !== 'win32' && !process.env.TEST_DATA_PROXY)(
       'batching of PrismaPromise returning custom model methods and query',
       async () => {
         const fnEmitter = jest.fn()
@@ -540,12 +540,12 @@ testMatrix.setupTestSuite(
 
       expectTypeOf<typeof data>().toHaveProperty('scalars').toMatchTypeOf<object>()
       expectTypeOf<typeof data>().toHaveProperty('objects').toMatchTypeOf<object>()
-      expectTypeOf<typeof data['scalars']>().toHaveProperty('id').toMatchTypeOf<string>()
-      expectTypeOf<typeof data['objects']>().toHaveProperty('posts').toMatchTypeOf<object>()
-      expectTypeOf<typeof data['objects']['posts']>().toMatchTypeOf<object[]>()
-      expectTypeOf<typeof data['objects']['posts'][0]>().toMatchTypeOf<object>()
-      expectTypeOf<typeof data['objects']['posts'][0]>().toHaveProperty('scalars').toMatchTypeOf<object>()
-      expectTypeOf<typeof data['objects']['posts'][0]>().toHaveProperty('objects').toMatchTypeOf<object>()
+      expectTypeOf<(typeof data)['scalars']>().toHaveProperty('id').toMatchTypeOf<string>()
+      expectTypeOf<(typeof data)['objects']>().toHaveProperty('posts').toMatchTypeOf<object>()
+      expectTypeOf<(typeof data)['objects']['posts']>().toMatchTypeOf<object[]>()
+      expectTypeOf<(typeof data)['objects']['posts'][0]>().toMatchTypeOf<object>()
+      expectTypeOf<(typeof data)['objects']['posts'][0]>().toHaveProperty('scalars').toMatchTypeOf<object>()
+      expectTypeOf<(typeof data)['objects']['posts'][0]>().toHaveProperty('objects').toMatchTypeOf<object>()
     })
 
     test('custom method that uses exact for narrowing inputs', () => {
