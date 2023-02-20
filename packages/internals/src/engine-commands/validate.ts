@@ -100,7 +100,7 @@ export function validate(options: ValidateOptions): void {
       /*
        * Extract the actual error by attempting to JSON-parse the error message.
        */
-      const errorOutput = e.error as unknown as string // .message
+      const errorOutput = e.error.message
       return new ValidateError(parseQueryEngineError({ errorOutput, reason: e.reason }))
     })
     .exhaustive()
