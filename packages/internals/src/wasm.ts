@@ -15,5 +15,4 @@ export const prismaFmtVersion: string = dependencies['@prisma/prisma-fmt-wasm']
  * This allows us to retrieve the panic message from the Wasm panic hook,
  * which is not possible otherwise.
  */
-// TODO: rename to PRISMA_WASM_PANIC_REGISTRY
-globalThis.WASM_PANIC_REGISTRY = new WasmPanicRegistry()
+globalThis.PRISMA_WASM_PANIC_REGISTRY = new WasmPanicRegistry()
