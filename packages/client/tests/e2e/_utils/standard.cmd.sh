@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Database Env Vars
-export PRISMA_DB_NAME=$(cat /dev/urandom | LC_ALL=C tr -dc 'a-z0-9' | fold -w 8 | head -n 1)
+export PRISMA_DB_NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 8)
 export TEST_E2E_POSTGRES_URI="postgres://prisma:prisma@172.17.0.1:5432/${PRISMA_DB_NAME}"
 export TEST_E2E_MYSQL_URI="mysql://root:root@172.17.0.1:3306/${PRISMA_DB_NAME}"
 export TEST_E2E_VITESS_8_URI="mysql://root:root@172.17.0.1:33807/${PRISMA_DB_NAME}"
