@@ -181,6 +181,12 @@ export namespace EngineArgs {
     | IntrospectionWarningsCustomPrimaryKeyNamesReintro
     | IntrospectionWarningsRelationsReintro
     | IntrospectionWarningsTopLevelItemNameIsADupe
+    // Views
+    | IntrospectionWarningsUnsupportedTypesInViews
+    | IntrospectionWarningEnrichedWithMapOnFieldInViews
+    | IntrospectionWarningEnrichedWithMapOnView
+    | IntrospectionWarningViewsWithoutIdentifier
+    | IntrospectionWarningEnrichedWithCustomPrimaryKeyNamesInViews
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
