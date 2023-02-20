@@ -74,7 +74,7 @@ testMatrix.setupTestSuite(
       expect(checkQueriesHaveNotTraceparent()).toBe(true)
     })
 
-    testIf(!process.env.DATA_PROXY)(
+    testIf(!process.env.TEST_DATA_PROXY)(
       'should perform a query and assert that no spans were generated via itx',
       async () => {
         await prisma.$transaction(async (prisma) => {
