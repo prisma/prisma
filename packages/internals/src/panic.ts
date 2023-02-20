@@ -63,7 +63,7 @@ export function isWasmPanic(error: Error): error is WasmPanic {
 }
 
 export function getWasmError(error: WasmPanic) {
-  const message: string = globalThis.WASM_PANIC_REGISTRY.get()
+  const message: string = globalThis.PRISMA_WASM_PANIC_REGISTRY.get()
   const stack = [message, ...(error.stack || 'NO_BACKTRACE').split('\n').slice(1)].join('\n')
 
   return { message, stack }
