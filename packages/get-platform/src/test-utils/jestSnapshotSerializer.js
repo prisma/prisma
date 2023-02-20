@@ -65,7 +65,8 @@ function normalizeNodeApiLibFilePath(str) {
 }
 
 function normalizeBinaryFilePath(str) {
-  return str.replace(/query-engine-TEST_PLATFORM\.exe/, 'query-engine-TEST_PLATFORM')
+  // write a regex expression that matches strings ending with ".exe" followed by any number of space characters with an empty string:
+  return str.replace(/\.exe(\s+)?(\W.*)/g, '$1$2').replace(/\.exe$/g, '')
 }
 
 function normalizeMigrateTimestamps(str) {
@@ -78,6 +79,11 @@ function normalizeDbUrl(str) {
 
 function normalizeRustError(str) {
   return str.replace(/\/rustc\/(.+)\//g, '/rustc/hash/').replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
+}
+
+function normalizeRustCodeLocation(str) {
+  // replaces strings like 'prisma-fmt/src/get_dmmf.rs:17:13' to 'prisma-fmt/src/get_dmmf.rs:0:0'
+  return str.replace(/(\w+\.rs):(\d+):(\d+)/g, '$1:0:0')
 }
 
 function normalizeArtificialPanic(str) {
@@ -144,6 +150,7 @@ module.exports = {
       // From Migrate/CLI package
       normalizeDbUrl,
       normalizeRustError,
+      normalizeRustCodeLocation,
       normalizeMigrateTimestamps,
       // artificial panic
       normalizeArtificialPanic,

@@ -1,3 +1,4 @@
+import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
@@ -15,6 +16,86 @@ if (process.env.CI) {
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('getDMMF', () => {
+  /*
+  // Note: to run these tests locally, prepend the env vars `FORCE_COLOR=0` and `CI=1` to your test command,
+  // as `chalk` follows different conventions than the Rust `colored` crate (and uses `FORCE_COLOR=0` to disable colors rather than `NO_COLOR=1`).
+  describe('colors', () => {
+    // backup env vars
+    const OLD_ENV = { ...process.env }
+    const { NO_COLOR: _, ...OLD_ENV_WITHOUT_NO_COLOR } = OLD_ENV
+
+    beforeEach(() => {
+      // jest.resetModules()
+      process.env = { ...OLD_ENV_WITHOUT_NO_COLOR, FORCE_COLOR: '0', CI: '1' }
+    })
+
+    afterEach(() => {
+      // reset env vars to backup state
+      process.env = { ...OLD_ENV }
+    })
+
+    test('failures should have colors by default', async () => {
+      expect.assertions(1)
+      const datamodel = `
+        datasource db {
+      `
+
+      try {
+        await getDMMF({ datamodel })
+      } catch (e) {
+        expect(e.message).toMatchInlineSnapshot(`
+          "Prisma schema validation - (get-dmmf wasm)
+          Error code: P1012
+          [1;91merror[0m: [1mError validating: This line is invalid. It does not start with any known Prisma schema keyword.[0m
+            [1;94m-->[0m  [4mschema.prisma:2[0m
+          [1;94m   | [0m
+          [1;94m 1 | [0m
+          [1;94m 2 | [0m        [1;91mdatasource db {[0m
+          [1;94m 3 | [0m      
+          [1;94m   | [0m
+
+          Validation Error Count: 1
+          [Context: getDmmf]
+
+          Prisma CLI Version : 0.0.0"
+        `)
+      }
+    })
+
+    // Note(jkomyno): this fails locally because the colored crate used in Wasm forces the coloring on tty (but apparently not on CI?).
+    // On standard terminals, the NO_COLOR env var is actually working as expected (it prints plain uncolored text).
+    // See: https://github.com/prisma/prisma-private/issues/210
+    test('failures should not have colors when the NO_COLOR env var is set', async () => {
+      process.env.NO_COLOR = '1'
+      expect.assertions(1)
+      const datamodel = `
+        datasource db {
+      `
+
+      try {
+        await getDMMF({ datamodel })
+      } catch (e) {
+        expect(e.message).toMatchInlineSnapshot(`
+          "Prisma schema validation - (get-dmmf wasm)
+          Error code: P1012
+          error: Error validating: This line is invalid. It does not start with any known Prisma schema keyword.
+            -->  schema.prisma:2
+             | 
+           1 | 
+           2 |         datasource db {
+           3 |       
+             | 
+
+          Validation Error Count: 1
+          [Context: getDmmf]
+
+          Prisma CLI Version : 0.0.0"
+        `)
+      }
+    })
+  })
+  */
+
   describe('errors', () => {
     test('model with autoincrement should fail if sqlite', async () => {
       expect.assertions(1)
@@ -119,7 +200,9 @@ describe('getDMMF', () => {
         await getDMMF({ datamodel: true })
       } catch (e) {
         expect(isRustPanic(e)).toBe(true)
-        expect(e.message).toMatchInlineSnapshot(`"unreachable"`)
+        expect(serialize(e.message)).toMatchInlineSnapshot(
+          `"RuntimeError: panicked at 'Failed to deserialize GetDmmfParams: invalid type: boolean \`true\`, expected a string at line 1 column 20', prisma-fmt/src/get_dmmf.rs:0:0"`,
+        )
         expect(e.rustStack).toBeTruthy()
       }
     })

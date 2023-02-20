@@ -1,6 +1,6 @@
 import chalk from 'chalk'
 
-import { ErrorArea, RustPanic } from '../panic'
+import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 
 type LintSchemaParams = { schema: string }
@@ -30,15 +30,18 @@ export function handleLintPanic<T>(tryCb: () => T, { schema }: LintSchemaParams)
   try {
     return tryCb()
   } catch (e: unknown) {
-    const wasmError = e as Error
-    throw new RustPanic(
-      /* message */ wasmError.message,
-      /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
+    const { message, stack } = getWasmError(e as WasmPanic)
+
+    const panic = new RustPanic(
+      /* message */ message,
+      /* rustStack */ stack,
       /* request */ '@prisma/prisma-fmt-wasm lint',
       ErrorArea.FMT_CLI,
       undefined,
       schema,
     )
+
+    throw panic
   }
 }
 

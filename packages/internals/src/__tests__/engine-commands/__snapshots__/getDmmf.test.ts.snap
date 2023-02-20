@@ -5679,6 +5679,12 @@ exports[`getDMMF success @@id model 1`] = `
                 {
                   "inputTypes": [
                     {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1CreateManyInput",
+                    },
+                    {
                       "isList": true,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
@@ -5947,6 +5953,12 @@ exports[`getDMMF success @@id model 1`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2CreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -9943,6 +9955,12 @@ exports[`getDMMF success @@map model 2`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -18458,6 +18476,12 @@ exports[`getDMMF success @@unique model 1`] = `
             {
               "inputTypes": [
                 {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateManyAuthorInput",
+                },
+                {
                   "isList": true,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
@@ -21434,6 +21458,12 @@ exports[`getDMMF success @@unique model 1`] = `
                 {
                   "inputTypes": [
                     {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostCreateManyInput",
+                    },
+                    {
                       "isList": true,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
@@ -21702,6 +21732,12 @@ exports[`getDMMF success @@unique model 1`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -21972,6 +22008,12 @@ exports[`getDMMF success @@unique model 1`] = `
                 {
                   "inputTypes": [
                     {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1CreateManyInput",
+                    },
+                    {
                       "isList": true,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
@@ -22240,6 +22282,12 @@ exports[`getDMMF success @@unique model 1`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2CreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -23800,9 +23848,9 @@ exports[`getDMMF success @@unique model 1`] = `
 }
 `;
 
-exports[`getDMMF success big schema read via datamodel path 1`] = `140496894`;
+exports[`getDMMF success big schema read via datamodel path 1`] = `141005228`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `903623`;
+exports[`getDMMF success chinook introspected schema 1`] = `905957`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -23921,7 +23969,7 @@ exports[`getDMMF success if a datamodel is provided, succeeds even when a non-ex
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `134276315`;
+exports[`getDMMF success odoo introspected schema 1`] = `134371111`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
@@ -26899,6 +26947,12 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -30380,6 +30434,12 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -37200,6 +37260,12 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                 {
                   "inputTypes": [
                     {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                    {
                       "isList": true,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
@@ -40740,6 +40806,12 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",

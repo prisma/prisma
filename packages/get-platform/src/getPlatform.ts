@@ -194,7 +194,8 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
         } as const),
     )
     .when(
-      ({ idLike }) => idLike.includes('centos') || idLike.includes('fedora') || idLike.includes('rhel'),
+      ({ idLike }) =>
+        idLike.includes('centos') || idLike.includes('fedora') || idLike.includes('rhel') || idLike.includes('suse'),
       ({ id: originalDistro }) =>
         ({
           targetDistro: 'rhel',
