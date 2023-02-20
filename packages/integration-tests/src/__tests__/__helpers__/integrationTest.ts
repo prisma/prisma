@@ -130,12 +130,6 @@ type Settings = {
    */
   timeout?: number
   /**
-   * The version of Prisma Engine to use.
-   *
-   * @dynamicDefault The result of `@prisma/fetch-engine#getLatestTag`
-   */
-  engineVersion?: MaybePromise<string>
-  /**
    * After a test scenario is done, should its temporary directory be removed from disk?
    */
   cleanupTempDirs?: boolean
