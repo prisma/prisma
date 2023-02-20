@@ -3309,7 +3309,6 @@ packages:
 
   /@prisma/studio-common/0.481.0:
     resolution: {integrity: sha512-gG/oyllZztkdZ4gBT3RYbtgeaY81BCrC+1eM7kZY8x+RAfirBP8+7781rIDCnrN+a8D6RT5vkiLdEWDcorX/ag==}
-    engines: {node: '>= 12'}
     dependencies:
       buffer: 6.0.3
     dev: true
