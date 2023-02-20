@@ -89,8 +89,8 @@ export async function getos(): Promise<GetOSResult> {
 
   const distroInfo = await resolveDistro()
   const archFromUname = await getArchFromUname()
-
-  const libssl = await getSSLVersion({ arch, archFromUname, familyDistro: distroInfo.familyDistro })
+  const libsslSpecificPaths = computeLibSSLSpecificPaths({ arch, archFromUname, familyDistro: distroInfo.familyDistro })
+  const { libssl } = await getSSLVersion(libsslSpecificPaths)
 
   return {
     platform: 'linux',
@@ -282,24 +282,14 @@ function sanitiseSSLVersion(version: string): GetOsResultLinux['libssl'] {
   return undefined
 }
 
-type GetOpenSSLVersionParams = {
+type ComputeLibSSLSpecificPathsParams = {
   arch: Arch
   archFromUname: Awaited<ReturnType<typeof getArchFromUname>>
   familyDistro: DistroInfo['familyDistro']
 }
 
-/**
- * On Linux, returns the libssl version excluding the patch version, e.g. "1.1.x".
- * Reading the version from the libssl.so file is more reliable than reading it from the openssl binary.
- * Older versions of libssl are preferred, e.g. "1.0.x" over "1.1.x", because of Vercel serverless
- * having different build and runtime environments, with the runtime environment having an old version
- * of libssl, and the build environment having both that old version and a newer version of libssl installed.
- * Because of https://github.com/prisma/prisma/issues/17499, we explicitly filter out libssl 0.x.
- *
- * This function never throws.
- */
-export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOsResultLinux['libssl'] | undefined> {
-  const libsslSpecificPaths = match(args)
+export function computeLibSSLSpecificPaths(args: ComputeLibSSLSpecificPathsParams) {
+  return match(args)
     .with({ familyDistro: 'musl' }, () => {
       /* Linux Alpine */
       debug('Trying platform-specific paths for "alpine"')
@@ -320,7 +310,29 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
       debug(`Don't know any platform-specific paths for "${familyDistro}" on ${arch} (${archFromUname})`)
       return []
     })
+}
 
+type GetOpenSSLVersionResult =
+  | {
+      libssl: GetOsResultLinux['libssl']
+      strategy: 'libssl-specific-path' | 'ldconfig' | 'openssl-binary'
+    }
+  | {
+      libssl?: never
+      strategy?: never
+    }
+
+/**
+ * On Linux, returns the libssl version excluding the patch version, e.g. "1.1.x".
+ * Reading the version from the libssl.so file is more reliable than reading it from the openssl binary.
+ * Older versions of libssl are preferred, e.g. "1.0.x" over "1.1.x", because of Vercel serverless
+ * having different build and runtime environments, with the runtime environment having an old version
+ * of libssl, and the build environment having both that old version and a newer version of libssl installed.
+ * Because of https://github.com/prisma/prisma/issues/17499, we explicitly filter out libssl 0.x.
+ *
+ * This function never throws.
+ */
+export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetOpenSSLVersionResult> {
   const excludeLibssl0x = 'grep -v "libssl.so.0"'
   const libsslSpecificCommands = libsslSpecificPaths.map(
     (path) => `ls -v "libssl.so.0*" ${path} | grep libssl.so | ${excludeLibssl0x}`,
@@ -332,7 +344,7 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
     const libsslVersion = parseLibSSLVersion(libsslFilenameFromSpecificPath)
     debug(`The parsed libssl version is: ${libsslVersion}`)
     if (libsslVersion) {
-      return libsslVersion
+      return { libssl: libsslVersion, strategy: 'libssl-specific-path' }
     }
   }
 
@@ -359,12 +371,14 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
   ])
 
   if (libsslFilename) {
-    debug(`Found libssl.so file using "ldconfig" or other generic paths: ${libsslFilenameFromSpecificPath}`)
+    debug(`Found libssl.so file using "ldconfig" or other generic paths: ${libsslFilename}`)
     const libsslVersion = parseLibSSLVersion(libsslFilename)
     if (libsslVersion) {
-      return libsslVersion
+      return { libssl: libsslVersion, strategy: 'ldconfig' }
     }
   }
+
+  /* Reading the libssl.so version didn't work, fall back to openssl */
 
   const openSSLVersionLine: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
 
@@ -373,24 +387,13 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
     const openSSLVersion = parseOpenSSLVersion(openSSLVersionLine)
     debug(`The parsed openssl version is: ${openSSLVersion}`)
     if (openSSLVersion) {
-      return openSSLVersion
-    }
-  }
-
-  /* Reading the libssl.so version didn't work, fall back to openssl */
-
-  const openSSLVersion: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
-
-  if (openSSLVersion) {
-    const matchedVersion = parseOpenSSLVersion(openSSLVersion)
-    if (matchedVersion) {
-      return matchedVersion
+      return { libssl: openSSLVersion, strategy: 'openssl-binary' }
     }
   }
 
   /* Reading openssl didn't work */
   debug(`Couldn't find any version of libssl or OpenSSL in the system`)
-  return undefined
+  return {}
 }
 
 /**
@@ -590,7 +593,7 @@ function getFirstSuccessfulExec(commands: string[]) {
  * TODO: deprecate this function in favor of `os.machine()` once either Node v16.18.0 or v18.9.0 becomes the minimum
  * supported Node.js version for Prisma.
  */
-async function getArchFromUname(): Promise<string | undefined> {
+export async function getArchFromUname(): Promise<string | undefined> {
   const arch = await getFirstSuccessfulExec(['uname -m'])
   return arch?.trim()
 }
