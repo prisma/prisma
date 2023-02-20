@@ -1054,7 +1054,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   /**
-   * This processes errors that didn't ocur synchronously during a request, and were instead inferred
+   * This processes errors that didn't occur synchronously during a request, and were instead inferred
    * from the STDOUT/STDERR streams of the Query Engine process.
    *
    * See `setError` for more information.
