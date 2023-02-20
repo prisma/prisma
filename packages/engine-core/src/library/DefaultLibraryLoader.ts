@@ -11,6 +11,7 @@ import { PrismaClientInitializationError } from '../common/errors/PrismaClientIn
 import { handleLibraryLoadingErrors } from '../common/errors/utils/handleEngineLoadingErrors'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets } from '../common/utils/util'
+import { runInChildSpan } from '../tracing'
 import { Library, LibraryLoader } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
@@ -38,7 +39,10 @@ export class DefaultLibraryLoader implements LibraryLoader {
 
     debug(`loadEngine using ${this.libQueryEnginePath}`)
     try {
-      return load(this.libQueryEnginePath)
+      const enginePath = this.libQueryEnginePath
+      return runInChildSpan({ name: 'loadLibrary', enabled: this.config.tracingConfig.enabled, internal: true }, () =>
+        load(enginePath),
+      )
     } catch (e) {
       const errorMessage = handleLibraryLoadingErrors({
         e: e as Error,
