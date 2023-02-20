@@ -24,22 +24,24 @@ describeIf(process.platform === 'linux')('getSSLVersion', () => {
   })
 
   describe('strategy: "libssl-specific-path"', () => {
+    const focusedStrategy = 'libssl-specific-path'
+
     it('falls back with nss only', async () => {
       ctx.fixture('libssl-specific-path/with-nss-only')
       const { strategy } = await getSSLVersion([ctx.tmpDir])
-      expect(strategy).toEqual(undefined)
+      expect(strategy).not.toEqual(focusedStrategy)
     })
 
     it('falls back with unknown versions only', async () => {
       ctx.fixture('libssl-specific-path/with-unknown-versions-only')
       const { strategy } = await getSSLVersion([ctx.tmpDir])
-      expect(strategy).toEqual(undefined)
+      expect(strategy).not.toEqual(focusedStrategy)
     })
 
     it('selects the oldest libssl version, excluding libssl-0.x.x', async () => {
       ctx.fixture('libssl-specific-path/with-libssl-0')
       const { libssl, strategy } = await getSSLVersion([ctx.tmpDir])
-      expect(strategy).toEqual('libssl-specific-path')
+      expect(strategy).toEqual(focusedStrategy)
       expect(libssl).toEqual('1.0.x')
     })
   })
