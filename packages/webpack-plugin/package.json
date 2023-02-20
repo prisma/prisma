@@ -1,0 +1,24 @@
+{
+  "name": "webpack-plugin",
+  "version": "0.0.0",
+  "description": "Ensures that your Prisma files are copied",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Tests are in prisma/packages/client/tests/e2e\""
+  },
+  "keywords": [
+    "prisma",
+    "prisma-client",
+    "next.js",
+    "webpack",
+    "schema not found",
+    "engine not found",
+    "bundler",
+    "plugin"
+  ],
+  "author": "Pierre-Antoine Mills",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "webpack": "5.75.0"
+  }
+}
