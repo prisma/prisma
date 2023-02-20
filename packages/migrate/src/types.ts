@@ -211,6 +211,14 @@ export namespace EngineArgs {
   type AffectedEnum = { enm: string }
   type AffectedEnumAndValue = { enm: string; value: string }
 
+  type AffectedView = { view: string }
+  type AffectedViewAndField = { view: string; field: string }
+  type AffectedViewAndFieldAndType = {
+    view: string
+    field: string
+    type: string
+  }
+
   interface IntrospectionWarning {
     code: number
     message: string
@@ -224,6 +232,9 @@ export namespace EngineArgs {
       | AffectedModelOrCompositeTypeAndFieldAndType[]
       | AffectedEnum[]
       | AffectedEnumAndValue[]
+      | AffectedView[]
+      | AffectedViewAndField[]
+      | AffectedViewAndFieldAndType[]
       | null
   }
 
@@ -301,6 +312,31 @@ export namespace EngineArgs {
   interface IntrospectionWarningsTopLevelItemNameIsADupe extends IntrospectionWarning {
     code: 20
     affected: AffectedTopLevel[]
+  }
+
+  interface IntrospectionWarningsUnsupportedTypesInViews extends IntrospectionWarning {
+    code: 21
+    affected: AffectedViewAndFieldAndType[]
+  }
+
+  interface IntrospectionWarningEnrichedWithMapOnFieldInViews extends IntrospectionWarning {
+    code: 22
+    affected: AffectedViewAndField[]
+  }
+
+  interface IntrospectionWarningEnrichedWithMapOnView extends IntrospectionWarning {
+    code: 23
+    affected: AffectedView[]
+  }
+
+  interface IntrospectionWarningViewsWithoutIdentifier extends IntrospectionWarning {
+    code: 24
+    affected: AffectedView[]
+  }
+
+  interface IntrospectionWarningEnrichedWithCustomPrimaryKeyNamesInViews extends IntrospectionWarning {
+    code: 25
+    affected: AffectedView[]
   }
 
   // MongoDB starts at 101 see
