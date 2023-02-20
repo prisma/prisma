@@ -33,7 +33,10 @@ module.exports = () => {
         addFileAttribute: 'true',
         ancestorSeparator: ' › ',
         classNameTemplate: (vars) => {
-          return vars.classname.replace(/ \(provider=.*?\)/g, '')
+          return vars.classname
+            .replace(/(\(.*)provider=\w+,? ?(.*\))/, '$1$2')
+            .replace(/(\(.*)providerFlavor=\w+,? ?(.*\))/, '$1$2')
+            .replace(' ()', '')
         },
         titleTemplate: '{title}',
       },

@@ -55,7 +55,7 @@ setupTestSuite(({ contentProperty }) => {
     if (contentProperty === 'required') {
       await expect(result).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining('Argument set for data.0.content.set must not be null'),
+          message: expect.stringContaining('Argument set for data.content.set must not be null'),
         }),
       )
     } else {

@@ -213,7 +213,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -223,7 +223,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
           path: packages/*/junit*.xml
@@ -315,7 +315,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -325,7 +325,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
           path: packages/*/junit*.xml
@@ -578,7 +578,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -588,7 +588,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
@@ -1151,7 +1151,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -1161,7 +1161,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
@@ -1408,7 +1408,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -1418,7 +1418,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml

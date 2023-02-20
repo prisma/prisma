@@ -1,4 +1,4 @@
-import { ExecaError } from 'execa'
+import type { ExecaError } from 'execa'
 
 export class RustPanic extends Error {
   public readonly __typename = 'RustPanic'
@@ -60,4 +60,11 @@ export type WasmPanic = Error & { name: 'RuntimeError' }
  */
 export function isWasmPanic(error: Error): error is WasmPanic {
   return error.name === 'RuntimeError'
+}
+
+export function getWasmError(error: WasmPanic) {
+  const message: string = globalThis.PRISMA_WASM_PANIC_REGISTRY.get()
+  const stack = [message, ...(error.stack || 'NO_BACKTRACE').split('\n').slice(1)].join('\n')
+
+  return { message, stack }
 }
