@@ -292,14 +292,14 @@ describe('push', () => {
     const result = DbPush.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                  ⚠️ We found changes that cannot be executed:
+                                                                        ⚠️ We found changes that cannot be executed:
 
-                                                                    • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                          • Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                  Use the --force-reset flag to drop the database before push like prisma db push --force-reset
-                                                                  All data will be lost.
-                                                                          
-                                            `)
+                                                                        Use the --force-reset flag to drop the database before push like prisma db push --force-reset
+                                                                        All data will be lost.
+                                                                                
+                                                `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -366,6 +366,7 @@ describe('postgresql', () => {
     const result = DbPush.new().parse(['--schema', 'with-directUrl-env.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
+      Environment variables loaded from .env
       Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-db-push", schema "public" at "localhost:5432"
 
