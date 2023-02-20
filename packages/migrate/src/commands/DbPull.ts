@@ -474,7 +474,7 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
             .join('\n')
         } else if (warning.code === 21) {
           message += warning.affected.map((it) => `- View "${it.view}", Field: "${it.field}", Type: "${it.type}"`)
-        } else if (warning.code === 22) {
+        } else if ([22, 26].includes(warning.code)) {
           message += warning.affected.map((it) => `- View "${it.view}", Field: "${it.field}",`)
         } else if ([23, 24, 25].includes(warning.code)) {
           message += warning.affected.map((it) => `- View "${it.view}"`)

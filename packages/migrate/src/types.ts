@@ -183,10 +183,11 @@ export namespace EngineArgs {
     | IntrospectionWarningsTopLevelItemNameIsADupe
     // Views
     | IntrospectionWarningsUnsupportedTypesInViews
-    | IntrospectionWarningEnrichedWithMapOnFieldInViews
-    | IntrospectionWarningEnrichedWithMapOnView
-    | IntrospectionWarningViewsWithoutIdentifier
-    | IntrospectionWarningEnrichedWithCustomPrimaryKeyNamesInViews
+    | IntrospectionWarningsEnrichedWithMapOnFieldInViews
+    | IntrospectionWarningsEnrichedWithMapOnView
+    | IntrospectionWarningsViewsWithoutIdentifier
+    | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews
+    | IntrospectionWarningsFieldsWithEmptyNamesInViews
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
@@ -325,24 +326,29 @@ export namespace EngineArgs {
     affected: AffectedViewAndFieldAndType[]
   }
 
-  interface IntrospectionWarningEnrichedWithMapOnFieldInViews extends IntrospectionWarning {
+  interface IntrospectionWarningsEnrichedWithMapOnFieldInViews extends IntrospectionWarning {
     code: 22
     affected: AffectedViewAndField[]
   }
 
-  interface IntrospectionWarningEnrichedWithMapOnView extends IntrospectionWarning {
+  interface IntrospectionWarningsEnrichedWithMapOnView extends IntrospectionWarning {
     code: 23
     affected: AffectedView[]
   }
 
-  interface IntrospectionWarningViewsWithoutIdentifier extends IntrospectionWarning {
+  interface IntrospectionWarningsViewsWithoutIdentifier extends IntrospectionWarning {
     code: 24
     affected: AffectedView[]
   }
 
-  interface IntrospectionWarningEnrichedWithCustomPrimaryKeyNamesInViews extends IntrospectionWarning {
+  interface IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews extends IntrospectionWarning {
     code: 25
     affected: AffectedView[]
+  }
+
+  interface IntrospectionWarningsFieldsWithEmptyNamesInViews extends IntrospectionWarning {
+    code: 26
+    affected: AffectedViewAndField[]
   }
 
   // MongoDB starts at 101 see
