@@ -4,7 +4,6 @@
 /runtime
 /tests/memory/memory-report.html
 
-pnpm-lock.yaml
 *.tsbuildinfo
 junit.xml
 .DS_Store
@@ -14,5 +13,5 @@ junit.xml
 .cache
 prisma-0.0.0.tgz
 prisma-client-0.0.0.tgz
-.logs.txt
-.logs.*.txt
+LOGS.txt
+LOGS.*.txt

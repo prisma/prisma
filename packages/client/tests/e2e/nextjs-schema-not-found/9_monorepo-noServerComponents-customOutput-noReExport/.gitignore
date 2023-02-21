@@ -1,0 +1,6 @@
+.env
+.next
+.vercel
+client
+node_modules
+/packages/database/prisma/client
