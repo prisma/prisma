@@ -13,7 +13,6 @@ import plusxSync from './chmod'
 import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
 import { getHash } from './getHash'
-import { getLatestTag } from './getLatestTag'
 import { getBar } from './log'
 import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
 
@@ -122,11 +121,6 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   if (process.env.BINARY_DOWNLOAD_VERSION) {
     opts.version = process.env.BINARY_DOWNLOAD_VERSION
-  }
-
-  // TODO: look to remove latest, because we always pass a version
-  if (opts.version === 'latest') {
-    opts.version = await getLatestTag()
   }
 
   if (opts.printVersion) {

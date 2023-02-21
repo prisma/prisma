@@ -76,10 +76,10 @@ type ApplyExtensionsParams = {
 export class RequestHandler {
   client: Client
   dataloader: DataLoader<Request>
-  private logEmmitter?: EventEmitter
+  private logEmitter?: EventEmitter
 
   constructor(client: Client, logEmitter?: EventEmitter) {
-    this.logEmmitter = logEmitter
+    this.logEmitter = logEmitter
     this.client = client
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
@@ -172,8 +172,8 @@ export class RequestHandler {
     try {
       this.handleRequestError({ error, clientMethod, callsite, transaction })
     } catch (err) {
-      if (this.logEmmitter) {
-        this.logEmmitter.emit('error', { message: err.message, target: clientMethod, timestamp: new Date() })
+      if (this.logEmitter) {
+        this.logEmitter.emit('error', { message: err.message, target: clientMethod, timestamp: new Date() })
       }
       throw err
     }

@@ -200,7 +200,7 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrow(
               isSchemaUsingMap
-                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
                   `Foreign key constraint failed on the field:`
                 : conditionalError.snapshot({
@@ -360,7 +360,7 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrow(
               isSchemaUsingMap
-                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
                   `Foreign key constraint failed on the field:`
                 : conditionalError.snapshot({
@@ -451,7 +451,7 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrow(
               isSchemaUsingMap
-                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
                   `Foreign key constraint failed on the field:`
                 : conditionalError.snapshot({
@@ -645,7 +645,7 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrow(
               isSchemaUsingMap
-                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
                   undefined
                 : conditionalError.snapshot({
@@ -692,7 +692,7 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrow(
               isSchemaUsingMap
-                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
                   undefined
                 : conditionalError.snapshot({

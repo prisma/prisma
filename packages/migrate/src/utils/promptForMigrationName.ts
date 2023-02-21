@@ -2,12 +2,12 @@ import { isCi, isInteractive } from '@prisma/internals'
 import slugify from '@sindresorhus/slugify'
 import { prompt } from 'prompts'
 
-type getMigratioNameOutput = {
+type getMigrationNameOutput = {
   name?: string
   userCancelled?: string
 }
 
-export async function getMigrationName(name?: string): Promise<getMigratioNameOutput> {
+export async function getMigrationName(name?: string): Promise<getMigrationNameOutput> {
   // Truncate if longer
   const maxMigrationNameLength = 200
 
