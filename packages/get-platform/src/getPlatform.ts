@@ -299,27 +299,34 @@ type GetOpenSSLVersionParams = {
  * This function never throws.
  */
 export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetOsResultLinux['libssl'] | undefined> {
-  const libsslSpecificPaths = match(args)
-    .with({ familyDistro: 'musl' }, () => {
-      /* Linux Alpine */
-      debug('Trying platform-specific paths for "alpine"')
-      return ['/lib']
-    })
-    .with({ familyDistro: 'debian' }, ({ archFromUname }) => {
-      /* Linux Debian, Ubuntu, etc */
-      debug('Trying platform-specific paths for "debian" (and "ubuntu")')
-      return [`/usr/lib/${archFromUname}-linux-gnu`, `/lib/${archFromUname}-linux-gnu`]
-    })
-    .with({ familyDistro: 'rhel' }, () => {
-      /* Linux Red Hat, OpenSuse etc */
-      debug('Trying platform-specific paths for "rhel"')
-      return ['/lib64', '/usr/lib64']
-    })
-    .otherwise(({ familyDistro, arch, archFromUname }) => {
-      /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
-      debug(`Don't know any platform-specific paths for "${familyDistro}" on ${arch} (${archFromUname})`)
-      return []
-    })
+  let libsslSpecificPaths: string[]
+
+  if (process.env.OPENSSL_LIB_DIR) {
+    debug(`Found 'OPENSSL_LIB_DIR' path specified in env-vars, ignoring platform specific lib-dir paths...`)
+    libsslSpecificPaths = [process.env.OPENSSL_LIB_DIR]
+  } else {
+    libsslSpecificPaths = match(args)
+      .with({ familyDistro: 'musl' }, () => {
+        /* Linux Alpine */
+        debug('Trying platform-specific paths for "alpine"')
+        return ['/lib']
+      })
+      .with({ familyDistro: 'debian' }, ({ archFromUname }) => {
+        /* Linux Debian, Ubuntu, etc */
+        debug('Trying platform-specific paths for "debian" (and "ubuntu")')
+        return [`/usr/lib/${archFromUname}-linux-gnu`, `/lib/${archFromUname}-linux-gnu`]
+      })
+      .with({ familyDistro: 'rhel' }, () => {
+        /* Linux Red Hat, OpenSuse etc */
+        debug('Trying platform-specific paths for "rhel"')
+        return ['/lib64', '/usr/lib64']
+      })
+      .otherwise(({ familyDistro, arch, archFromUname }) => {
+        /* Other Linux distros, we don't do anything specific and fall back to the next blocks */
+        debug(`Don't know any platform-specific paths for "${familyDistro}" on ${arch} (${archFromUname})`)
+        return []
+      })
+  }
 
   const excludeLibssl0x = 'grep -v "libssl.so.0"'
   const libsslSpecificCommands = libsslSpecificPaths.map(
