@@ -4,7 +4,7 @@ import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import { match } from 'ts-pattern'
 
-import { ErrorArea, isWasmPanic, RustPanic, WasmPanic } from '../panic'
+import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
@@ -47,6 +47,11 @@ export function validate(options: ValidateOptions): void {
   const validateEither = pipe(
     E.tryCatch(
       () => {
+        /**
+         * Note: `validate` was introduced as a substitute of `getDMMF` to validate schemas the
+         * same way `getDMMF` did, but without the expensive DMMF document computation, so we
+         * keep using `FORCE_PANIC_QUERY_ENGINE_GET_DMMF` to avoid breaking changes in env vars.
+         */
         if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
           debug('Triggering a Rust panic...')
           prismaFmt.debug_panic()
@@ -85,10 +90,10 @@ export function validate(options: ValidateOptions): void {
        * Capture and propagate possible Wasm panics.
        */
       if (isWasmPanic(e.error)) {
-        const wasmError = e.error
+        const { message, stack } = getWasmError(e.error)
         const panic = new RustPanic(
-          /* message */ wasmError.message,
-          /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
+          /* message */ message,
+          /* rustStack */ stack,
           /* request */ '@prisma/prisma-fmt-wasm validate',
           ErrorArea.FMT_CLI,
           /* schemaPath */ undefined,

@@ -134,14 +134,14 @@ describe('artificial-panic get-config', () => {
   })
 })
 
-describe('artificial-panic get-dmmf', () => {
+describe('artificial-panic validate', () => {
   const OLD_ENV = { ...process.env }
 
   afterEach(() => {
     process.env = { ...OLD_ENV }
   })
 
-  it('get-dmmf - validate', async () => {
+  it('validate', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(5)
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
@@ -175,7 +175,7 @@ describe('artificial-panic get-dmmf', () => {
     }
   })
 
-  it('get-dmmf - format', async () => {
+  it('format', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(5)
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
