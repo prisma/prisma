@@ -1,8 +1,8 @@
-import { $, ProcessPromise } from 'zx'
+import { $ } from 'zx'
 
 import { executeSteps } from '../../_utils/executeSteps'
+import { testServerComponents } from '../_shared/test'
 
-let nextJsProcess: ProcessPromise
 void executeSteps({
   setup: async () => {
     await $`pnpm install`
@@ -10,18 +10,7 @@ void executeSteps({
     await $`pnpm exec next build`
   },
   test: async () => {
-    await $`rm -fr .next/standalone/node_modules/next`
-    nextJsProcess = $`node .next/standalone/server.js`
-    await $`sleep 5`
-    const data = await $`curl -LI http://localhost:3000/test/42 -o /dev/null -w '%{http_code}\\n' -s`
-    if (data.stdout !== '200\n') {
-      throw new Error(`Expected 200 but got ${data.stdout}`)
-    }
+    await testServerComponents()
   },
-  finish: async () => {
-    await nextJsProcess.kill('SIGINT')
-
-    await $`echo "done"`
-  },
-  // keep: true, // keep docker open to debug it
+  finish: async () => {},
 })

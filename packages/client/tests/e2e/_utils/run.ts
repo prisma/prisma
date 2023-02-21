@@ -5,6 +5,8 @@ import os from 'os'
 import path from 'path'
 import { $, ProcessOutput, sleep } from 'zx'
 
+const monorepoRoot = path.resolve(__dirname, '..', '..', '..', '..', '..')
+
 const args = arg(
   process.argv.slice(2),
   {
@@ -40,7 +42,7 @@ async function main() {
   console.log('🧹 Cleaning up old files')
   if (args['--clean'] === true) {
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
-    await $`docker compose -f ${__dirname}/docker-compose-clean.yml up full-clean`
+    await $`docker compose -f ${__dirname}/docker-compose-clean.yml up clean`
   } else {
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml down --remove-orphans`
     await $`docker compose -f ${__dirname}/docker-compose-clean.yml up pre-clean`
@@ -49,8 +51,8 @@ async function main() {
   console.log('🎠 Preparing e2e tests')
   // we first get all the paths we are going to need to run e2e tests
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'prisma-build'))
-  const cliPkgPath = path.join(__dirname, '..', '..', '..', '..', 'cli')
-  const clientPkgPath = path.join(__dirname, '..', '..', '..', '..', 'client')
+  const cliPkgPath = path.join(monorepoRoot, 'packages', 'cli')
+  const clientPkgPath = path.join(monorepoRoot, 'packages', 'client')
   const cliPkgJsonPath = path.join(cliPkgPath, 'package.json')
   const clientPkgJsonPath = path.join(clientPkgPath, 'package.json')
   const cliPkgJson = require(cliPkgJsonPath)
@@ -99,10 +101,9 @@ async function main() {
   }
 
   const dockerVolumes = [
-    `${path.resolve(__dirname, '..')}:/e2e`,
-    `${path.resolve(__dirname, '..', '..', '..')}:/client`,
-    `${path.resolve(__dirname, '..', '..', '..', '..', '..')}:/repo`,
-    `${path.resolve(__dirname, '..', '.cache')}:/root/.cache`,
+    `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
+    `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')}:/e2e`,
+    `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e', '.cache')}:/root/.cache`,
     `${(await $`pnpm store path`.quiet()).stdout.trim()}:/root/.local/share/pnpm/store/v3`,
   ]
   const dockerVolumeArgs = dockerVolumes.map((v) => `-v ${v}`).join(' ')
@@ -135,7 +136,7 @@ async function main() {
     for (const result of failedJobResults) {
       console.log(`🛑 ${result.name} failed with exit code`, result.exitCode)
       await $`cat ${path.resolve(__dirname, '..', result.name, 'LOGS.txt')}`
-      await sleep(50)
+      await sleep(50) // give some time for the logs to be printed (CI issue)
     }
   }
 
