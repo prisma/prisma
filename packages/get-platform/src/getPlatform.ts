@@ -328,9 +328,9 @@ export async function getSSLVersion(args: GetOpenSSLVersionParams): Promise<GetO
       })
   }
 
-  const excludeLibssl0x = 'grep -v "libssl.so.0"'
+  const excludeLibssl0x = "grep -v -P 'libssl.so.0.*'"
   const libsslSpecificCommands = libsslSpecificPaths.map(
-    (path) => `ls -v "libssl.so.0*" ${path} | grep libssl.so | ${excludeLibssl0x}`,
+    (path) => `ls ${path} | grep -P 'libssl.so\..*' | ${excludeLibssl0x}`,
   )
   const libsslFilenameFromSpecificPath: string | undefined = await getFirstSuccessfulExec(libsslSpecificCommands)
 
