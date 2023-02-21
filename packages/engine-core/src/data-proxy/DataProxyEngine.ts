@@ -32,7 +32,7 @@ import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
 import { Fetch, request } from './utils/request'
 
-const MAX_RETRIES = 10
+const MAX_RETRIES = 3
 
 // to defer the execution of promises in the constructor
 const P = Promise.resolve()
