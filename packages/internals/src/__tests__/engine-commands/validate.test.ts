@@ -180,7 +180,9 @@ describe('validate', () => {
         validate({ datamodel: true })
       } catch (e) {
         expect(isRustPanic(e)).toBe(true)
-        expect(serialize(e.message)).toMatchInlineSnapshot(`"unreachable"`)
+        expect(serialize(e.message)).toMatchInlineSnapshot(
+          `"RuntimeError: panicked at 'Failed to deserialize ValidateParams: invalid type: boolean \`true\`, expected a string at line 1 column 20', prisma-fmt/src/validate.rs:0:0"`,
+        )
         expect(e.rustStack).toBeTruthy()
       }
     })
