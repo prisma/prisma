@@ -1,0 +1,24 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["views"]
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+}
+
+model reservations {
+  id    Int                      @id
+  room  String                   @db.VarChar
+  dates Unsupported("daterange")
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+view res {
+  id    Int?                      @id
+  room  String?                   @db.VarChar
+  dates Unsupported("daterange")?
+
+  @@ignore
+}
