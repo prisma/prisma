@@ -387,7 +387,7 @@ export class MigrateEngine {
 
         // logs (info, error)
         // error can be a panic
-        byline(this.child.stderr).on('data', (msg) => {
+        byline(this.child.stderr!).on('data', (msg) => {
           const data = String(msg)
           debugStderr(data)
 
@@ -404,7 +404,7 @@ export class MigrateEngine {
           }
         })
 
-        byline(this.child.stdout).on('data', (line) => {
+        byline(this.child.stdout!).on('data', (line) => {
           this.handleResponse(String(line))
         })
 
