@@ -437,7 +437,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   async getDmmf(): Promise<DMMF.Document> {
     await this.start()
 
-    return JSON.parse(await this.engine!.dmmf())
+    const traceparent = getTraceParent({ tracingConfig: this.config.tracingConfig })
+    const response = await this.engine!.dmmf(JSON.stringify({ traceparent }))
+
+    return runInChildSpan({ name: 'parseDmmf', enabled: this.config.tracingConfig.enabled, internal: true }, () =>
+      JSON.parse(response),
+    )
   }
 
   version(): string {
