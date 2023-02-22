@@ -1,10 +1,14 @@
 import { Context, context as _context, Span, SpanOptions as _SpanOptions, trace } from '@opentelemetry/api'
 
+const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
+
 export type SpanOptions = _SpanOptions & {
   /** The name of the span */
   name: string
   /** Whether we trace it */
   enabled: boolean
+  /* Internal spans are not shown unless PRISMA_SHOW_ALL_TRACES=true env var is set */
+  internal?: boolean
   /** Whether it propagates context (?=true) */
   active?: boolean
   /** The context to append the span to */
@@ -17,7 +21,9 @@ export type SpanOptions = _SpanOptions & {
  * @returns
  */
 export async function runInChildSpan<R>(options: SpanOptions, cb: (span?: Span, context?: Context) => R | Promise<R>) {
-  if (options.enabled === false) return cb()
+  if (options.enabled === false || (options.internal && !showAllTraces)) {
+    return cb()
+  }
 
   const tracer = trace.getTracer('prisma')
   const context = options.context ?? _context.active()
