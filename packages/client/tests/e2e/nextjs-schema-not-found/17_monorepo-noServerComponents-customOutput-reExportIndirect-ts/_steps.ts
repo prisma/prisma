@@ -9,9 +9,12 @@ void executeSteps({
     cd('packages/db')
     await $`pnpm exec prisma db push --force-reset`
     cd('../service')
-    await $`pnpm exec next build`
   },
   test: async () => {
+    process.env.WORKAROUND = 'true'
+    await testNonServerComponents()
+
+    process.env.WORKAROUND = 'false'
     await testNonServerComponents()
   },
   finish: async () => {},
