@@ -94,7 +94,6 @@ export class BinaryEngine extends Engine<undefined> {
   private previewFeatures: string[] = []
   private engineEndpoint?: string
   private lastError?: PrismaClientRustError
-  private getConfigPromise?: Promise<GetConfigResult>
   private getDmmfPromise?: Promise<DMMF.Document>
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
@@ -781,7 +780,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         //
       }
     }
-    this.getConfigPromise = undefined
     let stopChildPromise
     if (this.child) {
       debug(`Stopping Prisma engine`)
@@ -810,7 +808,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   kill(signal: string): void {
-    this.getConfigPromise = undefined
     this.globalKillSignalReceived = signal
     this.child?.kill()
     this.connection.close()
