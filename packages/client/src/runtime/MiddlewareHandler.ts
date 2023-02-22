@@ -14,7 +14,14 @@ export type QueryMiddlewareParams = {
   dataPath: string[]
   /** TODO what is this */
   runInTransaction: boolean
-  /** TODO what is this */
+  /**
+   * Arguments of the query.
+   * TODO: There are multiple possible types for `args` based on the contexts it is used in: in some places `UserArgs`
+   * from `src/runtime/core/model/UserArgs` is expected, in other -- `object`.  This needs to be unified. Extra care
+   * must be taken not to introduce any breaking changes, as exposing `UserArgs` in public APIs (e.g. $runCommandRaw)
+   * will be more restrictive than what we currently accept. `UserArgs` type may need to be expanded to allow things
+   * like dates and buffers.
+   */
   args: any // TODO remove any, does this make sense, what is args?
 }
 
