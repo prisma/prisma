@@ -100,7 +100,21 @@ export class LibraryEngine extends Engine<undefined> {
   constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
     super()
 
-    this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
+    try {
+      // we try to handle the case where the datamodel is not found
+      this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
+    } catch (e) {
+      if ((e.stack as string).match(/\/\.next|\/next@|\/next\//)) {
+        throw new PrismaClientInitializationError(
+          `Your schema.prisma could not be found, and we detected that you are using Next.js.
+Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextjs`,
+          config.clientVersion!,
+        )
+      }
+
+      throw e
+    }
+
     this.config = config
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false
