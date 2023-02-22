@@ -10,7 +10,6 @@ void executeSteps({
     cd('packages/service')
   },
   test: async () => {
-    process.env.WORKAROUND = 'true'
     await testServerComponents()
   },
   finish: async () => {},

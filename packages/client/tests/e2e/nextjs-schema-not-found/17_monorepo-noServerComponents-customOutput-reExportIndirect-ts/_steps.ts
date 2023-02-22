@@ -11,10 +11,6 @@ void executeSteps({
     cd('../service')
   },
   test: async () => {
-    process.env.WORKAROUND = 'true'
-    await testNonServerComponents()
-
-    process.env.WORKAROUND = 'false'
     await testNonServerComponents()
   },
   finish: async () => {},
