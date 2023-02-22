@@ -1,6 +1,6 @@
 import { jestContext } from '@prisma/get-platform'
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
-import { isRustPanic } from '@prisma/internals'
+import { getDMMF, isRustPanic } from '@prisma/internals'
 import { DbPull } from '@prisma/migrate'
 
 import { Format } from '../Format'
@@ -202,6 +202,46 @@ describe('artificial-panic validate', () => {
           url      = "postgres://user:password@randomhost:5432"
         }
 
+      `)
+      expect(e).toMatchObject({
+        schemaPath: undefined,
+      })
+    }
+  })
+})
+
+describe('artificial-panic getDMMF', () => {
+  const OLD_ENV = { ...process.env }
+
+  afterEach(() => {
+    process.env = { ...OLD_ENV }
+  })
+
+  it('getDMMF', async () => {
+    ctx.fixture('artificial-panic')
+    expect.assertions(5)
+    process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
+
+    try {
+      await getDMMF({
+        datamodel: /* prisma */ `
+  generator client {
+    provider = "prisma-client-js"
+  }
+        `,
+      })
+    } catch (e) {
+      expect(serialize(e.message)).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-fmt-wasm/src/lib.rs:0:0`,
+      )
+      expect(isRustPanic(e)).toBe(true)
+      expect(e.rustStack).toBeTruthy()
+      expect(e.schema).toMatchInlineSnapshot(`
+
+          generator client {
+            provider = "prisma-client-js"
+          }
+                
       `)
       expect(e).toMatchObject({
         schemaPath: undefined,
