@@ -97,8 +97,8 @@ Invalid \`prisma.user()\` invocation:
 ?   id?: IntFilter | Int,
 ?   name?: StringFilter | String,
 ?   email?: StringFilter | String,
-?   likedArticles?: ArticleListRelationFilter,
 ?   personaId?: IntFilter | Int,
+?   likedArticles?: ArticleListRelationFilter,
 ?   persona?: PersonaRelationFilter | PersonaWhereInput
 ? }
 }
