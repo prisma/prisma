@@ -8,7 +8,6 @@ void executeSteps({
     await $`pnpm install`
     await $`pnpm exec prisma db push --force-reset`
     cd('packages/service')
-    await $`pnpm exec next build`
   },
   test: async () => {
     await testServerComponents()

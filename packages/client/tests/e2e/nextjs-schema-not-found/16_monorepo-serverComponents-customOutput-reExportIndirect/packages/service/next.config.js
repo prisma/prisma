@@ -7,7 +7,7 @@ module.exports = {
     appDir: true,
   },
   webpack: (config, { isServer }) => {
-    if (isServer) {
+    if (isServer && process.env.WORKAROUND === 'true') {
       config.plugins = [...config.plugins, new PrismaPlugin()]
     }
 
