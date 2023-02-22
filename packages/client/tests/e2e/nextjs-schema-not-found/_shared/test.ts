@@ -32,7 +32,7 @@ async function test(endpoint: string, serverComponents: boolean) {
   if (process.env.WORKAROUND !== 'true' && (data.stdout === '500' || nextJsBuild.exitCode !== 0)) {
     // Dual logic: server components error at build & runtime, non-Server components at runtime
     // this is also why we use `.nothrow()` and only check for exit codes as well as http codes
-    const stderr = (await nextJsProcess).stderr + nextJsBuild.stderr // dual logic
+    const stderr = nextJsBuild.stderr + (await nextJsProcess).stderr // dual logic
     const message = `PrismaClientInitializationError: Your schema.prisma could not be found, and we detected that you are using Next.js.
 Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextjs
     at`
