@@ -39,9 +39,9 @@ describe('validate', () => {
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                    Prisma schema warning:
-                                    - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
-                      `)
+      Prisma schema warning:
+      - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -54,9 +54,9 @@ describe('validate', () => {
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                    Prisma schema warning:
-                                    - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
-                      `)
+                                          Prisma schema warning:
+                                          - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
+                          `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 

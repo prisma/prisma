@@ -14,10 +14,9 @@ if (process.env.CI) {
 }
 
 describe('validate', () => {
-  /*
   // Note: to run these tests locally, prepend the env vars `FORCE_COLOR=0` and `CI=1` to your test command,
   // as `chalk` follows different conventions than the Rust `colored` crate (and uses `FORCE_COLOR=0` to disable colors rather than `NO_COLOR=1`).
-  describe('colors', () => {
+  describe.skip('colors', () => {
     // backup env vars
     const OLD_ENV = { ...process.env }
     const { NO_COLOR: _, ...OLD_ENV_WITHOUT_NO_COLOR } = OLD_ENV
@@ -92,7 +91,6 @@ describe('validate', () => {
       }
     })
   })
-  */
 
   describe('errors', () => {
     test('model with autoincrement should fail if sqlite', () => {

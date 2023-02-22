@@ -57,10 +57,9 @@ export function validate(options: ValidateOptions): void {
           prismaFmt.debug_panic()
         }
 
-        const noColor = Boolean(process.env.NO_COLOR)
         const params = JSON.stringify({
           prismaSchema: options.datamodel,
-          noColor,
+          noColor: Boolean(process.env.NO_COLOR),
         })
         prismaFmt.validate(params)
       },
