@@ -14,7 +14,7 @@ model User {
   age   Int
   // / name comment
   name  String?
-  posts Post[]  @ignore
+  posts Post[]  // @ignore
 }
 
 model Post {
@@ -27,5 +27,5 @@ model Post {
   authorId  String?
   author    User?    @relation(fields: [authorId], references: [id])
 
-  @@ignore
+  // @@ignore
 }

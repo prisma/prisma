@@ -16,6 +16,8 @@ module.exports = {
     '<rootDir>/sandbox/',
     '<rootDir>/scripts/',
     '<rootDir>/tests/memory',
+    '<rootDir>/tests/functional',
+    '<rootDir>/tests/e2e',
     '<rootDir>/src/__tests__/benchmarks/',
     '<rootDir>/src/__tests__/types/.*/test.ts',
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema/generated-dmmf.ts',
