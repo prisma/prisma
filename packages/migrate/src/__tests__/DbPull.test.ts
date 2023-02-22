@@ -5,6 +5,7 @@ import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
+import type { EngineArgs } from '../types'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
@@ -480,12 +481,10 @@ describe('postgresql - missing database', () => {
   })
 })
 
-describe('postgresql views warnings', () => {
+describe('postgresql views introspection warnings', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
 
-  describe('postgresql views 21', () => {
-    const warningCode = '21'
-
+  function computeSetupParams(warningCode: EngineArgs.ViewWarningCodes) {
     const setupParams: SetupParams = {
       connectionString,
       // Note: at this location there is a setup.sql file
@@ -500,15 +499,21 @@ describe('postgresql views warnings', () => {
         `views-warning-${warningCode}`,
       ),
     }
+    return setupParams
+  }
+
+  describe('postgresql views 21', () => {
+    const warningCode = 21
+    const setupParams = computeSetupParams(warningCode)
 
     beforeAll(async () => {
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
 
     beforeEach(async () => {
-      await setupPostgres(setupParams).catch((e) => {
+      await setupPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
       // Back to original env vars
@@ -520,7 +525,7 @@ describe('postgresql views warnings', () => {
     afterEach(async () => {
       // Back to original env vars
       process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
@@ -580,31 +585,17 @@ describe('postgresql views warnings', () => {
   })
 
   describe('postgresql views 22', () => {
-    const warningCode = '22'
-
-    const setupParams: SetupParams = {
-      connectionString,
-      // Note: at this location there is a setup.sql file
-      // which will be executed a SQL file so the database is not empty
-      dirname: path.join(
-        __dirname,
-        '..',
-        '__tests__',
-        'fixtures',
-        'introspection',
-        'postgresql',
-        `views-warning-${warningCode}`,
-      ),
-    }
+    const warningCode = 22
+    const setupParams = computeSetupParams(warningCode)
 
     beforeAll(async () => {
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
 
     beforeEach(async () => {
-      await setupPostgres(setupParams).catch((e) => {
+      await setupPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
       // Back to original env vars
@@ -616,7 +607,7 @@ describe('postgresql views warnings', () => {
     afterEach(async () => {
       // Back to original env vars
       process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
@@ -666,31 +657,17 @@ describe('postgresql views warnings', () => {
   })
 
   describe('postgresql views 23', () => {
-    const warningCode = '23'
-
-    const setupParams: SetupParams = {
-      connectionString,
-      // Note: at this location there is a setup.sql file
-      // which will be executed a SQL file so the database is not empty
-      dirname: path.join(
-        __dirname,
-        '..',
-        '__tests__',
-        'fixtures',
-        'introspection',
-        'postgresql',
-        `views-warning-${warningCode}`,
-      ),
-    }
+    const warningCode = 23
+    const setupParams = computeSetupParams(warningCode)
 
     beforeAll(async () => {
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
 
     beforeEach(async () => {
-      await setupPostgres(setupParams).catch((e) => {
+      await setupPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
       // Back to original env vars
@@ -702,7 +679,7 @@ describe('postgresql views warnings', () => {
     afterEach(async () => {
       // Back to original env vars
       process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
@@ -754,31 +731,17 @@ describe('postgresql views warnings', () => {
   })
 
   describe('postgresql views 24', () => {
-    const warningCode = '24'
-
-    const setupParams: SetupParams = {
-      connectionString,
-      // Note: at this location there is a setup.sql file
-      // which will be executed a SQL file so the database is not empty
-      dirname: path.join(
-        __dirname,
-        '..',
-        '__tests__',
-        'fixtures',
-        'introspection',
-        'postgresql',
-        `views-warning-${warningCode}`,
-      ),
-    }
+    const warningCode = 24
+    const setupParams = computeSetupParams(warningCode)
 
     beforeAll(async () => {
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
 
     beforeEach(async () => {
-      await setupPostgres(setupParams).catch((e) => {
+      await setupPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
       // Back to original env vars
@@ -790,7 +753,7 @@ describe('postgresql views warnings', () => {
     afterEach(async () => {
       // Back to original env vars
       process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
@@ -844,31 +807,17 @@ describe('postgresql views warnings', () => {
   })
 
   describe('postgresql views 25', () => {
-    const warningCode = '25'
-
-    const setupParams: SetupParams = {
-      connectionString,
-      // Note: at this location there is a setup.sql file
-      // which will be executed a SQL file so the database is not empty
-      dirname: path.join(
-        __dirname,
-        '..',
-        '__tests__',
-        'fixtures',
-        'introspection',
-        'postgresql',
-        `views-warning-${warningCode}`,
-      ),
-    }
+    const warningCode = 25
+    const setupParams = computeSetupParams(warningCode)
 
     beforeAll(async () => {
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
 
     beforeEach(async () => {
-      await setupPostgres(setupParams).catch((e) => {
+      await setupPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
       // Back to original env vars
@@ -880,7 +829,7 @@ describe('postgresql views warnings', () => {
     afterEach(async () => {
       // Back to original env vars
       process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
@@ -931,31 +880,17 @@ describe('postgresql views warnings', () => {
   })
 
   describe('postgresql views 26', () => {
-    const warningCode = '26'
-
-    const setupParams: SetupParams = {
-      connectionString,
-      // Note: at this location there is a setup.sql file
-      // which will be executed a SQL file so the database is not empty
-      dirname: path.join(
-        __dirname,
-        '..',
-        '__tests__',
-        'fixtures',
-        'introspection',
-        'postgresql',
-        `views-warning-${warningCode}`,
-      ),
-    }
+    const warningCode = 26
+    const setupParams = computeSetupParams(warningCode)
 
     beforeAll(async () => {
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })
 
     beforeEach(async () => {
-      await setupPostgres(setupParams).catch((e) => {
+      await setupPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
       // Back to original env vars
@@ -967,7 +902,7 @@ describe('postgresql views warnings', () => {
     afterEach(async () => {
       // Back to original env vars
       process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams!).catch((e) => {
         console.error(e)
       })
     })

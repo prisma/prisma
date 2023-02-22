@@ -370,6 +370,14 @@ export namespace EngineArgs {
     affected: AffectedModelOrCompositeTypeAndField[]
   }
 
+  export type ViewWarningCodes =
+    | IntrospectionWarningsUnsupportedTypesInViews['code']
+    | IntrospectionWarningsEnrichedWithMapOnFieldInViews['code']
+    | IntrospectionWarningsEnrichedWithMapOnView['code']
+    | IntrospectionWarningsViewsWithoutIdentifier['code']
+    | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews['code']
+    | IntrospectionWarningsFieldsWithEmptyNamesInViews['code']
+
   export type IntrospectionSchemaVersion = 'Prisma2' | 'Prisma1' | 'Prisma11' | 'NonPrisma'
 
   export interface DevDiagnosticInput {
