@@ -258,8 +258,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  private resolveCwd(cwd?: string): string {
-    if (cwd && fs.existsSync(cwd) && fs.lstatSync(cwd).isDirectory()) {
+  private resolveCwd(cwd: string): string {
+    if (fs.existsSync(cwd) && fs.lstatSync(cwd).isDirectory()) {
       return cwd
     }
 

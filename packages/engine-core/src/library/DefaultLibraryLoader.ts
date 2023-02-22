@@ -144,7 +144,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
       return { enginePath, searchedLocations }
     }
 
-    const dirname = eval('__dirname')
+    const dirname = eval('__dirname') as string
     const searchLocations: string[] = [
       // TODO: why hardcoded path? why not look for .prisma/client upwards?
       path.resolve(dirname, '../../../.prisma/client'), // Dot Prisma Path

@@ -260,7 +260,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
             ignoreEnvVarErrors: true,
             datasourceOverrides: this.datasourceOverrides,
             logLevel: this.logLevel,
-            configDir: this.config.cwd!,
+            configDir: this.config.cwd,
           },
           (log) => {
             weakThis.deref()?.logger(log)
