@@ -2,8 +2,8 @@ import { $ } from 'zx'
 
 /**
  * Starts the Next.js server and tests the endpoint. It tests:
- * - No workaround + Server Components: should fail at build time
- * - No workaround + non-Server Components: should fail at runtime
+ * - No workaround + Server Components: if fails, nice error message
+ * - No workaround + non-Server Components: if fails, nice error message
  * - Workaround + Server Components: should succeed
  * - Workaround + non-Server Components: should succeed
  * @param endpoint the endpoint to test
@@ -30,9 +30,9 @@ async function test(endpoint: string, serverComponents: boolean) {
 
   // Path 1: No workaround + a nice error message
   if (process.env.WORKAROUND !== 'true' && (data.stdout === '500' || nextJsBuild.exitCode !== 0)) {
-    // Dual logic: Server Components error at build time, non-Server Components at runtime
-    // this is also why we use `.nothrow()` but check for exit codes as well as http codes
-    const stderr = serverComponents ? nextJsBuild.stderr : (await nextJsProcess).stderr
+    // Dual logic: server components error at build & runtime, non-Server components at runtime
+    // this is also why we use `.nothrow()` and only check for exit codes as well as http codes
+    const stderr = (await nextJsProcess).stderr + nextJsBuild.stderr // dual logic
     const message = `PrismaClientInitializationError: Your schema.prisma could not be found, and we detected that you are using Next.js.
 Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextjs
     at`
