@@ -223,7 +223,7 @@ export namespace EngineArgs {
   type AffectedViewAndFieldAndType = {
     view: string
     field: string
-    type: string
+    tpe: string
   }
 
   interface IntrospectionWarning {
