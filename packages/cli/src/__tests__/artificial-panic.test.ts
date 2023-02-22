@@ -224,11 +224,9 @@ describe('artificial-panic getDMMF', () => {
 
     try {
       await getDMMF({
-        datamodel: /* prisma */ `
-  generator client {
-    provider = "prisma-client-js"
-  }
-        `,
+        datamodel: /* prisma */ `generator client {
+  provider = "prisma-client-js"
+}`,
       })
     } catch (e) {
       expect(serialize(e.message)).toMatchInlineSnapshot(
@@ -237,11 +235,9 @@ describe('artificial-panic getDMMF', () => {
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
-
-          generator client {
-            provider = "prisma-client-js"
-          }
-                
+        generator client {
+          provider = "prisma-client-js"
+        }
       `)
       expect(e).toMatchObject({
         schemaPath: undefined,
