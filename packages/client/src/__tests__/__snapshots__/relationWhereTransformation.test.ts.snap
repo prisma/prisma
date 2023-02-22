@@ -37,10 +37,10 @@ type PlaylistTrackWhereInput {
   OR?: List<PlaylistTrackWhereInput>
   NOT?: PlaylistTrackWhereInput | List<PlaylistTrackWhereInput>
   id?: IntFilter | Int
-  Playlist?: PlaylistRelationFilter | PlaylistWhereInput
   PlaylistId?: IntFilter | Int
-  Track?: TrackRelationFilter | TrackWhereInput
   TrackId?: IntFilter | Int
+  Playlist?: PlaylistRelationFilter | PlaylistWhereInput
+  Track?: TrackRelationFilter | TrackWhereInput
 }
 
 
@@ -85,10 +85,10 @@ type PlaylistTrackWhereInput {
   OR?: List<PlaylistTrackWhereInput>
   NOT?: PlaylistTrackWhereInput | List<PlaylistTrackWhereInput>
   id?: IntFilter | Int
-  Playlist?: PlaylistRelationFilter | PlaylistWhereInput
   PlaylistId?: IntFilter | Int
-  Track?: TrackRelationFilter | TrackWhereInput
   TrackId?: IntFilter | Int
+  Playlist?: PlaylistRelationFilter | PlaylistWhereInput
+  Track?: TrackRelationFilter | TrackWhereInput
 }
 
 
@@ -133,10 +133,10 @@ type PlaylistTrackWhereInput {
   OR?: List<PlaylistTrackWhereInput>
   NOT?: PlaylistTrackWhereInput | List<PlaylistTrackWhereInput>
   id?: IntFilter | Int
-  Playlist?: PlaylistRelationFilter | PlaylistWhereInput
   PlaylistId?: IntFilter | Int
-  Track?: TrackRelationFilter | TrackWhereInput
   TrackId?: IntFilter | Int
+  Playlist?: PlaylistRelationFilter | PlaylistWhereInput
+  Track?: TrackRelationFilter | TrackWhereInput
 }
 
 

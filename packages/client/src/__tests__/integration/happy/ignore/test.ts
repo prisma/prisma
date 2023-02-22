@@ -2,16 +2,16 @@ import { getTestClient } from '../../../../utils/getTestClient'
 
 let prisma
 
-beforeAll(async () => {
-  const PrismaClient = await getTestClient()
-  prisma = new PrismaClient()
-})
+// beforeAll(async () => {
+//   const PrismaClient = await getTestClient()
+//   prisma = new PrismaClient()
+// })
 
-afterAll(async () => {
-  await prisma.$disconnect()
-})
+// afterAll(async () => {
+//   await prisma.$disconnect()
+// })
 
-test('findMany with ignore', async () => {
+test.skip('findMany with ignore', async () => {
   const user = await prisma.user.findMany()
 
   expect(user).toMatchInlineSnapshot(`

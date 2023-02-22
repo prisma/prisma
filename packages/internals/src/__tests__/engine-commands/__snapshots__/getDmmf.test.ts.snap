@@ -11032,25 +11032,6 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserRelationFilter",
-                },
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserWhereInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "author",
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
                   "type": "IntFilter",
                 },
                 {
@@ -11099,6 +11080,25 @@ exports[`getDMMF success @@unique model 1`] = `
               "isRequired": false,
               "name": "published",
             },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserRelationFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author",
+            },
           ],
           "meta": {
             "source": "Post",
@@ -11123,19 +11123,6 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "id",
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserOrderByWithRelationInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "author",
             },
             {
               "inputTypes": [
@@ -11175,6 +11162,19 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "published",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserOrderByWithRelationInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author",
             },
           ],
           "name": "PostOrderByWithRelationInput",
@@ -12834,19 +12834,6 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserCreateNestedOneWithoutPostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "author",
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -12866,6 +12853,19 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "published",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserCreateNestedOneWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "author",
             },
           ],
           "name": "PostCreateInput",
@@ -12955,19 +12955,6 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUpdateOneRequiredWithoutPostsNestedInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "author",
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -12999,6 +12986,19 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "published",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUpdateOneRequiredWithoutPostsNestedInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author",
             },
           ],
           "name": "PostUpdateInput",
@@ -14679,41 +14679,6 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserWhereInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "is",
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserWhereInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "isNot",
-            },
-          ],
-          "name": "UserRelationFilter",
-        },
-        {
-          "constraints": {
-            "maxNumFields": null,
-            "minNumFields": null,
-          },
-          "fields": [
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -14902,6 +14867,41 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "name": "BoolFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "is",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isNot",
+            },
+          ],
+          "name": "UserRelationFilter",
         },
         {
           "constraints": {
@@ -16518,6 +16518,48 @@ exports[`getDMMF success @@unique model 1`] = `
         },
         {
           "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set",
+            },
+          ],
+          "name": "StringFieldUpdateOperationsInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set",
+            },
+          ],
+          "name": "BoolFieldUpdateOperationsInput",
+        },
+        {
+          "constraints": {
             "maxNumFields": null,
             "minNumFields": null,
           },
@@ -16601,48 +16643,6 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "name": "UserUpdateOneRequiredWithoutPostsNestedInput",
-        },
-        {
-          "constraints": {
-            "maxNumFields": 1,
-            "minNumFields": 1,
-          },
-          "fields": [
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "String",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "set",
-            },
-          ],
-          "name": "StringFieldUpdateOperationsInput",
-        },
-        {
-          "constraints": {
-            "maxNumFields": 1,
-            "minNumFields": 1,
-          },
-          "fields": [
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Boolean",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "set",
-            },
-          ],
-          "name": "BoolFieldUpdateOperationsInput",
         },
         {
           "constraints": {
@@ -19037,17 +19037,6 @@ exports[`getDMMF success @@unique model 1`] = `
             {
               "args": [],
               "isNullable": false,
-              "name": "author",
-              "outputType": {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User",
-              },
-            },
-            {
-              "args": [],
-              "isNullable": false,
               "name": "authorId",
               "outputType": {
                 "isList": false,
@@ -19073,6 +19062,17 @@ exports[`getDMMF success @@unique model 1`] = `
                 "isList": false,
                 "location": "scalar",
                 "type": "Boolean",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "author",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
               },
             },
           ],
