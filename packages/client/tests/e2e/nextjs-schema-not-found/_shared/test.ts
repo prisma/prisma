@@ -1,16 +1,20 @@
 import { $ } from 'zx'
 
 /**
- * Starts the Next.js server and tests the endpoint
+ * Starts the Next.js server and tests the endpoint. It tests:
+ * - No workaround + Server Components: should fail at build time
+ * - No workaround + non-Server Components: should fail at runtime
+ * - Workaround + Server Components: should succeed
+ * - Workaround + non-Server Components: should succeed
  * @param endpoint The endpoint to test
  */
-async function test(endpoint: string) {
+async function test(endpoint: string, serverComponents: boolean) {
   console.log(`Testing ${endpoint} with WORKAROUND=${process.env.WORKAROUND}`)
 
   // prepare and start the next.js server
-  await $`pnpm exec next build`
-  await $`rm -fr .next/standalone/node_modules/next`
-  const nextJsProcess = $`node .next/standalone/server.js`
+  const nextJsBuild = await $`pnpm exec next build`.nothrow()
+  await $`rm -fr .next/standalone/node_modules/next`.nothrow()
+  const nextJsProcess = $`node .next/standalone/server.js`.nothrow()
 
   // wait for the server to be fully ready
   for await (const line of nextJsProcess.stdout) {
@@ -18,19 +22,21 @@ async function test(endpoint: string) {
   }
 
   // attempt to query the endpoint with curl
-  const data = await $`curl -LI http://localhost:3000/${endpoint} -o /dev/null -w '%{http_code}' -s`
+  const data = await $`curl -LI http://localhost:3000/${endpoint} -o /dev/null -w '%{http_code}' -s`.nothrow()
 
   // kill and proceed with test assertions
   await nextJsProcess.kill('SIGINT')
 
   // Path 1: No workaround + a nice error message
-  if (process.env.WORKAROUND !== 'true' && data.stdout === '500') {
-    const stderr = (await nextJsProcess).stderr
+  if (process.env.WORKAROUND !== 'true' && (data.stdout === '500' || nextJsBuild.exitCode !== 0)) {
+    // Dual logic: Server Components error at build time, non-Server Components at runtime
+    // this is also why we use `.nothrow()` but check for exit codes as well as http codes
+    const stderr = serverComponents ? nextJsBuild.stderr : (await nextJsProcess).stderr
     const message = `PrismaClientInitializationError: Your schema.prisma could not be found, and we detected that you are using Next.js.
 Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextjs
     at`
 
-    if (stderr.startsWith(message) === false) {
+    if (stderr.includes(message) === false) {
       throw new Error(`Expected an error message starting with "${message}" but got "${stderr}"`)
     }
 
@@ -50,14 +56,14 @@ Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextj
 
 export async function testServerComponents() {
   process.env.WORKAROUND = 'true'
-  await test('test/42')
+  await test('test/42', true)
   process.env.WORKAROUND = 'false'
-  await test('test/42')
+  await test('test/42', true)
 }
 
 export async function testNonServerComponents() {
   process.env.WORKAROUND = 'true'
-  await test('api/test')
+  await test('api/test', false)
   process.env.WORKAROUND = 'false'
-  await test('api/test')
+  await test('api/test', false)
 }
