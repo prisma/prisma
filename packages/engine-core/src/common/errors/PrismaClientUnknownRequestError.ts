@@ -13,7 +13,11 @@ export class PrismaClientUnknownRequestError extends Error implements ErrorWithB
     super(message)
 
     this.clientVersion = clientVersion
-    this.batchRequestIdx = batchRequestIdx
+    Object.defineProperty(this, 'batchRequestIdx', {
+      value: batchRequestIdx,
+      writable: true,
+      enumerable: false,
+    })
   }
   get [Symbol.toStringTag]() {
     return 'PrismaClientUnknownRequestError'
