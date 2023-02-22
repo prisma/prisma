@@ -6,7 +6,8 @@ import { $ } from 'zx'
  * - No workaround + non-Server Components: should fail at runtime
  * - Workaround + Server Components: should succeed
  * - Workaround + non-Server Components: should succeed
- * @param endpoint The endpoint to test
+ * @param endpoint the endpoint to test
+ * @param serverComponents whether we use server components or not
  */
 async function test(endpoint: string, serverComponents: boolean) {
   console.log(`Testing ${endpoint} with WORKAROUND=${process.env.WORKAROUND}`)
