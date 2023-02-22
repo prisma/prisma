@@ -834,19 +834,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     })
   }
 
-  private async _getConfig(): Promise<GetConfigResult> {
-    const prismaPath = await this.getPrismaPath()
-
-    const env = await this.getEngineEnvVars()
-
-    const result = await execa(prismaPath, ['cli', 'get-config'], {
-      env: omit(env, ['PORT']),
-      cwd: this.cwd,
-    })
-
-    return JSON.parse(result.stdout)
-  }
-
   async getDmmf(): Promise<DMMF.Document> {
     if (!this.getDmmfPromise) {
       this.getDmmfPromise = this._getDmmf()
