@@ -19,7 +19,11 @@ export class PrismaClientKnownRequestError extends Error implements ErrorWithBat
     this.code = code
     this.clientVersion = clientVersion
     this.meta = meta
-    this.batchRequestIdx = batchRequestIdx
+    Object.defineProperty(this, 'batchRequestIdx', {
+      value: batchRequestIdx,
+      enumerable: false,
+      writable: true,
+    })
   }
   get [Symbol.toStringTag]() {
     return 'PrismaClientKnownRequestError'

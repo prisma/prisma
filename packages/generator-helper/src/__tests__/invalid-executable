@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-// let's provoke this to fail by requiring an unexisting module
+// let's provoke this to fail by requiring a nonexistent module
 require('modulethatdoesnotexist/something')
 
 const { generatorHandler } = require('../generatorHandler')
