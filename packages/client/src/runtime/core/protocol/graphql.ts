@@ -1,6 +1,7 @@
 import { EngineQuery } from '@prisma/engine-core'
 
 import { DMMFHelper } from '../../dmmf'
+import type { DMMF } from '../../dmmf-types'
 import { ErrorFormat } from '../../getPrismaClient'
 import { Args, Document, makeDocument, unpack } from '../../query'
 import { Action } from '../types/JsApi'
@@ -47,7 +48,7 @@ export class GraphQLProtocolEncoder implements ProtocolEncoder {
       rootField = action
     }
 
-    let mapping
+    let mapping: DMMF.ModelMapping
     if (modelName !== undefined) {
       mapping = this.dmmf?.mappingsMap[modelName]
       if (mapping === undefined) {
