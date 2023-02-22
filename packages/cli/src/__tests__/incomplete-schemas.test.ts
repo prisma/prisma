@@ -30,10 +30,15 @@ DROP TABLE IF EXISTS 'test-dbexecute';
 CREATE TABLE 'test-dbexecute' ("id" INTEGER PRIMARY KEY);
 DROP TABLE 'test-dbexecute';`
 
-function urlIsMissingValidationError(source: 'getDmmf' | 'getConfig') {
-  const header = source === 'getDmmf' ? 'get-dmmf wasm' : 'get-config wasm'
+type Source = 'get-config' | 'validate'
+const sourceToContext = {
+  'get-config': 'getConfig',
+  validate: 'validate',
+}
+
+function urlIsMissingValidationError(source: Source) {
   return `
-  Prisma schema validation - (${header})
+  Prisma schema validation - (${source} wasm)
   Error code: P1012
   error: Argument "url" is missing in data source block "db".
     -->  schema.prisma:3
@@ -45,7 +50,7 @@ function urlIsMissingValidationError(source: 'getDmmf' | 'getConfig') {
      | 
   
   Validation Error Count: 1
-  [Context: ${source}]
+  [Context: ${sourceToContext[source]}]
   
   Prisma CLI Version : 0.0.0
   `
@@ -263,7 +268,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await Validate.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('getDmmf'))
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('validate'))
       }
     })
 
@@ -274,7 +279,7 @@ describe('[wasm] incomplete-schemas', () => {
         await Format.new().parse([])
       } catch (e) {
         expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(
-          urlIsMissingValidationError('getDmmf'),
+          urlIsMissingValidationError('validate'),
         )
       }
     })
@@ -306,7 +311,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPush.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('getConfig'))
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('get-config'))
       }
     })
 
@@ -315,7 +320,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await DbPull.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('getConfig'))
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('get-config'))
       }
     })
 
@@ -348,7 +353,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await MigrateReset.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('getConfig'))
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('get-config'))
       }
     })
 
@@ -357,7 +362,7 @@ describe('[wasm] incomplete-schemas', () => {
       try {
         await MigrateDev.new().parse([])
       } catch (e) {
-        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('getConfig'))
+        expect(stripAnsi(e.message)).toMatchInlineSnapshot(urlIsMissingValidationError('get-config'))
       }
     })
   })

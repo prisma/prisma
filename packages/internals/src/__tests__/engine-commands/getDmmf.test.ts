@@ -16,10 +16,9 @@ if (process.env.CI) {
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('getDMMF', () => {
-  /*
   // Note: to run these tests locally, prepend the env vars `FORCE_COLOR=0` and `CI=1` to your test command,
   // as `chalk` follows different conventions than the Rust `colored` crate (and uses `FORCE_COLOR=0` to disable colors rather than `NO_COLOR=1`).
-  describe('colors', () => {
+  describe.skip('colors', () => {
     // backup env vars
     const OLD_ENV = { ...process.env }
     const { NO_COLOR: _, ...OLD_ENV_WITHOUT_NO_COLOR } = OLD_ENV
@@ -94,7 +93,6 @@ describe('getDMMF', () => {
       }
     })
   })
-  */
 
   describe('errors', () => {
     test('model with autoincrement should fail if sqlite', async () => {
