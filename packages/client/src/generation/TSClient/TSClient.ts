@@ -129,8 +129,8 @@ ${buildDMMF(dataProxy, this.options.document)}
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-config.document = dmmf
 config.dirname = dirname
+config.document = dmmf
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
