@@ -73,7 +73,8 @@ function getNextIdxIfFound(lines: string[], entry: string): number | undefined {
 }
 
 function redactFailedCommand(message: string) {
-  // remove the unknown password that follows '--datasource' from message:
+  // remove the connection url that follows '--datasource' from the given `message`.
+  // Note: if the command isn't properly formed, i.e., no connection url follows `--datasource`, we risk redacting an irrelevant part of the command
   const messageLines = message.split(/\s/)
   const datasourceIdx = getNextIdxIfFound(messageLines, '--datasource')
   if (datasourceIdx) {
