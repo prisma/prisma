@@ -11,6 +11,7 @@ import { PrismaClientInitializationError } from '../common/errors/PrismaClientIn
 import { handleLibraryLoadingErrors } from '../common/errors/utils/handleEngineLoadingErrors'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
 import { fixBinaryTargets } from '../common/utils/util'
+import { runInChildSpan } from '../tracing'
 import { Library, LibraryLoader } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
@@ -38,7 +39,10 @@ export class DefaultLibraryLoader implements LibraryLoader {
 
     debug(`loadEngine using ${this.libQueryEnginePath}`)
     try {
-      return load(this.libQueryEnginePath)
+      const enginePath = this.libQueryEnginePath
+      return runInChildSpan({ name: 'loadLibrary', enabled: this.config.tracingConfig.enabled, internal: true }, () =>
+        load(enginePath),
+      )
     } catch (e) {
       const errorMessage = handleLibraryLoadingErrors({
         e: e as Error,
@@ -127,7 +131,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     searchedLocations: string[]
   }> {
     const searchedLocations: string[] = []
-    let enginePath
+    let enginePath: string
     if (this.libQueryEnginePath) {
       return { enginePath: this.libQueryEnginePath, searchedLocations }
     }
@@ -165,7 +169,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     }
     enginePath = path.join(__dirname, getNodeAPIName(this.platform, 'fs'))
 
-    return { enginePath: enginePath ?? '', searchedLocations }
+    return { enginePath, searchedLocations }
   }
 
   // TODO Fixed as in "not broken" or fixed as in "written down"? If any of these, why and how and where?

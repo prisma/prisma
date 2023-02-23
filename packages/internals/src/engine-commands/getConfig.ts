@@ -5,7 +5,7 @@ import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import { match } from 'ts-pattern'
 
-import { ErrorArea, isWasmPanic, RustPanic, WasmPanic } from '../panic'
+import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
@@ -118,10 +118,11 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
        * Capture and propagate possible Wasm panics.
        */
       if (isWasmPanic(e.error)) {
-        const wasmError = e.error
+        const { message, stack } = getWasmError(e.error)
+
         const panic = new RustPanic(
-          /* message */ wasmError.message,
-          /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
+          /* message */ message,
+          /* rustStack */ stack,
           /* request */ '@prisma/prisma-fmt-wasm get_config',
           ErrorArea.FMT_CLI,
           /* schemaPath */ options.prismaPath,

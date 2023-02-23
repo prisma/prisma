@@ -160,7 +160,7 @@ describe('generator', () => {
       throw new Error(`Prisma Client didn't get packed properly 🤔`)
     }
 
-    let doesnNotExistError
+    let doesNotExistError
     try {
       await getGenerator({
         schemaPath: path.join(__dirname, 'doesnotexist.prisma'),
@@ -170,9 +170,9 @@ describe('generator', () => {
         dataProxy: false,
       })
     } catch (e) {
-      doesnNotExistError = e
+      doesNotExistError = e
     } finally {
-      expect(stripAnsi(doesnNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
+      expect(stripAnsi(doesNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
         `doesnotexist.prisma does not exist`,
       )
     }

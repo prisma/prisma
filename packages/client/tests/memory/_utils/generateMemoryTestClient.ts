@@ -35,6 +35,6 @@ export async function generateMemoryTestClient(testDir: MemoryTestDir) {
       edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime', 'edge'].join('/'),
     },
     projectRoot: testDir.basePath,
-    dataProxy: !!process.env.DATA_PROXY,
+    dataProxy: !!process.env.TEST_DATA_PROXY,
   })
 }

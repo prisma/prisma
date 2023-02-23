@@ -37,7 +37,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like pinguins' },
+          create: { bio: 'I like penguins' },
         },
       },
     })

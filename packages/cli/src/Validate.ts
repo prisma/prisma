@@ -3,13 +3,13 @@ import {
   Command,
   format,
   getConfig,
-  getDMMF,
   getLintWarningsAsText,
   handleLintPanic,
   HelpError,
   lintSchema,
   loadEnvFile,
   logger,
+  validate,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
@@ -82,15 +82,9 @@ ${chalk.bold('Examples')}
       console.warn(lintWarnings)
     }
 
-    try {
-      // Validate whether the formatted output is a valid schema
-      await getDMMF({
-        datamodel: schema,
-      })
-    } catch (e) {
-      console.error('') // empty line for better readability
-      throw e
-    }
+    validate({
+      datamodel: schema,
+    })
 
     // We could have a CLI flag to ignore env var validation
     await getConfig({

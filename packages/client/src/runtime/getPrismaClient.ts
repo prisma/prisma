@@ -1114,8 +1114,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
     _getDmmf = callOnce(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
       try {
-        const dmmf = await this._engine.getDmmf()
-        return new DMMFHelper(getPrismaClientDMMF(dmmf))
+        const dmmf = await runInChildSpan(
+          { name: 'getDmmf', enabled: this._tracingConfig.enabled, internal: true },
+          () => this._engine.getDmmf(),
+        )
+
+        return runInChildSpan({ name: 'processDmmf', enabled: this._tracingConfig.enabled, internal: true }, () => {
+          return new DMMFHelper(getPrismaClientDMMF(dmmf))
+        })
       } catch (error) {
         this._fetcher.handleAndLogRequestError({ ...params, error })
       }

@@ -1,5 +1,3 @@
-import { ExecaError } from 'execa'
-
 export class RustPanic extends Error {
   public readonly __typename = 'RustPanic'
   public request: any
@@ -43,14 +41,6 @@ export enum ErrorArea {
 }
 
 /**
- * @param error error thrown by execa
- * @returns true if the given error is caused by a panic on a Rust binary.
- */
-export function isExecaErrorCausedByRustPanic<E extends ExecaError>(error: E) {
-  return error.exitCode === 101 || error.stderr?.includes('panicked at')
-}
-
-/**
  * Branded type for Wasm panics.
  */
 export type WasmPanic = Error & { name: 'RuntimeError' }
@@ -60,4 +50,11 @@ export type WasmPanic = Error & { name: 'RuntimeError' }
  */
 export function isWasmPanic(error: Error): error is WasmPanic {
   return error.name === 'RuntimeError'
+}
+
+export function getWasmError(error: WasmPanic) {
+  const message: string = globalThis.PRISMA_WASM_PANIC_REGISTRY.get()
+  const stack = [message, ...(error.stack || 'NO_BACKTRACE').split('\n').slice(1)].join('\n')
+
+  return { message, stack }
 }
