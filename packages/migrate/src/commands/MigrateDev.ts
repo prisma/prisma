@@ -7,11 +7,11 @@ import {
   format,
   getCommandWithExecutor,
   getConfig,
-  getDMMF,
   getSchemaPath,
   HelpError,
   isError,
   loadEnvFile,
+  validate,
 } from '@prisma/internals'
 import chalk from 'chalk'
 import fs from 'fs'
@@ -118,7 +118,7 @@ ${chalk.bold('Examples')}
 
     // Validate schema (same as prisma validate)
     const schema = fs.readFileSync(schemaPath, 'utf-8')
-    await getDMMF({
+    validate({
       datamodel: schema,
     })
     await getConfig({
