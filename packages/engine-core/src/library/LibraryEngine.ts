@@ -13,7 +13,6 @@ import type {
   EngineQuery,
   RequestBatchOptions,
   RequestOptions,
-  TransactionOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -26,15 +25,12 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
-  ConfigMetaFormat,
   EngineSpanEvent,
-  QueryEngineBatchRequest,
   QueryEngineEvent,
   QueryEngineLogLevel,
   QueryEnginePanicEvent,
   QueryEngineQueryEvent,
   QueryEngineRequest,
-  QueryEngineResult,
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'

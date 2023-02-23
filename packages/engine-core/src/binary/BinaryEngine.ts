@@ -74,7 +74,6 @@ export type StopDeferred = {
 }
 
 const engines: BinaryEngine[] = []
-const socketPaths: string[] = []
 
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
@@ -95,7 +94,6 @@ export class BinaryEngine extends Engine<undefined> {
   private previewFeatures: string[] = []
   private engineEndpoint?: string
   private lastError?: PrismaClientRustError
-  private getConfigPromise?: Promise<GetConfigResult>
   private getDmmfPromise?: Promise<DMMF.Document>
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
@@ -782,7 +780,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         //
       }
     }
-    this.getConfigPromise = undefined
     let stopChildPromise
     if (this.child) {
       debug(`Stopping Prisma engine`)
@@ -811,7 +808,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   kill(signal: string): void {
-    this.getConfigPromise = undefined
     this.globalKillSignalReceived = signal
     this.child?.kill()
     this.connection.close()
@@ -836,19 +832,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         })
       })
     })
-  }
-
-  private async _getConfig(): Promise<GetConfigResult> {
-    const prismaPath = await this.getPrismaPath()
-
-    const env = await this.getEngineEnvVars()
-
-    const result = await execa(prismaPath, ['cli', 'get-config'], {
-      env: omit(env, ['PORT']),
-      cwd: this.cwd,
-    })
-
-    return JSON.parse(result.stdout)
   }
 
   async getDmmf(): Promise<DMMF.Document> {
@@ -1199,16 +1182,6 @@ function hookProcess(handler: string, exit = false) {
       engine.kill(handler)
     }
     engines.splice(0, engines.length)
-
-    if (socketPaths.length > 0) {
-      for (const socketPath of socketPaths) {
-        try {
-          fs.unlinkSync(socketPath)
-        } catch (e) {
-          //
-        }
-      }
-    }
 
     // only exit, if only we are listening
     // if there is another listener, that other listener is responsible
