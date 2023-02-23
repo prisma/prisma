@@ -14,11 +14,8 @@ model reservations {
   dates Unsupported("daterange")
 }
 
-/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
 view res {
-  id    Int?                      @id
-  room  String?                   @db.VarChar
-  dates Unsupported("daterange")?
-
-  @@ignore
+  id    Int                      @id
+  room  String                   @db.VarChar
+  dates Unsupported("daterange")
 }
