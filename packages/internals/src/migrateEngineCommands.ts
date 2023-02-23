@@ -32,6 +32,7 @@ interface LogFields {
   // Only for ERROR level messages
   is_panic?: boolean
   error_code?: string
+  backtrace?: string
   [key: string]: any
 }
 
