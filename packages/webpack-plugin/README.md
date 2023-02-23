@@ -8,7 +8,6 @@ Ensures that your Prisma files are copied.
 const { PrismaPlugin } = require('@prisma/webpack-plugin')
 
 module.exports = {
-  output: 'standalone',
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.plugins = [...config.plugins, new PrismaPlugin()]
