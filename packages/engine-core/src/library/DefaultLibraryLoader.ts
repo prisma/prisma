@@ -131,7 +131,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     searchedLocations: string[]
   }> {
     const searchedLocations: string[] = []
-    let enginePath
+    let enginePath: string
     if (this.libQueryEnginePath) {
       return { enginePath: this.libQueryEnginePath, searchedLocations }
     }
@@ -169,7 +169,7 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     }
     enginePath = path.join(__dirname, getNodeAPIName(this.platform, 'fs'))
 
-    return { enginePath: enginePath ?? '', searchedLocations }
+    return { enginePath, searchedLocations }
   }
 
   // TODO Fixed as in "not broken" or fixed as in "written down"? If any of these, why and how and where?
