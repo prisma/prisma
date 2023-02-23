@@ -102,7 +102,7 @@ export interface DatasourceOverwrite {
 }
 
 export interface EngineConfig {
-  cwd?: string
+  cwd: string
   dirname?: string
   datamodelPath: string
   enableDebugLogs?: boolean
