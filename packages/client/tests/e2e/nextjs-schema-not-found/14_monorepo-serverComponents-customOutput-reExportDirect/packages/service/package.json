@@ -14,7 +14,7 @@
   "devDependencies": {
     "@types/node": "18.11.18",
     "@types/react": "18.0.26",
-    "experimental-prisma-webpack-plugin": "0.0.5"
+    "@prisma/webpack-plugin": "../../../../prisma-webpack-plugin-0.0.0.tgz"
   },
   "dependencies": {
     "db": "workspace:../db",
