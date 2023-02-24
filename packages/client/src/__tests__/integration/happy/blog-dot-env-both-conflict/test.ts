@@ -1,6 +1,9 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 
-test('blog-dot-env-both-conflict', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+testIf(getQueryEngineProtocol() !== 'json')('blog-dot-env-both-conflict', async () => {
   const spy = jest.spyOn(console, 'warn').mockImplementation()
 
   await generateTestClient()

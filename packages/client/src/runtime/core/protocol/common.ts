@@ -1,27 +1,28 @@
-import type { EngineQuery } from '@prisma/engine-core'
+import type { EngineBatchQuery, EngineQuery } from '@prisma/engine-core'
 
-import type { DMMF } from '../../dmmf-types'
 import { CallSite } from '../../utils/CallSite'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { Action, JsArgs } from '../types/JsApi'
 
-export interface ProtocolMessage {
+export interface ProtocolMessage<EngineQueryType extends EngineQuery = EngineQuery> {
   isWrite(): boolean
   getBatchId(): string | undefined
   toDebugString(): string
-  toEngineQuery(): EngineQuery
+  toEngineQuery(): EngineQueryType
   deserializeResponse(data: unknown, dataPath: string[]): unknown
 }
 
 export type CreateMessageOptions = {
   action: Action
   modelName?: string
-  args: JsArgs
+  args?: JsArgs
   extensions: MergedExtensionsList
   clientMethod: string
   callsite?: CallSite
 }
 
-export interface ProtocolEncoder {
-  createMessage(options: CreateMessageOptions): ProtocolMessage
+export interface ProtocolEncoder<EngineQueryType extends EngineQuery = EngineQuery> {
+  createMessage(options: CreateMessageOptions): ProtocolMessage<EngineQueryType>
+
+  createBatch(messages: ProtocolMessage<EngineQueryType>[]): EngineBatchQuery
 }

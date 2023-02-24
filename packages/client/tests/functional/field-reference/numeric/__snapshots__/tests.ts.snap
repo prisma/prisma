@@ -7,7 +7,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -29,7 +29,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -51,7 +51,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -73,7 +73,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -95,7 +95,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -117,7 +117,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -139,7 +139,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -161,7 +161,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -183,7 +183,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -205,7 +205,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -227,7 +227,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -249,7 +249,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -271,7 +271,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -293,7 +293,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -315,7 +315,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -337,7 +337,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -359,7 +359,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {
@@ -381,7 +381,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
 → XX   const products = prisma.product.findMany({
          where: {
            quantity: {

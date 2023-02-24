@@ -22,13 +22,14 @@ import { applyResultExtensions } from './core/extensions/applyResultExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { visitQueryResult } from './core/extensions/visitQueryResult'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
-import { ProtocolMessage } from './core/protocol/common'
+import { ProtocolEncoder, ProtocolMessage } from './core/protocol/common'
 import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { JsArgs } from './core/types/JsApi'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
+import { deepGet } from './utils/deep-set'
 import { NotFoundError, RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 
 const debug = Debug('prisma:client:request_handler')
@@ -36,6 +37,7 @@ const debug = Debug('prisma:client:request_handler')
 export type RequestParams = {
   modelName?: string
   protocolMessage: ProtocolMessage
+  protocolEncoder: ProtocolEncoder
   dataPath: string[]
   clientMethod: string
   callsite?: CallSite
@@ -59,6 +61,7 @@ export type HandleErrorParams = {
 
 export type Request = {
   protocolMessage: ProtocolMessage
+  protocolEncoder: ProtocolEncoder
   transaction?: PrismaPromiseTransaction
   otelParentCtx?: Context
   otelChildCtx?: Context
@@ -84,7 +87,8 @@ export class RequestHandler {
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
         const transaction = requests[0].transaction
-        const queries = requests.map((r) => r.protocolMessage.toEngineQuery())
+        const encoder = requests[0].protocolEncoder
+        const queries = encoder.createBatch(requests.map((r) => r.protocolMessage))
         const traceparent = getTraceParent({ context: requests[0].otelParentCtx, tracingConfig: client._tracingConfig })
 
         // TODO: pass the child information to QE for it to issue links to queries
@@ -122,6 +126,7 @@ export class RequestHandler {
 
   async request({
     protocolMessage,
+    protocolEncoder,
     dataPath = [],
     callsite,
     modelName,
@@ -138,6 +143,7 @@ export class RequestHandler {
     try {
       const response = await this.dataloader.request({
         protocolMessage,
+        protocolEncoder,
         transaction,
         otelParentCtx,
         otelChildCtx,

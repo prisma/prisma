@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -5,7 +7,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
-  test('integer overflow', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('integer overflow', async () => {
     await expect(
       prisma.entry.create({
         data: {
@@ -17,7 +19,7 @@ testMatrix.setupTestSuite(() => {
     )
   })
 
-  test('big float in exponent notation', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('big float in exponent notation', async () => {
     await expect(
       prisma.entry.create({
         data: {

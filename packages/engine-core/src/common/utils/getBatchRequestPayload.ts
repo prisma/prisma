@@ -1,21 +1,31 @@
-import { EngineQuery, TransactionOptions } from '../Engine'
+import { EngineBatchQueries, EngineQuery, GraphQLQuery, TransactionOptions } from '../Engine'
 import { QueryEngineBatchRequest } from '../types/QueryEngine'
 
 export function getBatchRequestPayload(
-  queries: EngineQuery[],
+  batch: EngineBatchQueries,
   transaction?: TransactionOptions<unknown>,
 ): QueryEngineBatchRequest {
-  const batch = queries.map(({ query }) => ({ query, variables: {} }))
-  if (!transaction || transaction.kind === 'itx') {
+  if (isGraphQLBatch(batch)) {
+    if (!transaction || transaction.kind === 'itx') {
+      return {
+        batch,
+        transaction: false,
+      }
+    }
+
     return {
       batch,
-      transaction: false,
+      transaction: true,
+      isolationLevel: transaction.options.isolationLevel,
     }
   }
 
   return {
     batch,
-    transaction: true,
-    isolationLevel: transaction.options.isolationLevel,
+    transaction: transaction?.kind === 'batch' ? { isolationLevel: transaction.options.isolationLevel } : undefined,
   }
+}
+
+function isGraphQLBatch(batch: EngineQuery[]): batch is GraphQLQuery[] {
+  return typeof batch[0].query === 'string'
 }

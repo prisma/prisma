@@ -11,7 +11,7 @@ import {
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, getQueryEngineProtocol } from '@prisma/internals'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -768,7 +768,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
     })
 
     // Different order of traces between binary and library
-    testIf(getClientEngineType() === ClientEngineType.Library)('should trace the implicit $connect call', async () => {
+    test('should trace the implicit $connect call', async () => {
       const email = faker.internet.email()
 
       await _prisma.user.findMany({
@@ -779,21 +779,31 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
 
       const tree = await waitForSpanTree()
 
-      expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
-
       expect(tree.span.name).toEqual('prisma:client:operation')
       expect(tree.span.attributes['method']).toEqual('findMany')
       expect(tree.span.attributes['model']).toEqual('User')
 
       expect(tree.children).toHaveLength(3)
+      let connect: Tree | undefined
+      let serialize: Tree | undefined
 
-      const connect = (tree?.children || [])[0] as unknown as Tree
-      expect(connect.span.name).toEqual('prisma:client:connect')
+      // order of connect and serialize calls is different depending on the engine and protocol.
+      // JSON + library engine: serialize the query, connect to the engine, execute it
+      // GraphQL + library engine: connect to the engine to get DMMF, serialize the query, execute it
+      // Binary engine: get DMMF (does not require running engine in this case), serialize query, connect, execute
+      if (getQueryEngineProtocol() === 'json' || getClientEngineType() == ClientEngineType.Binary) {
+        serialize = tree?.children?.[0]
+        connect = tree?.children?.[1]
+      } else {
+        connect = tree?.children?.[0]
+        serialize = tree?.children?.[1]
+      }
 
-      const serialize = (tree?.children || [])[1] as unknown as Tree
-      expect(serialize.span.name).toEqual('prisma:client:serialize')
+      expect(connect?.span.name).toEqual('prisma:client:connect')
 
-      expect(connect.children).toHaveLength(0)
+      expect(serialize?.span.name).toEqual('prisma:client:serialize')
+
+      expect(connect?.children).toHaveLength(0)
 
       const engine = (tree?.children || [])[2] as unknown as Tree
       expect(engine.span.name).toEqual('prisma:engine')

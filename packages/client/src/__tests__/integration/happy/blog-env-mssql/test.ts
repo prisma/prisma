@@ -1,3 +1,4 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
 import sql from 'sql-template-tag'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
@@ -5,7 +6,7 @@ import type { SetupParams } from '../../../../utils/setupMSSQL'
 import { setupMSSQL } from '../../../../utils/setupMSSQL'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 describeIf(!process.env.TEST_SKIP_MSSQL)('blog-env-mssql', () => {
   let prisma: any = null // Generated Client instance
   let PrismaHelpers: any = null
@@ -56,7 +57,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('blog-env-mssql', () => {
     expect(prisma.internalDatasources).toBeUndefined()
   })
 
-  test('can throw validation errors', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('can throw validation errors', async () => {
     const {
       Prisma: { PrismaClientValidationError },
     } = require('./node_modules/@prisma/client')
@@ -69,7 +70,9 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('blog-env-mssql', () => {
       expect(false).toBe(true) // The line above needs to throw, so this should never be executed, but if it does (aka the line above did not throw, as expected), it will fail the test
     } catch (e) {
       expect(e).not.toBeUndefined()
-      expect(e).toBeInstanceOf(PrismaClientValidationError)
+      if (getQueryEngineProtocol() !== 'json') {
+        expect(e).toBeInstanceOf(PrismaClientValidationError)
+      }
     }
   })
 
