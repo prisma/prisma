@@ -1,14 +1,17 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 import type { SetupParams } from '../../../../utils/setupMysql'
 import { setupMysql, tearDownMysql } from '../../../../utils/setupMysql'
 
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 describe('int-errors', () => {
   let prisma
   let SetupParams: SetupParams
 
   beforeAll(async () => {
     await generateTestClient()
-    const { PrismaClient } = require('@prisma/client')
+    const { PrismaClient } = require('./node_modules/@prisma/client')
     let originalConnectionString = process.env.TEST_MYSQL_URI
 
     originalConnectionString += '-signed-int'
@@ -38,7 +41,7 @@ describe('int-errors', () => {
     })
   })
 
-  test('char-int', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('char-int', async () => {
     try {
       await prisma.user.update({
         where: { id: '576eddf9-2434-421f-9a86-58bede16fd95' },
@@ -52,7 +55,7 @@ describe('int-errors', () => {
     }
   })
 
-  test('overflow-int', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('overflow-int', async () => {
     try {
       await prisma.user.update({
         where: { id: '576eddf9-2434-421f-9a86-58bede16fd95' },
@@ -66,7 +69,7 @@ describe('int-errors', () => {
     }
   })
 
-  test('signed-int', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('signed-int', async () => {
     try {
       await prisma.user.update({
         where: { id: '576eddf9-2434-421f-9a86-58bede16fd95' },

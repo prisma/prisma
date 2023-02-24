@@ -7,7 +7,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong field type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong field type', async () => {
 → XX   const products = prisma.product.findMany({
           where: {
             properties1: {
@@ -29,7 +29,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong field type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong field type', async () => {
 → XX   const products = prisma.product.findMany({
           where: {
             properties1: {
@@ -51,7 +51,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong field type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong field type', async () => {
 → XX   const products = prisma.product.findMany({
           where: {
             properties1: {
@@ -73,7 +73,7 @@ Invalid \`prisma.product.findMany()\` invocation in
 
   XX 
   XX // TODO: Edge: skipped because of the error snapshot
-  XX testIf(runtime !== 'edge')('wrong field type', async () => {
+  XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong field type', async () => {
 → XX   const products = prisma.product.findMany({
           where: {
             properties1: {

@@ -133,6 +133,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
+        engineProtocol: ['graphql', 'json']
         os: [buildjet-4vcpu-ubuntu-2004]
         node: [16, 18]
 
@@ -158,7 +159,7 @@ jobs:
       TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
       TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
       NODE_OPTIONS: '--max-old-space-size=8096'
-      JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+      JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ matrix.engineProtocol }}'
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
     steps:
@@ -181,6 +182,10 @@ jobs:
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - name: Set Engine Protocol
+        run: |
+          echo "PRISMA_ENGINE_PROTOCOL=${{ matrix.engineProtocol }}" >> $GITHUB_ENV
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 

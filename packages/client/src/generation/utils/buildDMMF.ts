@@ -7,12 +7,12 @@ import { escapeJson } from '../TSClient/helpers'
  * Creates the necessary declarations to embed the generated DMMF into the
  * generated client. It compresses the DMMF for the data proxy engine. For
  * data proxy, the full DMMF is exported, otherwise `schema` is removed.
- * @param dataProxy
+ * @param compressed
  * @param dmmf
  * @returns
  */
-export function buildDMMF(dataProxy: boolean | undefined, dmmf: DMMF.Document) {
-  if (dataProxy === true) {
+export function buildDMMF(compressed: boolean, dmmf: DMMF.Document) {
+  if (compressed === true) {
     const dmmfString = escapeJson(JSON.stringify(dmmf))
     return buildCompressedDMMF(dmmfString)
   }

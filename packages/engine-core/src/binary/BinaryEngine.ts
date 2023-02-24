@@ -18,6 +18,7 @@ import { promisify } from 'util'
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
+  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
   EngineQuery,
@@ -74,7 +75,6 @@ export type StopDeferred = {
 }
 
 const engines: BinaryEngine[] = []
-const socketPaths: string[] = []
 
 const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
@@ -95,7 +95,6 @@ export class BinaryEngine extends Engine<undefined> {
   private previewFeatures: string[] = []
   private engineEndpoint?: string
   private lastError?: PrismaClientRustError
-  private getConfigPromise?: Promise<GetConfigResult>
   private getDmmfPromise?: Promise<DMMF.Document>
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
@@ -258,8 +257,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     }
   }
 
-  private resolveCwd(cwd?: string): string {
-    if (cwd && fs.existsSync(cwd) && fs.lstatSync(cwd).isDirectory()) {
+  private resolveCwd(cwd: string): string {
+    if (fs.existsSync(cwd) && fs.lstatSync(cwd).isDirectory()) {
       return cwd
     }
 
@@ -782,7 +781,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         //
       }
     }
-    this.getConfigPromise = undefined
     let stopChildPromise
     if (this.child) {
       debug(`Stopping Prisma engine`)
@@ -811,7 +809,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   kill(signal: string): void {
-    this.getConfigPromise = undefined
     this.globalKillSignalReceived = signal
     this.child?.kill()
     this.connection.close()
@@ -836,19 +833,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
         })
       })
     })
-  }
-
-  private async _getConfig(): Promise<GetConfigResult> {
-    const prismaPath = await this.getPrismaPath()
-
-    const env = await this.getEngineEnvVars()
-
-    const result = await execa(prismaPath, ['cli', 'get-config'], {
-      env: omit(env, ['PORT']),
-      cwd: this.cwd,
-    })
-
-    return JSON.parse(result.stdout)
   }
 
   async getDmmf(): Promise<DMMF.Document> {
@@ -902,8 +886,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       headers['X-transaction-id'] = interactiveTransaction.id
     }
 
-    this.currentRequestPromise = this.connection.post('/', stringifyQuery(query.query), headers)
-    this.lastQuery = query.query
+    const queryStr = JSON.stringify(query)
+    this.currentRequestPromise = this.connection.post('/', queryStr, headers)
+    this.lastQuery = queryStr
 
     try {
       const { data, headers } = await this.currentRequestPromise
@@ -941,7 +926,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async requestBatch<T>(
-    queries: EngineQuery[],
+    queries: EngineBatchQueries,
     { traceparent, transaction, numTry = 1, containsWrite }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     await this.start()
@@ -1187,11 +1172,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 }
 
-// faster than creating a new object and JSON.stringify it all the time
-function stringifyQuery(q: string) {
-  return `{"variables":{},"query":${JSON.stringify(q)}}`
-}
-
 function hookProcess(handler: string, exit = false) {
   process.once(handler as any, async () => {
     for (const engine of engines) {
@@ -1199,16 +1179,6 @@ function hookProcess(handler: string, exit = false) {
       engine.kill(handler)
     }
     engines.splice(0, engines.length)
-
-    if (socketPaths.length > 0) {
-      for (const socketPath of socketPaths) {
-        try {
-          fs.unlinkSync(socketPath)
-        } catch (e) {
-          //
-        }
-      }
-    }
 
     // only exit, if only we are listening
     // if there is another listener, that other listener is responsible

@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('blog', async () => {
@@ -115,7 +117,9 @@ test('blog', async () => {
     validationError = e
   }
   if (!validationError || !(validationError instanceof PrismaClientValidationError)) {
-    throw new Error(`Validation error is incorrect`)
+    if (getQueryEngineProtocol() !== 'json') {
+      throw new Error(`Validation error is incorrect`)
+    }
   }
 
   // Test known request error

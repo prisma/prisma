@@ -18,7 +18,15 @@ import {
   TracingConfig,
 } from '@prisma/engine-core'
 import type { GeneratorConfig } from '@prisma/generator-helper'
-import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
+import {
+  callOnce,
+  ClientEngineType,
+  getClientEngineType,
+  getQueryEngineProtocol,
+  logger,
+  tryLoadEnvs,
+  warnOnce,
+} from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
@@ -37,6 +45,7 @@ import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClien
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { ProtocolEncoder } from './core/protocol/common'
 import { GraphQLProtocolEncoder } from './core/protocol/graphql'
+import { JsonProtocolEncoder } from './core/protocol/json'
 import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import { rawQueryArgsMapper } from './core/raw-query/rawQueryArgsMapper'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
@@ -73,10 +82,6 @@ declare global {
 
 // used by esbuild for tree-shaking
 typeof globalThis === 'object' ? (globalThis.NODE_CLIENT = true) : 0
-
-function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
-  return Array.isArray(arg)
-}
 
 if (typeof TARGET_ENGINE_TYPE !== 'undefined' && TARGET_ENGINE_TYPE === 'all') {
   console.warn('imports from "@prisma/client/runtime" are deprecated.')
@@ -364,8 +369,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         this._baseDmmf = new BaseDMMFHelper(config.document)
+        const engineProtocol = getQueryEngineProtocol(config.generator)
+        debug('protocol', engineProtocol)
 
-        if (this._dataProxy) {
+        if (this._dataProxy && engineProtocol === 'graphql') {
           // the data proxy can't get the dmmf from the engine
           // so the generated client always has the full dmmf
           const rawDmmf = config.document as DMMF.Document
@@ -402,6 +409,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineSchemaHash: config.inlineSchemaHash,
           tracingConfig: this._tracingConfig,
           logEmitter: logEmitter,
+          engineProtocol,
         }
 
         debug('clientVersion', config.clientVersion)
@@ -902,6 +910,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
         return this._fetcher.request({
           protocolMessage: message,
+          protocolEncoder,
           modelName: model,
           clientMethod,
           dataPath,
@@ -938,6 +947,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
     _getProtocolEncoder = callOnce(
       async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>): Promise<ProtocolEncoder> => {
+        if (this._engineConfig.engineProtocol === 'json') {
+          return new JsonProtocolEncoder(this._baseDmmf)
+        }
+
         if (this._dmmf === undefined) {
           this._dmmf = await this._getDmmf(params)
         }

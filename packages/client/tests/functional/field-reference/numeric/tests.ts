@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { getQueryEngineProtocol } from '@prisma/internals'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -87,7 +88,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
   })
 
   // TODO: Edge: skipped because of the error snapshot
-  testIf(runtime !== 'edge')('wrong column numeric type', async () => {
+  testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
     const products = prisma.product.findMany({
       where: {
         quantity: {
