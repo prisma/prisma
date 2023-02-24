@@ -502,15 +502,8 @@ describe('postgresql views re-introspection warnings', () => {
     return setupParams
   }
 
-  describe('postgresql views 21 - unsupported types', () => {
-    const warningCode = 21
+  function setupPostgressForWarning(warningCode: EngineArgs.ViewWarningCodes) {
     const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
 
     beforeEach(async () => {
       await setupPostgres(setupParams!).catch((e) => {
@@ -529,6 +522,11 @@ describe('postgresql views re-introspection warnings', () => {
         console.error(e)
       })
     })
+  }
+
+  describe('postgresql views 21 - unsupported types', () => {
+    const warningCode = 21
+    setupPostgressForWarning(warningCode)
 
     test('basic re-introspection', async () => {
       ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}`)
@@ -580,31 +578,7 @@ describe('postgresql views re-introspection warnings', () => {
 
   describe('postgresql views 22 - field with @map', () => {
     const warningCode = 22
-    const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
+    setupPostgressForWarning(warningCode)
 
     test('basic re-introspection', async () => {
       ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}`)
@@ -645,31 +619,7 @@ describe('postgresql views re-introspection warnings', () => {
 
   describe('postgresql views 23 - automated rename with @@map', () => {
     const warningCode = 23
-    const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
+    setupPostgressForWarning(warningCode)
 
     test('basic re-introspection', async () => {
       ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}`)
@@ -712,31 +662,7 @@ describe('postgresql views re-introspection warnings', () => {
 
   describe('postgresql views 24 - no unique identifier', () => {
     const warningCode = 24
-    const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
+    setupPostgressForWarning(warningCode)
 
     test('basic re-introspection', async () => {
       ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}`)
@@ -788,31 +714,7 @@ describe('postgresql views re-introspection warnings', () => {
 
   describe('postgresql views 25 - @@id name', () => {
     const warningCode = 25
-    const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
+    setupPostgressForWarning(warningCode)
 
     test('basic re-introspection', async () => {
       ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}`)
@@ -856,31 +758,7 @@ describe('postgresql views re-introspection warnings', () => {
 
   describe('postgresql views 26 - invalid field name', () => {
     const warningCode = 26
-    const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
+    setupPostgressForWarning(warningCode)
 
     test('basic re-introspection', async () => {
       ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}`)
@@ -949,15 +827,8 @@ describe('postgresql views introspection warnings', () => {
     return setupParams
   }
 
-  describe('postgresql views 21 - unsupported types', () => {
-    const warningCode = 21
+  function setupPostgressForWarning(warningCode: EngineArgs.ViewWarningCodes) {
     const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
 
     beforeEach(async () => {
       await setupPostgres(setupParams!).catch((e) => {
@@ -976,6 +847,11 @@ describe('postgresql views introspection warnings', () => {
         console.error(e)
       })
     })
+  }
+
+  describe('postgresql views 21 - unsupported types', () => {
+    const warningCode = 21
+    setupPostgressForWarning(warningCode)
 
     test('basic introspection', async () => {
       ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
@@ -1033,31 +909,7 @@ describe('postgresql views introspection warnings', () => {
 
   describe('postgresql views 22 - automated rename with @map', () => {
     const warningCode = 22
-    const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
+    setupPostgressForWarning(warningCode)
 
     test('basic introspection', async () => {
       ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
@@ -1101,31 +953,7 @@ describe('postgresql views introspection warnings', () => {
 
   describe('postgresql views 23 - view with @@map', () => {
     const warningCode = 23
-    const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
+    setupPostgressForWarning(warningCode)
 
     test('basic introspection', async () => {
       ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
@@ -1171,31 +999,7 @@ describe('postgresql views introspection warnings', () => {
 
   describe('postgresql views 24 - no unique identifier', () => {
     const warningCode = 24
-    const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
+    setupPostgressForWarning(warningCode)
 
     test('basic introspection', async () => {
       ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
@@ -1247,31 +1051,7 @@ describe('postgresql views introspection warnings', () => {
 
   describe('postgresql views 25 - @@id name', () => {
     const warningCode = 25
-    const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
+    setupPostgressForWarning(warningCode)
 
     test('basic introspection', async () => {
       ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
@@ -1316,31 +1096,7 @@ describe('postgresql views introspection warnings', () => {
 
   describe('postgresql views 26 - invalid field name', () => {
     const warningCode = 26
-    const setupParams = computeSetupParams(warningCode)
-
-    beforeAll(async () => {
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
-        console.error(e)
-      })
-    })
+    setupPostgressForWarning(warningCode)
 
     test('basic introspection', async () => {
       ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
