@@ -524,7 +524,7 @@ describe('postgresql views re-introspection warnings', () => {
     })
   }
 
-  describe('postgresql views 21 - unsupported types', () => {
+  describe('postgresql views 21 - unsupported types (both view and model [code 3])', () => {
     const warningCode = 21
     setupPostgressForWarning(warningCode)
 
@@ -849,7 +849,7 @@ describe('postgresql views introspection warnings', () => {
     })
   }
 
-  describe('postgresql views 21 - unsupported types', () => {
+  describe('postgresql views 21 - unsupported types (both view and model [code 3])', () => {
     const warningCode = 21
     setupPostgressForWarning(warningCode)
 
@@ -907,95 +907,10 @@ describe('postgresql views introspection warnings', () => {
     })
   })
 
-  describe('postgresql views 22 - automated rename with @map', () => {
-    const warningCode = 22
-    setupPostgressForWarning(warningCode)
+  // * code 22 (automated rename with @map) requires a schema and therefore only appears in re-introspection
 
-    test('basic introspection', async () => {
-      ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
-      const introspect = new DbPull()
-      const result = introspect.parse(['--print'])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        generator client {
-          provider        = "prisma-client-js"
-          previewFeatures = ["views"]
-        }
-
-        datasource db {
-          provider = "postgres"
-          url      = env("TEST_POSTGRES_URI_MIGRATE")
-        }
-
-        /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-        view A {
-          id Int?
-
-          @@ignore
-        }
-
-
-        // introspectionSchemaVersion: NonPrisma,
-      `)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-                                                                                                                                                        // *** WARNING ***
-                                                                                                                                                        // 
-                                                                                                                                                        // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client.
-                                                                                                                                                        // - View "A"
-                                                                                                                                                        // 
-                                                                                                                  `)
-      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    })
-  })
-
-  describe('postgresql views 23 - view with @@map', () => {
-    const warningCode = 23
-    setupPostgressForWarning(warningCode)
-
-    test('basic introspection', async () => {
-      ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
-      const introspect = new DbPull()
-      const result = introspect.parse(['--print'])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        generator client {
-          provider        = "prisma-client-js"
-          previewFeatures = ["views"]
-        }
-
-        datasource db {
-          provider = "postgres"
-          url      = env("TEST_POSTGRES_URI_MIGRATE")
-        }
-
-        /// This view has been renamed to 'Renamedif' during introspection, because the original name 'if' is reserved.
-        /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-        view Renamedif {
-          id Int?
-
-          @@map("if")
-          @@ignore
-        }
-
-
-        // introspectionSchemaVersion: NonPrisma,
-      `)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-                                                                                                                                                // *** WARNING ***
-                                                                                                                                                // 
-                                                                                                                                                // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client.
-                                                                                                                                                // - View "Renamedif"
-                                                                                                                                                // 
-                                                                                                            `)
-      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    })
-  })
+  // * code 23 (view with @@map) requires a schema and therefore only appears in re-introspection
+  // * there is a similar output that gets appended to the schema during introspection however that is not an official warning
 
   describe('postgresql views 24 - no unique identifier', () => {
     const warningCode = 24
@@ -1049,50 +964,7 @@ describe('postgresql views introspection warnings', () => {
     })
   })
 
-  describe('postgresql views 25 - @@id name', () => {
-    const warningCode = 25
-    setupPostgressForWarning(warningCode)
-
-    test('basic introspection', async () => {
-      ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
-      const introspect = new DbPull()
-      const result = introspect.parse(['--print'])
-      await expect(result).resolves.toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-        generator client {
-          provider        = "prisma-client-js"
-          previewFeatures = ["views"]
-        }
-
-        datasource db {
-          provider = "postgres"
-          url      = env("TEST_POSTGRES_URI_MIGRATE")
-        }
-
-        /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
-        view B {
-          a Int?
-          b Int?
-
-          @@ignore
-        }
-
-
-        // introspectionSchemaVersion: NonPrisma,
-      `)
-      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-
-                                                                                                                                        // *** WARNING ***
-                                                                                                                                        // 
-                                                                                                                                        // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client.
-                                                                                                                                        // - View "B"
-                                                                                                                                        // 
-                                                                                                      `)
-      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    })
-  })
+  // * code 25 (@@id name) requires a previous schema to keep the @@id names from and therefore only appears in re-introspection
 
   describe('postgresql views 26 - invalid field name', () => {
     const warningCode = 26
