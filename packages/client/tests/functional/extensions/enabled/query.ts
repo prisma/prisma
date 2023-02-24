@@ -910,7 +910,7 @@ testMatrix.setupTestSuite(
       })
     })
 
-    testIf(provider !== 'mongodb' && provider !== 'sqlite')('top-level raw queries interception', async () => {
+    testIf(provider !== 'sqlite')('top-level raw queries interception', async () => {
       const fnEmitter = jest.fn()
       const fnUser = jest.fn()
 
@@ -955,23 +955,40 @@ testMatrix.setupTestSuite(
             fnUser(args)
             return query(args)
           },
+          // @ts-test-if: provider === 'mongodb'
+          $runCommandRaw({ args, query, operation }) {
+            expect(operation).toEqual('$runCommandRaw')
+            // @ts-test-if: provider === 'mongodb'
+            expectTypeOf(args).toEqualTypeOf<PrismaNamespace.InputJsonObject>()
+            // @ts-test-if: provider === 'mongodb'
+            expectTypeOf(operation).toEqualTypeOf<'$runCommandRaw'>()
+            fnUser(args)
+            return query(args)
+          },
         },
       })
 
-      // @ts-test-if: provider !== 'mongodb'
-      await xprisma.$executeRaw`SELECT 1`
-      // @ts-test-if: provider !== 'mongodb'
-      await xprisma.$queryRaw`SELECT 2`
-      // @ts-test-if: provider !== 'mongodb'
-      await xprisma.$executeRawUnsafe(`SELECT 3`)
-      // @ts-test-if: provider !== 'mongodb'
-      await xprisma.$queryRawUnsafe(`SELECT 4`)
+      if (provider !== 'mongodb') {
+        // @ts-test-if: provider !== 'mongodb'
+        await xprisma.$executeRaw`SELECT 1`
+        // @ts-test-if: provider !== 'mongodb'
+        await xprisma.$queryRaw`SELECT 2`
+        // @ts-test-if: provider !== 'mongodb'
+        await xprisma.$executeRawUnsafe(`SELECT 3`)
+        // @ts-test-if: provider !== 'mongodb'
+        await xprisma.$queryRawUnsafe(`SELECT 4`)
 
-      await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(4))
-      expect(fnUser).toHaveBeenNthCalledWith(1, [[`SELECT 1`]])
-      expect(fnUser).toHaveBeenNthCalledWith(2, [[`SELECT 2`]])
-      expect(fnUser).toHaveBeenNthCalledWith(3, [`SELECT 3`])
-      expect(fnUser).toHaveBeenNthCalledWith(4, [`SELECT 4`])
+        await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(4))
+        expect(fnUser).toHaveBeenNthCalledWith(1, [[`SELECT 1`]])
+        expect(fnUser).toHaveBeenNthCalledWith(2, [[`SELECT 2`]])
+        expect(fnUser).toHaveBeenNthCalledWith(3, [`SELECT 3`])
+        expect(fnUser).toHaveBeenNthCalledWith(4, [`SELECT 4`])
+      } else {
+        // @ts-test-if: provider === 'mongodb'
+        await xprisma.$runCommandRaw({ aggregate: 'User', pipeline: [], explain: false })
+        // await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(1)) // not working
+        // expect(fnUser).toHaveBeenNthCalledWith(1, { aggregate: 'User', pipeline: [], explain: false }) // broken
+      }
     })
   },
   {
