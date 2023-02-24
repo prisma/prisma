@@ -472,6 +472,12 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
           message += warning.affected
             .map((it) => `- Model "${it.model}", Index db name: "${it.index_db_name}"`)
             .join('\n')
+        } else if (warning.code === 21) {
+          message += warning.affected.map((it) => `- View "${it.view}", Field: "${it.field}", Type: "${it.tpe}"`)
+        } else if ([22, 26].includes(warning.code)) {
+          message += warning.affected.map((it) => `- View "${it.view}", Field: "${it.field}",`)
+        } else if ([23, 24, 25].includes(warning.code)) {
+          message += warning.affected.map((it) => `- View "${it.view}"`)
         } else if (warning.code === 101) {
           message += warning.affected
             .map((it) => {

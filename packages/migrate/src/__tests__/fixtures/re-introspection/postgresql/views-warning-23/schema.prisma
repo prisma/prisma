@@ -1,0 +1,15 @@
+generator client {
+    provider        = "prisma-client-js"
+    previewFeatures = ["views"]
+}
+
+datasource db {
+    provider = "postgres"
+    url      = env("TEST_POSTGRES_URI_MIGRATE")
+}
+
+view Renamedif {
+    id Int @id
+
+    @@map("if")
+}
