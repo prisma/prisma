@@ -1,5 +1,5 @@
 {
-  "name": "@prisma/webpack-plugin",
+  "name": "@prisma/nextjs-monorepo-workaround-plugin",
   "version": "0.0.0",
   "description": "Ensures that your Prisma files are copied",
   "main": "index.js",
