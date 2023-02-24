@@ -1,10 +1,10 @@
 import type { Client } from '../../getPrismaClient'
+import type { UserArgs } from '../request/UserArgs'
 import { Action } from '../types/JsApi'
 import { aggregate } from './aggregates/aggregate'
 import { count } from './aggregates/count'
 import { groupBy } from './aggregates/groupBy'
 import type { ModelAction } from './applyModel'
-import type { UserArgs } from './UserArgs'
 
 /**
  * Dynamically returns the appropriate aggregate action for a given `action`.
