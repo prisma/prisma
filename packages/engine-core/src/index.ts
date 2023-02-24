@@ -1,10 +1,16 @@
 export { BinaryEngine } from './binary/BinaryEngine'
-export type { EngineConfig } from './common/Engine'
-export type { EngineEventType } from './common/Engine'
-export type { DatasourceOverwrite } from './common/Engine'
-export type { BatchTransactionOptions } from './common/Engine'
-export type { InteractiveTransactionOptions, TransactionOptions } from './common/Engine'
-export { Engine, type EngineQuery, type GraphQLQuery } from './common/Engine'
+export {
+  type BatchTransactionOptions,
+  type DatasourceOverwrite,
+  Engine,
+  type EngineBatchQueries as EngineBatchQuery,
+  type EngineConfig,
+  type EngineEventType,
+  type EngineQuery,
+  type GraphQLQuery,
+  type InteractiveTransactionOptions,
+  type TransactionOptions,
+} from './common/Engine'
 export { hasBatchIndex } from './common/errors/ErrorWithBatchIndex'
 export { PrismaClientInitializationError } from './common/errors/PrismaClientInitializationError'
 export { PrismaClientKnownRequestError } from './common/errors/PrismaClientKnownRequestError'
@@ -12,6 +18,7 @@ export { PrismaClientRustPanicError } from './common/errors/PrismaClientRustPani
 export { PrismaClientUnknownRequestError } from './common/errors/PrismaClientUnknownRequestError'
 export { handleLibraryLoadingErrors } from './common/errors/utils/handleEngineLoadingErrors'
 export type { EventEmitter } from './common/types/Events'
+export * from './common/types/JsonProtocol'
 export type { Metric, MetricHistogram, MetricHistogramBucket, Metrics } from './common/types/Metrics'
 export type { IsolationLevel, Options, TransactionHeaders } from './common/types/Transaction'
 export { getInternalDatamodelJson } from './common/utils/getInternalDatamodelJson'

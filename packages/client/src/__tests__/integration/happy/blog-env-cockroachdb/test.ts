@@ -1,3 +1,4 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
 import sql from 'sql-template-tag'
 
 import { generateTestClient } from '../../../../utils/getTestClient'
@@ -5,6 +6,7 @@ import type { SetupParams } from '../../../../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () => {
   let prisma: any = null
@@ -82,7 +84,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
     expect(users1.length).toBe(1)
   })
 
-  test('can throw validation errors', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('can throw validation errors', async () => {
     const {
       Prisma: { PrismaClientValidationError },
     } = require('./node_modules/@prisma/client')

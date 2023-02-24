@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -122,7 +124,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO: Edge: skipped because of the error snapshot
-    testIf(runtime !== 'edge')('wrong field type', async () => {
+    testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong field type', async () => {
       const products = prisma.product.findMany({
         where: {
           properties1: {

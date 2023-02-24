@@ -26,3 +26,7 @@ export class FieldRefImpl<Model, FieldType> implements FieldRef<Model, FieldType
     return `${prefix}FieldRefInput<${this.modelName}>`
   }
 }
+
+export function isFieldRef(value: unknown): value is FieldRef<string, unknown> {
+  return value instanceof FieldRefImpl
+}

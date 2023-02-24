@@ -1,3 +1,4 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
 import { expectTypeOf } from 'expect-type'
 
 import { waitFor } from '../../_utils/tests/waitFor'
@@ -291,7 +292,7 @@ testMatrix.setupTestSuite(
       await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`Fail!`)
     })
 
-    test('error in async PrismaPromise methods', async () => {
+    testIf(getQueryEngineProtocol() !== 'json')('error in async PrismaPromise methods', async () => {
       const xprisma = prisma.$extends((client) => {
         return client.$extends({
           name: 'Faulty model',

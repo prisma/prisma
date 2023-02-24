@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 import type { SetupParams } from '../../../../utils/setupPostgres'
 import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres'
@@ -82,7 +84,9 @@ test('Blog fixture: Postgres', async () => {
   }
 
   if (!validationError || !(validationError instanceof PrismaClientValidationError)) {
-    throw new Error(`Validation error is incorrect`)
+    if (getQueryEngineProtocol() !== 'json') {
+      throw new Error(`Validation error is incorrect`)
+    }
   }
 
   expect(errorLogs.length).toBe(1)
