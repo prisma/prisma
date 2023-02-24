@@ -484,7 +484,7 @@ describe('postgresql - missing database', () => {
 describe('postgresql views re-introspection warnings', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
 
-  function computeSetupParams(warningCode: EngineArgs.ViewWarningCodes) {
+  function computeSetupParams(warningCode: EngineArgs.ViewWarningCodes): SetupParams {
     const setupParams: SetupParams = {
       connectionString,
       // Note: dirname points to a location with a setup.sql file
@@ -506,7 +506,7 @@ describe('postgresql views re-introspection warnings', () => {
     const setupParams = computeSetupParams(warningCode)
 
     beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
+      await setupPostgres(setupParams).catch((e) => {
         console.error(e)
       })
       // Back to original env vars
@@ -518,7 +518,7 @@ describe('postgresql views re-introspection warnings', () => {
     afterEach(async () => {
       // Back to original env vars
       process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
+      await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
     })
@@ -809,7 +809,7 @@ describe('postgresql views re-introspection warnings', () => {
 describe('postgresql views introspection warnings', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
 
-  function computeSetupParams(warningCode: EngineArgs.ViewWarningCodes) {
+  function computeSetupParams(warningCode: EngineArgs.ViewWarningCodes): SetupParams {
     const setupParams: SetupParams = {
       connectionString,
       // Note: dirname points to a location with a setup.sql file
@@ -831,7 +831,7 @@ describe('postgresql views introspection warnings', () => {
     const setupParams = computeSetupParams(warningCode)
 
     beforeEach(async () => {
-      await setupPostgres(setupParams!).catch((e) => {
+      await setupPostgres(setupParams).catch((e) => {
         console.error(e)
       })
       // Back to original env vars
@@ -843,7 +843,7 @@ describe('postgresql views introspection warnings', () => {
     afterEach(async () => {
       // Back to original env vars
       process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams!).catch((e) => {
+      await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
     })
