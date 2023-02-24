@@ -2,4 +2,5 @@
 create table tmp(
   id int primary key
 );
-CREATE VIEW "A" AS SELECT 1 AS id;
+
+CREATE VIEW "A" AS SELECT 1 AS foo
