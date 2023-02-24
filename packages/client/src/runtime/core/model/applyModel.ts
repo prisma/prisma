@@ -12,11 +12,11 @@ import {
 } from '../compositeProxy'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import type { PrismaPromise } from '../request/PrismaPromise'
+import type { UserArgs } from '../request/UserArgs'
 import { applyAggregates } from './applyAggregates'
 import { applyFieldsProxy } from './applyFieldsProxy'
 import { applyFluent } from './applyFluent'
 import { adaptErrors } from './applyOrThrowErrorAdapter'
-import type { UserArgs } from './UserArgs'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 
 export type ModelAction = (
@@ -136,7 +136,7 @@ function getOwnKeys(client: Client, dmmfModelName: string) {
   return actionKeys
 }
 
-function isValidAggregateName(action: string): action is typeof aggregateProps[number] {
+function isValidAggregateName(action: string): action is (typeof aggregateProps)[number] {
   return (aggregateProps as readonly string[]).includes(action)
 }
 

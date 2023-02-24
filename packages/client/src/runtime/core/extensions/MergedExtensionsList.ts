@@ -47,39 +47,45 @@ class MergedExtensionsListNode {
     })
   }
 
-  getAllQueryCallbacks(jsModelName: string, action: string) {
-    return this.queryCallbacksCache.getOrCreate(`${jsModelName}:${action}`, () => {
-      const previous = this.previous?.getAllQueryCallbacks(jsModelName, action) ?? []
+  getAllQueryCallbacks(jsModelName: string, operation: string) {
+    return this.queryCallbacksCache.getOrCreate(`${jsModelName}:${operation}`, () => {
+      const prevCbs = this.previous?.getAllQueryCallbacks(jsModelName, operation) ?? []
+      const newCbs: QueryOptionsCb[] = []
       const query = this.extension.query
-      if (!query || !(query[jsModelName] || query.$allModels)) {
-        return previous
+
+      if (!query || !(query[jsModelName] || query.$allModels || query[operation])) {
+        return prevCbs
       }
 
-      const newCallbacks: QueryOptionsCb[] = []
-
       if (query[jsModelName] !== undefined) {
-        if (query[jsModelName][action] !== undefined) {
-          newCallbacks.push(query[jsModelName][action])
+        if (query[jsModelName][operation] !== undefined) {
+          newCbs.push(query[jsModelName][operation])
         }
 
         // when the model-bound extension has a wildcard for the operation
         if (query[jsModelName]['$allOperations'] !== undefined) {
-          newCallbacks.push(query[jsModelName]['$allOperations'])
+          newCbs.push(query[jsModelName]['$allOperations'])
         }
       }
 
       // when the extension isn't model-bound, apply it to all models
       if (query['$allModels'] !== undefined) {
-        if (query['$allModels'][action] !== undefined) {
-          newCallbacks.push(query['$allModels'][action])
+        if (query['$allModels'][operation] !== undefined) {
+          newCbs.push(query['$allModels'][operation])
         }
 
         // when the non-model-bound extension has a wildcard for the operation
         if (query['$allModels']['$allOperations'] !== undefined) {
-          newCallbacks.push(query['$allModels']['$allOperations'])
+          newCbs.push(query['$allModels']['$allOperations'])
         }
       }
-      return previous.concat(newCallbacks)
+
+      // when the extension is not bound to a model & is a top-level operation
+      if (query[operation] !== undefined) {
+        newCbs.push(query[operation] as QueryOptionsCb)
+      }
+
+      return prevCbs.concat(newCbs)
     })
   }
 }
@@ -123,7 +129,7 @@ export class MergedExtensionsList {
     return this.head?.getAllModelExtensions(dmmfModelName)
   }
 
-  getAllQueryCallbacks(jsModelName: string, action: string) {
-    return this.head?.getAllQueryCallbacks(jsModelName, action) ?? []
+  getAllQueryCallbacks(jsModelName: string, operation: string) {
+    return this.head?.getAllQueryCallbacks(jsModelName, operation) ?? []
   }
 }

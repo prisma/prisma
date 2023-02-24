@@ -72,10 +72,10 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
   }
 }
 
-function clientExtensionsQueryDefinition(this: PrismaClientClass) {
+function clientTypeMapModelsDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
-  const prismaNamespaceDefinitions = `export type TypeMap<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
+  return `{
     meta: {
       modelProps: ${modelNames.map((mn) => `'${lowerCase(mn)}'`).join(' | ')}
     },
@@ -95,11 +95,62 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     }, '')}
   }
 }`
+}
 
-  const queryCbDefinition = (modelName: string, operationName: string) => {
+function clientTypeMapOthersDefinition(this: PrismaClientClass) {
+  const otherOperationsNames = this.dmmf.getOtherOperationNames().flatMap((n) => {
+    if (n === 'executeRaw' || n === 'queryRaw') {
+      return [`$${n}Unsafe`, `$${n}`]
+    }
+
+    return `$${n}`
+  })
+
+  const argsResultMap = {
+    $executeRaw: { args: '[query: TemplateStringsArray | Prisma.Sql, ...values: any[]]', result: 'any' },
+    $queryRaw: { args: '[query: TemplateStringsArray | Prisma.Sql, ...values: any[]]', result: 'any' },
+    $executeRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
+    $queryRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
+    $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'Prisma.JsonObject' },
+  }
+
+  return `{
+  other: {${otherOperationsNames.reduce((acc, action) => {
+    return `${acc}
+    ${action}: {
+      args: ${argsResultMap[action].args},
+      result: ${argsResultMap[action].result}
+      payload: any
+    }`
+  }, '')}
+  }
+}`
+}
+
+function clientTypeMapDefinition(this: PrismaClientClass) {
+  const typeMap = `${clientTypeMapModelsDefinition.bind(this)()} & ${clientTypeMapOthersDefinition.bind(this)()}`
+
+  return `export type TypeMap<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = ${typeMap}`
+}
+
+function clientExtensionsQueryDefinition(this: PrismaClientClass) {
+  const modelNames = Object.keys(this.dmmf.getModelMap())
+  const prismaNamespaceDefinitions = clientTypeMapDefinition.bind(this)()
+
+  const queryCbDefinitionModel = (modelName: string, operationName: string) => {
     const queryArgs = `runtime.Types.Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model'][${modelName}][${operationName}]['args']>`
     const queryResult = `Prisma.TypeMap<ExtArgs>['model'][${modelName}][${operationName}]['result']`
     const inputQueryBase = `model: ${modelName}, operation: ${operationName}, args: ${queryArgs}`
+    const inputQueryCbBase = `query: (args: ${queryArgs}) => Prisma.PrismaPromise<${queryResult}>`
+    const inputQuery = `{ ${inputQueryBase}, ${inputQueryCbBase} }`
+
+    return `(args: ${inputQuery}) => Promise<${queryResult}>`
+  }
+
+  const queryCbDefinitionOther = (operationName: string) => {
+    const queryArgs = `Prisma.TypeMap<ExtArgs>['other'][${operationName}]['args']`
+    const queryResult = `Prisma.TypeMap<ExtArgs>['other'][${operationName}]['result']`
+    const inputQueryBase = `operation: ${operationName}, args: ${queryArgs}`
     const inputQueryCbBase = `query: (args: ${queryArgs}) => Prisma.PrismaPromise<${queryResult}>`
     const inputQuery = `{ ${inputQueryBase}, ${inputQueryCbBase} }`
 
@@ -110,7 +161,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     const modelName = modelNames.map((mn) => `'${mn}'`).join(' | ')
 
     return `{
-    ${indent}$allOperations?: ${queryCbDefinition(modelName, `keyof Prisma.TypeMap['model'][${modelName}]`)}
+    ${indent}$allOperations?: ${queryCbDefinitionModel(modelName, `keyof Prisma.TypeMap['model'][${modelName}]`)}
   ${indent}}`
   }
 
@@ -118,7 +169,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     const key = modelNames.map((mn) => `'${mn}'`).join(' | ')
 
     return `${propName}?: {
-        [K in keyof Prisma.TypeMap['model'][${key}]]?: ${queryCbDefinition(key, `K`)}
+        [K in keyof Prisma.TypeMap['model'][${key}]]?: ${queryCbDefinitionModel(key, `K`)}
       } & ${allOperationsParam(modelNames, '    ')}`
   }
 
@@ -132,9 +183,13 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
   }, '')}
     }`
 
+  const concreteOtherParams = `{
+      [K in keyof Prisma.TypeMap['other']]?: ${queryCbDefinitionOther(`K`)}
+    }`
+
   return {
     genericParams: `Q extends runtime.Types.Extensions.UserArgs['query'] = {}`,
-    params: `${allModelsParam} & ${concreteModelParams}`,
+    params: `${allModelsParam} & ${concreteModelParams} & ${concreteOtherParams}`,
     prismaNamespaceDefinitions,
   }
 }
@@ -447,7 +502,13 @@ export class PrismaClient<
   ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs`,
       '',
     )}
-      > {
+      > {${ifExtensions(
+        `
+
+  [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
+`,
+        '',
+      )}
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
