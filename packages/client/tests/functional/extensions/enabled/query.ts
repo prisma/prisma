@@ -6,7 +6,7 @@ import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
@@ -908,6 +908,66 @@ testMatrix.setupTestSuite(
           },
         },
       })
+    })
+
+    testIf(provider !== 'mongodb' && provider !== 'sqlite')('top-level raw queries interception', async () => {
+      const fnEmitter = jest.fn()
+      const fnUser = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          // @ts-test-if: provider !== 'mongodb'
+          $queryRaw({ args, query, operation }) {
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(args).toEqualTypeOf<[query: TemplateStringsArray | PrismaNamespace.Sql, ...values: any[]]>()
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(operation).toEqualTypeOf<'$queryRaw'>()
+            fnUser(args)
+            return query(args)
+          },
+          $executeRaw({ args, query, operation }) {
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(args).toEqualTypeOf<[query: TemplateStringsArray | PrismaNamespace.Sql, ...values: any[]]>()
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(operation).toEqualTypeOf<'$executeRaw'>()
+            fnUser(args)
+            return query(args)
+          },
+          $queryRawUnsafe({ args, query, operation }) {
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(args).toEqualTypeOf<[query: string, ...values: any[]]>()
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(operation).toEqualTypeOf<'$queryRawUnsafe'>()
+            fnUser(args)
+            return query(args)
+          },
+          $executeRawUnsafe({ args, query, operation }) {
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(args).toEqualTypeOf<[query: string, ...values: any[]]>()
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(operation).toEqualTypeOf<'$executeRawUnsafe'>()
+            fnUser(args)
+            return query(args)
+          },
+        },
+      })
+
+      // @ts-test-if: provider !== 'mongodb'
+      await xprisma.$executeRaw`SELECT 1`
+      // @ts-test-if: provider !== 'mongodb'
+      await xprisma.$queryRaw`SELECT 2`
+      // @ts-test-if: provider !== 'mongodb'
+      await xprisma.$executeRawUnsafe(`SELECT 3`)
+      // @ts-test-if: provider !== 'mongodb'
+      await xprisma.$queryRawUnsafe(`SELECT 4`)
+
+      await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(4))
+      expect(fnUser).toHaveBeenNthCalledWith(1, [[`SELECT 1`]])
+      expect(fnUser).toHaveBeenNthCalledWith(2, [[`SELECT 2`]])
+      expect(fnUser).toHaveBeenNthCalledWith(3, [`SELECT 3`])
+      expect(fnUser).toHaveBeenNthCalledWith(4, [`SELECT 4`])
     })
   },
   {

@@ -23,6 +23,11 @@ export type Operation =
 | 'aggregate'
 | 'count'
 | 'groupBy'
+| '$queryRaw'
+| '$executeRaw'
+| '$queryRawUnsafe'
+| '$executeRawUnsafe'
+| '$runCommandRaw'
 // raw mongo
 // | 'findRaw'
 // | 'runCommandRaw'
@@ -97,4 +102,9 @@ export type GetResult<P extends Payload, A, O extends Operation> = {
   aggregate: GetAggregateResult<P, A>,
   count: GetCountResult<P, A>,
   groupBy: GetGroupByResult<P, A>,
+  $queryRaw: any,
+  $executeRaw: any,
+  $queryRawUnsafe: any,
+  $executeRawUnsafe: any,
+  $runCommandRaw: object,
 }[O]

@@ -235,4 +235,20 @@ testMatrix.setupTestSuite(() => {
 
     expect(() => xprisma.$fail()).toThrowErrorMatchingInlineSnapshot(`What a terrible failure`)
   })
+
+  test('custom method re-using input to augment', () => {
+    const xprisma = prisma.$extends({
+      client: {
+        $executeRawCustom<T, A extends any[]>(
+          this: T,
+          ...args: PrismaNamespace.Exact<A, [...PrismaNamespace.Args<T, '$executeRaw'>, { extra: boolean }]>
+        ): PrismaNamespace.Result<T, A, '$executeRaw'> {
+          return {} as any
+        },
+      },
+    })
+
+    // @ts-test-if: provider !== 'mongodb'
+    xprisma.$executeRawCustom(Prisma.sql`SELECT * FROM User`, { extra: true })
+  })
 })
