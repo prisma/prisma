@@ -920,6 +920,7 @@ testMatrix.setupTestSuite(
         query: {
           // @ts-test-if: provider !== 'mongodb'
           $queryRaw({ args, query, operation }) {
+            expect(operation).toEqual('$queryRaw')
             // @ts-test-if: provider !== 'mongodb'
             expectTypeOf(args).toEqualTypeOf<[query: TemplateStringsArray | PrismaNamespace.Sql, ...values: any[]]>()
             // @ts-test-if: provider !== 'mongodb'
@@ -928,6 +929,7 @@ testMatrix.setupTestSuite(
             return query(args)
           },
           $executeRaw({ args, query, operation }) {
+            expect(operation).toEqual('$executeRaw')
             // @ts-test-if: provider !== 'mongodb'
             expectTypeOf(args).toEqualTypeOf<[query: TemplateStringsArray | PrismaNamespace.Sql, ...values: any[]]>()
             // @ts-test-if: provider !== 'mongodb'
@@ -936,6 +938,7 @@ testMatrix.setupTestSuite(
             return query(args)
           },
           $queryRawUnsafe({ args, query, operation }) {
+            expect(operation).toEqual('$queryRawUnsafe')
             // @ts-test-if: provider !== 'mongodb'
             expectTypeOf(args).toEqualTypeOf<[query: string, ...values: any[]]>()
             // @ts-test-if: provider !== 'mongodb'
@@ -944,6 +947,7 @@ testMatrix.setupTestSuite(
             return query(args)
           },
           $executeRawUnsafe({ args, query, operation }) {
+            expect(operation).toEqual('$executeRawUnsafe')
             // @ts-test-if: provider !== 'mongodb'
             expectTypeOf(args).toEqualTypeOf<[query: string, ...values: any[]]>()
             // @ts-test-if: provider !== 'mongodb'

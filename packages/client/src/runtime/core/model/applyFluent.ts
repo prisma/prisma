@@ -3,8 +3,8 @@ import type { DMMF } from '@prisma/generator-helper'
 import type { Client } from '../../getPrismaClient'
 import { getCallSite } from '../../utils/CallSite'
 import { deepSet } from '../../utils/deep-set'
+import type { UserArgs } from '../request/UserArgs'
 import type { applyModel, ModelAction } from './applyModel'
-import type { UserArgs } from './UserArgs'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
 /**

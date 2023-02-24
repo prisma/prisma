@@ -34,7 +34,6 @@ import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
-import { UserArgs } from './core/model/UserArgs'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { ProtocolEncoder } from './core/protocol/common'
 import { GraphQLProtocolEncoder } from './core/protocol/graphql'
@@ -46,6 +45,7 @@ import {
   PrismaPromiseInteractiveTransaction,
   PrismaPromiseTransaction,
 } from './core/request/PrismaPromise'
+import { UserArgs } from './core/request/UserArgs'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { BaseDMMFHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
@@ -583,7 +583,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     $executeRawUnsafe(query: string, ...values: RawValue[]) {
       return createPrismaPromise((transaction) => {
-        return this.$executeRawInternal(transaction, '$executeRaw', [query, ...values])
+        return this.$executeRawInternal(transaction, '$executeRawUnsafe', [query, ...values])
       })
     }
 
