@@ -13,5 +13,6 @@ junit.xml
 .cache
 prisma-0.0.0.tgz
 prisma-client-0.0.0.tgz
+prisma-webpack-plugin-0.0.0.tgz
 LOGS.txt
 LOGS.*.txt

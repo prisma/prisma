@@ -52,6 +52,7 @@ async function main() {
   // we first get all the paths we are going to need to run e2e tests
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'prisma-build'))
   const cliPkgPath = path.join(monorepoRoot, 'packages', 'cli')
+  const wpPluginPkgPath = path.join(monorepoRoot, 'packages', 'webpack-plugin')
   const clientPkgPath = path.join(monorepoRoot, 'packages', 'client')
   const cliPkgJsonPath = path.join(cliPkgPath, 'package.json')
   const clientPkgJsonPath = path.join(clientPkgPath, 'package.json')
@@ -83,6 +84,7 @@ async function main() {
     console.log('📦 Packing package tarballs')
     await $`cd ${clientPkgPath} && SKIP_BUILD=${args['--skipBuild']} pnpm pack --pack-destination ${__dirname}/../`
     await $`cd ${cliPkgPath} && SKIP_BUILD=${args['--skipBuild']} pnpm pack --pack-destination ${__dirname}/../`
+    await $`cd ${wpPluginPkgPath} && SKIP_BUILD=${args['--skipBuild']} pnpm pack --pack-destination ${__dirname}/../`
   } catch (e) {
     console.log(e.message)
     console.log('🛑 Failed to pack one or more of the packages')
