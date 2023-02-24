@@ -21,7 +21,7 @@ async function getPrismaDir(from) {
 // get all required prisma files (schema + engine)
 async function getPrismaFiles(from) {
   const prismaDir = await getPrismaDir(from)
-  const filterRegex = /schema\.prisma|.*?engine.*?/
+  const filterRegex = /schema\.prisma|engine/
   const prismaFiles = await fs.readdir(prismaDir)
 
   return prismaFiles.filter((file) => file.match(filterRegex))
