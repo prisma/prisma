@@ -487,8 +487,8 @@ describe('postgresql views re-introspection warnings', () => {
   function computeSetupParams(warningCode: EngineArgs.ViewWarningCodes) {
     const setupParams: SetupParams = {
       connectionString,
-      // Note: at this location there is a setup.sql file
-      // which will be executed a SQL file so the database is not empty
+      // Note: dirname points to a location with a setup.sql file
+      // which will be executed to prepare the database with the correct tables, views etc.
       dirname: path.join(
         __dirname,
         '..',
@@ -502,7 +502,7 @@ describe('postgresql views re-introspection warnings', () => {
     return setupParams
   }
 
-  describe('postgresql views 21', () => {
+  describe('postgresql views 21 - unsupported types', () => {
     const warningCode = 21
     const setupParams = computeSetupParams(warningCode)
 
@@ -578,8 +578,7 @@ describe('postgresql views re-introspection warnings', () => {
     })
   })
 
-  // TODO :: can't generate the correct code
-  describe('postgresql views 22', () => {
+  describe('postgresql views 22 - field with @map', () => {
     const warningCode = 22
     const setupParams = computeSetupParams(warningCode)
 
@@ -648,7 +647,7 @@ describe('postgresql views re-introspection warnings', () => {
     })
   })
 
-  describe('postgresql views 23', () => {
+  describe('postgresql views 23 - automated rename with @@map', () => {
     const warningCode = 23
     const setupParams = computeSetupParams(warningCode)
 
@@ -719,7 +718,7 @@ describe('postgresql views re-introspection warnings', () => {
     })
   })
 
-  describe('postgresql views 24', () => {
+  describe('postgresql views 24 - no unique identifier', () => {
     const warningCode = 24
     const setupParams = computeSetupParams(warningCode)
 
@@ -795,7 +794,7 @@ describe('postgresql views re-introspection warnings', () => {
     })
   })
 
-  describe('postgresql views 25', () => {
+  describe('postgresql views 25 - @@id name', () => {
     const warningCode = 25
     const setupParams = computeSetupParams(warningCode)
 
@@ -867,7 +866,7 @@ describe('postgresql views re-introspection warnings', () => {
     })
   })
 
-  describe('postgresql views 26', () => {
+  describe('postgresql views 26 - invalid field name', () => {
     const warningCode = 26
     const setupParams = computeSetupParams(warningCode)
 
@@ -951,8 +950,8 @@ describe('postgresql views introspection warnings', () => {
   function computeSetupParams(warningCode: EngineArgs.ViewWarningCodes) {
     const setupParams: SetupParams = {
       connectionString,
-      // Note: at this location there is a setup.sql file
-      // which will be executed a SQL file so the database is not empty
+      // Note: dirname points to a location with a setup.sql file
+      // which will be executed to prepare the database with the correct tables, views etc.
       dirname: path.join(
         __dirname,
         '..',
@@ -966,7 +965,7 @@ describe('postgresql views introspection warnings', () => {
     return setupParams
   }
 
-  describe('postgresql views 21', () => {
+  describe('postgresql views 21 - unsupported types', () => {
     const warningCode = 21
     const setupParams = computeSetupParams(warningCode)
 
@@ -1048,8 +1047,7 @@ describe('postgresql views introspection warnings', () => {
     })
   })
 
-  // TODO :: can't generate the correct code
-  describe('postgresql views 22', () => {
+  describe('postgresql views 22 - automated rename with @map', () => {
     const warningCode = 22
     const setupParams = computeSetupParams(warningCode)
 
@@ -1121,7 +1119,7 @@ describe('postgresql views introspection warnings', () => {
     })
   })
 
-  describe('postgresql views 23', () => {
+  describe('postgresql views 23 - view with @@map', () => {
     const warningCode = 23
     const setupParams = computeSetupParams(warningCode)
 
@@ -1195,7 +1193,7 @@ describe('postgresql views introspection warnings', () => {
     })
   })
 
-  describe('postgresql views 24', () => {
+  describe('postgresql views 24 - no unique identifier', () => {
     const warningCode = 24
     const setupParams = computeSetupParams(warningCode)
 
@@ -1271,7 +1269,7 @@ describe('postgresql views introspection warnings', () => {
     })
   })
 
-  describe('postgresql views 25', () => {
+  describe('postgresql views 25 - @@id name', () => {
     const warningCode = 25
     const setupParams = computeSetupParams(warningCode)
 
@@ -1344,7 +1342,7 @@ describe('postgresql views introspection warnings', () => {
     })
   })
 
-  describe('postgresql views 26', () => {
+  describe('postgresql views 26 - invalid field name', () => {
     const warningCode = 26
     const setupParams = computeSetupParams(warningCode)
 
