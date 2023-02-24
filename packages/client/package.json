@@ -52,6 +52,7 @@
   "files": [
     "README.md",
     "runtime",
+    "!runtime/*.map",
     "scripts",
     "generator-build",
     "edge.js",
