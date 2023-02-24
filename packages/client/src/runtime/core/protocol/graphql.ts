@@ -1,4 +1,4 @@
-import { EngineQuery } from '@prisma/engine-core'
+import { EngineBatchQuery, EngineQuery, GraphQLQuery } from '@prisma/engine-core'
 
 import { DMMFHelper } from '../../dmmf'
 import { ErrorFormat } from '../../getPrismaClient'
@@ -29,17 +29,10 @@ const actionOperationMap: Record<Action, 'query' | 'mutation'> = {
   aggregateRaw: 'query',
 }
 
-export class GraphQLProtocolEncoder implements ProtocolEncoder {
+export class GraphQLProtocolEncoder implements ProtocolEncoder<GraphQLQuery> {
   constructor(private dmmf: DMMFHelper, private errorFormat: ErrorFormat) {}
 
-  createMessage({
-    action,
-    modelName,
-    args,
-    extensions,
-    clientMethod,
-    callsite,
-  }: CreateMessageOptions): ProtocolMessage {
+  createMessage({ action, modelName, args, extensions, clientMethod, callsite }: CreateMessageOptions): GraphQLMessage {
     let rootField: string | undefined
     const operation = actionOperationMap[action]
 
@@ -81,9 +74,13 @@ export class GraphQLProtocolEncoder implements ProtocolEncoder {
     document.validate(args, false, clientMethod, this.errorFormat, callsite)
     return new GraphQLMessage(document)
   }
+
+  createBatch(messages: GraphQLMessage[]): EngineBatchQuery {
+    return messages.map((message) => message.toEngineQuery())
+  }
 }
 
-export class GraphQLMessage implements ProtocolMessage {
+export class GraphQLMessage implements ProtocolMessage<GraphQLQuery> {
   constructor(private document: Document) {}
 
   isWrite(): boolean {
@@ -116,8 +113,8 @@ export class GraphQLMessage implements ProtocolMessage {
     return String(this.document)
   }
 
-  toEngineQuery(): EngineQuery {
-    return { query: String(this.document) }
+  toEngineQuery(): GraphQLQuery {
+    return { query: String(this.document), variables: {} }
   }
 
   deserializeResponse(data: unknown, dataPath: string[]): unknown {

@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths } from '@prisma/internals'
+import { getClientEngineType, getEnvPaths, getQueryEngineProtocol } from '@prisma/internals'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
@@ -73,6 +73,7 @@ export class TSClient implements Generatable {
       dataProxy,
       deno,
     } = this.options
+    const engineProtocol = getQueryEngineProtocol(generator)
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -123,7 +124,7 @@ ${new Enum(
   },
   true,
 ).toJS()}
-${buildDMMF(dataProxy, this.options.document)}
+${buildDMMF(dataProxy && engineProtocol === 'graphql', this.options.document)}
 
 /**
  * Create the Client

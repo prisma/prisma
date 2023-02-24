@@ -43,6 +43,7 @@ function setupMockLibraryEngine() {
         middleware: false,
       },
       env: {},
+      cwd: process.cwd(),
     },
     loader,
   )
@@ -109,6 +110,7 @@ test('responds to initialization error with PrismaClientInitializationError', as
         middleware: false,
       },
       env: {},
+      cwd: process.cwd(),
     },
     loader,
   )

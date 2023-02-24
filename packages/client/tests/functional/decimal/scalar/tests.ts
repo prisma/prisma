@@ -56,6 +56,7 @@ testMatrix.setupTestSuite(
               d: [12, 5000000],
               e: 1,
               s: 1,
+              toFixed: () => '12.5',
             },
           },
         })

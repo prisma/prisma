@@ -137,5 +137,3 @@ export const deepExtend = function (target, ...args) {
 
   return target
 }
-
-// @ts-ignore-end
