@@ -506,9 +506,8 @@ describe('postgresql views re-introspection warnings', () => {
     const setupParams = computeSetupParams(warningCode)
 
     beforeEach(async () => {
-      await setupPostgres(setupParams).catch((e) => {
-        console.error(e)
-      })
+      await setupPostgres(setupParams)
+
       // Back to original env vars
       process.env = { ...originalEnv }
       // Update env var because it's the one that is used in the schemas tested
@@ -831,9 +830,8 @@ describe('postgresql views introspection warnings', () => {
     const setupParams = computeSetupParams(warningCode, variant)
 
     beforeEach(async () => {
-      await setupPostgres(setupParams).catch((e) => {
-        console.error(e)
-      })
+      await setupPostgres(setupParams)
+
       // Back to original env vars
       process.env = { ...originalEnv }
       // Update env var because it's the one that is used in the schemas tested
