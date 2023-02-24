@@ -396,6 +396,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
         this._baseDmmf = new BaseDMMFHelper(config.document)
         const engineProtocol = getQueryEngineProtocol(config.generator)
+        debug('protocol', engineProtocol)
 
         if (this._dataProxy && engineProtocol === 'graphql') {
           // the data proxy can't get the dmmf from the engine
