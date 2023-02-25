@@ -5,7 +5,7 @@ Ensures that your Prisma files are copied.
 ## Next.js
 
 ```js
-const { PrismaPlugin } = require('@prisma/webpack-plugin')
+const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin')
 
 module.exports = {
   webpack: (config, { isServer }) => {
@@ -21,7 +21,7 @@ module.exports = {
 ## Webpack
 
 ```js
-const { PrismaPlugin } = require('@prisma/webpack-plugin')
+const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin')
 
 module.exports = {
   plugins: [new PrismaPlugin()],

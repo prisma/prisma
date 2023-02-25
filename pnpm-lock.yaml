@@ -875,6 +875,12 @@ importers:
       tempy: 1.0.1
       typescript: 4.9.5
 
+  packages/nextjs-monorepo-workaround-plugin:
+    specifiers:
+      webpack: 5.75.0
+    devDependencies:
+      webpack: 5.75.0
+
   packages/react-prisma:
     specifiers:
       '@prisma/client': workspace:*
@@ -898,12 +904,6 @@ importers:
       jest-junit: 15.0.0
       react: 18.2.0
       typescript: 4.9.5
-
-  packages/webpack-plugin:
-    specifiers:
-      webpack: 5.75.0
-    devDependencies:
-      webpack: 5.75.0
 
 packages:
 

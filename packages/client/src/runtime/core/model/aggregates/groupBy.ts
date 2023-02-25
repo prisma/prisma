@@ -1,5 +1,5 @@
+import type { UserArgs } from '../../request/UserArgs'
 import type { ModelAction } from '../applyModel'
-import type { UserArgs } from '../UserArgs'
 import { desugarUserArgs as desugarUserArgsAggregate } from './aggregate'
 
 /**
