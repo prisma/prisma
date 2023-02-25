@@ -52,7 +52,7 @@ async function main() {
   // we first get all the paths we are going to need to run e2e tests
   const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'prisma-build'))
   const cliPkgPath = path.join(monorepoRoot, 'packages', 'cli')
-  const wpPluginPkgPath = path.join(monorepoRoot, 'packages', 'webpack-plugin')
+  const wpPluginPkgPath = path.join(monorepoRoot, 'packages', 'nextjs-monorepo-workaround-plugin')
   const clientPkgPath = path.join(monorepoRoot, 'packages', 'client')
   const cliPkgJsonPath = path.join(cliPkgPath, 'package.json')
   const clientPkgJsonPath = path.join(clientPkgPath, 'package.json')
