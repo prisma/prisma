@@ -181,6 +181,13 @@ export namespace EngineArgs {
     | IntrospectionWarningsCustomPrimaryKeyNamesReintro
     | IntrospectionWarningsRelationsReintro
     | IntrospectionWarningsTopLevelItemNameIsADupe
+    // Views
+    | IntrospectionWarningsUnsupportedTypesInViews
+    | IntrospectionWarningsEnrichedWithMapOnFieldInViews
+    | IntrospectionWarningsEnrichedWithMapOnView
+    | IntrospectionWarningsViewsWithoutIdentifier
+    | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews
+    | IntrospectionWarningsFieldsWithEmptyNamesInViews
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
@@ -211,6 +218,14 @@ export namespace EngineArgs {
   type AffectedEnum = { enm: string }
   type AffectedEnumAndValue = { enm: string; value: string }
 
+  type AffectedView = { view: string }
+  type AffectedViewAndField = { view: string; field: string }
+  type AffectedViewAndFieldAndType = {
+    view: string
+    field: string
+    tpe: string
+  }
+
   interface IntrospectionWarning {
     code: number
     message: string
@@ -224,6 +239,9 @@ export namespace EngineArgs {
       | AffectedModelOrCompositeTypeAndFieldAndType[]
       | AffectedEnum[]
       | AffectedEnumAndValue[]
+      | AffectedView[]
+      | AffectedViewAndField[]
+      | AffectedViewAndFieldAndType[]
       | null
   }
 
@@ -303,6 +321,36 @@ export namespace EngineArgs {
     affected: AffectedTopLevel[]
   }
 
+  interface IntrospectionWarningsUnsupportedTypesInViews extends IntrospectionWarning {
+    code: 21
+    affected: AffectedViewAndFieldAndType[]
+  }
+
+  interface IntrospectionWarningsEnrichedWithMapOnFieldInViews extends IntrospectionWarning {
+    code: 22
+    affected: AffectedViewAndField[]
+  }
+
+  interface IntrospectionWarningsEnrichedWithMapOnView extends IntrospectionWarning {
+    code: 23
+    affected: AffectedView[]
+  }
+
+  interface IntrospectionWarningsViewsWithoutIdentifier extends IntrospectionWarning {
+    code: 24
+    affected: AffectedView[]
+  }
+
+  interface IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews extends IntrospectionWarning {
+    code: 25
+    affected: AffectedView[]
+  }
+
+  interface IntrospectionWarningsFieldsWithEmptyNamesInViews extends IntrospectionWarning {
+    code: 26
+    affected: AffectedViewAndField[]
+  }
+
   // MongoDB starts at 101 see
   // https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs#L39-L43
   interface IntrospectionWarningsMongoMultipleTypes extends IntrospectionWarning {
@@ -321,6 +369,14 @@ export namespace EngineArgs {
     code: 104
     affected: AffectedModelOrCompositeTypeAndField[]
   }
+
+  export type ViewWarningCodes =
+    | IntrospectionWarningsUnsupportedTypesInViews['code']
+    | IntrospectionWarningsEnrichedWithMapOnFieldInViews['code']
+    | IntrospectionWarningsEnrichedWithMapOnView['code']
+    | IntrospectionWarningsViewsWithoutIdentifier['code']
+    | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews['code']
+    | IntrospectionWarningsFieldsWithEmptyNamesInViews['code']
 
   export type IntrospectionSchemaVersion = 'Prisma2' | 'Prisma1' | 'Prisma11' | 'NonPrisma'
 

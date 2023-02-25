@@ -57,20 +57,13 @@ type QueryOptionsCbArgs = {
 
 export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>
 
-type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
-  path: string
-}
-
 type QueryOptions = {
   query: {
     [ModelName in string]:
       | {
           [ModelAction in string]: QueryOptionsCb
-        } & {
-          // $nestedOperations?: {
-          //   [K in string]: (args: QueryOptionsCbArgsNested) => unknown
-          // }
         }
+      | QueryOptionsCb // for "other" queries (eg. raw queries)
   }
 }
 

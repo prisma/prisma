@@ -1,4 +1,4 @@
-const { PrismaPlugin } = require('experimental-prisma-webpack-plugin')
+const { PrismaPlugin } = require('@prisma/nextjs-monorepo-workaround-plugin')
 
 /** @type {import('next').NextConfig} */
 module.exports = {

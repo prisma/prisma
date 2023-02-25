@@ -2,15 +2,6 @@
 
 set -euo pipefail
 
-# Database Env Vars
-export PRISMA_DB_NAME=$(cat /dev/urandom | tr -dc 'a-z0-9' | head -c 8)
-export TEST_E2E_POSTGRES_URI="postgres://prisma:prisma@172.17.0.1:5432/${PRISMA_DB_NAME}"
-export TEST_E2E_MYSQL_URI="mysql://root:root@172.17.0.1:3306/${PRISMA_DB_NAME}"
-export TEST_E2E_VITESS_8_URI="mysql://root:root@172.17.0.1:33807/${PRISMA_DB_NAME}"
-export TEST_E2E_MSSQL_URI="sqlserver://172.17.0.1:1433;database=${PRISMA_DB_NAME};user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-export TEST_E2E_MONGO_URI="mongodb://root:prisma@172.17.0.1:27018/${PRISMA_DB_NAME}?authSource=admin"
-export TEST_E2E_COCKROACH_URI="postgresql://prisma@172.17.0.1:26257/${PRISMA_DB_NAME}"
-
 # Get access to localhost
 export DOCKER_BRIDGE_IP=$(ip route | grep default | awk '{print $3}') # 172.17.0.1
 
@@ -48,6 +39,7 @@ OUTPUT_REMOVAL_REGEX="$PNPM_EXDEV_WARN_REGEX|$PNPM_FALLBACK_COPY_REGEX"
   cp jest.config.js /test/$NAME/jest.config.js;
   cp prisma-0.0.0.tgz /test/prisma-0.0.0.tgz;
   cp prisma-client-0.0.0.tgz /test/prisma-client-0.0.0.tgz;
+  cp prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz /test/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz;
   # execute the test by running the _steps.ts file with esbuild-register
   cd /test/$NAME;
   node -r 'esbuild-register' _steps.ts;
