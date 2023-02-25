@@ -1708,10 +1708,10 @@ export namespace Prisma {
   export type EmbedSelect = {
     text?: boolean
     boolean?: boolean
-    scalarList?: boolean
     embedEmbedList?: boolean | EmbedEmbedArgs
     requiredEmbedEmbed?: boolean | EmbedEmbedArgs
     optionalEmbedEmbed?: boolean | EmbedEmbedArgs
+    scalarList?: boolean
   }
 
 
@@ -4203,10 +4203,10 @@ export namespace Prisma {
     time?: boolean
     text?: boolean
     boolean?: boolean
-    User?: boolean | EmbedHolder$UserArgs
     embedList?: boolean | EmbedArgs
     requiredEmbed?: boolean | EmbedArgs
     optionalEmbed?: boolean | EmbedArgs
+    User?: boolean | EmbedHolder$UserArgs
     _count?: boolean | EmbedHolderCountOutputTypeArgs
   }
 
@@ -4229,10 +4229,10 @@ export namespace Prisma {
     : S extends { select: any } & (EmbedHolderArgs | EmbedHolderFindManyArgs)
       ? {
     [P in TruthyKeys<S['select']>]:
-        P extends 'User' ? Array < UserGetPayload<S['select'][P]>>  :
         P extends 'embedList' ? Array < EmbedGetPayload<S['select'][P]>>  :
         P extends 'requiredEmbed' ? EmbedGetPayload<S['select'][P]> :
         P extends 'optionalEmbed' ? EmbedGetPayload<S['select'][P]> | null :
+        P extends 'User' ? Array < UserGetPayload<S['select'][P]>>  :
         P extends '_count' ? EmbedHolderCountOutputTypeGetPayload<S['select'][P]> :  P extends keyof EmbedHolder ? EmbedHolder[P] : never
   } 
       : EmbedHolder
@@ -4632,13 +4632,13 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    User<T extends EmbedHolder$UserArgs= {}>(args?: Subset<T, EmbedHolder$UserArgs>): Prisma.PrismaPromise<Array<UserGetPayload<T>>| Null>;
-
     embedList<T extends EmbedArgs= {}>(args?: Subset<T, EmbedArgs>): Prisma.PrismaPromise<Array<EmbedGetPayload<T>>| Null>;
 
     requiredEmbed<T extends EmbedArgs= {}>(args?: Subset<T, EmbedArgs>): Prisma__EmbedClient<EmbedGetPayload<T> | Null>;
 
     optionalEmbed<T extends EmbedArgs= {}>(args?: Subset<T, EmbedArgs>): Prisma__EmbedClient<EmbedGetPayload<T> | Null>;
+
+    User<T extends EmbedHolder$UserArgs= {}>(args?: Subset<T, EmbedHolder$UserArgs>): Prisma.PrismaPromise<Array<UserGetPayload<T>>| Null>;
 
     private get _document();
     /**
@@ -16899,10 +16899,10 @@ export namespace Prisma {
     time?: DateTimeFilter | Date | string
     text?: StringFilter | string
     boolean?: BoolFilter | boolean
-    User?: UserListRelationFilter
     embedList?: XOR<EmbedCompositeListFilter, Enumerable<EmbedObjectEqualityInput>>
     requiredEmbed?: XOR<EmbedCompositeFilter, EmbedObjectEqualityInput>
     optionalEmbed?: XOR<EmbedNullableCompositeFilter, EmbedObjectEqualityInput> | null
+    User?: UserListRelationFilter
   }
 
   export type EmbedHolderOrderByWithRelationInput = {
@@ -16910,10 +16910,10 @@ export namespace Prisma {
     time?: SortOrder
     text?: SortOrder
     boolean?: SortOrder
-    User?: UserOrderByRelationAggregateInput
     embedList?: EmbedOrderByCompositeAggregateInput
     requiredEmbed?: EmbedOrderByInput
     optionalEmbed?: EmbedOrderByInput
+    User?: UserOrderByRelationAggregateInput
   }
 
   export type EmbedHolderWhereUniqueInput = {
@@ -17871,10 +17871,10 @@ export namespace Prisma {
     time?: Date | string
     text: string
     boolean: boolean
-    User?: UserCreateNestedManyWithoutEmbedHolderInput
     embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
+    User?: UserCreateNestedManyWithoutEmbedHolderInput
   }
 
   export type EmbedHolderUncheckedCreateInput = {
@@ -17882,30 +17882,30 @@ export namespace Prisma {
     time?: Date | string
     text: string
     boolean: boolean
-    User?: UserUncheckedCreateNestedManyWithoutEmbedHolderInput
     embedList?: XOR<EmbedListCreateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed: XOR<EmbedCreateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableCreateEnvelopeInput, EmbedCreateInput> | null
+    User?: UserUncheckedCreateNestedManyWithoutEmbedHolderInput
   }
 
   export type EmbedHolderUpdateInput = {
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
     boolean?: BoolFieldUpdateOperationsInput | boolean
-    User?: UserUpdateManyWithoutEmbedHolderNestedInput
     embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
+    User?: UserUpdateManyWithoutEmbedHolderNestedInput
   }
 
   export type EmbedHolderUncheckedUpdateInput = {
     time?: DateTimeFieldUpdateOperationsInput | Date | string
     text?: StringFieldUpdateOperationsInput | string
     boolean?: BoolFieldUpdateOperationsInput | boolean
-    User?: UserUncheckedUpdateManyWithoutEmbedHolderNestedInput
     embedList?: XOR<EmbedListUpdateEnvelopeInput, Enumerable<EmbedCreateInput>>
     requiredEmbed?: XOR<EmbedUpdateEnvelopeInput, EmbedCreateInput>
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
+    User?: UserUncheckedUpdateManyWithoutEmbedHolderNestedInput
   }
 
   export type EmbedHolderCreateManyInput = {
@@ -19326,12 +19326,6 @@ export namespace Prisma {
     isSet?: boolean
   }
 
-  export type UserListRelationFilter = {
-    every?: UserWhereInput
-    some?: UserWhereInput
-    none?: UserWhereInput
-  }
-
   export type EmbedCompositeListFilter = {
     equals?: Enumerable<EmbedObjectEqualityInput>
     every?: EmbedWhereInput
@@ -19344,10 +19338,10 @@ export namespace Prisma {
   export type EmbedObjectEqualityInput = {
     text: string
     boolean: boolean
-    scalarList?: Enumerable<number>
     embedEmbedList?: Enumerable<EmbedEmbedObjectEqualityInput>
     requiredEmbedEmbed: EmbedEmbedObjectEqualityInput
     optionalEmbedEmbed?: EmbedEmbedObjectEqualityInput | null
+    scalarList?: Enumerable<number>
   }
 
   export type EmbedCompositeFilter = {
@@ -19363,8 +19357,10 @@ export namespace Prisma {
     isSet?: boolean
   }
 
-  export type UserOrderByRelationAggregateInput = {
-    _count?: SortOrder
+  export type UserListRelationFilter = {
+    every?: UserWhereInput
+    some?: UserWhereInput
+    none?: UserWhereInput
   }
 
   export type EmbedOrderByCompositeAggregateInput = {
@@ -19374,10 +19370,14 @@ export namespace Prisma {
   export type EmbedOrderByInput = {
     text?: SortOrder
     boolean?: SortOrder
-    scalarList?: SortOrder
     embedEmbedList?: EmbedEmbedOrderByCompositeAggregateInput
     requiredEmbedEmbed?: EmbedEmbedOrderByInput
     optionalEmbedEmbed?: EmbedEmbedOrderByInput
+    scalarList?: SortOrder
+  }
+
+  export type UserOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type EmbedHolderCountOrderByAggregateInput = {
@@ -20147,13 +20147,6 @@ export namespace Prisma {
     deleteMany?: Enumerable<PostScalarWhereInput>
   }
 
-  export type UserCreateNestedManyWithoutEmbedHolderInput = {
-    create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
-    connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
-    createMany?: UserCreateManyEmbedHolderInputEnvelope
-    connect?: Enumerable<UserWhereUniqueInput>
-  }
-
   export type EmbedListCreateEnvelopeInput = {
     set?: Enumerable<EmbedCreateInput>
   }
@@ -20161,10 +20154,10 @@ export namespace Prisma {
   export type EmbedCreateInput = {
     text: string
     boolean: boolean
-    scalarList?: EmbedCreatescalarListInput | Enumerable<number>
     embedEmbedList?: Enumerable<EmbedEmbedCreateInput>
     requiredEmbedEmbed: EmbedEmbedCreateInput
     optionalEmbedEmbed?: EmbedEmbedCreateInput | null
+    scalarList?: EmbedCreatescalarListInput | Enumerable<number>
   }
 
   export type EmbedCreateEnvelopeInput = {
@@ -20175,25 +20168,18 @@ export namespace Prisma {
     set?: EmbedCreateInput | null
   }
 
-  export type UserUncheckedCreateNestedManyWithoutEmbedHolderInput = {
+  export type UserCreateNestedManyWithoutEmbedHolderInput = {
     create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
     connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
     createMany?: UserCreateManyEmbedHolderInputEnvelope
     connect?: Enumerable<UserWhereUniqueInput>
   }
 
-  export type UserUpdateManyWithoutEmbedHolderNestedInput = {
+  export type UserUncheckedCreateNestedManyWithoutEmbedHolderInput = {
     create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
     connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
-    upsert?: Enumerable<UserUpsertWithWhereUniqueWithoutEmbedHolderInput>
     createMany?: UserCreateManyEmbedHolderInputEnvelope
-    set?: Enumerable<UserWhereUniqueInput>
-    disconnect?: Enumerable<UserWhereUniqueInput>
-    delete?: Enumerable<UserWhereUniqueInput>
     connect?: Enumerable<UserWhereUniqueInput>
-    update?: Enumerable<UserUpdateWithWhereUniqueWithoutEmbedHolderInput>
-    updateMany?: Enumerable<UserUpdateManyWithWhereWithoutEmbedHolderInput>
-    deleteMany?: Enumerable<UserScalarWhereInput>
   }
 
   export type EmbedListUpdateEnvelopeInput = {
@@ -20212,6 +20198,20 @@ export namespace Prisma {
     set?: EmbedCreateInput | null
     upsert?: EmbedUpsertInput
     unset?: boolean
+  }
+
+  export type UserUpdateManyWithoutEmbedHolderNestedInput = {
+    create?: XOR<Enumerable<UserCreateWithoutEmbedHolderInput>, Enumerable<UserUncheckedCreateWithoutEmbedHolderInput>>
+    connectOrCreate?: Enumerable<UserCreateOrConnectWithoutEmbedHolderInput>
+    upsert?: Enumerable<UserUpsertWithWhereUniqueWithoutEmbedHolderInput>
+    createMany?: UserCreateManyEmbedHolderInputEnvelope
+    set?: Enumerable<UserWhereUniqueInput>
+    disconnect?: Enumerable<UserWhereUniqueInput>
+    delete?: Enumerable<UserWhereUniqueInput>
+    connect?: Enumerable<UserWhereUniqueInput>
+    update?: Enumerable<UserUpdateWithWhereUniqueWithoutEmbedHolderInput>
+    updateMany?: Enumerable<UserUpdateManyWithWhereWithoutEmbedHolderInput>
+    deleteMany?: Enumerable<UserScalarWhereInput>
   }
 
   export type UserUncheckedUpdateManyWithoutEmbedHolderNestedInput = {
@@ -20743,10 +20743,10 @@ export namespace Prisma {
     NOT?: Enumerable<EmbedWhereInput>
     text?: StringFilter | string
     boolean?: BoolFilter | boolean
-    scalarList?: IntNullableListFilter
     embedEmbedList?: XOR<EmbedEmbedCompositeListFilter, Enumerable<EmbedEmbedObjectEqualityInput>>
     requiredEmbedEmbed?: XOR<EmbedEmbedCompositeFilter, EmbedEmbedObjectEqualityInput>
     optionalEmbedEmbed?: XOR<EmbedEmbedNullableCompositeFilter, EmbedEmbedObjectEqualityInput> | null
+    scalarList?: IntNullableListFilter
   }
 
   export type EmbedEmbedObjectEqualityInput = {
@@ -20988,6 +20988,15 @@ export namespace Prisma {
     optionalEmbed?: XOR<EmbedNullableUpdateEnvelopeInput, EmbedCreateInput> | null
   }
 
+  export type EmbedEmbedCreateInput = {
+    text: string
+    boolean: boolean
+  }
+
+  export type EmbedCreatescalarListInput = {
+    set: Enumerable<number>
+  }
+
   export type UserCreateWithoutEmbedHolderInput = {
     id?: string
     email: string
@@ -21033,13 +21042,27 @@ export namespace Prisma {
     data: Enumerable<UserCreateManyEmbedHolderInput>
   }
 
-  export type EmbedCreatescalarListInput = {
-    set: Enumerable<number>
+  export type EmbedUpdateManyInput = {
+    where: EmbedWhereInput
+    data: EmbedUpdateInput
   }
 
-  export type EmbedEmbedCreateInput = {
-    text: string
-    boolean: boolean
+  export type EmbedDeleteManyInput = {
+    where: EmbedWhereInput
+  }
+
+  export type EmbedUpdateInput = {
+    text?: StringFieldUpdateOperationsInput | string
+    boolean?: BoolFieldUpdateOperationsInput | boolean
+    embedEmbedList?: XOR<EmbedEmbedListUpdateEnvelopeInput, Enumerable<EmbedEmbedCreateInput>>
+    requiredEmbedEmbed?: XOR<EmbedEmbedUpdateEnvelopeInput, EmbedEmbedCreateInput>
+    optionalEmbedEmbed?: XOR<EmbedEmbedNullableUpdateEnvelopeInput, EmbedEmbedCreateInput> | null
+    scalarList?: EmbedUpdatescalarListInput | Enumerable<number>
+  }
+
+  export type EmbedUpsertInput = {
+    set: EmbedCreateInput | null
+    update: EmbedUpdateInput
   }
 
   export type UserUpsertWithWhereUniqueWithoutEmbedHolderInput = {
@@ -21077,29 +21100,6 @@ export namespace Prisma {
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
     embedHolderId?: StringFilter | string
-  }
-
-  export type EmbedUpdateManyInput = {
-    where: EmbedWhereInput
-    data: EmbedUpdateInput
-  }
-
-  export type EmbedDeleteManyInput = {
-    where: EmbedWhereInput
-  }
-
-  export type EmbedUpdateInput = {
-    text?: StringFieldUpdateOperationsInput | string
-    boolean?: BoolFieldUpdateOperationsInput | boolean
-    scalarList?: EmbedUpdatescalarListInput | Enumerable<number>
-    embedEmbedList?: XOR<EmbedEmbedListUpdateEnvelopeInput, Enumerable<EmbedEmbedCreateInput>>
-    requiredEmbedEmbed?: XOR<EmbedEmbedUpdateEnvelopeInput, EmbedEmbedCreateInput>
-    optionalEmbedEmbed?: XOR<EmbedEmbedNullableUpdateEnvelopeInput, EmbedEmbedCreateInput> | null
-  }
-
-  export type EmbedUpsertInput = {
-    set: EmbedCreateInput | null
-    update: EmbedUpdateInput
   }
 
   export type NCreateWithoutMInput = {
@@ -21611,6 +21611,29 @@ export namespace Prisma {
     optionalBoolean?: boolean | null
   }
 
+  export type EmbedEmbedListUpdateEnvelopeInput = {
+    set?: Enumerable<EmbedEmbedCreateInput>
+    push?: Enumerable<EmbedEmbedCreateInput>
+    updateMany?: EmbedEmbedUpdateManyInput
+    deleteMany?: EmbedEmbedDeleteManyInput
+  }
+
+  export type EmbedEmbedUpdateEnvelopeInput = {
+    set?: EmbedEmbedCreateInput
+    update?: EmbedEmbedUpdateInput
+  }
+
+  export type EmbedEmbedNullableUpdateEnvelopeInput = {
+    set?: EmbedEmbedCreateInput | null
+    upsert?: EmbedEmbedUpsertInput
+    unset?: boolean
+  }
+
+  export type EmbedUpdatescalarListInput = {
+    set?: Enumerable<number>
+    push?: number | Enumerable<number>
+  }
+
   export type UserUpdateWithoutEmbedHolderInput = {
     email?: StringFieldUpdateOperationsInput | string
     int?: IntFieldUpdateOperationsInput | number
@@ -21659,29 +21682,6 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
-  }
-
-  export type EmbedUpdatescalarListInput = {
-    set?: Enumerable<number>
-    push?: number | Enumerable<number>
-  }
-
-  export type EmbedEmbedListUpdateEnvelopeInput = {
-    set?: Enumerable<EmbedEmbedCreateInput>
-    push?: Enumerable<EmbedEmbedCreateInput>
-    updateMany?: EmbedEmbedUpdateManyInput
-    deleteMany?: EmbedEmbedDeleteManyInput
-  }
-
-  export type EmbedEmbedUpdateEnvelopeInput = {
-    set?: EmbedEmbedCreateInput
-    update?: EmbedEmbedUpdateInput
-  }
-
-  export type EmbedEmbedNullableUpdateEnvelopeInput = {
-    set?: EmbedEmbedCreateInput | null
-    upsert?: EmbedEmbedUpsertInput
-    unset?: boolean
   }
 
   export type NUpdateWithoutMInput = {
