@@ -185,7 +185,7 @@ describe('handlePanic migrate', () => {
         schemaPath,
       })
       expect(error.message).toContain('This is the debugPanic artificial panic')
-      expect(error.rustStack).toBeTruthy()
+      expect(error.rustStack).toContain('std::panicking::')
     }
   })
 })
