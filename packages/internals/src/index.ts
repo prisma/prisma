@@ -28,7 +28,7 @@ export type {
 } from './cli/types'
 export { arg, format, isError } from './cli/utils'
 export { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE, getClientEngineType } from './client/getClientEngineType'
-export { getQueryEngineProtocol } from './client/getQueryEngineProtocol'
+export { getQueryEngineProtocol, type QueryEngineProtocol } from './client/getQueryEngineProtocol'
 export { credentialsToUri, protocolToConnectorType, uriToCredentials } from './convertCredentials'
 export * from './engine-commands'
 export { Generator } from './Generator'

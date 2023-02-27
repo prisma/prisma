@@ -290,12 +290,12 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   request<T>(
-    { query }: EngineQuery,
+    query: EngineQuery,
     { traceparent, interactiveTransaction, customDataProxyFetch }: RequestOptions<DataProxyTxInfoPayload>,
   ) {
     // TODO: `elapsed`?
     return this.requestInternal<T>({
-      body: { query, variables: {} },
+      body: query,
       traceparent,
       interactiveTransaction,
       customDataProxyFetch,
