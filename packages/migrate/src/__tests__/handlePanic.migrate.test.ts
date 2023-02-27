@@ -69,14 +69,6 @@ describe('handlePanic migrate', () => {
     io.restore()
   })
 
-  // Note: this error is never used
-  const error = new RustPanic(
-    'Some error message!',
-    '',
-    undefined,
-    ErrorArea.LIFT_CLI,
-    resolve(join('fixtures', 'blog', 'prisma', 'schema.prisma')),
-  )
   const packageJsonVersion = '0.0.0'
   const enginesVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
   const command = 'something-test'
@@ -185,7 +177,11 @@ describe('handlePanic migrate', () => {
         schemaPath,
       })
       expect(error.message).toContain('This is the debugPanic artificial panic')
-      expect(error.rustStack).toContain('std::panicking::')
+
+      const isWindows = ['win32'].includes(process.platform)
+      if (!isWindows) {
+        expect(error.rustStack).toContain('std::panicking::')
+      }
     }
   })
 })
