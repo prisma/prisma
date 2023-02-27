@@ -351,9 +351,10 @@ export class MigrateEngine {
             this.rejectAll(err)
             reject(err)
           }
-          const engineMessage = this.lastError?.message || this.messages.join('\n')
+          const fallbackMessage = this.messages.join('\n')
+          const engineMessage = this.lastError?.message || fallbackMessage
           const handlePanic = () => {
-            const stackTrace = this.messages.join('\n')
+            const stackTrace = this.lastError?.backtrace || fallbackMessage
             exitWithErr(
               new RustPanic(
                 serializePanic(engineMessage),
@@ -433,6 +434,8 @@ export class MigrateEngine {
         if (err) {
           return reject(err)
         }
+        // TODO(jkomyno): I suspect error handling that follows when `err` is falsy is no longer needed
+
         // can be null, for reset RPC for example
         if (response.result !== undefined) {
           resolve(response.result)
