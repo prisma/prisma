@@ -14,7 +14,7 @@
   "devDependencies": {
     "@types/node": "18.11.18",
     "@types/react": "18.0.26",
-    "@prisma/webpack-plugin": "../../../../prisma-webpack-plugin-0.0.0.tgz"
+    "@prisma/nextjs-monorepo-workaround-plugin": "../../../../prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz"
   },
   "dependencies": {
     "db": "workspace:*",

@@ -49,6 +49,13 @@ class DMMFMappingsHelper implements Pick<DMMF.Document, 'mappings'> {
   getMappingsMap(): Dictionary<DMMF.ModelMapping> {
     return keyBy(this.mappings.modelOperations, 'model')
   }
+
+  getOtherOperationNames() {
+    return [
+      Object.values(this.mappings.otherOperations.write),
+      Object.values(this.mappings.otherOperations.read),
+    ].flat()
+  }
 }
 
 class DMMFSchemaHelper implements Pick<DMMF.Document, 'schema'> {
