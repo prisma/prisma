@@ -177,6 +177,7 @@ describe('handlePanic migrate', () => {
         schemaPath,
       })
       expect(error.message).toContain('This is the debugPanic artificial panic')
+      expect(error.rustStack).toContain('[EXIT_PANIC]')
 
       const isWindows = ['win32'].includes(process.platform)
       if (!isWindows) {
