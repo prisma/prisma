@@ -24,6 +24,7 @@ import {
   getClientEngineType,
   getQueryEngineProtocol,
   logger,
+  QueryEngineProtocol,
   tryLoadEnvs,
   warnOnce,
 } from '@prisma/internals'
@@ -245,6 +246,13 @@ export interface GetPrismaClientConfig {
   injectableEdgeEnv?: LoadedEnv
 
   /**
+   * Engine protocol to use within edge runtime. Passed
+   * through config because edge client can not read env variables
+   * @remarks only used for the purpose of data proxy
+   */
+  edgeClientProtocol?: QueryEngineProtocol
+
+  /**
    * The contents of the datasource url saved in a string.
    * This can either be an env var name or connection string.
    * It is needed by the client to connect to the Data Proxy.
@@ -369,7 +377,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         this._baseDmmf = new BaseDMMFHelper(config.document)
-        const engineProtocol = getQueryEngineProtocol(config.generator)
+        const engineProtocol = NODE_CLIENT
+          ? getQueryEngineProtocol(config.generator)
+          : config.edgeClientProtocol ?? getQueryEngineProtocol(config.generator)
+
         debug('protocol', engineProtocol)
 
         if (this._dataProxy && engineProtocol === 'graphql') {

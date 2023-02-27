@@ -1,6 +1,8 @@
 import { GeneratorConfig } from '@prisma/generator-helper'
 
-export function getQueryEngineProtocol(generatorConfig?: GeneratorConfig): 'graphql' | 'json' {
+export type QueryEngineProtocol = 'graphql' | 'json'
+
+export function getQueryEngineProtocol(generatorConfig?: GeneratorConfig): QueryEngineProtocol {
   const fromEnv = process.env.PRISMA_ENGINE_PROTOCOL
   if (fromEnv === 'json' || fromEnv == 'graphql') {
     return fromEnv
