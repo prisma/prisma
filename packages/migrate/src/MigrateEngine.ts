@@ -351,10 +351,28 @@ export class MigrateEngine {
             this.rejectAll(err)
             reject(err)
           }
-          const fallbackMessage = this.messages.join('\n')
-          const engineMessage = this.lastError?.message || fallbackMessage
+          const processMessages = this.messages.join('\n')
+          const engineMessage = this.lastError?.message || processMessages
           const handlePanic = () => {
-            const stackTrace = this.lastError?.backtrace || fallbackMessage
+            /**
+             * Example:
+             *
+             * ```
+             * 0: backtrace::capture::Backtrace::new
+             * 1: migration_engine::set_panic_hook::{{closure}}
+             * 2: std::panicking::rust_panic_with_hook
+             * 3: std::panicking::begin_panic_handler::{{closure}}
+             * ...
+             * 18: __pthread_deallocate
+             *
+             * Starting migration engine RPC server
+             * The migration was not applied because it triggered warnings and the force flag was not passed
+             * ```
+             */
+            const stackTrace = `${processMessages}
+            
+            ${this.lastError?.backtrace ?? ''}`
+
             exitWithErr(
               new RustPanic(
                 serializePanic(engineMessage),
