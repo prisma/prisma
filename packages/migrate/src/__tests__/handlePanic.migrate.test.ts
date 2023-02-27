@@ -195,13 +195,15 @@ describe('handlePanic migrate', () => {
         draft: false,
         prismaSchema: migrate.getPrismaSchema(),
       })
-    } catch (error) {
+    } catch (e) {
+      const error = e as RustPanic
+
       expect(error).toMatchSnapshot()
       expect(JSON.parse(JSON.stringify(error))).toMatchObject({
         area: 'LIFT_CLI',
         schemaPath,
       })
-      expect(error.rustStack).toContain('This is the debugPanic artificial panic')
+      expect(error.message).toContain('This is the debugPanic artificial panic')
     }
   })
 })
