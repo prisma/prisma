@@ -121,6 +121,7 @@ export interface EngineConfig {
   env: Record<string, string>
   flags?: string[]
   clientVersion?: string
+  engineVersion?: string
   previewFeatures?: string[]
   engineEndpoint?: string
   activeProvider?: string

@@ -28,8 +28,10 @@ async function _getClientVersion(config: EngineConfig) {
   // if it is an integration or dev version, we resolve its dataproxy
   // for this we infer the data proxy version from the engine version
   if (suffix !== undefined || clientVersion === '0.0.0') {
-    // when we are running in tests, then we are using the mini proxy
-    if (process.env.TEST_DATA_PROXY !== undefined) return '0.0.0'
+    // we use the generated engine version to infer if we're in a test
+    if (config.engineVersion === '0000000000000000000000000000000000000000') {
+      return '0.0.0' // when we are running in tests, we use mini proxy
+    }
 
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
