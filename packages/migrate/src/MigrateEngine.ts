@@ -351,9 +351,26 @@ export class MigrateEngine {
             this.rejectAll(err)
             reject(err)
           }
-          const engineMessage = this.lastError?.message || this.messages.join('\n')
+          const processMessages = this.messages.join('\n')
+          const engineMessage = this.lastError?.message || processMessages
           const handlePanic = () => {
-            const stackTrace = this.messages.join('\n')
+            /**
+             * Example:
+             *
+             * ```
+             * [EXIT_PANIC]
+             * Starting migration engine RPC server
+             * The migration was not applied because it triggered warnings and the force flag was not passed
+             * 0: backtrace::capture::Backtrace::new
+             * 1: migration_engine::set_panic_hook::{{closure}}
+             * 2: std::panicking::rust_panic_with_hook
+             * 3: std::panicking::begin_panic_handler::{{closure}}
+             * ...
+             * 18: __pthread_deallocate
+             * ```
+             */
+            const stackTrace = `[EXIT_PANIC]\n${processMessages}\n${this.lastError?.backtrace ?? ''}`
+
             exitWithErr(
               new RustPanic(
                 serializePanic(engineMessage),
@@ -433,6 +450,7 @@ export class MigrateEngine {
         if (err) {
           return reject(err)
         }
+
         // can be null, for reset RPC for example
         if (response.result !== undefined) {
           resolve(response.result)
@@ -440,13 +458,19 @@ export class MigrateEngine {
           if (response.error) {
             debugRpc(response)
             if (response.error.data?.is_panic) {
-              // if (response.error.data && response.error.data.message) {
+              // TODO(jkomyno): I suspect no panic is ever thrown here
+
               const message = response.error.data?.error?.message ?? response.error.message
+
+              // explicitly mark the error as a "response error panic" to distinguish it from the other one.
+              // This will allow us to track the frequency of this particular panic in the error reporting system.
+              const stackTrace = `[RESPONSE_ERROR_PANIC]\n${response.error.data?.message ?? ''}`
+
               reject(
                 // Handle error and displays the interactive dialog to send panic error
                 new RustPanic(
                   message,
-                  response.error.data.message,
+                  stackTrace,
                   this.lastRequest,
                   ErrorArea.LIFT_CLI,
                   /* schemaPath */ this.schemaPath,
