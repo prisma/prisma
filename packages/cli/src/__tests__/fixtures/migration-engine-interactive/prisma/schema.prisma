@@ -1,0 +1,8 @@
+datasource my_db {
+  provider = "sqlite"
+  url = "file:./db/db_file.db"
+}
+
+model User {
+  id Int @id
+}
