@@ -528,9 +528,5 @@ export class MigrateEngine {
 
 /** The full message with context we return to the user in case of engine panic. */
 function serializePanic(log: string): string {
-  // TODO: https://github.com/prisma/prisma/issues/17268
-  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${log}
-
-Please create an issue with your \`schema.prisma\` at
-${chalk.underline('https://github.com/prisma/prisma/issues/new')}\n`
+  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${log}\n`
 }
