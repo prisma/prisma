@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`handlePanic introspect no interactive mode in CI 1`] = `
+Error in migration engine.
+Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
+
+`;
+
+exports[`handlePanic migrate no interactive mode in CI 1`] = `
+Error in migration engine.
+Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
+
+`;
