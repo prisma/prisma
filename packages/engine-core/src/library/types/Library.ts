@@ -9,7 +9,7 @@ export type QueryEngineInstance = {
    */
   query(requestStr: string, headersStr: string, transactionId?: string): Promise<string>
   sdlSchema(): Promise<string>
-  dmmf(): Promise<string>
+  dmmf(traceparent: string): Promise<string>
   startTransaction(options: string, traceHeaders: string): Promise<string>
   commitTransaction(id: string, traceHeaders: string): Promise<string>
   rollbackTransaction(id: string, traceHeaders: string): Promise<string>

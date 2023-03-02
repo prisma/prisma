@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { isDecimalJsLike, stringifyDecimalJsLike } from './decimalJsLike'
+import { isDecimalJsLike } from './decimalJsLike'
 
 describe('isDecimalJsLike', () => {
   test('true for decimal.js instance', () => {
@@ -24,6 +24,7 @@ describe('isDecimalJsLike', () => {
       d: [12, 3000000],
       e: 1,
       s: 1,
+      toFixed: jest.fn(),
     }
     expect(isDecimalJsLike(object)).toBe(true)
   })
@@ -33,6 +34,7 @@ describe('isDecimalJsLike', () => {
       d: 'yes',
       e: 1,
       s: 1,
+      toFixed: jest.fn(),
     }
     expect(isDecimalJsLike(object)).toBe(false)
   })
@@ -42,6 +44,7 @@ describe('isDecimalJsLike', () => {
       d: [12, 3000000],
       e: 'one',
       s: 1,
+      toFixed: jest.fn(),
     }
     expect(isDecimalJsLike(object)).toBe(false)
   })
@@ -51,6 +54,7 @@ describe('isDecimalJsLike', () => {
       d: [12, 3000000],
       e: 1,
       s: '+',
+      toFixed: jest.fn(),
     }
     expect(isDecimalJsLike(object)).toBe(false)
   })
@@ -60,26 +64,12 @@ describe('isDecimalJsLike', () => {
       d: [12, 3000000],
       e: 1,
       s: 1,
+      toFixed: jest.fn(),
       something: 'other',
       isFinite() {
         return true
       },
     }
     expect(isDecimalJsLike(object)).toBe(true)
-  })
-})
-
-describe('stringifyDecimalJsLike', () => {
-  test('stringifies Decimal instance', () => {
-    expect(stringifyDecimalJsLike(new Decimal('12.3'))).toBe('"12.3"')
-  })
-
-  test('stringifies Decimal-like instance', () => {
-    const object = {
-      d: [12, 3000000],
-      e: 1,
-      s: 1,
-    }
-    expect(stringifyDecimalJsLike(object)).toBe('"12.3"')
   })
 })

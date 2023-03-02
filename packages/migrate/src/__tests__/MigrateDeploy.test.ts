@@ -161,6 +161,7 @@ describe('postgresql', () => {
     const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(`No pending migrations to apply.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Environment variables loaded from .env
       Prisma schema loaded from with-directUrl-env.prisma
       Datasource "db": PostgreSQL database "tests-migrate-deploy", schema "public" at "localhost:5432"
 

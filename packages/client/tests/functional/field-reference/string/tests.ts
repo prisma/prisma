@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -49,7 +51,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
   })
 
   // TODO: Edge: skipped because of the error snapshot
-  testIf(runtime !== 'edge')('wrong field type', async () => {
+  testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong field type', async () => {
     const products = prisma.product.findMany({
       where: {
         string: {
@@ -66,7 +68,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
 
         XX 
         XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong field type', async () => {
+        XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong field type', async () => {
       → XX   const products = prisma.product.findMany({
                where: {
                  string: {
@@ -83,7 +85,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
   })
 
   // TODO: Edge: skipped because of the error snapshot
-  testIf(runtime !== 'edge')('wrong model', async () => {
+  testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong model', async () => {
     const products = prisma.product.findMany({
       where: {
         string: {
@@ -100,7 +102,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
 
         XX 
         XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong model', async () => {
+        XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong model', async () => {
       → XX   const products = prisma.product.findMany({
                where: {
                  string: {
@@ -117,7 +119,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
   })
 
   // TODO: Edge: skipped because of the error snapshot
-  testIf(runtime !== 'edge')('wrong identical model', async () => {
+  testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong identical model', async () => {
     const products = prisma.product.findMany({
       where: {
         string: {
@@ -134,7 +136,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
 
         XX 
         XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong identical model', async () => {
+        XX testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong identical model', async () => {
       → XX   const products = prisma.product.findMany({
                 where: {
                   string: {

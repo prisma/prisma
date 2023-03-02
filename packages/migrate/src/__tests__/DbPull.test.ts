@@ -5,6 +5,7 @@ import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
+import type { EngineArgs } from '../types'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
@@ -189,20 +190,20 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                          - Introspecting based on datasource defined in prisma/reintrospection.prisma
+                                                                                                                                                                                                                                    - Introspecting based on datasource defined in prisma/reintrospection.prisma
 
-                                          ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
-                                                
-                                          *** WARNING ***
+                                                                                                                                                                                                                                    ✔ Introspected 3 models and wrote them into prisma/reintrospection.prisma in XXXms
+                                                                                                                                                                                                                                          
+                                                                                                                                                                                                                                    *** WARNING ***
 
-                                          These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                          - Model "AwesomeNewPost"
-                                          - Model "AwesomeProfile"
-                                          - Model "AwesomeUser"
+                                                                                                                                                                                                                                    These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                                                                                    - Model "AwesomeNewPost"
+                                                                                                                                                                                                                                    - Model "AwesomeProfile"
+                                                                                                                                                                                                                                    - Model "AwesomeUser"
 
-                                          Run prisma generate to generate Prisma Client.
+                                                                                                                                                                                                                                    Run prisma generate to generate Prisma Client.
 
-                            `)
+                                                                                                                                                        `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 
     expect(ctx.fs.read('prisma/reintrospection.prisma')).toMatchInlineSnapshot(`
@@ -259,14 +260,14 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                          // *** WARNING ***
-                                          // 
-                                          // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
-                                          // - Model "AwesomeNewPost"
-                                          // - Model "AwesomeProfile"
-                                          // - Model "AwesomeUser"
-                                          // 
-                            `)
+                                                                                                                                                                                                                                    // *** WARNING ***
+                                                                                                                                                                                                                                    // 
+                                                                                                                                                                                                                                    // These models were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                                                                                                                    // - Model "AwesomeNewPost"
+                                                                                                                                                                                                                                    // - Model "AwesomeProfile"
+                                                                                                                                                                                                                                    // - Model "AwesomeUser"
+                                                                                                                                                                                                                                    // 
+                                                                                                                                                        `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 
@@ -412,11 +413,11 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-            - Introspecting based on datasource defined in prisma/invalid.prisma
+                                                                                                                                                                                                      - Introspecting based on datasource defined in prisma/invalid.prisma
 
-            ✖ Introspecting based on datasource defined in prisma/invalid.prisma
+                                                                                                                                                                                                      ✖ Introspecting based on datasource defined in prisma/invalid.prisma
 
-        `)
+                                                                                                                                    `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -435,13 +436,13 @@ describe('common/sqlite', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                                        - Introspecting based on datasource defined in prisma/invalid.prisma
+                                                                                                                                          - Introspecting based on datasource defined in prisma/invalid.prisma
 
-                                                                        ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
-                                                                              
-                                                                        Run prisma generate to generate Prisma Client.
+                                                                                                                                          ✔ Introspected 3 models and wrote them into prisma/invalid.prisma in XXXms
+                                                                                                                                                
+                                                                                                                                          Run prisma generate to generate Prisma Client.
 
-                                                `)
+                                                                                            `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
 
     expect(ctx.fs.read('prisma/invalid.prisma')).toMatchSnapshot()
@@ -477,6 +478,710 @@ describe('postgresql - missing database', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
+
+describe('postgresql views re-introspection warnings', () => {
+  const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
+
+  function computeSetupParams(warningCode: EngineArgs.ViewWarningCodes, variant?: number): SetupParams {
+    const setupParams: SetupParams = {
+      connectionString,
+      // Note: dirname points to a location with a setup.sql file
+      // which will be executed to prepare the database with the correct tables, views etc.
+      dirname: path.join(
+        __dirname,
+        '..',
+        '__tests__',
+        'fixtures',
+        're-introspection',
+        'postgresql',
+        `views-warning-${warningCode}${variant ? `-${variant}` : ''}`,
+      ),
+    }
+    return setupParams
+  }
+
+  function setupPostgressForWarning(warningCode: EngineArgs.ViewWarningCodes, variant?: number) {
+    const setupParams = computeSetupParams(warningCode, variant)
+
+    beforeEach(async () => {
+      await setupPostgres(setupParams)
+
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      // Update env var because it's the one that is used in the schemas tested
+      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    })
+
+    afterEach(async () => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      await tearDownPostgres(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+  }
+
+  describe('postgresql views 21/1 - singular unsupported types (both view and model [code 3])', () => {
+    const warningCode = 21
+    const variant = 1
+    setupPostgressForWarning(warningCode, variant)
+
+    test('basic re-introspection', async () => {
+      ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}-${variant}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        model reservations {
+          id    Int                      @id
+          room  String                   @db.VarChar
+          dates Unsupported("daterange")
+        }
+
+        view res {
+          id    Int                      @id
+          room  String                   @db.VarChar
+          dates Unsupported("daterange")
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                                                                                                                                                                                // *** WARNING ***
+                                                                                                                                                                                // 
+                                                                                                                                                                                // These fields are not supported by the Prisma Client, because Prisma currently does not support their types.
+                                                                                                                                                                                // - Model "reservations", field: "dates", original data type: "daterange"
+                                                                                                                                                                                // 
+                                                                                                                                                                                // These fields are not supported by the Prisma Client, because Prisma currently does not support their types.
+                                                                                                                                                                                // - View "res", Field: "dates", Type: "daterange"
+                                                                                                                                                                                // 
+                                                                                                                                    `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
+  describe('postgresql views 21/2 - multiline unsupported types (both view and model [code 3])', () => {
+    const warningCode = 21
+    const variant = 2
+    setupPostgressForWarning(warningCode, variant)
+
+    test('basic re-introspection', async () => {
+      ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}-${variant}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        model reservations {
+          id    Int                      @id
+          room  String                   @db.VarChar
+          dates Unsupported("daterange")
+        }
+
+        view res {
+          id    Int                      @id
+          room  String                   @db.VarChar
+          dates Unsupported("daterange")
+        }
+
+        view dates {
+          id    Int                      @id
+          dates Unsupported("daterange")
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+        // *** WARNING ***
+        // 
+        // These fields are not supported by the Prisma Client, because Prisma currently does not support their types.
+        // - Model "reservations", field: "dates", original data type: "daterange"
+        // 
+        // These fields are not supported by the Prisma Client, because Prisma currently does not support their types.
+        // - View "res", Field: "dates", Type: "daterange"
+        // - View "dates", Field: "dates", Type: "daterange"
+        // 
+      `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
+  describe('postgresql views 22/1 - field with @map', () => {
+    const warningCode = 22
+    const variant = 1
+    setupPostgressForWarning(warningCode, variant)
+
+    test('basic re-introspection', async () => {
+      ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}-${variant}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        view A {
+          id Int @id @map("foo")
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                        // *** WARNING ***
+                        // 
+                        // These fields were enriched with \`@map\` information taken from the previous Prisma schema.
+                        // - View "A", Field: "id"
+                        // 
+                  `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
+  describe('postgresql views 22/2 - field with @map', () => {
+    const warningCode = 22
+    const variant = 2
+    setupPostgressForWarning(warningCode, variant)
+
+    test('basic re-introspection', async () => {
+      ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}-${variant}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        view A {
+          id Int @id @map("foo")
+        }
+
+        view B {
+          id Int @id @map("bar")
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                // *** WARNING ***
+                // 
+                // These fields were enriched with \`@map\` information taken from the previous Prisma schema.
+                // - View "A", Field: "id"
+                // - View "B", Field: "id"
+                // 
+            `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
+  describe('postgresql views 23 - automated rename with @@map', () => {
+    const warningCode = 23
+    setupPostgressForWarning(warningCode)
+
+    test('basic re-introspection', async () => {
+      ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        view Renamedif {
+          id Int @id
+
+          @@map("if")
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                                                                                                                                // *** WARNING ***
+                                                                                                                                // 
+                                                                                                                                // These views were enriched with \`@@map\` information taken from the previous Prisma schema.
+                                                                                                                                // - View "Renamedif"
+                                                                                                                                // 
+                                                                                                `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
+  describe('postgresql views 24 - no unique identifier', () => {
+    const warningCode = 24
+    setupPostgressForWarning(warningCode)
+
+    test('basic re-introspection', async () => {
+      ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        model User {
+          id         Int     @id @default(autoincrement())
+          first_name String  @db.VarChar(255)
+          last_name  String? @db.VarChar(255)
+        }
+
+        /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+        view Schwuser {
+          id         Int?
+          first_name String? @db.VarChar(255)
+          last_name  String? @db.VarChar(255)
+
+          @@ignore
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                                                // *** WARNING ***
+                                                // 
+                                                // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+                                                // - View "Schwuser"
+                                                // 
+                                    `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
+  describe('postgresql views 25 - @@id name', () => {
+    const warningCode = 25
+    setupPostgressForWarning(warningCode)
+
+    test('basic re-introspection', async () => {
+      ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        view B {
+          a Int
+          b Int
+
+          @@id([a, b], name: "kekw")
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                                                                                                                // *** WARNING ***
+                                                                                                                // 
+                                                                                                                // These views were enriched with custom compound id names taken from the previous Prisma schema.
+                                                                                                                // - View "B"
+                                                                                                                // 
+                                                                                    `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
+  describe('postgresql views 26 - invalid field name', () => {
+    const warningCode = 26
+    setupPostgressForWarning(warningCode)
+
+    test('basic re-introspection', async () => {
+      ctx.fixture(`re-introspection/postgresql/views-warning-${warningCode}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+        view A {
+          foo Int?
+
+          /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+          // 1 Int? @map("1")
+          @@ignore
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                                // *** WARNING ***
+                                // 
+                                // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+                                // - View "A"
+                                // 
+                                // These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` attribute.
+                                // - View "A", Field: "1"
+                                // 
+                        `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+})
+
+describe('postgresql views introspection warnings', () => {
+  const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
+
+  function computeSetupParams(warningCode: EngineArgs.ViewWarningCodes, variant?: number): SetupParams {
+    const setupParams: SetupParams = {
+      connectionString,
+      // Note: dirname points to a location with a setup.sql file
+      // which will be executed to prepare the database with the correct tables, views etc.
+      dirname: path.join(
+        __dirname,
+        '..',
+        '__tests__',
+        'fixtures',
+        'introspection',
+        'postgresql',
+        `views-warning-${warningCode}${variant ? `-${variant}` : ''}`,
+      ),
+    }
+    return setupParams
+  }
+
+  function setupPostgressForWarning(warningCode: EngineArgs.ViewWarningCodes, variant?: number) {
+    const setupParams = computeSetupParams(warningCode, variant)
+
+    beforeEach(async () => {
+      await setupPostgres(setupParams)
+
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      // Update env var because it's the one that is used in the schemas tested
+      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    })
+
+    afterEach(async () => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      await tearDownPostgres(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+  }
+
+  describe('postgresql views 21 - unsupported types (both view and model [code 3])', () => {
+    const warningCode = 21
+    setupPostgressForWarning(warningCode)
+
+    test('basic introspection', async () => {
+      ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        model reservations {
+          id    Int                      @id
+          room  String                   @db.VarChar
+          dates Unsupported("daterange")
+        }
+
+        /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+        view res {
+          id    Int?
+          room  String?                   @db.VarChar
+          dates Unsupported("daterange")?
+
+          @@ignore
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                                                // *** WARNING ***
+                                                // 
+                                                // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+                                                // - View "res"
+                                                // 
+                                                // These fields are not supported by the Prisma Client, because Prisma currently does not support their types.
+                                                // - Model "reservations", field: "dates", original data type: "daterange"
+                                                // 
+                                                // These fields are not supported by the Prisma Client, because Prisma currently does not support their types.
+                                                // - View "res", Field: "dates", Type: "daterange"
+                                                // 
+                                    `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
+  // * code 22 (automated rename with @map) requires a schema and therefore only appears in re-introspection
+
+  // * code 23 (view with @@map) requires a schema and therefore only appears in re-introspection
+  // * there is a similar output that gets appended to the schema during introspection however that is not an official warning
+
+  describe('postgresql views 24/1 - singular no unique identifier', () => {
+    const warningCode = 24
+    const variant = 1
+    setupPostgressForWarning(warningCode, variant)
+
+    test('basic introspection', async () => {
+      ctx.fixture(`introspection/postgresql/views-warning-${warningCode}-${variant}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        model User {
+          id         Int     @id @default(autoincrement())
+          first_name String  @db.VarChar(255)
+          last_name  String? @db.VarChar(255)
+        }
+
+        /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+        view Schwuser {
+          id         Int?
+          first_name String? @db.VarChar(255)
+          last_name  String? @db.VarChar(255)
+
+          @@ignore
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                                                // *** WARNING ***
+                                                // 
+                                                // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+                                                // - View "Schwuser"
+                                                // 
+                                    `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
+  describe('postgresql views 24/2 - multiple no unique identifier', () => {
+    const warningCode = 24
+    const variant = 2
+    setupPostgressForWarning(warningCode, variant)
+
+    test('basic introspection', async () => {
+      ctx.fixture(`introspection/postgresql/views-warning-${warningCode}-${variant}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        model User {
+          id         Int     @id @default(autoincrement())
+          first_name String  @db.VarChar(255)
+          last_name  String? @db.VarChar(255)
+        }
+
+        /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+        view Schwuser {
+          id         Int?
+          first_name String? @db.VarChar(255)
+          last_name  String? @db.VarChar(255)
+
+          @@ignore
+        }
+
+        /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+        view Names {
+          id         Int?
+          first_name String? @db.VarChar(255)
+
+          @@ignore
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                                        // *** WARNING ***
+                                        // 
+                                        // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+                                        // - View "Schwuser"
+                                        // - View "Names"
+                                        // 
+                              `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
+  // * code 25 (@@id name) requires a previous schema to keep the @@id names from and therefore only appears in re-introspection
+
+  describe('postgresql views 26 - invalid field name', () => {
+    const warningCode = 26
+    setupPostgressForWarning(warningCode)
+
+    test('basic introspection', async () => {
+      ctx.fixture(`introspection/postgresql/views-warning-${warningCode}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator client {
+          provider        = "prisma-client-js"
+          previewFeatures = ["views"]
+        }
+
+        datasource db {
+          provider = "postgres"
+          url      = env("TEST_POSTGRES_URI_MIGRATE")
+        }
+
+        /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+        view A {
+          foo Int?
+
+          /// This field was commented out because of an invalid name. Please provide a valid one that matches [a-zA-Z][a-zA-Z0-9_]*
+          // 1 Int? @map("1")
+          @@ignore
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+                                        // *** WARNING ***
+                                        // 
+                                        // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+                                        // - View "A"
+                                        // 
+                                        // These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` attribute.
+                                        // - View "A", Field: "1"
+                                        // 
+                              `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
   })
 })
 
@@ -577,11 +1282,11 @@ describe('postgresql', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                                        - Introspecting based on datasource defined in prisma/using-dotenv.prisma
+                                                                                                                                                                                                                                                                  - Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
-                                                                        ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
+                                                                                                                                                                                                                                                                  ✖ Introspecting based on datasource defined in prisma/using-dotenv.prisma
 
-                                                                                `)
+                                                                                                                                                                                                            `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -611,22 +1316,24 @@ describe('postgresql', () => {
   test('introspection works with directUrl from env var', async () => {
     ctx.fixture('schema-only-data-proxy')
     const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'])
+
     await expect(result).resolves.toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from with-directUrl-env.prisma
+      Environment variables loaded from .env
       Datasource "db": PostgreSQL database "tests-migrate-db-pull", schema "public" at "localhost:5432"
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                  - Introspecting based on datasource defined in with-directUrl-env.prisma
+                                                                                                                                                                                                            - Introspecting based on datasource defined in with-directUrl-env.prisma
 
-                  ✔ Introspected 2 models and wrote them into with-directUrl-env.prisma in XXXms
-                        
-                  Run prisma generate to generate Prisma Client.
+                                                                                                                                                                                                            ✔ Introspected 2 models and wrote them into with-directUrl-env.prisma in XXXms
+                                                                                                                                                                                                                  
+                                                                                                                                                                                                            Run prisma generate to generate Prisma Client.
 
-            `)
+                                                                                                                                        `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
@@ -715,15 +1422,15 @@ describe('postgresql-multi-schema', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                  // *** WARNING ***
-                  // 
-                  // These models and enums were renamed due to their names being duplicates in the Prisma Schema Language.
-                  // - Enum "base_status"
-                  // - Enum "transactional_status"
-                  // - Model "base_some_table"
-                  // - Model "transactional_some_table"
-                  // 
-            `)
+                                                                                                                                                                                                            // *** WARNING ***
+                                                                                                                                                                                                            // 
+                                                                                                                                                                                                            // These models and enums were renamed due to their names being duplicates in the Prisma Schema Language.
+                                                                                                                                                                                                            // - Enum "base_status"
+                                                                                                                                                                                                            // - Enum "transactional_status"
+                                                                                                                                                                                                            // - Model "base_some_table"
+                                                                                                                                                                                                            // - Model "transactional_some_table"
+                                                                                                                                                                                                            // 
+                                                                                                                                        `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -841,15 +1548,15 @@ describe('postgresql-multi-schema', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-            // *** WARNING ***
-            // 
-            // These models and enums were renamed due to their names being duplicates in the Prisma Schema Language.
-            // - Enum "base_status"
-            // - Enum "transactional_status"
-            // - Model "base_some_table"
-            // - Model "transactional_some_table"
-            // 
-        `)
+                                                                                                                                                                                                      // *** WARNING ***
+                                                                                                                                                                                                      // 
+                                                                                                                                                                                                      // These models and enums were renamed due to their names being duplicates in the Prisma Schema Language.
+                                                                                                                                                                                                      // - Enum "base_status"
+                                                                                                                                                                                                      // - Enum "transactional_status"
+                                                                                                                                                                                                      // - Model "base_some_table"
+                                                                                                                                                                                                      // - Model "transactional_some_table"
+                                                                                                                                                                                                      // 
+                                                                                                                                    `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1304,20 +2011,20 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                                      - Introspecting based on datasource defined in prisma/no-model.prisma
+                                                                                                                                                                                                                                                                - Introspecting based on datasource defined in prisma/no-model.prisma
 
-                                                                      ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
-                                                                            
-                                                                      *** WARNING ***
-                                                                      
-                                                                      The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                                      - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                                      - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                                      - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                                                                                                                                                                                                                                ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/no-model.prisma in XXXms
+                                                                                                                                                                                                                                                                      
+                                                                                                                                                                                                                                                                *** WARNING ***
+                                                                                                                                                                                                                                                                
+                                                                                                                                                                                                                                                                The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                                                                                                                                                                                                                                - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                                                                                                                                                                                                                                - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                                                                                                                                                                                                                                - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-                                                                      Run prisma generate to generate Prisma Client.
+                                                                                                                                                                                                                                                                Run prisma generate to generate Prisma Client.
 
-                                              `)
+                                                                                                                                                                          `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1335,20 +2042,20 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                                        - Introspecting based on datasource defined in prisma/schema.prisma
+                                                                                                                                                                                                                                                                  - Introspecting based on datasource defined in prisma/schema.prisma
 
-                                                                        ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
-                                                                              
-                                                                        *** WARNING ***
-                                                                        
-                                                                        The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                                        - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                                        - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                                        - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                  *** WARNING ***
+                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                  The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                                                                                                                                                                                                                                  - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-                                                                        Run prisma generate to generate Prisma Client.
+                                                                                                                                                                                                                                                                  Run prisma generate to generate Prisma Client.
 
-                                                `)
+                                                                                                                                                                            `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1398,14 +2105,14 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                        // *** WARNING ***
-                                                                        // 
-                                                                        // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                                        // - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                                        // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                                        // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-                                                                        // 
-                                                `)
+                                                                                                                                                                                                                                                                  // *** WARNING ***
+                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                                                                                                                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                                                                                                                                                                                                                                  // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                            `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1441,12 +2148,12 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                        // *** WARNING ***
-                                                                        // 
-                                                                        // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                                        // - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                                        // 
-                                                `)
+                                                                                                                                                                                                                                                                  // *** WARNING ***
+                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                                                                                                                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                                                                                                                                                                                                                                  // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                            `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1490,13 +2197,13 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                        // *** WARNING ***
-                                                                        // 
-                                                                        // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                                        // - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                                        // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                                        // 
-                                                `)
+                                                                                                                                                                                                                                                                  // *** WARNING ***
+                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                                                                                                                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                                                                                                                                                                                                                                  // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                            `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1515,20 +2222,20 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                                        - Introspecting based on datasource defined in prisma/schema.prisma
+                                                                                                                                                                                                                                                                  - Introspecting based on datasource defined in prisma/schema.prisma
 
-                                                                        ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
-                                                                              
-                                                                        *** WARNING ***
-                                                                        
-                                                                        The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                                        - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                                        - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                                        - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                  *** WARNING ***
+                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                  The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                                                                                                                                                                                                                                  - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-                                                                        Run prisma generate to generate Prisma Client.
+                                                                                                                                                                                                                                                                  Run prisma generate to generate Prisma Client.
 
-                                                `)
+                                                                                                                                                                            `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1578,14 +2285,14 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                        // *** WARNING ***
-                                                                        // 
-                                                                        // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                                        // - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                                        // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                                        // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-                                                                        // 
-                                                `)
+                                                                                                                                                                                                                                                                  // *** WARNING ***
+                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                                                                                                                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                                                                                                                                                                                                                                  // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                            `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1598,14 +2305,14 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                        // *** WARNING ***
-                                                                        // 
-                                                                        // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                                        // - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                                        // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                                        // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
-                                                                        // 
-                                                `)
+                                                                                                                                                                                                                                                                  // *** WARNING ***
+                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                                                                                                                  // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                                                                                                                                                                                                                                  // - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  // 
+                                                                                                                                                                            `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -1625,20 +2332,20 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                                        - Introspecting
+                                                                                                                                                                                                                                                                  - Introspecting
 
-                                                                        ✔ Introspected 1 model and 2 embedded documents and wrote them into schema.prisma in XXXms
-                                                                              
-                                                                        *** WARNING ***
-                                                                        
-                                                                        The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                                        - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                                        - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                                        - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  ✔ Introspected 1 model and 2 embedded documents and wrote them into schema.prisma in XXXms
+                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                  *** WARNING ***
+                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                  The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                                                                                                                                                                                                                                  - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-                                                                        Run prisma generate to generate Prisma Client.
+                                                                                                                                                                                                                                                                  Run prisma generate to generate Prisma Client.
 
-                                                `)
+                                                                                                                                                                            `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1656,20 +2363,20 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                                                                        - Introspecting based on datasource defined in prisma/schema.prisma
+                                                                                                                                                                                                                                                                  - Introspecting based on datasource defined in prisma/schema.prisma
 
-                                                                        ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
-                                                                              
-                                                                        *** WARNING ***
-                                                                        
-                                                                        The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
-                                                                        - Model "users", field: "numberOrString1", chosen data type: "Json"
-                                                                        - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
-                                                                        - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  ✔ Introspected 1 model and 2 embedded documents and wrote them into prisma/schema.prisma in XXXms
+                                                                                                                                                                                                                                                                        
+                                                                                                                                                                                                                                                                  *** WARNING ***
+                                                                                                                                                                                                                                                                  
+                                                                                                                                                                                                                                                                  The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type.
+                                                                                                                                                                                                                                                                  - Model "users", field: "numberOrString1", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  - Type "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+                                                                                                                                                                                                                                                                  - Type "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
-                                                                        Run prisma generate to generate Prisma Client.
+                                                                                                                                                                                                                                                                  Run prisma generate to generate Prisma Client.
 
-                                                `)
+                                                                                                                                                                            `)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -1794,13 +2501,13 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-      // *** WARNING ***
-      // 
-      // These models were renamed due to their names being duplicates in the Prisma Schema Language.
-      // - Model "base_some_table"
-      // - Model "transactional_some_table"
-      // 
-    `)
+                                                                                                                                                                                                // *** WARNING ***
+                                                                                                                                                                                                // 
+                                                                                                                                                                                                // These models were renamed due to their names being duplicates in the Prisma Schema Language.
+                                                                                                                                                                                                // - Model "base_some_table"
+                                                                                                                                                                                                // - Model "transactional_some_table"
+                                                                                                                                                                                                // 
+                                                                                                                                `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })

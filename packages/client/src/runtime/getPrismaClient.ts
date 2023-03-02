@@ -18,7 +18,16 @@ import {
   TracingConfig,
 } from '@prisma/engine-core'
 import type { GeneratorConfig } from '@prisma/generator-helper'
-import { callOnce, ClientEngineType, getClientEngineType, logger, tryLoadEnvs, warnOnce } from '@prisma/internals'
+import {
+  callOnce,
+  ClientEngineType,
+  getClientEngineType,
+  getQueryEngineProtocol,
+  logger,
+  QueryEngineProtocol,
+  tryLoadEnvs,
+  warnOnce,
+} from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
@@ -34,16 +43,19 @@ import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
-import { UserArgs } from './core/model/UserArgs'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { ProtocolEncoder } from './core/protocol/common'
 import { GraphQLProtocolEncoder } from './core/protocol/graphql'
+import { JsonProtocolEncoder } from './core/protocol/json'
+import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
+import { rawQueryArgsMapper } from './core/raw-query/rawQueryArgsMapper'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
 import {
   PrismaPromise,
   PrismaPromiseInteractiveTransaction,
   PrismaPromiseTransaction,
 } from './core/request/PrismaPromise'
+import { UserArgs } from './core/request/UserArgs'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { BaseDMMFHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
@@ -55,16 +67,13 @@ import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
 import { deserializeRawResults } from './utils/deserializeRawResults'
-import { mssqlPreparedStatement } from './utils/mssqlPreparedStatement'
 import { printJsonWithErrors } from './utils/printJsonErrors'
 import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectOnNotFound'
 import { getRejectOnNotFound } from './utils/rejectOnNotFound'
-import { serializeRawParameters } from './utils/serializeRawParameters'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { waitForBatch } from './utils/waitForBatch'
 
 const debug = Debug('prisma:client')
-const ALTER_RE = /^(\s*alter\s)/i
 
 declare global {
   // eslint-disable-next-line no-var
@@ -75,10 +84,6 @@ declare global {
 // used by esbuild for tree-shaking
 typeof globalThis === 'object' ? (globalThis.NODE_CLIENT = true) : 0
 
-function isReadonlyArray(arg: any): arg is ReadonlyArray<any> {
-  return Array.isArray(arg)
-}
-
 if (typeof TARGET_ENGINE_TYPE !== 'undefined' && TARGET_ENGINE_TYPE === 'all') {
   console.warn('imports from "@prisma/client/runtime" are deprecated.')
   console.warn(
@@ -86,27 +91,6 @@ if (typeof TARGET_ENGINE_TYPE !== 'undefined' && TARGET_ENGINE_TYPE === 'all') {
   )
 }
 
-// TODO also check/disallow for CREATE, DROP
-function checkAlter(
-  query: string,
-  values: RawValue[],
-  invalidCall:
-    | 'prisma.$executeRaw`<SQL>`'
-    | 'prisma.$executeRawUnsafe(<SQL>, [...values])'
-    | 'prisma.$executeRaw(sql`<SQL>`)',
-) {
-  if (values.length > 0 && ALTER_RE.exec(query)) {
-    // See https://github.com/prisma/prisma-client-js/issues/940 for more info
-    throw new Error(`Running ALTER using ${invalidCall} is not supported
-Using the example below you can still execute your query with Prisma, but please note that it is vulnerable to SQL injection attacks and requires you to take care of input sanitization.
-
-Example:
-  await prisma.$executeRawUnsafe(\`ALTER USER prisma WITH PASSWORD '\${password}'\`)
-
-More Information: https://pris.ly/d/execute-raw
-`)
-  }
-}
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export type Datasource = {
@@ -262,6 +246,13 @@ export interface GetPrismaClientConfig {
   injectableEdgeEnv?: LoadedEnv
 
   /**
+   * Engine protocol to use within edge runtime. Passed
+   * through config because edge client can not read env variables
+   * @remarks only used for the purpose of data proxy
+   */
+  edgeClientProtocol?: QueryEngineProtocol
+
+  /**
    * The contents of the datasource url saved in a string.
    * This can either be an env var name or connection string.
    * It is needed by the client to connect to the Data Proxy.
@@ -386,8 +377,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         this._baseDmmf = new BaseDMMFHelper(config.document)
+        const engineProtocol = NODE_CLIENT
+          ? getQueryEngineProtocol(config.generator)
+          : config.edgeClientProtocol ?? getQueryEngineProtocol(config.generator)
 
-        if (this._dataProxy) {
+        debug('protocol', engineProtocol)
+
+        if (this._dataProxy && engineProtocol === 'graphql') {
           // the data proxy can't get the dmmf from the engine
           // so the generated client always has the full dmmf
           const rawDmmf = config.document as DMMF.Document
@@ -424,6 +420,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineSchemaHash: config.inlineSchemaHash,
           tracingConfig: this._tracingConfig,
           logEmitter: logEmitter,
+          engineProtocol,
         }
 
         debug('clientVersion', config.clientVersion)
@@ -557,100 +554,17 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     $executeRawInternal(
       transaction: PrismaPromiseTransaction | undefined,
-      query: string | TemplateStringsArray | Sql,
-      ...values: RawValue[]
-    ) {
-      // TODO Clean up types
-      let queryString = ''
-      let parameters: any = undefined
-      if (typeof query === 'string') {
-        // If this was called as prisma.$executeRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
-        queryString = query
-        parameters = {
-          values: serializeRawParameters(values || []),
-          __prismaRawParameters__: true,
-        }
-        checkAlter(queryString, values, 'prisma.$executeRawUnsafe(<SQL>, [...values])')
-      } else if (isReadonlyArray(query)) {
-        // If this was called as prisma.$executeRaw`<SQL>`, try to generate a SQL prepared statement
-        switch (this._activeProvider) {
-          case 'sqlite':
-          case 'mysql': {
-            const queryInstance = new Sql(query, values)
-
-            queryString = queryInstance.sql
-            parameters = {
-              values: serializeRawParameters(queryInstance.values),
-              __prismaRawParameters__: true,
-            }
-            break
-          }
-
-          case 'cockroachdb':
-          case 'postgresql': {
-            const queryInstance = new Sql(query, values)
-
-            queryString = queryInstance.text
-            checkAlter(queryString, queryInstance.values, 'prisma.$executeRaw`<SQL>`')
-            parameters = {
-              values: serializeRawParameters(queryInstance.values),
-              __prismaRawParameters__: true,
-            }
-            break
-          }
-
-          case 'sqlserver': {
-            queryString = mssqlPreparedStatement(query)
-            parameters = {
-              values: serializeRawParameters(values),
-              __prismaRawParameters__: true,
-            }
-            break
-          }
-          default: {
-            throw new Error(`The ${this._activeProvider} provider does not support $executeRaw`)
-          }
-        }
-      } else {
-        // If this was called as prisma.$executeRaw(sql`<SQL>`), use prepared statements from sql-template-tag
-        switch (this._activeProvider) {
-          case 'sqlite':
-          case 'mysql':
-            queryString = query.sql
-            break
-          case 'cockroachdb':
-          case 'postgresql':
-            queryString = query.text
-            checkAlter(queryString, query.values, 'prisma.$executeRaw(sql`<SQL>`)')
-            break
-          case 'sqlserver':
-            queryString = mssqlPreparedStatement(query.strings)
-            break
-          default:
-            throw new Error(`The ${this._activeProvider} provider does not support $executeRaw`)
-        }
-        parameters = {
-          values: serializeRawParameters(query.values),
-          __prismaRawParameters__: true,
-        }
-      }
-
-      if (parameters?.values) {
-        debug(`prisma.$executeRaw(${queryString}, ${parameters.values})`)
-      } else {
-        debug(`prisma.$executeRaw(${queryString})`)
-      }
-
-      const args = { query: queryString, parameters }
-
-      debug(`Prisma Client call:`)
+      clientMethod: string,
+      args: RawQueryArgs,
+    ): Promise<number> {
       return this._request({
-        args,
-        clientMethod: '$executeRaw',
-        dataPath: [],
         action: 'executeRaw',
-        callsite: getCallSite(this._errorFormat),
+        args,
         transaction,
+        clientMethod,
+        argsMapper: rawQueryArgsMapper(this, clientMethod),
+        callsite: getCallSite(this._errorFormat),
+        dataPath: [],
       })
     }
 
@@ -665,7 +579,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     $executeRaw(query: TemplateStringsArray | Sql, ...values: any[]) {
       return createPrismaPromise((transaction) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as Sql).sql !== undefined) {
-          return this.$executeRawInternal(transaction, query, ...values)
+          return this.$executeRawInternal(transaction, '$executeRaw', [query, ...values])
         }
 
         throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
@@ -688,7 +602,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     $executeRawUnsafe(query: string, ...values: RawValue[]) {
       return createPrismaPromise((transaction) => {
-        return this.$executeRawInternal(transaction, query, ...values)
+        return this.$executeRawInternal(transaction, '$executeRawUnsafe', [query, ...values])
       })
     }
 
@@ -722,103 +636,17 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     async $queryRawInternal(
       transaction: PrismaPromiseTransaction | undefined,
-      query: string | TemplateStringsArray | Sql,
-      ...values: RawValue[]
+      clientMethod: string,
+      args: RawQueryArgs,
     ) {
-      let queryString = ''
-      let parameters: any = undefined
-
-      if (typeof query === 'string') {
-        // If this was called as prisma.$queryRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
-        queryString = query
-        parameters = {
-          values: serializeRawParameters(values || []),
-          __prismaRawParameters__: true,
-        }
-      } else if (isReadonlyArray(query)) {
-        // If this was called as prisma.$queryRaw`<SQL>`, try to generate a SQL prepared statement
-        // Example: prisma.$queryRaw`SELECT * FROM User WHERE id IN (${Prisma.join(ids)})`
-        switch (this._activeProvider) {
-          case 'sqlite':
-          case 'mysql': {
-            const queryInstance = new Sql(query, values)
-
-            queryString = queryInstance.sql
-            parameters = {
-              values: serializeRawParameters(queryInstance.values),
-              __prismaRawParameters__: true,
-            }
-            break
-          }
-
-          case 'cockroachdb':
-          case 'postgresql': {
-            const queryInstance = new Sql(query, values)
-
-            queryString = queryInstance.text
-            parameters = {
-              values: serializeRawParameters(queryInstance.values),
-              __prismaRawParameters__: true,
-            }
-            break
-          }
-
-          case 'sqlserver': {
-            const queryInstance = new Sql(query, values)
-
-            queryString = mssqlPreparedStatement(queryInstance.strings)
-            parameters = {
-              values: serializeRawParameters(queryInstance.values),
-              __prismaRawParameters__: true,
-            }
-            break
-          }
-          default: {
-            throw new Error(`The ${this._activeProvider} provider does not support $queryRaw`)
-          }
-        }
-      } else {
-        // If this was called as prisma.$queryRaw(Prisma.sql`<SQL>`), use prepared statements from sql-template-tag
-        // Example: prisma.$queryRaw(Prisma.sql`SELECT * FROM User WHERE id IN (${Prisma.join(ids)})`);
-        switch (this._activeProvider) {
-          case 'sqlite':
-          case 'mysql':
-            queryString = query.sql
-            break
-          case 'cockroachdb':
-          case 'postgresql':
-            queryString = query.text
-            break
-          case 'sqlserver':
-            queryString = mssqlPreparedStatement(query.strings)
-            break
-          default: {
-            throw new Error(`The ${this._activeProvider} provider does not support $queryRaw`)
-          }
-        }
-        parameters = {
-          values: serializeRawParameters(query.values),
-          __prismaRawParameters__: true,
-        }
-      }
-
-      if (parameters?.values) {
-        debug(`prisma.queryRaw(${queryString}, ${parameters.values})`)
-      } else {
-        debug(`prisma.queryRaw(${queryString})`)
-      }
-
-      const args = { query: queryString, parameters }
-
-      debug(`Prisma Client call:`)
-
       return this._request({
-        args,
-        clientMethod: '$queryRaw',
-        dataPath: [],
         action: 'queryRaw',
-        callsite: getCallSite(this._errorFormat),
+        args,
         transaction,
+        clientMethod,
+        argsMapper: rawQueryArgsMapper(this, clientMethod),
+        callsite: getCallSite(this._errorFormat),
+        dataPath: [],
       }).then(deserializeRawResults)
     }
 
@@ -833,7 +661,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     $queryRaw(query: TemplateStringsArray | Sql, ...values: any[]) {
       return createPrismaPromise((transaction) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as Sql).sql !== undefined) {
-          return this.$queryRawInternal(transaction, query, ...values)
+          return this.$queryRawInternal(transaction, '$queryRaw', [query, ...values])
         }
 
         throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
@@ -856,7 +684,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     $queryRawUnsafe(query: string, ...values: RawValue[]) {
       return createPrismaPromise((transaction) => {
-        return this.$queryRawInternal(transaction, query, ...values)
+        return this.$queryRawInternal(transaction, '$queryRawUnsafe', [query, ...values])
       })
     }
 
@@ -1093,6 +921,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
         return this._fetcher.request({
           protocolMessage: message,
+          protocolEncoder,
           modelName: model,
           clientMethod,
           dataPath,
@@ -1114,8 +943,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
     _getDmmf = callOnce(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
       try {
-        const dmmf = await this._engine.getDmmf()
-        return new DMMFHelper(getPrismaClientDMMF(dmmf))
+        const dmmf = await runInChildSpan(
+          { name: 'getDmmf', enabled: this._tracingConfig.enabled, internal: true },
+          () => this._engine.getDmmf(),
+        )
+
+        return runInChildSpan({ name: 'processDmmf', enabled: this._tracingConfig.enabled, internal: true }, () => {
+          return new DMMFHelper(getPrismaClientDMMF(dmmf))
+        })
       } catch (error) {
         this._fetcher.handleAndLogRequestError({ ...params, error })
       }
@@ -1123,6 +958,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
     _getProtocolEncoder = callOnce(
       async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>): Promise<ProtocolEncoder> => {
+        if (this._engineConfig.engineProtocol === 'json') {
+          return new JsonProtocolEncoder(this._baseDmmf)
+        }
+
         if (this._dmmf === undefined) {
           this._dmmf = await this._getDmmf(params)
         }

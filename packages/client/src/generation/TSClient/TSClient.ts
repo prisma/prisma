@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths } from '@prisma/internals'
+import { getClientEngineType, getEnvPaths, getQueryEngineProtocol } from '@prisma/internals'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
@@ -13,6 +13,7 @@ import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildDMMF } from '../utils/buildDMMF'
+import { buildEdgeClientProtocol } from '../utils/buildEdgeClientProtocol'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasource } from '../utils/buildInlineDatasources'
 import { buildInlineSchema } from '../utils/buildInlineSchema'
@@ -73,6 +74,7 @@ export class TSClient implements Generatable {
       dataProxy,
       deno,
     } = this.options
+    const engineProtocol = getQueryEngineProtocol(generator)
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -123,18 +125,19 @@ ${new Enum(
   },
   true,
 ).toJS()}
-${buildDMMF(dataProxy, this.options.document)}
+${buildDMMF(dataProxy && engineProtocol === 'graphql', this.options.document)}
 
 /**
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-config.document = dmmf
 config.dirname = dirname
+config.document = dmmf
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
+${buildEdgeClientProtocol(edge, generator)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient

@@ -68,7 +68,7 @@ testMatrix.setupTestSuite(({ provider }) => {
     const { student1Id } = await seed()
 
     await prisma.studentClass.updateMany({
-      // Testing we can update fields on the join tabel
+      // Testing we can update fields on the join table
       data: {
         studentId: student1Id,
       },

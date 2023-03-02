@@ -1,5 +1,5 @@
+import { UserArgs } from './core/request/UserArgs'
 import { Action } from './core/types/JsApi'
-import type { Document } from './query'
 
 export type QueryMiddleware = (
   params: QueryMiddlewareParams,
@@ -15,8 +15,7 @@ export type QueryMiddlewareParams = {
   dataPath: string[]
   /** TODO what is this */
   runInTransaction: boolean
-  /** TODO what is this */
-  args: any // TODO remove any, does this make sense, what is args?
+  args?: UserArgs
 }
 
 export type Namespace = 'all' | 'engine'

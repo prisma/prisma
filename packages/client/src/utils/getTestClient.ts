@@ -62,7 +62,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
-    dataProxy: Boolean(process.env.DATA_PROXY),
+    dataProxy: Boolean(process.env.TEST_DATA_PROXY),
   }
 
   return getPrismaClient(options)

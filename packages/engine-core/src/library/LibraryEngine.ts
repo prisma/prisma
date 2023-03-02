@@ -8,12 +8,13 @@ import fs from 'fs'
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
+  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
+  EngineProtocol,
   EngineQuery,
   RequestBatchOptions,
   RequestOptions,
-  TransactionOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
@@ -26,15 +27,11 @@ import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJS
 import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
-  ConfigMetaFormat,
   EngineSpanEvent,
-  QueryEngineBatchRequest,
   QueryEngineEvent,
   QueryEngineLogLevel,
   QueryEnginePanicEvent,
   QueryEngineQueryEvent,
-  QueryEngineRequest,
-  QueryEngineResult,
   RustRequestError,
   SyncRustError,
 } from '../common/types/QueryEngine'
@@ -75,6 +72,7 @@ export class LibraryEngine extends Engine<undefined> {
   private libraryLoader: LibraryLoader
   private library?: Library
   private logEmitter: EventEmitter
+  private engineProtocol: EngineProtocol
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
@@ -100,13 +98,28 @@ export class LibraryEngine extends Engine<undefined> {
   constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
     super()
 
-    this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
+    try {
+      // we try to handle the case where the datamodel is not found
+      this.datamodel = fs.readFileSync(config.datamodelPath, 'utf-8')
+    } catch (e) {
+      if ((e.stack as string).match(/\/\.next|\/next@|\/next\//)) {
+        throw new PrismaClientInitializationError(
+          `Your schema.prisma could not be found, and we detected that you are using Next.js.
+Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextjs`,
+          config.clientVersion!,
+        )
+      }
+
+      throw e
+    }
+
     this.config = config
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
     this.libraryLoader = loader
     this.logEmitter = config.logEmitter
+    this.engineProtocol = config.engineProtocol
     this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -246,7 +259,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
             ignoreEnvVarErrors: true,
             datasourceOverrides: this.datasourceOverrides,
             logLevel: this.logLevel,
-            configDir: this.config.cwd!,
+            configDir: this.config.cwd,
+            engineProtocol: this.engineProtocol,
           },
           (log) => {
             weakThis.deref()?.logger(log)
@@ -437,7 +451,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   async getDmmf(): Promise<DMMF.Document> {
     await this.start()
 
-    return JSON.parse(await this.engine!.dmmf())
+    const traceparent = getTraceParent({ tracingConfig: this.config.tracingConfig })
+    const response = await this.engine!.dmmf(JSON.stringify({ traceparent }))
+
+    return runInChildSpan({ name: 'parseDmmf', enabled: this.config.tracingConfig.enabled, internal: true }, () =>
+      JSON.parse(response),
+    )
   }
 
   version(): string {
@@ -456,9 +475,8 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
-    const request: QueryEngineRequest = { query: query.query, variables: {} }
     const headerStr = JSON.stringify({ traceparent }) // object equivalent to http headers for the library
-    const queryStr = JSON.stringify(request)
+    const queryStr = JSON.stringify(query)
 
     try {
       await this.start()
@@ -499,7 +517,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
   }
 
   async requestBatch<T>(
-    queries: EngineQuery[],
+    queries: EngineBatchQueries,
     { transaction, traceparent }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     debug('requestBatch')

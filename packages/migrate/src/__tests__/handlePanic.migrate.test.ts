@@ -69,14 +69,6 @@ describe('handlePanic migrate', () => {
     io.restore()
   })
 
-  // Note: this error is never used
-  const error = new RustPanic(
-    'Some error message!',
-    '',
-    undefined,
-    ErrorArea.LIFT_CLI,
-    resolve(join('fixtures', 'blog', 'prisma', 'schema.prisma')),
-  )
   const packageJsonVersion = '0.0.0'
   const enginesVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
   const command = 'something-test'
@@ -143,26 +135,7 @@ describe('handlePanic migrate', () => {
       `)
     } else {
       const output = captureStdout.getCapturedText()
-      expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`
-
-                                  console.log    Oops, an unexpected error occurred!    Error in migration engine.    Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic        Please create an issue with your \`schema.prisma\` at     https://github.com/prisma/prisma/issues/new            Please help us improve Prisma by submitting an error report.    Error reports never contain personal or other sensitive information.    Learn more: https://pris.ly/d/telemetry      at panicDialog (src/utils/handlePanic.ts:25:11)
-
-                                ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
-
-                                ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
-
-                                ✔ Submit error report › No
-
-
-
-                                ? Would you like to create a GitHub issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
-
-                                ? Would you like to create a GitHub issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
-
-                                ✔ Would you like to create a GitHub issue? › No
-
-
-                        `)
+      expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(``)
     }
     captureStdout.stopCapture()
   })
@@ -195,13 +168,21 @@ describe('handlePanic migrate', () => {
         draft: false,
         prismaSchema: migrate.getPrismaSchema(),
       })
-    } catch (error) {
+    } catch (e) {
+      const error = e as RustPanic
+
       expect(error).toMatchSnapshot()
       expect(JSON.parse(JSON.stringify(error))).toMatchObject({
         area: 'LIFT_CLI',
         schemaPath,
       })
-      expect(error.rustStack).toContain('This is the debugPanic artificial panic')
+      expect(error.message).toContain('This is the debugPanic artificial panic')
+      expect(error.rustStack).toContain('[EXIT_PANIC]')
+
+      const isWindows = ['win32'].includes(process.platform)
+      if (!isWindows) {
+        expect(error.rustStack).toContain('std::panicking::')
+      }
     }
   })
 })

@@ -3,6 +3,7 @@ import { DMMF } from '@prisma/generator-helper'
 
 import type {
   BatchQueryEngineResult,
+  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
   EngineQuery,
@@ -21,7 +22,7 @@ import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPromet
 import { EngineSpan, QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
-import { createSpan, getTraceParent, getTracingConfig, TracingConfig } from '../tracing'
+import { createSpan, getTraceParent, getTracingConfig, runInChildSpan, TracingConfig } from '../tracing'
 import { DataProxyError } from './errors/DataProxyError'
 import { ForcedRetryError } from './errors/ForcedRetryError'
 import { InvalidDatasourceError } from './errors/InvalidDatasourceError'
@@ -32,7 +33,7 @@ import { backOff } from './utils/backOff'
 import { getClientVersion } from './utils/getClientVersion'
 import { Fetch, request } from './utils/request'
 
-const MAX_RETRIES = 10
+const MAX_RETRIES = 3
 
 // to defer the execution of promises in the constructor
 const P = Promise.resolve()
@@ -148,6 +149,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   private env: { [k in string]?: string }
 
   private clientVersion: string
+  private tracingConfig: TracingConfig
   readonly remoteClientVersion: Promise<string>
   readonly host: string
   readonly headerBuilder: DataProxyHeaderBuilder
@@ -162,13 +164,14 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
     this.clientVersion = config.clientVersion ?? 'unknown'
     this.logEmitter = config.logEmitter
+    this.tracingConfig = getTracingConfig(this.config.previewFeatures || [])
 
     const [host, apiKey] = this.extractHostAndApiKey()
     this.host = host
 
     this.headerBuilder = new DataProxyHeaderBuilder({
       apiKey,
-      tracingConfig: getTracingConfig(this.config.previewFeatures || []),
+      tracingConfig: this.tracingConfig,
       logLevel: config.logLevel,
       logQueries: config.logQueries,
     })
@@ -255,36 +258,44 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   private async uploadSchema() {
-    const response = await request(await this.url('schema'), {
-      method: 'PUT',
-      headers: this.headerBuilder.build(),
-      body: this.inlineSchema,
-      clientVersion: this.clientVersion,
-    })
-
-    if (!response.ok) {
-      debug('schema response status', response.status)
+    const spanOptions = {
+      name: 'schemaUpload',
+      internal: true,
+      enabled: this.tracingConfig.enabled,
     }
 
-    const err = await responseToError(response, this.clientVersion)
-
-    if (err) {
-      this.logEmitter.emit('warn', { message: `Error while uploading schema: ${err.message}` })
-      throw err
-    } else {
-      this.logEmitter.emit('info', {
-        message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
+    return runInChildSpan(spanOptions, async () => {
+      const response = await request(await this.url('schema'), {
+        method: 'PUT',
+        headers: this.headerBuilder.build(),
+        body: this.inlineSchema,
+        clientVersion: this.clientVersion,
       })
-    }
+
+      if (!response.ok) {
+        debug('schema response status', response.status)
+      }
+
+      const err = await responseToError(response, this.clientVersion)
+
+      if (err) {
+        this.logEmitter.emit('warn', { message: `Error while uploading schema: ${err.message}` })
+        throw err
+      } else {
+        this.logEmitter.emit('info', {
+          message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
+        })
+      }
+    })
   }
 
   request<T>(
-    { query }: EngineQuery,
+    query: EngineQuery,
     { traceparent, interactiveTransaction, customDataProxyFetch }: RequestOptions<DataProxyTxInfoPayload>,
   ) {
     // TODO: `elapsed`?
     return this.requestInternal<T>({
-      body: { query, variables: {} },
+      body: query,
       traceparent,
       interactiveTransaction,
       customDataProxyFetch,
@@ -292,7 +303,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   async requestBatch<T>(
-    queries: EngineQuery[],
+    queries: EngineBatchQueries,
     { traceparent, transaction, customDataProxyFetch }: RequestBatchOptions<DataProxyTxInfoPayload>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     const interactiveTransaction = transaction?.kind === 'itx' ? transaction.options : undefined

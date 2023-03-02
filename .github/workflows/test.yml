@@ -133,6 +133,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library', 'binary']
+        engineProtocol: ['graphql', 'json']
         os: [buildjet-4vcpu-ubuntu-2004]
         node: [16, 18]
 
@@ -158,7 +159,7 @@ jobs:
       TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
       TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
       NODE_OPTIONS: '--max-old-space-size=8096'
-      JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+      JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ matrix.engineProtocol }}'
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
     steps:
@@ -181,6 +182,10 @@ jobs:
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - name: Set Engine Protocol
+        run: |
+          echo "PRISMA_ENGINE_PROTOCOL=${{ matrix.engineProtocol }}" >> $GITHUB_ENV
 
       - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
@@ -213,7 +218,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -223,7 +228,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
           path: packages/*/junit*.xml
@@ -243,6 +248,7 @@ jobs:
       matrix:
         os: [buildjet-4vcpu-ubuntu-2004]
         node: [14, 16, 18]
+        engineProtocol: ['graphql', 'json']
 
     steps:
       - uses: actions/checkout@v3
@@ -289,6 +295,7 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+          PRISMA_ENGINE_PROTOCOL: '${{ matrix.engineProtocol }}'
 
       - run: pnpm run test:functional --data-proxy --edge-client
         working-directory: packages/client
@@ -305,6 +312,7 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+          PRISMA_ENGINE_PROTOCOL: '${{ matrix.engineProtocol }}'
 
       - uses: codecov/codecov-action@v3
         with:
@@ -315,7 +323,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -325,7 +333,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
           path: packages/*/junit*.xml
@@ -450,7 +458,7 @@ jobs:
   # CLIENT test:e2e
   #
   client-e2e:
-    timeout-minutes: 15
+    timeout-minutes: 25
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
@@ -466,7 +474,7 @@ jobs:
       - uses: actions/checkout@v3
 
       # Not currently needed, but we might need it in the future
-      # - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -483,7 +491,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:e2e --verbose
+      - run: pnpm run test:e2e --skipBuild --verbose --runInBand
         working-directory: packages/client
         env:
           CI: true
@@ -578,7 +586,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -588,7 +596,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
@@ -1151,7 +1159,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -1161,7 +1169,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
@@ -1408,7 +1416,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled()
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -1418,7 +1426,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: always()
+        if: github.event_name == 'schedule'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
