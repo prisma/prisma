@@ -89,8 +89,9 @@ ${chalk.bold('Examples')}
     loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
+    const datasourceInfo = await getDatasourceInfo({ schemaPath })
 
-    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
+    printDatasource({ datasourceInfo })
 
     throwUpgradeErrorIfOldMigrate(schemaPath)
 
@@ -107,15 +108,22 @@ ${chalk.bold('Examples')}
         throw new MigrateResetEnvNonInteractiveError()
       }
 
-      const confirmation = await prompt({
-        type: 'confirm',
-        name: 'value',
-        message: `Are you sure you want to reset your database? ${chalk.red('All data will be lost')}.`,
-      })
+      const confirmation = await prompt([
+        {
+          type: 'confirm',
+          name: 'value',
+          message: `Are you sure you want to reset your database? ${chalk.red('All data will be lost')}.`,
+        },
+        {
+          type: 'text',
+          name: 'datasource',
+          message: `${chalk.red('Are you absolutely sure?')} Please type [${datasourceInfo.name}] to confirm.`,
+        },
+      ])
 
       console.info() // empty line
 
-      if (!confirmation.value) {
+      if (!confirmation.value || confirmation.datasource !== datasourceInfo.name) {
         console.info('Reset cancelled.')
         // Return SIGINT exit code to signal that the process was cancelled
         process.exit(130)

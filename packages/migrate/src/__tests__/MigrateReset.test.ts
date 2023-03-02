@@ -68,7 +68,7 @@ describe('reset', () => {
   it('should work (prompt)', async () => {
     ctx.fixture('reset')
 
-    prompt.inject(['y']) // simulate user yes input
+    prompt.inject(['y', 'my_db']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -141,7 +141,7 @@ describe('reset', () => {
     ctx.fixture('reset')
     ctx.fs.remove('prisma/migrations')
 
-    prompt.inject(['y']) // simulate user yes input
+    prompt.inject(['y', 'my_db']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -191,7 +191,7 @@ describe('reset', () => {
 
   it('reset - multiple seed files', async () => {
     ctx.fixture('seed-sqlite-legacy')
-    prompt.inject(['y']) // simulate user yes input
+    prompt.inject(['y', 'db']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -210,7 +210,7 @@ describe('reset', () => {
 
   it('reset - multiple seed files - --skip-seed', async () => {
     ctx.fixture('seed-sqlite-legacy')
-    prompt.inject(['y']) // simulate user yes input
+    prompt.inject(['y', 'db']) // simulate user yes input
 
     const result = MigrateReset.new().parse(['--skip-seed'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -219,7 +219,7 @@ describe('reset', () => {
 
   test('reset - seed.js', async () => {
     ctx.fixture('seed-sqlite-js')
-    prompt.inject(['y']) // simulate user yes input
+    prompt.inject(['y', 'db']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -248,7 +248,7 @@ describe('reset', () => {
     })
     ctx.fixture('seed-sqlite-js')
     ctx.fs.write('prisma/seed.js', 'BROKEN_CODE_SHOULD_ERROR;')
-    prompt.inject(['y']) // simulate user yes input
+    prompt.inject(['y', 'db']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
     await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 1`)
@@ -276,7 +276,7 @@ describe('reset', () => {
 
   test('reset - seed.ts', async () => {
     ctx.fixture('seed-sqlite-ts')
-    prompt.inject(['y']) // simulate user yes input
+    prompt.inject(['y', 'db']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -304,7 +304,7 @@ describe('reset', () => {
     ctx.fs.remove('prisma/seed.js')
     ctx.fs.remove('prisma/seed.ts')
     // ctx.fs.remove('prisma/seed.sh')
-    prompt.inject(['y']) // simulate user yes input
+    prompt.inject(['y', 'db']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -326,7 +326,7 @@ describe('reset', () => {
   it('should work with directUrl', async () => {
     ctx.fixture('reset-directurl')
 
-    prompt.inject(['y']) // simulate user yes input
+    prompt.inject(['y', 'my_db']) // simulate user yes input
 
     const result = MigrateReset.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(``)
