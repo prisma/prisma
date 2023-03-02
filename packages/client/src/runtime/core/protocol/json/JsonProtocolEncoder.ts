@@ -89,7 +89,7 @@ function buildKeysString(obj: object): string {
     .map((key) => {
       const value = obj[key]
       if (typeof value === 'object' && value !== null) {
-        return `(${key} ${buildKeysString(value)}`
+        return `(${key} ${buildKeysString(value)})`
       }
       return key
     })
