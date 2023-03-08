@@ -14,6 +14,7 @@ export class ModelOutputField implements Generatable {
     protected readonly dmmf: DMMFHelper,
     protected readonly field: DMMF.Field,
     protected readonly useNamespace = false,
+    protected readonly useDbTypes = false,
   ) {}
   public toTS(): string {
     const { field, useNamespace } = this
@@ -34,11 +35,16 @@ export class ModelOutputField implements Generatable {
             field.name
           }: ${namespaceStr}${fieldType}<ExtArgs>${arrayStr}${nullableStr}`
         }
-
-        return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+        return `${buildComment(field.documentation)}${
+          this.useDbTypes && field.dbNames ? field.dbNames : field.name
+        }: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
       },
       () => {
-        return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+        console.log(field.dbNames)
+
+        return `${buildComment(field.documentation)}${
+          this.useDbTypes && field.dbNames ? field.dbNames : field.name
+        }: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
       },
     )
   }

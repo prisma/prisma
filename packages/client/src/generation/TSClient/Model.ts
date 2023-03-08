@@ -166,6 +166,24 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
   >
 `
   }
+  // private getDbTypes() {
+  //   const { model, mapping } = this
+  //   const docLines = model.documentation ?? ''
+  //   const modelLine = `Model ${model.name} DB\n`
+  //   const docs = `${modelLine}${docLines}`
+
+  //   return `${buildComment(docs)}export type ${model.name} = {
+  //     ${indent(
+  //       model.fields
+  //         .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
+  //         .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
+  //         .join('\n'),
+  //       TAB_SIZE,
+  //     )}
+  //     }
+  //     `
+  // }
+
   private getAggregationTypes() {
     const { model, mapping } = this
     let aggregateType = this.dmmf.outputTypeMap[getAggregateName(model.name)]
@@ -278,6 +296,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
   }
   public toTSWithoutNamespace(): string {
     const { model } = this
+    console.log(model)
     const docLines = model.documentation ?? ''
     const modelLine = `Model ${model.name}\n`
     const docs = `${modelLine}${docLines}`
@@ -321,11 +340,23 @@ ${buildComment(docs)}export type ${model.name} = ${model.name}Payload['scalars']
 ${indent(
   model.fields
     .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
-    .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
+    .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type], true).toTS())
     .join('\n'),
   TAB_SIZE,
 )}
+
 }
+${buildComment(docs)}export type ${model.name}DB = {
+  ${indent(
+    model.fields
+      .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
+      .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
+      .join('\n'),
+    TAB_SIZE,
+  )}
+  
+  }
+
 `
       },
     )
