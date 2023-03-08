@@ -340,22 +340,20 @@ ${buildComment(docs)}export type ${model.name} = ${model.name}Payload['scalars']
 ${indent(
   model.fields
     .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
+    .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
+    .join('\n'),
+  TAB_SIZE,
+)}
+}
+${buildComment(docs)}export type ${model.name}DB = {
+${indent(
+  model.fields
+    .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
     .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type], true).toTS())
     .join('\n'),
   TAB_SIZE,
 )}
-
 }
-${buildComment(docs)}export type ${model.name}DB = {
-  ${indent(
-    model.fields
-      .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
-      .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
-      .join('\n'),
-    TAB_SIZE,
-  )}
-  
-  }
 
 `
       },

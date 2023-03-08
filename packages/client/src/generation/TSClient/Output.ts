@@ -26,7 +26,6 @@ export class ModelOutputField implements Generatable {
     const arrayStr = field.isList ? `[]` : ''
     const nullableStr = !field.isRequired && !field.isList ? ' | null' : ''
     const namespaceStr = useNamespace && needsNamespace(field.type, this.dmmf) ? `Prisma.` : ''
-
     return ifExtensions(
       () => {
         if (field.kind === 'object') {
@@ -35,15 +34,11 @@ export class ModelOutputField implements Generatable {
             field.name
           }: ${namespaceStr}${fieldType}<ExtArgs>${arrayStr}${nullableStr}`
         }
-        return `${buildComment(field.documentation)}${
-          this.useDbTypes && field.dbNames ? field.dbNames : field.name
-        }: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+        return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
       },
       () => {
-        console.log(field.dbNames)
-
         return `${buildComment(field.documentation)}${
-          this.useDbTypes && field.dbNames ? field.dbNames : field.name
+          this.useDbTypes && field.dbName ? field.dbName : field.name
         }: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
       },
     )
