@@ -166,23 +166,6 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
   >
 `
   }
-  // private getDbTypes() {
-  //   const { model, mapping } = this
-  //   const docLines = model.documentation ?? ''
-  //   const modelLine = `Model ${model.name} DB\n`
-  //   const docs = `${modelLine}${docLines}`
-
-  //   return `${buildComment(docs)}export type ${model.name} = {
-  //     ${indent(
-  //       model.fields
-  //         .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
-  //         .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
-  //         .join('\n'),
-  //       TAB_SIZE,
-  //     )}
-  //     }
-  //     `
-  // }
 
   private getAggregationTypes() {
     const { model, mapping } = this
@@ -296,7 +279,6 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
   }
   public toTSWithoutNamespace(): string {
     const { model } = this
-    console.log(model)
     const docLines = model.documentation ?? ''
     const modelLine = `Model ${model.name}\n`
     const docs = `${modelLine}${docLines}`

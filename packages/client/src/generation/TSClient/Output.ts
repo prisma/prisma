@@ -26,6 +26,7 @@ export class ModelOutputField implements Generatable {
     const arrayStr = field.isList ? `[]` : ''
     const nullableStr = !field.isRequired && !field.isList ? ' | null' : ''
     const namespaceStr = useNamespace && needsNamespace(field.type, this.dmmf) ? `Prisma.` : ''
+
     return ifExtensions(
       () => {
         if (field.kind === 'object') {
