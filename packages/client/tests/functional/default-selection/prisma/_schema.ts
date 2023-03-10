@@ -17,6 +17,10 @@ export default testMatrix.setupSchema(({ provider }) => {
     }`)
 
     fields.push('enum Enum')
+
+    if (provider !== 'mysql') {
+      fields.push('enumList Enum[]')
+    }
   }
 
   if (provider === 'mongodb') {

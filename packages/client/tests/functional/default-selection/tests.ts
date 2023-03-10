@@ -23,6 +23,8 @@ testMatrix.setupTestSuite(({ provider }) => {
     if (provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb') {
       // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
       input.list = ['Hello', 'world']
+      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
+      input.enumList = ['A', 'B']
     }
 
     if (provider === 'mongodb') {
@@ -62,6 +64,16 @@ testMatrix.setupTestSuite(({ provider }) => {
 
       // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
       expect(model.list).toBeDefined()
+    },
+  )
+
+  testIf(provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb')(
+    'includes enum lists',
+    async () => {
+      const model = await prisma.model.findFirstOrThrow()
+
+      // @ts-test-if: provider === 'postgresql' || provider === 'cockroachdb' || provider === 'mongodb'
+      expect(model.enumList).toBeDefined()
     },
   )
 
