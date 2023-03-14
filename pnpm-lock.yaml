@@ -229,7 +229,7 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
-      '@prisma/engines-version': 4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4
+      '@prisma/engines-version': 4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -295,7 +295,7 @@ importers:
       yo: 4.3.1
       zx: 7.1.1
     dependencies:
-      '@prisma/engines-version': 4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4
+      '@prisma/engines-version': 4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c
     devDependencies:
       '@faker-js/faker': 7.6.0
       '@fast-check/jest': 1.6.0_@jest+globals@29.4.3
@@ -452,7 +452,7 @@ importers:
   packages/engines:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4
+      '@prisma/engines-version': 4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c
       '@prisma/fetch-engine': workspace:*
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.32
@@ -464,7 +464,7 @@ importers:
       typescript: 4.9.5
     devDependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engines-version': 4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4
+      '@prisma/engines-version': 4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/get-platform': link:../get-platform
       '@swc/core': 1.3.32
@@ -478,7 +478,7 @@ importers:
   packages/fetch-engine:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4
+      '@prisma/engines-version': 4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.32
       '@swc/jest': 0.2.24
@@ -524,7 +524,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.1
     devDependencies:
-      '@prisma/engines-version': 4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4
+      '@prisma/engines-version': 4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c
       '@swc/core': 1.3.32
       '@swc/jest': 0.2.24_@swc+core@1.3.32
       '@types/jest': 29.4.0
@@ -695,7 +695,7 @@ importers:
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
-      '@prisma/prisma-fmt-wasm': 4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4
+      '@prisma/prisma-fmt-wasm': 4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.24
       '@types/jest': 29.4.0
@@ -751,7 +751,7 @@ importers:
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
-      '@prisma/prisma-fmt-wasm': 4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4
+      '@prisma/prisma-fmt-wasm': 4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c
       archiver: 5.3.1
       arg: 5.0.2
       chalk: 4.1.2
@@ -805,7 +805,7 @@ importers:
   packages/migrate:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4
+      '@prisma/engines-version': 4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
@@ -859,7 +859,7 @@ importers:
       strip-indent: 3.0.0
       ts-pattern: 4.0.5
     devDependencies:
-      '@prisma/engines-version': 4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4
+      '@prisma/engines-version': 4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.3.32
@@ -972,8 +972,8 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/client-cognito-identity/3.290.0:
-    resolution: {integrity: sha512-hVDSCUkiM23jJe7t7CeYrDRq1umfr8IO599F0jjJg9AdWrLOWPKDv8Fxwk/VKivRgZjBZvYvgH482mFq3oJ94w==}
+  /@aws-sdk/client-cognito-identity/3.291.0:
+    resolution: {integrity: sha512-98fHg7KGVt67/UvD2VoFHctnasMbPyXrK+lt8G2H+YjXnqolgHMzODqjuR13xoFB0gETX5e8XVFg5VkoyPPPIw==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
@@ -1155,11 +1155,11 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-provider-cognito-identity/3.290.0:
-    resolution: {integrity: sha512-i2ZMIwnQ8bUP/qwzcWrfDxHHMB13M/935K8J0cJ4WmHaPWYRKECGgn2k1mJk2GLbUQ8yNEfM6RjA5EsPwhShvg==}
+  /@aws-sdk/credential-provider-cognito-identity/3.291.0:
+    resolution: {integrity: sha512-MlosV+2Dh/CAamfN2oV+YFh7/3ZrhrfFxu6Fty3DcwIoVQh4K0Mwt/d2IpFa/+dMk+y56ijtaFKupT5Tk4IpBQ==}
     engines: {node: '>=14.0.0'}
     dependencies:
-      '@aws-sdk/client-cognito-identity': 3.290.0
+      '@aws-sdk/client-cognito-identity': 3.291.0
       '@aws-sdk/property-provider': 3.290.0
       '@aws-sdk/types': 3.290.0
       tslib: 2.4.1
@@ -1263,15 +1263,15 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-providers/3.290.0:
-    resolution: {integrity: sha512-CmIvhuOL3GhvzdfDexDiyofi3X2s8sUu4KX9UYJbA4aZnpANc0ie9QWb/b9EYsh8x/r8Ahj+1HUC15/XtnU7AQ==}
+  /@aws-sdk/credential-providers/3.291.0:
+    resolution: {integrity: sha512-odTsJEHPzEnm9CtydfZda0K0mvtM9tOkAXIPtRPug2UL1kudL4j4QsJ5WhjOJV/g140n471W+0eVZ0R6vIgFAg==}
     engines: {node: '>=14.0.0'}
     requiresBuild: true
     dependencies:
-      '@aws-sdk/client-cognito-identity': 3.290.0
+      '@aws-sdk/client-cognito-identity': 3.291.0
       '@aws-sdk/client-sso': 3.290.0
       '@aws-sdk/client-sts': 3.290.0
-      '@aws-sdk/credential-provider-cognito-identity': 3.290.0
+      '@aws-sdk/credential-provider-cognito-identity': 3.291.0
       '@aws-sdk/credential-provider-env': 3.290.0
       '@aws-sdk/credential-provider-imds': 3.290.0
       '@aws-sdk/credential-provider-ini': 3.290.0
@@ -3377,8 +3377,8 @@ packages:
     engines: {node: '>=14'}
     dev: true
 
-  /@prisma/engines-version/4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4:
-    resolution: {integrity: sha512-hooV/1YSnRjq/8JlS6wnPjo6jAJNbq2Ow3pDGPi2C4TNzKPu2uOnNqS81CXqf/UKSmXvSZaoqd0x7jOEIymUQw==}
+  /@prisma/engines-version/4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c:
+    resolution: {integrity: sha512-mGS/nB2pATS4Abn4ZsblKK+x24EbeG0DDnH89Ja65n/PSasPDOELCb/wV1dLJ51uCTvNeNjYdFZsRDbkAjrYOg==}
 
   /@prisma/mini-proxy/0.6.4:
     resolution: {integrity: sha512-soUbebrPZfNg9zJCALHQAZd0E5tvcgi1zmyonHUe3Inqa6nMOGvdDWAcDUl1OHkZ22WDFpWkj5qOZTULfdNH2w==}
@@ -3386,8 +3386,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-fmt-wasm/4.12.0-14.da9cbf177f656f6a0002c6749f5f689a1e3cc9e4:
-    resolution: {integrity: sha512-g8DqKfp48rzMwMXSx5O6xb5Ja3Vru5Odqen3bvo5M9SciPiOEoX1S24rtb+37KULHvRM7+uZIKaVlNP1WpB+sw==}
+  /@prisma/prisma-fmt-wasm/4.12.0-18.6fc58ed5ea814e75885cea4eeb6e553de658411c:
+    resolution: {integrity: sha512-rFbFP4R8R1ztMDtDGJSQmxdq/MCUmh8Xl9XTd3VzprBDXuVvU/3nmTKsWV3XvgLdCISM7ic+UKnMwvuqxK/9hg==}
     dev: false
 
   /@prisma/studio-common/0.483.0:
@@ -10293,7 +10293,7 @@ packages:
       mongodb-connection-string-url: 2.5.4
       socks: 2.7.1
     optionalDependencies:
-      '@aws-sdk/credential-providers': 3.290.0
+      '@aws-sdk/credential-providers': 3.291.0
       saslprep: 1.0.3
     transitivePeerDependencies:
       - aws-crt
