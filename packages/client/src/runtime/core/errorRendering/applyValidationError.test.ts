@@ -31,7 +31,7 @@ describe('includeAndSelect', () => {
   test('top level', () => {
     expect(
       renderError(
-        { kind: 'includeAndSelect', selectionPath: [] },
+        { kind: 'IncludeAndSelect', selectionPath: [] },
         {
           data: { foo: 'bar' },
           include: {},
@@ -56,7 +56,7 @@ describe('includeAndSelect', () => {
   test('deep', () => {
     expect(
       renderError(
-        { kind: 'includeAndSelect', selectionPath: ['posts', 'likes'] },
+        { kind: 'IncludeAndSelect', selectionPath: ['posts', 'likes'] },
         {
           include: {
             posts: {
@@ -99,7 +99,7 @@ describe('includeOnScalar', () => {
   test('top level - no type description', () => {
     expect(
       renderError(
-        { kind: 'includeOnScalar', selectionPath: ['id'] },
+        { kind: 'IncludeOnScalar', selectionPath: ['id'] },
         {
           data: { foo: 'bar' },
           include: {
@@ -127,7 +127,7 @@ describe('includeOnScalar', () => {
     expect(
       renderError(
         {
-          kind: 'includeOnScalar',
+          kind: 'IncludeOnScalar',
           selectionPath: ['id'],
           outputType: {
             name: 'User',
@@ -165,7 +165,7 @@ describe('includeOnScalar', () => {
   test('nested - no type description', () => {
     expect(
       renderError(
-        { kind: 'includeOnScalar', selectionPath: ['posts', 'id'] },
+        { kind: 'IncludeOnScalar', selectionPath: ['posts', 'id'] },
         {
           data: { foo: 'bar' },
           include: {
@@ -201,7 +201,7 @@ describe('includeOnScalar', () => {
     expect(
       renderError(
         {
-          kind: 'includeOnScalar',
+          kind: 'IncludeOnScalar',
           selectionPath: ['posts', 'id'],
           outputType: {
             name: 'Post',
@@ -602,6 +602,60 @@ describe('UnknownArgument', () => {
       }
 
       Unknown argument upvote. Did you mean \`upvotes\`? Available options are listed in green.
+    `)
+  })
+})
+
+describe('MissingRequiredArgument', () => {
+  test('simple', () => {
+    expect(
+      renderError(
+        {
+          kind: 'MissingRequiredArgument',
+          argumentName: 'where',
+          argumentType: {
+            name: 'UserWhereInput',
+            fields: [
+              { name: 'id', typeNames: ['Int'], required: false },
+              { name: 'email', typeNames: ['String'], required: false },
+            ],
+          },
+        },
+        {},
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+      + where: {
+      +   id: Int,
+      +   email: String
+      + }
+      }
+
+      Argument where is missing.
+    `)
+  })
+
+  test('with multiple types', () => {
+    expect(
+      renderError(
+        {
+          kind: 'MissingRequiredArgument',
+          argumentName: 'where',
+          argumentType: {
+            name: 'UserWhereInput',
+            fields: [{ name: 'id', typeNames: ['Int', 'String'], required: false }],
+          },
+        },
+        {},
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+      + where: {
+      +   id: Int | String
+      + }
+      }
+
+      Argument where is missing.
     `)
   })
 })

@@ -1,9 +1,9 @@
-import { ErrorBasicBuilder, ErrorWriter } from './types'
+import { ErrorBasicBuilder, ErrorWriter } from './base'
 
 export type ColorFn = (str: string) => string
 
 export class FormattedString implements ErrorBasicBuilder {
-  private isUnderlined: boolean = false
+  private isUnderlined = false
   private color: ColorFn = (str) => str
   constructor(public contents: string) {}
 

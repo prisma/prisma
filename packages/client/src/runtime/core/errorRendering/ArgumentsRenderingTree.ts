@@ -7,10 +7,10 @@ import { isDecimalJsLike } from '../../utils/decimalJsLike'
 import { isFieldRef } from '../model/FieldRef'
 import { JsArgs, JsInputValue } from '../types/JsApi'
 import { ArrayValue } from './ArrayValue'
+import { ErrorBasicBuilder, ErrorWriter } from './base'
 import { ObjectField } from './ObjectField'
 import { ObjectValue } from './ObjectValue'
 import { ScalarValue } from './ScalarValue'
-import { ErrorBasicBuilder, ErrorWriter } from './types'
 
 type MessageRender = (chalk: Chalk) => string
 

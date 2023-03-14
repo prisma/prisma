@@ -1,11 +1,5 @@
-import { ErrorBasicBuilder, ErrorWriter } from './types'
+import { ErrorBasicBuilder, ErrorWriter, fieldsSeparator } from './base'
 import { Value } from './Value'
-
-const fieldsSeparator: ErrorBasicBuilder = {
-  write(writer) {
-    writer.writeLine(',')
-  },
-}
 
 export class ArrayValue implements ErrorBasicBuilder {
   private items: Value[] = []

@@ -1,5 +1,5 @@
+import { ErrorBasicBuilder, ErrorWriter } from './base'
 import { FormattedString } from './FormattedString'
-import { ErrorBasicBuilder, ErrorWriter } from './types'
 import { Value } from './Value'
 
 export class ObjectField implements ErrorBasicBuilder {

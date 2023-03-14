@@ -1,13 +1,7 @@
+import { ErrorBasicBuilder, ErrorWriter, fieldsSeparator } from './base'
 import { ObjectField } from './ObjectField'
 import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
-import { ErrorBasicBuilder, ErrorWriter } from './types'
 import { Value } from './Value'
-
-const fieldsSeparator: ErrorBasicBuilder = {
-  write(writer) {
-    writer.writeLine(',')
-  },
-}
 
 type SelectionParent = {
   kind: 'include' | 'select'

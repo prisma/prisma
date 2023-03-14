@@ -1,4 +1,4 @@
-import { ErrorBasicBuilder, ErrorWriter } from './types'
+import { ErrorBasicBuilder, ErrorWriter } from './base'
 
 export class ScalarValue implements ErrorBasicBuilder {
   constructor(readonly text: string) {}

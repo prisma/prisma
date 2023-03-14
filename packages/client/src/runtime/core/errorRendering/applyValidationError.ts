@@ -1,6 +1,7 @@
 import {
   ArgumentDescription,
   EmptySelectionError,
+  MissingRequiredArgumentError,
   OutputTypeDescription,
   UnknownArgumentError,
   UnknownSelectionFieldError,
@@ -12,13 +13,14 @@ import { IncludeAndSelectError, IncludeOnScalarError, ValidationError } from '..
 import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
 import { ObjectValue } from './ObjectValue'
+import { SuggestionObjectValue } from './SuggestionObjectValue'
 
 export function applyValidationError(error: ValidationError, args: ArgumentsRenderingTree): void {
   switch (error.kind) {
-    case 'includeAndSelect':
+    case 'IncludeAndSelect':
       applyIncludeAndSelectError(error, args)
       break
-    case 'includeOnScalar':
+    case 'IncludeOnScalar':
       applyIncludeOnScalarError(error, args)
       break
     case 'EmptySelection':
@@ -29,6 +31,9 @@ export function applyValidationError(error: ValidationError, args: ArgumentsRend
       break
     case 'UnknownArgument':
       applyUnknownArgumentError(error, args)
+      break
+    case 'MissingRequiredArgument':
+      applyMissingRequiredArgumentError(error, args)
       break
     default:
       throw new Error('not implemented')
@@ -151,6 +156,17 @@ function applyUnknownArgumentError(error: UnknownArgumentError, argsTree: Argume
 
     return parts.join(' ')
   })
+}
+
+function applyMissingRequiredArgumentError(error: MissingRequiredArgumentError, args: ArgumentsRenderingTree) {
+  const objectSuggestion = new SuggestionObjectValue()
+  for (const field of error.argumentType.fields) {
+    objectSuggestion.addField(field.name, field.typeNames.join(' | '))
+  }
+
+  args.arguments.addSuggestion(new ObjectFieldSuggestion(error.argumentName, objectSuggestion).makeRequired())
+
+  args.addErrorMessage((chalk) => `Argument ${chalk.greenBright(error.argumentName)} is missing.`)
 }
 
 function addSelectionSuggestions(selection: ObjectValue, outputType: OutputTypeDescription) {

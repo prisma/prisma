@@ -3,6 +3,7 @@ export type EngineValidationError =
   | UnknownSelectionFieldError
   | SelectionSetOnScalarError
   | UnknownArgumentError
+  | MissingRequiredArgumentError
 
 export type EmptySelectionError = {
   kind: 'EmptySelection'
@@ -30,8 +31,7 @@ export type UnknownArgumentError = {
 
 export type MissingRequiredArgumentError = {
   kind: 'MissingRequiredArgument'
-  selectionPath: string[]
-  argumentPath: string[]
+  argumentName: string
   argumentType: InputTypeDescription
 }
 
@@ -48,7 +48,7 @@ export type OutputTypeDescriptionField = {
 
 export type InputTypeDescription = {
   name: string
-  field: InputTypeDescriptionField[]
+  fields: InputTypeDescriptionField[]
 }
 
 export type InputTypeDescriptionField = {
