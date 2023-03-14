@@ -134,7 +134,7 @@ jobs:
       matrix:
         queryEngine: ['library', 'binary']
         engineProtocol: ['graphql', 'json']
-        os: [buildjet-4vcpu-ubuntu-2004]
+        os: [cirun-do-runner, buildjet-4vcpu-ubuntu-2004]
         node: [16, 18]
 
     env:
@@ -246,7 +246,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [buildjet-4vcpu-ubuntu-2004]
+        os: [cirun-do-runner, buildjet-4vcpu-ubuntu-2004]
         node: [14, 16, 18]
         engineProtocol: ['graphql', 'json']
 
@@ -352,7 +352,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        os: [buildjet-4vcpu-ubuntu-2004]
+        os: [cirun-do-runner, buildjet-4vcpu-ubuntu-2004]
         node: [14, 16, 18]
     steps:
       - uses: actions/checkout@v3
@@ -606,7 +606,7 @@ jobs:
   #
   client-types:
     timeout-minutes: 15
-    runs-on: buildjet-4vcpu-ubuntu-2004
+    runs-on: ${{ matrix.runner }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -615,6 +615,7 @@ jobs:
       fail-fast: false
       matrix:
         node: [16]
+        runner: [cirun-do-runner, buildjet-4vcpu-ubuntu-2004]
 
     steps:
       - uses: actions/checkout@v3
