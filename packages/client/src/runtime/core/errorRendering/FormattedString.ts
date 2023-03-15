@@ -18,10 +18,11 @@ export class FormattedString implements ErrorBasicBuilder {
   }
 
   write(writer: ErrorWriter): void {
+    const paddingSize = writer.getCurrentLineLength()
     writer.write(this.color(this.contents))
     if (this.isUnderlined) {
       writer.afterNextNewline(() => {
-        writer.writeLine(this.color('~'.repeat(this.contents.length)))
+        writer.write(' '.repeat(paddingSize)).writeLine(this.color('~'.repeat(this.contents.length)))
       })
     }
   }

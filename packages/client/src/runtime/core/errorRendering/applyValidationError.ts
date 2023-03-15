@@ -1,6 +1,7 @@
 import {
   ArgumentDescription,
   EmptySelectionError,
+  InvalidArgumentTypeError,
   MissingRequiredArgumentError,
   OutputTypeDescription,
   UnknownArgumentError,
@@ -34,6 +35,9 @@ export function applyValidationError(error: ValidationError, args: ArgumentsRend
       break
     case 'MissingRequiredArgument':
       applyMissingRequiredArgumentError(error, args)
+      break
+    case 'InvalidArgumentType':
+      applyInvalidArgumentTypeError(error, args)
       break
     default:
       throw new Error('not implemented')
@@ -167,6 +171,18 @@ function applyMissingRequiredArgumentError(error: MissingRequiredArgumentError, 
   args.arguments.addSuggestion(new ObjectFieldSuggestion(error.argumentName, objectSuggestion).makeRequired())
 
   args.addErrorMessage((chalk) => `Argument ${chalk.greenBright(error.argumentName)} is missing.`)
+}
+
+function applyInvalidArgumentTypeError(error: InvalidArgumentTypeError, args: ArgumentsRenderingTree) {
+  const argName = error.argumentPath.at(-1)
+
+  args.addErrorMessage((chalk) => {
+    const expected = error.expectedTypes.map((type) => chalk.greenBright(type)).join(' or ')
+    // TODO: print value
+    return `Argument ${chalk.bold(argName)}: Invalid value provided. Expected ${expected}, provided ${chalk.redBright(
+      error.providedType,
+    )}.`
+  })
 }
 
 function addSelectionSuggestions(selection: ObjectValue, outputType: OutputTypeDescription) {

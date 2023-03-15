@@ -4,6 +4,7 @@ export type EngineValidationError =
   | SelectionSetOnScalarError
   | UnknownArgumentError
   | MissingRequiredArgumentError
+  | InvalidArgumentTypeError
 
 export type EmptySelectionError = {
   kind: 'EmptySelection'
@@ -33,6 +34,14 @@ export type MissingRequiredArgumentError = {
   kind: 'MissingRequiredArgument'
   argumentName: string
   argumentType: InputTypeDescription
+}
+
+export type InvalidArgumentTypeError = {
+  kind: 'InvalidArgumentType'
+  selectionPath: string[]
+  argumentPath: string[]
+  providedType: string
+  expectedTypes: string[]
 }
 
 export type OutputTypeDescription = {

@@ -659,3 +659,80 @@ describe('MissingRequiredArgument', () => {
     `)
   })
 })
+
+describe('InvalidArgumentType', () => {
+  test('simple', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidArgumentType',
+          selectionPath: [],
+          argumentPath: ['where', 'id'],
+          providedType: 'Int',
+          expectedTypes: ['String'],
+        },
+        { where: { id: 123 } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          id: 123
+              ~~~
+        }
+      }
+
+      Argument id: Invalid value provided. Expected String, provided Int.
+    `)
+  })
+
+  test('multiple expected types', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidArgumentType',
+          selectionPath: [],
+          argumentPath: ['where', 'id'],
+          providedType: 'Int',
+          expectedTypes: ['String', 'StringFilter'],
+        },
+        { where: { id: 123 } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          id: 123
+              ~~~
+        }
+      }
+
+      Argument id: Invalid value provided. Expected String or StringFilter, provided Int.
+    `)
+  })
+
+  test('nested selection', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidArgumentType',
+          selectionPath: ['posts'],
+          argumentPath: ['where', 'published'],
+          providedType: 'String',
+          expectedTypes: ['Bool'],
+        },
+        { include: { posts: { where: { published: 'yes' } } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        include: {
+          posts: {
+            where: {
+              published: "yes"
+            }
+          }
+        }
+      }
+
+      Argument published: Invalid value provided. Expected Bool, provided String.
+    `)
+  })
+})

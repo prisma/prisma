@@ -1,6 +1,6 @@
 import type { BasicBuilder } from './BasicBuilder'
 
-const INDENT_SIZE = 2
+export const INDENT_SIZE = 2
 export class Writer<ContextType = undefined> {
   private lines: string[] = []
   private currentLine = ''
@@ -78,6 +78,10 @@ export class Writer<ContextType = undefined> {
 
   toString() {
     return this.lines.concat(this.indentedCurrentLine()).join('\n')
+  }
+
+  getCurrentLineLength() {
+    return this.currentLine.length
   }
 
   private indentedCurrentLine(): string {

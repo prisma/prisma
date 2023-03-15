@@ -1,5 +1,13 @@
-import { ArrayValue } from './ArrayValue'
-import { ObjectValue } from './ObjectValue'
-import { ScalarValue } from './ScalarValue'
+import { ErrorBasicBuilder, ErrorWriter } from './base'
 
-export type Value = ObjectValue | ArrayValue | ScalarValue
+export abstract class Value implements ErrorBasicBuilder {
+  abstract write(writer: ErrorWriter): void
+  abstract getPrintWidth(): number
+
+  public hasError = false
+
+  markAsError(): this {
+    this.hasError = true
+    return this
+  }
+}

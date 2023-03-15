@@ -199,9 +199,10 @@ test('list', () => {
     {
       where: {
         list: [
-        1,
-        2,
-        3]
+          1,
+          2,
+          3
+        ]
       }
     }
   `)
@@ -272,6 +273,122 @@ test('error in nested selection', () => {
             }
           }
         }
+      }
+    }
+  `)
+})
+
+test('error in scalar argument', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { id: 'one' },
+  })
+
+  tree.arguments.getDeepFieldValue(['where', 'id'])?.markAsError()
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        id: "one"
+            ~~~~~
+      }
+    }
+  `)
+})
+
+test('error in object argument', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { id: { foo: 'bar', baz: 'qux' } },
+  })
+
+  tree.arguments.getDeepFieldValue(['where', 'id'])?.markAsError()
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        id: {
+          foo: "bar",
+          baz: "qux"
+        }
+        ~~~~~~~~~~~~
+      }
+    }
+  `)
+})
+
+test('error in empty object argument', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { id: {} },
+  })
+
+  tree.arguments.getDeepFieldValue(['where', 'id'])?.markAsError()
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        id: {}
+            ~~
+      }
+    }
+  `)
+})
+
+test('error in deeply nested object argument', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { id: { foo: { bar: { baz: 'qux' } } } },
+  })
+
+  tree.arguments.getDeepFieldValue(['where', 'id', 'foo', 'bar'])?.markAsError()
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        id: {
+          foo: {
+            bar: {
+              baz: "qux"
+            }
+            ~~~~~~~~~~~~
+          }
+        }
+      }
+    }
+  `)
+})
+
+test('error in array argument', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { id: [12, 34, 5678, 'hello'] },
+  })
+
+  tree.arguments.getDeepFieldValue(['where', 'id'])?.markAsError()
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        id: [
+          12,
+          34,
+          5678,
+          "hello"
+        ]
+        ~~~~~~~~~
+      }
+    }
+  `)
+})
+
+test('error in empty array', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { id: [] },
+  })
+
+  tree.arguments.getDeepFieldValue(['where', 'id'])?.markAsError()
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        id: []
+            ~~
       }
     }
   `)

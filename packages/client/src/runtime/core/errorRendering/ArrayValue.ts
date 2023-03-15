@@ -1,7 +1,9 @@
-import { ErrorBasicBuilder, ErrorWriter, fieldsSeparator } from './base'
+import { INDENT_SIZE } from '../../../generation/ts-builders/Writer'
+import { ErrorWriter, fieldsSeparator } from './base'
+import { FormattedString } from './FormattedString'
 import { Value } from './Value'
 
-export class ArrayValue implements ErrorBasicBuilder {
+export class ArrayValue extends Value {
   private items: Value[] = []
 
   addItem(item: Value): this {
@@ -9,12 +11,39 @@ export class ArrayValue implements ErrorBasicBuilder {
     return this
   }
 
-  write(writer: ErrorWriter): void {
+  override getPrintWidth(): number {
+    const maxItemWidth = Math.max(...this.items.map((item) => item.getPrintWidth()))
+    return maxItemWidth + INDENT_SIZE
+  }
+
+  override write(writer: ErrorWriter): void {
     if (this.items.length === 0) {
-      writer.write('[]')
+      this.writeEmpty(writer)
       return
     }
+    this.writeWithItems(writer)
+  }
 
-    writer.writeLine('[').writeJoined(fieldsSeparator, this.items).write(']')
+  private writeEmpty(writer: ErrorWriter) {
+    const output = new FormattedString('[]')
+    if (this.hasError) {
+      output.setColor(writer.context.chalk.redBright).underline()
+    }
+    writer.write(output)
+  }
+
+  private writeWithItems(writer: ErrorWriter) {
+    const { chalk } = writer.context
+
+    writer
+      .writeLine('[')
+      .withIndent(() => writer.writeJoined(fieldsSeparator, this.items).newLine())
+      .write(']')
+
+    if (this.hasError) {
+      writer.afterNextNewline(() => {
+        writer.writeLine(chalk.redBright('~'.repeat(this.getPrintWidth())))
+      })
+    }
   }
 }

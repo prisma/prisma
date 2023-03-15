@@ -99,7 +99,7 @@ function serializeSelectionSet(
   context: SerializeContext,
 ): JsonSelectionSet {
   if (select && include) {
-    context.throwValidationError({ kind: 'includeAndSelect', selectionPath: context.getSelectionPath() })
+    context.throwValidationError({ kind: 'IncludeAndSelect', selectionPath: context.getSelectionPath() })
   }
 
   if (select) {
@@ -130,7 +130,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
 
     if (field && field?.kind !== 'object') {
       context.throwValidationError({
-        kind: 'includeOnScalar',
+        kind: 'IncludeOnScalar',
         selectionPath: context.getSelectionPath().concat(key),
         outputType: context.getOutputTypeDescription(),
       })

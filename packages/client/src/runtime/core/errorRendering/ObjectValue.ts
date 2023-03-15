@@ -1,4 +1,6 @@
-import { ErrorBasicBuilder, ErrorWriter, fieldsSeparator } from './base'
+import { INDENT_SIZE } from '../../../generation/ts-builders/Writer'
+import { ErrorWriter, fieldsSeparator } from './base'
+import { FormattedString } from './FormattedString'
 import { ObjectField } from './ObjectField'
 import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
 import { Value } from './Value'
@@ -8,7 +10,7 @@ type SelectionParent = {
   value: ObjectValue
 }
 
-export class ObjectValue implements ErrorBasicBuilder {
+export class ObjectValue extends Value {
   private fields: Record<string, ObjectField> = {}
   private suggestions: ObjectFieldSuggestion[] = []
 
@@ -126,17 +128,44 @@ export class ObjectValue implements ErrorBasicBuilder {
     return this.getSelectionParent()?.value.fields[key].value
   }
 
-  write(writer: ErrorWriter): void {
+  override getPrintWidth(): number {
+    const fields = Object.values(this.fields)
+    if (fields.length == 0) {
+      return 2 // {}
+    }
+    const maxFieldWidth = Math.max(...fields.map((f) => f.getPrintWidth()))
+    return maxFieldWidth + INDENT_SIZE
+  }
+
+  override write(writer: ErrorWriter): void {
     const fields = Object.values(this.fields)
     if (fields.length === 0 && this.suggestions.length === 0) {
-      writer.write('{}')
+      this.writeEmpty(writer)
       return
     }
 
+    this.writeWithContents(writer, fields)
+  }
+
+  private writeEmpty(writer: ErrorWriter) {
+    const output = new FormattedString('{}')
+    if (this.hasError) {
+      output.setColor(writer.context.chalk.redBright).underline()
+    }
+
+    writer.write(output)
+  }
+
+  private writeWithContents(writer: ErrorWriter, fields: ObjectField[]) {
     writer.writeLine('{').withIndent(() => {
       writer.writeJoined(fieldsSeparator, [...fields, ...this.suggestions]).newLine()
     })
 
     writer.write('}')
+    if (this.hasError) {
+      writer.afterNextNewline(() => {
+        writer.writeLine(writer.context.chalk.redBright('~'.repeat(this.getPrintWidth())))
+      })
+    }
   }
 }
