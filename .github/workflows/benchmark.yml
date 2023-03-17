@@ -68,6 +68,12 @@ jobs:
       - name: Run benchmarks
         run: pnpm run bench
 
+      - name: Run benchmarks for Codspeed
+        uses: CodSpeedHQ/action@v1
+        with:
+          run: pnpm run bench
+          token: ${{ secrets.CODSPEED_TOKEN }}
+
       - name: Store benchmark result
         if: ${{ github.ref == 'refs/heads/main' }}
         uses: rhysd/github-action-benchmark@v1
