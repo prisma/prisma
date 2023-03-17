@@ -62,6 +62,7 @@
     "index-browser.js"
   ],
   "devDependencies": {
+    "@codspeed/benchmark.js-plugin": "1.0.1",
     "@faker-js/faker": "7.6.0",
     "@fast-check/jest": "1.6.0",
     "@jest/globals": "29.4.3",
@@ -149,7 +150,6 @@
     }
   },
   "dependencies": {
-    "@codspeed/benchmark.js-plugin": "1.0.1",
     "@prisma/engines-version": "4.12.0-22.3b9f029aeb9a91829e6648c61146b02f3646d1e7"
   },
   "sideEffects": false
