@@ -112,18 +112,24 @@ export class GeneratorProcess {
             this.handleResponse(data)
           }
         })
-        // wait initWaitTime for the binary to fail
-        // TODO: this a really flaky way to detect startup failure
-        // In future, generator should explicitly send a notification when it finishes
-        // initialization and we should wait until we got that notification. We can't introduce
-        // it now since it would be a breaking change.
-        setTimeout(() => {
-          if (this.exitCode && this.exitCode > 0) {
-            reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
-          } else {
-            resolve()
-          }
-        }, this.initWaitTime)
+
+        this.child.on('spawn', () => {
+          // Wait initWaitTime for the binary to report an error and exit with non-zero exit code before considering it
+          // successfully started.
+          // TODO: this is not a reliable way to detect a startup error as the initialization could take longer than
+          // initWaitTime (200 ms by default), and this also hurts the generation performance since it always waits even
+          // if the generator succesfully initialized in less than initWaitTime.  The proper solution would be to make
+          // the generator explicitly send a notification when it is ready, and we should wait until we get that
+          // notification. Requiring that would be a breaking change, however we could start by introducing an optional
+          // notification that would stop the waiting timer as a performance optimization.
+          setTimeout(() => {
+            if (this.exitCode && this.exitCode > 0) {
+              reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
+            } else {
+              resolve()
+            }
+          }, this.initWaitTime)
+        })
       } catch (e) {
         reject(e)
       }
