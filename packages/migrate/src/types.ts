@@ -187,7 +187,8 @@ export namespace EngineArgs {
     | IntrospectionWarningsEnrichedWithMapOnView
     | IntrospectionWarningsViewsWithoutIdentifier
     | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews
-    | IntrospectionWarningsFieldsWithEmptyNamesInViews
+    // Inherited
+    | IntrospectionWarningsInheritedTablesFound
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
@@ -349,6 +350,12 @@ export namespace EngineArgs {
   interface IntrospectionWarningsFieldsWithEmptyNamesInViews extends IntrospectionWarning {
     code: 26
     affected: AffectedViewAndField[]
+  }
+
+  // Inherited
+  interface IntrospectionWarningsInheritedTablesFound extends IntrospectionWarning {
+    code: 28
+    affected: AffectedModel[]
   }
 
   // MongoDB starts at 101 see
