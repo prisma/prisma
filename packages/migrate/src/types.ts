@@ -188,6 +188,8 @@ export namespace EngineArgs {
     | IntrospectionWarningsViewsWithoutIdentifier
     | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews
     | IntrospectionWarningsFieldsWithEmptyNamesInViews
+    // Partioned Tables
+    | IntrospectionWarningsPartionedTablesFound
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
@@ -321,6 +323,7 @@ export namespace EngineArgs {
     affected: AffectedTopLevel[]
   }
 
+  // Views
   interface IntrospectionWarningsUnsupportedTypesInViews extends IntrospectionWarning {
     code: 21
     affected: AffectedViewAndFieldAndType[]
@@ -349,6 +352,12 @@ export namespace EngineArgs {
   interface IntrospectionWarningsFieldsWithEmptyNamesInViews extends IntrospectionWarning {
     code: 26
     affected: AffectedViewAndField[]
+  }
+
+  // Partioned Tables
+  interface IntrospectionWarningsPartionedTablesFound extends IntrospectionWarning {
+    code: 27
+    affected: AffectedModel[]
   }
 
   // MongoDB starts at 101 see
