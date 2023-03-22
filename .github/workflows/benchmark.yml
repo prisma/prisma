@@ -65,8 +65,8 @@ jobs:
       #  This is required as setup.sh can modify pnpm-lock.yml
       - run: rm -f ./pnpm-lock.yaml
 
-      - name: Run benchmarks
-        run: pnpm run bench
+      #- name: Run benchmarks
+      #  run: pnpm run bench
 
       - name: Run benchmarks for Codspeed
         uses: CodSpeedHQ/action@v1
