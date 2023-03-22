@@ -69,14 +69,14 @@ export class ObjectValue extends Value {
     return this.getField(key)?.value
   }
 
-  getDeepSelectionValue(path: string[]): Value | undefined {
+  getDeepSubSelectionValue(path: string[]): Value | undefined {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     let selection: Value = this
     for (const segment of path) {
       if (!(selection instanceof ObjectValue)) {
         return undefined
       }
-      const next = selection.getSelectionValue(segment)
+      const next = selection.getSubSelectionValue(segment)
       if (!next) {
         return undefined
       }
@@ -124,7 +124,7 @@ export class ObjectValue extends Value {
     return undefined
   }
 
-  getSelectionValue(key: string): Value | undefined {
+  getSubSelectionValue(key: string): Value | undefined {
     return this.getSelectionParent()?.value.fields[key].value
   }
 

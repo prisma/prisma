@@ -572,19 +572,25 @@ describe('UnknownArgument', () => {
       Unknown argument wherr. Did you mean \`where\`? Available options are listed in green.
     `)
   })
+})
 
-  test('nested argument', () => {
+describe('UnknownInputField', () => {
+  test('simple', () => {
     expect(
       renderError(
         {
-          kind: 'UnknownArgument',
+          kind: 'UnknownInputField',
           selectionPath: [],
           argumentPath: ['where', 'upvote'],
-          arguments: [
-            { name: 'id', typeNames: ['String'] },
-            { name: 'name', typeNames: ['String'] },
-            { name: 'upvotes', typeNames: ['Int', 'IntFilter'] },
-          ],
+          inputType: {
+            kind: 'object',
+            name: 'PostWhereInput',
+            fields: [
+              { name: 'id', required: false, typeNames: ['String'] },
+              { name: 'name', required: false, typeNames: ['String'] },
+              { name: 'upvotes', required: false, typeNames: ['Int', 'IntFilter'] },
+            ],
+          },
         },
         { where: { upvote: { gt: 0 } } },
       ),
@@ -604,22 +610,101 @@ describe('UnknownArgument', () => {
       Unknown argument upvote. Did you mean \`upvotes\`? Available options are listed in green.
     `)
   })
+
+  test('simple with large edit distance', () => {
+    expect(
+      renderError(
+        {
+          kind: 'UnknownInputField',
+          selectionPath: [],
+          argumentPath: ['where', 'somethingCompletelyDifferent'],
+          inputType: {
+            kind: 'object',
+            name: 'PostWhereInput',
+            fields: [
+              { name: 'id', required: false, typeNames: ['String'] },
+              { name: 'name', required: false, typeNames: ['String'] },
+              { name: 'upvotes', required: false, typeNames: ['Int', 'IntFilter'] },
+            ],
+          },
+        },
+        { where: { somethingCompletelyDifferent: { gt: 0 } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          somethingCompletelyDifferent: {
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            gt: 0
+          },
+      ?   id?: String,
+      ?   name?: String,
+      ?   upvotes?: Int | IntFilter
+        }
+      }
+
+      Unknown argument somethingCompletelyDifferent. Available options are listed in green.
+    `)
+  })
+
+  test('nested selection', () => {
+    expect(
+      renderError(
+        {
+          kind: 'UnknownInputField',
+          selectionPath: ['posts'],
+          argumentPath: ['where', 'upvote'],
+          inputType: {
+            kind: 'object',
+            name: 'PostWhereInput',
+            fields: [
+              { name: 'id', required: false, typeNames: ['String'] },
+              { name: 'name', required: false, typeNames: ['String'] },
+              { name: 'upvotes', required: false, typeNames: ['Int', 'IntFilter'] },
+            ],
+          },
+        },
+        { include: { posts: { where: { upvote: { gt: 0 } } } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        include: {
+          posts: {
+            where: {
+              upvote: {
+              ~~~~~~
+                gt: 0
+              },
+      ?       id?: String,
+      ?       name?: String,
+      ?       upvotes?: Int | IntFilter
+            }
+          }
+        }
+      }
+
+      Unknown argument upvote. Did you mean \`upvotes\`? Available options are listed in green.
+    `)
+  })
 })
 
-describe('MissingRequiredArgument', () => {
+describe('RequiredArgumentMissing', () => {
   test('simple', () => {
     expect(
       renderError(
         {
-          kind: 'MissingRequiredArgument',
-          argumentName: 'where',
-          argumentType: {
-            name: 'UserWhereInput',
-            fields: [
-              { name: 'id', typeNames: ['Int'], required: false },
-              { name: 'email', typeNames: ['String'], required: false },
-            ],
-          },
+          kind: 'RequiredArgumentMissing',
+          argumentPath: ['where'],
+          inputTypes: [
+            {
+              kind: 'object',
+              name: 'UserWhereInput',
+              fields: [
+                { name: 'id', typeNames: ['Int'], required: false },
+                { name: 'email', typeNames: ['String'], required: false },
+              ],
+            },
+          ],
         },
         {},
       ),
@@ -635,16 +720,19 @@ describe('MissingRequiredArgument', () => {
     `)
   })
 
-  test('with multiple types', () => {
+  test('field with multiple types', () => {
     expect(
       renderError(
         {
-          kind: 'MissingRequiredArgument',
-          argumentName: 'where',
-          argumentType: {
-            name: 'UserWhereInput',
-            fields: [{ name: 'id', typeNames: ['Int', 'String'], required: false }],
-          },
+          kind: 'RequiredArgumentMissing',
+          argumentPath: ['where'],
+          inputTypes: [
+            {
+              kind: 'object',
+              name: 'UserWhereInput',
+              fields: [{ name: 'id', typeNames: ['Int', 'String'], required: false }],
+            },
+          ],
         },
         {},
       ),
@@ -658,6 +746,65 @@ describe('MissingRequiredArgument', () => {
       Argument where is missing.
     `)
   })
+
+  test('multiple input types', () => {
+    expect(
+      renderError(
+        {
+          kind: 'RequiredArgumentMissing',
+          argumentPath: ['where'],
+          inputTypes: [
+            {
+              kind: 'object',
+              name: 'UserWhereInput',
+              fields: [{ name: 'id', typeNames: ['Int', 'String'], required: false }],
+            },
+
+            {
+              kind: 'object',
+              name: 'UserBetterWhereInput',
+              fields: [{ name: 'id', typeNames: ['Int', 'String'], required: false }],
+            },
+          ],
+        },
+        {},
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+      + where: UserWhereInput | UserBetterWhereInput
+      }
+
+      Argument where is missing.
+    `)
+  })
+
+  test('with list', () => {
+    expect(
+      renderError(
+        {
+          kind: 'RequiredArgumentMissing',
+          argumentPath: ['data'],
+          inputTypes: [
+            {
+              kind: 'list',
+              elementType: {
+                kind: 'object',
+                name: 'UserCreateInput',
+                fields: [],
+              },
+            },
+          ],
+        },
+        {},
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+      + data: UserCreateInput[]
+      }
+
+      Argument data is missing.
+    `)
+  })
 })
 
 describe('InvalidArgumentType', () => {
@@ -668,8 +815,8 @@ describe('InvalidArgumentType', () => {
           kind: 'InvalidArgumentType',
           selectionPath: [],
           argumentPath: ['where', 'id'],
-          providedType: 'Int',
-          expectedTypes: ['String'],
+          argument: { name: 'id', typeNames: ['String'] },
+          inferredType: 'Int',
         },
         { where: { id: 123 } },
       ),
@@ -685,6 +832,32 @@ describe('InvalidArgumentType', () => {
     `)
   })
 
+  test('nested argument', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidArgumentType',
+          selectionPath: [],
+          argumentPath: ['where', 'id', 'contains'],
+          argument: { name: 'contains', typeNames: ['String'] },
+          inferredType: 'Int',
+        },
+        { where: { id: { contains: 123 } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          id: {
+            contains: 123
+                      ~~~
+          }
+        }
+      }
+
+      Argument contains: Invalid value provided. Expected String, provided Int.
+    `)
+  })
+
   test('multiple expected types', () => {
     expect(
       renderError(
@@ -692,8 +865,8 @@ describe('InvalidArgumentType', () => {
           kind: 'InvalidArgumentType',
           selectionPath: [],
           argumentPath: ['where', 'id'],
-          providedType: 'Int',
-          expectedTypes: ['String', 'StringFilter'],
+          argument: { name: 'id', typeNames: ['String', 'StringFilter'] },
+          inferredType: 'Int',
         },
         { where: { id: 123 } },
       ),
@@ -716,8 +889,8 @@ describe('InvalidArgumentType', () => {
           kind: 'InvalidArgumentType',
           selectionPath: ['posts'],
           argumentPath: ['where', 'published'],
-          providedType: 'String',
-          expectedTypes: ['Bool'],
+          argument: { name: 'published', typeNames: ['Boolean'] },
+          inferredType: 'String',
         },
         { include: { posts: { where: { published: 'yes' } } } },
       ),
@@ -727,12 +900,235 @@ describe('InvalidArgumentType', () => {
           posts: {
             where: {
               published: "yes"
+                         ~~~~~
             }
           }
         }
       }
 
-      Argument published: Invalid value provided. Expected Bool, provided String.
+      Argument published: Invalid value provided. Expected Boolean, provided String.
+    `)
+  })
+
+  test('nested selection and argument', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidArgumentType',
+          selectionPath: ['posts'],
+          argumentPath: ['where', 'publishedDate', 'gt'],
+          argument: { name: 'gt', typeNames: ['Date'] },
+          inferredType: 'String',
+        },
+        { include: { posts: { where: { publishedDate: { gt: 'now' } } } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        include: {
+          posts: {
+            where: {
+              publishedDate: {
+                gt: "now"
+                    ~~~~~
+              }
+            }
+          }
+        }
+      }
+
+      Argument gt: Invalid value provided. Expected Date, provided String.
+    `)
+  })
+})
+
+describe('InvalidArgumentValue', () => {
+  test('simple', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidArgumentValue',
+          selectionPath: [],
+          argumentPath: ['where', 'createdAt'],
+          argument: { name: 'createdAt', typeNames: ['IS0861 DateTime'] },
+          underlyingError: 'Invalid characters',
+        },
+        { where: { createdAt: 'now' } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          createdAt: "now"
+                     ~~~~~
+        }
+      }
+
+      Invalid value for argument createdAt: Invalid characters. Expected IS0861 DateTime.
+    `)
+  })
+
+  test('nested argument', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidArgumentValue',
+          selectionPath: [],
+          argumentPath: ['where', 'createdAt', 'gt'],
+          argument: { name: 'createdAt', typeNames: ['IS0861 DateTime'] },
+          underlyingError: 'Invalid characters',
+        },
+        { where: { createdAt: { gt: 'now' } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          createdAt: {
+            gt: "now"
+                ~~~~~
+          }
+        }
+      }
+
+      Invalid value for argument createdAt: Invalid characters. Expected IS0861 DateTime.
+    `)
+  })
+
+  test('nested selection', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidArgumentValue',
+          selectionPath: ['posts'],
+          argumentPath: ['where', 'createdAt'],
+          argument: { name: 'createdAt', typeNames: ['ISO8601 DateTime'] },
+          underlyingError: 'Invalid characters',
+        },
+        { include: { posts: { where: { createdAt: 'yes' } } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        include: {
+          posts: {
+            where: {
+              createdAt: "yes"
+                         ~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for argument createdAt: Invalid characters. Expected ISO8601 DateTime.
+    `)
+  })
+
+  test('nested selection and argument', () => {
+    expect(
+      renderError(
+        {
+          kind: 'InvalidArgumentValue',
+          selectionPath: ['posts'],
+          argumentPath: ['where', 'createdAt', 'equals'],
+          argument: { name: 'equals', typeNames: ['ISO8601 DateTime'] },
+          underlyingError: 'Invalid characters',
+        },
+        { include: { posts: { where: { createdAt: { equals: 'yes' } } } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        include: {
+          posts: {
+            where: {
+              createdAt: {
+                equals: "yes"
+                        ~~~~~
+              }
+            }
+          }
+        }
+      }
+
+      Invalid value for argument equals: Invalid characters. Expected ISO8601 DateTime.
+    `)
+  })
+})
+
+describe('Union', () => {
+  test('longest path', () => {
+    expect(
+      renderError(
+        {
+          kind: 'Union',
+          errors: [
+            {
+              kind: 'InvalidArgumentType',
+              selectionPath: [],
+              argumentPath: ['where', 'email', 'gt'],
+              argument: { name: 'gt', typeNames: ['String'] },
+              inferredType: 'Int',
+            },
+
+            {
+              kind: 'InvalidArgumentType',
+              selectionPath: [],
+              argumentPath: ['where', 'email'],
+              argument: { name: 'email', typeNames: ['String'] },
+              inferredType: 'Object',
+            },
+          ],
+        },
+        {
+          where: { email: { gt: 123 } },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          email: {
+            gt: 123
+                ~~~
+          }
+        }
+      }
+
+      Argument gt: Invalid value provided. Expected String, provided Int.
+    `)
+  })
+
+  test('merge', () => {
+    expect(
+      renderError(
+        {
+          kind: 'Union',
+          errors: [
+            {
+              kind: 'InvalidArgumentType',
+              selectionPath: [],
+              argumentPath: ['where', 'email'],
+              argument: { name: 'gt', typeNames: ['String'] },
+              inferredType: 'Int',
+            },
+
+            {
+              kind: 'InvalidArgumentType',
+              selectionPath: [],
+              argumentPath: ['where', 'email'],
+              argument: { name: 'email', typeNames: ['StringFilter'] },
+              inferredType: 'Int',
+            },
+          ],
+        },
+        {
+          where: { email: 123 },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          email: 123
+                 ~~~
+        }
+      }
+
+      Argument gt: Invalid value provided. Expected String or StringFilter, provided Int.
     `)
   })
 })

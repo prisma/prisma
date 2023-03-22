@@ -3,8 +3,11 @@ export type EngineValidationError =
   | UnknownSelectionFieldError
   | SelectionSetOnScalarError
   | UnknownArgumentError
-  | MissingRequiredArgumentError
+  | UnknownInputFieldError
+  | RequiredArgumentMissingError
   | InvalidArgumentTypeError
+  | InvalidArgumentValueError
+  | UnionError
 
 export type EmptySelectionError = {
   kind: 'EmptySelection'
@@ -30,18 +33,38 @@ export type UnknownArgumentError = {
   arguments: ArgumentDescription[]
 }
 
-export type MissingRequiredArgumentError = {
-  kind: 'MissingRequiredArgument'
-  argumentName: string
-  argumentType: InputTypeDescription
+export type UnknownInputFieldError = {
+  kind: 'UnknownInputField'
+  selectionPath: string[]
+  argumentPath: string[]
+  inputType: InputTypeObjectDescription
+}
+
+export type RequiredArgumentMissingError = {
+  kind: 'RequiredArgumentMissing'
+  argumentPath: string[]
+  inputTypes: InputTypeDescription[]
 }
 
 export type InvalidArgumentTypeError = {
   kind: 'InvalidArgumentType'
   selectionPath: string[]
   argumentPath: string[]
-  providedType: string
-  expectedTypes: string[]
+  argument: ArgumentDescription
+  inferredType: string
+}
+
+export type InvalidArgumentValueError = {
+  kind: 'InvalidArgumentValue'
+  selectionPath: string[]
+  argumentPath: string[]
+  argument: ArgumentDescription
+  underlyingError: string
+}
+
+export type UnionError = {
+  kind: 'Union'
+  errors: EngineValidationError[]
 }
 
 export type OutputTypeDescription = {
@@ -55,9 +78,30 @@ export type OutputTypeDescriptionField = {
   isRelation: boolean
 }
 
-export type InputTypeDescription = {
+export type InputTypeDescription =
+  | InputTypeObjectDescription
+  | InputTypeListDescription
+  | InputTypeScalarDescription
+  | InputTypeEnumDescription
+
+export type InputTypeObjectDescription = {
+  kind: 'object'
   name: string
   fields: InputTypeDescriptionField[]
+}
+
+export type InputTypeListDescription = {
+  kind: 'list'
+  elementType: InputTypeDescription
+}
+
+export type InputTypeScalarDescription = {
+  kind: 'scalar'
+  name: string
+}
+
+export type InputTypeEnumDescription = {
+  kind: 'enum'
 }
 
 export type InputTypeDescriptionField = {

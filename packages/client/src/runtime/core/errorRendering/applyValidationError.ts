@@ -1,12 +1,17 @@
 import {
   ArgumentDescription,
   EmptySelectionError,
+  InputTypeDescription,
   InvalidArgumentTypeError,
-  MissingRequiredArgumentError,
+  InvalidArgumentValueError,
   OutputTypeDescription,
+  RequiredArgumentMissingError,
+  UnionError,
   UnknownArgumentError,
+  UnknownInputFieldError,
   UnknownSelectionFieldError,
 } from '@prisma/engine-core'
+import { maxBy } from '@prisma/internals'
 import chalk from 'chalk'
 import levenshtein from 'js-levenshtein'
 
@@ -33,19 +38,29 @@ export function applyValidationError(error: ValidationError, args: ArgumentsRend
     case 'UnknownArgument':
       applyUnknownArgumentError(error, args)
       break
-    case 'MissingRequiredArgument':
-      applyMissingRequiredArgumentError(error, args)
+    case 'UnknownInputField':
+      applyUnknownInputFieldError(error, args)
+      break
+    case 'RequiredArgumentMissing':
+      applyRequiredArgumentMissingError(error, args)
       break
     case 'InvalidArgumentType':
       applyInvalidArgumentTypeError(error, args)
       break
+    case 'InvalidArgumentValue':
+      applyInvalidArgumentValueError(error, args)
+      break
+    case 'Union':
+      applyUnionError(error, args)
+      break
     default:
-      throw new Error('not implemented')
+      console.log(error)
+      throw new Error('not implemented: ' + error.kind)
   }
 }
 
 function applyIncludeAndSelectError(error: IncludeAndSelectError, argsTree: ArgumentsRenderingTree) {
-  const object = argsTree.arguments.getDeepSelectionValue(error.selectionPath)
+  const object = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)
   if (object && object instanceof ObjectValue) {
     object.getField('include')?.markAsError()
     object.getField('select')?.markAsError()
@@ -132,56 +147,180 @@ function applyUnknownSelectionFieldError(error: UnknownSelectionFieldError, args
 }
 
 function applyUnknownArgumentError(error: UnknownArgumentError, argsTree: ArgumentsRenderingTree) {
+  const argName = error.argumentPath[0]
+  const selection = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)
+
+  if (selection instanceof ObjectValue) {
+    selection.getField(argName)?.markAsError()
+    addArgumentsSuggestions(selection, error.arguments)
+  }
+
+  argsTree.addErrorMessage((chalk) =>
+    unknownArgumentMessage(
+      chalk,
+      argName,
+      error.arguments.map((arg) => arg.name),
+    ),
+  )
+}
+
+function applyUnknownInputFieldError(error: UnknownInputFieldError, argsTree: ArgumentsRenderingTree) {
   const [argParentPath, argName] = splitPath(error.argumentPath)
-  const selection = argsTree.arguments.getDeepSelectionValue(error.selectionPath)
+  const selection = argsTree.arguments.getDeepSubSelectionValue(error.selectionPath)
 
   if (selection instanceof ObjectValue) {
     selection.getDeepField(error.argumentPath)?.markAsError()
     const argParent = selection.getDeepFieldValue(argParentPath)
     if (argParent instanceof ObjectValue) {
-      addArgumentsSuggestions(argParent, error.arguments)
+      addInputSuggestions(argParent, error.inputType)
     }
   }
 
-  argsTree.addErrorMessage((chalk) => {
-    const parts = [`Unknown argument ${chalk.redBright(argName)}.`]
-    const suggestion = getSuggestion(
+  argsTree.addErrorMessage((chalk) =>
+    unknownArgumentMessage(
+      chalk,
       argName,
-      error.arguments.map((arg) => arg.name),
-    )
-
-    if (suggestion) {
-      parts.push(`Did you mean \`${chalk.greenBright(suggestion)}\`?`)
-    }
-
-    if (error.arguments.length > 0) {
-      parts.push(availableOptionsMessage(chalk))
-    }
-
-    return parts.join(' ')
-  })
+      error.inputType.fields.map((f) => f.name),
+    ),
+  )
 }
 
-function applyMissingRequiredArgumentError(error: MissingRequiredArgumentError, args: ArgumentsRenderingTree) {
-  const objectSuggestion = new SuggestionObjectValue()
-  for (const field of error.argumentType.fields) {
-    objectSuggestion.addField(field.name, field.typeNames.join(' | '))
+function unknownArgumentMessage(chalk: chalk.Chalk, argName: string, options: string[]) {
+  const parts = [`Unknown argument ${chalk.redBright(argName)}.`]
+  const suggestion = getSuggestion(argName, options)
+
+  if (suggestion) {
+    parts.push(`Did you mean \`${chalk.greenBright(suggestion)}\`?`)
   }
 
-  args.arguments.addSuggestion(new ObjectFieldSuggestion(error.argumentName, objectSuggestion).makeRequired())
+  if (options.length > 0) {
+    parts.push(availableOptionsMessage(chalk))
+  }
 
-  args.addErrorMessage((chalk) => `Argument ${chalk.greenBright(error.argumentName)} is missing.`)
+  return parts.join(' ')
+}
+
+function applyRequiredArgumentMissingError(error: RequiredArgumentMissingError, args: ArgumentsRenderingTree) {
+  const argumentName = error.argumentPath[0]
+  const objectSuggestion = new SuggestionObjectValue()
+  if (error.inputTypes.length === 1 && error.inputTypes[0].kind === 'object') {
+    for (const field of error.inputTypes[0].fields) {
+      objectSuggestion.addField(field.name, field.typeNames.join(' | '))
+    }
+
+    args.arguments.addSuggestion(new ObjectFieldSuggestion(argumentName, objectSuggestion).makeRequired())
+  } else {
+    const typeName = error.inputTypes.map(getInputTypeName).join(' | ')
+    args.arguments.addSuggestion(new ObjectFieldSuggestion(argumentName, typeName).makeRequired())
+  }
+
+  args.addErrorMessage((chalk) => `Argument ${chalk.greenBright(argumentName)} is missing.`)
+}
+
+function getInputTypeName(description: InputTypeDescription) {
+  if (description.kind === 'enum') {
+    return 'Enum' // TODO: add name to an enum
+  }
+  if (description.kind === 'list') {
+    return `${getInputTypeName(description.elementType)}[]`
+  }
+  return description.name
 }
 
 function applyInvalidArgumentTypeError(error: InvalidArgumentTypeError, args: ArgumentsRenderingTree) {
-  const argName = error.argumentPath.at(-1)
+  const argName = error.argument.name
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
+  if (selection instanceof ObjectValue) {
+    selection.getDeepFieldValue(error.argumentPath)?.markAsError()
+  }
 
   args.addErrorMessage((chalk) => {
-    const expected = error.expectedTypes.map((type) => chalk.greenBright(type)).join(' or ')
+    const expected = error.argument.typeNames.map((type) => chalk.greenBright(type)).join(' or ')
     // TODO: print value
     return `Argument ${chalk.bold(argName)}: Invalid value provided. Expected ${expected}, provided ${chalk.redBright(
-      error.providedType,
+      error.inferredType,
     )}.`
+  })
+}
+
+function applyInvalidArgumentValueError(error: InvalidArgumentValueError, args: ArgumentsRenderingTree) {
+  const argName = error.argument.name
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
+  if (selection instanceof ObjectValue) {
+    selection.getDeepFieldValue(error.argumentPath)?.markAsError()
+  }
+
+  args.addErrorMessage((chalk) => {
+    const expected = error.argument.typeNames.map((type) => chalk.greenBright(type)).join(' or ')
+    return `Invalid value for argument ${chalk.bold(argName)}: ${error.underlyingError}. Expected ${expected}.`
+  })
+}
+
+function applyUnionError(error: UnionError, args: ArgumentsRenderingTree) {
+  const mergedError = tryMergingUnionError(error)
+  if (mergedError) {
+    applyValidationError(mergedError, args)
+    return
+  }
+
+  const longestPathError = getLongestPathError(error)
+
+  if (longestPathError) {
+    applyValidationError(longestPathError, args)
+    return
+  }
+
+  args.addErrorMessage(() => 'Unknown error')
+}
+
+function tryMergingUnionError({ errors }: UnionError): InvalidArgumentTypeError | undefined {
+  if (errors.length === 0 || errors[0].kind !== 'InvalidArgumentType') {
+    return undefined
+  }
+  const result = { ...errors[0], argument: { ...errors[0].argument } }
+  for (let i = 1; i < errors.length; i++) {
+    const nextError = errors[i]
+    if (nextError.kind !== 'InvalidArgumentType') {
+      return undefined
+    }
+
+    if (!samePath(nextError.selectionPath, result.selectionPath)) {
+      return undefined
+    }
+
+    if (!samePath(nextError.argumentPath, result.argumentPath)) {
+      return undefined
+    }
+
+    result.argument.typeNames = result.argument.typeNames.concat(nextError.argument.typeNames)
+  }
+
+  return result
+}
+
+function samePath(pathA: string[], pathB: string[]): boolean {
+  if (pathA.length !== pathB.length) {
+    return false
+  }
+  for (let i = 0; i < pathA.length; i++) {
+    if (pathA[i] !== pathB[i]) {
+      return false
+    }
+  }
+  return true
+}
+
+function getLongestPathError(error: UnionError) {
+  return maxBy(error.errors, (error) => {
+    let score = 0
+    if (Array.isArray(error['selectionPath'])) {
+      score += error['selectionPath'].length
+    }
+
+    if (Array.isArray(error['argumentPath'])) {
+      score += error['argumentPath'].length
+    }
+    return score
   })
 }
 
@@ -197,6 +336,18 @@ function addArgumentsSuggestions(argumentsParent: ObjectValue, args: ArgumentDes
   for (const arg of args) {
     if (!argumentsParent.hasField(arg.name)) {
       argumentsParent.addSuggestion(new ObjectFieldSuggestion(arg.name, arg.typeNames.join(' | ')))
+    }
+  }
+}
+
+function addInputSuggestions(parent: ObjectValue, inputType: InputTypeDescription) {
+  if (inputType.kind !== 'object') {
+    return
+  }
+
+  for (const field of inputType.fields) {
+    if (!parent.hasField(field.name)) {
+      parent.addSuggestion(new ObjectFieldSuggestion(field.name, field.typeNames.join(' | ')))
     }
   }
 }

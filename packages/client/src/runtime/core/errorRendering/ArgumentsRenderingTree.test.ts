@@ -251,7 +251,9 @@ test('error in nested selection', () => {
     },
   })
 
-  ;(tree.arguments.getDeepSelectionValue(['field1', 'field2', 'field3']) as ObjectValue).getField('arg')?.markAsError()
+  ;(tree.arguments.getDeepSubSelectionValue(['field1', 'field2', 'field3']) as ObjectValue)
+    .getField('arg')
+    ?.markAsError()
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
     {

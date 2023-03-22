@@ -952,7 +952,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           return new DMMFHelper(getPrismaClientDMMF(dmmf))
         })
       } catch (error) {
-        this._fetcher.handleAndLogRequestError({ ...params, error })
+        this._fetcher.handleAndLogRequestError({ ...params, args: {}, error })
       }
     })
 
