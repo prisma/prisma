@@ -150,7 +150,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.12.0-44.78c592cc8424d6adc77df66f66b6937fd4e254a0"
+    "@prisma/engines-version": "4.12.0-49.integration-errors-jsonp-b403b83be3fb1fc95e699f364c1624e86f41952d"
   },
   "sideEffects": false
 }
