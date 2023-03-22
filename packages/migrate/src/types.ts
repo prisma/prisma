@@ -2,6 +2,9 @@
 // https://prisma.github.io/prisma-engines/doc/migration_core/json_rpc/types/index.html
 //
 // https://www.jsonrpc.org/specification
+
+import type { IntrospectionViewDefinition } from '@prisma/internals'
+
 // A JSON-RPC request or response.
 export interface RpcRequestResponse {
   id: number
@@ -149,10 +152,12 @@ export namespace EngineArgs {
     compositeTypeDepth?: number
     schemas?: string[]
   }
+
   export interface IntrospectResult {
     datamodel: string
     warnings: IntrospectionWarnings[]
     version: IntrospectionSchemaVersion
+    views?: IntrospectionViewDefinition[]
   }
 
   // See prisma-engines
