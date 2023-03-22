@@ -17,7 +17,7 @@ import { Library, LibraryLoader } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
 
-const libraryCacheSymbol = Symbol('PrismaEngineModuleCache')
+const libraryCacheSymbol = Symbol('PrismaLibraryEngineCache')
 
 type LibraryCache = Record<string, Library | undefined>
 
