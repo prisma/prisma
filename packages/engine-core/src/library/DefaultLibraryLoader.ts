@@ -17,11 +17,33 @@ import { Library, LibraryLoader } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
 
-export function load<T>(id: string): T {
+const libraryCacheSymbol = Symbol('PrismaEngineModuleCache')
+
+type LibraryCache = Record<string, Library | undefined>
+
+type GlobalWithCache = typeof globalThis & {
+  [libraryCacheSymbol]?: LibraryCache
+}
+
+function getLibraryCache(): LibraryCache {
+  const globalWithCache = globalThis as GlobalWithCache
+  if (globalWithCache[libraryCacheSymbol] === undefined) {
+    globalWithCache[libraryCacheSymbol] = {}
+  }
+  return globalWithCache[libraryCacheSymbol]
+}
+
+export function load(id: string): Library {
+  const cache = getLibraryCache()
+
+  if (cache[id] !== undefined) {
+    return cache[id]!
+  }
+
   // `toNamespacedPath` is required for native addons on Windows, but it's a no-op on other systems.
   // We call it here unconditionally just like `.node` CommonJS loader in Node.js does.
   const libraryPath = path.toNamespacedPath(id)
-  const libraryModule = { exports: {} as T }
+  const libraryModule = { exports: {} as Library }
 
   let flags = 0
 
@@ -47,6 +69,7 @@ export function load<T>(id: string): T {
   // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
   process.dlopen(libraryModule, libraryPath, flags)
 
+  cache[id] = libraryModule.exports
   return libraryModule.exports
 }
 
