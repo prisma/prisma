@@ -24,6 +24,7 @@
     "check-engines-override": "node -r esbuild-register scripts/check-engines-override.ts",
     "format": "prettier --write .",
     "bench": "ts-node scripts/bench.ts | tee output.txt",
+    "bench-stdout-only": "ts-node scripts/bench.ts",
     "prepare": "is-ci || husky install"
   },
   "devDependencies": {

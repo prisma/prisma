@@ -71,7 +71,7 @@ jobs:
       - name: Run benchmarks for Codspeed
         uses: CodSpeedHQ/action@v1
         with:
-          run: pnpm run bench
+          run: pnpm run bench-stdout-only
           token: ${{ secrets.CODSPEED_TOKEN }}
 
       - name: Store benchmark result
