@@ -41,7 +41,6 @@ testMatrix.setupTestSuite(
         })
 
         await waitFor(() => {
-          // eslint-disable-next-line jest/no-standalone-expect
           expect(queries).toContain(expectSql)
         })
       })
