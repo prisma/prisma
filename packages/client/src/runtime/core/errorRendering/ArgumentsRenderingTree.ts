@@ -35,6 +35,15 @@ export class ArgumentsRenderingTree implements ErrorBasicBuilder {
   }
 }
 
+/**
+ * Given JS call arguments, produces rendering tree for outputting rich errors into the console
+ * Difference between rendering tree and plain object is that fields and values can have different attributes:
+ * colors, underlines, markers on the margins. `applyValidationError` function will then apply specific formatting
+ * to the rendering tree.
+ *
+ * @param args
+ * @returns
+ */
 export function buildArgumentsRenderingTree(args: JsArgs): ArgumentsRenderingTree {
   return new ArgumentsRenderingTree(buildInputObject(args))
 }

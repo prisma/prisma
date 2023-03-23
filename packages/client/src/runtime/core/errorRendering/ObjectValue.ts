@@ -10,6 +10,26 @@ type SelectionParent = {
   value: ObjectValue
 }
 
+/**
+ * Class for representing object value within rendering tree. Also used for accessing
+ * different fields of the object.
+ *
+ * Terminology used within:
+ * - selection parent = either `select` or `include` property value. For example for object
+ * `{ select: { posts: true }}`, selection parent is `{ posts: true }`
+ * - sub selection: value of a property of selection parent. Can be deep. In that case, specified
+ * path is expected to not contain either `select` or `include` values in between (the way engine reports `selectionPath`).
+ * For example, for this query:
+ *
+ * {
+ *   include: {
+ *     posts: {
+ *       select: { attachments: { where: { published: true }} }
+ *     }
+ *   }
+ * }
+ * Value of sub selection at path [posts, attachments] is { where: { published: true }}
+ */
 export class ObjectValue extends Value {
   private fields: Record<string, ObjectField> = {}
   private suggestions: ObjectFieldSuggestion[] = []

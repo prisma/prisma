@@ -23,6 +23,13 @@ import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
 import { ObjectValue } from './ObjectValue'
 import { SuggestionObjectValue } from './SuggestionObjectValue'
 
+/**
+ * Given the validation error and arguments rendering tree, applies corresponding
+ * formatting to an error tree and adds all relevant messages.
+ *
+ * @param error
+ * @param args
+ */
 export function applyValidationError(error: ValidationError, args: ArgumentsRenderingTree): void {
   switch (error.kind) {
     case 'IncludeAndSelect':

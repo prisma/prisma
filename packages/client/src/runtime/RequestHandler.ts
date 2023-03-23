@@ -342,6 +342,13 @@ function isValidationError(error: PrismaClientKnownRequestError) {
   )
 }
 
+/**
+ * Engine validation errors include extra segment for selectionPath - root query field.
+ * This function removes it (since it does not exist on js arguments). In case of `Union`
+ * error type, removes heading element from selectionPath of nested errors as well.
+ * @param error
+ * @returns
+ */
 function convertValidationError(error: EngineValidationError): EngineValidationError {
   if (error.kind === 'Union') {
     return {
