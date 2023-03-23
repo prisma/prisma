@@ -1,6 +1,7 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getClientEngineType, getEnvPaths, getQueryEngineProtocol } from '@prisma/internals'
+import ciInfo from 'ci-info'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
@@ -47,6 +48,7 @@ export interface TSClientOptions {
   activeProvider: string
   dataProxy: boolean
   deno?: boolean
+  postinstall?: boolean
 }
 
 export class TSClient implements Generatable {
@@ -98,6 +100,8 @@ export class TSClient implements Generatable {
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
       dataProxy: this.options.dataProxy,
+      postinstall: this.options.postinstall,
+      ciName: ciInfo.name ?? undefined,
     }
 
     // get relative output dir for it to be preserved even after bundling, or

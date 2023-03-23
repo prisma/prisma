@@ -253,6 +253,7 @@ importers:
       arg: 5.0.2
       benchmark: 2.1.4
       chalk: 4.1.2
+      ci-info: 3.8.0
       decimal.js: 10.4.3
       esbuild: 0.15.13
       execa: 5.1.1
@@ -334,6 +335,7 @@ importers:
       arg: 5.0.2
       benchmark: 2.1.4
       chalk: 4.1.2
+      ci-info: 3.8.0
       decimal.js: 10.4.3
       esbuild: 0.15.13
       execa: 5.1.1
@@ -2567,7 +2569,7 @@ packages:
       '@types/node': 18.11.18
       ansi-escapes: 4.3.2
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       exit: 0.1.2
       graceful-fs: 4.2.10
       jest-changed-files: 29.4.3
@@ -2609,7 +2611,7 @@ packages:
       '@types/node': 18.11.18
       ansi-escapes: 4.3.2
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       exit: 0.1.2
       graceful-fs: 4.2.10
       jest-changed-files: 29.4.3
@@ -2651,7 +2653,7 @@ packages:
       '@types/node': 18.11.18
       ansi-escapes: 4.3.2
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       exit: 0.1.2
       graceful-fs: 4.2.10
       jest-changed-files: 29.4.3
@@ -5405,8 +5407,8 @@ packages:
   /ci-info/3.3.0:
     resolution: {integrity: sha512-riT/3vI5YpVH6/qomlDnJow6TBee2PBKSEpx3O32EGPYbWGIRsIlGRms3Sm74wYE1JMo8RnO04Hb12+v1J5ICw==}
 
-  /ci-info/3.7.1:
-    resolution: {integrity: sha512-4jYS4MOAaCIStSRwiuxc4B8MYhIe676yO1sYGzARnjXkWpmzZMMYxY6zu8WYWDhSuth5zhrQ1rhNSibyyvv4/w==}
+  /ci-info/3.8.0:
+    resolution: {integrity: sha512-eXTggHWSooYhq49F2opQhuHWgzucfF2YgODK4e1566GQs5BIfP30B0oenwBJHfWxAs2fyPB1s7Mg949zLf61Yw==}
     engines: {node: '>=8'}
     dev: true
 
@@ -8043,7 +8045,7 @@ packages:
     resolution: {integrity: sha512-ZYvCgrefwqoQ6yTyYUbQu64HsITZ3NfKX1lzaEYdkTDcfKzzCI/wthRRYKkdjHKFVgNiXKAKm65Zo1pk2as/QQ==}
     hasBin: true
     dependencies:
-      ci-info: 3.7.1
+      ci-info: 3.8.0
     dev: true
 
   /is-core-module/2.11.0:
@@ -8618,7 +8620,7 @@ packages:
       '@jest/types': 29.4.3
       babel-jest: 29.4.3_@babel+core@7.19.6
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       deepmerge: 4.2.2
       glob: 7.2.3
       graceful-fs: 4.2.10
@@ -8657,7 +8659,7 @@ packages:
       '@types/node': 12.20.55
       babel-jest: 29.4.3_@babel+core@7.19.6
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       deepmerge: 4.2.2
       glob: 7.2.3
       graceful-fs: 4.2.10
@@ -8696,7 +8698,7 @@ packages:
       '@types/node': 16.18.12
       babel-jest: 29.4.3_@babel+core@7.19.6
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       deepmerge: 4.2.2
       glob: 7.2.3
       graceful-fs: 4.2.10
@@ -8735,7 +8737,7 @@ packages:
       '@types/node': 18.11.18
       babel-jest: 29.4.3_@babel+core@7.19.6
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       deepmerge: 4.2.2
       glob: 7.2.3
       graceful-fs: 4.2.10
@@ -8774,7 +8776,7 @@ packages:
       '@types/node': 14.14.31
       babel-jest: 29.4.3_@babel+core@7.19.6
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       deepmerge: 4.2.2
       glob: 7.2.3
       graceful-fs: 4.2.10
@@ -8814,7 +8816,7 @@ packages:
       '@types/node': 14.18.36
       babel-jest: 29.4.3_@babel+core@7.19.6
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       deepmerge: 4.2.2
       glob: 7.2.3
       graceful-fs: 4.2.10
@@ -8854,7 +8856,7 @@ packages:
       '@types/node': 12.20.55
       babel-jest: 29.4.3_@babel+core@7.19.6
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       deepmerge: 4.2.2
       glob: 7.2.3
       graceful-fs: 4.2.10
@@ -8894,7 +8896,7 @@ packages:
       '@types/node': 18.11.18
       babel-jest: 29.4.3_@babel+core@7.19.6
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       deepmerge: 4.2.2
       glob: 7.2.3
       graceful-fs: 4.2.10
@@ -9202,7 +9204,7 @@ packages:
       '@jest/types': 29.4.3
       '@types/node': 18.11.18
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       graceful-fs: 4.2.10
       picomatch: 2.3.1
     dev: true
@@ -9214,7 +9216,7 @@ packages:
       '@jest/types': 29.4.3
       '@types/node': 18.11.18
       chalk: 4.1.2
-      ci-info: 3.7.1
+      ci-info: 3.8.0
       graceful-fs: 4.2.10
       picomatch: 2.3.1
     dev: true
