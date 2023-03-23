@@ -994,8 +994,9 @@ testMatrix.setupTestSuite(
   {
     skipDefaultClientInstance: true,
     skipDataProxy: {
-      reason: "no idea (query logs aren't the same)",
-      runtimes: ['edge', 'node'],
+      // TODO: investigate this
+      reason: 'some tests fail with edge client and take a lot of time to run',
+      runtimes: ['edge'],
     },
   },
 )
