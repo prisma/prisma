@@ -6,6 +6,8 @@ import {
   InvalidArgumentValueError,
   OutputTypeDescription,
   RequiredArgumentMissingError,
+  SomeFieldsMissingError,
+  TooManyFieldsGivenError,
   UnionError,
   UnknownArgumentError,
   UnknownInputFieldError,
@@ -49,6 +51,12 @@ export function applyValidationError(error: ValidationError, args: ArgumentsRend
       break
     case 'InvalidArgumentValue':
       applyInvalidArgumentValueError(error, args)
+      break
+    case 'SomeFieldsMissing':
+      applySomeFieldsMissingError(error, args)
+      break
+    case 'TooManyFieldsGiven':
+      applyTooManyFieldsGivenError(error, args)
       break
     case 'Union':
       applyUnionError(error, args)
@@ -201,26 +209,32 @@ function unknownArgumentMessage(chalk: chalk.Chalk, argName: string, options: st
 }
 
 function applyRequiredArgumentMissingError(error: RequiredArgumentMissingError, args: ArgumentsRenderingTree) {
-  const argumentName = error.argumentPath[0]
+  args.addErrorMessage((chalk) => `Argument ${chalk.greenBright(argumentName)} is missing.`)
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
+  if (!(selection instanceof ObjectValue)) {
+    return
+  }
+
+  const [argParent, argumentName] = splitPath(error.argumentPath)
   const objectSuggestion = new SuggestionObjectValue()
+  const parent = selection.getDeepFieldValue(argParent)
+  if (!(parent instanceof ObjectValue)) {
+    return
+  }
+
   if (error.inputTypes.length === 1 && error.inputTypes[0].kind === 'object') {
     for (const field of error.inputTypes[0].fields) {
       objectSuggestion.addField(field.name, field.typeNames.join(' | '))
     }
 
-    args.arguments.addSuggestion(new ObjectFieldSuggestion(argumentName, objectSuggestion).makeRequired())
+    parent.addSuggestion(new ObjectFieldSuggestion(argumentName, objectSuggestion).makeRequired())
   } else {
     const typeName = error.inputTypes.map(getInputTypeName).join(' | ')
-    args.arguments.addSuggestion(new ObjectFieldSuggestion(argumentName, typeName).makeRequired())
+    parent.addSuggestion(new ObjectFieldSuggestion(argumentName, typeName).makeRequired())
   }
-
-  args.addErrorMessage((chalk) => `Argument ${chalk.greenBright(argumentName)} is missing.`)
 }
 
 function getInputTypeName(description: InputTypeDescription) {
-  if (description.kind === 'enum') {
-    return 'Enum' // TODO: add name to an enum
-  }
   if (description.kind === 'list') {
     return `${getInputTypeName(description.elementType)}[]`
   }
@@ -235,7 +249,10 @@ function applyInvalidArgumentTypeError(error: InvalidArgumentTypeError, args: Ar
   }
 
   args.addErrorMessage((chalk) => {
-    const expected = error.argument.typeNames.map((type) => chalk.greenBright(type)).join(' or ')
+    const expected = joinWithPreposition(
+      'or',
+      error.argument.typeNames.map((type) => chalk.greenBright(type)),
+    )
     // TODO: print value
     return `Argument ${chalk.bold(argName)}: Invalid value provided. Expected ${expected}, provided ${chalk.redBright(
       error.inferredType,
@@ -251,8 +268,81 @@ function applyInvalidArgumentValueError(error: InvalidArgumentValueError, args: 
   }
 
   args.addErrorMessage((chalk) => {
-    const expected = error.argument.typeNames.map((type) => chalk.greenBright(type)).join(' or ')
+    const expected = joinWithPreposition(
+      'or',
+      error.argument.typeNames.map((type) => chalk.greenBright(type)),
+    )
     return `Invalid value for argument ${chalk.bold(argName)}: ${error.underlyingError}. Expected ${expected}.`
+  })
+}
+
+function applySomeFieldsMissingError(error: SomeFieldsMissingError, args: ArgumentsRenderingTree) {
+  const argumentName = error.argumentPath.at(-1)
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
+  if (selection instanceof ObjectValue) {
+    const argument = selection.getDeepFieldValue(error.argumentPath)
+    if (argument instanceof ObjectValue) {
+      addInputSuggestions(argument, error.inputType)
+    }
+  }
+
+  args.addErrorMessage((chalk) => {
+    const parts = [`Argument ${chalk.bold(argumentName)} of type ${chalk.bold(error.inputType.name)} needs`]
+    if (error.constraints.minFieldCount === 1) {
+      if (error.constraints.requiredFields) {
+        parts.push(
+          `${chalk.greenBright('at least one of')} ${joinWithPreposition(
+            'or',
+            error.constraints.requiredFields.map((f) => chalk.bold(f)),
+          )} arguments.`,
+        )
+      } else {
+        parts.push(`${chalk.greenBright('at least one')} argument.`)
+      }
+    } else {
+      parts.push(`${chalk.greenBright(`at least ${error.constraints.minFieldCount}`)} arguments.`)
+    }
+    parts.push(availableOptionsMessage(chalk))
+    return parts.join(' ')
+  })
+}
+
+function applyTooManyFieldsGivenError(error: TooManyFieldsGivenError, args: ArgumentsRenderingTree) {
+  const argumentName = error.argumentPath.at(-1)
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
+  let providedArguments: string[] = []
+  if (selection instanceof ObjectValue) {
+    const argument = selection.getDeepFieldValue(error.argumentPath)
+    if (argument instanceof ObjectValue) {
+      argument.markAsError()
+      providedArguments = Object.keys(argument.getFields())
+    }
+  }
+
+  args.addErrorMessage((chalk) => {
+    const parts = [`Argument ${chalk.bold(argumentName)} of type ${chalk.bold(error.inputType.name)} needs`]
+    if (error.constraints.minFieldCount === 1 && error.constraints.maxFieldCount == 1) {
+      parts.push(`${chalk.greenBright('exactly one')} argument,`)
+    } else if (error.constraints.maxFieldCount == 1) {
+      parts.push(`${chalk.greenBright('at most one')} argument,`)
+    } else {
+      parts.push(`${chalk.greenBright(`at most ${error.constraints.maxFieldCount}`)} arguments,`)
+    }
+
+    parts.push(
+      `but you provided ${joinWithPreposition(
+        'and',
+        providedArguments.map((arg) => chalk.redBright(arg)),
+      )}. Please choose`,
+    )
+
+    if (error.constraints.maxFieldCount === 1) {
+      parts.push('one.')
+    } else {
+      parts.push(`${error.constraints.maxFieldCount}.`)
+    }
+
+    return parts.join(' ')
   })
 }
 
@@ -284,11 +374,11 @@ function tryMergingUnionError({ errors }: UnionError): InvalidArgumentTypeError 
       return undefined
     }
 
-    if (!samePath(nextError.selectionPath, result.selectionPath)) {
+    if (!isSamePath(nextError.selectionPath, result.selectionPath)) {
       return undefined
     }
 
-    if (!samePath(nextError.argumentPath, result.argumentPath)) {
+    if (!isSamePath(nextError.argumentPath, result.argumentPath)) {
       return undefined
     }
 
@@ -298,7 +388,7 @@ function tryMergingUnionError({ errors }: UnionError): InvalidArgumentTypeError 
   return result
 }
 
-function samePath(pathA: string[], pathB: string[]): boolean {
+function isSamePath(pathA: string[], pathB: string[]): boolean {
   if (pathA.length !== pathB.length) {
     return false
   }
@@ -363,6 +453,15 @@ function splitPath(path: string[]): [parentPath: string[], fieldName: string] {
 
 function availableOptionsMessage(chalk: chalk.Chalk) {
   return `Available options are listed in ${chalk.greenBright('green')}.`
+}
+
+function joinWithPreposition(preposition: 'and' | 'or', items: string[]): string {
+  if (items.length === 1) {
+    return items[0]
+  }
+  const itemsCopy = [...items]
+  const lastItem = itemsCopy.pop()
+  return `${itemsCopy.join(', ')} ${preposition} ${lastItem}`
 }
 
 /**

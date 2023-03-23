@@ -695,6 +695,7 @@ describe('RequiredArgumentMissing', () => {
         {
           kind: 'RequiredArgumentMissing',
           argumentPath: ['where'],
+          selectionPath: [],
           inputTypes: [
             {
               kind: 'object',
@@ -726,6 +727,7 @@ describe('RequiredArgumentMissing', () => {
         {
           kind: 'RequiredArgumentMissing',
           argumentPath: ['where'],
+          selectionPath: [],
           inputTypes: [
             {
               kind: 'object',
@@ -753,6 +755,7 @@ describe('RequiredArgumentMissing', () => {
         {
           kind: 'RequiredArgumentMissing',
           argumentPath: ['where'],
+          selectionPath: [],
           inputTypes: [
             {
               kind: 'object',
@@ -784,6 +787,7 @@ describe('RequiredArgumentMissing', () => {
         {
           kind: 'RequiredArgumentMissing',
           argumentPath: ['data'],
+          selectionPath: [],
           inputTypes: [
             {
               kind: 'list',
@@ -803,6 +807,73 @@ describe('RequiredArgumentMissing', () => {
       }
 
       Argument data is missing.
+    `)
+  })
+
+  test('nested argument', () => {
+    expect(
+      renderError(
+        {
+          kind: 'RequiredArgumentMissing',
+          argumentPath: ['data', 'email'],
+          selectionPath: [],
+          inputTypes: [
+            {
+              kind: 'scalar',
+              name: 'String',
+            },
+          ],
+        },
+        { data: {} },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        data: {
+      +   email: String
+        }
+      }
+
+      Argument email is missing.
+    `)
+  })
+
+  test('nested selection', () => {
+    expect(
+      renderError(
+        {
+          kind: 'RequiredArgumentMissing',
+          argumentPath: ['where'],
+          selectionPath: ['user'],
+          inputTypes: [
+            {
+              kind: 'object',
+              name: 'UserWhereInput',
+              fields: [
+                { name: 'id', typeNames: ['Int'], required: false },
+                { name: 'email', typeNames: ['String'], required: false },
+              ],
+            },
+          ],
+        },
+        {
+          select: {
+            user: {},
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        select: {
+          user: {
+      +     where: {
+      +       id: Int,
+      +       email: String
+      +     }
+          }
+        }
+      }
+
+      Argument where is missing.
     `)
   })
 })
@@ -1129,6 +1200,296 @@ describe('Union', () => {
       }
 
       Argument gt: Invalid value provided. Expected String or StringFilter, provided Int.
+    `)
+  })
+})
+
+describe('SomeFieldsMissing', () => {
+  test('simple', () => {
+    expect(
+      renderError(
+        {
+          kind: 'SomeFieldsMissing',
+          selectionPath: [],
+          argumentPath: ['where'],
+          inputType: {
+            kind: 'object',
+            name: 'UserWhereUniqueInput',
+            fields: [
+              { name: 'id', typeNames: ['String'], required: false },
+              { name: 'email', typeNames: ['String'], required: false },
+            ],
+          },
+          constraints: { minFieldCount: 1, requiredFields: null },
+        },
+        { where: {} },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+      ?   id?: String,
+      ?   email?: String
+        }
+      }
+
+      Argument where of type UserWhereUniqueInput needs at least one argument. Available options are listed in green.
+    `)
+  })
+
+  test('multiple', () => {
+    expect(
+      renderError(
+        {
+          kind: 'SomeFieldsMissing',
+          selectionPath: [],
+          argumentPath: ['where'],
+          inputType: {
+            kind: 'object',
+            name: 'UserWhereUniqueInput',
+            fields: [
+              { name: 'id', typeNames: ['String'], required: false },
+              { name: 'email', typeNames: ['String'], required: false },
+            ],
+          },
+          constraints: { minFieldCount: 2, requiredFields: null },
+        },
+        { where: {} },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+      ?   id?: String,
+      ?   email?: String
+        }
+      }
+
+      Argument where of type UserWhereUniqueInput needs at least 2 arguments. Available options are listed in green.
+    `)
+  })
+
+  test('nested selection', () => {
+    expect(
+      renderError(
+        {
+          kind: 'SomeFieldsMissing',
+          selectionPath: ['user'],
+          argumentPath: ['where'],
+          inputType: {
+            kind: 'object',
+            name: 'UserWhereUniqueInput',
+            fields: [
+              { name: 'id', typeNames: ['String'], required: false },
+              { name: 'email', typeNames: ['String'], required: false },
+            ],
+          },
+          constraints: { minFieldCount: 1, requiredFields: null },
+        },
+        { include: { user: { where: {} } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        include: {
+          user: {
+            where: {
+      ?       id?: String,
+      ?       email?: String
+            }
+          }
+        }
+      }
+
+      Argument where of type UserWhereUniqueInput needs at least one argument. Available options are listed in green.
+    `)
+  })
+
+  test('with required fields', () => {
+    expect(
+      renderError(
+        {
+          kind: 'SomeFieldsMissing',
+          selectionPath: [],
+          argumentPath: ['where'],
+          inputType: {
+            kind: 'object',
+            name: 'UserWhereUniqueInput',
+            fields: [
+              { name: 'id', typeNames: ['String'], required: false },
+              { name: 'email', typeNames: ['String'], required: false },
+            ],
+          },
+          constraints: { minFieldCount: 1, requiredFields: ['id', 'email'] },
+        },
+        { where: {} },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+      ?   id?: String,
+      ?   email?: String
+        }
+      }
+
+      Argument where of type UserWhereUniqueInput needs at least one of id or email arguments. Available options are listed in green.
+    `)
+  })
+})
+
+describe('TooManyFieldsGiven', () => {
+  test('exactly one', () => {
+    expect(
+      renderError(
+        {
+          kind: 'TooManyFieldsGiven',
+          selectionPath: [],
+          argumentPath: ['where'],
+          inputType: {
+            kind: 'object',
+            name: 'UserWhereUniqueInput',
+            fields: [
+              { name: 'id', typeNames: ['String'], required: false },
+              { name: 'email', typeNames: ['String'], required: false },
+            ],
+          },
+          constraints: { minFieldCount: 1, maxFieldCount: 1, requiredFields: null },
+        },
+        {
+          where: {
+            id: 'foo',
+            email: 'foo@example.com',
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          id: "foo",
+          email: "foo@example.com"
+        }
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+      }
+
+      Argument where of type UserWhereUniqueInput needs exactly one argument, but you provided id and email. Please choose one.
+    `)
+  })
+
+  test('at most one', () => {
+    expect(
+      renderError(
+        {
+          kind: 'TooManyFieldsGiven',
+          selectionPath: [],
+          argumentPath: ['where'],
+          inputType: {
+            kind: 'object',
+            name: 'UserWhereUniqueInput',
+            fields: [
+              { name: 'id', typeNames: ['String'], required: false },
+              { name: 'email', typeNames: ['String'], required: false },
+            ],
+          },
+          constraints: { maxFieldCount: 1, requiredFields: null },
+        },
+        {
+          where: {
+            id: 'foo',
+            email: 'foo@example.com',
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          id: "foo",
+          email: "foo@example.com"
+        }
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+      }
+
+      Argument where of type UserWhereUniqueInput needs at most one argument, but you provided id and email. Please choose one.
+    `)
+  })
+
+  test('more than one', () => {
+    expect(
+      renderError(
+        {
+          kind: 'TooManyFieldsGiven',
+          selectionPath: [],
+          argumentPath: ['where'],
+          inputType: {
+            kind: 'object',
+            name: 'UserWhereUniqueInput',
+            fields: [
+              { name: 'id', typeNames: ['String'], required: false },
+              { name: 'email', typeNames: ['String'], required: false },
+            ],
+          },
+          constraints: { maxFieldCount: 2, requiredFields: null },
+        },
+        {
+          where: {
+            id: 'foo',
+            email: 'foo@example.com',
+            nickname: 'bar',
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          id: "foo",
+          email: "foo@example.com",
+          nickname: "bar"
+        }
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+      }
+
+      Argument where of type UserWhereUniqueInput needs at most 2 arguments, but you provided id, email and nickname. Please choose 2.
+    `)
+  })
+
+  test('nested selection', () => {
+    expect(
+      renderError(
+        {
+          kind: 'TooManyFieldsGiven',
+          selectionPath: ['user'],
+          argumentPath: ['where'],
+          inputType: {
+            kind: 'object',
+            name: 'UserWhereUniqueInput',
+            fields: [
+              { name: 'id', typeNames: ['String'], required: false },
+              { name: 'email', typeNames: ['String'], required: false },
+            ],
+          },
+          constraints: { minFieldCount: 1, maxFieldCount: 1, requiredFields: null },
+        },
+        {
+          select: {
+            user: {
+              where: {
+                id: 'foo',
+                email: 'foo@example.com',
+              },
+            },
+          },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        select: {
+          user: {
+            where: {
+              id: "foo",
+              email: "foo@example.com"
+            }
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~
+          }
+        }
+      }
+
+      Argument where of type UserWhereUniqueInput needs exactly one argument, but you provided id and email. Please choose one.
     `)
   })
 })

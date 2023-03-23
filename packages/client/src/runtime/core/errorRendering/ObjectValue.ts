@@ -61,6 +61,10 @@ export class ObjectValue extends Value {
     this.fields = {}
   }
 
+  getFields() {
+    return this.fields
+  }
+
   isEmpty(): boolean {
     return Object.keys(this.fields).length === 0
   }

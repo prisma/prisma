@@ -7,6 +7,8 @@ export type EngineValidationError =
   | RequiredArgumentMissingError
   | InvalidArgumentTypeError
   | InvalidArgumentValueError
+  | SomeFieldsMissingError
+  | TooManyFieldsGivenError
   | UnionError
 
 export type EmptySelectionError = {
@@ -43,6 +45,7 @@ export type UnknownInputFieldError = {
 export type RequiredArgumentMissingError = {
   kind: 'RequiredArgumentMissing'
   argumentPath: string[]
+  selectionPath: string[]
   inputTypes: InputTypeDescription[]
 }
 
@@ -60,6 +63,22 @@ export type InvalidArgumentValueError = {
   argumentPath: string[]
   argument: ArgumentDescription
   underlyingError: string
+}
+
+export type SomeFieldsMissingError = {
+  kind: 'SomeFieldsMissing'
+  selectionPath: string[]
+  argumentPath: string[]
+  inputType: InputTypeObjectDescription
+  constraints: InputTypeConstraints
+}
+
+export type TooManyFieldsGivenError = {
+  kind: 'TooManyFieldsGiven'
+  selectionPath: string[]
+  argumentPath: string[]
+  inputType: InputTypeObjectDescription
+  constraints: InputTypeConstraints
 }
 
 export type UnionError = {
@@ -102,6 +121,7 @@ export type InputTypeScalarDescription = {
 
 export type InputTypeEnumDescription = {
   kind: 'enum'
+  name: string
 }
 
 export type InputTypeDescriptionField = {
@@ -116,7 +136,7 @@ export type ArgumentDescription = {
 }
 
 export type InputTypeConstraints = {
-  minNumberOfFields?: number
-  maxNumberOfFields?: number
-  requiredFields?: string[]
+  minFieldCount?: number
+  maxFieldCount?: number
+  requiredFields: string[] | null
 }
