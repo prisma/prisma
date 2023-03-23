@@ -166,7 +166,7 @@ importers:
       open: 7.4.2
       pkg-up: 3.1.0
       resolve-pkg: 2.0.0
-      rimraf: 3.0.2
+      rimraf: 4.4.1
       strip-ansi: 6.0.1
       ts-pattern: 4.1.3
       typescript: 4.9.5
@@ -209,7 +209,7 @@ importers:
       open: 7.4.2
       pkg-up: 3.1.0
       resolve-pkg: 2.0.0
-      rimraf: 3.0.2
+      rimraf: 4.4.1
       strip-ansi: 6.0.1
       ts-pattern: 4.1.3
       typescript: 4.9.5
@@ -279,7 +279,7 @@ importers:
       pkg-up: 3.1.0
       pluralize: 8.0.0
       resolve: 1.22.1
-      rimraf: 3.0.2
+      rimraf: 4.4.1
       simple-statistics: 7.8.2
       sort-keys: 4.2.0
       source-map-support: 0.5.21
@@ -360,7 +360,7 @@ importers:
       pkg-up: 3.1.0
       pluralize: 8.0.0
       resolve: 1.22.1
-      rimraf: 3.0.2
+      rimraf: 4.4.1
       simple-statistics: 7.8.2
       sort-keys: 4.2.0
       source-map-support: 0.5.21
@@ -502,7 +502,7 @@ importers:
       p-map: 4.0.0
       p-retry: 4.6.2
       progress: 2.0.3
-      rimraf: 3.0.2
+      rimraf: 4.4.1
       strip-ansi: 6.0.1
       temp-dir: 2.0.0
       tempy: 1.0.1
@@ -522,7 +522,7 @@ importers:
       p-map: 4.0.0
       p-retry: 4.6.2
       progress: 2.0.3
-      rimraf: 3.0.2
+      rimraf: 4.4.1
       temp-dir: 2.0.0
       tempy: 1.0.1
     devDependencies:
@@ -5208,7 +5208,7 @@ packages:
       fs-minipass: 2.1.0
       glob: 8.1.0
       infer-owner: 1.0.4
-      lru-cache: 7.14.0
+      lru-cache: 7.18.3
       minipass: 3.3.4
       minipass-collect: 1.0.2
       minipass-flush: 1.0.5
@@ -7456,6 +7456,15 @@ packages:
       inherits: 2.0.4
       minimatch: 5.1.6
       once: 1.4.0
+
+  /glob/9.3.2:
+    resolution: {integrity: sha512-BTv/JhKXFEHsErMte/AnfiSv8yYOLLiyH2lTg8vn02O21zWFgHPTfxtgn1QRe7NRgggUhC8hacR2Re94svHqeA==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      fs.realpath: 1.0.0
+      minimatch: 7.4.3
+      minipass: 4.2.5
+      path-scurry: 1.6.3
 
   /global-agent/2.2.0:
     resolution: {integrity: sha512-+20KpaW6DDLqhG7JDiJpD1JvNvb8ts+TNl7BPOYcURqCrXqnN1Vf+XVOrkKJAFPqfX+oEhsdzOj1hLWkBTdNJg==}
@@ -9880,6 +9889,10 @@ packages:
     resolution: {integrity: sha512-EIRtP1GrSJny0dqb50QXRUNBxHJhcpxHC++M5tD7RYbvLLn5KVWKsbyswSSqDuU15UFi3bgTQIY8nhDMeF6aDQ==}
     engines: {node: '>=12'}
 
+  /lru-cache/7.18.3:
+    resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
+    engines: {node: '>=12'}
+
   /lz-string/1.4.4:
     resolution: {integrity: sha1-wNjq82BZ9wV5bh40SBHPTEmNOiY=}
     hasBin: true
@@ -9905,7 +9918,7 @@ packages:
       http-proxy-agent: 5.0.0
       https-proxy-agent: 5.0.1
       is-lambda: 1.0.1
-      lru-cache: 7.14.0
+      lru-cache: 7.18.3
       minipass: 3.3.4
       minipass-collect: 1.0.2
       minipass-fetch: 2.1.2
@@ -10204,6 +10217,12 @@ packages:
     dependencies:
       brace-expansion: 2.0.1
 
+  /minimatch/7.4.3:
+    resolution: {integrity: sha512-5UB4yYusDtkRPbRiy1cqZ1IpGNcJCGlEMG17RKzPddpyiPKoCdwohbED8g4QXT0ewCt8LTkQXuljsUfQ3FKM4A==}
+    engines: {node: '>=10'}
+    dependencies:
+      brace-expansion: 2.0.1
+
   /minimist-options/3.0.2:
     resolution: {integrity: sha512-FyBrT/d0d4+uiZRbqznPXqw3IpZZG3gl3wKWiX784FycUKVwBt0uLBFkQrtE4tZOrgo78nZp2jnKz3L65T5LdQ==}
     engines: {node: '>= 4'}
@@ -10288,6 +10307,10 @@ packages:
     dependencies:
       yallist: 4.0.0
     dev: true
+
+  /minipass/4.2.5:
+    resolution: {integrity: sha512-+yQl7SX3bIT83Lhb4BVorMAHVuqsskxRdlmO9kTpyukp8vsm2Sn/fUOV9xlnG8/a5JsypJzap21lz/y3FBMJ8Q==}
+    engines: {node: '>=8'}
 
   /minizlib/2.1.2:
     resolution: {integrity: sha512-bAxsR8BVfj60DWXHE3u30oHzfl4G7khkSuPW+qvpd7jFRHm7dLxOjUk1EHACJ/hxLY8phGJ0YhYHZo7jil7Qdg==}
@@ -11190,6 +11213,13 @@ packages:
   /path-parse/1.0.7:
     resolution: {integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==}
 
+  /path-scurry/1.6.3:
+    resolution: {integrity: sha512-RAmB+n30SlN+HnNx6EbcpoDy9nwdpcGPnEKrJnu6GZoDWBdIjo1UQMVtW2ybtC7LC2oKLcMq8y5g8WnKLiod9g==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      lru-cache: 7.18.3
+      minipass: 4.2.5
+
   /path-to-regexp/0.1.7:
     resolution: {integrity: sha512-5DFkuoqlv1uYQKxy8omFBeJPQcdoE07Kv2sferDCrAq1ohOU+MSDswDIbnx3YAM60qIOnYa53wBhXW0EbMonrQ==}
     dev: true
@@ -11933,6 +11963,13 @@ packages:
     hasBin: true
     dependencies:
       glob: 7.2.3
+
+  /rimraf/4.4.1:
+    resolution: {integrity: sha512-Gk8NlF062+T9CqNGn6h4tls3k6T1+/nXdOcSZVikNVtlRdYpA7wRJJMoXmuvOnLW844rPjdQ7JgXCYM6PPC/og==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dependencies:
+      glob: 9.3.2
 
   /roarr/2.15.4:
     resolution: {integrity: sha512-CHhPh+UNHD2GTXNYhPWLnU8ONHdI+5DI+4EYIAOaiD63rHeYlZvyh8P+in5999TTSFgUYuKUAjzRI4mdh/p+2A==}
