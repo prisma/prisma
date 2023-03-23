@@ -445,10 +445,6 @@ testMatrix.setupTestSuite(
       from: ['mongodb', 'mysql', 'sqlserver'],
       reason: 'Other providers do not support native INSERT ... ON CONFLICT SET .. WHERE',
     },
-    skipDataProxy: {
-      runtimes: ['edge', 'node'],
-      reason: 'https://github.com/prisma/mini-proxy/pull/35',
-    },
     skipDefaultClientInstance: true,
   },
 )
