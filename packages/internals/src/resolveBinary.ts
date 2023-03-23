@@ -16,15 +16,15 @@ async function getBinaryName(name: BinaryType): Promise<string> {
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
 
-  if (name === BinaryType.libqueryEngine) {
+  if (name === BinaryType.QueryEngineLibrary) {
     return getNodeAPIName(platform, 'fs')
   }
   return `${name}-${platform}${extension}`
 }
 export const engineEnvVarMap = {
-  [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
-  [BinaryType.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
+  [BinaryType.QueryEngineBinary]: 'PRISMA_QUERY_ENGINE_BINARY',
+  [BinaryType.QueryEngineLibrary]: 'PRISMA_QUERY_ENGINE_LIBRARY',
+  [BinaryType.MigrationEngineBinary]: 'PRISMA_MIGRATION_ENGINE_BINARY',
 }
 export { BinaryType }
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {

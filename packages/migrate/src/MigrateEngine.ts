@@ -311,7 +311,7 @@ export class MigrateEngine {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...processEnv } = process.env
-        const binaryPath = await resolveBinary(BinaryType.migrationEngine)
+        const binaryPath = await resolveBinary(BinaryType.MigrationEngineBinary)
         debugRpc('starting migration engine with binary: ' + binaryPath)
         const args: string[] = []
 
