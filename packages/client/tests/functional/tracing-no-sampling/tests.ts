@@ -74,19 +74,16 @@ testMatrix.setupTestSuite(
       expect(checkQueriesHaveNotTraceparent()).toBe(true)
     })
 
-    testIf(!process.env.TEST_DATA_PROXY)(
-      'should perform a query and assert that no spans were generated via itx',
-      async () => {
-        await prisma.$transaction(async (prisma) => {
-          await prisma.user.findMany()
-        })
+    test('should perform a query and assert that no spans were generated via itx', async () => {
+      await prisma.$transaction(async (prisma) => {
+        await prisma.user.findMany()
+      })
 
-        const spans = inMemorySpanExporter.getFinishedSpans()
+      const spans = inMemorySpanExporter.getFinishedSpans()
 
-        expect(spans).toHaveLength(0)
-        expect(checkQueriesHaveNotTraceparent()).toBe(true)
-      },
-    )
+      expect(spans).toHaveLength(0)
+      expect(checkQueriesHaveNotTraceparent()).toBe(true)
+    })
   },
   {
     skipDefaultClientInstance: true,
