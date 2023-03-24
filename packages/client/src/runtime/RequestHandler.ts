@@ -1,6 +1,7 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
 import {
+  EngineValidationError,
   EventEmitter,
   Fetch,
   getTraceParent,
@@ -18,6 +19,7 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
+import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { applyResultExtensions } from './core/extensions/applyResultExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { visitQueryResult } from './core/extensions/visitQueryResult'
@@ -53,6 +55,7 @@ export type RequestParams = {
 }
 
 export type HandleErrorParams = {
+  args: JsArgs
   error: any
   clientMethod: string
   callsite?: CallSite
@@ -166,7 +169,7 @@ export class RequestHandler {
       }
       return result
     } catch (error) {
-      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction })
+      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
     }
   }
 
@@ -174,18 +177,18 @@ export class RequestHandler {
    * Handles the error and logs it, logging the error is done synchronously waiting for the event
    * handlers to finish.
    */
-  handleAndLogRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams): never {
+  handleAndLogRequestError(params: HandleErrorParams): never {
     try {
-      this.handleRequestError({ error, clientMethod, callsite, transaction })
+      this.handleRequestError(params)
     } catch (err) {
       if (this.logEmitter) {
-        this.logEmitter.emit('error', { message: err.message, target: clientMethod, timestamp: new Date() })
+        this.logEmitter.emit('error', { message: err.message, target: params.clientMethod, timestamp: new Date() })
       }
       throw err
     }
   }
 
-  handleRequestError({ error, clientMethod, callsite, transaction }: HandleErrorParams): never {
+  handleRequestError({ error, clientMethod, callsite, transaction, args }: HandleErrorParams): never {
     debug(error)
 
     if (isMismatchingBatchIndex(error, transaction)) {
@@ -198,6 +201,17 @@ export class RequestHandler {
       // TODO: This is a workaround to keep backwards compatibility with clients
       // consuming NotFoundError
       throw error
+    }
+
+    if (error instanceof PrismaClientKnownRequestError && isValidationError(error)) {
+      const validationError = convertValidationError(error.meta as EngineValidationError)
+      throwValidationException({
+        args,
+        errors: [validationError],
+        callsite,
+        errorFormat: this.client._errorFormat,
+        originalMethod: clientMethod,
+      })
     }
 
     let message = error.message
@@ -319,4 +333,38 @@ function getItxTransactionOptions<PayloadType>(
 
 function isMismatchingBatchIndex(error: any, transaction: PrismaPromiseTransaction | undefined) {
   return hasBatchIndex(error) && transaction?.kind === 'batch' && error.batchRequestIdx !== transaction.index
+}
+
+function isValidationError(error: PrismaClientKnownRequestError) {
+  return (
+    error.code === 'P2009' || // validation error
+    error.code === 'P2012' // required argument missing
+  )
+}
+
+/**
+ * Engine validation errors include extra segment for selectionPath - root query field.
+ * This function removes it (since it does not exist on js arguments). In case of `Union`
+ * error type, removes heading element from selectionPath of nested errors as well.
+ * @param error
+ * @returns
+ */
+function convertValidationError(error: EngineValidationError): EngineValidationError {
+  if (error.kind === 'Union') {
+    return {
+      kind: 'Union',
+      errors: error.errors.map(convertValidationError),
+    }
+  }
+
+  if (Array.isArray(error['selectionPath'])) {
+    const [, ...selectionPath] = error['selectionPath']
+
+    return {
+      ...error,
+      selectionPath,
+    } as EngineValidationError
+  }
+
+  return error
 }

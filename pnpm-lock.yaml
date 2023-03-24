@@ -267,6 +267,7 @@ importers:
       is-regexp: 2.1.0
       jest: 29.4.3
       jest-junit: 15.0.0
+      jest-serializer-ansi-escapes: ^2.0.1
       jest-snapshot: 29.4.3
       js-levenshtein: 1.1.6
       klona: 2.0.6
@@ -348,6 +349,7 @@ importers:
       is-regexp: 2.1.0
       jest: 29.4.3_nw6xvwuzmqp7vps7knduexkcvm
       jest-junit: 15.0.0
+      jest-serializer-ansi-escapes: 2.0.1
       jest-snapshot: 29.4.3
       js-levenshtein: 1.1.6
       klona: 2.0.6
@@ -9161,6 +9163,11 @@ packages:
       strip-bom: 4.0.0
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /jest-serializer-ansi-escapes/2.0.1:
+    resolution: {integrity: sha512-+BuVKZQutcejSuODTleG/CV+8OVONZSOSrtrQRG8isTLu367JVKK+/yaG2jGs5O6MPBZ88WNy5jg8hqhd/p6pw==}
+    engines: {node: '>=14'}
     dev: true
 
   /jest-snapshot/29.4.3:
