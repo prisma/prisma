@@ -6,16 +6,17 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite(({ previewFeatures }) => {
-  describeIf(getQueryEngineProtocol() === 'json')('json', () => {
-    test('include and select are used at the same time', async () => {
-      const result = prisma.user.findMany({
-        select: {},
-        // @ts-expect-error
-        include: {},
-      })
+testMatrix.setupTestSuite(
+  ({ previewFeatures }) => {
+    describeIf(getQueryEngineProtocol() === 'json')('json', () => {
+      test('include and select are used at the same time', async () => {
+        const result = prisma.user.findMany({
+          select: {},
+          // @ts-expect-error
+          include: {},
+        })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
         Invalid \`prisma.user.findMany()\` invocation in
         /client/tests/functional/query-validation/tests.ts:0:0
@@ -32,15 +33,15 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
         Please either use \`include\` or \`select\`, but not both at the same time.
       `)
-    })
-
-    test('include used on scalar field', async () => {
-      const result = prisma.user.findMany({
-        // @ts-expect-error
-        include: { id: true },
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      test('include used on scalar field', async () => {
+        const result = prisma.user.findMany({
+          // @ts-expect-error
+          include: { id: true },
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                                         Invalid \`prisma.user.findMany()\` invocation in
                                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -58,17 +59,17 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
                                         Invalid scalar field \`id\` for include statement on model User. Available options are listed in green.
                                         Note that include statements only accept relation fields.
                               `)
-    })
-
-    test('unknown selection field', async () => {
-      const result = prisma.user.findMany({
-        select: {
-          // @ts-expect-error
-          notThere: true,
-        },
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      test('unknown selection field', async () => {
+        const result = prisma.user.findMany({
+          select: {
+            // @ts-expect-error
+            notThere: true,
+          },
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.findMany()\` invocation in
                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -90,14 +91,14 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                         Unknown field \`notThere\` for select statement on model \`User\`. Available options are listed in green.
                   `)
-    })
-
-    test('empty selection', async () => {
-      const result = prisma.user.findMany({
-        select: {},
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      test('empty selection', async () => {
+        const result = prisma.user.findMany({
+          select: {},
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                                         Invalid \`prisma.user.findMany()\` invocation in
                                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -117,15 +118,15 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                                         The \`select\` statement for type User must not be empty. Available options are listed in green.
                               `)
-    })
-
-    test('unknown argument', async () => {
-      const result = prisma.user.findMany({
-        // @ts-expect-error
-        notAnArgument: 123,
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      test('unknown argument', async () => {
+        const result = prisma.user.findMany({
+          // @ts-expect-error
+          notAnArgument: 123,
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.findMany()\` invocation in
                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -146,17 +147,17 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                         Unknown argument \`notAnArgument\`. Available options are listed in green.
                   `)
-    })
-
-    test('unknown object field', async () => {
-      const result = prisma.user.findMany({
-        where: {
-          // @ts-expect-error
-          notAValidField: 123,
-        },
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      test('unknown object field', async () => {
+        const result = prisma.user.findMany({
+          where: {
+            // @ts-expect-error
+            notAValidField: 123,
+          },
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.findMany()\` invocation in
                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -181,13 +182,13 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                         Unknown argument \`notAValidField\`. Available options are listed in green.
                   `)
-    })
+      })
 
-    test('missing required argument: nested', async () => {
-      // @ts-expect-error
-      const result = prisma.user.create({ data: {} })
+      test('missing required argument: nested', async () => {
+        // @ts-expect-error
+        const result = prisma.user.create({ data: {} })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.create()\` invocation in
                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -203,17 +204,17 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                         Argument \`email\` is missing.
                   `)
-    })
-
-    test('invalid argument type', async () => {
-      const result = prisma.user.findUnique({
-        where: {
-          // @ts-expect-error
-          email: 123,
-        },
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      test('invalid argument type', async () => {
+        const result = prisma.user.findUnique({
+          where: {
+            // @ts-expect-error
+            email: 123,
+          },
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.findUnique()\` invocation in
                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -230,17 +231,17 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                         Argument \`email\`: Invalid value provided. Expected String, provided Int.
                   `)
-    })
-
-    test('union error', async () => {
-      const result = prisma.user.findMany({
-        where: {
-          // @ts-expect-error
-          email: 123,
-        },
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      test('union error', async () => {
+        const result = prisma.user.findMany({
+          where: {
+            // @ts-expect-error
+            email: 123,
+          },
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.findMany()\` invocation in
                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -257,17 +258,17 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                         Argument \`email\`: Invalid value provided. Expected StringFilter or String, provided Int.
                   `)
-    })
-
-    test('union error: different paths', async () => {
-      const result = prisma.user.findMany({
-        where: {
-          // @ts-expect-error
-          email: { gt: 123 },
-        },
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      test('union error: different paths', async () => {
+        const result = prisma.user.findMany({
+          where: {
+            // @ts-expect-error
+            email: { gt: 123 },
+          },
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.findMany()\` invocation in
                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -286,16 +287,16 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                         Argument \`gt\`: Invalid value provided. Expected String, provided Int.
                   `)
-    })
-
-    test('invalid argument value', async () => {
-      const result = prisma.user.findMany({
-        where: {
-          createdAt: { gt: 'yesterday' },
-        },
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      test('invalid argument value', async () => {
+        const result = prisma.user.findMany({
+          where: {
+            createdAt: { gt: 'yesterday' },
+          },
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.findMany()\` invocation in
                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -314,15 +315,15 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                         Invalid value for argument \`gt\`: input contains invalid characters. Expected ISO-8601 DateTime.
                   `)
-    })
-
-    testIf(previewFeatures === '')('missing required field', async () => {
-      const result = prisma.user.findUnique({
-        // @ts-test-if: previewFeatures !== '"extendedWhereUnique"'
-        where: {},
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      testIf(previewFeatures === '')('missing required field', async () => {
+        const result = prisma.user.findUnique({
+          // @ts-test-if: previewFeatures !== '"extendedWhereUnique"'
+          where: {},
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.findUnique()\` invocation in
                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -339,15 +340,15 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                         Argument \`where\` of type UserWhereUniqueInput needs at least one argument. Available options are listed in green.
                   `)
-    })
-
-    testIf(previewFeatures === '"extendedWhereUnique"')('missing one of the specific required fields', async () => {
-      const result = prisma.user.findUnique({
-        // @ts-test-if: previewFeatures !== '"extendedWhereUnique"'
-        where: {},
       })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+      testIf(previewFeatures === '"extendedWhereUnique"')('missing one of the specific required fields', async () => {
+        const result = prisma.user.findUnique({
+          // @ts-test-if: previewFeatures !== '"extendedWhereUnique"'
+          where: {},
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                 Invalid \`prisma.user.findUnique()\` invocation in
                 /client/tests/functional/query-validation/tests.ts:0:0
@@ -370,12 +371,12 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                 Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\` or \`email\` arguments. Available options are listed in green.
             `)
-    })
+      })
 
-    testIf(previewFeatures === '')('too many fields', async () => {
-      const result = prisma.user.findUnique({ where: { id: '123', email: 'foo@bar.com' } })
+      testIf(previewFeatures === '')('too many fields', async () => {
+        const result = prisma.user.findUnique({ where: { id: '123', email: 'foo@bar.com' } })
 
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
                         Invalid \`prisma.user.findUnique()\` invocation in
                         /client/tests/functional/query-validation/tests.ts:0:0
@@ -393,6 +394,13 @@ testMatrix.setupTestSuite(({ previewFeatures }) => {
 
                         Argument \`where\` of type UserWhereUniqueInput needs exactly one argument, but you provided id and email. Please choose one.
                   `)
+      })
     })
-  })
-})
+  },
+  {
+    skipDataProxy: {
+      runtimes: ['edge'],
+      reason: 'Different error rendering for edge client',
+    },
+  },
+)
