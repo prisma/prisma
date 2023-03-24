@@ -358,8 +358,7 @@ function convertValidationError(error: EngineValidationError): EngineValidationE
   }
 
   if (Array.isArray(error['selectionPath'])) {
-    const selectionPath = [...error['selectionPath']]
-    selectionPath.shift()
+    const [, ...selectionPath] = error['selectionPath']
 
     return {
       ...error,

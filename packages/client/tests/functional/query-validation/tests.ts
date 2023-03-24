@@ -5,7 +5,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(({ previewFeatures }, suiteMeta) => {
-  test('include and select are used at the same point', async () => {
+  test('include and select are used at the same time', async () => {
     const result = prisma.user.findMany({
       select: {},
       // @ts-expect-error
@@ -338,7 +338,7 @@ testMatrix.setupTestSuite(({ previewFeatures }, suiteMeta) => {
         `)
   })
 
-  testIf(previewFeatures === '"extendedWhereUnique"')('missing on of the specific required fields', async () => {
+  testIf(previewFeatures === '"extendedWhereUnique"')('missing one of the specific required fields', async () => {
     const result = prisma.user.findUnique({
       // @ts-test-if: previewFeatures !== '"extendedWhereUnique"'
       where: {},

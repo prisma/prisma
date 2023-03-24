@@ -66,7 +66,7 @@ export class ObjectValue extends Value {
     return field
   }
 
-  getDeepFieldValue(path: string[]): Value | undefined {
+  getDeepFieldValue(path: string[]) {
     if (path.length === 0) {
       return this
     }

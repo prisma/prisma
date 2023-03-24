@@ -1,4 +1,4 @@
-import { EngineBatchQuery, EngineQuery, JsonFieldSelection, JsonQuery, JsonQueryAction } from '@prisma/engine-core'
+import { EngineBatchQuery, JsonQuery, JsonQueryAction } from '@prisma/engine-core'
 
 import { BaseDMMFHelper } from '../../../dmmf'
 import { ErrorFormat } from '../../../getPrismaClient'
