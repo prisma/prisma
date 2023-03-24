@@ -7,7 +7,6 @@ import {
   getCommandWithExecutor,
   getGenerators,
   getGeneratorSuccessMessage,
-  getPlatform,
   HelpError,
   highlightTS,
   isError,
@@ -16,7 +15,6 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
-  Platform,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
