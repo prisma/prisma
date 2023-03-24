@@ -8,19 +8,19 @@ const debug = Debug('prisma:engines')
 export function getEnginesPath() {
   return path.join(__dirname, '../')
 }
-export const DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE = BinaryType.libqueryEngine // TODO: name not clear
+export const DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE = BinaryType.QueryEngineLibrary
 /**
  * Checks if the env override `PRISMA_CLI_QUERY_ENGINE_TYPE` is set to `library` or `binary`
  * Otherwise returns the default
  */
-export function getCliQueryEngineBinaryType(): BinaryType.libqueryEngine | BinaryType.queryEngine {
+export function getCliQueryEngineBinaryType(): BinaryType.QueryEngineLibrary | BinaryType.QueryEngineBinary {
   const envCliQueryEngineType = process.env.PRISMA_CLI_QUERY_ENGINE_TYPE
   if (envCliQueryEngineType) {
     if (envCliQueryEngineType === 'binary') {
-      return BinaryType.queryEngine
+      return BinaryType.QueryEngineBinary
     }
     if (envCliQueryEngineType === 'library') {
-      return BinaryType.libqueryEngine
+      return BinaryType.QueryEngineLibrary
     }
   }
   return DEFAULT_CLI_QUERY_ENGINE_BINARY_TYPE
@@ -36,7 +36,7 @@ export async function ensureBinariesExist() {
 
   const binaries = {
     [cliQueryEngineBinaryType]: binaryDir,
-    [BinaryType.migrationEngine]: binaryDir,
+    [BinaryType.MigrationEngineBinary]: binaryDir,
   }
   debug(`binaries to download ${Object.keys(binaries).join(', ')}`)
   await download({
