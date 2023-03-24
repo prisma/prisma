@@ -114,7 +114,7 @@ function applyIncludeOnScalarError(error: IncludeOnScalarError, argsTree: Argume
       msg += '.'
     }
 
-    msg += `\nNote, that ${chalk.bold('include')} statements only accept relation fields.`
+    msg += `\nNote that ${chalk.bold('include')} statements only accept relation fields.`
     return msg
   })
 }

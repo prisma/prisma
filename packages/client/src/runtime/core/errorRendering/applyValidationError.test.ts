@@ -119,7 +119,7 @@ describe('includeOnScalar', () => {
       }
 
       Invalid scalar field \`id\` for include statement.
-      Note, that include statements only accept relation fields.
+      Note that include statements only accept relation fields.
     `)
   })
 
@@ -158,7 +158,7 @@ describe('includeOnScalar', () => {
       }
 
       Invalid scalar field \`id\` for include statement on model User. Available options are listed in green.
-      Note, that include statements only accept relation fields.
+      Note that include statements only accept relation fields.
     `)
   })
 
@@ -193,7 +193,7 @@ describe('includeOnScalar', () => {
       }
 
       Invalid scalar field \`id\` for include statement.
-      Note, that include statements only accept relation fields.
+      Note that include statements only accept relation fields.
     `)
   })
 
@@ -240,7 +240,7 @@ describe('includeOnScalar', () => {
       }
 
       Invalid scalar field \`id\` for include statement on model Post. Available options are listed in green.
-      Note, that include statements only accept relation fields.
+      Note that include statements only accept relation fields.
     `)
   })
 })
