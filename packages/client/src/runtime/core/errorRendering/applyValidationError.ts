@@ -12,6 +12,7 @@ import {
   UnknownArgumentError,
   UnknownInputFieldError,
   UnknownSelectionFieldError,
+  ValueTooLargeError,
 } from '@prisma/engine-core'
 import { maxBy } from '@prisma/internals'
 import chalk from 'chalk'
@@ -21,6 +22,7 @@ import { IncludeAndSelectError, IncludeOnScalarError, ValidationError } from '..
 import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
 import { ObjectValue } from './ObjectValue'
+import { ScalarValue } from './ScalarValue'
 import { SuggestionObjectValue } from './SuggestionObjectValue'
 
 /**
@@ -58,6 +60,9 @@ export function applyValidationError(error: ValidationError, args: ArgumentsRend
       break
     case 'InvalidArgumentValue':
       applyInvalidArgumentValueError(error, args)
+      break
+    case 'ValueTooLarge':
+      applyValueTooLargeError(error, args)
       break
     case 'SomeFieldsMissing':
       applySomeFieldsMissingError(error, args)
@@ -280,6 +285,30 @@ function applyInvalidArgumentValueError(error: InvalidArgumentValueError, args: 
       error.argument.typeNames.map((type) => chalk.greenBright(type)),
     )
     return `Invalid value for argument \`${chalk.bold(argName)}\`: ${error.underlyingError}. Expected ${expected}.`
+  })
+}
+
+function applyValueTooLargeError(error: ValueTooLargeError, args: ArgumentsRenderingTree) {
+  const argName = error.argument.name
+  const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
+  let printedValue: string | undefined
+  if (selection instanceof ObjectValue) {
+    const field = selection.getDeepField(error.argumentPath)
+    const value = field?.value
+    value?.markAsError()
+    if (value instanceof ScalarValue) {
+      printedValue = value.text
+    }
+  }
+
+  args.addErrorMessage((chalk) => {
+    const parts: string[] = ['Unable to fit value']
+    if (printedValue) {
+      parts.push(chalk.redBright(printedValue))
+    }
+    parts.push(`into a 64-bit signed integer for field \`${chalk.bold(argName)}\``)
+
+    return parts.join(' ')
   })
 }
 

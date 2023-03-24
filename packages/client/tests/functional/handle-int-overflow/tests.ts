@@ -19,15 +19,13 @@ testMatrix.setupTestSuite(() => {
     )
   })
 
-  testIf(getQueryEngineProtocol() !== 'json')('big float in exponent notation', async () => {
+  test('big float in exponent notation', async () => {
     await expect(
       prisma.entry.create({
         data: {
           int: Number.MAX_VALUE,
         },
       }),
-    ).rejects.toThrow(
-      /Unable to fit float value \(or large JS integer serialized in exponent notation\) '\d+' into a 64 Bit signed integer for field 'int'. If you're trying to store large integers, consider using `BigInt`./,
-    )
+    ).rejects.toThrow(/Unable to fit value [\d\.e\+]+ into a 64-bit signed integer for field `int`/)
   })
 })

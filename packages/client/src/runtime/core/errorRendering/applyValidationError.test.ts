@@ -1015,6 +1015,112 @@ describe('InvalidArgumentType', () => {
   })
 })
 
+describe('ValueTooLarge', () => {
+  test('simple', () => {
+    expect(
+      renderError(
+        {
+          kind: 'ValueTooLarge',
+          selectionPath: [],
+          argumentPath: ['where', 'number'],
+          argument: { name: 'number', typeNames: ['BigInt'] },
+        },
+        { where: { number: 1e20 } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          number: <brightRed>100000000000000000000</color>
+                  <brightRed>~~~~~~~~~~~~~~~~~~~~~</color>
+        }
+      }
+
+      Unable to fit value <brightRed>100000000000000000000</color> into a 64-bit signed integer for field \`<bold>number</intensity>\`
+    `)
+  })
+
+  test('nested argument', () => {
+    expect(
+      renderError(
+        {
+          kind: 'ValueTooLarge',
+          selectionPath: [],
+          argumentPath: ['where', 'number', 'gt'],
+          argument: { name: 'gt', typeNames: ['BigInt'] },
+        },
+        { where: { number: { gt: 1e20 } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        where: {
+          number: {
+            gt: <brightRed>100000000000000000000</color>
+                <brightRed>~~~~~~~~~~~~~~~~~~~~~</color>
+          }
+        }
+      }
+
+      Unable to fit value <brightRed>100000000000000000000</color> into a 64-bit signed integer for field \`<bold>gt</intensity>\`
+    `)
+  })
+
+  test('nested selection', () => {
+    expect(
+      renderError(
+        {
+          kind: 'ValueTooLarge',
+          selectionPath: ['posts'],
+          argumentPath: ['where', 'number'],
+          argument: { name: 'number', typeNames: ['BigInt'] },
+        },
+        { include: { posts: { where: { number: 1e20 } } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        include: {
+          posts: {
+            where: {
+              number: <brightRed>100000000000000000000</color>
+                      <brightRed>~~~~~~~~~~~~~~~~~~~~~</color>
+            }
+          }
+        }
+      }
+
+      Unable to fit value <brightRed>100000000000000000000</color> into a 64-bit signed integer for field \`<bold>number</intensity>\`
+    `)
+  })
+
+  test('nested selection and argument', () => {
+    expect(
+      renderError(
+        {
+          kind: 'ValueTooLarge',
+          selectionPath: ['posts'],
+          argumentPath: ['where', 'number', 'gt'],
+          argument: { name: 'number', typeNames: ['BigInt'] },
+        },
+        { include: { posts: { where: { number: { gt: 1e20 } } } } },
+      ),
+    ).toMatchInlineSnapshot(`
+      {
+        include: {
+          posts: {
+            where: {
+              number: {
+                gt: <brightRed>100000000000000000000</color>
+                    <brightRed>~~~~~~~~~~~~~~~~~~~~~</color>
+              }
+            }
+          }
+        }
+      }
+
+      Unable to fit value <brightRed>100000000000000000000</color> into a 64-bit signed integer for field \`<bold>number</intensity>\`
+    `)
+  })
+})
+
 describe('InvalidArgumentValue', () => {
   test('simple', () => {
     expect(

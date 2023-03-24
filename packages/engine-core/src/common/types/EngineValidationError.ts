@@ -7,6 +7,7 @@ export type EngineValidationError =
   | RequiredArgumentMissingError
   | InvalidArgumentTypeError
   | InvalidArgumentValueError
+  | ValueTooLargeError
   | SomeFieldsMissingError
   | TooManyFieldsGivenError
   | UnionError
@@ -144,7 +145,6 @@ export type InvalidArgumentTypeError = {
  * due to other constraints. Example include:
  *
  * - Non-IS08601 string passed to date field
- * - Overflowing integers
  */
 export type InvalidArgumentValueError = {
   kind: 'InvalidArgumentValue'
@@ -157,6 +157,16 @@ export type InvalidArgumentValueError = {
    * can not be accepted.
    */
   underlyingError: string
+}
+
+/**
+ * Provided integer/float is too large and does not fit into provided column
+ */
+export type ValueTooLargeError = {
+  kind: 'ValueTooLarge'
+  selectionPath: string[]
+  argumentPath: string[]
+  argument: ArgumentDescription
 }
 
 /**
