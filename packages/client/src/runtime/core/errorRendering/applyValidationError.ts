@@ -155,7 +155,7 @@ function applyUnknownSelectionFieldError(error: UnknownSelectionFieldError, args
     if (selectionParent) {
       parts.push(`for ${chalk.bold(selectionParent.kind)} statement`)
     }
-    parts.push(`on model ${chalk.bold(error.outputType.name)}.`)
+    parts.push(`on model ${chalk.bold(`\`${error.outputType.name}\``)}.`)
     parts.push(availableOptionsMessage(chalk))
     return parts.join(' ')
   })
@@ -201,7 +201,7 @@ function applyUnknownInputFieldError(error: UnknownInputFieldError, argsTree: Ar
 }
 
 function unknownArgumentMessage(chalk: chalk.Chalk, argName: string, options: string[]) {
-  const parts = [`Unknown argument ${chalk.redBright(argName)}.`]
+  const parts = [`Unknown argument \`${chalk.redBright(argName)}\`.`]
   const suggestion = getSuggestion(argName, options)
 
   if (suggestion) {
@@ -216,7 +216,7 @@ function unknownArgumentMessage(chalk: chalk.Chalk, argName: string, options: st
 }
 
 function applyRequiredArgumentMissingError(error: RequiredArgumentMissingError, args: ArgumentsRenderingTree) {
-  args.addErrorMessage((chalk) => `Argument ${chalk.greenBright(argumentName)} is missing.`)
+  args.addErrorMessage((chalk) => `Argument \`${chalk.greenBright(argumentName)}\` is missing.`)
   const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
   if (!(selection instanceof ObjectValue)) {
     return
@@ -261,9 +261,9 @@ function applyInvalidArgumentTypeError(error: InvalidArgumentTypeError, args: Ar
       error.argument.typeNames.map((type) => chalk.greenBright(type)),
     )
     // TODO: print value
-    return `Argument ${chalk.bold(argName)}: Invalid value provided. Expected ${expected}, provided ${chalk.redBright(
-      error.inferredType,
-    )}.`
+    return `Argument \`${chalk.bold(
+      argName,
+    )}\`: Invalid value provided. Expected ${expected}, provided ${chalk.redBright(error.inferredType)}.`
   })
 }
 
@@ -279,7 +279,7 @@ function applyInvalidArgumentValueError(error: InvalidArgumentValueError, args: 
       'or',
       error.argument.typeNames.map((type) => chalk.greenBright(type)),
     )
-    return `Invalid value for argument ${chalk.bold(argName)}: ${error.underlyingError}. Expected ${expected}.`
+    return `Invalid value for argument \`${chalk.bold(argName)}\`: ${error.underlyingError}. Expected ${expected}.`
   })
 }
 
@@ -294,13 +294,13 @@ function applySomeFieldsMissingError(error: SomeFieldsMissingError, args: Argume
   }
 
   args.addErrorMessage((chalk) => {
-    const parts = [`Argument ${chalk.bold(argumentName)} of type ${chalk.bold(error.inputType.name)} needs`]
+    const parts = [`Argument \`${chalk.bold(argumentName)}\` of type ${chalk.bold(error.inputType.name)} needs`]
     if (error.constraints.minFieldCount === 1) {
       if (error.constraints.requiredFields) {
         parts.push(
           `${chalk.greenBright('at least one of')} ${joinWithPreposition(
             'or',
-            error.constraints.requiredFields.map((f) => chalk.bold(f)),
+            error.constraints.requiredFields.map((f) => `\`${chalk.bold(f)}\``),
           )} arguments.`,
         )
       } else {
@@ -327,7 +327,7 @@ function applyTooManyFieldsGivenError(error: TooManyFieldsGivenError, args: Argu
   }
 
   args.addErrorMessage((chalk) => {
-    const parts = [`Argument ${chalk.bold(argumentName)} of type ${chalk.bold(error.inputType.name)} needs`]
+    const parts = [`Argument \`${chalk.bold(argumentName)}\` of type ${chalk.bold(error.inputType.name)} needs`]
     if (error.constraints.minFieldCount === 1 && error.constraints.maxFieldCount == 1) {
       parts.push(`${chalk.greenBright('exactly one')} argument,`)
     } else if (error.constraints.maxFieldCount == 1) {

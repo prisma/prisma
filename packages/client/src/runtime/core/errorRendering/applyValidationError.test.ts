@@ -355,7 +355,7 @@ describe('UnknownSelectionField', () => {
         }
       }
 
-      Unknown field <brightRed>\`notThere\`</color> for <bold>select</intensity> statement on model <bold>Post</intensity>. Available options are listed in <brightGreen>green</color>.
+      Unknown field <brightRed>\`notThere\`</color> for <bold>select</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -380,7 +380,7 @@ describe('UnknownSelectionField', () => {
         }
       }
 
-      Unknown field <brightRed>\`notThere\`</color> for <bold>include</intensity> statement on model <bold>Post</intensity>. Available options are listed in <brightGreen>green</color>.
+      Unknown field <brightRed>\`notThere\`</color> for <bold>include</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -413,7 +413,7 @@ describe('UnknownSelectionField', () => {
         }
       }
 
-      Unknown field <brightRed>\`notThere\`</color> for <bold>select</intensity> statement on model <bold>Post</intensity>. Available options are listed in <brightGreen>green</color>.
+      Unknown field <brightRed>\`notThere\`</color> for <bold>select</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -446,7 +446,7 @@ describe('UnknownSelectionField', () => {
         }
       }
 
-      Unknown field <brightRed>\`notThere\`</color> for <bold>include</intensity> statement on model <bold>Post</intensity>. Available options are listed in <brightGreen>green</color>.
+      Unknown field <brightRed>\`notThere\`</color> for <bold>include</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <brightGreen>green</color>.
     `)
   })
 })
@@ -478,7 +478,7 @@ describe('UnknownArgument', () => {
       <brightGreen>?</color> <brightGreen>take</color><brightGreen>?</color><brightGreen>: </color><brightGreen>Int</color>
       }
 
-      Unknown argument <brightRed>wher</color>. Did you mean \`<brightGreen>where</color>\`? Available options are listed in <brightGreen>green</color>.
+      Unknown argument \`<brightRed>wher</color>\`. Did you mean \`<brightGreen>where</color>\`? Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -501,7 +501,7 @@ describe('UnknownArgument', () => {
         }
       }
 
-      Unknown argument <brightRed>wher</color>.
+      Unknown argument \`<brightRed>wher</color>\`.
     `)
   })
 
@@ -531,7 +531,7 @@ describe('UnknownArgument', () => {
       <brightGreen>?</color> <brightGreen>take</color><brightGreen>?</color><brightGreen>: </color><brightGreen>Int</color>
       }
 
-      Unknown argument <brightRed>completelyNotThere</color>. Available options are listed in <brightGreen>green</color>.
+      Unknown argument \`<brightRed>completelyNotThere</color>\`. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -572,7 +572,7 @@ describe('UnknownArgument', () => {
         }
       }
 
-      Unknown argument <brightRed>wherr</color>. Did you mean \`<brightGreen>where</color>\`? Available options are listed in <brightGreen>green</color>.
+      Unknown argument \`<brightRed>wherr</color>\`. Did you mean \`<brightGreen>where</color>\`? Available options are listed in <brightGreen>green</color>.
     `)
   })
 })
@@ -610,7 +610,7 @@ describe('UnknownInputField', () => {
         }
       }
 
-      Unknown argument <brightRed>upvote</color>. Did you mean \`<brightGreen>upvotes</color>\`? Available options are listed in <brightGreen>green</color>.
+      Unknown argument \`<brightRed>upvote</color>\`. Did you mean \`<brightGreen>upvotes</color>\`? Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -646,7 +646,7 @@ describe('UnknownInputField', () => {
         }
       }
 
-      Unknown argument <brightRed>somethingCompletelyDifferent</color>. Available options are listed in <brightGreen>green</color>.
+      Unknown argument \`<brightRed>somethingCompletelyDifferent</color>\`. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -686,7 +686,7 @@ describe('UnknownInputField', () => {
         }
       }
 
-      Unknown argument <brightRed>upvote</color>. Did you mean \`<brightGreen>upvotes</color>\`? Available options are listed in <brightGreen>green</color>.
+      Unknown argument \`<brightRed>upvote</color>\`. Did you mean \`<brightGreen>upvotes</color>\`? Available options are listed in <brightGreen>green</color>.
     `)
   })
 })
@@ -720,7 +720,7 @@ describe('RequiredArgumentMissing', () => {
       <brightGreen>+</color> <brightGreen>}</color>
       }
 
-      Argument <brightGreen>where</color> is missing.
+      Argument \`<brightGreen>where</color>\` is missing.
     `)
   })
 
@@ -748,7 +748,7 @@ describe('RequiredArgumentMissing', () => {
       <brightGreen>+</color> <brightGreen>}</color>
       }
 
-      Argument <brightGreen>where</color> is missing.
+      Argument \`<brightGreen>where</color>\` is missing.
     `)
   })
 
@@ -780,7 +780,7 @@ describe('RequiredArgumentMissing', () => {
       <brightGreen>+</color> <brightGreen>where</color><brightGreen>: </color><brightGreen>UserWhereInput | UserBetterWhereInput</color>
       }
 
-      Argument <brightGreen>where</color> is missing.
+      Argument \`<brightGreen>where</color>\` is missing.
     `)
   })
 
@@ -809,7 +809,7 @@ describe('RequiredArgumentMissing', () => {
       <brightGreen>+</color> <brightGreen>data</color><brightGreen>: </color><brightGreen>UserCreateInput[]</color>
       }
 
-      Argument <brightGreen>data</color> is missing.
+      Argument \`<brightGreen>data</color>\` is missing.
     `)
   })
 
@@ -836,7 +836,7 @@ describe('RequiredArgumentMissing', () => {
         }
       }
 
-      Argument <brightGreen>email</color> is missing.
+      Argument \`<brightGreen>email</color>\` is missing.
     `)
   })
 
@@ -876,7 +876,7 @@ describe('RequiredArgumentMissing', () => {
         }
       }
 
-      Argument <brightGreen>where</color> is missing.
+      Argument \`<brightGreen>where</color>\` is missing.
     `)
   })
 })
@@ -902,7 +902,7 @@ describe('InvalidArgumentType', () => {
         }
       }
 
-      Argument <bold>id</intensity>: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
+      Argument \`<bold>id</intensity>\`: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
     `)
   })
 
@@ -928,7 +928,7 @@ describe('InvalidArgumentType', () => {
         }
       }
 
-      Argument <bold>contains</intensity>: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
+      Argument \`<bold>contains</intensity>\`: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
     `)
   })
 
@@ -952,7 +952,7 @@ describe('InvalidArgumentType', () => {
         }
       }
 
-      Argument <bold>id</intensity>: Invalid value provided. Expected <brightGreen>String</color> or <brightGreen>StringFilter</color>, provided <brightRed>Int</color>.
+      Argument \`<bold>id</intensity>\`: Invalid value provided. Expected <brightGreen>String</color> or <brightGreen>StringFilter</color>, provided <brightRed>Int</color>.
     `)
   })
 
@@ -980,7 +980,7 @@ describe('InvalidArgumentType', () => {
         }
       }
 
-      Argument <bold>published</intensity>: Invalid value provided. Expected <brightGreen>Boolean</color>, provided <brightRed>String</color>.
+      Argument \`<bold>published</intensity>\`: Invalid value provided. Expected <brightGreen>Boolean</color>, provided <brightRed>String</color>.
     `)
   })
 
@@ -1010,7 +1010,7 @@ describe('InvalidArgumentType', () => {
         }
       }
 
-      Argument <bold>gt</intensity>: Invalid value provided. Expected <brightGreen>Date</color>, provided <brightRed>String</color>.
+      Argument \`<bold>gt</intensity>\`: Invalid value provided. Expected <brightGreen>Date</color>, provided <brightRed>String</color>.
     `)
   })
 })
@@ -1036,7 +1036,7 @@ describe('InvalidArgumentValue', () => {
         }
       }
 
-      Invalid value for argument <bold>createdAt</intensity>: Invalid characters. Expected <brightGreen>IS0861 DateTime</color>.
+      Invalid value for argument \`<bold>createdAt</intensity>\`: Invalid characters. Expected <brightGreen>IS0861 DateTime</color>.
     `)
   })
 
@@ -1062,7 +1062,7 @@ describe('InvalidArgumentValue', () => {
         }
       }
 
-      Invalid value for argument <bold>createdAt</intensity>: Invalid characters. Expected <brightGreen>IS0861 DateTime</color>.
+      Invalid value for argument \`<bold>createdAt</intensity>\`: Invalid characters. Expected <brightGreen>IS0861 DateTime</color>.
     `)
   })
 
@@ -1090,7 +1090,7 @@ describe('InvalidArgumentValue', () => {
         }
       }
 
-      Invalid value for argument <bold>createdAt</intensity>: Invalid characters. Expected <brightGreen>ISO8601 DateTime</color>.
+      Invalid value for argument \`<bold>createdAt</intensity>\`: Invalid characters. Expected <brightGreen>ISO8601 DateTime</color>.
     `)
   })
 
@@ -1120,7 +1120,7 @@ describe('InvalidArgumentValue', () => {
         }
       }
 
-      Invalid value for argument <bold>equals</intensity>: Invalid characters. Expected <brightGreen>ISO8601 DateTime</color>.
+      Invalid value for argument \`<bold>equals</intensity>\`: Invalid characters. Expected <brightGreen>ISO8601 DateTime</color>.
     `)
   })
 })
@@ -1163,7 +1163,7 @@ describe('Union', () => {
         }
       }
 
-      Argument <bold>gt</intensity>: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
+      Argument \`<bold>gt</intensity>\`: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
     `)
   })
 
@@ -1202,7 +1202,7 @@ describe('Union', () => {
         }
       }
 
-      Argument <bold>gt</intensity>: Invalid value provided. Expected <brightGreen>String</color> or <brightGreen>StringFilter</color>, provided <brightRed>Int</color>.
+      Argument \`<bold>gt</intensity>\`: Invalid value provided. Expected <brightGreen>String</color> or <brightGreen>StringFilter</color>, provided <brightRed>Int</color>.
     `)
   })
 })
@@ -1235,7 +1235,7 @@ describe('SomeFieldsMissing', () => {
         }
       }
 
-      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one</color> argument. Available options are listed in <brightGreen>green</color>.
+      Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one</color> argument. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -1266,7 +1266,7 @@ describe('SomeFieldsMissing', () => {
         }
       }
 
-      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least 2</color> arguments. Available options are listed in <brightGreen>green</color>.
+      Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least 2</color> arguments. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -1301,7 +1301,7 @@ describe('SomeFieldsMissing', () => {
         }
       }
 
-      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one</color> argument. Available options are listed in <brightGreen>green</color>.
+      Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one</color> argument. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -1332,7 +1332,7 @@ describe('SomeFieldsMissing', () => {
         }
       }
 
-      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one of</color> <bold>id</intensity> or <bold>email</intensity> arguments. Available options are listed in <brightGreen>green</color>.
+      Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one of</color> \`<bold>id</intensity>\` or \`<bold>email</intensity>\` arguments. Available options are listed in <brightGreen>green</color>.
     `)
   })
 })
@@ -1371,7 +1371,7 @@ describe('TooManyFieldsGiven', () => {
         <brightRed>~~~~~~~~~~~~~~~~~~~~~~~~~~</color>
       }
 
-      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>exactly one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
+      Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>exactly one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
     `)
   })
 
@@ -1408,7 +1408,7 @@ describe('TooManyFieldsGiven', () => {
         <brightRed>~~~~~~~~~~~~~~~~~~~~~~~~~~</color>
       }
 
-      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at most one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
+      Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at most one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
     `)
   })
 
@@ -1447,7 +1447,7 @@ describe('TooManyFieldsGiven', () => {
         <brightRed>~~~~~~~~~~~~~~~~~~~~~~~~~~</color>
       }
 
-      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at most 2</color> arguments, but you provided <brightRed>id</color>, <brightRed>email</color> and <brightRed>nickname</color>. Please choose 2.
+      Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at most 2</color> arguments, but you provided <brightRed>id</color>, <brightRed>email</color> and <brightRed>nickname</color>. Please choose 2.
     `)
   })
 
@@ -1492,7 +1492,7 @@ describe('TooManyFieldsGiven', () => {
         }
       }
 
-      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>exactly one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
+      Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>exactly one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
     `)
   })
 })
