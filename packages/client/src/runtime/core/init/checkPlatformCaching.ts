@@ -9,6 +9,9 @@ import type { GetPrismaClientConfig } from '../../getPrismaClient'
  * @returns
  */
 export function checkPlatformCaching({ postinstall, ciName, clientVersion }: GetPrismaClientConfig) {
+  console.log('ciName', ciName)
+  console.log('postinstall', postinstall)
+
   // if client was not generated manually
   if (postinstall !== true) return
 
