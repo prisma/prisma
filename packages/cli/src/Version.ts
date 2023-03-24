@@ -73,7 +73,7 @@ export class Version implements Command {
       return match(engineMetaInfo)
         .with({ 'query-engine': P.select() }, (currEngineInfo) => {
           return [
-            `Query Engine${cliQueryEngineBinaryType === BinaryType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
+            `Query Engine${cliQueryEngineBinaryType === BinaryType.QueryEngineLibrary ? ' (Node-API)' : ' (Binary)'}`,
             currEngineInfo,
           ]
         })
