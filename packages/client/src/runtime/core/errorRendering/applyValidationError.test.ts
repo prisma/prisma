@@ -13,10 +13,10 @@ const renderError = (error: ValidationError, args: JsArgs) => {
   const argsTree = buildArgumentsRenderingTree(args)
   applyValidationError(error, argsTree)
 
-  const disabledChalk = new chalk.Instance()
-  const context = { chalk: disabledChalk }
+  const chalkInstance = new chalk.Instance({ level: 2 })
+  const context = { chalk: chalkInstance }
   const argsStr = new Writer(0, context).write(argsTree).toString()
-  const message = argsTree.renderAllMessages(disabledChalk)
+  const message = argsTree.renderAllMessages(chalkInstance)
 
   return `${argsStr}\n\n${message}`
 }
