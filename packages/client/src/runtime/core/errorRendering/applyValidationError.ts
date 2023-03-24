@@ -313,7 +313,7 @@ function applyValueTooLargeError(error: ValueTooLargeError, args: ArgumentsRende
 }
 
 function applySomeFieldsMissingError(error: SomeFieldsMissingError, args: ArgumentsRenderingTree) {
-  const argumentName = error.argumentPath.at(-1)
+  const argumentName = error.argumentPath[error.argumentPath.length - 1]
   const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
   if (selection instanceof ObjectValue) {
     const argument = selection.getDeepFieldValue(error.argumentPath)
@@ -344,7 +344,7 @@ function applySomeFieldsMissingError(error: SomeFieldsMissingError, args: Argume
 }
 
 function applyTooManyFieldsGivenError(error: TooManyFieldsGivenError, args: ArgumentsRenderingTree) {
-  const argumentName = error.argumentPath.at(-1)
+  const argumentName = error.argumentPath[error.argumentPath.length - 1]
   const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
   let providedArguments: string[] = []
   if (selection instanceof ObjectValue) {
