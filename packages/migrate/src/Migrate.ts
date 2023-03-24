@@ -10,7 +10,6 @@ import { MigrateEngine } from './MigrateEngine'
 import type { EngineArgs, EngineResults } from './types'
 import { NoSchemaFoundError } from './utils/errors'
 
-const debug = Debug('prisma:migrate')
 const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {
