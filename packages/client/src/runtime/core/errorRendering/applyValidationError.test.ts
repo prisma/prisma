@@ -5,7 +5,7 @@ import { Writer } from '../../../generation/ts-builders/Writer'
 import { JsArgs } from '../types/JsApi'
 import { ValidationError } from '../types/ValidationError'
 import { applyValidationError } from './applyValidationError'
-import { buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
+import { ArgumentsRenderingTree, buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
 
 expect.addSnapshotSerializer(ansiEscapesSerializer)
 
@@ -13,7 +13,21 @@ const renderError = (error: ValidationError, args: JsArgs) => {
   const argsTree = buildArgumentsRenderingTree(args)
   applyValidationError(error, argsTree)
 
-  const chalkInstance = new chalk.Instance({ level: 2 })
+  return `
+Colorless:
+
+${renderTreeWithChalkLevel(argsTree, 0)}
+
+------------------------------------
+
+Colored:
+
+${renderTreeWithChalkLevel(argsTree, 2)}
+`
+}
+
+function renderTreeWithChalkLevel(argsTree: ArgumentsRenderingTree, chalkLevel: chalk.Level) {
+  const chalkInstance = new chalk.Instance({ level: chalkLevel })
   const context = { chalk: chalkInstance }
   const argsStr = new Writer(0, context).write(argsTree).toString()
   const message = argsTree.renderAllMessages(chalkInstance)
@@ -42,6 +56,25 @@ describe('includeAndSelect', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        data: {
+          foo: "bar"
+        },
+        include: {},
+        ~~~~~~~
+        select: {}
+        ~~~~~~
+      }
+
+      Please either use \`include\` or \`select\`, but not both at the same time.
+
+      ------------------------------------
+
+      Colored:
+
       {
         data: {
           foo: "bar"
@@ -53,6 +86,7 @@ describe('includeAndSelect', () => {
       }
 
       Please <bold>either</intensity> use <brightGreen>\`include\`</color> or <brightGreen>\`select\`</color>, but <brightRed>not both</color> at the same time.
+
     `)
   })
 
@@ -75,6 +109,33 @@ describe('includeAndSelect', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          posts: {
+            where: {
+              published: true
+            },
+            select: {
+              likes: {
+                select: {},
+                ~~~~~~
+                include: {}
+                ~~~~~~~
+              }
+            }
+          }
+        }
+      }
+
+      Please either use \`include\` or \`select\`, but not both at the same time.
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           posts: {
@@ -94,6 +155,7 @@ describe('includeAndSelect', () => {
       }
 
       Please <bold>either</intensity> use <brightGreen>\`include\`</color> or <brightGreen>\`select\`</color>, but <brightRed>not both</color> at the same time.
+
     `)
   })
 })
@@ -111,6 +173,26 @@ describe('includeOnScalar', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        data: {
+          foo: "bar"
+        },
+        include: {
+          id: true
+          ~~
+        }
+      }
+
+      Invalid scalar field \`id\` for include statement.
+      Note that include statements only accept relation fields.
+
+      ------------------------------------
+
+      Colored:
+
       {
         data: {
           foo: "bar"
@@ -123,6 +205,7 @@ describe('includeOnScalar', () => {
 
       Invalid scalar field <brightRed>\`id\`</color> for <bold>include</intensity> statement.
       Note that <bold>include</intensity> statements only accept relation fields.
+
     `)
   })
 
@@ -149,6 +232,27 @@ describe('includeOnScalar', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        data: {
+          foo: "bar"
+        },
+        include: {
+          id: true,
+          ~~
+      ?   posts?: true
+        }
+      }
+
+      Invalid scalar field \`id\` for include statement on model User. Available options are listed in green.
+      Note that include statements only accept relation fields.
+
+      ------------------------------------
+
+      Colored:
+
       {
         data: {
           foo: "bar"
@@ -162,6 +266,7 @@ describe('includeOnScalar', () => {
 
       Invalid scalar field <brightRed>\`id\`</color> for <bold>include</intensity> statement on model <bold>User</intensity>. Available options are listed in <brightGreen>green</color>.
       Note that <bold>include</intensity> statements only accept relation fields.
+
     `)
   })
 
@@ -181,6 +286,30 @@ describe('includeOnScalar', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        data: {
+          foo: "bar"
+        },
+        include: {
+          posts: {
+            include: {
+              id: true
+              ~~
+            }
+          }
+        }
+      }
+
+      Invalid scalar field \`id\` for include statement.
+      Note that include statements only accept relation fields.
+
+      ------------------------------------
+
+      Colored:
+
       {
         data: {
           foo: "bar"
@@ -197,6 +326,7 @@ describe('includeOnScalar', () => {
 
       Invalid scalar field <brightRed>\`id\`</color> for <bold>include</intensity> statement.
       Note that <bold>include</intensity> statements only accept relation fields.
+
     `)
   })
 
@@ -227,6 +357,31 @@ describe('includeOnScalar', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        data: {
+          foo: "bar"
+        },
+        include: {
+          posts: {
+            include: {
+              id: true,
+              ~~
+      ?       likes?: true
+            }
+          }
+        }
+      }
+
+      Invalid scalar field \`id\` for include statement on model Post. Available options are listed in green.
+      Note that include statements only accept relation fields.
+
+      ------------------------------------
+
+      Colored:
+
       {
         data: {
           foo: "bar"
@@ -244,6 +399,7 @@ describe('includeOnScalar', () => {
 
       Invalid scalar field <brightRed>\`id\`</color> for <bold>include</intensity> statement on model <bold>Post</intensity>. Available options are listed in <brightGreen>green</color>.
       Note that <bold>include</intensity> statements only accept relation fields.
+
     `)
   })
 })
@@ -260,6 +416,26 @@ describe('EmptySelection', () => {
         { where: { published: true }, select: {} },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          published: true
+        },
+        select: {
+      ?   id?: true,
+      ?   title?: true,
+      ?   comments?: true
+        }
+      }
+
+      The \`select\` statement for type Post must not be empty. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           published: true
@@ -272,6 +448,7 @@ describe('EmptySelection', () => {
       }
 
       The <red>\`select\`</color> statement for type <bold>Post</intensity> must not be empty. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -286,6 +463,26 @@ describe('EmptySelection', () => {
         { where: { published: true }, select: { id: false } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          published: true
+        },
+        select: {
+      ?   id?: true,
+      ?   title?: true,
+      ?   comments?: true
+        }
+      }
+
+      The \`select\` statement for type Post needs at least one truthy value.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           published: true
@@ -298,6 +495,7 @@ describe('EmptySelection', () => {
       }
 
       The <red>\`select\`</color> statement for type <bold>Post</intensity> needs <bold>at least one truthy value</intensity>.
+
     `)
   })
 
@@ -312,6 +510,31 @@ describe('EmptySelection', () => {
         { select: { users: { include: { posts: { select: {} } } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        select: {
+          users: {
+            include: {
+              posts: {
+                select: {
+      ?           id?: true,
+      ?           title?: true,
+      ?           comments?: true
+                }
+              }
+            }
+          }
+        }
+      }
+
+      The \`select\` statement for type Post must not be empty. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         select: {
           users: {
@@ -329,6 +552,7 @@ describe('EmptySelection', () => {
       }
 
       The <red>\`select\`</color> statement for type <bold>Post</intensity> must not be empty. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 })
@@ -345,6 +569,25 @@ describe('UnknownSelectionField', () => {
         { select: { notThere: true } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        select: {
+          notThere: true,
+          ~~~~~~~~
+      ?   id?: true,
+      ?   title?: true,
+      ?   comments?: true
+        }
+      }
+
+      Unknown field \`notThere\` for select statement on model \`Post\`. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         select: {
           <brightRed>notThere</color>: true,
@@ -356,6 +599,7 @@ describe('UnknownSelectionField', () => {
       }
 
       Unknown field <brightRed>\`notThere\`</color> for <bold>select</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -370,6 +614,25 @@ describe('UnknownSelectionField', () => {
         { include: { notThere: true } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          notThere: true,
+          ~~~~~~~~
+      ?   id?: true,
+      ?   title?: true,
+      ?   comments?: true
+        }
+      }
+
+      Unknown field \`notThere\` for include statement on model \`Post\`. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           <brightRed>notThere</color>: true,
@@ -381,6 +644,7 @@ describe('UnknownSelectionField', () => {
       }
 
       Unknown field <brightRed>\`notThere\`</color> for <bold>include</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -395,6 +659,33 @@ describe('UnknownSelectionField', () => {
         { select: { users: { select: { posts: { select: { notThere: true } } } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        select: {
+          users: {
+            select: {
+              posts: {
+                select: {
+                  notThere: true,
+                  ~~~~~~~~
+      ?           id?: true,
+      ?           title?: true,
+      ?           comments?: true
+                }
+              }
+            }
+          }
+        }
+      }
+
+      Unknown field \`notThere\` for select statement on model \`Post\`. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         select: {
           users: {
@@ -414,6 +705,7 @@ describe('UnknownSelectionField', () => {
       }
 
       Unknown field <brightRed>\`notThere\`</color> for <bold>select</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -428,6 +720,33 @@ describe('UnknownSelectionField', () => {
         { select: { users: { include: { posts: { include: { notThere: true } } } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        select: {
+          users: {
+            include: {
+              posts: {
+                include: {
+                  notThere: true,
+                  ~~~~~~~~
+      ?           id?: true,
+      ?           title?: true,
+      ?           comments?: true
+                }
+              }
+            }
+          }
+        }
+      }
+
+      Unknown field \`notThere\` for include statement on model \`Post\`. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         select: {
           users: {
@@ -447,6 +766,7 @@ describe('UnknownSelectionField', () => {
       }
 
       Unknown field <brightRed>\`notThere\`</color> for <bold>include</intensity> statement on model <bold>\`Post\`</intensity>. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 })
@@ -468,6 +788,25 @@ describe('UnknownArgument', () => {
         { wher: { id: 123 } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        wher: {
+        ~~~~
+          id: 123
+        },
+      ? where?: PostWhereInput,
+      ? orderBy?: PostOrderByWithRelationInput | List<PostOrderByWithRelationInput>,
+      ? take?: Int
+      }
+
+      Unknown argument \`wher\`. Did you mean \`where\`? Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         <brightRed>wher</color>: {
         <brightRed>~~~~</color>
@@ -479,6 +818,7 @@ describe('UnknownArgument', () => {
       }
 
       Unknown argument \`<brightRed>wher</color>\`. Did you mean \`<brightGreen>where</color>\`? Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -494,6 +834,22 @@ describe('UnknownArgument', () => {
         { wher: { id: 123 } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        wher: {
+        ~~~~
+          id: 123
+        }
+      }
+
+      Unknown argument \`wher\`.
+
+      ------------------------------------
+
+      Colored:
+
       {
         <brightRed>wher</color>: {
         <brightRed>~~~~</color>
@@ -502,6 +858,7 @@ describe('UnknownArgument', () => {
       }
 
       Unknown argument \`<brightRed>wher</color>\`.
+
     `)
   })
 
@@ -521,6 +878,25 @@ describe('UnknownArgument', () => {
         { completelyNotThere: { id: 123 } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        completelyNotThere: {
+        ~~~~~~~~~~~~~~~~~~
+          id: 123
+        },
+      ? where?: PostWhereInput,
+      ? orderBy?: PostOrderByWithRelationInput | List<PostOrderByWithRelationInput>,
+      ? take?: Int
+      }
+
+      Unknown argument \`completelyNotThere\`. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         <brightRed>completelyNotThere</color>: {
         <brightRed>~~~~~~~~~~~~~~~~~~</color>
@@ -532,6 +908,7 @@ describe('UnknownArgument', () => {
       }
 
       Unknown argument \`<brightRed>completelyNotThere</color>\`. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -554,6 +931,33 @@ describe('UnknownArgument', () => {
         { include: { posts: { include: { comments: { wherr: { upvotes: 0 } } } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          posts: {
+            include: {
+              comments: {
+                wherr: {
+                ~~~~~
+                  upvotes: 0
+                },
+      ?         where?: CommentWhereInput,
+      ?         orderBy?: CommentOrderByWithRelationInput | List<CommentOrderByWithRelationInput>,
+      ?         take?: Int
+              }
+            }
+          }
+        }
+      }
+
+      Unknown argument \`wherr\`. Did you mean \`where\`? Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           posts: {
@@ -573,6 +977,7 @@ describe('UnknownArgument', () => {
       }
 
       Unknown argument \`<brightRed>wherr</color>\`. Did you mean \`<brightGreen>where</color>\`? Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 })
@@ -598,6 +1003,27 @@ describe('UnknownInputField', () => {
         { where: { upvote: { gt: 0 } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          upvote: {
+          ~~~~~~
+            gt: 0
+          },
+      ?   id?: String,
+      ?   name?: String,
+      ?   upvotes?: Int | IntFilter
+        }
+      }
+
+      Unknown argument \`upvote\`. Did you mean \`upvotes\`? Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           <brightRed>upvote</color>: {
@@ -611,6 +1037,7 @@ describe('UnknownInputField', () => {
       }
 
       Unknown argument \`<brightRed>upvote</color>\`. Did you mean \`<brightGreen>upvotes</color>\`? Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -634,6 +1061,27 @@ describe('UnknownInputField', () => {
         { where: { somethingCompletelyDifferent: { gt: 0 } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          somethingCompletelyDifferent: {
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+            gt: 0
+          },
+      ?   id?: String,
+      ?   name?: String,
+      ?   upvotes?: Int | IntFilter
+        }
+      }
+
+      Unknown argument \`somethingCompletelyDifferent\`. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           <brightRed>somethingCompletelyDifferent</color>: {
@@ -647,6 +1095,7 @@ describe('UnknownInputField', () => {
       }
 
       Unknown argument \`<brightRed>somethingCompletelyDifferent</color>\`. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -670,6 +1119,31 @@ describe('UnknownInputField', () => {
         { include: { posts: { where: { upvote: { gt: 0 } } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          posts: {
+            where: {
+              upvote: {
+              ~~~~~~
+                gt: 0
+              },
+      ?       id?: String,
+      ?       name?: String,
+      ?       upvotes?: Int | IntFilter
+            }
+          }
+        }
+      }
+
+      Unknown argument \`upvote\`. Did you mean \`upvotes\`? Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           posts: {
@@ -687,6 +1161,7 @@ describe('UnknownInputField', () => {
       }
 
       Unknown argument \`<brightRed>upvote</color>\`. Did you mean \`<brightGreen>upvotes</color>\`? Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 })
@@ -713,6 +1188,22 @@ describe('RequiredArgumentMissing', () => {
         {},
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+      + where: {
+      +   id: Int,
+      +   email: String
+      + }
+      }
+
+      Argument \`where\` is missing.
+
+      ------------------------------------
+
+      Colored:
+
       {
       <brightGreen>+</color> <brightGreen>where</color><brightGreen>: </color><brightGreen>{</color>
       <brightGreen><dim>+</intensity></color>   <brightGreen><dim>id: Int</intensity></color>,
@@ -721,6 +1212,7 @@ describe('RequiredArgumentMissing', () => {
       }
 
       Argument \`<brightGreen>where</color>\` is missing.
+
     `)
   })
 
@@ -742,6 +1234,21 @@ describe('RequiredArgumentMissing', () => {
         {},
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+      + where: {
+      +   id: Int | String
+      + }
+      }
+
+      Argument \`where\` is missing.
+
+      ------------------------------------
+
+      Colored:
+
       {
       <brightGreen>+</color> <brightGreen>where</color><brightGreen>: </color><brightGreen>{</color>
       <brightGreen><dim>+</intensity></color>   <brightGreen><dim>id: Int | String</intensity></color>
@@ -749,6 +1256,7 @@ describe('RequiredArgumentMissing', () => {
       }
 
       Argument \`<brightGreen>where</color>\` is missing.
+
     `)
   })
 
@@ -776,11 +1284,25 @@ describe('RequiredArgumentMissing', () => {
         {},
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+      + where: UserWhereInput | UserBetterWhereInput
+      }
+
+      Argument \`where\` is missing.
+
+      ------------------------------------
+
+      Colored:
+
       {
       <brightGreen>+</color> <brightGreen>where</color><brightGreen>: </color><brightGreen>UserWhereInput | UserBetterWhereInput</color>
       }
 
       Argument \`<brightGreen>where</color>\` is missing.
+
     `)
   })
 
@@ -805,11 +1327,25 @@ describe('RequiredArgumentMissing', () => {
         {},
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+      + data: UserCreateInput[]
+      }
+
+      Argument \`data\` is missing.
+
+      ------------------------------------
+
+      Colored:
+
       {
       <brightGreen>+</color> <brightGreen>data</color><brightGreen>: </color><brightGreen>UserCreateInput[]</color>
       }
 
       Argument \`<brightGreen>data</color>\` is missing.
+
     `)
   })
 
@@ -830,6 +1366,21 @@ describe('RequiredArgumentMissing', () => {
         { data: {} },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        data: {
+      +   email: String
+        }
+      }
+
+      Argument \`email\` is missing.
+
+      ------------------------------------
+
+      Colored:
+
       {
         data: {
       <brightGreen>+</color>   <brightGreen>email</color><brightGreen>: </color><brightGreen>String</color>
@@ -837,6 +1388,7 @@ describe('RequiredArgumentMissing', () => {
       }
 
       Argument \`<brightGreen>email</color>\` is missing.
+
     `)
   })
 
@@ -865,6 +1417,26 @@ describe('RequiredArgumentMissing', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        select: {
+          user: {
+      +     where: {
+      +       id: Int,
+      +       email: String
+      +     }
+          }
+        }
+      }
+
+      Argument \`where\` is missing.
+
+      ------------------------------------
+
+      Colored:
+
       {
         select: {
           user: {
@@ -877,6 +1449,7 @@ describe('RequiredArgumentMissing', () => {
       }
 
       Argument \`<brightGreen>where</color>\` is missing.
+
     `)
   })
 })
@@ -895,6 +1468,22 @@ describe('InvalidArgumentType', () => {
         { where: { id: 123 } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          id: 123
+              ~~~
+        }
+      }
+
+      Argument \`id\`: Invalid value provided. Expected String, provided Int.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           id: <brightRed>123</color>
@@ -903,6 +1492,7 @@ describe('InvalidArgumentType', () => {
       }
 
       Argument \`<bold>id</intensity>\`: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
+
     `)
   })
 
@@ -919,6 +1509,24 @@ describe('InvalidArgumentType', () => {
         { where: { id: { contains: 123 } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          id: {
+            contains: 123
+                      ~~~
+          }
+        }
+      }
+
+      Argument \`contains\`: Invalid value provided. Expected String, provided Int.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           id: {
@@ -929,6 +1537,7 @@ describe('InvalidArgumentType', () => {
       }
 
       Argument \`<bold>contains</intensity>\`: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
+
     `)
   })
 
@@ -945,6 +1554,22 @@ describe('InvalidArgumentType', () => {
         { where: { id: 123 } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          id: 123
+              ~~~
+        }
+      }
+
+      Argument \`id\`: Invalid value provided. Expected String or StringFilter, provided Int.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           id: <brightRed>123</color>
@@ -953,6 +1578,7 @@ describe('InvalidArgumentType', () => {
       }
 
       Argument \`<bold>id</intensity>\`: Invalid value provided. Expected <brightGreen>String</color> or <brightGreen>StringFilter</color>, provided <brightRed>Int</color>.
+
     `)
   })
 
@@ -969,6 +1595,26 @@ describe('InvalidArgumentType', () => {
         { include: { posts: { where: { published: 'yes' } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          posts: {
+            where: {
+              published: "yes"
+                         ~~~~~
+            }
+          }
+        }
+      }
+
+      Argument \`published\`: Invalid value provided. Expected Boolean, provided String.
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           posts: {
@@ -981,6 +1627,7 @@ describe('InvalidArgumentType', () => {
       }
 
       Argument \`<bold>published</intensity>\`: Invalid value provided. Expected <brightGreen>Boolean</color>, provided <brightRed>String</color>.
+
     `)
   })
 
@@ -997,6 +1644,28 @@ describe('InvalidArgumentType', () => {
         { include: { posts: { where: { publishedDate: { gt: 'now' } } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          posts: {
+            where: {
+              publishedDate: {
+                gt: "now"
+                    ~~~~~
+              }
+            }
+          }
+        }
+      }
+
+      Argument \`gt\`: Invalid value provided. Expected Date, provided String.
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           posts: {
@@ -1011,6 +1680,7 @@ describe('InvalidArgumentType', () => {
       }
 
       Argument \`<bold>gt</intensity>\`: Invalid value provided. Expected <brightGreen>Date</color>, provided <brightRed>String</color>.
+
     `)
   })
 })
@@ -1028,6 +1698,22 @@ describe('ValueTooLarge', () => {
         { where: { number: 1e20 } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          number: 100000000000000000000
+                  ~~~~~~~~~~~~~~~~~~~~~
+        }
+      }
+
+      Unable to fit value 100000000000000000000 into a 64-bit signed integer for field \`number\`
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           number: <brightRed>100000000000000000000</color>
@@ -1036,6 +1722,7 @@ describe('ValueTooLarge', () => {
       }
 
       Unable to fit value <brightRed>100000000000000000000</color> into a 64-bit signed integer for field \`<bold>number</intensity>\`
+
     `)
   })
 
@@ -1051,6 +1738,24 @@ describe('ValueTooLarge', () => {
         { where: { number: { gt: 1e20 } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          number: {
+            gt: 100000000000000000000
+                ~~~~~~~~~~~~~~~~~~~~~
+          }
+        }
+      }
+
+      Unable to fit value 100000000000000000000 into a 64-bit signed integer for field \`gt\`
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           number: {
@@ -1061,6 +1766,7 @@ describe('ValueTooLarge', () => {
       }
 
       Unable to fit value <brightRed>100000000000000000000</color> into a 64-bit signed integer for field \`<bold>gt</intensity>\`
+
     `)
   })
 
@@ -1076,6 +1782,26 @@ describe('ValueTooLarge', () => {
         { include: { posts: { where: { number: 1e20 } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          posts: {
+            where: {
+              number: 100000000000000000000
+                      ~~~~~~~~~~~~~~~~~~~~~
+            }
+          }
+        }
+      }
+
+      Unable to fit value 100000000000000000000 into a 64-bit signed integer for field \`number\`
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           posts: {
@@ -1088,6 +1814,7 @@ describe('ValueTooLarge', () => {
       }
 
       Unable to fit value <brightRed>100000000000000000000</color> into a 64-bit signed integer for field \`<bold>number</intensity>\`
+
     `)
   })
 
@@ -1103,6 +1830,28 @@ describe('ValueTooLarge', () => {
         { include: { posts: { where: { number: { gt: 1e20 } } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          posts: {
+            where: {
+              number: {
+                gt: 100000000000000000000
+                    ~~~~~~~~~~~~~~~~~~~~~
+              }
+            }
+          }
+        }
+      }
+
+      Unable to fit value 100000000000000000000 into a 64-bit signed integer for field \`number\`
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           posts: {
@@ -1117,6 +1866,7 @@ describe('ValueTooLarge', () => {
       }
 
       Unable to fit value <brightRed>100000000000000000000</color> into a 64-bit signed integer for field \`<bold>number</intensity>\`
+
     `)
   })
 })
@@ -1135,6 +1885,22 @@ describe('InvalidArgumentValue', () => {
         { where: { createdAt: 'now' } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          createdAt: "now"
+                     ~~~~~
+        }
+      }
+
+      Invalid value for argument \`createdAt\`: Invalid characters. Expected IS0861 DateTime.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           createdAt: <brightRed>"now"</color>
@@ -1143,6 +1909,7 @@ describe('InvalidArgumentValue', () => {
       }
 
       Invalid value for argument \`<bold>createdAt</intensity>\`: Invalid characters. Expected <brightGreen>IS0861 DateTime</color>.
+
     `)
   })
 
@@ -1159,6 +1926,24 @@ describe('InvalidArgumentValue', () => {
         { where: { createdAt: { gt: 'now' } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          createdAt: {
+            gt: "now"
+                ~~~~~
+          }
+        }
+      }
+
+      Invalid value for argument \`createdAt\`: Invalid characters. Expected IS0861 DateTime.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           createdAt: {
@@ -1169,6 +1954,7 @@ describe('InvalidArgumentValue', () => {
       }
 
       Invalid value for argument \`<bold>createdAt</intensity>\`: Invalid characters. Expected <brightGreen>IS0861 DateTime</color>.
+
     `)
   })
 
@@ -1185,6 +1971,26 @@ describe('InvalidArgumentValue', () => {
         { include: { posts: { where: { createdAt: 'yes' } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          posts: {
+            where: {
+              createdAt: "yes"
+                         ~~~~~
+            }
+          }
+        }
+      }
+
+      Invalid value for argument \`createdAt\`: Invalid characters. Expected ISO8601 DateTime.
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           posts: {
@@ -1197,6 +2003,7 @@ describe('InvalidArgumentValue', () => {
       }
 
       Invalid value for argument \`<bold>createdAt</intensity>\`: Invalid characters. Expected <brightGreen>ISO8601 DateTime</color>.
+
     `)
   })
 
@@ -1213,6 +2020,28 @@ describe('InvalidArgumentValue', () => {
         { include: { posts: { where: { createdAt: { equals: 'yes' } } } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          posts: {
+            where: {
+              createdAt: {
+                equals: "yes"
+                        ~~~~~
+              }
+            }
+          }
+        }
+      }
+
+      Invalid value for argument \`equals\`: Invalid characters. Expected ISO8601 DateTime.
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           posts: {
@@ -1227,6 +2056,7 @@ describe('InvalidArgumentValue', () => {
       }
 
       Invalid value for argument \`<bold>equals</intensity>\`: Invalid characters. Expected <brightGreen>ISO8601 DateTime</color>.
+
     `)
   })
 })
@@ -1260,6 +2090,24 @@ describe('Union', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          email: {
+            gt: 123
+                ~~~
+          }
+        }
+      }
+
+      Argument \`gt\`: Invalid value provided. Expected String, provided Int.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           email: {
@@ -1270,6 +2118,7 @@ describe('Union', () => {
       }
 
       Argument \`<bold>gt</intensity>\`: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
+
     `)
   })
 
@@ -1301,6 +2150,22 @@ describe('Union', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          email: 123
+                 ~~~
+        }
+      }
+
+      Argument \`gt\`: Invalid value provided. Expected String or StringFilter, provided Int.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           email: <brightRed>123</color>
@@ -1309,6 +2174,7 @@ describe('Union', () => {
       }
 
       Argument \`<bold>gt</intensity>\`: Invalid value provided. Expected <brightGreen>String</color> or <brightGreen>StringFilter</color>, provided <brightRed>Int</color>.
+
     `)
   })
 })
@@ -1334,6 +2200,22 @@ describe('SomeFieldsMissing', () => {
         { where: {} },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+      ?   id?: String,
+      ?   email?: String
+        }
+      }
+
+      Argument \`where\` of type UserWhereUniqueInput needs at least one argument. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
       <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
@@ -1342,6 +2224,7 @@ describe('SomeFieldsMissing', () => {
       }
 
       Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one</color> argument. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -1365,6 +2248,22 @@ describe('SomeFieldsMissing', () => {
         { where: {} },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+      ?   id?: String,
+      ?   email?: String
+        }
+      }
+
+      Argument \`where\` of type UserWhereUniqueInput needs at least 2 arguments. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
       <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
@@ -1373,6 +2272,7 @@ describe('SomeFieldsMissing', () => {
       }
 
       Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least 2</color> arguments. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -1396,6 +2296,26 @@ describe('SomeFieldsMissing', () => {
         { include: { user: { where: {} } } },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        include: {
+          user: {
+            where: {
+      ?       id?: String,
+      ?       email?: String
+            }
+          }
+        }
+      }
+
+      Argument \`where\` of type UserWhereUniqueInput needs at least one argument. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         include: {
           user: {
@@ -1408,6 +2328,7 @@ describe('SomeFieldsMissing', () => {
       }
 
       Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one</color> argument. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 
@@ -1431,6 +2352,22 @@ describe('SomeFieldsMissing', () => {
         { where: {} },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+      ?   id?: String,
+      ?   email?: String
+        }
+      }
+
+      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\` or \`email\` arguments. Available options are listed in green.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
       <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
@@ -1439,6 +2376,7 @@ describe('SomeFieldsMissing', () => {
       }
 
       Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one of</color> \`<bold>id</intensity>\` or \`<bold>email</intensity>\` arguments. Available options are listed in <brightGreen>green</color>.
+
     `)
   })
 })
@@ -1469,6 +2407,23 @@ describe('TooManyFieldsGiven', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          id: "foo",
+          email: "foo@example.com"
+        }
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+      }
+
+      Argument \`where\` of type UserWhereUniqueInput needs exactly one argument, but you provided id and email. Please choose one.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           id: "foo",
@@ -1478,6 +2433,7 @@ describe('TooManyFieldsGiven', () => {
       }
 
       Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>exactly one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
+
     `)
   })
 
@@ -1506,6 +2462,23 @@ describe('TooManyFieldsGiven', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          id: "foo",
+          email: "foo@example.com"
+        }
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+      }
+
+      Argument \`where\` of type UserWhereUniqueInput needs at most one argument, but you provided id and email. Please choose one.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           id: "foo",
@@ -1515,6 +2488,7 @@ describe('TooManyFieldsGiven', () => {
       }
 
       Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at most one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
+
     `)
   })
 
@@ -1544,6 +2518,24 @@ describe('TooManyFieldsGiven', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        where: {
+          id: "foo",
+          email: "foo@example.com",
+          nickname: "bar"
+        }
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+      }
+
+      Argument \`where\` of type UserWhereUniqueInput needs at most 2 arguments, but you provided id, email and nickname. Please choose 2.
+
+      ------------------------------------
+
+      Colored:
+
       {
         where: {
           id: "foo",
@@ -1554,6 +2546,7 @@ describe('TooManyFieldsGiven', () => {
       }
 
       Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at most 2</color> arguments, but you provided <brightRed>id</color>, <brightRed>email</color> and <brightRed>nickname</color>. Please choose 2.
+
     `)
   })
 
@@ -1586,6 +2579,27 @@ describe('TooManyFieldsGiven', () => {
         },
       ),
     ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        select: {
+          user: {
+            where: {
+              id: "foo",
+              email: "foo@example.com"
+            }
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~
+          }
+        }
+      }
+
+      Argument \`where\` of type UserWhereUniqueInput needs exactly one argument, but you provided id and email. Please choose one.
+
+      ------------------------------------
+
+      Colored:
+
       {
         select: {
           user: {
@@ -1599,6 +2613,7 @@ describe('TooManyFieldsGiven', () => {
       }
 
       Argument \`<bold>where</intensity>\` of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>exactly one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
+
     `)
   })
 })

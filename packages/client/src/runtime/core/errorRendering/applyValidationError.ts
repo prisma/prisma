@@ -130,6 +130,36 @@ function applyEmptySelectionError(error: EmptySelectionError, argsTree: Argument
   const isEmpty = selection?.isEmpty() ?? false
 
   if (selection) {
+    // If selection has fields and we get EmptySelection error, it means all fields within the
+    // selection are false. We have 2 possible ways to handle suggestions here:
+    //
+    // 1. Suggest only the fields, not present inside of the selection. Example:
+    //
+    // {
+    //   select: {
+    //     id: false
+    //     posts: false,
+    // ?   name?: true
+    // ?   email?: true
+    //  }
+    // }
+    // There are couple of possible problems here. First, we are assuming that user needs to
+    // add new field to the selection, rather than change one of the existing ones to true.
+    // Second, we might end up in a situation where all fields are already used in selection and we have nothing left to suggest.
+    //
+    // 2.Completely ignore users input and suggest all the fields. Example rendering:
+    // {
+    //  select: {
+    //  ?   id?: true
+    //  ?   posts?: true,
+    //  ?   name?: true
+    //  ?   email?: true
+    //   }
+    //  }
+    //
+    // So we will be suggesting to either change one of the fields to true, or add a new one which would be true.
+    // This is the approach we are taking and in order to it, we need to remove all the fields from selection. Code
+    // below will then add them back as a suggestion.
     selection.removeAllFields()
     addSelectionSuggestions(selection, outputType)
   }
