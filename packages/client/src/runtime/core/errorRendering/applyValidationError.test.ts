@@ -1,4 +1,5 @@
 import chalk from 'chalk'
+import ansiEscapesSerializer from 'jest-serializer-ansi-escapes'
 
 import { Writer } from '../../../generation/ts-builders/Writer'
 import { JsArgs } from '../types/JsApi'
@@ -6,11 +7,13 @@ import { ValidationError } from '../types/ValidationError'
 import { applyValidationError } from './applyValidationError'
 import { buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
 
+expect.addSnapshotSerializer(ansiEscapesSerializer)
+
 const renderError = (error: ValidationError, args: JsArgs) => {
   const argsTree = buildArgumentsRenderingTree(args)
   applyValidationError(error, argsTree)
 
-  const disabledChalk = new chalk.Instance({ level: 0 })
+  const disabledChalk = new chalk.Instance()
   const context = { chalk: disabledChalk }
   const argsStr = new Writer(0, context).write(argsTree).toString()
   const message = argsTree.renderAllMessages(disabledChalk)
@@ -43,13 +46,13 @@ describe('includeAndSelect', () => {
         data: {
           foo: "bar"
         },
-        include: {},
-        ~~~~~~~
-        select: {}
-        ~~~~~~
+        <brightRed>include</color>: {},
+        <brightRed>~~~~~~~</color>
+        <brightRed>select</color>: {}
+        <brightRed>~~~~~~</color>
       }
 
-      Please either use \`include\` or \`select\`, but not both at the same time.
+      Please <bold>either</intensity> use <brightGreen>\`include\`</color> or <brightGreen>\`select\`</color>, but <brightRed>not both</color> at the same time.
     `)
   })
 
@@ -80,17 +83,17 @@ describe('includeAndSelect', () => {
             },
             select: {
               likes: {
-                select: {},
-                ~~~~~~
-                include: {}
-                ~~~~~~~
+                <brightRed>select</color>: {},
+                <brightRed>~~~~~~</color>
+                <brightRed>include</color>: {}
+                <brightRed>~~~~~~~</color>
               }
             }
           }
         }
       }
 
-      Please either use \`include\` or \`select\`, but not both at the same time.
+      Please <bold>either</intensity> use <brightGreen>\`include\`</color> or <brightGreen>\`select\`</color>, but <brightRed>not both</color> at the same time.
     `)
   })
 })
@@ -113,13 +116,13 @@ describe('includeOnScalar', () => {
           foo: "bar"
         },
         include: {
-          id: true
-          ~~
+          <brightRed>id</color>: true
+          <brightRed>~~</color>
         }
       }
 
-      Invalid scalar field \`id\` for include statement.
-      Note that include statements only accept relation fields.
+      Invalid scalar field <brightRed>\`id\`</color> for <bold>include</intensity> statement.
+      Note that <bold>include</intensity> statements only accept relation fields.
     `)
   })
 
@@ -151,14 +154,14 @@ describe('includeOnScalar', () => {
           foo: "bar"
         },
         include: {
-          id: true,
-          ~~
-      ?   posts?: true
+          <brightRed>id</color>: true,
+          <brightRed>~~</color>
+      <brightGreen>?</color>   <brightGreen>posts</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>
         }
       }
 
-      Invalid scalar field \`id\` for include statement on model User. Available options are listed in green.
-      Note that include statements only accept relation fields.
+      Invalid scalar field <brightRed>\`id\`</color> for <bold>include</intensity> statement on model <bold>User</intensity>. Available options are listed in <brightGreen>green</color>.
+      Note that <bold>include</intensity> statements only accept relation fields.
     `)
   })
 
@@ -185,15 +188,15 @@ describe('includeOnScalar', () => {
         include: {
           posts: {
             include: {
-              id: true
-              ~~
+              <brightRed>id</color>: true
+              <brightRed>~~</color>
             }
           }
         }
       }
 
-      Invalid scalar field \`id\` for include statement.
-      Note that include statements only accept relation fields.
+      Invalid scalar field <brightRed>\`id\`</color> for <bold>include</intensity> statement.
+      Note that <bold>include</intensity> statements only accept relation fields.
     `)
   })
 
@@ -231,16 +234,16 @@ describe('includeOnScalar', () => {
         include: {
           posts: {
             include: {
-              id: true,
-              ~~
-      ?       likes?: true
+              <brightRed>id</color>: true,
+              <brightRed>~~</color>
+      <brightGreen>?</color>       <brightGreen>likes</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>
             }
           }
         }
       }
 
-      Invalid scalar field \`id\` for include statement on model Post. Available options are listed in green.
-      Note that include statements only accept relation fields.
+      Invalid scalar field <brightRed>\`id\`</color> for <bold>include</intensity> statement on model <bold>Post</intensity>. Available options are listed in <brightGreen>green</color>.
+      Note that <bold>include</intensity> statements only accept relation fields.
     `)
   })
 })
@@ -262,13 +265,13 @@ describe('EmptySelection', () => {
           published: true
         },
         select: {
-      ?   id?: true,
-      ?   title?: true,
-      ?   comments?: true
+      <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>   <brightGreen>title</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>   <brightGreen>comments</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>
         }
       }
 
-      The \`select\` statement for type Post must not be empty. Available options are listed in green.
+      The <red>\`select\`</color> statement for type <bold>Post</intensity> must not be empty. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -288,13 +291,13 @@ describe('EmptySelection', () => {
           published: true
         },
         select: {
-      ?   id?: true,
-      ?   title?: true,
-      ?   comments?: true
+      <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>   <brightGreen>title</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>   <brightGreen>comments</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>
         }
       }
 
-      The \`select\` statement for type Post needs at least one truthy value.
+      The <red>\`select\`</color> statement for type <bold>Post</intensity> needs <bold>at least one truthy value</intensity>.
     `)
   })
 
@@ -315,9 +318,9 @@ describe('EmptySelection', () => {
             include: {
               posts: {
                 select: {
-      ?           id?: true,
-      ?           title?: true,
-      ?           comments?: true
+      <brightGreen>?</color>           <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>           <brightGreen>title</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>           <brightGreen>comments</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>
                 }
               }
             }
@@ -325,7 +328,7 @@ describe('EmptySelection', () => {
         }
       }
 
-      The \`select\` statement for type Post must not be empty. Available options are listed in green.
+      The <red>\`select\`</color> statement for type <bold>Post</intensity> must not be empty. Available options are listed in <brightGreen>green</color>.
     `)
   })
 })
@@ -344,15 +347,15 @@ describe('UnknownSelectionField', () => {
     ).toMatchInlineSnapshot(`
       {
         select: {
-          notThere: true,
-          ~~~~~~~~
-      ?   id?: true,
-      ?   title?: true,
-      ?   comments?: true
+          <brightRed>notThere</color>: true,
+          <brightRed>~~~~~~~~</color>
+      <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>   <brightGreen>title</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>   <brightGreen>comments</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>
         }
       }
 
-      Unknown field \`notThere\` for select statement on model Post. Available options are listed in green.
+      Unknown field <brightRed>\`notThere\`</color> for <bold>select</intensity> statement on model <bold>Post</intensity>. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -369,15 +372,15 @@ describe('UnknownSelectionField', () => {
     ).toMatchInlineSnapshot(`
       {
         include: {
-          notThere: true,
-          ~~~~~~~~
-      ?   id?: true,
-      ?   title?: true,
-      ?   comments?: true
+          <brightRed>notThere</color>: true,
+          <brightRed>~~~~~~~~</color>
+      <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>   <brightGreen>title</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>   <brightGreen>comments</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>
         }
       }
 
-      Unknown field \`notThere\` for include statement on model Post. Available options are listed in green.
+      Unknown field <brightRed>\`notThere\`</color> for <bold>include</intensity> statement on model <bold>Post</intensity>. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -398,11 +401,11 @@ describe('UnknownSelectionField', () => {
             select: {
               posts: {
                 select: {
-                  notThere: true,
-                  ~~~~~~~~
-      ?           id?: true,
-      ?           title?: true,
-      ?           comments?: true
+                  <brightRed>notThere</color>: true,
+                  <brightRed>~~~~~~~~</color>
+      <brightGreen>?</color>           <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>           <brightGreen>title</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>           <brightGreen>comments</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>
                 }
               }
             }
@@ -410,7 +413,7 @@ describe('UnknownSelectionField', () => {
         }
       }
 
-      Unknown field \`notThere\` for select statement on model Post. Available options are listed in green.
+      Unknown field <brightRed>\`notThere\`</color> for <bold>select</intensity> statement on model <bold>Post</intensity>. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -431,11 +434,11 @@ describe('UnknownSelectionField', () => {
             include: {
               posts: {
                 include: {
-                  notThere: true,
-                  ~~~~~~~~
-      ?           id?: true,
-      ?           title?: true,
-      ?           comments?: true
+                  <brightRed>notThere</color>: true,
+                  <brightRed>~~~~~~~~</color>
+      <brightGreen>?</color>           <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>           <brightGreen>title</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>,
+      <brightGreen>?</color>           <brightGreen>comments</color><brightGreen>?</color><brightGreen>: </color><brightGreen>true</color>
                 }
               }
             }
@@ -443,7 +446,7 @@ describe('UnknownSelectionField', () => {
         }
       }
 
-      Unknown field \`notThere\` for include statement on model Post. Available options are listed in green.
+      Unknown field <brightRed>\`notThere\`</color> for <bold>include</intensity> statement on model <bold>Post</intensity>. Available options are listed in <brightGreen>green</color>.
     `)
   })
 })
@@ -466,16 +469,16 @@ describe('UnknownArgument', () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-        wher: {
-        ~~~~
+        <brightRed>wher</color>: {
+        <brightRed>~~~~</color>
           id: 123
         },
-      ? where?: PostWhereInput,
-      ? orderBy?: PostOrderByWithRelationInput | List<PostOrderByWithRelationInput>,
-      ? take?: Int
+      <brightGreen>?</color> <brightGreen>where</color><brightGreen>?</color><brightGreen>: </color><brightGreen>PostWhereInput</color>,
+      <brightGreen>?</color> <brightGreen>orderBy</color><brightGreen>?</color><brightGreen>: </color><brightGreen>PostOrderByWithRelationInput | List<PostOrderByWithRelationInput></color>,
+      <brightGreen>?</color> <brightGreen>take</color><brightGreen>?</color><brightGreen>: </color><brightGreen>Int</color>
       }
 
-      Unknown argument wher. Did you mean \`where\`? Available options are listed in green.
+      Unknown argument <brightRed>wher</color>. Did you mean \`<brightGreen>where</color>\`? Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -492,13 +495,13 @@ describe('UnknownArgument', () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-        wher: {
-        ~~~~
+        <brightRed>wher</color>: {
+        <brightRed>~~~~</color>
           id: 123
         }
       }
 
-      Unknown argument wher.
+      Unknown argument <brightRed>wher</color>.
     `)
   })
 
@@ -519,16 +522,16 @@ describe('UnknownArgument', () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-        completelyNotThere: {
-        ~~~~~~~~~~~~~~~~~~
+        <brightRed>completelyNotThere</color>: {
+        <brightRed>~~~~~~~~~~~~~~~~~~</color>
           id: 123
         },
-      ? where?: PostWhereInput,
-      ? orderBy?: PostOrderByWithRelationInput | List<PostOrderByWithRelationInput>,
-      ? take?: Int
+      <brightGreen>?</color> <brightGreen>where</color><brightGreen>?</color><brightGreen>: </color><brightGreen>PostWhereInput</color>,
+      <brightGreen>?</color> <brightGreen>orderBy</color><brightGreen>?</color><brightGreen>: </color><brightGreen>PostOrderByWithRelationInput | List<PostOrderByWithRelationInput></color>,
+      <brightGreen>?</color> <brightGreen>take</color><brightGreen>?</color><brightGreen>: </color><brightGreen>Int</color>
       }
 
-      Unknown argument completelyNotThere. Available options are listed in green.
+      Unknown argument <brightRed>completelyNotThere</color>. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -556,20 +559,20 @@ describe('UnknownArgument', () => {
           posts: {
             include: {
               comments: {
-                wherr: {
-                ~~~~~
+                <brightRed>wherr</color>: {
+                <brightRed>~~~~~</color>
                   upvotes: 0
                 },
-      ?         where?: CommentWhereInput,
-      ?         orderBy?: CommentOrderByWithRelationInput | List<CommentOrderByWithRelationInput>,
-      ?         take?: Int
+      <brightGreen>?</color>         <brightGreen>where</color><brightGreen>?</color><brightGreen>: </color><brightGreen>CommentWhereInput</color>,
+      <brightGreen>?</color>         <brightGreen>orderBy</color><brightGreen>?</color><brightGreen>: </color><brightGreen>CommentOrderByWithRelationInput | List<CommentOrderByWithRelationInput></color>,
+      <brightGreen>?</color>         <brightGreen>take</color><brightGreen>?</color><brightGreen>: </color><brightGreen>Int</color>
               }
             }
           }
         }
       }
 
-      Unknown argument wherr. Did you mean \`where\`? Available options are listed in green.
+      Unknown argument <brightRed>wherr</color>. Did you mean \`<brightGreen>where</color>\`? Available options are listed in <brightGreen>green</color>.
     `)
   })
 })
@@ -597,17 +600,17 @@ describe('UnknownInputField', () => {
     ).toMatchInlineSnapshot(`
       {
         where: {
-          upvote: {
-          ~~~~~~
+          <brightRed>upvote</color>: {
+          <brightRed>~~~~~~</color>
             gt: 0
           },
-      ?   id?: String,
-      ?   name?: String,
-      ?   upvotes?: Int | IntFilter
+      <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
+      <brightGreen>?</color>   <brightGreen>name</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
+      <brightGreen>?</color>   <brightGreen>upvotes</color><brightGreen>?</color><brightGreen>: </color><brightGreen>Int | IntFilter</color>
         }
       }
 
-      Unknown argument upvote. Did you mean \`upvotes\`? Available options are listed in green.
+      Unknown argument <brightRed>upvote</color>. Did you mean \`<brightGreen>upvotes</color>\`? Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -633,17 +636,17 @@ describe('UnknownInputField', () => {
     ).toMatchInlineSnapshot(`
       {
         where: {
-          somethingCompletelyDifferent: {
-          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+          <brightRed>somethingCompletelyDifferent</color>: {
+          <brightRed>~~~~~~~~~~~~~~~~~~~~~~~~~~~~</color>
             gt: 0
           },
-      ?   id?: String,
-      ?   name?: String,
-      ?   upvotes?: Int | IntFilter
+      <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
+      <brightGreen>?</color>   <brightGreen>name</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
+      <brightGreen>?</color>   <brightGreen>upvotes</color><brightGreen>?</color><brightGreen>: </color><brightGreen>Int | IntFilter</color>
         }
       }
 
-      Unknown argument somethingCompletelyDifferent. Available options are listed in green.
+      Unknown argument <brightRed>somethingCompletelyDifferent</color>. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -671,19 +674,19 @@ describe('UnknownInputField', () => {
         include: {
           posts: {
             where: {
-              upvote: {
-              ~~~~~~
+              <brightRed>upvote</color>: {
+              <brightRed>~~~~~~</color>
                 gt: 0
               },
-      ?       id?: String,
-      ?       name?: String,
-      ?       upvotes?: Int | IntFilter
+      <brightGreen>?</color>       <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
+      <brightGreen>?</color>       <brightGreen>name</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
+      <brightGreen>?</color>       <brightGreen>upvotes</color><brightGreen>?</color><brightGreen>: </color><brightGreen>Int | IntFilter</color>
             }
           }
         }
       }
 
-      Unknown argument upvote. Did you mean \`upvotes\`? Available options are listed in green.
+      Unknown argument <brightRed>upvote</color>. Did you mean \`<brightGreen>upvotes</color>\`? Available options are listed in <brightGreen>green</color>.
     `)
   })
 })
@@ -711,13 +714,13 @@ describe('RequiredArgumentMissing', () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-      + where: {
-      +   id: Int,
-      +   email: String
-      + }
+      <brightGreen>+</color> <brightGreen>where</color><brightGreen>: </color><brightGreen>{</color>
+      <brightGreen><dim>+</intensity></color>   <brightGreen><dim>id: Int</intensity></color>,
+      <brightGreen><dim>+</intensity></color>   <brightGreen><dim>email: String</intensity></color>
+      <brightGreen>+</color> <brightGreen>}</color>
       }
 
-      Argument where is missing.
+      Argument <brightGreen>where</color> is missing.
     `)
   })
 
@@ -740,12 +743,12 @@ describe('RequiredArgumentMissing', () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-      + where: {
-      +   id: Int | String
-      + }
+      <brightGreen>+</color> <brightGreen>where</color><brightGreen>: </color><brightGreen>{</color>
+      <brightGreen><dim>+</intensity></color>   <brightGreen><dim>id: Int | String</intensity></color>
+      <brightGreen>+</color> <brightGreen>}</color>
       }
 
-      Argument where is missing.
+      Argument <brightGreen>where</color> is missing.
     `)
   })
 
@@ -774,10 +777,10 @@ describe('RequiredArgumentMissing', () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-      + where: UserWhereInput | UserBetterWhereInput
+      <brightGreen>+</color> <brightGreen>where</color><brightGreen>: </color><brightGreen>UserWhereInput | UserBetterWhereInput</color>
       }
 
-      Argument where is missing.
+      Argument <brightGreen>where</color> is missing.
     `)
   })
 
@@ -803,10 +806,10 @@ describe('RequiredArgumentMissing', () => {
       ),
     ).toMatchInlineSnapshot(`
       {
-      + data: UserCreateInput[]
+      <brightGreen>+</color> <brightGreen>data</color><brightGreen>: </color><brightGreen>UserCreateInput[]</color>
       }
 
-      Argument data is missing.
+      Argument <brightGreen>data</color> is missing.
     `)
   })
 
@@ -829,11 +832,11 @@ describe('RequiredArgumentMissing', () => {
     ).toMatchInlineSnapshot(`
       {
         data: {
-      +   email: String
+      <brightGreen>+</color>   <brightGreen>email</color><brightGreen>: </color><brightGreen>String</color>
         }
       }
 
-      Argument email is missing.
+      Argument <brightGreen>email</color> is missing.
     `)
   })
 
@@ -865,15 +868,15 @@ describe('RequiredArgumentMissing', () => {
       {
         select: {
           user: {
-      +     where: {
-      +       id: Int,
-      +       email: String
-      +     }
+      <brightGreen>+</color>     <brightGreen>where</color><brightGreen>: </color><brightGreen>{</color>
+      <brightGreen><dim>+</intensity></color>       <brightGreen><dim>id: Int</intensity></color>,
+      <brightGreen><dim>+</intensity></color>       <brightGreen><dim>email: String</intensity></color>
+      <brightGreen>+</color>     <brightGreen>}</color>
           }
         }
       }
 
-      Argument where is missing.
+      Argument <brightGreen>where</color> is missing.
     `)
   })
 })
@@ -894,12 +897,12 @@ describe('InvalidArgumentType', () => {
     ).toMatchInlineSnapshot(`
       {
         where: {
-          id: 123
-              ~~~
+          id: <brightRed>123</color>
+              <brightRed>~~~</color>
         }
       }
 
-      Argument id: Invalid value provided. Expected String, provided Int.
+      Argument <bold>id</intensity>: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
     `)
   })
 
@@ -919,13 +922,13 @@ describe('InvalidArgumentType', () => {
       {
         where: {
           id: {
-            contains: 123
-                      ~~~
+            contains: <brightRed>123</color>
+                      <brightRed>~~~</color>
           }
         }
       }
 
-      Argument contains: Invalid value provided. Expected String, provided Int.
+      Argument <bold>contains</intensity>: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
     `)
   })
 
@@ -944,12 +947,12 @@ describe('InvalidArgumentType', () => {
     ).toMatchInlineSnapshot(`
       {
         where: {
-          id: 123
-              ~~~
+          id: <brightRed>123</color>
+              <brightRed>~~~</color>
         }
       }
 
-      Argument id: Invalid value provided. Expected String or StringFilter, provided Int.
+      Argument <bold>id</intensity>: Invalid value provided. Expected <brightGreen>String</color> or <brightGreen>StringFilter</color>, provided <brightRed>Int</color>.
     `)
   })
 
@@ -970,14 +973,14 @@ describe('InvalidArgumentType', () => {
         include: {
           posts: {
             where: {
-              published: "yes"
-                         ~~~~~
+              published: <brightRed>"yes"</color>
+                         <brightRed>~~~~~</color>
             }
           }
         }
       }
 
-      Argument published: Invalid value provided. Expected Boolean, provided String.
+      Argument <bold>published</intensity>: Invalid value provided. Expected <brightGreen>Boolean</color>, provided <brightRed>String</color>.
     `)
   })
 
@@ -999,15 +1002,15 @@ describe('InvalidArgumentType', () => {
           posts: {
             where: {
               publishedDate: {
-                gt: "now"
-                    ~~~~~
+                gt: <brightRed>"now"</color>
+                    <brightRed>~~~~~</color>
               }
             }
           }
         }
       }
 
-      Argument gt: Invalid value provided. Expected Date, provided String.
+      Argument <bold>gt</intensity>: Invalid value provided. Expected <brightGreen>Date</color>, provided <brightRed>String</color>.
     `)
   })
 })
@@ -1028,12 +1031,12 @@ describe('InvalidArgumentValue', () => {
     ).toMatchInlineSnapshot(`
       {
         where: {
-          createdAt: "now"
-                     ~~~~~
+          createdAt: <brightRed>"now"</color>
+                     <brightRed>~~~~~</color>
         }
       }
 
-      Invalid value for argument createdAt: Invalid characters. Expected IS0861 DateTime.
+      Invalid value for argument <bold>createdAt</intensity>: Invalid characters. Expected <brightGreen>IS0861 DateTime</color>.
     `)
   })
 
@@ -1053,13 +1056,13 @@ describe('InvalidArgumentValue', () => {
       {
         where: {
           createdAt: {
-            gt: "now"
-                ~~~~~
+            gt: <brightRed>"now"</color>
+                <brightRed>~~~~~</color>
           }
         }
       }
 
-      Invalid value for argument createdAt: Invalid characters. Expected IS0861 DateTime.
+      Invalid value for argument <bold>createdAt</intensity>: Invalid characters. Expected <brightGreen>IS0861 DateTime</color>.
     `)
   })
 
@@ -1080,14 +1083,14 @@ describe('InvalidArgumentValue', () => {
         include: {
           posts: {
             where: {
-              createdAt: "yes"
-                         ~~~~~
+              createdAt: <brightRed>"yes"</color>
+                         <brightRed>~~~~~</color>
             }
           }
         }
       }
 
-      Invalid value for argument createdAt: Invalid characters. Expected ISO8601 DateTime.
+      Invalid value for argument <bold>createdAt</intensity>: Invalid characters. Expected <brightGreen>ISO8601 DateTime</color>.
     `)
   })
 
@@ -1109,15 +1112,15 @@ describe('InvalidArgumentValue', () => {
           posts: {
             where: {
               createdAt: {
-                equals: "yes"
-                        ~~~~~
+                equals: <brightRed>"yes"</color>
+                        <brightRed>~~~~~</color>
               }
             }
           }
         }
       }
 
-      Invalid value for argument equals: Invalid characters. Expected ISO8601 DateTime.
+      Invalid value for argument <bold>equals</intensity>: Invalid characters. Expected <brightGreen>ISO8601 DateTime</color>.
     `)
   })
 })
@@ -1154,13 +1157,13 @@ describe('Union', () => {
       {
         where: {
           email: {
-            gt: 123
-                ~~~
+            gt: <brightRed>123</color>
+                <brightRed>~~~</color>
           }
         }
       }
 
-      Argument gt: Invalid value provided. Expected String, provided Int.
+      Argument <bold>gt</intensity>: Invalid value provided. Expected <brightGreen>String</color>, provided <brightRed>Int</color>.
     `)
   })
 
@@ -1194,12 +1197,12 @@ describe('Union', () => {
     ).toMatchInlineSnapshot(`
       {
         where: {
-          email: 123
-                 ~~~
+          email: <brightRed>123</color>
+                 <brightRed>~~~</color>
         }
       }
 
-      Argument gt: Invalid value provided. Expected String or StringFilter, provided Int.
+      Argument <bold>gt</intensity>: Invalid value provided. Expected <brightGreen>String</color> or <brightGreen>StringFilter</color>, provided <brightRed>Int</color>.
     `)
   })
 })
@@ -1227,12 +1230,12 @@ describe('SomeFieldsMissing', () => {
     ).toMatchInlineSnapshot(`
       {
         where: {
-      ?   id?: String,
-      ?   email?: String
+      <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
+      <brightGreen>?</color>   <brightGreen>email</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>
         }
       }
 
-      Argument where of type UserWhereUniqueInput needs at least one argument. Available options are listed in green.
+      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one</color> argument. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -1258,12 +1261,12 @@ describe('SomeFieldsMissing', () => {
     ).toMatchInlineSnapshot(`
       {
         where: {
-      ?   id?: String,
-      ?   email?: String
+      <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
+      <brightGreen>?</color>   <brightGreen>email</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>
         }
       }
 
-      Argument where of type UserWhereUniqueInput needs at least 2 arguments. Available options are listed in green.
+      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least 2</color> arguments. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -1291,14 +1294,14 @@ describe('SomeFieldsMissing', () => {
         include: {
           user: {
             where: {
-      ?       id?: String,
-      ?       email?: String
+      <brightGreen>?</color>       <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
+      <brightGreen>?</color>       <brightGreen>email</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>
             }
           }
         }
       }
 
-      Argument where of type UserWhereUniqueInput needs at least one argument. Available options are listed in green.
+      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one</color> argument. Available options are listed in <brightGreen>green</color>.
     `)
   })
 
@@ -1324,12 +1327,12 @@ describe('SomeFieldsMissing', () => {
     ).toMatchInlineSnapshot(`
       {
         where: {
-      ?   id?: String,
-      ?   email?: String
+      <brightGreen>?</color>   <brightGreen>id</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>,
+      <brightGreen>?</color>   <brightGreen>email</color><brightGreen>?</color><brightGreen>: </color><brightGreen>String</color>
         }
       }
 
-      Argument where of type UserWhereUniqueInput needs at least one of id or email arguments. Available options are listed in green.
+      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at least one of</color> <bold>id</intensity> or <bold>email</intensity> arguments. Available options are listed in <brightGreen>green</color>.
     `)
   })
 })
@@ -1365,10 +1368,10 @@ describe('TooManyFieldsGiven', () => {
           id: "foo",
           email: "foo@example.com"
         }
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+        <brightRed>~~~~~~~~~~~~~~~~~~~~~~~~~~</color>
       }
 
-      Argument where of type UserWhereUniqueInput needs exactly one argument, but you provided id and email. Please choose one.
+      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>exactly one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
     `)
   })
 
@@ -1402,10 +1405,10 @@ describe('TooManyFieldsGiven', () => {
           id: "foo",
           email: "foo@example.com"
         }
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+        <brightRed>~~~~~~~~~~~~~~~~~~~~~~~~~~</color>
       }
 
-      Argument where of type UserWhereUniqueInput needs at most one argument, but you provided id and email. Please choose one.
+      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at most one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
     `)
   })
 
@@ -1441,10 +1444,10 @@ describe('TooManyFieldsGiven', () => {
           email: "foo@example.com",
           nickname: "bar"
         }
-        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+        <brightRed>~~~~~~~~~~~~~~~~~~~~~~~~~~</color>
       }
 
-      Argument where of type UserWhereUniqueInput needs at most 2 arguments, but you provided id, email and nickname. Please choose 2.
+      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>at most 2</color> arguments, but you provided <brightRed>id</color>, <brightRed>email</color> and <brightRed>nickname</color>. Please choose 2.
     `)
   })
 
@@ -1484,12 +1487,12 @@ describe('TooManyFieldsGiven', () => {
               id: "foo",
               email: "foo@example.com"
             }
-            ~~~~~~~~~~~~~~~~~~~~~~~~~~
+            <brightRed>~~~~~~~~~~~~~~~~~~~~~~~~~~</color>
           }
         }
       }
 
-      Argument where of type UserWhereUniqueInput needs exactly one argument, but you provided id and email. Please choose one.
+      Argument <bold>where</intensity> of type <bold>UserWhereUniqueInput</intensity> needs <brightGreen>exactly one</color> argument, but you provided <brightRed>id</color> and <brightRed>email</color>. Please choose one.
     `)
   })
 })
