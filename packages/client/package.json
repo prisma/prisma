@@ -150,7 +150,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.12.0-57.8db80a4b8f3db0e9a578b9559ce46792063d2446"
+    "@prisma/engines-version": "4.12.0-59.perf-defer-ident-allocs-c0a78a5572c3238e0dd3b5f29af71be1a5173d3d"
   },
   "sideEffects": false
 }

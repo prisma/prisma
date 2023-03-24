@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.12.0-57.8db80a4b8f3db0e9a578b9559ce46792063d2446",
+    "@prisma/engines-version": "4.12.0-59.perf-defer-ident-allocs-c0a78a5572c3238e0dd3b5f29af71be1a5173d3d",
     "@swc/core": "1.3.32",
     "@swc/jest": "0.2.24",
     "@types/jest": "29.4.0",
