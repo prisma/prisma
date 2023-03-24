@@ -5,12 +5,10 @@ export {
   getRelativeSchemaPath,
   getSchema,
   getSchemaDir,
-  getSchemaDirSync,
   getSchemaPath,
   getSchemaPathFromPackageJson,
   getSchemaPathFromPackageJsonSync,
   getSchemaPathSync,
-  getSchemaSync,
 } from './cli/getSchema'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
