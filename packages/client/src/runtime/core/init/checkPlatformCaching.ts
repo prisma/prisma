@@ -1,6 +1,18 @@
+import Debug from '@prisma/debug'
 import { PrismaClientInitializationError } from '@prisma/engine-core'
 
 import type { GetPrismaClientConfig } from '../../getPrismaClient'
+
+const debug = Debug('prisma:client')
+
+/**
+ * Known platforms that have caching issues. Updating this list will also update
+ * the error message and the link to the docs, so add docs/links as needed.
+ */
+const cachingPlatforms = {
+  Vercel: 'vercel',
+  'Netlify CI': 'netlify',
+} as const
 
 /**
  * Throws an error if the client has been generated via auto-install and the
@@ -9,15 +21,19 @@ import type { GetPrismaClientConfig } from '../../getPrismaClient'
  * @returns
  */
 export function checkPlatformCaching({ postinstall, ciName, clientVersion }: GetPrismaClientConfig) {
-  console.log('ciName', ciName)
-  console.log('postinstall', postinstall)
+  debug('checkPlatformCaching:postinstall', postinstall)
+  debug('checkPlatformCaching:ciName', ciName)
 
   // if client was not generated manually
   if (postinstall !== true) return
 
-  // and we generated on one of the caching CIs
-  if (ciName === 'Vercel' || ciName === 'Netlify CI') {
-    // TODO: improve error message and link to docs
-    throw new PrismaClientInitializationError('Add `prisma generate` because of caching issues', clientVersion)
+  // and we generated on one a caching CI
+  if (ciName && ciName in cachingPlatforms) {
+    throw new PrismaClientInitializationError(
+      `We detected that your project setup might lead to outdated Prisma Client being used.
+Please make sure to run the \`prisma generate\` command during your build process.
+Learn how: https://pris.ly/d/${cachingPlatforms[ciName]}-build`,
+      clientVersion,
+    )
   }
 }

@@ -90,8 +90,6 @@ export class TSClient implements Generatable {
       generator.config.engineType = engineType
     }
 
-    console.log('ciName', ciInfo.name)
-    console.log('postinstall', this.options.postinstall)
     const config: Omit<GetPrismaClientConfig, 'document' | 'dirname'> = {
       generator,
       relativeEnvPaths,
