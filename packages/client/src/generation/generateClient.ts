@@ -206,6 +206,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     dataProxy,
+    postinstall,
   } = options
 
   const clientEngineType = getClientEngineType(generator!)
@@ -226,6 +227,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     projectRoot,
     activeProvider,
     dataProxy,
+    postinstall,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
