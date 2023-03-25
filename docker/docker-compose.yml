@@ -96,7 +96,7 @@ services:
       - '1433:1433'
 
   mongodb_migrate:
-    image: mongo:4
+    image: mongo:6
     restart: always
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
