@@ -62,6 +62,7 @@ module.exports = {
     'jest/no-conditional-expect': 'off',
     'jest/no-export': 'off',
     'jest/no-standalone-expect': 'off',
+    'jest/no-interpolation-in-snapshots': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
     // https://github.com/lydell/eslint-plugin-simple-import-sort
     'simple-import-sort/imports': 'error',

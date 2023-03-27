@@ -579,11 +579,131 @@ describe('postgresql views fs I/O', () => {
     })
   })
 
-  describe('with preview', () => {
+  describe('with preview feature and views defined', () => {
     const fixturePath = setupPostgresForViewsIO()
 
-    test('introspection creates view definition files', async () => {
+    const schemaPaths = [
+      {
+        schemaDir: 'prisma',
+        schemaFilename: 'schema.prisma',
+        needsMove: true,
+        needsPathsArg: false,
+      },
+      {
+        schemaDir: 'custom/schema/dir',
+        schemaFilename: 'schema.prisma',
+        needsMove: true,
+        needsPathsArg: true,
+      },
+      {
+        schemaDir: '',
+        schemaFilename: 'non-standard-schema.prisma',
+        needsMove: true,
+        needsPathsArg: true,
+      },
+      {
+        schemaDir: '',
+        schemaFilename: 'schema.prisma',
+        needsMove: false,
+        needsPathsArg: false,
+      },
+    ] as const
+
+    for (const { schemaDir, schemaFilename, needsMove, needsPathsArg } of schemaPaths) {
+      const schemaPath = path.join(schemaDir, schemaFilename)
+      const viewsPath = path.join(schemaDir, 'views')
+      const testName = `introspection from ${schemaPath} creates view definition files`
+
+      test(testName, async () => {
+        ctx.fixture(path.join(fixturePath))
+
+        if (needsMove) {
+          await ctx.fs.moveAsync('schema.prisma', schemaPath)
+        }
+
+        const introspect = new DbPull()
+        const args = needsPathsArg ? ['--schema', `${schemaPath}`] : []
+        const result = introspect.parse(args)
+        await expect(result).resolves.toMatchInlineSnapshot(``)
+
+        // the folders in `views` match the database schema names (public, work) of the views
+        // defined in the `setup.sql` file
+        const list = await ctx.fs.listAsync(viewsPath)
+        expect(list).toMatchInlineSnapshot(`
+          [
+            public,
+            work,
+          ]
+        `)
+
+        // showing the folder tree fails on Windows due to path slashes
+        if (process.platform !== 'win32') {
+          const tree = await ctx.fs.findAsync({
+            directories: false,
+            files: true,
+            recursive: true,
+            matching: `${viewsPath}/**/*`,
+          })
+          expect(tree).toMatchInlineSnapshot(`
+            [
+              ${viewsPath}/public/simpleuser.sql,
+              ${viewsPath}/work/workers.sql,
+            ]
+          `)
+        }
+
+        const publicSimpleUserView = await ctx.fs.readAsync(`${viewsPath}/public/simpleuser.sql`)
+        expect(publicSimpleUserView).toMatchInlineSnapshot(`
+          SELECT
+            su.first_name,
+            su.last_name
+          FROM
+            someuser su;
+        `)
+
+        const workWorkersView = await ctx.fs.readAsync(`${viewsPath}/work/workers.sql`)
+        expect(workWorkersView).toMatchInlineSnapshot(`
+          SELECT
+            su.first_name,
+            su.last_name,
+            c.name AS company_name
+          FROM
+            (
+              someuser su
+              LEFT JOIN WORK.company c ON ((su.company_id = c.id))
+            );
+        `)
+
+        expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+        expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+          Prisma schema loaded from ${schemaPath}
+          Datasource "db": PostgreSQL database "tests-migrate-db-pull", schemas "public, work" at "localhost:5432"
+        `)
+        expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+        expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+
+        - Introspecting based on datasource defined in ${schemaPath}
+
+        ✔ Introspected 2 models and wrote them into ${schemaPath} in XXXms
+              
+        *** WARNING ***
+
+        The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+        - View "simpleuser"
+        - View "workers"
+
+        Run prisma generate to generate Prisma Client.
+
+                          `)
+        expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      })
+    }
+
+    test.skip('introspection creates view definition files', async () => {
       ctx.fixture(path.join(fixturePath))
+      await ctx.fs.moveAsync('schema.prisma', 'custom/schema/dir/schema.prisma')
+      await ctx.fs.removeAsync('schema.prisma')
 
       const introspect = new DbPull()
       const result = introspect.parse([])
