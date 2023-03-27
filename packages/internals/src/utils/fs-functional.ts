@@ -37,12 +37,12 @@ export const removeFile = (filePath: string) =>
 export const getFoldersInDir =
   (dir: string): T.Task<string[]> =>
   () =>
-    globby(path.join(dir, '**'), { onlyFiles: false, onlyDirectories: true })
+    globby(path.posix.join(dir, '**'), { onlyFiles: false, onlyDirectories: true })
 
 export const getFilesInDir =
   (dir: string): T.Task<string[]> =>
   () =>
-    globby(path.join(dir, '**'), { onlyFiles: true, onlyDirectories: false })
+    globby(path.posix.join(dir, '**'), { onlyFiles: true, onlyDirectories: false })
 
 /**
  * Closure that creates a tagged system error for a given error callback.
