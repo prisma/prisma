@@ -81,6 +81,10 @@ export class ObjectValue extends Value {
     this.fields = {}
   }
 
+  removeField(key: string) {
+    delete this.fields[key]
+  }
+
   getFields() {
     return this.fields
   }
