@@ -157,7 +157,17 @@ export namespace EngineArgs {
     datamodel: string
     warnings: IntrospectionWarnings[]
     version: IntrospectionSchemaVersion
-    views?: IntrospectionViewDefinition[]
+
+    /**
+     * Views retrieved from the databases.
+     * Supported databases: 'postgresql'.
+     *
+     * This value is:
+     * - `null` if "views" doesn't appear in the schema's preview features
+     * - `[]` if the database doesn't have any views
+     * - a non-empty array in other cases
+     */
+    views: IntrospectionViewDefinition[] | null
   }
 
   // See prisma-engines

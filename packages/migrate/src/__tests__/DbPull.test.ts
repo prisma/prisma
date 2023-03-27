@@ -551,6 +551,7 @@ describe('postgresql views fs I/O', () => {
         })
 
         expect(introspectionResult.views).toEqual(null)
+        engine.stop()
       })
     })
 
@@ -573,6 +574,7 @@ describe('postgresql views fs I/O', () => {
         })
 
         expect(introspectionResult.views).toEqual([])
+        engine.stop()
       })
     })
   })
