@@ -483,7 +483,7 @@ describe('postgresql - missing database', () => {
   })
 })
 
-describe('postgresql views fs I/O', () => {
+describeIf(process.platform != 'win32', 'postgresql views fs I/O', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
 
   type ViewVariant =
@@ -658,12 +658,12 @@ describe('postgresql views fs I/O', () => {
     ] as const
 
     for (const { schemaDir, schemaFilename, needsMove, needsPathsArg } of schemaPaths) {
-      const schemaPath = path.join(schemaDir, schemaFilename)
-      const viewsPath = path.join(schemaDir, 'views')
+      const schemaPath = path.posix.join(schemaDir, schemaFilename)
+      const viewsPath = path.posix.join(schemaDir, 'views')
       const testName = `introspection from ${schemaPath} creates view definition files`
 
       test(testName, async () => {
-        ctx.fixture(path.join(fixturePath))
+        ctx.fixture(fixturePath)
 
         if (needsMove) {
           await ctx.fs.moveAsync('schema.prisma', schemaPath)
