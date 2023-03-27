@@ -9,6 +9,7 @@ import {
   createDirIfNotExists,
   getFilesInDir,
   getFoldersInDir,
+  normalizePossiblyWindowsDir,
   removeDir,
   removeFile,
   writeFile,
@@ -37,12 +38,12 @@ type HandleViewsIOParams = {
  * These files and folders are deleted silently.
  */
 export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams): Promise<void> {
-  const prismaDir = path.dirname(schemaPath)
-  const viewsDir = path.join(prismaDir, 'views')
+  const prismaDir = path.dirname(normalizePossiblyWindowsDir(schemaPath))
+  const viewsDir = path.posix.join(prismaDir, 'views')
 
   // collect the newest view definitions
   const viewEntries = views.map(({ schema, ...rest }) => {
-    const viewDir = path.join(viewsDir, schema)
+    const viewDir = path.posix.join(viewsDir, schema)
     return [viewDir, rest] as const
   })
 
@@ -52,7 +53,7 @@ export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams):
 
   // collect the files paths and content for the newest views' SQL definitions, which will be created later if they don't exist
   const viewsFilesToWrite = viewEntries.map(([viewDir, { name, definition }]) => {
-    const viewFile = path.join(viewDir, `${name}.sql`)
+    const viewFile = path.posix.join(viewDir, `${name}.sql`)
     return { path: viewFile, content: definition } as const
   })
 

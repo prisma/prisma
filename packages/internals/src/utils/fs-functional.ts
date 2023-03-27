@@ -37,7 +37,7 @@ export const removeFile = (filePath: string) =>
 /**
  * Removes all backslashes from a possibly Windows path string, which is necessary for globby to work on Windows.
  */
-const normalizePossiblyWindowsDir = (dir: string) => dir.replace(/\\/g, '/')
+export const normalizePossiblyWindowsDir = (dir: string) => dir.replaceAll(path.sep, '/')
 
 export const getFoldersInDir =
   (dir: string): T.Task<string[]> =>
