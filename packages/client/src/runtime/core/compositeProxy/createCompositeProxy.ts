@@ -1,4 +1,4 @@
-import { type InspectOptions, inspect } from 'util'
+import { inspect, type InspectOptions } from 'util'
 
 import { defaultPropertyDescriptor } from '../model/utils/defaultProxyHandlers'
 
@@ -91,13 +91,17 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
 
     getOwnPropertyDescriptor(target, prop) {
       const layer = keysToLayerMap.get(prop)
-      if (layer && layer.getPropertyDescriptor) {
-        return {
-          ...defaultPropertyDescriptor,
-          ...layer.getPropertyDescriptor(prop),
+      if (layer) {
+        if (layer.getPropertyDescriptor) {
+          return {
+            ...defaultPropertyDescriptor,
+            ...layer?.getPropertyDescriptor(prop),
+          }
         }
+        return defaultPropertyDescriptor
       }
-      return defaultPropertyDescriptor
+
+      return Reflect.getOwnPropertyDescriptor(target, prop)
     },
 
     defineProperty(target, property, attributes) {
