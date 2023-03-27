@@ -34,15 +34,24 @@ export const removeDir = (dir: string) =>
 export const removeFile = (filePath: string) =>
   pipe(TE.tryCatch(() => fs.promises.unlink(filePath), createTaggedSystemError('fs-remove-file', { filePath })))
 
+/**
+ * Removes all backslashes from a possibly Windows path string, which is necessary for globby to work on Windows.
+ */
+const normalizePossiblyWindowsDir = (dir: string) => dir.replace(/\\/g, '/')
+
 export const getFoldersInDir =
   (dir: string): T.Task<string[]> =>
-  () =>
-    globby(path.posix.join(dir, '**'), { onlyFiles: false, onlyDirectories: true })
+  () => {
+    const normalizedDir = normalizePossiblyWindowsDir(path.join(dir, '**'))
+    return globby(normalizedDir, { onlyFiles: false, onlyDirectories: true })
+  }
 
 export const getFilesInDir =
   (dir: string): T.Task<string[]> =>
-  () =>
-    globby(path.posix.join(dir, '**'), { onlyFiles: true, onlyDirectories: false })
+  () => {
+    const normalizedDir = normalizePossiblyWindowsDir(path.join(dir, '**'))
+    return globby(normalizedDir, { onlyFiles: true, onlyDirectories: false })
+  }
 
 /**
  * Closure that creates a tagged system error for a given error callback.
