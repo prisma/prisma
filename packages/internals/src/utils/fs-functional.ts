@@ -36,8 +36,15 @@ export const removeFile = (filePath: string) =>
 
 /**
  * Removes all backslashes from a possibly Windows path string, which is necessary for globby to work on Windows.
+ * Note: we can't use `dir.replaceAll(path.sep, '/')` because `String.prototype.replaceAll` requires at least Node.js 15.
  */
-export const normalizePossiblyWindowsDir = (dir: string) => dir.replaceAll(path.sep, '/')
+export const normalizePossiblyWindowsDir = (dir: string) => {
+  if (process.platform === 'win32') {
+    return dir.replace(/\\/g, '/')
+  }
+
+  return dir
+}
 
 export const getFoldersInDir =
   (dir: string): T.Task<string[]> =>
