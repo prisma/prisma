@@ -599,13 +599,21 @@ describe('postgresql views fs I/O', () => {
         ]
       `)
 
-      const tree = await ctx.fs.findAsync({ directories: false, files: true, recursive: true, matching: 'views/**/*' })
-      expect(tree).toMatchInlineSnapshot(`
-        [
-          views/public/simpleuser.sql,
-          views/work/workers.sql,
-        ]
-      `)
+      // showing the folder tree fails on Windows due to path slashes
+      if (process.platform !== 'win32') {
+        const tree = await ctx.fs.findAsync({
+          directories: false,
+          files: true,
+          recursive: true,
+          matching: 'views/**/*',
+        })
+        expect(tree).toMatchInlineSnapshot(`
+          [
+            views/public/simpleuser.sql,
+            views/work/workers.sql,
+          ]
+        `)
+      }
 
       const publicSimpleUserView = await ctx.fs.readAsync('views/public/simpleuser.sql')
       expect(publicSimpleUserView).toMatchInlineSnapshot(`
@@ -696,7 +704,7 @@ describe('postgresql views fs I/O', () => {
   })
 
   describe('no preview', () => {
-    const fixturePath = setupPostgresForViewsIO('-no-preview')
+    const fixturePath = setupPostgresForViewsIO('no-preview')
 
     test('basic introspection', async () => {
       ctx.fixture(path.join(fixturePath))
