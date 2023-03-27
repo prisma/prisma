@@ -34,13 +34,11 @@ export const removeDir = (dir: string) =>
 export const removeFile = (filePath: string) =>
   pipe(TE.tryCatch(() => fs.promises.unlink(filePath), createTaggedSystemError('fs-remove-file', { filePath })))
 
-// glob patterns can only contain forward-slashes, so we use path.posix.join()
 export const getFoldersInDir =
   (dir: string): T.Task<string[]> =>
   () =>
-    globby(path.posix.join(dir, '**'), { onlyFiles: false, onlyDirectories: true })
+    globby(path.join(dir, '**'), { onlyFiles: false, onlyDirectories: true })
 
-// glob patterns can only contain forward-slashes, so we use path.posix.join()
 export const getFilesInDir =
   (dir: string): T.Task<string[]> =>
   () =>
