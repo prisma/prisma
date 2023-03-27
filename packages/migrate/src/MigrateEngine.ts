@@ -1,9 +1,17 @@
 import Debug from '@prisma/debug'
 import type { MigrateEngineLogLine } from '@prisma/internals'
-import { BinaryType, ErrorArea, MigrateEngineExitCode, resolveBinary, RustPanic } from '@prisma/internals'
+import {
+  BinaryType,
+  ErrorArea,
+  handleViewsIO,
+  MigrateEngineExitCode,
+  resolveBinary,
+  RustPanic,
+} from '@prisma/internals'
 import chalk from 'chalk'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
+import path from 'path'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
@@ -170,9 +178,16 @@ export class MigrateEngine {
     this.latestSchema = schema
 
     try {
-      const introspectResult = await this.runCommand(
+      const introspectResult: EngineArgs.IntrospectResult = await this.runCommand(
         this.getRPCPayload('introspect', { schema, force, compositeTypeDepth, schemas }),
       )
+      const { views } = introspectResult
+
+      if (views) {
+        const schemaPath = this.schemaPath ?? path.join(process.cwd(), 'prisma')
+        await handleViewsIO({ views, schemaPath })
+      }
+
       return introspectResult
     } finally {
       // stop the engine after either a successful or failed introspection, to emulate how the
