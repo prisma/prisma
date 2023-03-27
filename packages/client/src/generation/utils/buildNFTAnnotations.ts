@@ -74,6 +74,7 @@ function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
   const relativeFilePath = path.join(relativeOutdir, fileName)
 
   return `
+new URL('./${fileName}', import.meta.url);
 path.join(__dirname, ${JSON.stringify(fileName)});
 path.join(process.cwd(), ${JSON.stringify(relativeFilePath)})`
 }
