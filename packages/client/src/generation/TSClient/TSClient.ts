@@ -101,7 +101,7 @@ export class TSClient implements Generatable {
       activeProvider: this.options.activeProvider,
       dataProxy: this.options.dataProxy,
       postinstall: this.options.postinstall,
-      ciName: ciInfo.name ?? undefined,
+      ciName: ciInfo.name ?? undefined, // a
     }
 
     // get relative output dir for it to be preserved even after bundling, or
