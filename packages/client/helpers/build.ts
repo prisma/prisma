@@ -71,7 +71,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
       '@prisma/get-platform': { contents: '' },
       // removes un-needed code out of `chalk`
       'supports-color': { contents: '' },
-      // these can not be exported any longer
+      // these can not be exported anymore
       './warnEnvConflicts': { contents: '' },
       './utils/find': { contents: '' },
     }),
