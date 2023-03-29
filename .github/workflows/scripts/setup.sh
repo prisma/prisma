@@ -2,7 +2,7 @@
 
 set -ex
 
-npm i --silent -g pnpm@7 --unsafe-perm
+npm i --silent -g pnpm@8 --unsafe-perm
 
 pnpm i
 
