@@ -61,17 +61,8 @@ module.exports = {
     '@typescript-eslint/restrict-template-expressions': 'off',
     'jest/no-conditional-expect': 'off',
     'jest/no-export': 'off',
+    'jest/no-standalone-expect': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
-    // Allow the `testIf`/`describeIf` pattern.
-    // TODO: it's not exactly correct to have `describeIf` in `additionalTestBlockFunctions`,
-    // but it's better than disabling the rule completely for files that need `describeIf`.
-    // Ideally, a new option like `additionalDescribeBlockFunctions` should be implemented in the rule.
-    'jest/no-standalone-expect': [
-      'error',
-      {
-        additionalTestBlockFunctions: ['testIf', 'describeIf'],
-      },
-    ],
     // https://github.com/lydell/eslint-plugin-simple-import-sort
     'simple-import-sort/imports': 'error',
     'simple-import-sort/exports': 'error',

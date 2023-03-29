@@ -62,7 +62,7 @@
     "index-browser.js"
   ],
   "devDependencies": {
-    "@codspeed/benchmark.js-plugin": "1.0.1",
+    "@codspeed/benchmark.js-plugin": "1.0.2",
     "@faker-js/faker": "7.6.0",
     "@fast-check/jest": "1.6.0",
     "@jest/globals": "29.4.3",
@@ -113,6 +113,7 @@
     "is-regexp": "2.1.0",
     "jest": "29.4.3",
     "jest-junit": "15.0.0",
+    "jest-serializer-ansi-escapes": "^2.0.1",
     "jest-snapshot": "29.4.3",
     "js-levenshtein": "1.1.6",
     "klona": "2.0.6",
@@ -151,7 +152,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.12.0-44.78c592cc8424d6adc77df66f66b6937fd4e254a0"
+    "@prisma/engines-version": "4.12.0-67.659ef412370fa3b41cd7bf6e94587c1dfb7f67e7"
   },
   "sideEffects": false
 }

@@ -971,14 +971,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           return new DMMFHelper(getPrismaClientDMMF(dmmf))
         })
       } catch (error) {
-        this._fetcher.handleAndLogRequestError({ ...params, error })
+        this._fetcher.handleAndLogRequestError({ ...params, args: {}, error })
       }
     })
 
     _getProtocolEncoder = callOnce(
       async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>): Promise<ProtocolEncoder> => {
         if (this._engineConfig.engineProtocol === 'json') {
-          return new JsonProtocolEncoder(this._baseDmmf)
+          return new JsonProtocolEncoder(this._baseDmmf, this._errorFormat)
         }
 
         if (this._dmmf === undefined) {

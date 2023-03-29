@@ -42,7 +42,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     expect(record).toBeNull()
   })
 
-  testIf(!clientMeta.dataProxy)('works with interactive transactions', async () => {
+  test('works with interactive transactions', async () => {
     const newEmail = faker.internet.email()
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({ data: { email: newEmail } })

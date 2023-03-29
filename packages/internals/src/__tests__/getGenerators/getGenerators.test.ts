@@ -592,7 +592,7 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
+    const migrationEngine = await resolveBinary(BinaryType.MigrationEngineBinary)
 
     const queryEngineBinaryType = getCliQueryEngineBinaryType()
     const queryEnginePath = await resolveBinary(queryEngineBinaryType)
@@ -805,7 +805,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('fail if dataProxy and tracing are used together - prisma-client-js - postgres', async () => {
+  test('fail if dataProxy and metrics are used together - prisma-client-js - postgres', async () => {
     expect.assertions(5)
     const aliases = {
       'predefined-generator': {
@@ -816,7 +816,7 @@ describe('getGenerators', () => {
 
     try {
       await getGenerators({
-        schemaPath: path.join(__dirname, 'proxy-and-tracing-client-js.prisma'),
+        schemaPath: path.join(__dirname, 'proxy-and-metrics-client-js.prisma'),
         providerAliases: aliases,
         skipDownload: true,
         dataProxy: true,
@@ -824,8 +824,8 @@ describe('getGenerators', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        tracing preview feature is not yet available with --data-proxy.
-        Please remove tracing from the previewFeatures in your schema.
+        metrics preview feature is not yet available with --data-proxy.
+        Please remove metrics from the previewFeatures in your schema.
 
         More information about Data Proxy: https://pris.ly/d/data-proxy
         "

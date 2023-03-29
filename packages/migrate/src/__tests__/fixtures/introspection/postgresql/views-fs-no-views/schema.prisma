@@ -1,0 +1,10 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema", "views"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  schemas  = ["public", "work"]
+}

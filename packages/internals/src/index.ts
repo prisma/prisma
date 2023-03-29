@@ -5,12 +5,10 @@ export {
   getRelativeSchemaPath,
   getSchema,
   getSchemaDir,
-  getSchemaDirSync,
   getSchemaPath,
   getSchemaPathFromPackageJson,
   getSchemaPathFromPackageJsonSync,
   getSchemaPathSync,
-  getSchemaSync,
 } from './cli/getSchema'
 export { getCLIPathHash, getProjectHash } from './cli/hashes'
 export { unknownCommand } from './cli/Help'
@@ -53,6 +51,7 @@ export { drawBox } from './utils/drawBox'
 export { extractPreviewFeatures } from './utils/extractPreviewFeatures'
 export { formatms } from './utils/formatms'
 export { formatTable } from './utils/formatTable'
+export * as fsFunctional from './utils/fs-functional'
 export { getCommandWithExecutor } from './utils/getCommandWithExecutor'
 export type { EnvPaths } from './utils/getEnvPaths'
 export { getEnvPaths } from './utils/getEnvPaths'
@@ -70,6 +69,7 @@ export { loadEnvFile } from './utils/loadEnvFile'
 export { mapObjectValues } from './utils/mapObjectValues'
 export { mapPreviewFeatures } from './utils/mapPreviewFeatures'
 export { maskSchema } from './utils/maskSchema'
+export { maxBy } from './utils/maxBy'
 export { missingGeneratorMessage } from './utils/missingGeneratorMessage'
 export { parseBinaryTargetsEnvValue, parseEnvValue } from './utils/parseEnvValue'
 export { pick } from './utils/pick'
@@ -80,6 +80,8 @@ export { createSpinner } from './utils/spinner'
 export type { Position } from './utils/trimBlocksFromSchema'
 export { trimBlocksFromSchema, trimNewLine } from './utils/trimBlocksFromSchema'
 export { tryLoadEnvs } from './utils/tryLoadEnvs'
+export type { IntrospectionViewDefinition } from './views/handleViewsIO'
+export { handleViewsIO } from './views/handleViewsIO'
 export { warnOnce } from './warnOnce'
 export * as wasm from './wasm'
 export type { Platform } from '@prisma/get-platform'
