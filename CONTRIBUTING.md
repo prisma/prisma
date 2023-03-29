@@ -28,7 +28,7 @@ Copy paste these commands to install the global dependencies:
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 nvm install 16
-npm install --global pnpm@7 ts-node
+npm install --global pnpm@8 ts-node
 # For direnv see https://github.com/direnv/direnv/blob/master/docs/installation.md
 ```
 
