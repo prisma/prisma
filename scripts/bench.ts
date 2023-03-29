@@ -1,6 +1,5 @@
 import execa from 'execa'
 import globby from 'globby'
-import path from 'path'
 
 async function main() {
   const benchmarks = await globby('./packages/**/*.bench.ts', {
