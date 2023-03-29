@@ -136,7 +136,7 @@
     "ts-jest": "29.0.5",
     "ts-node": "10.9.1",
     "ts-pattern": "4.1.3",
-    "tsd": "0.21.0",
+    "tsd": "0.28.1",
     "typescript": "4.9.5",
     "yeoman-generator": "5.7.0",
     "yo": "4.3.1",

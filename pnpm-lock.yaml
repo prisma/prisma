@@ -291,7 +291,7 @@ importers:
       ts-jest: 29.0.5
       ts-node: 10.9.1
       ts-pattern: 4.1.3
-      tsd: 0.21.0
+      tsd: 0.28.1
       typescript: 4.9.5
       yeoman-generator: 5.7.0
       yo: 4.3.1
@@ -373,7 +373,7 @@ importers:
       ts-jest: 29.0.5_s56gjodtahdss55ckqjtjuprfa
       ts-node: 10.9.1_v6biei4rdldbc5ctcxv6yy6ukq
       ts-pattern: 4.1.3
-      tsd: 0.21.0
+      tsd: 0.28.1
       typescript: 4.9.5
       yeoman-generator: 5.7.0
       yo: 4.3.1
@@ -3902,9 +3902,8 @@ packages:
     resolution: {integrity: sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==}
     dev: true
 
-  /@tsd/typescript/4.7.4:
-    resolution: {integrity: sha512-jbtC+RgKZ9Kk65zuRZbKLTACf+tvFW4Rfq0JEMXrlmV3P3yme+Hm+pnb5fJRyt61SjIitcrC810wj7+1tgsEmg==}
-    hasBin: true
+  /@tsd/typescript/5.0.2:
+    resolution: {integrity: sha512-UgFiSalbDaWrkMBQv8rHetnlwj3HVZtJo6i2aGLe50I6XdlPZFdGRfM2GOaP+i3Tm6p+YcyEql3yoi3ZPs/6Pw==}
     dev: true
 
   /@types/argparse/1.0.38:
@@ -13084,14 +13083,15 @@ packages:
       strip-bom: 3.0.0
     dev: true
 
-  /tsd/0.21.0:
-    resolution: {integrity: sha512-6DugCw1Q4H8HYwDT3itzgALjeDxN4RO3iqu7gRdC/YNVSCRSGXRGQRRasftL1uKDuKxlFffYKHv5j5G7YnKGxQ==}
-    engines: {node: '>=12'}
+  /tsd/0.28.1:
+    resolution: {integrity: sha512-FeYrfJ05QgEMW/qOukNCr4fAJHww4SaKnivAXRv4g5kj4FeLpNV7zH4dorzB9zAfVX4wmA7zWu/wQf7kkcvfbw==}
+    engines: {node: '>=14.16'}
     hasBin: true
     dependencies:
-      '@tsd/typescript': 4.7.4
+      '@tsd/typescript': 5.0.2
       eslint-formatter-pretty: 4.1.0
       globby: 11.1.0
+      jest-diff: 29.4.3
       meow: 9.0.0
       path-exists: 4.0.0
       read-pkg-up: 7.0.1
