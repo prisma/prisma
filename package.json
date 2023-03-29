@@ -5,7 +5,7 @@
   "license": "Apache-2.0",
   "engines": {
     "node": ">=14.17",
-    "pnpm": ">=7.3.0 <8"
+    "pnpm": ">=7.3.0 <9"
   },
   "scripts": {
     "setup": "ts-node scripts/setup.ts",
