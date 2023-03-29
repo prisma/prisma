@@ -424,7 +424,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
-      ts-pattern: 4.2.1
+      ts-pattern: 4.2.2
       typescript: 4.9.5
       undici: 5.21.0
     dependencies:
@@ -441,7 +441,7 @@ importers:
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
-      ts-pattern: 4.2.1
+      ts-pattern: 4.2.2
       undici: 5.21.0
     devDependencies:
       '@swc/core': 1.3.32
@@ -590,7 +590,7 @@ importers:
       strip-ansi: 6.0.1
       tempy: 1.0.1
       terminal-link: 2.1.1
-      ts-pattern: 4.2.1
+      ts-pattern: 4.2.2
       typescript: 4.9.5
     dependencies:
       '@prisma/debug': link:../debug
@@ -602,7 +602,7 @@ importers:
       strip-ansi: 6.0.1
       tempy: 1.0.1
       terminal-link: 2.1.1
-      ts-pattern: 4.2.1
+      ts-pattern: 4.2.2
     devDependencies:
       '@swc/core': 1.3.32
       '@swc/jest': 0.2.24_@swc+core@1.3.32
@@ -13067,8 +13067,8 @@ packages:
     resolution: {integrity: sha512-8beXMWTGEv1JfDjSxfNhe4uT5jKYdhmEUKzt4gZW9dmHlquq3b+IbEyA7vX9LjBfzHmvKnM4HiomAUCyaW2Pew==}
     dev: true
 
-  /ts-pattern/4.2.1:
-    resolution: {integrity: sha512-lXCmHZb01QOM9HdCLvisCGUH9ATdKPON9UaUvwe007gJAhuSBhRWIAIowys5QqNxEq6odWctfMIdI96vzjnOMQ==}
+  /ts-pattern/4.2.2:
+    resolution: {integrity: sha512-qzJMo2pbkUJWusRH5o8xR+xogn6RmvViyUgwBFTtRENLse470clCGjHDf6haWGZ1AOmk8XkEohUoBW8Uut6Scg==}
     dev: false
 
   /ts-toolbelt/9.6.0:
