@@ -322,7 +322,7 @@ type Prisma__Pick<T, K extends keyof T> = {
 };
 
 
-export type Enumerable<T> = T | Array<T>;
+export type Enumerable<T> = T | ReadonlyArray<T>;
 
 export type RequiredKeys<T> = {
   [K in keyof T]-?: {} extends Prisma__Pick<T, K> ? never : K
@@ -379,7 +379,7 @@ type XOR<T, U> =
 /**
  * Is T a Record?
  */
-type IsObject<T extends any> = T extends Array<any>
+type IsObject<T extends any> = T extends ReadonlyArray<any>
 ? False
 : T extends Date
 ? False
@@ -395,7 +395,7 @@ type IsObject<T extends any> = T extends Array<any>
 /**
  * If it's T[], return T
  */
-export type UnEnumerate<T extends unknown> = T extends Array<infer U> ? U : T
+export type UnEnumerate<T extends unknown> = T extends ReadonlyArray<infer U> ? U : T
 
 /**
  * From ts-toolbelt
@@ -570,7 +570,7 @@ type GetHavingFields<T> = {
  */
 type _TupleToUnion<T> = T extends (infer E)[] ? E : never
 type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
-type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
+type MaybeTupleToUnion<T> = T extends readonly any[] ? TupleToUnion<T> : T
 
 /**
  * Like \`Pick\`, but with an array
