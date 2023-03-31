@@ -49,10 +49,10 @@ describe('referentialActions-onDelete-default-foreign-key-error(sqlite)', () => 
         Invalid \`prisma.user.delete()\` invocation in
         /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-sqlite/test.ts:0:0
 
-          39 expect(await prisma.user.findMany()).toHaveLength(1)
-          40 
-          41 try {
-        → 42   await prisma.user.delete(
+          38 expect(await prisma.user.findMany()).toHaveLength(1)
+          39 
+          40 try {
+        → 41   await prisma.user.delete(
         Foreign key constraint failed on the field: \`foreign key\`
       `)
     }

@@ -55,10 +55,10 @@ describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', ()
         Invalid \`prisma.user.delete()\` invocation in
         /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-postgresql/test.ts:0:0
 
-          45 expect(await prisma.user.findMany()).toHaveLength(1)
-          46 
-          47 try {
-        → 48   await prisma.user.delete(
+          44 expect(await prisma.user.findMany()).toHaveLength(1)
+          45 
+          46 try {
+        → 47   await prisma.user.delete(
         Foreign key constraint failed on the field: \`Post_authorId_fkey (index)\`
       `)
     }
