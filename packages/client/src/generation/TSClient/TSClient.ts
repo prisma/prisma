@@ -111,9 +111,6 @@ ${buildDirname(edge, relativeOutdir, runtimeDir)}
 /**
  * Enums
  */
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-function makeEnum(x) { return x; }
 
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
@@ -308,9 +305,6 @@ export const dmmf: runtime.BaseDMMF
 /**
  * Enums
  */
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-function makeEnum(x) { return x; }
 
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
