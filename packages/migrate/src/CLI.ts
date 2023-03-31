@@ -1,7 +1,7 @@
 import chalk from 'chalk'
 
 import type { Command, Commands } from '../../internals/src'
-import { arg, format, HelpError, isError, logger, unknownCommand } from '../../internals/src'
+import { arg, format, HelpError, isError, unknownCommand } from '../../internals/src'
 
 /**
  * Convenient Migrate CLI command, not public facing

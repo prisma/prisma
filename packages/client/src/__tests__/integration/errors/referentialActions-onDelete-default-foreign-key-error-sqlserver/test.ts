@@ -18,7 +18,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions-onDelete-default-fo
       'referentialActions-onDelete-default',
     )
     await migrateDb({
-      connectionString: process.env.TEST_MSSQL_JDBC_URI,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()

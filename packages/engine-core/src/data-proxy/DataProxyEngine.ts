@@ -7,7 +7,6 @@ import type {
   EngineConfig,
   EngineEventType,
   EngineQuery,
-  GetConfigResult,
   InlineDatasource,
   InteractiveTransactionOptions,
   RequestBatchOptions,
@@ -18,7 +17,7 @@ import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUn
 import { LogLevel } from '../common/errors/utils/log'
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EventEmitter } from '../common/types/Events'
-import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
+import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { EngineSpan, QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
@@ -549,7 +548,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
   metrics(options: MetricsOptionsJson): Promise<Metrics>
   metrics(options: MetricsOptionsPrometheus): Promise<string>
-  metrics(options: EngineMetricsOptions): Promise<Metrics> | Promise<string> {
+  metrics(): Promise<Metrics> | Promise<string> {
     throw new NotImplementedYetError('Metric are not yet supported for Data Proxy', {
       clientVersion: this.clientVersion,
     })

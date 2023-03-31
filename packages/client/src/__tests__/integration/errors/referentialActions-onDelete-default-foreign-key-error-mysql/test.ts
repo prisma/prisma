@@ -12,7 +12,6 @@ describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
     process.env.TEST_MYSQL_URI += '-referentialActions-onDelete-default'
     await tearDownMysql(process.env.TEST_MYSQL_URI!)
     await migrateDb({
-      connectionString: process.env.TEST_MYSQL_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()

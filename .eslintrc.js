@@ -39,6 +39,7 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true, argsIgnorePattern: '^_' }],
     'eslint-comments/no-unlimited-disable': 'off',
     'eslint-comments/disable-enable-pair': 'off',
     '@typescript-eslint/no-misused-promises': 'off',

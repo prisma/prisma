@@ -7,7 +7,6 @@ let prisma
 describe('referentialActions-onDelete-default-foreign-key-error(sqlite)', () => {
   beforeAll(async () => {
     await migrateDb({
-      connectionString: `file:./dev.db`,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()

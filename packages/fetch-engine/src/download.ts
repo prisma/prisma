@@ -129,7 +129,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   // filter out files, which don't yet exist or have to be created
   const binariesToDownload = await pFilter(binaryJobs, async (job) => {
-    const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, platform, opts.version, opts.failSilent)
+    const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, platform, opts.version)
     const isSupported = platforms.includes(job.binaryTarget as Platform)
     const shouldDownload =
       isSupported &&
@@ -244,7 +244,6 @@ async function binaryNeedsToBeDownloaded(
   job: BinaryDownloadJob,
   nativePlatform: string,
   version: string,
-  failSilent?: boolean,
 ): Promise<boolean> {
   // If there is an ENV Override and the file exists then it does not need to be downloaded
   if (job.envVarPath && fs.existsSync(job.envVarPath)) {

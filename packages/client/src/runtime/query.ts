@@ -321,7 +321,7 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
     return undefined
   }
 
-  protected printArgError = ({ error, path, id }: ArgError, hasMissingItems: boolean, minimal: boolean) => {
+  protected printArgError = ({ error, path }: ArgError, hasMissingItems: boolean, minimal: boolean) => {
     if (error.type === 'invalidName') {
       let str = `Unknown arg ${chalk.redBright(`\`${error.providedName}\``)} in ${chalk.bold(
         path.join('.'),
