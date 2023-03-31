@@ -50,6 +50,7 @@ ${chalk.bold('Options')}
       --schema   Custom path to your Prisma schema
   --data-proxy   Enable the Data Proxy in the Prisma Client
        --watch   Watch the Prisma schema and rerun after a change
+   --generator   Specifies which generator to use to generate assets (may be provided multiple times)
 
 ${chalk.bold('Examples')}
 
@@ -58,6 +59,9 @@ ${chalk.bold('Examples')}
 
   Or specify a schema
     ${chalk.dim('$')} prisma generate --schema=./schema.prisma
+
+  Run the command with multiple specific generators
+    ${chalk.dim('$')} prisma generate --generator client1 --generator client2
 
   Watch Prisma schema file and rerun after each change
     ${chalk.dim('$')} prisma generate --watch
