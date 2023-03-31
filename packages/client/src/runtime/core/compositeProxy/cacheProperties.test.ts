@@ -15,7 +15,7 @@ test('caches getPropertyValue calls', () => {
   expect(proxy.prop).toBe(1)
   expect(proxy.prop).toBe(1)
 
-  expect(getPropertyValue).toBeCalledTimes(1)
+  expect(getPropertyValue).toHaveBeenCalledTimes(1)
 })
 
 test('forwards getPropertyDescriptor calls', () => {
@@ -56,5 +56,5 @@ test('keeps separate cache entries for separate properties', () => {
   expect(proxy.second).toBe(2)
   expect(proxy.second).toBe(2)
 
-  expect(getPropertyValue).toBeCalledTimes(2)
+  expect(getPropertyValue).toHaveBeenCalledTimes(2)
 })
