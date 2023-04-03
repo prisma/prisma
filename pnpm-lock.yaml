@@ -163,6 +163,7 @@ importers:
       line-replace: 2.0.1
       log-update: 4.0.0
       node-fetch: 2.6.9
+      npm-packlist: 5.1.3
       open: 7.4.2
       pkg-up: 3.1.0
       resolve-pkg: 2.0.0
@@ -206,6 +207,7 @@ importers:
       line-replace: 2.0.1
       log-update: 4.0.0
       node-fetch: 2.6.9
+      npm-packlist: 5.1.3
       open: 7.4.2
       pkg-up: 3.1.0
       resolve-pkg: 2.0.0
@@ -7843,7 +7845,6 @@ packages:
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
     dependencies:
       minimatch: 5.1.6
-    dev: false
 
   /ignore/5.2.4:
     resolution: {integrity: sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==}
@@ -10596,7 +10597,6 @@ packages:
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
     dependencies:
       npm-normalize-package-bin: 2.0.0
-    dev: false
 
   /npm-conf/1.1.3:
     resolution: {integrity: sha512-Yic4bZHJOt9RCFbRP3GgpqhScOY4HH3V2P8yBj6CeYq118Qr+BLXqT2JvpJ00mryLESpgOxf5XlFv4ZjXxLScw==}
@@ -10658,7 +10658,6 @@ packages:
       ignore-walk: 5.0.1
       npm-bundled: 2.0.1
       npm-normalize-package-bin: 2.0.0
-    dev: false
 
   /npm-pick-manifest/6.1.1:
     resolution: {integrity: sha512-dBsdBtORT84S8V8UTad1WlUyKIY9iMsAmqxHbLdeEeBNMLQDlDWWra3wYUx9EBEIiG/YwAy0XyNHDd2goAsfuA==}
