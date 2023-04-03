@@ -1,6 +1,5 @@
 import { EventEmitter } from 'events'
 
-import { PrismaClientInitializationError } from '../common/errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../common/errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../common/errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../common/errors/PrismaClientUnknownRequestError'
@@ -20,7 +19,7 @@ function setupMockLibraryEngine() {
 
   const loader: LibraryLoader = {
     loadLibrary() {
-      return Promise.resolve({
+      return {
         QueryEngine: jest.fn().mockReturnValue(rustEngineMock),
         version: jest.fn().mockResolvedValue({ commit: '123abc', version: 'mock' }),
         getConfig: jest.fn().mockResolvedValue({
@@ -30,7 +29,7 @@ function setupMockLibraryEngine() {
         }),
         dmmf: jest.fn().mockResolvedValue(undefined),
         debugPanic: jest.fn(),
-      })
+      }
     },
   }
 
@@ -43,6 +42,7 @@ function setupMockLibraryEngine() {
         middleware: false,
       },
       env: {},
+      engineProtocol: 'graphql',
       cwd: process.cwd(),
     },
     loader,
@@ -92,32 +92,6 @@ jest.mock('fs', () => {
     ...original,
     readFileSync: jest.fn().mockReturnValue(''),
   }
-})
-
-test('responds to initialization error with PrismaClientInitializationError', async () => {
-  const loader: LibraryLoader = {
-    loadLibrary() {
-      return Promise.reject(new PrismaClientInitializationError('Initialization error', '0.0.0.'))
-    },
-  }
-
-  const engine = new LibraryEngine(
-    {
-      datamodelPath: '/mock',
-      logEmitter: new EventEmitter(),
-      tracingConfig: {
-        enabled: false,
-        middleware: false,
-      },
-      env: {},
-      cwd: process.cwd(),
-    },
-    loader,
-  )
-
-  await expect(engine.request({ query: 'query Foo { id }' }, { isWrite: false })).rejects.toBeInstanceOf(
-    PrismaClientInitializationError,
-  )
 })
 
 test('responds to panic GraphQL error with PrismaClientRustPanicError', async () => {

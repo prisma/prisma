@@ -21,7 +21,7 @@ export interface QueryEngineConstructor {
 }
 
 export interface LibraryLoader {
-  loadLibrary(): Promise<Library>
+  loadLibrary(): Library
 }
 
 // Main

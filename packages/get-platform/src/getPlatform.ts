@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import cp from 'child_process'
+import { readFileSync, readdirSync } from 'fs'
 import fs from 'fs/promises'
 import os from 'os'
 import { match } from 'ts-pattern'
@@ -65,17 +66,9 @@ export async function getos(): Promise<GetOSResult> {
   const platform = os.platform()
   const arch = process.arch as Arch
   if (platform === 'freebsd') {
-    const version = await getCommandOutput(`freebsd-version`)
-    if (version && version.trim().length > 0) {
-      const regex = /^(\d+)\.?/
-      const match = regex.exec(version)
-      if (match) {
-        return {
-          platform: 'freebsd',
-          targetDistro: `freebsd${match[1]}` as GetOSResult['targetDistro'],
-          arch,
-        }
-      }
+    const bsdResult = parseFreeBSDVersion(await getCommandOutput(`freebsd-version`), arch)
+    if (bsdResult) {
+      return bsdResult
     }
   }
 
@@ -98,6 +91,52 @@ export async function getos(): Promise<GetOSResult> {
     archFromUname,
     ...distroInfo,
   }
+}
+
+export function getosSync(): GetOSResult {
+  const platform = os.platform()
+  const arch = process.arch as Arch
+  if (platform === 'freebsd') {
+    const bsdResult = parseFreeBSDVersion(getCommandOutputSync('freebsd-version'), arch)
+    if (bsdResult) {
+      return bsdResult
+    }
+  }
+
+  if (platform !== 'linux') {
+    return {
+      platform,
+      arch,
+    }
+  }
+
+  const distroInfo = resolveDistroSync()
+  const archFromUname = getArchFromUnameSync()
+  const libsslSpecificPaths = computeLibSSLSpecificPaths({ arch, archFromUname, familyDistro: distroInfo.familyDistro })
+  const { libssl } = getSSLVersionSync(libsslSpecificPaths)
+
+  return {
+    platform: 'linux',
+    libssl,
+    arch,
+    archFromUname,
+    ...distroInfo,
+  }
+}
+
+function parseFreeBSDVersion(commandOutput: string | undefined, arch: Arch) {
+  if (commandOutput && commandOutput.trim().length > 0) {
+    const regex = /^(\d+)\.?/
+    const match = regex.exec(commandOutput)
+    if (match) {
+      return {
+        platform: 'freebsd',
+        targetDistro: `freebsd${match[1]}` as GetOSResult['targetDistro'],
+        arch,
+      }
+    }
+  }
+  return undefined
 }
 
 export function parseDistro(osReleaseInput: string): DistroInfo {
@@ -231,6 +270,22 @@ export async function resolveDistro(): Promise<DistroInfo> {
   }
 }
 
+export function resolveDistroSync(): DistroInfo {
+  // https://github.com/retrohacker/getos/blob/master/os.json
+
+  const osReleaseFile = '/etc/os-release'
+  try {
+    const osReleaseInput = readFileSync(osReleaseFile, { encoding: 'utf-8' })
+    return parseDistro(osReleaseInput)
+  } catch (_) {
+    return {
+      targetDistro: undefined,
+      familyDistro: undefined,
+      originalDistro: undefined,
+    }
+  }
+}
+
 /**
  * Parse the OpenSSL version from the output of the openssl binary, e.g.
  * "OpenSSL 3.0.2 15 Mar 2022 (Library: OpenSSL 3.0.2 15 Mar 2022)" -> "3.0.x"
@@ -322,6 +377,19 @@ type GetOpenSSLVersionResult =
     }
 
 /**
+ * The `ldconfig -p` returns the dynamic linker cache paths, where libssl.so files are likely to be included.
+ * Each line looks like this:
+ * 	libssl.so (libc6,hard-float) => /usr/lib/arm-linux-gnueabihf/libssl.so.1.1
+ * But we're only interested in the filename, so we use sed to remove everything before the `=>` separator,
+ * and then we remove the path and keep only the filename.
+ * The second sed commands uses `|` as a separator because the paths may contain `/`, which would result in the
+ * `unknown option to 's'` error (see https://stackoverflow.com/a/9366940/6174476) - which would silently
+ * fail with error code 0.
+ */
+const ldConfigCommand = `ldconfig -p | sed "s/.*=>s*//" | sed "s|.*/||" | grep libssl | sort | grep -v "libssl.so.0`
+const genericLibLocations = ['/lib64', '/usr/lib64', '/lib']
+
+/**
  * On Linux, returns the libssl version excluding the patch version, e.g. "1.1.x".
  * Reading the version from the libssl.so file is more reliable than reading it from the openssl binary.
  * Older versions of libssl are preferred, e.g. "1.0.x" over "1.1.x", because of Vercel serverless
@@ -332,7 +400,6 @@ type GetOpenSSLVersionResult =
  * This function never throws.
  */
 export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetOpenSSLVersionResult> {
-  const excludeLibssl0x = 'grep -v "libssl.so.0"'
   const libsslFilenameFromSpecificPath: string | undefined = await findLibSSLInLocations(libsslSpecificPaths)
 
   if (libsslFilenameFromSpecificPath) {
@@ -345,25 +412,13 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
   }
 
   debug('Falling back to "ldconfig" and other generic paths')
-  let libsslFilename: string | undefined = await getCommandOutput(
-    /**
-     * The `ldconfig -p` returns the dynamic linker cache paths, where libssl.so files are likely to be included.
-     * Each line looks like this:
-     * 	libssl.so (libc6,hard-float) => /usr/lib/arm-linux-gnueabihf/libssl.so.1.1
-     * But we're only interested in the filename, so we use sed to remove everything before the `=>` separator,
-     * and then we remove the path and keep only the filename.
-     * The second sed commands uses `|` as a separator because the paths may contain `/`, which would result in the
-     * `unknown option to 's'` error (see https://stackoverflow.com/a/9366940/6174476) - which would silently
-     * fail with error code 0.
-     */
-    `ldconfig -p | sed "s/.*=>s*//" | sed "s|.*/||" | grep libssl | sort | ${excludeLibssl0x}`,
-  )
+  let libsslFilename: string | undefined = await getCommandOutput(ldConfigCommand)
 
   if (!libsslFilename) {
     /**
      * Fall back to the rhel-specific paths (although `familyDistro` isn't detected as rhel) when the `ldconfig` command fails.
      */
-    libsslFilename = await findLibSSLInLocations(['/lib64', '/usr/lib64', '/lib'])
+    libsslFilename = await findLibSSLInLocations(genericLibLocations)
   }
 
   if (libsslFilename) {
@@ -392,6 +447,51 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
   return {}
 }
 
+export function getSSLVersionSync(libsslSpecificPaths: string[]): GetOpenSSLVersionResult {
+  const libsslFilenameFromSpecificPath: string | undefined = findLibSSLInLocationsSync(libsslSpecificPaths)
+
+  if (libsslFilenameFromSpecificPath) {
+    debug(`Found libssl.so file using platform-specific paths: ${libsslFilenameFromSpecificPath}`)
+    const libsslVersion = parseLibSSLVersion(libsslFilenameFromSpecificPath)
+    debug(`The parsed libssl version is: ${libsslVersion}`)
+    if (libsslVersion) {
+      return { libssl: libsslVersion, strategy: 'libssl-specific-path' }
+    }
+  }
+
+  debug('Falling back to "ldconfig" and other generic paths')
+  let libsslFilename: string | undefined = getCommandOutputSync(ldConfigCommand)
+
+  if (!libsslFilename) {
+    libsslFilename = findLibSSLInLocationsSync(genericLibLocations)
+  }
+
+  if (libsslFilename) {
+    debug(`Found libssl.so file using "ldconfig" or other generic paths: ${libsslFilename}`)
+    const libsslVersion = parseLibSSLVersion(libsslFilename)
+    if (libsslVersion) {
+      return { libssl: libsslVersion, strategy: 'ldconfig' }
+    }
+  }
+
+  /* Reading the libssl.so version didn't work, fall back to openssl */
+
+  const openSSLVersionLine: string | undefined = getCommandOutputSync('openssl version -v')
+
+  if (openSSLVersionLine) {
+    debug(`Found openssl binary with version: ${openSSLVersionLine}`)
+    const openSSLVersion = parseOpenSSLVersion(openSSLVersionLine)
+    debug(`The parsed openssl version is: ${openSSLVersion}`)
+    if (openSSLVersion) {
+      return { libssl: openSSLVersion, strategy: 'openssl-binary' }
+    }
+  }
+
+  /* Reading openssl didn't work */
+  debug(`Couldn't find any version of libssl or OpenSSL in the system`)
+  return {}
+}
+
 /**
  * Looks for libssl in specified directories, returns the first one found
  * @param directories
@@ -399,7 +499,8 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
  */
 async function findLibSSLInLocations(directories: string[]) {
   for (const dir of directories) {
-    const libssl = await findLibSSL(dir)
+    const files = await readDirIfExists(dir)
+    const libssl = findLibSSL(files)
     if (libssl) {
       return libssl
     }
@@ -407,21 +508,51 @@ async function findLibSSLInLocations(directories: string[]) {
   return undefined
 }
 
+async function readDirIfExists(dir: string) {
+  try {
+    return await fs.readdir(dir)
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return []
+    }
+    throw e
+  }
+}
+
+/**
+ * Looks for libssl in specified directories, returns the first one found
+ * @param directories
+ * @returns
+ */
+function findLibSSLInLocationsSync(directories: string[]) {
+  for (const dir of directories) {
+    const files = readDirIfExistsSync(dir)
+    const libssl = findLibSSL(files)
+    if (libssl) {
+      return libssl
+    }
+  }
+  return undefined
+}
+
+function readDirIfExistsSync(dir: string) {
+  try {
+    return readdirSync(dir)
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return []
+    }
+    throw e
+  }
+}
+
 /**
  * Looks for libssl in specific directory
  * @param directory
  * @returns
  */
-async function findLibSSL(directory: string) {
-  try {
-    const dirContents = await fs.readdir(directory)
-    return dirContents.find((value) => value.startsWith('libssl.so') && !value.startsWith('libssl.so.0'))
-  } catch (e) {
-    if (e.code === 'ENOENT') {
-      return undefined
-    }
-    throw e
-  }
+function findLibSSL(files: string[]) {
+  return files.find((value) => value.startsWith('libssl.so') && !value.startsWith('libssl.so.0'))
 }
 
 /**
@@ -430,6 +561,10 @@ async function findLibSSL(directory: string) {
 export async function getPlatform(): Promise<Platform> {
   const { binaryTarget } = await getPlatformMemoized()
   return binaryTarget
+}
+
+export function getPlatformSync(): Platform {
+  return getPlatformMemoizedSync().binaryTarget
 }
 
 export type PlatformWithOSResult = GetOSResult & { binaryTarget: Platform }
@@ -446,6 +581,11 @@ export async function getPlatformWithOSResult(): Promise<PlatformWithOSResult> {
   return rest
 }
 
+export function getPlatformWithOSResultSync(): PlatformWithOSResult {
+  const { memoized: _, ...rest } = getPlatformMemoizedSync()
+  return rest
+}
+
 let memoizedPlatformWithInfo: Partial<PlatformWithOSResult> = {}
 
 export async function getPlatformMemoized(): Promise<PlatformWithOSResult & { memoized: boolean }> {
@@ -454,6 +594,17 @@ export async function getPlatformMemoized(): Promise<PlatformWithOSResult & { me
   }
 
   const args = await getos()
+  const binaryTarget = getPlatformInternal(args)
+  memoizedPlatformWithInfo = { ...args, binaryTarget }
+  return { ...(memoizedPlatformWithInfo as PlatformWithOSResult), memoized: false }
+}
+
+export function getPlatformMemoizedSync(): PlatformWithOSResult & { memoized: boolean } {
+  if (isPlatformWithOSResultDefined(memoizedPlatformWithInfo)) {
+    return { ...memoizedPlatformWithInfo, memoized: true }
+  }
+
+  const args = getosSync()
   const binaryTarget = getPlatformInternal(args)
   memoizedPlatformWithInfo = { ...args, binaryTarget }
   return { ...(memoizedPlatformWithInfo as PlatformWithOSResult), memoized: false }
@@ -606,6 +757,14 @@ function getCommandOutput(command: string) {
   })
 }
 
+function getCommandOutputSync(command: string) {
+  try {
+    return cp.execSync(command, { encoding: 'utf8' })
+  } catch (error) {
+    return undefined
+  }
+}
+
 /**
  * Returns the architecture of a system from the output of `uname -m` (whose format is different than `process.arch`).
  * This function never throws.
@@ -617,6 +776,14 @@ export async function getArchFromUname(): Promise<string | undefined> {
     return os['machine']()
   }
   const arch = await getCommandOutput('uname -m')
+  return arch?.trim()
+}
+
+export function getArchFromUnameSync(): string | undefined {
+  if (typeof os['machine'] === 'function') {
+    return os['machine']()
+  }
+  const arch = getCommandOutputSync('uname -m')
   return arch?.trim()
 }
 

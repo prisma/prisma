@@ -1,7 +1,8 @@
 import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
+import { isNodeAPISupported, platforms } from '@prisma/get-platform'
+import { getPlatformSync } from '@prisma/get-platform/src/getPlatform'
 import chalk from 'chalk'
 import fs from 'fs'
 
@@ -124,7 +125,7 @@ Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextj
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
     }
-    this.libraryInstantiationPromise = this.instantiateLibrary()
+    this.instantiateLibrary()
 
     exitHooks.install()
     this.checkForTooManyEngines()
@@ -186,21 +187,18 @@ Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextj
     return response as Tx.InteractiveTransactionInfo<undefined> | undefined
   }
 
-  private async instantiateLibrary(): Promise<void> {
+  private instantiateLibrary() {
     debug('internalSetup')
-    if (this.libraryInstantiationPromise) {
-      return this.libraryInstantiationPromise
-    }
 
     isNodeAPISupported()
-    this.platform = await this.getPlatform()
-    await this.loadEngine()
+    this.platform = this.getPlatform()
+    this.loadEngine()
     this.version()
   }
 
-  private async getPlatform() {
+  private getPlatform() {
     if (this.platform) return this.platform
-    const platform = await getPlatform()
+    const platform = getPlatformSync()
     if (!knownPlatforms.includes(platform)) {
       throw new PrismaClientInitializationError(
         `Unknown ${chalk.red('PRISMA_QUERY_ENGINE_LIBRARY')} ${chalk.redBright.bold(
@@ -239,10 +237,10 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     return obj
   }
 
-  private async loadEngine(): Promise<void> {
+  private loadEngine(): void {
     if (!this.engine) {
       if (!this.QueryEngineConstructor) {
-        this.library = await this.libraryLoader.loadLibrary()
+        this.library = this.libraryLoader.loadLibrary()
         this.QueryEngineConstructor = this.library.QueryEngine
       }
       try {

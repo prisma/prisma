@@ -2,6 +2,7 @@ import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName, getPlatform, getPlatformWithOSResult } from '@prisma/get-platform'
+import { getPlatformWithOSResultSync } from '@prisma/get-platform/src/getPlatform'
 import chalk from 'chalk'
 import fs from 'fs'
 import path from 'path'
@@ -30,19 +31,17 @@ export class DefaultLibraryLoader implements LibraryLoader {
     this.config = config
   }
 
-  async loadLibrary(): Promise<Library> {
-    const platformInfo = await getPlatformWithOSResult()
+  loadLibrary(): Library {
+    const platformInfo = getPlatformWithOSResultSync()
     this.platform = platformInfo.binaryTarget
     if (!this.libQueryEnginePath) {
-      this.libQueryEnginePath = await this.getLibQueryEnginePath()
+      this.libQueryEnginePath = this.getLibQueryEnginePath()
     }
 
     debug(`loadEngine using ${this.libQueryEnginePath}`)
     try {
       const enginePath = this.libQueryEnginePath
-      return runInChildSpan({ name: 'loadLibrary', enabled: this.config.tracingConfig.enabled, internal: true }, () =>
-        load(enginePath),
-      )
+      return load(enginePath)
     } catch (e) {
       const errorMessage = handleLibraryLoadingErrors({
         e: e as Error,
@@ -54,13 +53,12 @@ export class DefaultLibraryLoader implements LibraryLoader {
     }
   }
 
-  private async getLibQueryEnginePath(): Promise<string> {
+  private getLibQueryEnginePath(): string {
     const libPath = process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
     if (libPath && fs.existsSync(libPath) && libPath.endsWith('.node')) {
       return libPath
     }
-    this.platform = this.platform ?? (await getPlatform())
-    const { enginePath, searchedLocations } = await this.resolveEnginePath()
+    const { enginePath, searchedLocations } = this.resolveEnginePath()
     // If path to query engine doesn't exist, throw
     if (!fs.existsSync(enginePath)) {
       const incorrectPinnedPlatformErrorStr = this.platform
@@ -89,7 +87,6 @@ ${searchedLocations
       if (this.config.generator) {
         // The user already added it, but it still doesn't work 🤷‍♀️
         // That means, that some build system just deleted the files 🤔
-        this.platform = this.platform ?? (await getPlatform())
         if (
           this.config.generator.binaryTargets.find((object) => object.value === this.platform!) ||
           this.config.generator.binaryTargets.find((object) => object.value === 'native')
@@ -122,25 +119,22 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
 
       throw new PrismaClientInitializationError(errorText, this.config.clientVersion!)
     }
-    this.platform = this.platform ?? (await getPlatform())
     return enginePath
   }
 
-  private async resolveEnginePath(): Promise<{
+  private resolveEnginePath(): {
     enginePath: string
     searchedLocations: string[]
-  }> {
+  } {
     const searchedLocations: string[] = []
     let enginePath: string
     if (this.libQueryEnginePath) {
       return { enginePath: this.libQueryEnginePath, searchedLocations }
     }
 
-    this.platform = this.platform ?? (await getPlatform())
-
     // TODO Why special case dependent on file name?
     if (__filename.includes('DefaultLibraryLoader')) {
-      enginePath = path.join(getEnginesPath(), getNodeAPIName(this.platform, 'fs'))
+      enginePath = path.join(getEnginesPath(), getNodeAPIName(this.platform!, 'fs'))
       return { enginePath, searchedLocations }
     }
 
@@ -162,12 +156,12 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     for (const location of searchLocations) {
       searchedLocations.push(location)
       debug(`Searching for Query Engine Library in ${location}`)
-      enginePath = path.join(location, getNodeAPIName(this.platform, 'fs'))
+      enginePath = path.join(location, getNodeAPIName(this.platform!, 'fs'))
       if (fs.existsSync(enginePath)) {
         return { enginePath, searchedLocations }
       }
     }
-    enginePath = path.join(__dirname, getNodeAPIName(this.platform, 'fs'))
+    enginePath = path.join(__dirname, getNodeAPIName(this.platform!, 'fs'))
 
     return { enginePath, searchedLocations }
   }
