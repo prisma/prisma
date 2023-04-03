@@ -88,26 +88,23 @@ Prisma.NullTypes = {
 /**
  * Enums
  */
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-function makeEnum(x) { return x; }
 
-exports.Prisma.AScalarFieldEnum = makeEnum({
+exports.Prisma.AScalarFieldEnum = {
   id: 'id',
   email: 'email',
   name: 'name',
   int: 'int',
   sInt: 'sInt',
   bInt: 'bInt'
-});
+};
 
-exports.Prisma.BScalarFieldEnum = makeEnum({
+exports.Prisma.BScalarFieldEnum = {
   id: 'id',
   float: 'float',
   dFloat: 'dFloat'
-});
+};
 
-exports.Prisma.CScalarFieldEnum = makeEnum({
+exports.Prisma.CScalarFieldEnum = {
   id: 'id',
   char: 'char',
   vChar: 'vChar',
@@ -115,9 +112,9 @@ exports.Prisma.CScalarFieldEnum = makeEnum({
   bit: 'bit',
   vBit: 'vBit',
   uuid: 'uuid'
-});
+};
 
-exports.Prisma.DScalarFieldEnum = makeEnum({
+exports.Prisma.DScalarFieldEnum = {
   id: 'id',
   bool: 'bool',
   byteA: 'byteA',
@@ -125,23 +122,23 @@ exports.Prisma.DScalarFieldEnum = makeEnum({
   json: 'json',
   jsonb: 'jsonb',
   list: 'list'
-});
+};
 
-exports.Prisma.EScalarFieldEnum = makeEnum({
+exports.Prisma.EScalarFieldEnum = {
   id: 'id',
   date: 'date',
   time: 'time',
   ts: 'ts'
-});
+};
 
-exports.Prisma.EmbedHolderScalarFieldEnum = makeEnum({
+exports.Prisma.EmbedHolderScalarFieldEnum = {
   id: 'id',
   time: 'time',
   text: 'text',
   boolean: 'boolean'
-});
+};
 
-exports.Prisma.MScalarFieldEnum = makeEnum({
+exports.Prisma.MScalarFieldEnum = {
   id: 'id',
   n_ids: 'n_ids',
   int: 'int',
@@ -156,9 +153,9 @@ exports.Prisma.MScalarFieldEnum = makeEnum({
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
-});
+};
 
-exports.Prisma.ManyRequiredScalarFieldEnum = makeEnum({
+exports.Prisma.ManyRequiredScalarFieldEnum = {
   id: 'id',
   oneOptionalId: 'oneOptionalId',
   int: 'int',
@@ -173,9 +170,9 @@ exports.Prisma.ManyRequiredScalarFieldEnum = makeEnum({
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
-});
+};
 
-exports.Prisma.NScalarFieldEnum = makeEnum({
+exports.Prisma.NScalarFieldEnum = {
   id: 'id',
   m_ids: 'm_ids',
   int: 'int',
@@ -190,9 +187,9 @@ exports.Prisma.NScalarFieldEnum = makeEnum({
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
-});
+};
 
-exports.Prisma.OneOptionalScalarFieldEnum = makeEnum({
+exports.Prisma.OneOptionalScalarFieldEnum = {
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -206,9 +203,9 @@ exports.Prisma.OneOptionalScalarFieldEnum = makeEnum({
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
-});
+};
 
-exports.Prisma.OptionalSide1ScalarFieldEnum = makeEnum({
+exports.Prisma.OptionalSide1ScalarFieldEnum = {
   id: 'id',
   optionalSide2Id: 'optionalSide2Id',
   int: 'int',
@@ -223,9 +220,9 @@ exports.Prisma.OptionalSide1ScalarFieldEnum = makeEnum({
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
-});
+};
 
-exports.Prisma.OptionalSide2ScalarFieldEnum = makeEnum({
+exports.Prisma.OptionalSide2ScalarFieldEnum = {
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -239,28 +236,28 @@ exports.Prisma.OptionalSide2ScalarFieldEnum = makeEnum({
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
-});
+};
 
-exports.Prisma.PostScalarFieldEnum = makeEnum({
+exports.Prisma.PostScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
   title: 'title',
   content: 'content',
   published: 'published',
   authorId: 'authorId'
-});
+};
 
-exports.Prisma.QueryMode = makeEnum({
+exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
-});
+};
 
-exports.Prisma.SortOrder = makeEnum({
+exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
-});
+};
 
-exports.Prisma.UserScalarFieldEnum = makeEnum({
+exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
   int: 'int',
@@ -276,14 +273,14 @@ exports.Prisma.UserScalarFieldEnum = makeEnum({
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean',
   embedHolderId: 'embedHolderId'
-});
-exports.ABeautifulEnum = makeEnum({
+};
+exports.ABeautifulEnum = {
   A: 'A',
   B: 'B',
   C: 'C'
-});
+};
 
-exports.Prisma.ModelName = makeEnum({
+exports.Prisma.ModelName = {
   Post: 'Post',
   User: 'User',
   EmbedHolder: 'EmbedHolder',
@@ -298,7 +295,7 @@ exports.Prisma.ModelName = makeEnum({
   C: 'C',
   D: 'D',
   E: 'E'
-});
+};
 
 /**
  * Create the Client
