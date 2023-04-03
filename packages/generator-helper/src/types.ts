@@ -30,6 +30,10 @@ export namespace JsonRPC {
 
 export type Dictionary<T> = { [key: string]: T }
 
+/**
+ * @deprecated
+ * TODO: remove in favor of prismaFmt.Generator
+ */
 export interface GeneratorConfig {
   name: string
   output: EnvValue | null
@@ -48,7 +52,7 @@ export interface EnvValue {
 
 export interface BinaryTargetsEnvValue {
   fromEnvVar: null | string
-  value: string
+  value: null | string
 }
 
 export type ConnectorType =
@@ -64,6 +68,10 @@ export type ConnectorType =
   // 'jdbc:sqlserver' has been removed in https://github.com/prisma/prisma-engines/pull/2830
   | 'jdbc:sqlserver'
 
+/**
+ * @deprecated
+ * TODO: remove in favor of prismaFmt.SourceConfig
+ */
 export interface DataSource {
   name: string
   provider: ConnectorType
@@ -71,6 +79,7 @@ export interface DataSource {
   url: EnvValue
   directUrl?: EnvValue
   schemas: string[] | []
+  documentation?: string
 }
 
 export type BinaryPaths = {

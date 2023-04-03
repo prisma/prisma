@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, EnvValue } from '@prisma/generator-helper'
 import chalk from 'chalk'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
@@ -10,13 +10,9 @@ import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
 
-const debug = Debug('prisma:getConfig')
+export type ConfigMetaFormat = prismaFmt.ConfigMetaFormat
 
-export interface ConfigMetaFormat {
-  datasources: DataSource[] | []
-  generators: GeneratorConfig[] | []
-  warnings: string[] | []
-}
+const debug = Debug('prisma:getConfig')
 
 export type GetConfigOptions = {
   datamodel: string
@@ -59,7 +55,7 @@ export function getEffectiveUrl(ds: DataSource): EnvValue {
 /**
  * Wasm'd version of `getConfig`.
  */
-export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFormat> {
+export async function getConfig(options: GetConfigOptions): Promise<prismaFmt.ConfigMetaFormat> {
   const debugErrorType = createDebugErrorType(debug, 'getConfigWasm')
   debug(`Using getConfig Wasm`)
 
@@ -71,12 +67,14 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           prismaFmt.debug_panic()
         }
 
-        const params = JSON.stringify({
+        const params = {
           prismaSchema: options.datamodel,
           datasourceOverrides: {},
           ignoreEnvVarErrors: options.ignoreEnvVarErrors ?? false,
-          env: process.env,
-        })
+
+          // TODO: env is Record<string, string | undefined>, change Rust's tsify
+          env: process.env as Record<string, string>,
+        }
 
         const data = prismaFmt.get_config(params)
         return data
@@ -86,18 +84,6 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
         reason: '(get-config wasm)',
         error: e as Error | WasmPanic,
       }),
-    ),
-    E.map((result) => ({ result })),
-    E.chainW(({ result }) =>
-      // NOTE: this should never fail, as we expect returned values to be valid JSON-serializable strings
-      E.tryCatch(
-        () => JSON.parse(result) as ConfigMetaFormat,
-        (e) => ({
-          type: 'parse-json' as const,
-          reason: 'Unable to parse JSON',
-          error: e as Error,
-        }),
-      ),
     ),
   )
 

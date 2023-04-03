@@ -27,13 +27,13 @@ ${indent(printDatamodelObject(obj), 2)}
 }
 
 export function getOriginalBinaryTargetsValue(binaryTargets: BinaryTargetsEnvValue[]) {
-  let value: string | string[] | undefined
+  let value: undefined | string | string[]
   if (binaryTargets.length > 0) {
     const binaryTargetsFromEnvVar = binaryTargets.find((object) => object.fromEnvVar !== null)
     if (binaryTargetsFromEnvVar) {
       value = `env("${binaryTargetsFromEnvVar.fromEnvVar}")`
     } else {
-      value = binaryTargets.map((object) => object.value)
+      value = binaryTargets.map((object) => object.value as string)
     }
   } else {
     value = undefined

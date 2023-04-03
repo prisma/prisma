@@ -14,12 +14,6 @@ import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } fro
 
 const debug = Debug('prisma:getDMMF')
 
-export interface ConfigMetaFormat {
-  datasources: DataSource[]
-  generators: GeneratorConfig[]
-  warnings: string[]
-}
-
 export type GetDMMFOptions = {
   datamodel?: string
   cwd?: string
@@ -54,7 +48,7 @@ ${detailsHeader} ${message}`
 /**
  * Wasm'd version of `getDMMF`.
  */
-export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
+export async function getDMMF(options: GetDMMFOptions): Promise<prismaFmt.DataModelMetaFormat> {
   // TODO: substitute this warning with `prismaFmt.lint()`.
   // See https://github.com/prisma/prisma/issues/16538
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
@@ -90,10 +84,10 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
               prismaFmt.debug_panic()
             }
 
-            const params = JSON.stringify({
+            const params = {
               prismaSchema: datamodel,
               noColor: Boolean(process.env.NO_COLOR),
-            })
+            }
             const data = prismaFmt.get_dmmf(params)
             return data
           },
@@ -103,18 +97,6 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
               reason: '(get-dmmf wasm)',
               error: e as Error | WasmPanic,
             } as const),
-        ),
-        E.map((result) => ({ result })),
-        E.chainW(({ result }) =>
-          // NOTE: this should never fail, as we expect returned values to be valid JSON-serializable strings
-          E.tryCatch(
-            () => JSON.parse(result) as DMMF.Document,
-            (e) => ({
-              type: 'parse-json' as const,
-              reason: 'Unable to parse JSON',
-              error: e as Error,
-            }),
-          ),
         ),
         TE.fromEither,
       )
@@ -166,10 +148,6 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
        */
       const errorOutput = e.error.message
       return new GetDmmfError(parseQueryEngineError({ errorOutput, reason: e.reason }))
-    })
-    .with({ type: 'parse-json' }, (e) => {
-      debugErrorType(e)
-      return new GetDmmfError({ _tag: 'unparsed', message: e.error.message, reason: e.reason })
     })
     .exhaustive()
 

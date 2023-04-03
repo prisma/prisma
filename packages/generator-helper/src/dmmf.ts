@@ -1,5 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace DMMF {
+  /**
+   * @deprecated
+   * TODO: replace with prismaFmt.DataModelMetaFormat
+   */
   export interface Document {
     datamodel: Datamodel
     schema: Schema
