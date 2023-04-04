@@ -7,12 +7,15 @@ const debug = Debug('prisma:client')
 
 /**
  * Known platforms that have caching issues. Updating this list will also update
- * the error message and the link to the docs, so add docs/links as needed.
+ * the error message and the link to the docs, so add docs/links as needed. The
+ * key from this map comes from the `ciName` property of the `ci-info` package.
  */
 const cachingPlatforms = {
   Vercel: 'vercel',
   'Netlify CI': 'netlify',
 } as const
+
+type Config = Pick<GetPrismaClientConfig, 'postinstall' | 'ciName' | 'clientVersion'>
 
 /**
  * Throws an error if the client has been generated via auto-install and the
@@ -20,7 +23,7 @@ const cachingPlatforms = {
  * useful error message, and ask the user to run `prisma generate` manually.
  * @returns
  */
-export function checkPlatformCaching({ postinstall, ciName, clientVersion }: GetPrismaClientConfig) {
+export function checkPlatformCaching({ postinstall, ciName, clientVersion }: Config) {
   debug('checkPlatformCaching:postinstall', postinstall)
   debug('checkPlatformCaching:ciName', ciName)
 
