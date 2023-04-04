@@ -269,7 +269,7 @@ export interface GetPrismaClientConfig {
 
   /**
    * A marker to indicate that the client was not generated via `prisma
-   * generate` but was triggered via the `postinstall` script instead.
+   * generate` but was generated via `generate --postinstall` script instead.
    * @remarks used to error for Vercel/Netlify for schema caching issues
    */
   postinstall?: boolean
