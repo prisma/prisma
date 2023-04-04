@@ -43,7 +43,7 @@
     "new-github-issue-url": "0.2.1",
     "p-retry": "4.6.2",
     "strip-ansi": "6.0.1",
-    "ts-pattern": "4.2.1",
+    "ts-pattern": "4.2.2",
     "undici": "5.21.0"
   },
   "files": [

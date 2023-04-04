@@ -15,11 +15,11 @@ export async function getEngineVersion(enginePath?: string, binaryName?: BinaryT
   enginePath = await resolveBinary(binaryName, enginePath)
 
   const platformInfo = await getPlatformWithOSResult()
-  if (binaryName === BinaryType.libqueryEngine) {
+  if (binaryName === BinaryType.QueryEngineLibrary) {
     await isNodeAPISupported()
 
     const QE = loadLibrary<NodeAPILibraryTypes.Library>(enginePath, platformInfo)
-    return `${BinaryType.libqueryEngine} ${QE.version().commit}`
+    return `${BinaryType.QueryEngineLibrary} ${QE.version().commit}`
   } else {
     const result = await execa(enginePath, ['--version'])
 

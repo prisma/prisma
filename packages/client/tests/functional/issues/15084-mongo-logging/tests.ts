@@ -55,10 +55,6 @@ testMatrix.setupTestSuite(
       from: ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver'],
       reason: 'Only testing MongoDB provider(s) to replicate this issue',
     },
-    skipDataProxy: {
-      runtimes: ['edge', 'node'],
-      reason: 'https://github.com/prisma/mini-proxy/pull/35',
-    },
     skipDefaultClientInstance: true,
   },
 )

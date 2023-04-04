@@ -324,7 +324,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
         continue
       }
       const binaryName =
-        clientEngineType === ClientEngineType.Binary ? BinaryType.queryEngine : BinaryType.libqueryEngine
+        clientEngineType === ClientEngineType.Binary ? BinaryType.QueryEngineBinary : BinaryType.QueryEngineLibrary
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
         getEngineVersion(filePath, binaryName).catch(() => null),

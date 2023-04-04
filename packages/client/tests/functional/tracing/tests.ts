@@ -417,7 +417,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
     })
   })
 
-  describeIf(!clientMeta.dataProxy)('tracing on transactions', () => {
+  describe('tracing on transactions', () => {
     test('$transaction', async () => {
       const email = faker.internet.email()
 
@@ -756,6 +756,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
     })
   })
 
+  // $connect is a no-op with Data Proxy
   describeIf(!clientMeta.dataProxy)('tracing connect', () => {
     let _prisma: PrismaClient
 
@@ -835,6 +836,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
     })
   })
 
+  // $disconnect is a no-op with Data Proxy
   describeIf(!clientMeta.dataProxy)('tracing disconnect', () => {
     let _prisma: PrismaClient
 

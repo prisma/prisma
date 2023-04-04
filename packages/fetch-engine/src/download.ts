@@ -26,9 +26,9 @@ const utimes = promisify(fs.utimes)
 
 const channel = 'master'
 export enum BinaryType {
-  queryEngine = 'query-engine',
-  libqueryEngine = 'libquery-engine',
-  migrationEngine = 'migration-engine',
+  QueryEngineBinary = 'query-engine',
+  QueryEngineLibrary = 'libquery-engine',
+  MigrationEngineBinary = 'migration-engine',
 }
 export type BinaryDownloadConfiguration = {
   [binary in BinaryType]?: string // that is a path to the binary download location
@@ -50,9 +50,9 @@ export interface DownloadOptions {
 }
 
 const BINARY_TO_ENV_VAR = {
-  [BinaryType.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-  [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
+  [BinaryType.MigrationEngineBinary]: 'PRISMA_MIGRATION_ENGINE_BINARY',
+  [BinaryType.QueryEngineBinary]: 'PRISMA_QUERY_ENGINE_BINARY',
+  [BinaryType.QueryEngineLibrary]: 'PRISMA_QUERY_ENGINE_LIBRARY',
 }
 
 type BinaryDownloadJob = {
@@ -85,7 +85,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         'Warning',
       )} Precompiled engine files are not available for ${platform}. Read more about building your own engines at https://pris.ly/d/build-engines`,
     )
-  } else if (BinaryType.libqueryEngine in options.binaries) {
+  } else if (BinaryType.QueryEngineLibrary in options.binaries) {
     await isNodeAPISupported()
   }
 
@@ -319,11 +319,11 @@ async function binaryNeedsToBeDownloaded(
 
 export async function getVersion(enginePath: string, binaryName: string) {
   try {
-    if (binaryName === BinaryType.libqueryEngine) {
+    if (binaryName === BinaryType.QueryEngineLibrary) {
       await isNodeAPISupported()
 
       const commitHash = require(enginePath).version().commit
-      return `${BinaryType.libqueryEngine} ${commitHash}`
+      return `${BinaryType.QueryEngineLibrary} ${commitHash}`
     } else {
       const result = await execa(enginePath, ['--version'])
 
@@ -335,7 +335,7 @@ export async function getVersion(enginePath: string, binaryName: string) {
 }
 
 export function getBinaryName(binaryName: string, platform: Platform): string {
-  if (binaryName === BinaryType.libqueryEngine) {
+  if (binaryName === BinaryType.QueryEngineLibrary) {
     return `${getNodeAPIName(platform, 'fs')}`
   }
   const extension = platform === 'windows' ? '.exe' : ''
