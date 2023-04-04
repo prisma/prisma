@@ -39,7 +39,15 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/no-empty-function': 'off',
-    '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true, argsIgnorePattern: '^_' }],
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        // don't complain if we are omitting properties using spread operator, i.e. const { ignored, ...rest } = someObject
+        ignoreRestSiblings: true,
+        // for functions, allow to have unused arguments if they start with _. We need to do this from time to time to test type inference within the tests
+        argsIgnorePattern: '^_',
+      },
+    ],
     'eslint-comments/no-unlimited-disable': 'off',
     'eslint-comments/disable-enable-pair': 'off',
     '@typescript-eslint/no-misused-promises': 'off',
