@@ -52,6 +52,7 @@ export type GetGeneratorOptions = {
   binaryPathsOverride?: BinaryPathsOverride
   dataProxy: boolean
   generatorNames?: string[]
+  postinstall?: boolean
 }
 /**
  * Makes sure that all generators have the binaries they deserve and returns a
@@ -73,6 +74,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     binaryPathsOverride,
     dataProxy,
     generatorNames = [],
+    postinstall,
   } = options
 
   if (!schemaPath) {
@@ -212,6 +214,7 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           schemaPath,
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
           dataProxy,
+          postinstall,
         }
 
         // we set the options here a bit later after instantiating the Generator,

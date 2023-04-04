@@ -139,6 +139,7 @@ ${chalk.bold('Examples')}
         cliVersion: pkg.version,
         dataProxy: !!args['--data-proxy'] || !!process.env.PRISMA_GENERATE_DATAPROXY,
         generatorNames: args['--generator'],
+        postinstall: Boolean(args['--postinstall']),
       })
 
       if (!generators || generators.length === 0) {
