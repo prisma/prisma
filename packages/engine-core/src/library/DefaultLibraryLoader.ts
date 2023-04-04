@@ -66,7 +66,7 @@ export class DefaultLibraryLoader implements LibraryLoader {
       const incorrectPinnedPlatformErrorStr = this.platform
         ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.platform}`)}\n`
         : ''
-      // TODO Improve search engine logic possibly using findSync
+      // TODO Stop searching in many locations, have more deterministic logic.
       let errorText = `Query engine library for current platform "${chalk.bold(
         this.platform,
       )}" could not be found.${incorrectPinnedPlatformErrorStr}

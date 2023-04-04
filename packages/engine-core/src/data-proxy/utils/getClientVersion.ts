@@ -9,7 +9,6 @@ const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
 const debug = Debug('prisma:client:dataproxyEngine')
 
 async function _getClientVersion(config: EngineConfig) {
-  // TODO: now we can probably just use the client version instead
   const engineVersion = devDependencies['@prisma/engines-version']
   const clientVersion = config.clientVersion ?? 'unknown'
 
