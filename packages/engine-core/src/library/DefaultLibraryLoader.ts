@@ -4,7 +4,6 @@ import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName, getPlatform, getPlatformWithOSResult } from '@prisma/get-platform'
 import chalk from 'chalk'
 import fs from 'fs'
-import os from 'os'
 import path from 'path'
 
 import { EngineConfig } from '../common/Engine'
@@ -16,62 +15,6 @@ import { runInChildSpan } from '../tracing'
 import { Library, LibraryLoader } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
-
-const libraryCacheSymbol = Symbol('PrismaLibraryEngineCache')
-
-type LibraryCache = Record<string, Library | undefined>
-
-type GlobalWithCache = typeof globalThis & {
-  [libraryCacheSymbol]?: LibraryCache
-}
-
-function getLibraryCache(): LibraryCache {
-  const globalWithCache = globalThis as GlobalWithCache
-  if (globalWithCache[libraryCacheSymbol] === undefined) {
-    globalWithCache[libraryCacheSymbol] = {}
-  }
-  return globalWithCache[libraryCacheSymbol]
-}
-
-export function load(id: string): Library {
-  const cache = getLibraryCache()
-
-  if (cache[id] !== undefined) {
-    return cache[id]!
-  }
-
-  // `toNamespacedPath` is required for native addons on Windows, but it's a no-op on other systems.
-  // We call it here unconditionally just like `.node` CommonJS loader in Node.js does.
-  const libraryPath = path.toNamespacedPath(id)
-  const libraryModule = { exports: {} as Library }
-
-  let flags = 0
-
-  if (process.platform !== 'win32') {
-    // Add RTLD_LAZY on Unix. This is what Node.js does by default
-    // if no flags were passed to dlopen from JavaScript side.
-    //
-    // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
-    flags |= os.constants.dlopen.RTLD_LAZY
-  }
-
-  if (process.platform === 'linux') {
-    // Add RTLD_DEEPBIND on Linux. This is a non-standard GNU
-    // extension and not part of POSIX, so we don't do that on other
-    // Unix systems. This prevents issues when we dynamically link to
-    // system OpenSSL on Linux but the dynamic linker resolves the
-    // symbols from the Node.js binary instead.
-    //
-    // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
-    flags |= os.constants.dlopen.RTLD_DEEPBIND
-  }
-
-  // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
-  process.dlopen(libraryModule, libraryPath, flags)
-
-  cache[id] = libraryModule.exports
-  return libraryModule.exports
-}
 
 export class DefaultLibraryLoader implements LibraryLoader {
   private config: EngineConfig
@@ -93,7 +36,7 @@ export class DefaultLibraryLoader implements LibraryLoader {
     try {
       const enginePath = this.libQueryEnginePath
       return runInChildSpan({ name: 'loadLibrary', enabled: this.config.tracingConfig.enabled, internal: true }, () =>
-        load(enginePath),
+        this.loadLibraryByPath(enginePath),
       )
     } catch (e) {
       const errorMessage = handleLibraryLoadingErrors({
@@ -104,6 +47,11 @@ export class DefaultLibraryLoader implements LibraryLoader {
 
       throw new PrismaClientInitializationError(errorMessage, this.config.clientVersion!)
     }
+  }
+
+  protected loadLibraryByPath(libraryPath: string): Library {
+    // this require needs to be resolved at runtime, tell webpack to ignore it
+    return eval('require')(libraryPath)
   }
 
   private async getLibQueryEnginePath(): Promise<string> {

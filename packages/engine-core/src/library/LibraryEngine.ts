@@ -39,8 +39,8 @@ import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { createSpan, getTraceParent, runInChildSpan } from '../tracing'
-import { DefaultLibraryLoader } from './DefaultLibraryLoader'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
+import { getPlatformSpecificLibraryLoader } from './getPlatformSpecificLibraryLoader'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine')
@@ -95,7 +95,7 @@ export class LibraryEngine extends Engine<undefined> {
     exitHooks.setListener(this, listener)
   }
 
-  constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
+  constructor(config: EngineConfig, loader: LibraryLoader = getPlatformSpecificLibraryLoader(config)) {
     super()
 
     try {
