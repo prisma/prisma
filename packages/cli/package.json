@@ -44,8 +44,7 @@
     "runtime/llhttp",
     "prisma-client",
     "preinstall",
-    "scripts/preinstall-entry.js",
-    "scripts/install-entry.js"
+    "scripts/preinstall-entry.js"
   ],
   "pkg": {
     "assets": [
@@ -107,7 +106,6 @@
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
     "test": "jest --maxConcurrency=1 --verbose",
-    "install": "node scripts/install-entry.js",
     "tsc": "tsc -d -p tsconfig.build.json",
     "preinstall": "node scripts/preinstall-entry.js",
     "prepublishOnly": "pnpm run build"

@@ -145,11 +145,6 @@ async function dependencyCheck(options: BuildOptions) {
  * @param options
  */
 export async function build(options: BuildOptions[]) {
-  // When we trigger pnpm pack for e2e tests we actually don't want to always
-  // build again to go faster. We re-use what has been already build; and also
-  // implies you ran pnpm run watch/dev/build before hand.
-  if (process.env.SKIP_BUILD === 'true') return
-
   void transduce.async(options, dependencyCheck)
 
   return transduce.async(

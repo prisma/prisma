@@ -82,13 +82,20 @@ async function main() {
 
   try {
     console.log('📦 Packing package tarballs')
-    await $`cd ${clientPkgPath} && SKIP_BUILD=${args['--skipBuild']} pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${cliPkgPath} && SKIP_BUILD=${args['--skipBuild']} pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${wpPluginPkgPath} && SKIP_BUILD=${args['--skipBuild']} pnpm pack --pack-destination ${__dirname}/../`
+
+    if (args['--skipBuild'] !== true) {
+      await $`cd ${clientPkgPath} && pnpm build`
+      await $`cd ${cliPkgPath} && pnpm build`
+    }
+
+    await $`cd ${clientPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+    await $`cd ${cliPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+    await $`cd ${wpPluginPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
   } catch (e) {
     console.log(e.message)
     console.log('🛑 Failed to pack one or more of the packages')
     console.log('💡 Make sure to run `watch`, `dev` or `build`')
+    throw e
   } finally {
     await restoreOriginal() // when done, we restore the original package.json
   }
