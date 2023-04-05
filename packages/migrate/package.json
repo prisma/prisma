@@ -25,7 +25,7 @@
     "@types/jest": "29.4.0",
     "@types/node": "12.20.55",
     "@types/pg": "8.6.6",
-    "@types/prompts": "2.4.2",
+    "@types/prompts": "2.4.4",
     "@types/sqlite3": "3.1.8",
     "esbuild": "0.15.13",
     "fs-jetpack": "5.1.0",
