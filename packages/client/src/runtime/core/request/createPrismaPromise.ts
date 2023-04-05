@@ -29,7 +29,7 @@ export function createPrismaPromise(
     }
   }
 
-  return {
+  return Object.setPrototypeOf({
     then(onFulfilled, onRejected, transaction?) {
       return _callback(transaction).then(onFulfilled, onRejected, transaction)
     },
@@ -51,7 +51,7 @@ export function createPrismaPromise(
       return promise
     },
     [Symbol.toStringTag]: 'PrismaPromise',
-  }
+  } satisfies PrismaPromise<unknown>, Promise.prototype);
 }
 
 function valueToPromise<T>(thing: T): PrismaPromise<T> {

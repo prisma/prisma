@@ -1,5 +1,5 @@
 import { PrismaPromise } from './PrismaPromise'
 
 export function isPrismaPromise(value: any): value is PrismaPromise<any> {
-  return value && value[Symbol.toStringTag] === 'PrismaPromise'
+  return value instanceof Promise && value[Symbol.toStringTag] === 'PrismaPromise'
 }
