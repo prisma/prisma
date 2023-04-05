@@ -451,7 +451,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
             },
           })
         })
-        .catch((e) => {})
+        .catch(() => {})
 
       const users = await isolatedPrisma.user.findMany()
       expect(users).toHaveLength(1)

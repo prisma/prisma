@@ -8,7 +8,7 @@ test('assert node data proxy runtime can be used', async () => {
   try {
     const prisma = new PrismaClient()
 
-    const data = await prisma.user.create({
+    await prisma.user.create({
       data: { email: 'jane@doe.io' },
     })
   } catch (e) {
@@ -26,7 +26,7 @@ test('assert edge data proxy runtime can be used', async () => {
   try {
     const prisma = new PrismaClientEdge()
 
-    const data = await prisma.user.create({
+    await prisma.user.create({
       data: { email: 'jane@doe.io' },
     })
   } catch (e) {

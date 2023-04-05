@@ -4,6 +4,7 @@ import { PrismaClient } from '../prisma/client'
 import { PrismaClient as PrismaClientEdge } from '../prisma/client/edge'
 
 // we only use this to test the types
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function main() {
   const prisma = new PrismaClient()
   const prismaEdge = new PrismaClientEdge()

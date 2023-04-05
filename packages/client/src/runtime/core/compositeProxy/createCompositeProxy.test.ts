@@ -158,7 +158,7 @@ test('allows to have several layers', () => {
         return ['third']
       },
 
-      getPropertyValue(key) {
+      getPropertyValue() {
         return 3
       },
     },
@@ -177,7 +177,7 @@ test('allows to override target property', () => {
         return ['value']
       },
 
-      getPropertyValue(key) {
+      getPropertyValue() {
         return 'override'
       },
     },
@@ -193,7 +193,7 @@ test('last override wins', () => {
         return ['value']
       },
 
-      getPropertyValue(key) {
+      getPropertyValue() {
         return 'override 1'
       },
     },
@@ -203,7 +203,7 @@ test('last override wins', () => {
         return ['value']
       },
 
-      getPropertyValue(key) {
+      getPropertyValue() {
         return 'override 2'
       },
     },

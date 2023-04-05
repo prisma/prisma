@@ -16,7 +16,7 @@ Invalid \`tx.user.create()\` invocation in
   XX   },
   XX })
   XX 
-→ XX const userB = await tx.user.create(
+→ XX await tx.user.create(
 Unique constraint failed on the fields: (\`email\`)
 `;
 
@@ -36,7 +36,7 @@ Invalid \`tx.user.create()\` invocation in
   XX   },
   XX })
   XX 
-→ XX const userB = await tx.user.create(
+→ XX await tx.user.create(
 Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
@@ -56,7 +56,7 @@ Invalid \`tx.user.create()\` invocation in
   XX   },
   XX })
   XX 
-→ XX const userB = await tx.user.create(
+→ XX await tx.user.create(
 Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
@@ -76,7 +76,7 @@ Invalid \`tx.user.create()\` invocation in
   XX   },
   XX })
   XX 
-→ XX const userB = await tx.user.create(
+→ XX await tx.user.create(
 Unique constraint failed on the fields: (\`email\`)
 `;
 
@@ -96,7 +96,7 @@ Invalid \`tx.user.create()\` invocation in
   XX   },
   XX })
   XX 
-→ XX const userB = await tx.user.create(
+→ XX await tx.user.create(
 Unique constraint failed on the fields: (\`email\`)
 `;
 
@@ -116,6 +116,6 @@ Invalid \`tx.user.create()\` invocation in
   XX   },
   XX })
   XX 
-→ XX const userB = await tx.user.create(
+→ XX await tx.user.create(
 Unique constraint failed on the constraint: \`dbo.User\`
 `;

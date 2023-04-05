@@ -1,4 +1,4 @@
-import { drawBox, isCurrentBinInstalledGlobally, logger } from '@prisma/internals'
+import { drawBox, isCurrentBinInstalledGlobally } from '@prisma/internals'
 import chalk from 'chalk'
 import type { Check } from 'checkpoint-client'
 

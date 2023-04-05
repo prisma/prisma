@@ -123,7 +123,8 @@ function modelGenericExtensionCallbackViaDefault() {
     return client.$extends({
       model: {
         $allModels: {
-          myGenericMethodViaDefault<T, A>(this: T, args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findFirst'>>) {
+          myGenericMethodViaDefault<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findFirst'>>) {
+            // eslint-disable-next-line
             const ctx = Prisma.getExtensionContext(this) // just for testing that it is exported
 
             return {} as {
@@ -143,7 +144,8 @@ function modelGenericExtensionObjectViaDefault() {
   return PrismaDefault.defineExtension({
     model: {
       $allModels: {
-        myGenericMethodViaDefault<T, A>(this: T, args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findFirst'>>) {
+        myGenericMethodViaDefault<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findFirst'>>) {
+          // eslint-disable-next-line
           const ctx = Prisma.getExtensionContext(this) // just for testing that it is exported
 
           return {} as {
@@ -163,8 +165,9 @@ function clientGenericExtensionObjectViaDefault() {
     client: {
       myGenericMethodViaDefault<T, A extends any[]>(
         this: T,
-        ...args: PrismaDefault.Exact<A, [...PrismaDefault.Args<T, '$executeRaw'>]>
+        ..._args: PrismaDefault.Exact<A, [...PrismaDefault.Args<T, '$executeRaw'>]>
       ) {
+        // eslint-disable-next-line
         const ctx = Prisma.getExtensionContext(this) // just for testing that it is exported
 
         return {} as {
