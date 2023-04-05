@@ -1,5 +1,5 @@
 CREATE TABLE measurement (
-    city_id         int not null,
+    city_id         int primary key,
     logdate         date not null,
     peaktemp        int,
     unitsales       int
