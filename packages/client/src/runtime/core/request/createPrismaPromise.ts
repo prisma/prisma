@@ -29,29 +29,32 @@ export function createPrismaPromise(
     }
   }
 
-  return Object.setPrototypeOf({
-    then(onFulfilled, onRejected, transaction?) {
-      return _callback(transaction).then(onFulfilled, onRejected, transaction)
-    },
-    catch(onRejected, transaction?) {
-      return _callback(transaction).catch(onRejected, transaction)
-    },
-    finally(onFinally, transaction?) {
-      return _callback(transaction).finally(onFinally, transaction)
-    },
+  return Object.setPrototypeOf(
+    {
+      then(onFulfilled, onRejected, transaction?) {
+        return _callback(transaction).then(onFulfilled, onRejected, transaction)
+      },
+      catch(onRejected, transaction?) {
+        return _callback(transaction).catch(onRejected, transaction)
+      },
+      finally(onFinally, transaction?) {
+        return _callback(transaction).finally(onFinally, transaction)
+      },
 
-    requestTransaction(batchTransaction) {
-      const promise = _callback(batchTransaction)
+      requestTransaction(batchTransaction) {
+        const promise = _callback(batchTransaction)
 
-      if (promise.requestTransaction) {
-        // we want to have support for nested promises
-        return promise.requestTransaction(batchTransaction)
-      }
+        if (promise.requestTransaction) {
+          // we want to have support for nested promises
+          return promise.requestTransaction(batchTransaction)
+        }
 
-      return promise
-    },
-    [Symbol.toStringTag]: 'PrismaPromise',
-  } satisfies PrismaPromise<unknown>, Promise.prototype);
+        return promise
+      },
+      [Symbol.toStringTag]: 'PrismaPromise',
+    } satisfies PrismaPromise<unknown>,
+    Promise.prototype,
+  )
 }
 
 function valueToPromise<T>(thing: T): PrismaPromise<T> {
