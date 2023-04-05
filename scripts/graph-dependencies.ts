@@ -33,7 +33,7 @@ function generateGraph(
       const json = require(pkg.jsonPath)
       g.addNode(json.name, { shape: 'box' })
       const keys = getKeys(json, type)
-      const depNodes = keys.map((key) => {
+      keys.forEach((key) => {
         g.addEdge(json.name, key, {})
       })
     } catch {}

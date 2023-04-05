@@ -1,13 +1,10 @@
-import { Providers } from '../../_utils/providers'
 import { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
 
 export function schema_same_actions({
   id,
-  provider,
   referentialActionLineOutput,
 }: {
   id: string
-  provider: Providers
   referentialActionLineOutput: ReferentialActionLineOutput
 }) {
   const { referentialActionLine } = referentialActionLineOutput
