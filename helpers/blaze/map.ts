@@ -9,20 +9,20 @@ type Map<A, R> = {
   [K in keyof A]: R
 } & {}
 
-function mapList<L extends L.List, I, R>(object: L & L.List<I>, mapper: LMapper<L, I, R>): Map<L, R> {
+function mapList<T extends L.List, I, R>(object: T & L.List<I>, mapper: LMapper<T, I, R>): Map<T, R> {
   const mapped = new Array(object.length)
 
   for (let i = 0; i < object.length; ++i) {
-    mapped[i] = mapper(object[i], i as A.Keys<L>)
+    mapped[i] = mapper(object[i], i as A.Keys<T>)
   }
 
   return mapped as any
 }
 
-function mapObject<O extends O.Object, I, R>(object: O & O.Record<A.Key, I>, mapper: OMapper<O, I, R>): Map<O, R> {
+function mapObject<T extends O.Object, I, R>(object: T & O.Record<A.Key, I>, mapper: OMapper<T, I, R>): Map<T, R> {
   const mapped = {} as any
 
-  const keys = Object.keys(object) as A.Keys<O>[]
+  const keys = Object.keys(object) as A.Keys<T>[]
   for (let i = 0; i < keys.length; ++i) {
     mapped[i] = mapper(object[keys[i]], keys[i])
   }

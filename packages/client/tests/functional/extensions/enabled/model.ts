@@ -505,7 +505,7 @@ testMatrix.setupTestSuite(
           $allModels: {
             findFirstOrCreate<T, A>(
               this: T,
-              args: PrismaNamespace.Exact<A, PrismaNamespace.Args<T, 'findUniqueOrThrow'>>,
+              _args: PrismaNamespace.Exact<A, PrismaNamespace.Args<T, 'findUniqueOrThrow'>>,
             ): PrismaNamespace.Result<T, A, 'findUniqueOrThrow'> & { extra: boolean } {
               return {} as any
             },
@@ -555,7 +555,7 @@ testMatrix.setupTestSuite(
           $allModels: {
             findFirstOrCreate<T, A>(
               this: T,
-              args: PrismaNamespace.Exact<
+              _args: PrismaNamespace.Exact<
                 A,
                 {
                   guestName: string
@@ -613,7 +613,7 @@ testMatrix.setupTestSuite(
       const xprisma = prisma.$extends({
         model: {
           $allModels: {
-            findFirstOrCreate<T, A>(this: T, args: PrismaNamespace.Exact<A, Input<T>>): A {
+            findFirstOrCreate<T, A>(this: T, _args: PrismaNamespace.Exact<A, Input<T>>): A {
               return {} as any
             },
           },

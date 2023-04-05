@@ -10,6 +10,6 @@ export default testMatrix.setupSchema(({ provider, providerFlavor, relationMode,
   return /* Prisma */ `
 ${schemaHeader}
 
-${schema_same_actions({ id, provider, referentialActionLineOutput })}
+${schema_same_actions({ id, referentialActionLineOutput })}
 `
 })

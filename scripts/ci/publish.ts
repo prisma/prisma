@@ -7,7 +7,6 @@ import execa from 'execa'
 import { existsSync, promises as fs } from 'fs'
 import globby from 'globby'
 import fetch from 'node-fetch'
-import pReduce from 'p-reduce'
 import pRetry from 'p-retry'
 import path from 'path'
 import redis from 'redis'
@@ -165,12 +164,7 @@ interface Package {
   packageJson: any
 }
 
-interface PackageWithNewVersion extends Package {
-  newVersion: string
-}
-
 type Packages = { [packageName: string]: Package }
-type PackagesWithNewVersions = { [packageName: string]: PackageWithNewVersion }
 
 export function getPackageDependencies(packages: RawPackages): Packages {
   const packageCache = Object.entries(packages).reduce<Packages>((acc, [name, pkg]) => {
@@ -227,20 +221,6 @@ function getCircularDependencies(packages: Packages): string[][] {
   }
 
   return circularDeps
-}
-
-async function getNewPackageVersions(packages: Packages, prismaVersion: string): Promise<PackagesWithNewVersions> {
-  return pReduce(
-    Object.values(packages),
-    async (acc, p) => {
-      acc[p.name] = {
-        ...p,
-        newVersion: await newVersion(p, prismaVersion),
-      }
-      return acc
-    },
-    {},
-  )
 }
 
 export function getPublishOrder(packages: Packages): string[][] {
@@ -858,24 +838,9 @@ function intersection<T>(arr1: T[], arr2: T[]): T[] {
   return arr1.filter((value) => arr2.includes(value))
 }
 
-// Parent "version updating function", uses `patch` and `patchVersion`
-async function newVersion(pkg: Package, prismaVersion: string) {
-  const isPrisma2OrPhoton = ['@prisma/cli', 'prisma', '@prisma/client'].includes(pkg.name)
-  return isPrisma2OrPhoton ? prismaVersion : await patch(pkg)
-}
-
 // Thanks 🙏 to https://github.com/semver/semver/issues/232#issuecomment-405596809
 const semverRegex =
   /^(?<major>0|[1-9]\d*)\.(?<minor>0|[1-9]\d*)\.(?<patch>0|[1-9]\d*)(?:-(?<prerelease>(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+(?<buildmetadata>[0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/
-
-function patchVersion(version: string) {
-  const match = semverRegex.exec(version)
-  if (match?.groups) {
-    return `${match.groups.major}.${match.groups.minor}.${Number(match.groups.patch) + 1}`
-  }
-
-  return undefined
-}
 
 function increaseMinor(version: string) {
   const match = semverRegex.exec(version)
@@ -884,41 +849,6 @@ function increaseMinor(version: string) {
   }
 
   return undefined
-}
-
-async function patch(pkg: Package) {
-  // if done locally, no need to get the latest version from npm (saves time)
-  // if done in buildkite, we definitely want to check, if there's a newer version on npm
-  // in buildkite, saving a few sec is not worth it
-  if (!process.env.BUILDKITE) {
-    return patchVersion(pkg.version)
-  }
-
-  const localVersion = pkg.version
-  if (pkg.name === '@prisma/integration-tests') {
-    return localVersion
-  }
-
-  // We retry a few times if it fails
-  // npm can have some hiccups
-  const npmVersion = await pRetry(
-    async () => {
-      return await runResult('.', `npm info ${pkg.name} version`)
-    },
-    {
-      retries: 6,
-      onFailedAttempt: (e) => {
-        console.error(e)
-      },
-    },
-  )
-
-  const maxVersion = semver.maxSatisfying([localVersion, npmVersion], '*', {
-    loose: true,
-    includePrerelease: true,
-  })
-
-  return patchVersion(maxVersion)
 }
 
 function filterPublishOrder(publishOrder: string[][], packages: string[]): string[][] {
@@ -1119,7 +1049,7 @@ async function acquireLock(branch: string): Promise<() => void> {
   }
   const client = redis.createClient({
     url: process.env.REDIS_URL,
-    retry_strategy: (options) => {
+    retry_strategy: () => {
       return 1000
     },
   })

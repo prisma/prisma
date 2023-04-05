@@ -7,12 +7,12 @@ import path from 'path'
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(edge: boolean, relativeOutdir: string, runtimeDir: string) {
+export function buildDirname(edge: boolean, relativeOutdir: string) {
   if (edge === true) {
     return buildDirnameDefault()
   }
 
-  return buildDirnameFind(relativeOutdir, runtimeDir)
+  return buildDirnameFind(relativeOutdir)
 }
 
 /**
@@ -28,7 +28,7 @@ export function buildDirname(edge: boolean, relativeOutdir: string, runtimeDir: 
  * @param runtimePath
  * @returns
  */
-function buildDirnameFind(defaultRelativeOutdir: string, runtimePath: string) {
+function buildDirnameFind(defaultRelativeOutdir: string) {
   // potential client location on serverless envs
   const serverlessRelativeOutdir = defaultRelativeOutdir.split(path.sep).slice(1).join(path.sep)
 

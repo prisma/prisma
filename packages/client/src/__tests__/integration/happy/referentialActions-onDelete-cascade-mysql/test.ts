@@ -12,7 +12,6 @@ describe('referentialActions(mysql)', () => {
     process.env.TEST_MYSQL_URI += '-referentialActions-onDelete-Cascade'
     await tearDownMysql(process.env.TEST_MYSQL_URI!)
     await migrateDb({
-      connectionString: process.env.TEST_MYSQL_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
@@ -56,7 +55,7 @@ describe('referentialActions(mysql)', () => {
     expect(await prisma.profile.findMany()).toHaveLength(2)
     expect(await prisma.post.findMany()).toHaveLength(2)
 
-    const deleteBob = await prisma.user.delete({
+    await prisma.user.delete({
       where: {
         email: 'bob@prisma.io',
       },

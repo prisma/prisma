@@ -110,7 +110,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser1(++i)
                 return query(args)
               },
@@ -120,7 +120,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser2(++i)
                 return query(args)
               },
@@ -150,7 +150,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 args.where = { id: randomId2 }
 
                 return query(args)
@@ -161,7 +161,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 args.where = { id: randomId3 }
 
                 return query(args)
@@ -172,7 +172,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser(args)
 
                 return query(args)
@@ -209,7 +209,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 args.where = { id: randomId1, ...args.where }
 
                 return query(args)
@@ -220,7 +220,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 args.where = { email: 'john@doe.io', ...args.where }
 
                 return query(args)
@@ -231,7 +231,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser(args)
 
                 return query(args)
@@ -289,7 +289,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser(args)
 
                 return query(args)
@@ -315,7 +315,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser(args)
 
                 return query(args)
@@ -349,7 +349,7 @@ testMatrix.setupTestSuite(
       const xprisma = prisma.$extends({
         query: {
           user: {
-            async findFirst({ args, query, operation, model }) {
+            async findFirst({ args, query }) {
               const data = await query(args)
 
               data.id = '<redacted>'
@@ -382,7 +382,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              async findFirst({ args, query, operation, model }) {
+              async findFirst({ args, query }) {
                 const data = await query(args)
 
                 data.id = '<redacted>'
@@ -395,7 +395,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              async findFirst({ args, query, operation, model }) {
+              async findFirst({ args, query }) {
                 const data = await query(args)
 
                 data.email = '<redacted>'
@@ -430,7 +430,7 @@ testMatrix.setupTestSuite(
           .$extends({
             query: {
               user: {
-                async findFirst({ args, query, operation, model }) {
+                async findFirst({ args, query }) {
                   const data = await query(args)
 
                   data.id = '<redacted>'
@@ -443,7 +443,7 @@ testMatrix.setupTestSuite(
           .$extends({
             query: {
               user: {
-                async findFirst({ args, query, operation, model }) {
+                async findFirst({ args, query }) {
                   const data = await query(args)
 
                   data.email = '<redacted>'
@@ -489,7 +489,7 @@ testMatrix.setupTestSuite(
         const xprisma = prisma.$extends({
           query: {
             user: {
-              async findFirst({ args, query, operation, model }) {
+              async findFirst({ args, query }) {
                 // @ts-test-if: provider !== 'mongodb'
                 return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
               },
@@ -530,7 +530,7 @@ testMatrix.setupTestSuite(
         const xprisma = prisma.$extends({
           query: {
             user: {
-              async findFirst({ args, query, operation, model }) {
+              async findFirst({ args, query }) {
                 // @ts-test-if: provider !== 'mongodb'
                 return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
               },
@@ -588,7 +588,7 @@ testMatrix.setupTestSuite(
           .$extends({
             query: {
               user: {
-                async findFirst({ args, query, operation, model }) {
+                async findFirst({ args, query }) {
                   const data = await query(args)
 
                   data.firstName = '<redacted>'
@@ -601,7 +601,7 @@ testMatrix.setupTestSuite(
           .$extends({
             query: {
               user: {
-                async findFirst({ args, query, operation, model }) {
+                async findFirst({ args, query }) {
                   // @ts-test-if: provider !== 'mongodb'
                   return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
                 },
@@ -611,7 +611,7 @@ testMatrix.setupTestSuite(
           .$extends({
             query: {
               user: {
-                async findFirst({ args, query, operation, model }) {
+                async findFirst({ args, query }) {
                   const data = await query(args)
 
                   data.lastName = '<redacted>'
@@ -875,7 +875,7 @@ testMatrix.setupTestSuite(
       const xprisma = prisma.$extends({
         query: {
           user: {
-            findFirst({ args, query, operation, model }) {
+            findFirst({ args, query }) {
               fnUser1(args)
               return query(args)
             },
@@ -897,7 +897,7 @@ testMatrix.setupTestSuite(
       prisma.$extends({
         query: {
           user: {
-            async findFirst({ args, query, operation, model }) {
+            async findFirst({ args, query }) {
               const user = await query(args)
 
               expectTypeOf(user).toHaveProperty('id').toEqualTypeOf<string | undefined>()

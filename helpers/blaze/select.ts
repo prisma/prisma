@@ -5,7 +5,7 @@ import type { L, O } from 'ts-toolbelt'
 export type LPred<I> = (item: I, pos: number) => boolean
 export type OPred<I> = (item: I, key: string) => boolean
 
-function selectList<L extends L.List, I>(object: L & L.List<I>, pred: LPred<I>): L[number][] {
+function selectList<T extends L.List, I>(object: T & L.List<I>, pred: LPred<I>): T[number][] {
   const selected = [] as any[]
 
   for (let i = 0; i < object.length; ++i) {
@@ -17,7 +17,7 @@ function selectList<L extends L.List, I>(object: L & L.List<I>, pred: LPred<I>):
   return selected
 }
 
-function selectObject<O extends O.Object, I>(object: O, pred: OPred<I>): O.Optional<O> {
+function selectObject<T extends O.Object, I>(object: T, pred: OPred<I>): O.Optional<T> {
   const selected = {} as any
 
   const keys = Object.keys(object)

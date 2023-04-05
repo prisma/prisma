@@ -22,7 +22,6 @@ import type {
   EngineConfig,
   EngineEventType,
   EngineQuery,
-  GetConfigResult,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
@@ -38,7 +37,7 @@ import { convertLog, getMessage, isRustErrorLog } from '../common/errors/utils/l
 import { prismaGraphQLToJSError } from '../common/errors/utils/prismaGraphQLToJSError'
 import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { EngineSpanEvent, QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
+import type { EngineSpanEvent, QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { printGeneratorConfig } from '../common/utils/printGeneratorConfig'
@@ -950,7 +949,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       .then(({ data, headers }) => {
         // Rust engine returns time in microseconds and we want it in milliseconds
         const elapsed = parseInt(headers['x-elapsed']) / 1000
-        const { batchResult, errors } = data
+        const { batchResult } = data
         if (Array.isArray(batchResult)) {
           return batchResult.map((result) => {
             if (result.errors && result.errors.length > 0) {

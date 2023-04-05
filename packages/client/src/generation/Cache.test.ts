@@ -29,7 +29,7 @@ test('retrieving an does not trigger callback', () => {
   cache.getOrCreate('foo', callback)
   cache.getOrCreate('foo', callback)
 
-  expect(callback).toBeCalledTimes(1)
+  expect(callback).toHaveBeenCalledTimes(1)
 })
 
 test('it is possible to store undefined values', () => {
@@ -38,5 +38,5 @@ test('it is possible to store undefined values', () => {
   cache.getOrCreate('foo', callback)
   cache.getOrCreate('foo', callback)
 
-  expect(callback).toBeCalledTimes(1)
+  expect(callback).toHaveBeenCalledTimes(1)
 })
