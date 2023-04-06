@@ -5,7 +5,7 @@ prisma                  : 0.0.0
 @prisma/client          : Not found
 Current platform        : TEST_PLATFORM
 Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
-Migration Engine        : schema-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM)
+Migration Engine        : migration-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM)
 Format Wasm             : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash    : ENGINE_VERSION
 Studio                  : STUDIO_VERSION
@@ -16,7 +16,7 @@ prisma                : 0.0.0
 @prisma/client        : Not found
 Current platform      : TEST_PLATFORM
 Query Engine (Binary) : query-engine ENGINE_VERSION (at sanitized_path/query-engine-TEST_PLATFORM)
-Migration Engine      : schema-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM)
+Migration Engine      : migration-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM)
 Format Wasm           : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash  : ENGINE_VERSION
 Studio                : STUDIO_VERSION
@@ -38,7 +38,7 @@ prisma                : 0.0.0
 @prisma/client        : Not found
 Current platform      : TEST_PLATFORM
 Query Engine (Binary) : query-engine ENGINE_VERSION (at sanitized_path/query-engine-TEST_PLATFORM, resolved by PRISMA_QUERY_ENGINE_BINARY)
-Migration Engine      : schema-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM, resolved by PRISMA_MIGRATION_ENGINE_BINARY)
+Migration Engine      : migration-engine-cli ENGINE_VERSION (at sanitized_path/migration-engine-TEST_PLATFORM, resolved by PRISMA_MIGRATION_ENGINE_BINARY)
 Format Wasm           : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash  : ENGINE_VERSION
 Studio                : STUDIO_VERSION
