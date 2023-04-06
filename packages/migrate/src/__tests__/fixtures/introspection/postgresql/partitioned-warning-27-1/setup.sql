@@ -1,6 +1,6 @@
 CREATE TABLE measurement (
-    city_id         int primary key,
-    logdate         date not null,
+    city_id         int not null,
+    logdate         date primary key,
     peaktemp        int,
     unitsales       int
 ) PARTITION BY RANGE (logdate);
