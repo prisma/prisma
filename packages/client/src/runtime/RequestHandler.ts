@@ -31,7 +31,6 @@ import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
-import { deepGet } from './utils/deep-set'
 import { NotFoundError, RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 
 const debug = Debug('prisma:client:request_handler')

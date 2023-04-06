@@ -192,7 +192,7 @@ Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextj
       return this.libraryInstantiationPromise
     }
 
-    await isNodeAPISupported()
+    isNodeAPISupported()
     this.platform = await this.getPlatform()
     await this.loadEngine()
     this.version()

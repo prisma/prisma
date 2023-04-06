@@ -17,7 +17,7 @@ const testMatrix = defineMatrix(() => [
   ],
 ])
 
-export const setupTestSuite: typeof testMatrix['setupTestSuite'] = (tests, options) => {
+export const setupTestSuite: (typeof testMatrix)['setupTestSuite'] = (tests, options) => {
   testMatrix.setupTestSuite(tests, {
     ...options,
     optOut: {

@@ -49,7 +49,7 @@ export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams):
 
   // collect the paths to the view directories (identified by their db schema name) corresponding to the newest view definitions,
   // which will be created later if they don't exist
-  const viewPathsToWrite: string[] = viewEntries.map(([viewDir, _]) => viewDir)
+  const viewPathsToWrite: string[] = viewEntries.map(([viewDir]) => viewDir)
 
   // collect the files paths and content for the newest views' SQL definitions, which will be created later if they don't exist
   const viewsFilesToWrite = viewEntries.map(([viewDir, { name, definition }]) => {

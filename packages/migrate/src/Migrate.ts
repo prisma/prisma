@@ -1,4 +1,3 @@
-import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/internals'
 import chalk from 'chalk'

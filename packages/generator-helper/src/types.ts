@@ -93,6 +93,7 @@ export type GeneratorOptions = {
   version: string // version hash
   binaryPaths?: BinaryPaths
   dataProxy: boolean
+  postinstall?: boolean
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine'

@@ -36,11 +36,9 @@ describeIf(process.platform === 'linux')('connection-limit-mysql', () => {
       })
       clients.push(client)
     }
-    let count = 0
     try {
       for (const client of clients) {
         await client.$connect()
-        count++
       }
     } catch (e) {
       expect(e.message).toMatchInlineSnapshot(

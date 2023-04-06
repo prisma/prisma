@@ -161,7 +161,7 @@ export class MigrateEngine {
    *   which if more flexible and fundamental for the error reporting use case. We should add that here too.
    * - TODO: re-expose publicly once https://github.com/prisma/prisma-private/issues/203 is closed.
    */
-  private getDatabaseVersion({ schema }: EngineArgs.GetDatabaseVersionParams): Promise<string> {
+  private getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema: this.schemaPath }))
   }
 

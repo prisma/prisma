@@ -86,7 +86,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       )} Precompiled engine files are not available for ${platform}. Read more about building your own engines at https://pris.ly/d/build-engines`,
     )
   } else if (BinaryType.QueryEngineLibrary in options.binaries) {
-    await isNodeAPISupported()
+    isNodeAPISupported()
   }
 
   // no need to do anything, if there are no binaries
@@ -129,7 +129,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   // filter out files, which don't yet exist or have to be created
   const binariesToDownload = await pFilter(binaryJobs, async (job) => {
-    const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, platform, opts.version, opts.failSilent)
+    const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, platform, opts.version)
     const isSupported = platforms.includes(job.binaryTarget as Platform)
     const shouldDownload =
       isSupported &&
@@ -244,7 +244,6 @@ async function binaryNeedsToBeDownloaded(
   job: BinaryDownloadJob,
   nativePlatform: string,
   version: string,
-  failSilent?: boolean,
 ): Promise<boolean> {
   // If there is an ENV Override and the file exists then it does not need to be downloaded
   if (job.envVarPath && fs.existsSync(job.envVarPath)) {
@@ -320,7 +319,7 @@ async function binaryNeedsToBeDownloaded(
 export async function getVersion(enginePath: string, binaryName: string) {
   try {
     if (binaryName === BinaryType.QueryEngineLibrary) {
-      await isNodeAPISupported()
+      isNodeAPISupported()
 
       const commitHash = require(enginePath).version().commit
       return `${BinaryType.QueryEngineLibrary} ${commitHash}`

@@ -7,7 +7,7 @@ import type { Prisma, PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite((suiteConfig) => {
   let client: PrismaClient<Prisma.PrismaClientOptions, 'query'>
 
   test('should log queries on a method call', async () => {

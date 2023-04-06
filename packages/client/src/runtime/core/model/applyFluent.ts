@@ -4,7 +4,7 @@ import type { Client } from '../../getPrismaClient'
 import { getCallSite } from '../../utils/CallSite'
 import { deepSet } from '../../utils/deep-set'
 import type { UserArgs } from '../request/UserArgs'
-import type { applyModel, ModelAction } from './applyModel'
+import type { ModelAction } from './applyModel'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
 /**

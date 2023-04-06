@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
 
 const nonExistingId = randomBytes(12).toString('hex')
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
+testMatrix.setupTestSuite(() => {
   test('findFirst', async () => {
     const result = await prisma.resource.findFirst().children()
 

@@ -14,7 +14,6 @@ describe('json-filtering(mysql)', () => {
     process.env.TEST_MYSQL_URI += '-json-filtering'
     await tearDownMysql(process.env.TEST_MYSQL_URI!)
     await migrateDb({
-      connectionString: process.env.TEST_MYSQL_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
