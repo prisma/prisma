@@ -697,6 +697,7 @@ importers:
 
   packages/internals:
     specifiers:
+      '@antfu/ni': 0.21.2
       '@prisma/debug': workspace:*
       '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
@@ -753,6 +754,7 @@ importers:
       typescript: 4.9.5
       yarn: 1.22.19
     dependencies:
+      '@antfu/ni': 0.21.2
       '@prisma/debug': link:../debug
       '@prisma/engine-core': link:../engine-core
       '@prisma/engines': link:../engines
@@ -924,6 +926,11 @@ packages:
       '@jridgewell/gen-mapping': 0.1.1
       '@jridgewell/trace-mapping': 0.3.17
     dev: true
+
+  /@antfu/ni/0.21.2:
+    resolution: {integrity: sha512-nzj1bnkUIYZt6ANeQzGXGUOeeJ9k/TDnfwaAE/ElxSKQxBjjJ+PQMcZfpAKKwRc1rE+PGJ8WRQBWRUrQn7Mnuw==}
+    hasBin: true
+    dev: false
 
   /@aws-crypto/ie11-detection/3.0.0:
     resolution: {integrity: sha512-341lBBkiY1DfDNKai/wXM3aujNBkXR7tq1URPQDL9wi3AUbI80NR74uF1TXHMm7po1AcnFk8iu2S2IeU/+/A+Q==}

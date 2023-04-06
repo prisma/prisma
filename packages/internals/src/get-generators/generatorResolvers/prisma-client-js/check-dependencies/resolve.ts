@@ -1,6 +1,14 @@
 import path from 'path'
 import { default as _resolve } from 'resolve'
 
+/**
+ * Alternative to resolve that returns undefined instead of throwing. It also
+ * enables preserving symlinks, which is not possible with the original resolve.
+ * This variant will find the entrypoint of a package.
+ * @param id
+ * @param options
+ * @returns
+ */
 async function resolve(id: string, options: _resolve.AsyncOpts) {
   const _options = { preserveSymlinks: false, ...options }
 
@@ -13,6 +21,14 @@ async function resolve(id: string, options: _resolve.AsyncOpts) {
   }) as Promise<string | undefined>
 }
 
+/**
+ * Alternative to resolve that returns undefined instead of throwing. It also
+ * enables preserving symlinks, which is not possible with the original resolve.
+ * This variant will find the root of a package.
+ * @param id
+ * @param options
+ * @returns
+ */
 async function resolvePkg(id: string, options: _resolve.AsyncOpts) {
   const resolvedPath = await resolve(`${id}/package.json`, options)
 

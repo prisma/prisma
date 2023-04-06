@@ -41,6 +41,7 @@
     "yarn": "1.22.19"
   },
   "dependencies": {
+    "@antfu/ni": "0.21.2",
     "@prisma/debug": "workspace:*",
     "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "workspace:*",
