@@ -37,6 +37,9 @@ export class Property implements BasicBuilder {
       writer.write('?')
     }
     writer.write(': ').write(this.type)
+    if (this.isOptional) {
+      writer.write(' | undefined')
+    }
   }
 }
 

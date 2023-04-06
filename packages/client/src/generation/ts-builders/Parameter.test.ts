@@ -13,5 +13,5 @@ test('name and type', () => {
 test('optional', () => {
   const param = parameter('foo', A).optional()
 
-  expect(stringify(param)).toMatchInlineSnapshot(`foo?: A`)
+  expect(stringify(param)).toMatchInlineSnapshot(`foo?: A | undefined`)
 })

@@ -14,7 +14,7 @@ test('name and type', () => {
 test('optional', () => {
   const prop = property('foo', A).optional()
 
-  expect(stringify(prop)).toMatchInlineSnapshot(`foo?: A`)
+  expect(stringify(prop)).toMatchInlineSnapshot(`foo?: A | undefined`)
 })
 
 test('readonly', () => {
