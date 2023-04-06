@@ -86,7 +86,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       )} Precompiled engine files are not available for ${platform}. Read more about building your own engines at https://pris.ly/d/build-engines`,
     )
   } else if (BinaryType.QueryEngineLibrary in options.binaries) {
-    await isNodeAPISupported()
+    isNodeAPISupported()
   }
 
   // no need to do anything, if there are no binaries
@@ -319,7 +319,7 @@ async function binaryNeedsToBeDownloaded(
 export async function getVersion(enginePath: string, binaryName: string) {
   try {
     if (binaryName === BinaryType.QueryEngineLibrary) {
-      await isNodeAPISupported()
+      isNodeAPISupported()
 
       const commitHash = require(enginePath).version().commit
       return `${BinaryType.QueryEngineLibrary} ${commitHash}`
