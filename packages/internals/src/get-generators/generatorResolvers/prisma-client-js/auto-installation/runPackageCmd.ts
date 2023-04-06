@@ -11,6 +11,7 @@ import { getPackageCmd } from './getPackageCmd'
  */
 export async function runPackageCmd(cwd: string, cmd: Command, ...args: string[]): Promise<void> {
   await execa.command(await getPackageCmd(cwd, cmd, ...args), {
+    // we skip this because we are already in the generator
     env: { PRISMA_SKIP_POSTINSTALL_GENERATE: 'true' },
     stdio: 'inherit',
     cwd,

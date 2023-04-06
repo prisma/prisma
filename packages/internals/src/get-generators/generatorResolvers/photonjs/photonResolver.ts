@@ -3,6 +3,11 @@ import chalk from 'chalk'
 import { GeneratorPaths } from '../generatorResolvers'
 import { getPackageCmd } from '../prisma-client-js/auto-installation/getPackageCmd'
 
+/**
+ * Old Photon generator resolver. Since Photon has been renamed to Prisma
+ * Client, this resolver will simply throw an error about that.
+ * @param baseDir
+ */
 export function photonResolver(baseDir: string): Promise<GeneratorPaths> {
   throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
 1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green('provider = "prisma-client-js"')} in your ${chalk.bold(
