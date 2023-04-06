@@ -21,7 +21,7 @@ export type GeneratorPaths = {
 
 export type GeneratorResolver = (baseDir: string, version?: string) => Promise<GeneratorPaths>
 
-export type PredefinedGeneratorResolvers = {
+export type GeneratorResolvers = {
   [generatorName: string]: GeneratorResolver
 }
 
@@ -53,7 +53,7 @@ async function findPrismaClientDir(baseDir: string) {
   return resolvedClientDir
 }
 
-export const predefinedGeneratorResolvers: PredefinedGeneratorResolvers = {
+export const generatorResolvers: GeneratorResolvers = {
   photonjs: () => {
     throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
   1. Rename ${chalk.red('provider = "photonjs"')} to ${chalk.green(

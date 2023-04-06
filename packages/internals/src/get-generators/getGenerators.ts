@@ -21,8 +21,8 @@ import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missin
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
 import { pick } from '../utils/pick'
 import { printConfigWarnings } from '../utils/printConfigWarnings'
-import type { GeneratorPaths } from './generatorResolver/predefinedGeneratorResolvers'
-import { predefinedGeneratorResolvers } from './generatorResolver/predefinedGeneratorResolvers'
+import type { GeneratorPaths } from './generatorResolvers/generatorResolvers'
+import { generatorResolvers } from './generatorResolvers/generatorResolvers'
 import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
 import { checkFeatureFlags } from './utils/check-feature-flags/checkFeatureFlags'
 import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
@@ -165,8 +165,8 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
         if (aliases && aliases[providerValue]) {
           generatorPath = aliases[providerValue].generatorPath
           paths = aliases[providerValue]
-        } else if (predefinedGeneratorResolvers[providerValue]) {
-          paths = await predefinedGeneratorResolvers[providerValue](baseDir, cliVersion)
+        } else if (generatorResolvers[providerValue]) {
+          paths = await generatorResolvers[providerValue](baseDir, cliVersion)
           generatorPath = paths.generatorPath
         }
 
