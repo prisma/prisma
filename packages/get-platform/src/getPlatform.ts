@@ -613,6 +613,9 @@ function getCommandOutput(command: string) {
  * supported Node.js version for Prisma.
  */
 export async function getArchFromUname(): Promise<string | undefined> {
+  if (typeof os['machine'] === 'function') {
+    return os['machine']()
+  }
   const arch = await getCommandOutput('uname -m')
   return arch?.trim()
 }
