@@ -39,7 +39,7 @@ importers:
       eventemitter3: 4.0.7
       execa: 5.1.1
       fs-extra: 11.1.0
-      glob: 8.1.0
+      glob: 9.3.5
       globby: 11.1.0
       graphviz-mit: 0.0.9
       husky: 8.0.3
@@ -98,7 +98,7 @@ importers:
       eventemitter3: 4.0.7
       execa: 5.1.1
       fs-extra: 11.1.0
-      glob: 8.1.0
+      glob: 9.3.5
       globby: 11.1.0
       graphviz-mit: 0.0.9
       husky: 8.0.3
@@ -5202,7 +5202,7 @@ packages:
       fs-minipass: 2.1.0
       glob: 8.1.0
       infer-owner: 1.0.4
-      lru-cache: 7.14.0
+      lru-cache: 7.18.3
       minipass: 3.3.4
       minipass-collect: 1.0.2
       minipass-flush: 1.0.5
@@ -7450,6 +7450,16 @@ packages:
       inherits: 2.0.4
       minimatch: 5.1.6
       once: 1.4.0
+
+  /glob/9.3.5:
+    resolution: {integrity: sha512-e1LleDykUz2Iu+MTYdkSsuWX8lvAjAcs0Xef0lNIu0S2wOAzuTxCJtcd9S3cijlwYF18EsU3rzb8jPVobxDh9Q==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      fs.realpath: 1.0.0
+      minimatch: 8.0.4
+      minipass: 4.2.6
+      path-scurry: 1.6.3
+    dev: true
 
   /global-agent/2.2.0:
     resolution: {integrity: sha512-+20KpaW6DDLqhG7JDiJpD1JvNvb8ts+TNl7BPOYcURqCrXqnN1Vf+XVOrkKJAFPqfX+oEhsdzOj1hLWkBTdNJg==}
@@ -9790,6 +9800,11 @@ packages:
     resolution: {integrity: sha512-EIRtP1GrSJny0dqb50QXRUNBxHJhcpxHC++M5tD7RYbvLLn5KVWKsbyswSSqDuU15UFi3bgTQIY8nhDMeF6aDQ==}
     engines: {node: '>=12'}
 
+  /lru-cache/7.18.3:
+    resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
+    engines: {node: '>=12'}
+    dev: true
+
   /lz-string/1.4.4:
     resolution: {integrity: sha1-wNjq82BZ9wV5bh40SBHPTEmNOiY=}
     hasBin: true
@@ -9815,7 +9830,7 @@ packages:
       http-proxy-agent: 5.0.0
       https-proxy-agent: 5.0.1
       is-lambda: 1.0.1
-      lru-cache: 7.14.0
+      lru-cache: 7.18.3
       minipass: 3.3.4
       minipass-collect: 1.0.2
       minipass-fetch: 2.1.2
@@ -10114,6 +10129,13 @@ packages:
     dependencies:
       brace-expansion: 2.0.1
 
+  /minimatch/8.0.4:
+    resolution: {integrity: sha512-W0Wvr9HyFXZRGIDgCicunpQ299OKXs9RgZfaukz4qAW/pJhcpUfupc9c+OObPOFueNy8VSrZgEmDtk6Kh4WzDA==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      brace-expansion: 2.0.1
+    dev: true
+
   /minimist-options/3.0.2:
     resolution: {integrity: sha512-FyBrT/d0d4+uiZRbqznPXqw3IpZZG3gl3wKWiX784FycUKVwBt0uLBFkQrtE4tZOrgo78nZp2jnKz3L65T5LdQ==}
     engines: {node: '>= 4'}
@@ -10197,6 +10219,11 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       yallist: 4.0.0
+    dev: true
+
+  /minipass/4.2.6:
+    resolution: {integrity: sha512-99el+wjSnfeQqHTP/mKgFh15BXIk347QvNZ//yBGDbkYtyS4ZeOoIuAf16v+R4oCmuaYavIopwW0KEQEuUMn2w==}
+    engines: {node: '>=8'}
     dev: true
 
   /minizlib/2.1.2:
@@ -11097,6 +11124,14 @@ packages:
 
   /path-parse/1.0.7:
     resolution: {integrity: sha512-LDJzPVEEEPR+y48z93A0Ed0yXb8pAByGWo/k5YYdYgpY2/2EsOsksJrq7lOHxryrVOn1ejG6oAp8ahvOIQD8sw==}
+
+  /path-scurry/1.6.3:
+    resolution: {integrity: sha512-RAmB+n30SlN+HnNx6EbcpoDy9nwdpcGPnEKrJnu6GZoDWBdIjo1UQMVtW2ybtC7LC2oKLcMq8y5g8WnKLiod9g==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      lru-cache: 7.18.3
+      minipass: 4.2.6
+    dev: true
 
   /path-to-regexp/0.1.7:
     resolution: {integrity: sha512-5DFkuoqlv1uYQKxy8omFBeJPQcdoE07Kv2sferDCrAq1ohOU+MSDswDIbnx3YAM60qIOnYa53wBhXW0EbMonrQ==}
