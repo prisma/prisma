@@ -152,7 +152,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.13.0-23.ae5c6a96d0927f0adb3d79b63bf442227605a41b"
+    "@prisma/engines-version": "4.13.0-27.integration-napi-windows-2c71da02fa2a92c615e57699778cc1cb445a7b82"
   },
   "sideEffects": false
 }
