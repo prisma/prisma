@@ -1227,7 +1227,7 @@ describe('postgresql inherited introspection warnings', () => {
     })
   }
 
-  describe('postgresql inhereited 28/1 - inherited table found', () => {
+  describe('postgresql inherited 28/1 - inherited table found', () => {
     const warningCode = 28
     const variant = 1
     setupPostgressForWarning(warningCode, variant)
@@ -1284,7 +1284,7 @@ describe('postgresql inherited introspection warnings', () => {
     })
   })
 
-  describe('postgresql inhereited 28/2 - inherited tables found', () => {
+  describe('postgresql inherited 28/2 - multiple inherited table warnings formatting', () => {
     const warningCode = 28
     const variant = 2
     setupPostgressForWarning(warningCode, variant)
