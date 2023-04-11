@@ -206,6 +206,7 @@ export namespace EngineArgs {
     // Stopgaps
     | IntrospectionWarningsPartionedTablesFound
     | IntrospectionWarningsIndexNullSortFound
+    | IntrospectionWarningsRowLevelSecurityFound
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
@@ -376,7 +377,7 @@ export namespace EngineArgs {
     affected: AffectedViewAndField[]
   }
 
-  // Partioned Tables
+  // Partitioned Tables
   interface IntrospectionWarningsPartionedTablesFound extends IntrospectionWarning {
     code: 27
     affected: AffectedModel[]
@@ -385,6 +386,11 @@ export namespace EngineArgs {
   interface IntrospectionWarningsIndexNullSortFound extends IntrospectionWarning {
     code: 29
     affected: AffectedIndex[]
+  }
+
+  interface IntrospectionWarningsRowLevelSecurityFound extends IntrospectionWarning {
+    code: 30
+    affected: AffectedModel[]
   }
 
   // MongoDB starts at 101 see

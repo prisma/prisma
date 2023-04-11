@@ -1,0 +1,8 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgres"
+    url      = env("TEST_POSTGRES_URI_MIGRATE")
+}
