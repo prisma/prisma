@@ -1,5 +1,3 @@
-import { T } from 'ts-toolbelt'
-
 import { applyFieldsProxy } from './applyFieldsProxy'
 
 const fields = applyFieldsProxy({

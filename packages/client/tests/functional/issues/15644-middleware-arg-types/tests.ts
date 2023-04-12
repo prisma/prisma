@@ -5,7 +5,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta) => {
+  () => {
     test('middleware with count', async () => {
       expect.assertions(1)
       prisma.$use((params, next) => {

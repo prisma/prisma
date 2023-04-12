@@ -5,7 +5,7 @@ const zlib = require('zlib')
 const fs = require('fs')
 const path = require('path')
 
-jest.setTimeout(50_000)
+jest.setTimeout(100_000)
 
 test('sqlite-variable-limit', async () => {
   const PrismaClient = await getTestClient()

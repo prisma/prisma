@@ -77,6 +77,7 @@ export namespace Prisma {
   ): (client: any) => PrismaClientExtends<Args>
 
   export type Extension = runtime.Types.Extensions.UserArgs
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export import getExtensionContext = runtime.Extensions.getExtensionContext
   export type Args<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Args<T, F> & {}
   export type Payload<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Payload<T, F> & {}

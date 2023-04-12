@@ -1,4 +1,3 @@
-import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/internals'
 import chalk from 'chalk'
@@ -10,7 +9,6 @@ import { MigrateEngine } from './MigrateEngine'
 import type { EngineArgs, EngineResults } from './types'
 import { NoSchemaFoundError } from './utils/errors'
 
-const debug = Debug('prisma:migrate')
 const packageJson = eval(`require('../package.json')`)
 
 export class Migrate {

@@ -1,17 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import {
-  DbCommand,
-  DbPull,
-  DbPush,
-  // DbDrop,
-  DbSeed,
-  MigrateCommand,
-  MigrateDeploy,
-  MigrateDev,
-  MigrateReset,
-  MigrateResolve,
-  MigrateStatus,
-} from '@prisma/migrate'
+import { DbPull } from '@prisma/migrate'
 
 import { CLI } from '../../CLI'
 

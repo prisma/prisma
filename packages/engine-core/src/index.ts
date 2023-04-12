@@ -17,6 +17,7 @@ export { PrismaClientKnownRequestError } from './common/errors/PrismaClientKnown
 export { PrismaClientRustPanicError } from './common/errors/PrismaClientRustPanicError'
 export { PrismaClientUnknownRequestError } from './common/errors/PrismaClientUnknownRequestError'
 export { handleLibraryLoadingErrors } from './common/errors/utils/handleEngineLoadingErrors'
+export * from './common/types/EngineValidationError'
 export type { EventEmitter } from './common/types/Events'
 export * from './common/types/JsonProtocol'
 export type { Metric, MetricHistogram, MetricHistogramBucket, Metrics } from './common/types/Metrics'

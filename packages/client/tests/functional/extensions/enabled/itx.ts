@@ -73,7 +73,7 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
         },
       })
 
-      const userB = await tx.user.create({
+      await tx.user.create({
         data: {
           email: 'jane@smith.com',
           firstName: 'Jane',
@@ -147,7 +147,7 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
       })
 
     const result = xprisma.$transaction(async (tx) => {
-      const userA = await tx.user.createAlt({
+      await tx.user.createAlt({
         data: {
           email: 'jane@smith.com',
           firstName: 'Jane',
@@ -155,7 +155,7 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
         },
       })
 
-      const userB = await tx.user.createAlt({
+      await tx.user.createAlt({
         data: {
           email: 'jane@smith.com',
           firstName: 'Jane',

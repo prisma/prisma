@@ -14,7 +14,6 @@ beforeAll(async () => {
   process.env.TEST_MYSQL_URI += '-wrong-native-types'
   await tearDownMysql(process.env.TEST_MYSQL_URI!)
   await migrateDb({
-    connectionString: process.env.TEST_MYSQL_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
 })

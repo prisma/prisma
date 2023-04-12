@@ -451,7 +451,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
             },
           })
         })
-        .catch((e) => {})
+        .catch(() => {})
 
       const users = await isolatedPrisma.user.findMany()
       expect(users).toHaveLength(1)
@@ -676,7 +676,6 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
   })
 
   describeIf(provider !== 'mongodb')('isolation levels', () => {
-    /* eslint-disable jest/no-standalone-expect */
     function testIsolationLevel(title: string, supported: boolean, fn: () => Promise<void>) {
       test(title, async () => {
         if (supported) {
@@ -778,7 +777,6 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
         `Inconsistent column data: Conversion failed: Invalid isolation level \`NotAValidLevel\``,
       )
     })
-    /* eslint-enable jest/no-standalone-expect */
   })
 
   testIf(provider === 'mongodb')('attempt to set isolation level on mongo', async () => {

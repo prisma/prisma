@@ -54,6 +54,7 @@ export interface GenerateClientOptions {
   clientVersion: string
   activeProvider: string
   dataProxy: boolean
+  postinstall?: boolean
 }
 
 export interface BuildClientResult {
@@ -75,6 +76,7 @@ export async function buildClient({
   projectRoot,
   activeProvider,
   dataProxy,
+  postinstall,
 }: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
@@ -94,6 +96,7 @@ export async function buildClient({
     projectRoot: projectRoot!,
     activeProvider,
     dataProxy,
+    postinstall,
   }
 
   // we create a regular client that is fit for Node.js
@@ -203,6 +206,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     dataProxy,
+    postinstall,
   } = options
 
   const clientEngineType = getClientEngineType(generator!)
@@ -223,6 +227,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     projectRoot,
     activeProvider,
     dataProxy,
+    postinstall,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
@@ -319,7 +324,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
         continue
       }
       const binaryName =
-        clientEngineType === ClientEngineType.Binary ? BinaryType.queryEngine : BinaryType.libqueryEngine
+        clientEngineType === ClientEngineType.Binary ? BinaryType.QueryEngineBinary : BinaryType.QueryEngineLibrary
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
         getEngineVersion(filePath, binaryName).catch(() => null),

@@ -26,9 +26,9 @@ const utimes = promisify(fs.utimes)
 
 const channel = 'master'
 export enum BinaryType {
-  queryEngine = 'query-engine',
-  libqueryEngine = 'libquery-engine',
-  migrationEngine = 'migration-engine',
+  QueryEngineBinary = 'query-engine',
+  QueryEngineLibrary = 'libquery-engine',
+  MigrationEngineBinary = 'migration-engine',
 }
 export type BinaryDownloadConfiguration = {
   [binary in BinaryType]?: string // that is a path to the binary download location
@@ -50,9 +50,9 @@ export interface DownloadOptions {
 }
 
 const BINARY_TO_ENV_VAR = {
-  [BinaryType.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-  [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
+  [BinaryType.MigrationEngineBinary]: 'PRISMA_MIGRATION_ENGINE_BINARY',
+  [BinaryType.QueryEngineBinary]: 'PRISMA_QUERY_ENGINE_BINARY',
+  [BinaryType.QueryEngineLibrary]: 'PRISMA_QUERY_ENGINE_LIBRARY',
 }
 
 type BinaryDownloadJob = {
@@ -85,8 +85,8 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         'Warning',
       )} Precompiled engine files are not available for ${platform}. Read more about building your own engines at https://pris.ly/d/build-engines`,
     )
-  } else if (BinaryType.libqueryEngine in options.binaries) {
-    await isNodeAPISupported()
+  } else if (BinaryType.QueryEngineLibrary in options.binaries) {
+    isNodeAPISupported()
   }
 
   // no need to do anything, if there are no binaries
@@ -129,7 +129,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
 
   // filter out files, which don't yet exist or have to be created
   const binariesToDownload = await pFilter(binaryJobs, async (job) => {
-    const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, platform, opts.version, opts.failSilent)
+    const needsToBeDownloaded = await binaryNeedsToBeDownloaded(job, platform, opts.version)
     const isSupported = platforms.includes(job.binaryTarget as Platform)
     const shouldDownload =
       isSupported &&
@@ -244,7 +244,6 @@ async function binaryNeedsToBeDownloaded(
   job: BinaryDownloadJob,
   nativePlatform: string,
   version: string,
-  failSilent?: boolean,
 ): Promise<boolean> {
   // If there is an ENV Override and the file exists then it does not need to be downloaded
   if (job.envVarPath && fs.existsSync(job.envVarPath)) {
@@ -319,11 +318,11 @@ async function binaryNeedsToBeDownloaded(
 
 export async function getVersion(enginePath: string, binaryName: string) {
   try {
-    if (binaryName === BinaryType.libqueryEngine) {
-      await isNodeAPISupported()
+    if (binaryName === BinaryType.QueryEngineLibrary) {
+      isNodeAPISupported()
 
       const commitHash = require(enginePath).version().commit
-      return `${BinaryType.libqueryEngine} ${commitHash}`
+      return `${BinaryType.QueryEngineLibrary} ${commitHash}`
     } else {
       const result = await execa(enginePath, ['--version'])
 
@@ -335,7 +334,7 @@ export async function getVersion(enginePath: string, binaryName: string) {
 }
 
 export function getBinaryName(binaryName: string, platform: Platform): string {
-  if (binaryName === BinaryType.libqueryEngine) {
+  if (binaryName === BinaryType.QueryEngineLibrary) {
     return `${getNodeAPIName(platform, 'fs')}`
   }
   const extension = platform === 'windows' ? '.exe' : ''

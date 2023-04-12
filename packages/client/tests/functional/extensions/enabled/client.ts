@@ -241,7 +241,7 @@ testMatrix.setupTestSuite(() => {
       client: {
         $executeRawCustom<T, A extends any[]>(
           this: T,
-          ...args: PrismaNamespace.Exact<A, [...PrismaNamespace.Args<T, '$executeRaw'>, { extra: boolean }]>
+          ..._args: PrismaNamespace.Exact<A, [...PrismaNamespace.Args<T, '$executeRaw'>, { extra: boolean }]>
         ): PrismaNamespace.Result<T, A, '$executeRaw'> {
           return {} as any
         },

@@ -17,7 +17,7 @@ test('сalls wrapped function only once before promise resolves', async () => {
   void wrapper()
   await wrapper()
 
-  expect(wrapped).toBeCalledTimes(1)
+  expect(wrapped).toHaveBeenCalledTimes(1)
 })
 
 test('caches the result', async () => {
@@ -27,6 +27,6 @@ test('caches the result', async () => {
   await wrapper()
   const result = await wrapper()
 
-  expect(wrapped).toBeCalledTimes(1)
+  expect(wrapped).toHaveBeenCalledTimes(1)
   expect(result).toBe('hello')
 })

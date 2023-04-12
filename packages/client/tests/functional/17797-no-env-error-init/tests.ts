@@ -8,7 +8,7 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 testMatrix.setupTestSuite(
   () => {
     test('instantiate works without failing', () => {
-      const prisma = newPrismaClient()
+      newPrismaClient()
     })
   },
   {

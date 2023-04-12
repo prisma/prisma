@@ -1,6 +1,6 @@
 import { defineMatrix } from '../_utils/defineMatrix'
 import { Providers } from '../_utils/providers'
-import { getProviderFromFlavor, ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
+import { getProviderFromFlavor } from '../_utils/relationMode/ProviderFlavor'
 
 const providerFlavors = [
   Providers.POSTGRESQL,

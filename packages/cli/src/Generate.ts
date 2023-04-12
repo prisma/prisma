@@ -7,7 +7,6 @@ import {
   getCommandWithExecutor,
   getGenerators,
   getGeneratorSuccessMessage,
-  getPlatform,
   HelpError,
   highlightTS,
   isError,
@@ -16,7 +15,6 @@ import {
   logger,
   missingGeneratorMessage,
   parseEnvValue,
-  Platform,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import chalk from 'chalk'
@@ -141,6 +139,7 @@ ${chalk.bold('Examples')}
         cliVersion: pkg.version,
         dataProxy: !!args['--data-proxy'] || !!process.env.PRISMA_GENERATE_DATAPROXY,
         generatorNames: args['--generator'],
+        postinstall: Boolean(args['--postinstall']),
       })
 
       if (!generators || generators.length === 0) {

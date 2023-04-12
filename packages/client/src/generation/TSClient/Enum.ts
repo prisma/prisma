@@ -19,10 +19,11 @@ export class Enum implements Generatable {
 
   public toJS(): string {
     const { type } = this
-    const factoryFunction = this.isStrictEnum() ? 'makeStrictEnum' : 'makeEnum'
-    return `exports.${this.useNamespace ? 'Prisma.' : ''}${type.name} = ${factoryFunction}({
+    const enumVariants = `{
 ${indent(type.values.map((v) => `${v}: ${this.getValueJS(v)}`).join(',\n'), TAB_SIZE)}
-});`
+}`
+    const enumBody = this.isStrictEnum() ? `makeStrictEnum(${enumVariants})` : enumVariants
+    return `exports.${this.useNamespace ? 'Prisma.' : ''}${type.name} = ${enumBody};`
   }
 
   private getValueJS(value: string): string {

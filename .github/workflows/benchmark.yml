@@ -84,6 +84,12 @@ jobs:
           fail-on-alert: true
           alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@jkomyno'
 
+      - name: Run benchmarks for Codspeed
+        uses: CodSpeedHQ/action@v1
+        with:
+          run: pnpm run bench-stdout-only
+          token: ${{ secrets.CODSPEED_TOKEN }}
+
       - name: 'Set current job url in SLACK_FOOTER env var'
         if: ${{ failure() && github.ref == 'refs/heads/main' }}
         run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV

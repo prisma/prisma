@@ -75,17 +75,7 @@ const preinstallBuildConfig: BuildOptions = {
   emitTypes: false,
 }
 
-// we define the config for install
-const installBuildConfig: BuildOptions = {
-  name: 'install',
-  entryPoints: ['scripts/install.js'],
-  outfile: 'install/index',
-  bundle: true,
-  minify: true,
-  emitTypes: false,
-}
-
-void build([cliBuildConfig, preinstallBuildConfig, installBuildConfig])
+void build([cliBuildConfig, preinstallBuildConfig])
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 

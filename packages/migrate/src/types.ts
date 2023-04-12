@@ -2,6 +2,9 @@
 // https://prisma.github.io/prisma-engines/doc/migration_core/json_rpc/types/index.html
 //
 // https://www.jsonrpc.org/specification
+
+import type { IntrospectionViewDefinition } from '@prisma/internals'
+
 // A JSON-RPC request or response.
 export interface RpcRequestResponse {
   id: number
@@ -149,10 +152,22 @@ export namespace EngineArgs {
     compositeTypeDepth?: number
     schemas?: string[]
   }
+
   export interface IntrospectResult {
     datamodel: string
     warnings: IntrospectionWarnings[]
     version: IntrospectionSchemaVersion
+
+    /**
+     * Views retrieved from the databases.
+     * Supported databases: 'postgresql'.
+     *
+     * This value is:
+     * - `null` if "views" doesn't appear in the schema's preview features
+     * - `[]` if the database doesn't have any views
+     * - a non-empty array in other cases
+     */
+    views: IntrospectionViewDefinition[] | null
   }
 
   // See prisma-engines
@@ -188,6 +203,8 @@ export namespace EngineArgs {
     | IntrospectionWarningsViewsWithoutIdentifier
     | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews
     | IntrospectionWarningsFieldsWithEmptyNamesInViews
+    // Partioned Tables
+    | IntrospectionWarningsPartionedTablesFound
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
@@ -321,6 +338,7 @@ export namespace EngineArgs {
     affected: AffectedTopLevel[]
   }
 
+  // Views
   interface IntrospectionWarningsUnsupportedTypesInViews extends IntrospectionWarning {
     code: 21
     affected: AffectedViewAndFieldAndType[]
@@ -349,6 +367,12 @@ export namespace EngineArgs {
   interface IntrospectionWarningsFieldsWithEmptyNamesInViews extends IntrospectionWarning {
     code: 26
     affected: AffectedViewAndField[]
+  }
+
+  // Partioned Tables
+  interface IntrospectionWarningsPartionedTablesFound extends IntrospectionWarning {
+    code: 27
+    affected: AffectedModel[]
   }
 
   // MongoDB starts at 101 see
