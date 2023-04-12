@@ -1,5 +1,5 @@
-import { existsSync, promises as fs } from 'node:fs'
-import { resolve } from 'node:path'
+import { existsSync, promises as fs } from 'fs'
+import { resolve } from 'path'
 import { CLI_TEMP_DIR, writeFileSafe } from './utils'
 
 export interface Storage {

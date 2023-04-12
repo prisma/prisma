@@ -1,5 +1,5 @@
-import fs from 'node:fs'
-import path from 'node:path'
+import fs from 'fs'
+import path from 'path'
 import { execaCommand } from 'execa'
 import { findUp } from 'find-up'
 import terminalLink from 'terminal-link'

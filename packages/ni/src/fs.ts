@@ -1,5 +1,5 @@
-import { resolve } from 'node:path'
-import fs from 'node:fs'
+import { resolve } from 'path'
+import fs from 'fs'
 import type { RunnerContext } from './runner'
 
 export function getPackageJSON(ctx?: RunnerContext): any {

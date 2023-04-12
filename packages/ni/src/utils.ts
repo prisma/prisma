@@ -1,6 +1,6 @@
-import os from 'node:os'
-import { dirname, join } from 'node:path'
-import { existsSync, promises as fs } from 'node:fs'
+import os from 'os'
+import { dirname, join } from 'path'
+import { existsSync, promises as fs } from 'fs'
 import which from 'which'
 
 export const CLI_TEMP_DIR = join(os.tmpdir(), 'antfu-ni')
