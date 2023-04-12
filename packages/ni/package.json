@@ -12,10 +12,10 @@
   "bugs": {
     "url": "https://github.com/antfu/ni/issues"
   },
-  "main": "src/index.ts",
-  "types": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "files": [
-    "src"
+    "dist"
   ],
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
@@ -48,5 +48,6 @@
   },
   "eslintConfig": {
     "extends": "@antfu"
-  }
+  },
+  "sideEffects": false
 }
