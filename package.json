@@ -102,8 +102,5 @@
     "*.{js,ts}": [
       "eslint --fix"
     ]
-  },
-  "resolutions": {
-    "@antfu/ni": "workspace:@prisma/ni@*"
   }
 }

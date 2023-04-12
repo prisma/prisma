@@ -1,4 +1,4 @@
-import { Command, detect, getCommand } from '@antfu/ni'
+import { Command, detect, getCommand } from '@prisma/ni'
 
 /**
  * Get the command to run for the given package manager in the given directory.

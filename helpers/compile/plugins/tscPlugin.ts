@@ -24,6 +24,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
         '@prisma/engine-core',
         '@prisma/generator-helper',
         '@prisma/debug',
+        '@prisma/ni',
       ],
       compiler: {
         tsconfigFilePath: path.join(process.cwd(), 'tsconfig.build.json'),

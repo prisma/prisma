@@ -3,6 +3,7 @@
   "extends": "./tsconfig.build.regular.json",
   "compilerOptions": {
     "paths": {
+      "@prisma/ni": ["./packages/ni/src"],
       "@prisma/client": ["./packages/client/src"],
       "@prisma/client/runtime": ["./packages/client/runtime"],
       "@prisma/internals": ["./packages/internals/src"],

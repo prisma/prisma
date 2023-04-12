@@ -124,7 +124,7 @@ async function dependencyCheck(options: BuildOptions) {
   const buildPromise = esbuild.build({
     entryPoints: glob.sync('**/*.{j,t}s', {
       // We don't check dependencies in ecosystem tests because tests are isolated from the build.
-      ignore: ['./src/__tests__/**/*', './tests/e2e/**/*'],
+      ignore: ['./src/__tests__/**/*', './tests/e2e/**/*', './dist/**/*'],
       gitignore: true,
     }),
     logLevel: 'silent', // there will be errors

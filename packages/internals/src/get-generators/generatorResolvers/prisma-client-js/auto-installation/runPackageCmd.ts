@@ -1,4 +1,4 @@
-import { Command } from '@antfu/ni'
+import { Command } from '@prisma/ni'
 import execa from 'execa'
 
 import { getPackageCmd } from './getPackageCmd'
