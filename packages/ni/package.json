@@ -1,0 +1,48 @@
+{
+  "private": true,
+  "name": "@prisma/ni",
+  "version": "0.0.0",
+  "description": "Use the right package manager",
+  "author": "Anthony Fu <anthonyfu117@hotmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/antfu/ni#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/antfu/ni.git"
+  },
+  "bugs": {
+    "url": "https://github.com/antfu/ni/issues"
+  },
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "files": [
+    "src"
+  ],
+  "devDependencies": {
+    "@antfu/eslint-config": "^0.37.0",
+    "@posva/prompts": "^2.4.4",
+    "@types/fs-extra": "^11.0.1",
+    "@types/ini": "^1.3.31",
+    "@types/node": "^18.15.11",
+    "@types/which": "^3.0.0",
+    "bumpp": "^9.0.0",
+    "eslint": "^8.37.0",
+    "esno": "^0.16.3",
+    "execa": "^7.1.1",
+    "fast-glob": "^3.2.12",
+    "find-up": "^6.3.0",
+    "fs-extra": "^11.1.1",
+    "fzf": "^0.5.1",
+    "ini": "^4.0.0",
+    "kleur": "^4.1.5",
+    "rimraf": "^4.4.1",
+    "terminal-link": "^3.0.0",
+    "typescript": "^5.0.2",
+    "unbuild": "^1.1.2",
+    "vitest": "^0.29.8",
+    "which": "^3.0.0"
+  },
+  "eslintConfig": {
+    "extends": "@antfu"
+  }
+}
