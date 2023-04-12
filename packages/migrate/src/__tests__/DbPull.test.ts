@@ -1812,7 +1812,7 @@ describe('postgresql partitioned tables introspection', () => {
     return setupParams
   }
 
-  const setupPostgressForWarning = (warningCode: number, variant?: number) => {
+  const setupPostgresForWarning = (warningCode: number, variant?: number) => {
     const setupParams = computeSetupParams(warningCode, variant)
 
     beforeEach(async () => {
