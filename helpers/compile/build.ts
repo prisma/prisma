@@ -163,7 +163,7 @@ const watch =
     if (process.env.WATCH !== 'true') return result
 
     // common chokidar options for the watchers
-    const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*'] }
+    const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*', './package.json'] }
 
     // prepare the incremental builds watcher
     const watched = getWatchedFiles(result)
@@ -199,7 +199,10 @@ const watch =
       }
     }, 10)
 
-    changeWatcher.on('change', fastRebuild)
+    changeWatcher.on('change', (path) => {
+      console.log(path)
+      fastRebuild()
+    })
     restartWatcher.once('add', fullRebuild)
     restartWatcher.once('unlink', fullRebuild)
 
