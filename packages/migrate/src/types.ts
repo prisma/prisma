@@ -395,7 +395,7 @@ export namespace EngineArgs {
   }
 
   interface IntrospectionWarningsRowLevelTTLFound extends IntrospectionWarning {
-    code: 30
+    code: 31
     affected: AffectedModel[]
   }
 
