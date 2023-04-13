@@ -483,7 +483,7 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
         } else if (warning.code === 27) {
           message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
         } else if (warning.code === 29) {
-          message += warning.affected.map((it) => `- Index "${it.indexName}", Column: "${it.columnName}"`)
+          message += warning.affected.map((it) => `- Index "${it.indexName}", Column "${it.columnName}"`)
         } else if (warning.code === 101) {
           message += warning.affected
             .map((it) => {
