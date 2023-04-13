@@ -20,7 +20,8 @@ async function main() {
 
 async function run(benchmarks: string[]) {
   for (const location of benchmarks) {
-    await execa.command(`node -r esbuild-register ${location}`, {
+    const v8Flags = process.env.CODSPEED_V8_FLAGS ?? '' // Flags defined while running with CodSpeed
+    await execa.command(`node ${v8Flags} -r esbuild-register ${location}`, {
       stdio: 'inherit',
     })
   }

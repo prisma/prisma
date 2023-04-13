@@ -62,7 +62,7 @@
     "index-browser.js"
   ],
   "devDependencies": {
-    "@codspeed/benchmark.js-plugin": "1.0.2",
+    "@codspeed/benchmark.js-plugin": "1.1.0",
     "@faker-js/faker": "7.6.0",
     "@fast-check/jest": "1.6.0",
     "@jest/globals": "29.4.3",
