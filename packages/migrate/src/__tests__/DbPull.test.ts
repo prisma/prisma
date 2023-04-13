@@ -1791,7 +1791,7 @@ describe('postgresql null-sorted indices introspection', () => {
   })
 })
 
-describe('postgresql partitioned tables introspection', () => {
+describe('postgresql row level security introspection', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
 
   const computeSetupParams = (warningCode: number, variant?: number): SetupParams => {
