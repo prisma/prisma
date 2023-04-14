@@ -458,7 +458,15 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
           message += warning.affected.map((it) => `- Enum "${it.enm}", value: "${it.value}"`).join('\n')
         } else if (warning.code === 5 || warning.code === 6 || warning.code === 8) {
           message += warning.affected.map((it) => `- Model "${it.model}", field: "${it.field}"`).join('\n')
-        } else if (warning.code === 7 || warning.code === 14 || warning.code === 18 || warning.code === 19) {
+        } else if (
+          warning.code === 7 ||
+          warning.code === 14 ||
+          warning.code === 18 ||
+          warning.code === 19 ||
+          warning.code === 27 ||
+          warning.code === 30 ||
+          warning.code === 31
+        ) {
           message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
         } else if (warning.code === 20) {
           message += warning.affected
@@ -480,8 +488,6 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
           message += warning.affected.map((it) => `- View "${it.view}", Field: "${it.field}"`).join('\n')
         } else if ([23, 24, 25].includes(warning.code)) {
           message += warning.affected.map((it) => `- View "${it.view}"`).join('\n')
-        } else if (warning.code === 27) {
-          message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
         } else if (warning.code === 29) {
           message += warning.affected.map((it) => `- Index "${it.indexName}", Column "${it.columnName}"`)
         } else if (warning.code === 101) {
