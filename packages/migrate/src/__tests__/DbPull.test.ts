@@ -1765,6 +1765,7 @@ describe('postgresql null-sorted indices introspection', () => {
           url      = env("TEST_POSTGRES_URI_MIGRATE")
         }
 
+        /// This model contains an index with non-default null sort order and requires additional setup for migrations. Visit https://pris.ly/d/default-index-null-ordering for more info.
         model foo {
           id Int @id
           a  Int
@@ -1854,6 +1855,7 @@ describe('postgresql row level security introspection', () => {
           url      = env("TEST_POSTGRES_URI_MIGRATE")
         }
 
+        /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
         model foo {
           id    Int    @id @default(autoincrement())
           owner String @db.VarChar(30)
@@ -1867,7 +1869,7 @@ describe('postgresql row level security introspection', () => {
 
         // *** WARNING ***
         // 
-        // These tables contain row level security, which is not yet fully supported.
+        // These tables contain row level security, which is not yet fully supported. Read more: https://pris.ly/d/row-level-security
         // - Model "foo"
         // 
       `)
@@ -2617,6 +2619,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb stopgaps', () => {
           url      = env("TEST_COCKROACH_URI_MIGRATE")
         }
 
+        /// This model is using a row level TTL in the database, and requires an additional setup in migrations. Read more: https://pris.ly/d/row-level-ttl
         model ttl_test {
           id          BigInt    @id @default(autoincrement())
           inserted_at DateTime? @default(now()) @db.Timestamp(6)
