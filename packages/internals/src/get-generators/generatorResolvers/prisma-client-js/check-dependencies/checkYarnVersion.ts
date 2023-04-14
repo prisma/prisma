@@ -10,6 +10,8 @@ import { semverLt } from './semverLt'
  * folders inside node_modules before. We use node_modules/.prisma/client
  * directory as default location for generated Prisma Client. Changelog
  * https://github.com/yarnpkg/yarn/blob/HEAD/CHANGELOG.md#1192
+ * https://www.prisma.io/docs/reference/system-requirements#software-requirements
+ * // TODO Maybe we replace this with the "engines" field in package.json
  */
 export function checkYarnVersion() {
   if (process.env.npm_config_user_agent) {
