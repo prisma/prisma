@@ -2,9 +2,9 @@ import path from 'path'
 import { default as _resolve } from 'resolve'
 
 /**
- * Alternative to resolve that returns undefined instead of throwing. It also
- * enables preserving symlinks, which is not possible with the original resolve.
- * This variant will find the entrypoint of a package.
+ * Alternative to `require.resolve` that returns undefined instead of throwing.
+ * It also enables preserving symlinks, which is not possible with the original
+ * `require.resolve`. This variant will find the _entrypoint_ of a package.
  * @param id
  * @param options
  * @returns
@@ -22,9 +22,9 @@ async function resolve(id: string, options: _resolve.AsyncOpts) {
 }
 
 /**
- * Alternative to resolve that returns undefined instead of throwing. It also
- * enables preserving symlinks, which is not possible with the original resolve.
- * This variant will find the root of a package.
+ * Alternative to `require.resolve` that returns undefined instead of throwing.
+ * It also enables preserving symlinks, which is not possible with the original
+ * `require.resolve`. This variant will find the _root_ of a package.
  * @param id
  * @param options
  * @returns

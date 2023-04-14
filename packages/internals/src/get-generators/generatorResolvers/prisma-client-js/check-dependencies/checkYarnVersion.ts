@@ -6,8 +6,8 @@ import { semverLt } from './semverLt'
 // TODO: Is this well tested?
 
 /**
- * Warn, if yarn is older than 1.19.2 Because Yarn used to remove all dot
- * folders inside node_modules before.  We use node_modules/.prisma/client
+ * Warn, if yarn is older than 1.19.2 because Yarn used to remove all dot
+ * folders inside node_modules before. We use node_modules/.prisma/client
  * directory as default location for generated Prisma Client. Changelog
  * https://github.com/yarnpkg/yarn/blob/HEAD/CHANGELOG.md#1192
  */

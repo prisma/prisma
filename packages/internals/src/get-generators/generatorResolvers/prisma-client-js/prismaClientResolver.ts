@@ -14,8 +14,9 @@ import { resolvePkg } from './check-dependencies/resolve'
 export const debug = Debug('prisma:generator')
 
 /**
- * Client generator resolver. The generator is shipped with the Client, so f the
- * client is not installed, it will be installed unless generation is skipped.
+ * Client generator resolver. The generator is shipped with the Client, so if
+ * the client is not installed, it will be installed unless generation is
+ * skipped.
  * @param baseDir
  * @param version
  * @returns
