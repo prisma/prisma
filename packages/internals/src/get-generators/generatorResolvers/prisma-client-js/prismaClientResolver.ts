@@ -73,10 +73,10 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     }
 
     if (!prismaCliDir) {
-      await runPackageCmd(baseDir, 'install', `prisma@${version ?? 'latest'}`, '-D')
+      await runPackageCmd(baseDir, 'add', `prisma@${version ?? 'latest'}`, '-D')
     }
 
-    await runPackageCmd(baseDir, 'install', `@prisma/client@${version ?? 'latest'}`)
+    await runPackageCmd(baseDir, 'add', `@prisma/client@${version ?? 'latest'}`)
 
     // resolvePkg has caching, so we trick it not to do it 👇
     prismaClientDir = await findPrismaClientDir(path.join('.', baseDir))
