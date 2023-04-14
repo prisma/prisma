@@ -204,7 +204,7 @@ export namespace EngineArgs {
     | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews
     | IntrospectionWarningsFieldsWithEmptyNamesInViews
     // Stopgaps
-    | IntrospectionWarningsPartionedTablesFound
+    | IntrospectionWarningsPartitionedTablesFound
     | IntrospectionWarningsIndexNullSortFound
     | IntrospectionWarningsRowLevelSecurityFound
     // MongoDB below
@@ -377,8 +377,8 @@ export namespace EngineArgs {
     affected: AffectedViewAndField[]
   }
 
-  // Partitioned Tables
-  interface IntrospectionWarningsPartionedTablesFound extends IntrospectionWarning {
+  // Stopgaps
+  interface IntrospectionWarningsPartitionedTablesFound extends IntrospectionWarning {
     code: 27
     affected: AffectedModel[]
   }
