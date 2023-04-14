@@ -21,3 +21,6 @@ packages/cli/install/
 packages/cli/preinstall/
 packages/cli/**/tmp-*
 reproductions/
+
+# others
+packages/ni/

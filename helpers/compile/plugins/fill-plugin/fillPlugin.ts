@@ -190,6 +190,7 @@ const fillPlugin = (
       },
       process: {
         inject: path.join(__dirname, 'fillers', 'process.ts'),
+        path: path.join(__dirname, 'fillers', 'process.ts'),
       },
 
       // not needed

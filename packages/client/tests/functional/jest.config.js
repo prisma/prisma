@@ -14,7 +14,7 @@ module.exports = () => {
     // That includes all generated clients as well. So, unless we ignore them, they'd be kept in memory until test process
     // is finished, even though they are needed for 1 test only
     transformIgnorePatterns: [
-      '[\\/]node_modules[\\/]',
+      '.*[\\.]generated[\\/]@prisma[\\/]client[\\/].*',
       escapeRegex(runtimeDir),
       `${escapeRegex(packagesDir)}[\\/][^\\/]+[\\/]dist[\\/]`,
     ],
