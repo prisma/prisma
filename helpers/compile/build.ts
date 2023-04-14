@@ -199,10 +199,7 @@ const watch =
       }
     }, 10)
 
-    changeWatcher.on('change', (path) => {
-      console.log(path)
-      fastRebuild()
-    })
+    changeWatcher.on('change', fastRebuild)
     restartWatcher.once('add', fullRebuild)
     restartWatcher.once('unlink', fullRebuild)
 
