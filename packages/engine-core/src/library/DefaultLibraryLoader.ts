@@ -33,16 +33,16 @@ function getLibraryCache(): LibraryCache {
   return globalWithCache[libraryCacheSymbol]
 }
 
-export function load(id: string): Library {
+export function load(libraryPath: string): Library {
   const cache = getLibraryCache()
 
-  if (cache[id] !== undefined) {
-    return cache[id]!
+  if (cache[libraryPath] !== undefined) {
+    return cache[libraryPath]!
   }
 
   // `toNamespacedPath` is required for native addons on Windows, but it's a no-op on other systems.
   // We call it here unconditionally just like `.node` CommonJS loader in Node.js does.
-  const libraryPath = path.toNamespacedPath(id)
+  const fullLibraryPath = path.toNamespacedPath(libraryPath)
   const libraryModule = { exports: {} as Library }
 
   let flags = 0
@@ -67,9 +67,9 @@ export function load(id: string): Library {
   }
 
   // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
-  process.dlopen(libraryModule, libraryPath, flags)
+  process.dlopen(libraryModule, fullLibraryPath, flags)
 
-  cache[id] = libraryModule.exports
+  cache[libraryPath] = libraryModule.exports
   return libraryModule.exports
 }
 
