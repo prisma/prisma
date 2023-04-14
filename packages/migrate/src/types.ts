@@ -203,8 +203,9 @@ export namespace EngineArgs {
     | IntrospectionWarningsViewsWithoutIdentifier
     | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews
     | IntrospectionWarningsFieldsWithEmptyNamesInViews
-    // Partioned Tables
+    // Stopgaps
     | IntrospectionWarningsPartionedTablesFound
+    | IntrospectionWarningsIndexNullSortFound
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
@@ -243,6 +244,11 @@ export namespace EngineArgs {
     tpe: string
   }
 
+  type AffectedIndex = {
+    indexName: string
+    columnName: string
+  }
+
   interface IntrospectionWarning {
     code: number
     message: string
@@ -259,6 +265,7 @@ export namespace EngineArgs {
       | AffectedView[]
       | AffectedViewAndField[]
       | AffectedViewAndFieldAndType[]
+      | AffectedIndex[]
       | null
   }
 
@@ -373,6 +380,11 @@ export namespace EngineArgs {
   interface IntrospectionWarningsPartionedTablesFound extends IntrospectionWarning {
     code: 27
     affected: AffectedModel[]
+  }
+
+  interface IntrospectionWarningsIndexNullSortFound extends IntrospectionWarning {
+    code: 29
+    affected: AffectedIndex[]
   }
 
   // MongoDB starts at 101 see
