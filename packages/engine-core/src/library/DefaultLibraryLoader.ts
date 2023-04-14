@@ -50,7 +50,7 @@ export function load(libraryPath: string): Library {
   if (process.platform !== 'win32') {
     // Add RTLD_LAZY and RTLD_DEEPBIND on Unix.
     //
-    // RTLD_LAZY: this is what Node.js does by default on all Unix-like systems
+    // RTLD_LAZY: this is what Node.js uses by default on all Unix-like systems
     // if no flags were passed to dlopen from JavaScript side.
     //
     // RTLD_DEEPBIND: this is not a part of POSIX standard but a widely
