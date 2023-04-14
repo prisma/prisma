@@ -458,8 +458,14 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
           message += warning.affected.map((it) => `- Enum "${it.enm}", value: "${it.value}"`).join('\n')
         } else if (warning.code === 5 || warning.code === 6 || warning.code === 8) {
           message += warning.affected.map((it) => `- Model "${it.model}", field: "${it.field}"`).join('\n')
-        } else if ([7, 14, 18, 19, 27, 30].includes(warning.code)) {
-          // affectedModel
+        } else if (
+          warning.code === 7 ||
+          warning.code === 14 ||
+          warning.code === 18 ||
+          warning.code === 19 ||
+          warning.code === 27 ||
+          warning.code === 30
+        ) {
           message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
         } else if (warning.code === 20) {
           message += warning.affected
