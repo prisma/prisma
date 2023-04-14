@@ -12,8 +12,8 @@ const debug = Debug('prisma:generator')
 // TODO: This is not well tested
 
 /**
- * Warn, if typescript is below `4.1.0` and is install locally Because Template
- * Literal Types are required for generating Prisma Client types.
+ * Warn, if typescript is below `4.1.0` and is installed locally because
+ * template literal types are required for generating Prisma Client types.
  */
 export async function checkTypeScriptVersion() {
   const minVersion = '4.1.0'
