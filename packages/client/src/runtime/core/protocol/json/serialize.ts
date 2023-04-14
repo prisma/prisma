@@ -137,12 +137,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
     }
 
     if (value === true) {
-      selectionSet[key] = {
-        selection: {
-          $composites: true,
-          $scalars: true,
-        },
-      }
+      selectionSet[key] = true
     } else if (typeof value === 'object') {
       selectionSet[key] = serializeFieldSelection(value, context.atField(key))
     }
@@ -160,19 +155,12 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
       continue
     }
     if (value === true) {
-      selectionSet[key] = defaultSelectionForField(field)
+      selectionSet[key] = true
     } else if (typeof value === 'object') {
       selectionSet[key] = serializeFieldSelection(value, context.atField(key))
     }
   }
   return selectionSet
-}
-
-function defaultSelectionForField(field?: DMMF.Field) {
-  if (field?.kind === 'object') {
-    return { selection: { $composites: true, $scalars: true } }
-  }
-  return true
 }
 
 function serializeArgumentsValue(jsValue: Exclude<JsInputValue, undefined>): JsonArgumentValue {
