@@ -434,10 +434,16 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
         message += `\n${warning.message}\n`
 
         if (warning.code === 0) {
-          // affected === null
-        } else if (warning.code === 1) {
+          // * affected === null
+        } else if (
+          // * AffectedModel but different
+          warning.code === 1
+        ) {
           message += warning.affected.map((it) => `- "${it.model}"`).join('\n')
-        } else if (warning.code === 2) {
+        } else if (
+          // * AffectedModelAndField
+          warning.code === 2
+        ) {
           const modelsGrouped: {
             [key: string]: string[]
           } = warning.affected.reduce((acc, it) => {
@@ -450,15 +456,27 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
           message += Object.entries(modelsGrouped)
             .map(([model, fields]) => `- Model: "${model}"\n  Field(s): "${fields.join('", "')}"`)
             .join('\n')
-        } else if (warning.code === 3) {
+        } else if (
+          // * AffectedModelAndFieldAndType
+          warning.code === 3
+        ) {
           message += warning.affected
             .map((it) => `- Model "${it.model}", field: "${it.field}", original data type: "${it.tpe}"`)
             .join('\n')
-        } else if (warning.code === 4) {
+        } else if (
+          // * AffectedEnumAndValue
+          warning.code === 4
+        ) {
           message += warning.affected.map((it) => `- Enum "${it.enm}", value: "${it.value}"`).join('\n')
-        } else if (warning.code === 5 || warning.code === 6 || warning.code === 8) {
+        } else if (
+          // * AffectedModelAndField
+          warning.code === 5 ||
+          warning.code === 6 ||
+          warning.code === 8
+        ) {
           message += warning.affected.map((it) => `- Model "${it.model}", field: "${it.field}"`).join('\n')
         } else if (
+          // * AffectedModel
           warning.code === 7 ||
           warning.code === 14 ||
           warning.code === 18 ||
@@ -468,29 +486,59 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
           warning.code === 31
         ) {
           message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
-        } else if (warning.code === 20) {
+        } else if (
+          // * AffectedModelAndConstraint
+          warning.code === 35
+        ) {
+          message += warning.affected.map((it) => `-Model "${it.model}", Constraint "${it.constraint}"`).join('\n')
+        } else if (
+          // * AffectedTopLevel
+          warning.code === 20
+        ) {
           message += warning.affected
             .map((it) => {
               return `- ${it.type} "${it.name}"`
             })
             .join('\n')
-        } else if (warning.code === 9 || warning.code === 10) {
+        } else if (
+          // * AffectedEnum
+          warning.code === 9 ||
+          warning.code === 10
+        ) {
           message += warning.affected.map((it) => `- Enum "${it.enm}"`).join('\n')
-        } else if (warning.code === 17) {
+        } else if (
+          // * AffectedModelAndIndex
+          warning.code === 17
+        ) {
           message += warning.affected
             .map((it) => `- Model "${it.model}", Index db name: "${it.index_db_name}"`)
             .join('\n')
-        } else if (warning.code === 21) {
+        } else if (
+          // * AffectedViewAndFieldAndType
+          warning.code === 21
+        ) {
           message += warning.affected
             .map((it) => `- View "${it.view}", Field: "${it.field}", Type: "${it.tpe}"`)
             .join('\n')
-        } else if ([22, 26].includes(warning.code)) {
+        } else if (
+          // * AffectedViewAndField
+          [22, 26].includes(warning.code)
+        ) {
           message += warning.affected.map((it) => `- View "${it.view}", Field: "${it.field}"`).join('\n')
-        } else if ([23, 24, 25].includes(warning.code)) {
+        } else if (
+          // *  AffectedView
+          [23, 24, 25].includes(warning.code)
+        ) {
           message += warning.affected.map((it) => `- View "${it.view}"`).join('\n')
-        } else if (warning.code === 29) {
+        } else if (
+          // * AffectedIndex
+          warning.code === 29
+        ) {
           message += warning.affected.map((it) => `- Index "${it.indexName}", Column "${it.columnName}"`)
-        } else if (warning.code === 101) {
+        } else if (
+          // * AffectedModelOrCompositeTypeAndFieldAndType
+          warning.code === 101
+        ) {
           message += warning.affected
             .map((it) => {
               if (it.model) {
@@ -506,7 +554,12 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
               }
             })
             .join('\n')
-        } else if (warning.code === 102 || warning.code === 103 || warning.code === 104) {
+        } else if (
+          // * AffectedModelOrCompositeTypeAndField
+          warning.code === 102 ||
+          warning.code === 103 ||
+          warning.code === 104
+        ) {
           message += warning.affected
             .map((it) => {
               if (it.model) {

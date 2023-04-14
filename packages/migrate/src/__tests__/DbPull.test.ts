@@ -1540,10 +1540,10 @@ describe('postgresql views introspection warnings', () => {
   })
 })
 
-describe('postgresql partitioned tables introspection', () => {
+describe('postgresql introspection stopgaps', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
 
-  const computeSetupParams = (warningCode: number, variant?: number): SetupParams => {
+  const computeSetupParams = (stopGap: string, warningCode: number, variant?: number): SetupParams => {
     const setupParams: SetupParams = {
       connectionString,
       // Note: dirname points to a location with a setup.sql file
@@ -1555,14 +1555,14 @@ describe('postgresql partitioned tables introspection', () => {
         'fixtures',
         'introspection',
         'postgresql',
-        `partitioned-warning-${warningCode}${variant ? `-${variant}` : ''}`,
+        `${stopGap}-warning-${warningCode}${variant ? `-${variant}` : ''}`,
       ),
     }
     return setupParams
   }
 
-  const setupPostgressForWarning = (warningCode: number, variant?: number) => {
-    const setupParams = computeSetupParams(warningCode, variant)
+  const setupPostgresForWarning = (stopGap: string, warningCode: number, variant?: number) => {
+    const setupParams = computeSetupParams(stopGap, warningCode, variant)
 
     beforeEach(async () => {
       await setupPostgres(setupParams)
@@ -1583,12 +1583,13 @@ describe('postgresql partitioned tables introspection', () => {
   }
 
   describe('postgres partioned 27/1 - partitioned tables found', () => {
+    const stopGap = 'partitioned'
     const warningCode = 27
     const variant = 1
-    setupPostgressForWarning(warningCode, variant)
+    setupPostgresForWarning(stopGap, warningCode, variant)
 
     test('basic introspection', async () => {
-      ctx.fixture(`introspection/postgresql/partitioned-warning-${warningCode}-${variant}`)
+      ctx.fixture(`introspection/postgresql/${stopGap}-warning-${warningCode}-${variant}`)
       const introspect = new DbPull()
       const result = introspect.parse(['--print'])
 
@@ -1636,12 +1637,13 @@ describe('postgresql partitioned tables introspection', () => {
   })
 
   describe('postgres partioned 27/2 - multiple partitioned tables found', () => {
+    const stopGap = 'partitioned'
     const warningCode = 27
     const variant = 2
-    setupPostgressForWarning(warningCode, variant)
+    setupPostgresForWarning(stopGap, warningCode, variant)
 
     test('basic introspection', async () => {
-      ctx.fixture(`introspection/postgresql/partitioned-warning-${warningCode}-${variant}`)
+      ctx.fixture(`introspection/postgresql/${stopGap}-warning-${warningCode}-${variant}`)
       const introspect = new DbPull()
       const result = introspect.parse(['--print'])
 
@@ -1700,56 +1702,14 @@ describe('postgresql partitioned tables introspection', () => {
       expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
   })
-})
-
-describe('postgresql null-sorted indices introspection', () => {
-  const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
-
-  const computeSetupParams = (warningCode: number, variant?: number): SetupParams => {
-    const setupParams: SetupParams = {
-      connectionString,
-      // Note: dirname points to a location with a setup.sql file
-      // which will be executed to prepare the database with the correct tables, views etc.
-      dirname: path.join(
-        __dirname,
-        '..',
-        '__tests__',
-        'fixtures',
-        'introspection',
-        'postgresql',
-        `null_sort-warning-${warningCode}${variant ? `-${variant}` : ''}`,
-      ),
-    }
-    return setupParams
-  }
-
-  const setupPostgressForWarning = (warningCode: number, variant?: number) => {
-    const setupParams = computeSetupParams(warningCode, variant)
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams)
-
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams).catch((e) => {
-        console.error(e)
-      })
-    })
-  }
 
   describe('postgres null-sort 29 - null sorted indices found', () => {
+    const stopGap = 'null_sort'
     const warningCode = 29
-    setupPostgressForWarning(warningCode)
+    setupPostgresForWarning(stopGap, warningCode)
 
     test('basic introspection', async () => {
-      ctx.fixture(`introspection/postgresql/null_sort-warning-${warningCode}`)
+      ctx.fixture(`introspection/postgresql/${stopGap}-warning-${warningCode}`)
       const introspect = new DbPull()
       const result = introspect.parse(['--print'])
 
@@ -1790,56 +1750,14 @@ describe('postgresql null-sorted indices introspection', () => {
       expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
   })
-})
-
-describe('postgresql row level security introspection', () => {
-  const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
-
-  const computeSetupParams = (warningCode: number, variant?: number): SetupParams => {
-    const setupParams: SetupParams = {
-      connectionString,
-      // Note: dirname points to a location with a setup.sql file
-      // which will be executed to prepare the database with the correct tables, views etc.
-      dirname: path.join(
-        __dirname,
-        '..',
-        '__tests__',
-        'fixtures',
-        'introspection',
-        'postgresql',
-        `row-level-security-warning-${warningCode}${variant ? `-${variant}` : ''}`,
-      ),
-    }
-    return setupParams
-  }
-
-  const setupPostgresForWarning = (warningCode: number, variant?: number) => {
-    const setupParams = computeSetupParams(warningCode, variant)
-
-    beforeEach(async () => {
-      await setupPostgres(setupParams)
-
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      // Update env var because it's the one that is used in the schemas tested
-      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-    })
-
-    afterEach(async () => {
-      // Back to original env vars
-      process.env = { ...originalEnv }
-      await tearDownPostgres(setupParams).catch((e) => {
-        console.error(e)
-      })
-    })
-  }
 
   describe('postgres partioned 30 - row level security found', () => {
+    const stopGap = 'row-level-security'
     const warningCode = 30
-    setupPostgresForWarning(warningCode)
+    setupPostgresForWarning(stopGap, warningCode)
 
     test('basic introspection', async () => {
-      ctx.fixture(`introspection/postgresql/row-level-security-warning-${warningCode}`)
+      ctx.fixture(`introspection/postgresql/${stopGap}-warning-${warningCode}`)
       const introspect = new DbPull()
       const result = introspect.parse(['--print'])
 
