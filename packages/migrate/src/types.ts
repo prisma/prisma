@@ -208,6 +208,7 @@ export namespace EngineArgs {
     | IntrospectionWarningsIndexNullSortFound
     | IntrospectionWarningsRowLevelSecurityFound
     | IntrospectionWarningsRowLevelTTLFound
+    | IntrospectionWarningsDeferredConstraintFound
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
@@ -216,6 +217,7 @@ export namespace EngineArgs {
 
   type AffectedTopLevel = { type: 'Model' | 'Enum'; name: string }
   type AffectedModel = { model: string }
+  type AffectedModelAndConstraint = { model: string; constraint: string }
   type AffectedModelAndIndex = { model: string; index_db_name: string }
   type AffectedModelAndField = { model: string; field: string }
   type AffectedModelAndFieldAndType = {
@@ -397,6 +399,11 @@ export namespace EngineArgs {
   interface IntrospectionWarningsRowLevelTTLFound extends IntrospectionWarning {
     code: 31
     affected: AffectedModel[]
+  }
+
+  interface IntrospectionWarningsDeferredConstraintFound extends IntrospectionWarning {
+    code: 35
+    affected: AffectedModelAndConstraint[]
   }
 
   // MongoDB starts at 101 see
