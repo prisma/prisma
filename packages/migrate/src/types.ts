@@ -207,6 +207,7 @@ export namespace EngineArgs {
     | IntrospectionWarningsPartitionedTablesFound
     | IntrospectionWarningsIndexNullSortFound
     | IntrospectionWarningsRowLevelSecurityFound
+    | IntrospectionWarningsRowLevelTTLFound
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
@@ -390,6 +391,11 @@ export namespace EngineArgs {
 
   interface IntrospectionWarningsRowLevelSecurityFound extends IntrospectionWarning {
     code: 30
+    affected: AffectedModel[]
+  }
+
+  interface IntrospectionWarningsRowLevelTTLFound extends IntrospectionWarning {
+    code: 31
     affected: AffectedModel[]
   }
 
