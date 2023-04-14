@@ -2551,11 +2551,15 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb stopgaps', () => {
-  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
+  if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
+    throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
+  }
+
+  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE?.replace('tests-migrate', 'tests-migrate-db-pull')
 
   const computeSetupParams = (warningCode: number, variant?: number): SetupParams => {
     const setupParams: SetupParams = {
-      connectionString,
+      connectionString: connectionString!,
       // Note: dirname points to a location with a setup.sql file
       // which will be executed to prepare the database with the correct tables, views etc.
       dirname: path.join(
