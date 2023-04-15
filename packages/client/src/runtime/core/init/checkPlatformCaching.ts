@@ -32,9 +32,9 @@ export function checkPlatformCaching({ postinstall, ciName, clientVersion }: Con
 
   // and we generated on one a caching CI
   if (ciName && ciName in cachingPlatforms) {
-    const message = `We have detected that you've built your project on ${ciName}, which caches dependencies.
+    const message = `Prisma has detected that this project was built on ${ciName}, which caches dependencies.
 This leads to an outdated Prisma Client because Prisma's auto-generation isn't triggered.
-To fix this, make sure to run the \`prisma generate\` command during your build process.
+To fix this, make sure to run the \`prisma generate\` command during the build process.
 Learn how: https://pris.ly/d/${cachingPlatforms[ciName]}-build`
 
     console.error(message) // display a nice and visible error message
