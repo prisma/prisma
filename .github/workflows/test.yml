@@ -123,7 +123,6 @@ jobs:
   # CLIENT (without types test)
   #
   client:
-    timeout-minutes: 35
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
@@ -237,7 +236,6 @@ jobs:
   # CLIENT (functional tests with mini-proxy)
   #
   client-dataproxy:
-    timeout-minutes: 35
     runs-on: ${{ matrix.os }}
 
     needs: detect_jobs_to_run
