@@ -490,7 +490,7 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
           // * AffectedModelAndConstraint
           warning.code === 35
         ) {
-          message += warning.affected.map((it) => `-Model "${it.model}", Constraint "${it.constraint}"`).join('\n')
+          message += warning.affected.map((it) => `- Model "${it.model}", Constraint "${it.constraint}"`).join('\n')
         } else if (
           // * AffectedTopLevel
           warning.code === 20
