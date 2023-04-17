@@ -209,6 +209,7 @@ export namespace EngineArgs {
     | IntrospectionWarningsRowLevelSecurityFound
     | IntrospectionWarningsRowLevelTTLFound
     | IntrospectionWarningsDeferredConstraintFound
+    | IntrospectionWarningCommentsFound
     // MongoDB below
     | IntrospectionWarningsMongoMultipleTypes
     | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
@@ -253,6 +254,11 @@ export namespace EngineArgs {
     columnName: string
   }
 
+  type AffectedObject = {
+    type: string
+    name: string
+  }
+
   interface IntrospectionWarning {
     code: number
     message: string
@@ -270,6 +276,7 @@ export namespace EngineArgs {
       | AffectedViewAndField[]
       | AffectedViewAndFieldAndType[]
       | AffectedIndex[]
+      | AffectedObject[]
       | null
   }
 
@@ -404,6 +411,11 @@ export namespace EngineArgs {
   interface IntrospectionWarningsDeferredConstraintFound extends IntrospectionWarning {
     code: 35
     affected: AffectedModelAndConstraint[]
+  }
+
+  interface IntrospectionWarningCommentsFound extends IntrospectionWarning {
+    code: 36
+    affected: AffectedObject[]
   }
 
   // MongoDB starts at 101 see
