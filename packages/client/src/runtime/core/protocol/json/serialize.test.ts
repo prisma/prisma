@@ -718,12 +718,7 @@ test('1 level include', () => {
         "selection": {
           "$composites": true,
           "$scalars": true,
-          "posts": {
-            "selection": {
-              "$composites": true,
-              "$scalars": true
-            }
-          }
+          "posts": true
         }
       }
     }
@@ -780,12 +775,7 @@ test('multiple level include', () => {
             "selection": {
               "$composites": true,
               "$scalars": true,
-              "attachments": {
-                "selection": {
-                  "$composites": true,
-                  "$scalars": true
-                }
-              }
+              "attachments": true
             }
           }
         }
@@ -809,12 +799,7 @@ test('explicit selection', () => {
         "arguments": {},
         "selection": {
           "title": true,
-          "posts": {
-            "selection": {
-              "$composites": true,
-              "$scalars": true
-            }
-          }
+          "posts": true
         }
       }
     }
@@ -905,12 +890,7 @@ test('mixed include and select', () => {
             "selection": {
               "$composites": true,
               "$scalars": true,
-              "attachments": {
-                "selection": {
-                  "$composites": true,
-                  "$scalars": true
-                }
-              }
+              "attachments": true
             }
           }
         }
