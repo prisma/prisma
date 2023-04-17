@@ -1,0 +1,1 @@
+CREATE TYPE c AS ENUM ('a', 'b');
