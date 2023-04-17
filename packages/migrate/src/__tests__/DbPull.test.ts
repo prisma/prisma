@@ -1956,7 +1956,7 @@ describe('postgresql introspection stopgaps', () => {
       })
     })
 
-    describe('36/3 - comments found: types', () => {
+    describe('36/3 - comments found: enums', () => {
       const variant = 3
       setupPostgresForWarning(stopGap, warningCode, variant)
 
