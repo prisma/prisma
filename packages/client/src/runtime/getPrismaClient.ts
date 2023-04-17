@@ -406,7 +406,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           // the data proxy can't get the dmmf from the engine
           // so the generated client always has the full dmmf
           const rawDmmf = config.document as DMMF.Document
-          this._dmmf = new DMMFHelper(rawDmmf)
+          this._dmmf = runInChildSpan(
+            { name: 'processDmmf', internal: true, enabled: this._tracingConfig.enabled },
+            () => new DMMFHelper(rawDmmf),
+          )
         }
 
         this._engineConfig = {
@@ -906,7 +909,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           warnAboutRejectOnNotFound(rejectOnNotFound, model, action)
         }
 
-        const message = await runInChildSpan(spanOptions, () =>
+        const message = runInChildSpan(spanOptions, () =>
           protocolEncoder.createMessage({
             modelName: model,
             action,
@@ -961,18 +964,21 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     }
 
     _getDmmf = callOnce(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
-      try {
-        const dmmf = await runInChildSpan(
-          { name: 'getDmmf', enabled: this._tracingConfig.enabled, internal: true },
-          () => this._engine.getDmmf(),
-        )
+      return runInChildSpan({ name: 'dmmf', enabled: this._tracingConfig.enabled, internal: true }, async () => {
+        try {
+          const dmmf = await runInChildSpan(
+            { name: 'getDmmf', enabled: this._tracingConfig.enabled, internal: true },
+            () => this._engine.getDmmf(),
+          )
 
-        return runInChildSpan({ name: 'processDmmf', enabled: this._tracingConfig.enabled, internal: true }, () => {
-          return new DMMFHelper(getPrismaClientDMMF(dmmf))
-        })
-      } catch (error) {
-        this._fetcher.handleAndLogRequestError({ ...params, args: {}, error })
-      }
+          return runInChildSpan(
+            { name: 'processDmmf', enabled: this._tracingConfig.enabled, internal: true },
+            () => new DMMFHelper(getPrismaClientDMMF(dmmf)),
+          )
+        } catch (error) {
+          this._fetcher.handleAndLogRequestError({ ...params, args: {}, error })
+        }
+      })
     })
 
     _getProtocolEncoder = callOnce(

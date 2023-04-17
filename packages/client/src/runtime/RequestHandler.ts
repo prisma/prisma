@@ -7,6 +7,7 @@ import {
   getTraceParent,
   hasBatchIndex,
   InteractiveTransactionOptions,
+  runInChildSpan,
   TracingConfig,
   TransactionOptions,
 } from '@prisma/engine-core'
@@ -158,15 +159,21 @@ export class RequestHandler {
       /**
        * Unpack
        */
-      let result = this.unpack(protocolMessage, data, dataPath, unpacker)
-      throwIfNotFound(result, clientMethod, modelName, rejectOnNotFound)
-      if (modelName) {
-        result = this.applyResultExtensions({ result, modelName, args, extensions })
-      }
-      if (process.env.PRISMA_CLIENT_GET_TIME) {
-        return { data: result, elapsed }
-      }
-      return result
+
+      return runInChildSpan(
+        { name: 'processResult', enabled: this.client._tracingConfig.enabled, internal: true },
+        () => {
+          let result = this.unpack(protocolMessage, data, dataPath, unpacker)
+          throwIfNotFound(result, clientMethod, modelName, rejectOnNotFound)
+          if (modelName) {
+            result = this.applyResultExtensions({ result, modelName, args, extensions })
+          }
+          if (process.env.PRISMA_CLIENT_GET_TIME) {
+            return { data: result, elapsed }
+          }
+          return result
+        },
+      )
     } catch (error) {
       this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
     }

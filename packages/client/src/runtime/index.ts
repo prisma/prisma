@@ -1,3 +1,4 @@
+import { runInChildSpan } from '@prisma/engine-core'
 import * as lzString from 'lz-string'
 
 import * as Extensions from './core/extensions'
@@ -34,9 +35,17 @@ export {
 export { default as Decimal } from 'decimal.js'
 export type { RawValue, Value } from 'sql-template-tag'
 export { empty, join, raw, Sql, default as sqltag } from 'sql-template-tag'
+
 // ! export bundling fails for this dep, we work around it
-const decompressFromBase64 = lzString.decompressFromBase64
-export { decompressFromBase64 }
+export function decompressFromBase64(str: string): string {
+  return runInChildSpan({ name: 'decompressDmmf', enabled: true, internal: true }, () => {
+    return lzString.decompressFromBase64(str)
+  })
+}
+
+export function parseDmmf(str): any {
+  return runInChildSpan({ name: 'parseDmmf', enabled: true, internal: true }, () => JSON.parse(str))
+}
 
 export { Types }
 export { Extensions }
