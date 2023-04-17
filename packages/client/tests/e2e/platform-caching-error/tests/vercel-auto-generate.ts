@@ -1,8 +1,12 @@
 import { PrismaClient } from '@prisma/client'
 
-test('vercel env var + auto generate', () => {
-  const consoleMock = jest.spyOn(global.console, 'error').mockImplementation()
+const consoleMock = jest.spyOn(global.console, 'error').mockImplementation()
 
+beforeEach(() => {
+  consoleMock.mockClear()
+})
+
+test('vercel env var + auto generate', () => {
   try {
     const prisma = new PrismaClient()
     prisma.$connect()
