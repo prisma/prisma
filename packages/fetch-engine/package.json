@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.13.0-40.5a83cdfb84729117ca82344e1c7359783dedd129",
+    "@prisma/engines-version": "4.13.0-47.integration-postgres-check-constraints-stopgap-3c74298ef577a2349312adb52fd642f1fa1cba16",
     "@swc/core": "1.3.32",
     "@swc/jest": "0.2.24",
     "@types/jest": "29.4.0",
