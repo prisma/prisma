@@ -537,7 +537,7 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
           message += warning.affected.map((it) => `- Index "${it.indexName}", Column "${it.columnName}"`).join('\n')
         } else if (warning.code === 36) {
           // * AffectedObject
-          message += warning.affected.map((it) => `- Type "${it.type}, Name "${it.name}""`).join('\n')
+          message += warning.affected.map((it) => `- Type "${it.type}", Name "${it.name}"`).join('\n')
         } else if (
           // * AffectedModelOrCompositeTypeAndFieldAndType
           warning.code === 101
