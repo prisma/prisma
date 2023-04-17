@@ -1582,11 +1582,11 @@ describe('postgresql introspection stopgaps', () => {
     })
   }
 
-  describe('warning 27', () => {
+  describe('warning 27 - partitioned tables found', () => {
     const stopGap = 'partitioned'
     const warningCode = 27
 
-    describe('27/1 - partitioned tables found', () => {
+    describe('27/1 - single table found', () => {
       const variant = 1
       setupPostgresForWarning(stopGap, warningCode, variant)
 
@@ -1638,7 +1638,7 @@ describe('postgresql introspection stopgaps', () => {
       })
     })
 
-    describe('27/2 - multiple partitioned tables found', () => {
+    describe('27/2 - multiple tables found', () => {
       const variant = 2
       setupPostgresForWarning(stopGap, warningCode, variant)
 
