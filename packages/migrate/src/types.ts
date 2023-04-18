@@ -254,8 +254,10 @@ export namespace EngineArgs {
     columnName: string
   }
 
+  // This represents any database object
+  // Model, enum, view, column, etc.
   type AffectedObject = {
-    type: string
+    type: string // Tells us what kind of database object
     name: string
   }
 
