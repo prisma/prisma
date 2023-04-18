@@ -429,7 +429,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         if (config.document) {
           // the data proxy can't get the dmmf from the engine
           // so the generated client always has the full dmmf
-          this._dmmf = new DMMFHelper(config.document)
+          this._dmmf = this._tracingHelper.runInChildSpan(
+            { name: 'processDmmf', internal: true },
+            () => new DMMFHelper(config.document),
+          )
         }
 
         this._engineConfig = {
@@ -981,18 +984,21 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     }
 
-    _getDmmf = callOnceOnSuccess(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
-      try {
-        const dmmf = await this._tracingHelper.runInChildSpan({ name: 'getDmmf', internal: true }, () =>
-          this._engine.getDmmf(),
-        )
+    _getDmmf = callOnceOnSuccess((params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
+      return this._tracingHelper.runInChildSpan({ name: 'dmmf', internal: true }, async () => {
+        try {
+          const dmmf = await this._tracingHelper.runInChildSpan({ name: 'getDmmf', internal: true }, () =>
+            this._engine.getDmmf(),
+          )
 
-        return this._tracingHelper.runInChildSpan({ name: 'processDmmf', internal: true }, () => {
-          return new DMMFHelper(getPrismaClientDMMF(dmmf))
-        })
-      } catch (error) {
-        this._fetcher.handleAndLogRequestError({ ...params, args: {}, error })
-      }
+          return this._tracingHelper.runInChildSpan(
+            { name: 'processDmmf', internal: true },
+            () => new DMMFHelper(getPrismaClientDMMF(dmmf)),
+          )
+        } catch (error) {
+          this._fetcher.handleAndLogRequestError({ ...params, args: {}, error })
+        }
+      })
     })
 
     _getProtocolEncoder = callOnceOnSuccess(

@@ -189,21 +189,25 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     return response as Tx.InteractiveTransactionInfo<undefined> | undefined
   }
 
-  private async instantiateLibrary(): Promise<void> {
-    debug('internalSetup')
-    if (this.libraryInstantiationPromise) {
-      return this.libraryInstantiationPromise
-    }
+  private instantiateLibrary(): Promise<void> {
+    return this.config.tracingHelper.runInChildSpan({ name: 'instantiateLibrary', internal: true }, async () => {
+      debug('internalSetup')
+      if (this.libraryInstantiationPromise) {
+        return this.libraryInstantiationPromise
+      }
 
-    assertNodeAPISupported()
-    this.platform = await this.getPlatform()
-    await this.loadEngine()
-    this.version()
+      assertNodeAPISupported()
+      this.platform = await this.getPlatform()
+      await this.loadEngine()
+      this.version()
+    })
   }
 
   private async getPlatform() {
     if (this.platform) return this.platform
-    const platform = await getPlatform()
+    const platform = await this.config.tracingHelper.runInChildSpan({ name: 'getPlatform', internal: true }, () =>
+      getPlatform(),
+    )
     if (!knownPlatforms.includes(platform)) {
       throw new PrismaClientInitializationError(
         `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(platform))}. Possible binaryTargets: ${green(
@@ -246,26 +250,31 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         this.library = await this.libraryLoader.loadLibrary()
         this.QueryEngineConstructor = this.library.QueryEngine
       }
+      const QueryEngineConstructor = this.QueryEngineConstructor
       try {
         // Using strong reference to `this` inside of log callback will prevent
         // this instance from being GCed while native engine is alive. At the same time,
         // `this.engine` field will prevent native instance from being GCed. Using weak ref helps
         // to avoid this cycle
         const weakThis = new WeakRef(this)
-        this.engine = new this.QueryEngineConstructor(
-          {
-            datamodel: this.datamodel,
-            env: process.env,
-            logQueries: this.config.logQueries ?? false,
-            ignoreEnvVarErrors: true,
-            datasourceOverrides: this.datasourceOverrides,
-            logLevel: this.logLevel,
-            configDir: this.config.cwd,
-            engineProtocol: this.engineProtocol,
-          },
-          (log) => {
-            weakThis.deref()?.logger(log)
-          },
+        this.engine = this.config.tracingHelper.runInChildSpan(
+          { name: 'engineConstructor', internal: true },
+          () =>
+            new QueryEngineConstructor(
+              {
+                datamodel: this.datamodel,
+                env: process.env,
+                logQueries: this.config.logQueries ?? false,
+                ignoreEnvVarErrors: true,
+                datasourceOverrides: this.datasourceOverrides,
+                logLevel: this.logLevel,
+                configDir: this.config.cwd,
+                engineProtocol: this.engineProtocol,
+              },
+              (log) => {
+                weakThis.deref()?.logger(log)
+              },
+            ),
         )
         engineInstanceCount++
       } catch (_e) {
@@ -355,50 +364,52 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
   }
 
-  async start(): Promise<void> {
-    await this.libraryInstantiationPromise
-    await this.libraryStoppingPromise
+  start(): Promise<void> {
+    return this.config.tracingHelper.runInChildSpan('connect', async () => {
+      await this.libraryInstantiationPromise
+      await this.libraryStoppingPromise
 
-    if (this.libraryStartingPromise) {
-      debug(`library already starting, this.libraryStarted: ${this.libraryStarted}`)
-      return this.libraryStartingPromise
-    }
-
-    if (this.libraryStarted) {
-      return
-    }
-
-    const startFn = async () => {
-      debug('library starting')
-
-      try {
-        const headers = {
-          traceparent: this.config.tracingHelper.getTraceParent(),
-        }
-
-        await this.engine?.connect(JSON.stringify(headers))
-
-        this.libraryStarted = true
-
-        debug('library started')
-      } catch (err) {
-        const error = this.parseInitError(err.message as string)
-
-        // The error message thrown by the query engine should be a stringified JSON
-        // if parsing fails then we just reject the error
-        if (typeof error === 'string') {
-          throw err
-        } else {
-          throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
-        }
-      } finally {
-        this.libraryStartingPromise = undefined
+      if (this.libraryStartingPromise) {
+        debug(`library already starting, this.libraryStarted: ${this.libraryStarted}`)
+        return this.libraryStartingPromise
       }
-    }
 
-    this.libraryStartingPromise = this.config.tracingHelper.runInChildSpan('connect', startFn)
+      if (this.libraryStarted) {
+        return
+      }
 
-    return this.libraryStartingPromise
+      const startFn = async () => {
+        debug('library starting')
+
+        try {
+          const headers = {
+            traceparent: this.config.tracingHelper.getTraceParent(),
+          }
+
+          await this.engine?.connect(JSON.stringify(headers))
+
+          this.libraryStarted = true
+
+          debug('library started')
+        } catch (err) {
+          const error = this.parseInitError(err.message as string)
+
+          // The error message thrown by the query engine should be a stringified JSON
+          // if parsing fails then we just reject the error
+          if (typeof error === 'string') {
+            throw err
+          } else {
+            throw new PrismaClientInitializationError(error.message, this.config.clientVersion!, error.error_code)
+          }
+        } finally {
+          this.libraryStartingPromise = undefined
+        }
+      }
+
+      this.libraryStartingPromise = startFn()
+
+      return this.libraryStartingPromise
+    })
   }
 
   async stop(): Promise<void> {
