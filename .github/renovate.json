@@ -5,14 +5,8 @@
   "semanticCommits": "enabled",
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
-  "ignoreDeps": [
-    "sqlite3",
-    "@prisma/engines",
-    "@prisma/engines-version",
-    "@prisma/fetch-engine",
-    "@prisma/get-platform",
-    "@prisma/prisma-fmt-wasm"
-  ],
+  "rangeStrategy": "pin",
+  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-fmt-wasm"],
   "constraints": {
     "pnpm": "7"
   },
