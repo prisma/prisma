@@ -50,14 +50,14 @@
     "indent-string": "4.0.0",
     "log-update": "4.0.0",
     "mariadb": "3.1.1",
-    "mongoose": "^6.5.0",
+    "mongoose": "6.7.0",
     "mssql": "9.1.1",
     "pg": "8.10.0",
     "pkg-up": "3.1.0",
     "prompts": "2.4.2",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-pattern": "^4.0.1"
+    "ts-pattern": "4.0.5"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
