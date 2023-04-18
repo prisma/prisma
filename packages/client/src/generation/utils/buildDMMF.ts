@@ -17,8 +17,8 @@ export function buildDMMF(compressed: boolean, dmmf: DMMF.Document) {
     return buildCompressedDMMF(dmmfString)
   }
 
-  const { datamodel, mappings } = dmmf
-  const dmmfString = escapeJson(JSON.stringify({ datamodel, mappings }))
+  const { datamodel } = dmmf
+  const dmmfString = escapeJson(JSON.stringify({ datamodel }))
   return buildUncompressedDMMF(dmmfString)
 }
 
