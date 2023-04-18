@@ -1,11 +1,21 @@
 import path from 'node:path'
 
 import { defaultTestConfig } from '@prisma/config'
-import { BaseContext, jestConsoleContext, jestContext } from '@prisma/get-platform'
+import {
+  BaseContext,
+  BinaryTarget,
+  getBinaryTargetForCurrentPlatform,
+  getNodeAPIName,
+  jestConsoleContext,
+  jestContext,
+} from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { match } from 'ts-pattern'
 
 import { Generate } from '../../Generate'
 import { promotions, renderPromotion } from '../../utils/handlePromotions'
+
+const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -760,5 +770,90 @@ describe('with --sql', () => {
     await expect(Generate.new().parse(['--sql'], defaultTestConfig())).rejects.toMatchInlineSnapshot(
       `"Typed SQL is supported only for postgresql, cockroachdb, mysql, sqlite providers"`,
     )
+  })
+})
+
+describeIf(getClientEngineType() !== ClientEngineType.Client)('--binary-target', () => {
+  const getQueryEngineFileName = (platform: BinaryTarget) =>
+    match(getClientEngineType())
+      .with(ClientEngineType.Library, () => getNodeAPIName(platform, 'fs'))
+      .with(
+        ClientEngineType.Binary,
+        () =>
+          // TODO: this is duplicated throughout the codebase, factor it out
+          `query-engine-${platform}${platform === 'windows' ? '.exe' : ''}`,
+      )
+      .with(ClientEngineType.Client, () => null)
+      .exhaustive()
+
+  const getCurrentAndNonNativeTargets = async () => {
+    const currentPlatform = await getBinaryTargetForCurrentPlatform()
+    let targetPlatform: BinaryTarget = 'rhel-openssl-1.1.x'
+
+    if (targetPlatform === currentPlatform) {
+      targetPlatform = 'debian-openssl-1.1.x'
+    }
+
+    return { currentPlatform, targetPlatform }
+  }
+
+  it('must not implicitly include "native"', async () => {
+    ctx.fixture('example-project')
+
+    const { currentPlatform, targetPlatform } = await getCurrentAndNonNativeTargets()
+
+    await Generate.new().parse([`--binary-target=${targetPlatform}`], defaultTestConfig())
+    const generatedFiles = ctx.fs.list('./generated/client')
+
+    expect(generatedFiles).toContain(getQueryEngineFileName(targetPlatform))
+    expect(generatedFiles).not.toContain(getQueryEngineFileName(currentPlatform))
+  })
+
+  it("doesn't print a warning about the current platform not being included in the generator's `binaryTargets` configuration", async () => {
+    ctx.fixture('example-project')
+
+    const { targetPlatform } = await getCurrentAndNonNativeTargets()
+    const log = jest.spyOn(console, 'log')
+
+    await Generate.new().parse([`--binary-target=${targetPlatform}`], defaultTestConfig())
+
+    for (const call of log.mock.calls) {
+      expect(call[0]).not.toMatch(/Your current platform .+ is not included/)
+    }
+
+    log.mockRestore()
+  })
+
+  it('accepts a single binary target', async () => {
+    ctx.fixture('example-project')
+
+    await Generate.new().parse(['--binary-target=rhel-openssl-1.1.x'], defaultTestConfig())
+    const generatedFiles = ctx.fs.list('./generated/client')
+
+    expect(generatedFiles).toContain(getQueryEngineFileName('rhel-openssl-1.1.x'))
+  })
+
+  it('accepts multiple binary targets', async () => {
+    ctx.fixture('example-project')
+
+    await Generate.new().parse(
+      ['--binary-target=rhel-openssl-1.1.x', '--binary-target=debian-openssl-1.1.x'],
+      defaultTestConfig(),
+    )
+    const generatedFiles = ctx.fs.list('./generated/client')
+
+    expect(generatedFiles).toContain(getQueryEngineFileName('rhel-openssl-1.1.x'))
+    expect(generatedFiles).toContain(getQueryEngineFileName('debian-openssl-1.1.x'))
+  })
+})
+
+describeIf(getClientEngineType() === ClientEngineType.Client)('--binary-target', () => {
+  it('must not accept the binary-target flag', async () => {
+    ctx.fixture('example-project')
+
+    await expect(Generate.new().parse(['--binary-target=debian-openssl-1.1.x'], defaultTestConfig())).rejects
+      .toMatchInlineSnapshot(`
+      [Error: The "--binary-target" flag is not applicable the "client" engine type.]
+    `)
   })
 })

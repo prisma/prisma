@@ -61,6 +61,7 @@ ${bold('Options')}
          --generator   Generator to use (may be provided multiple times)
          --no-engine   Generate a client for use with Accelerate only
          --no-hints    Hides the hint messages but still outputs errors and warnings
+     --binary-target   Generate the client for the specific target(s)
    --allow-no-models   Allow generating a client without models
    --sql               Generate typed sql module
 
@@ -74,6 +75,9 @@ ${bold('Examples')}
 
   Run the command with multiple specific generators
     ${dim('$')} prisma generate --generator client1 --generator client2
+
+  Generate the client for deployment to a different platform
+    ${dim('$')} prisma generate --binary-target rhel-openssl-1.0.x
 
   Watch Prisma schema file and rerun after each change
     ${dim('$')} prisma generate --watch
@@ -114,6 +118,7 @@ ${bold('Examples')}
       '--no-engine': Boolean,
       '--no-hints': Boolean,
       '--generator': [String],
+      '--binary-target': [String],
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
@@ -172,6 +177,7 @@ ${bold('Examples')}
           Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
           Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
         allowNoModels: Boolean(args['--allow-no-models']),
+        binaryTargetsOverride: args['--binary-target'],
       })
 
       if (!generators || generators.length === 0) {
