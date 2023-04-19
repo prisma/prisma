@@ -48,7 +48,7 @@
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/ni": "workspace:*",
-    "@prisma/prisma-fmt-wasm": "4.14.0-5.42f41a6b56b624455bc4e01883e1661340699fe8",
+    "@prisma/prisma-fmt-wasm": "4.14.0-8.integration-introspection-ci-after-3887-9d55b9f4a5e627e557cb7623c405d3b1dbba8525",
     "archiver": "5.3.1",
     "arg": "5.0.2",
     "chalk": "4.1.2",
