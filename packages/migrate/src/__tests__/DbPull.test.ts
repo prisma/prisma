@@ -482,8 +482,7 @@ describe('postgresql - missing database', () => {
   })
 })
 
-// If(process.platform != 'win32')
-describe('postgresql views fs I/O', () => {
+describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
 
   type ViewVariant =
