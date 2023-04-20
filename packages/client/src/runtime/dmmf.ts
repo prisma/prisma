@@ -1,11 +1,10 @@
 import type { DMMF } from '@prisma/generator-helper'
 
-import { BaseDMMF } from './dmmf-types'
 import { applyMixins } from './utils/applyMixins'
 import type { Dictionary } from './utils/common'
 import { keyBy, ScalarTypeTable } from './utils/common'
 
-class DMMFDatamodelHelper implements Pick<DMMF.Document, 'datamodel'> {
+export class DMMFDatamodelHelper implements Pick<DMMF.Document, 'datamodel'> {
   datamodel: DMMF.Datamodel
   datamodelEnumMap: Dictionary<DMMF.DatamodelEnum>
   modelMap: Dictionary<DMMF.Model>
@@ -238,20 +237,11 @@ class DMMFSchemaHelper implements Pick<DMMF.Document, 'schema'> {
   }
 }
 
-export interface BaseDMMFHelper extends DMMFDatamodelHelper, DMMFMappingsHelper {}
-export class BaseDMMFHelper {
-  constructor(dmmf: BaseDMMF) {
-    return Object.assign(this, new DMMFDatamodelHelper(dmmf), new DMMFMappingsHelper(dmmf))
-  }
-}
-
-applyMixins(BaseDMMFHelper, [DMMFDatamodelHelper, DMMFMappingsHelper])
-
-export interface DMMFHelper extends BaseDMMFHelper, DMMFSchemaHelper {}
+export interface DMMFHelper extends DMMFDatamodelHelper, DMMFMappingsHelper, DMMFSchemaHelper {}
 export class DMMFHelper {
   constructor(dmmf: DMMF.Document) {
-    return Object.assign(this, new BaseDMMFHelper(dmmf), new DMMFSchemaHelper(dmmf))
+    return Object.assign(this, new DMMFDatamodelHelper(dmmf), new DMMFMappingsHelper(dmmf), new DMMFSchemaHelper(dmmf))
   }
 }
 
-applyMixins(DMMFHelper, [BaseDMMFHelper, DMMFSchemaHelper])
+applyMixins(DMMFHelper, [DMMFDatamodelHelper, DMMFMappingsHelper, DMMFSchemaHelper])
