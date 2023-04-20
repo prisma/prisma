@@ -41,6 +41,10 @@ export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams):
   const prismaDir = path.dirname(normalizePossiblyWindowsDir(schemaPath))
   const viewsDir = path.posix.join(prismaDir, 'views')
 
+  if (views.length === 0) {
+    return onNoIntrospectedViews(viewsDir)
+  }
+
   // collect the newest view definitions
   const viewEntries = views.map(({ schema, ...rest }) => {
     const viewDir = path.posix.join(viewsDir, schema)
@@ -114,6 +118,21 @@ export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams):
       throw new Error(`Error removing the file: ${e.meta.filePath}.\n${e.error}.`)
     })
     .exhaustive()
+
+  throw error
+}
+
+async function onNoIntrospectedViews(viewsDir: string) {
+  // remove the views directory if it exists
+  const removeDirEither = await removeDir(viewsDir)()
+
+  if (E.isRight(removeDirEither)) {
+    return
+  }
+
+  const error = match(removeDirEither.left).with({ type: 'fs-remove-dir' }, (e) => {
+    throw new Error(`Error removing the directory: ${e.meta.dir}.\n${e.error}.`)
+  })
 
   throw error
 }
