@@ -11,8 +11,7 @@ import type { EngineArgs } from '../types'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
-import type { SetupParams } from '../utils/setupPostgres'
-import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
@@ -528,12 +527,12 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
       })
     })
 
-    return fixturePath
+    return { setupParams, fixturePath }
   }
 
   describe('engine output', () => {
     describe('no preview feature', () => {
-      const fixturePath = setupPostgresForViewsIO('no-preview')
+      const { fixturePath } = setupPostgresForViewsIO('no-preview')
 
       it('`views` is null', async () => {
         ctx.fixture(path.join(fixturePath))
@@ -556,7 +555,7 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
     })
 
     describe('with preview feature and no views defined', () => {
-      const fixturePath = setupPostgresForViewsIO('no-views')
+      const { fixturePath } = setupPostgresForViewsIO('no-views')
 
       it('`views` is []', async () => {
         ctx.fixture(path.join(fixturePath))
@@ -579,8 +578,95 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
     })
   })
 
+  describe('with preview feature, views defined and then removed', () => {
+    const { setupParams, fixturePath } = setupPostgresForViewsIO()
+
+    test('re-introspection with views removed', async () => {
+      ctx.fixture(fixturePath)
+
+      const introspectWithViews = new DbPull()
+      const resultWithViews = introspectWithViews.parse([])
+      await expect(resultWithViews).resolves.toMatchInlineSnapshot(``)
+
+      const listWithViews = await ctx.fs.listAsync('views')
+      expect(listWithViews).toMatchInlineSnapshot(`
+        [
+          public,
+          work,
+        ]
+      `)
+
+      const treeWithViews = await ctx.fs.findAsync({
+        directories: false,
+        files: true,
+        recursive: true,
+        matching: 'views/**/*',
+      })
+      expect(treeWithViews).toMatchInlineSnapshot(`
+        [
+          views/public/simpleuser.sql,
+          views/work/workers.sql,
+        ]
+      `)
+
+      const dropViewsSQL = await ctx.fs.readAsync('./drop_views.sql', 'utf8')
+
+      // remove any view in the database
+      await runQueryPostgres(setupParams, dropViewsSQL!)
+
+      const introspectWithoutViews = new DbPull()
+      const resultWithoutViews = introspectWithoutViews.parse([])
+      await expect(resultWithoutViews).resolves.toMatchInlineSnapshot(``)
+
+      const listWithoutViews = await ctx.fs.listAsync('views')
+      expect(listWithoutViews).toEqual(undefined)
+
+      const treeWithoutViews = await ctx.fs.findAsync({
+        directories: false,
+        files: true,
+        recursive: true,
+        matching: 'views/**/*',
+      })
+      expect(treeWithoutViews).toEqual([])
+
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        Prisma schema loaded from schema.prisma
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull", schemas "public, work" at "localhost:5432"
+        Prisma schema loaded from schema.prisma
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull", schemas "public, work" at "localhost:5432"
+      `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+
+        - Introspecting based on datasource defined in schema.prisma
+
+        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+              
+        *** WARNING ***
+
+        The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+        - View "simpleuser"
+        - View "workers"
+
+        Run prisma generate to generate Prisma Client.
+
+
+
+        - Introspecting based on datasource defined in schema.prisma
+
+        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+              
+        Run prisma generate to generate Prisma Client.
+
+      `)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
   describe('with preview feature and views defined', () => {
-    const fixturePath = setupPostgresForViewsIO()
+    const { fixturePath } = setupPostgresForViewsIO()
 
     test('basic introspection', async () => {
       ctx.fixture(fixturePath)
@@ -767,7 +853,7 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
   })
 
   describe('no preview', () => {
-    const fixturePath = setupPostgresForViewsIO('no-preview')
+    const { fixturePath } = setupPostgresForViewsIO('no-preview')
 
     test('basic introspection', async () => {
       ctx.fixture(path.join(fixturePath))
