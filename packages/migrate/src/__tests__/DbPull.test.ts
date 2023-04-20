@@ -482,7 +482,8 @@ describe('postgresql - missing database', () => {
   })
 })
 
-describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
+// If(process.platform != 'win32')
+describe('postgresql views fs I/O', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
 
   type ViewVariant =
@@ -557,7 +558,7 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
     describe('with preview feature and no views defined', () => {
       const { fixturePath } = setupPostgresForViewsIO('no-views')
 
-      it('`views` is []', async () => {
+      it('`views` is [] and no views folder is created', async () => {
         ctx.fixture(path.join(fixturePath))
 
         const engine = new MigrateEngine({
@@ -574,6 +575,9 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
 
         expect(introspectionResult.views).toEqual([])
         engine.stop()
+
+        const listWithoutViews = await ctx.fs.listAsync('views')
+        expect(listWithoutViews).toEqual(undefined)
       })
     })
   })
@@ -620,14 +624,6 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
 
       const listWithoutViews = await ctx.fs.listAsync('views')
       expect(listWithoutViews).toEqual(undefined)
-
-      const treeWithoutViews = await ctx.fs.findAsync({
-        directories: false,
-        files: true,
-        recursive: true,
-        matching: 'views/**/*',
-      })
-      expect(treeWithoutViews).toEqual([])
 
       expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
