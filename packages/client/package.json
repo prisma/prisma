@@ -152,7 +152,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.14.0-5.42f41a6b56b624455bc4e01883e1661340699fe8"
+    "@prisma/engines-version": "4.14.0-9.integration-mysql-connection-improvements-5a90cf27f3424ef1b09ac6d45b0bb1e7c35f8d7d"
   },
   "sideEffects": false
 }
