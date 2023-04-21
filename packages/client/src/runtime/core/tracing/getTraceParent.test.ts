@@ -1,15 +1,9 @@
-import { getTraceParent } from './getTraceParent'
-import { TracingConfig } from './getTracingConfig'
+import { getTracingHelper } from './TracingHelper'
 
 it('should return 00 traceparent when tracing is disabled', () => {
-  const tracingConfig: TracingConfig = {
-    enabled: false,
-    middleware: false,
-  }
+  const helper = getTracingHelper([])
 
-  const result = getTraceParent({
-    tracingConfig,
-  })
+  const result = helper.getTraceParent()
 
   const [ending] = result.split('-').reverse()
 
