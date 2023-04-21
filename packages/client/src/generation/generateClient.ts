@@ -272,7 +272,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   // if users use a custom output dir
   if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
-    // TODO: Windows, / is not working here...
     const copyTarget = path.join(outputDir, 'runtime')
     await ensureDir(copyTarget)
     if (runtimeSourceDir !== copyTarget) {

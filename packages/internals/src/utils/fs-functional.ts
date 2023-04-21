@@ -5,6 +5,8 @@ import fs from 'fs'
 import globby from 'globby'
 import path from 'path'
 
+import { pathToPosix } from './path'
+
 export const createDirIfNotExists = (dir: string) =>
   pipe(
     TE.tryCatch(
@@ -34,29 +36,17 @@ export const removeDir = (dir: string) =>
 export const removeFile = (filePath: string) =>
   pipe(TE.tryCatch(() => fs.promises.unlink(filePath), createTaggedSystemError('fs-remove-file', { filePath })))
 
-/**
- * Removes all backslashes from a possibly Windows path string, which is necessary for globby to work on Windows.
- * Note: we can't use `dir.replaceAll(path.sep, '/')` because `String.prototype.replaceAll` requires at least Node.js 15.
- */
-export const normalizePossiblyWindowsDir = (dir: string) => {
-  if (process.platform === 'win32') {
-    return dir.replace(/\\/g, '/')
-  }
-
-  return dir
-}
-
 export const getFoldersInDir =
   (dir: string): T.Task<string[]> =>
   () => {
-    const normalizedDir = normalizePossiblyWindowsDir(path.join(dir, '**'))
+    const normalizedDir = pathToPosix(path.join(dir, '**'))
     return globby(normalizedDir, { onlyFiles: false, onlyDirectories: true })
   }
 
 export const getFilesInDir =
   (dir: string): T.Task<string[]> =>
   () => {
-    const normalizedDir = normalizePossiblyWindowsDir(path.join(dir, '**'))
+    const normalizedDir = pathToPosix(path.join(dir, '**'))
     return globby(normalizedDir, { onlyFiles: true, onlyDirectories: false })
   }
 

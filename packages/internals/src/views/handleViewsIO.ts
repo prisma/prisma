@@ -9,11 +9,11 @@ import {
   createDirIfNotExists,
   getFilesInDir,
   getFoldersInDir,
-  normalizePossiblyWindowsDir,
   removeDir,
   removeFile,
   writeFile,
 } from '../utils/fs-functional'
+import { pathToPosix } from '../utils/path'
 
 export interface IntrospectionViewDefinition {
   // The database or schema where the view is located
@@ -38,7 +38,7 @@ type HandleViewsIOParams = {
  * These files and folders are deleted silently.
  */
 export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams): Promise<void> {
-  const prismaDir = path.dirname(normalizePossiblyWindowsDir(schemaPath))
+  const prismaDir = path.dirname(pathToPosix(schemaPath))
   const viewsDir = path.posix.join(prismaDir, 'views')
 
   // collect the newest view definitions

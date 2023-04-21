@@ -1,5 +1,6 @@
 import { enginesVersion } from '@prisma/engines-version'
 import { getPlatform } from '@prisma/get-platform'
+import { pathToPosix } from '@prisma/internals'
 import del from 'del'
 import fs from 'fs'
 import path from 'path'
@@ -12,7 +13,7 @@ import { getFiles } from './__utils__/getFiles'
 const CURRENT_ENGINES_HASH = enginesVersion
 console.debug({ CURRENT_ENGINES_HASH })
 const FIXED_ENGINES_HASH = 'eac182fd33c63959a61946df56831625a9a39627'
-const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
+const dirname = pathToPosix(__dirname)
 
 // Network can be slow, especially for macOS in CI.
 jest.setTimeout(300_000)

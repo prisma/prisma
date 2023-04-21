@@ -1,3 +1,4 @@
+import { pathToPosix } from '@prisma/internals'
 import path from 'path'
 
 /**
@@ -43,8 +44,8 @@ const regularDirname = hasDirname && fs.existsSync(path.join(__dirname, 'schema.
 
 // if the client has been bundled, we need to look for the folders
 const foundDirname = !regularDirname && findSync(process.cwd(), [
-    ${defaultRelativeOutdir ? `${JSON.stringify(defaultRelativeOutdir)},` : ''}
-    ${serverlessRelativeOutdir ? `${JSON.stringify(serverlessRelativeOutdir)},` : ''}
+    ${defaultRelativeOutdir ? `${JSON.stringify(pathToPosix(defaultRelativeOutdir))},` : ''}
+    ${serverlessRelativeOutdir ? `${JSON.stringify(pathToPosix(serverlessRelativeOutdir))},` : ''}
 ], ['d'], ['d'], 1)[0]
 
 const dirname = regularDirname || foundDirname || __dirname`
