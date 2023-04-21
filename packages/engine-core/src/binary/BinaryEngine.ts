@@ -456,7 +456,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
     const startFn = async () => {
       if (!this.startPromise) {
         this.startCount++
-        this.startPromise = this.internalStart()
+        this.startPromise = pRetry(() => this.internalStart(), {
+          retries: 5,
+        })
       }
 
       await this.startPromise
