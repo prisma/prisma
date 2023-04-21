@@ -3,7 +3,6 @@ module.exports = {
     '^.+\\.(m?j|t)s$': '@swc/jest',
   },
   transformIgnorePatterns: [],
-  maxWorkers: process.env.CI ? '1' : '100%',
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],
