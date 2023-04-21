@@ -457,7 +457,9 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       if (!this.startPromise) {
         this.startCount++
         this.startPromise = pRetry(() => this.internalStart(), {
+          factor: 1,
           retries: 5,
+          minTimeout: 0,
         })
       }
 
