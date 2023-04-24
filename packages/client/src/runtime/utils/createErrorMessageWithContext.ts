@@ -24,11 +24,11 @@ type Colors = {
 }
 
 const colorsEnabled: Colors = {
-  red: (str) => red(str),
-  gray: (str) => gray(str),
-  dim: (str) => dim(str),
-  bold: (str) => bold(str),
-  underline: (str) => underline(str),
+  red,
+  gray,
+  dim,
+  bold,
+  underline,
   highlightSource: (source) => source.highlight(),
 }
 
