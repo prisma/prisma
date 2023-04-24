@@ -1115,9 +1115,6 @@ describe('postgresql views re-introspection warnings', () => {
         // These views were enriched with \`@@map\` information taken from the previous Prisma schema:
         //   - Renamedif
         // 
-        // These views were enriched with \`@@map\` information taken from the previous Prisma schema:
-        //   - Renamedif
-        // 
       `)
       expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
