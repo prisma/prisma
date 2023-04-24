@@ -27,13 +27,13 @@ export class ArrayValue extends Value {
   private writeEmpty(writer: ErrorWriter) {
     const output = new FormattedString('[]')
     if (this.hasError) {
-      output.setColor(writer.context.chalk.redBright).underline()
+      output.setColor(writer.context.colors.red).underline()
     }
     writer.write(output)
   }
 
   private writeWithItems(writer: ErrorWriter) {
-    const { chalk } = writer.context
+    const { colors } = writer.context
 
     writer
       .writeLine('[')
@@ -42,7 +42,7 @@ export class ArrayValue extends Value {
 
     if (this.hasError) {
       writer.afterNextNewline(() => {
-        writer.writeLine(chalk.redBright('~'.repeat(this.getPrintWidth())))
+        writer.writeLine(colors.red('~'.repeat(this.getPrintWidth())))
       })
     }
   }

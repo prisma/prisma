@@ -1,8 +1,8 @@
-import chalk from 'chalk'
+import { underline } from 'kleur/colors'
 import terminalLink from 'terminal-link'
 
 export function link(url): string {
   return terminalLink(url, url, {
-    fallback: (url) => chalk.underline(url),
+    fallback: (url) => underline(url),
   })
 }

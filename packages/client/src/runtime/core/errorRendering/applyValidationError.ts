@@ -15,11 +15,11 @@ import {
   ValueTooLargeError,
 } from '@prisma/engine-core'
 import { maxBy } from '@prisma/internals'
-import chalk from 'chalk'
 import levenshtein from 'js-levenshtein'
 
 import { IncludeAndSelectError, IncludeOnScalarError, ValidationError } from '../types/ValidationError'
 import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
+import { Colors } from './base'
 import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
 import { ObjectValue } from './ObjectValue'
 import { ScalarValue } from './ScalarValue'
@@ -87,10 +87,10 @@ function applyIncludeAndSelectError(error: IncludeAndSelectError, argsTree: Argu
   }
 
   argsTree.addErrorMessage(
-    (chalk) =>
-      `Please ${chalk.bold('either')} use ${chalk.greenBright('`include`')} or ${chalk.greenBright(
+    (colors) =>
+      `Please ${colors.bold('either')} use ${colors.green('`include`')} or ${colors.green(
         '`select`',
-      )}, but ${chalk.redBright('not both')} at the same time.`,
+      )}, but ${colors.red('not both')} at the same time.`,
   )
 }
 
@@ -111,15 +111,15 @@ function applyIncludeOnScalarError(error: IncludeOnScalarError, argsTree: Argume
     }
   }
 
-  argsTree.addErrorMessage((chalk) => {
-    let msg = `Invalid scalar field ${chalk.redBright(`\`${field}\``)} for ${chalk.bold('include')} statement`
+  argsTree.addErrorMessage((colors) => {
+    let msg = `Invalid scalar field ${colors.red(`\`${field}\``)} for ${colors.bold('include')} statement`
     if (outputType) {
-      msg += ` on model ${chalk.bold(outputType.name)}. ${availableOptionsMessage(chalk)}`
+      msg += ` on model ${colors.bold(outputType.name)}. ${availableOptionsMessage(colors)}`
     } else {
       msg += '.'
     }
 
-    msg += `\nNote that ${chalk.bold('include')} statements only accept relation fields.`
+    msg += `\nNote that ${colors.bold('include')} statements only accept relation fields.`
     return msg
   })
 }
@@ -164,13 +164,13 @@ function applyEmptySelectionError(error: EmptySelectionError, argsTree: Argument
     addSelectionSuggestions(selection, outputType)
   }
 
-  argsTree.addErrorMessage((chalk) => {
+  argsTree.addErrorMessage((colors) => {
     if (isEmpty) {
-      return `The ${chalk.red('`select`')} statement for type ${chalk.bold(
+      return `The ${colors.red('`select`')} statement for type ${colors.bold(
         outputType.name,
-      )} must not be empty. ${availableOptionsMessage(chalk)}`
+      )} must not be empty. ${availableOptionsMessage(colors)}`
     }
-    return `The ${chalk.red('`select`')} statement for type ${chalk.bold(outputType.name)} needs ${chalk.bold(
+    return `The ${colors.red('`select`')} statement for type ${colors.bold(outputType.name)} needs ${colors.bold(
       'at least one truthy value',
     )}.`
   })
@@ -185,13 +185,13 @@ function applyUnknownSelectionFieldError(error: UnknownSelectionFieldError, args
     addSelectionSuggestions(selectionParent.value, error.outputType)
   }
 
-  argsTree.addErrorMessage((chalk) => {
-    const parts = [`Unknown field ${chalk.redBright(`\`${fieldName}\``)}`]
+  argsTree.addErrorMessage((colors) => {
+    const parts = [`Unknown field ${colors.red(`\`${fieldName}\``)}`]
     if (selectionParent) {
-      parts.push(`for ${chalk.bold(selectionParent.kind)} statement`)
+      parts.push(`for ${colors.bold(selectionParent.kind)} statement`)
     }
-    parts.push(`on model ${chalk.bold(`\`${error.outputType.name}\``)}.`)
-    parts.push(availableOptionsMessage(chalk))
+    parts.push(`on model ${colors.bold(`\`${error.outputType.name}\``)}.`)
+    parts.push(availableOptionsMessage(colors))
     return parts.join(' ')
   })
 }
@@ -205,9 +205,9 @@ function applyUnknownArgumentError(error: UnknownArgumentError, argsTree: Argume
     addArgumentsSuggestions(selection, error.arguments)
   }
 
-  argsTree.addErrorMessage((chalk) =>
+  argsTree.addErrorMessage((colors) =>
     unknownArgumentMessage(
-      chalk,
+      colors,
       argName,
       error.arguments.map((arg) => arg.name),
     ),
@@ -226,32 +226,32 @@ function applyUnknownInputFieldError(error: UnknownInputFieldError, argsTree: Ar
     }
   }
 
-  argsTree.addErrorMessage((chalk) =>
+  argsTree.addErrorMessage((colors) =>
     unknownArgumentMessage(
-      chalk,
+      colors,
       argName,
       error.inputType.fields.map((f) => f.name),
     ),
   )
 }
 
-function unknownArgumentMessage(chalk: chalk.Chalk, argName: string, options: string[]) {
-  const parts = [`Unknown argument \`${chalk.redBright(argName)}\`.`]
+function unknownArgumentMessage(colors: Colors, argName: string, options: string[]) {
+  const parts = [`Unknown argument \`${colors.red(argName)}\`.`]
   const suggestion = getSuggestion(argName, options)
 
   if (suggestion) {
-    parts.push(`Did you mean \`${chalk.greenBright(suggestion)}\`?`)
+    parts.push(`Did you mean \`${colors.green(suggestion)}\`?`)
   }
 
   if (options.length > 0) {
-    parts.push(availableOptionsMessage(chalk))
+    parts.push(availableOptionsMessage(colors))
   }
 
   return parts.join(' ')
 }
 
 function applyRequiredArgumentMissingError(error: RequiredArgumentMissingError, args: ArgumentsRenderingTree) {
-  args.addErrorMessage((chalk) => `Argument \`${chalk.greenBright(argumentName)}\` is missing.`)
+  args.addErrorMessage((colors) => `Argument \`${colors.green(argumentName)}\` is missing.`)
   const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
   if (!(selection instanceof ObjectValue)) {
     return
@@ -290,15 +290,15 @@ function applyInvalidArgumentTypeError(error: InvalidArgumentTypeError, args: Ar
     selection.getDeepFieldValue(error.argumentPath)?.markAsError()
   }
 
-  args.addErrorMessage((chalk) => {
+  args.addErrorMessage((colors) => {
     const expected = joinWithPreposition(
       'or',
-      error.argument.typeNames.map((type) => chalk.greenBright(type)),
+      error.argument.typeNames.map((type) => colors.green(type)),
     )
     // TODO: print value
-    return `Argument \`${chalk.bold(
-      argName,
-    )}\`: Invalid value provided. Expected ${expected}, provided ${chalk.redBright(error.inferredType)}.`
+    return `Argument \`${colors.bold(argName)}\`: Invalid value provided. Expected ${expected}, provided ${colors.red(
+      error.inferredType,
+    )}.`
   })
 }
 
@@ -309,12 +309,12 @@ function applyInvalidArgumentValueError(error: InvalidArgumentValueError, args: 
     selection.getDeepFieldValue(error.argumentPath)?.markAsError()
   }
 
-  args.addErrorMessage((chalk) => {
+  args.addErrorMessage((colors) => {
     const expected = joinWithPreposition(
       'or',
-      error.argument.typeNames.map((type) => chalk.greenBright(type)),
+      error.argument.typeNames.map((type) => colors.green(type)),
     )
-    return `Invalid value for argument \`${chalk.bold(argName)}\`: ${error.underlyingError}. Expected ${expected}.`
+    return `Invalid value for argument \`${colors.bold(argName)}\`: ${error.underlyingError}. Expected ${expected}.`
   })
 }
 
@@ -331,12 +331,12 @@ function applyValueTooLargeError(error: ValueTooLargeError, args: ArgumentsRende
     }
   }
 
-  args.addErrorMessage((chalk) => {
+  args.addErrorMessage((colors) => {
     const parts: string[] = ['Unable to fit value']
     if (printedValue) {
-      parts.push(chalk.redBright(printedValue))
+      parts.push(colors.red(printedValue))
     }
-    parts.push(`into a 64-bit signed integer for field \`${chalk.bold(argName)}\``)
+    parts.push(`into a 64-bit signed integer for field \`${colors.bold(argName)}\``)
 
     return parts.join(' ')
   })
@@ -352,23 +352,23 @@ function applySomeFieldsMissingError(error: SomeFieldsMissingError, args: Argume
     }
   }
 
-  args.addErrorMessage((chalk) => {
-    const parts = [`Argument \`${chalk.bold(argumentName)}\` of type ${chalk.bold(error.inputType.name)} needs`]
+  args.addErrorMessage((colors) => {
+    const parts = [`Argument \`${colors.bold(argumentName)}\` of type ${colors.bold(error.inputType.name)} needs`]
     if (error.constraints.minFieldCount === 1) {
       if (error.constraints.requiredFields) {
         parts.push(
-          `${chalk.greenBright('at least one of')} ${joinWithPreposition(
+          `${colors.green('at least one of')} ${joinWithPreposition(
             'or',
-            error.constraints.requiredFields.map((f) => `\`${chalk.bold(f)}\``),
+            error.constraints.requiredFields.map((f) => `\`${colors.bold(f)}\``),
           )} arguments.`,
         )
       } else {
-        parts.push(`${chalk.greenBright('at least one')} argument.`)
+        parts.push(`${colors.green('at least one')} argument.`)
       }
     } else {
-      parts.push(`${chalk.greenBright(`at least ${error.constraints.minFieldCount}`)} arguments.`)
+      parts.push(`${colors.green(`at least ${error.constraints.minFieldCount}`)} arguments.`)
     }
-    parts.push(availableOptionsMessage(chalk))
+    parts.push(availableOptionsMessage(colors))
     return parts.join(' ')
   })
 }
@@ -385,20 +385,20 @@ function applyTooManyFieldsGivenError(error: TooManyFieldsGivenError, args: Argu
     }
   }
 
-  args.addErrorMessage((chalk) => {
-    const parts = [`Argument \`${chalk.bold(argumentName)}\` of type ${chalk.bold(error.inputType.name)} needs`]
+  args.addErrorMessage((colors) => {
+    const parts = [`Argument \`${colors.bold(argumentName)}\` of type ${colors.bold(error.inputType.name)} needs`]
     if (error.constraints.minFieldCount === 1 && error.constraints.maxFieldCount == 1) {
-      parts.push(`${chalk.greenBright('exactly one')} argument,`)
+      parts.push(`${colors.green('exactly one')} argument,`)
     } else if (error.constraints.maxFieldCount == 1) {
-      parts.push(`${chalk.greenBright('at most one')} argument,`)
+      parts.push(`${colors.green('at most one')} argument,`)
     } else {
-      parts.push(`${chalk.greenBright(`at most ${error.constraints.maxFieldCount}`)} arguments,`)
+      parts.push(`${colors.green(`at most ${error.constraints.maxFieldCount}`)} arguments,`)
     }
 
     parts.push(
       `but you provided ${joinWithPreposition(
         'and',
-        providedArguments.map((arg) => chalk.redBright(arg)),
+        providedArguments.map((arg) => colors.red(arg)),
       )}. Please choose`,
     )
 
@@ -517,8 +517,8 @@ function splitPath(path: string[]): [parentPath: string[], fieldName: string] {
   return [selectionPath, fieldName]
 }
 
-function availableOptionsMessage(chalk: chalk.Chalk) {
-  return `Available options are listed in ${chalk.greenBright('green')}.`
+function availableOptionsMessage({ green }: Colors) {
+  return `Available options are listed in ${green('green')}.`
 }
 
 function joinWithPreposition(preposition: 'and' | 'or', items: string[]): string {

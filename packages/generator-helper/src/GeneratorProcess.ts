@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
-import chalk from 'chalk'
 import type { ChildProcessByStdio } from 'child_process'
 import { fork } from 'child_process'
 import { spawn } from 'cross-spawn'
+import { bold } from 'kleur/colors'
 
 import byline from './byline'
 import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
@@ -89,7 +89,7 @@ export class GeneratorProcess {
           if (err.message.includes('EACCES')) {
             reject(
               new Error(
-                `The executable at ${this.executablePath} lacks the right chmod. Please use ${chalk.bold(
+                `The executable at ${this.executablePath} lacks the right chmod. Please use ${bold(
                   `chmod +x ${this.executablePath}`,
                 )}`,
               ),

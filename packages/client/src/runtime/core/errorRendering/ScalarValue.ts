@@ -14,7 +14,7 @@ export class ScalarValue extends Value {
   override write(writer: ErrorWriter): void {
     const string = new FormattedString(this.text)
     if (this.hasError) {
-      string.underline().setColor(writer.context.chalk.redBright)
+      string.underline().setColor(writer.context.colors.red)
     }
     writer.write(string)
   }

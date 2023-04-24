@@ -3,7 +3,6 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
-  createSpinner,
   drawBox,
   format,
   formatms,
@@ -29,6 +28,7 @@ import { printDatasource } from '../utils/printDatasource'
 import type { ConnectorType } from '../utils/printDatasources'
 import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
+import { createSpinner } from '../utils/spinner'
 
 const debug = Debug('prisma:db:pull')
 
