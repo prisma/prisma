@@ -272,7 +272,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
     const before = Date.now()
     let introspectionSchema = ''
-    let introspectionWarnings: EngineArgs.IntrospectionWarnings[]
+    let introspectionWarnings: EngineArgs.IntrospectResult['warnings']
     let introspectionSchemaVersion: EngineArgs.IntrospectionSchemaVersion
     try {
       const introspectionResult = await engine.introspect({
@@ -284,7 +284,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
-      debug(`Introspection warnings`, JSON.stringify(introspectionResult.warnings, null, 2))
+      debug(`Introspection warnings`, introspectionWarnings)
       introspectionSchemaVersion = introspectionResult.version
       debug(`Introspection Schema Version: ${introspectionResult.version}`)
     } catch (e: any) {
@@ -359,7 +359,7 @@ Or run this command with the ${chalk.green(
       throw e
     }
 
-    const introspectionWarningsMessage = this.getWarningMessage(introspectionWarnings) || ''
+    const introspectionWarningsMessage = this.getWarningMessage(introspectionWarnings)
 
     const prisma1UpgradeMessage = introspectionSchemaVersion.includes('Prisma1')
       ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2+?')}
@@ -426,169 +426,12 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
     return ''
   }
 
-  private getWarningMessage(warnings: EngineArgs.IntrospectionWarnings[]): string | undefined {
-    if (warnings.length > 0) {
-      let message = `\n*** WARNING ***\n`
-
-      for (const warning of warnings) {
-        message += `\n${warning.message}\n`
-
-        if (warning.code === 0) {
-          // * affected === null
-        } else if (
-          // * AffectedModel but different
-          warning.code === 1
-        ) {
-          message += warning.affected.map((it) => `- "${it.model}"`).join('\n')
-        } else if (
-          // * AffectedModelAndField
-          warning.code === 2
-        ) {
-          const modelsGrouped: {
-            [key: string]: string[]
-          } = warning.affected.reduce((acc, it) => {
-            if (!acc[it.model]) {
-              acc[it.model] = []
-            }
-            acc[it.model].push(it.field)
-            return acc
-          }, {})
-          message += Object.entries(modelsGrouped)
-            .map(([model, fields]) => `- Model: "${model}"\n  Field(s): "${fields.join('", "')}"`)
-            .join('\n')
-        } else if (
-          // * AffectedModelAndFieldAndType
-          warning.code === 3
-        ) {
-          message += warning.affected
-            .map((it) => `- Model "${it.model}", field: "${it.field}", original data type: "${it.tpe}"`)
-            .join('\n')
-        } else if (
-          // * AffectedEnumAndValue
-          warning.code === 4
-        ) {
-          message += warning.affected.map((it) => `- Enum "${it.enm}", value: "${it.value}"`).join('\n')
-        } else if (
-          // * AffectedModelAndField
-          warning.code === 5 ||
-          warning.code === 6 ||
-          warning.code === 8
-        ) {
-          message += warning.affected.map((it) => `- Model "${it.model}", field: "${it.field}"`).join('\n')
-        } else if (
-          // * AffectedModel
-          warning.code === 7 ||
-          warning.code === 14 ||
-          warning.code === 18 ||
-          warning.code === 19 ||
-          warning.code === 27 ||
-          warning.code === 30 ||
-          warning.code === 31
-        ) {
-          message += warning.affected.map((it) => `- Model "${it.model}"`).join('\n')
-        } else if (
-          // * AffectedModelAndConstraint
-          warning.code === 35
-        ) {
-          message += warning.affected.map((it) => `- Model "${it.model}", Constraint "${it.constraint}"`).join('\n')
-        } else if (
-          // * AffectedTopLevel
-          warning.code === 20
-        ) {
-          message += warning.affected
-            .map((it) => {
-              return `- ${it.type} "${it.name}"`
-            })
-            .join('\n')
-        } else if (
-          // * AffectedEnum
-          warning.code === 9 ||
-          warning.code === 10
-        ) {
-          message += warning.affected.map((it) => `- Enum "${it.enm}"`).join('\n')
-        } else if (
-          // * AffectedModelAndIndex
-          warning.code === 17
-        ) {
-          message += warning.affected
-            .map((it) => `- Model "${it.model}", Index db name: "${it.index_db_name}"`)
-            .join('\n')
-        } else if (
-          // * AffectedViewAndFieldAndType
-          warning.code === 21
-        ) {
-          message += warning.affected
-            .map((it) => `- View "${it.view}", Field: "${it.field}", Type: "${it.tpe}"`)
-            .join('\n')
-        } else if (
-          // * AffectedViewAndField
-          [22, 26].includes(warning.code)
-        ) {
-          message += warning.affected.map((it) => `- View "${it.view}", Field: "${it.field}"`).join('\n')
-        } else if (
-          // *  AffectedView
-          [23, 24, 25].includes(warning.code)
-        ) {
-          message += warning.affected.map((it) => `- View "${it.view}"`).join('\n')
-        } else if (
-          // * AffectedIndex
-          warning.code === 29
-        ) {
-          message += warning.affected.map((it) => `- Index "${it.indexName}", Column "${it.columnName}"`).join('\n')
-        } else if (warning.code === 36) {
-          // * AffectedObject
-          message += warning.affected.map((it) => `- Type "${it.type}", Name "${it.name}"`).join('\n')
-        } else if (
-          // * AffectedModelOrCompositeTypeAndFieldAndType
-          warning.code === 101
-        ) {
-          message += warning.affected
-            .map((it) => {
-              if (it.model) {
-                return `- Model "${it.model}", field: "${it.field}", chosen data type: "${it.tpe}"`
-              } else if (it.compositeType) {
-                return `- Type "${it.compositeType}", field: "${it.field}", chosen data type: "${it.tpe}"`
-              } else {
-                return `Code ${warning.code} - Properties model or compositeType don't exist in ${JSON.stringify(
-                  warning.affected,
-                  null,
-                  2,
-                )}`
-              }
-            })
-            .join('\n')
-        } else if (
-          // * AffectedModelOrCompositeTypeAndField
-          warning.code === 102 ||
-          warning.code === 103 ||
-          warning.code === 104
-        ) {
-          message += warning.affected
-            .map((it) => {
-              if (it.model) {
-                return `- Model "${it.model}", field: "${it.field}"`
-              } else if (it.compositeType) {
-                return `- Type "${it.compositeType}", field: "${it.field}"`
-              } else {
-                return `Code ${warning.code} - Properties model or compositeType don't exist in ${JSON.stringify(
-                  warning.affected,
-                  null,
-                  2,
-                )}`
-              }
-            })
-            .join('\n')
-        } else if (warning.affected) {
-          // Output unhandled warning
-          message += `Code ${warning.code}\n${JSON.stringify(warning.affected, null, 2)}`
-        }
-
-        message += `\n`
-      }
-      return message
+  private getWarningMessage(warnings: EngineArgs.IntrospectResult['warnings']): string {
+    if (warnings) {
+      return `\n${warnings}`
     }
 
-    return undefined
+    return ''
   }
 
   public help(error?: string): string | HelpError {
