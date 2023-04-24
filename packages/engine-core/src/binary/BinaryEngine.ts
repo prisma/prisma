@@ -453,14 +453,24 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
       await this.stopPromise
     }
 
+    const retries = { times: 10 }
+    const retryInternalStart = async () => {
+      try {
+        await this.internalStart()
+      } catch (e) {
+        if (e.retryable === true && retries.times > 0) {
+          retries.times--
+          await retryInternalStart()
+        }
+
+        throw e
+      }
+    }
+
     const startFn = async () => {
       if (!this.startPromise) {
         this.startCount++
-        this.startPromise = pRetry(() => this.internalStart(), {
-          factor: 1,
-          retries: 5,
-          minTimeout: 0,
-        })
+        this.startPromise = retryInternalStart()
       }
 
       await this.startPromise
@@ -641,7 +651,7 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
 
           // don't error in restarts
           if (code !== 0 && this.engineStartDeferred && this.startCount === 1) {
-            let err
+            let err: PrismaClientInitializationError
             let msg = this.stderrLogs
             // get the message from the last error
             if (this.lastError) {
@@ -652,12 +662,14 @@ ${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
                 `Query engine exited with code ${code}\n` + msg,
                 this.clientVersion!,
               )
+              err.retryable = true
             } else if (this.child?.signalCode) {
               err = new PrismaClientInitializationError(
                 `Query engine process killed with signal ${this.child.signalCode} for unknown reason.
 Make sure that the engine binary at ${prismaPath} is not corrupt.\n` + msg,
                 this.clientVersion!,
               )
+              err.retryable = true
             } else {
               err = new PrismaClientInitializationError(msg, this.clientVersion!)
             }
