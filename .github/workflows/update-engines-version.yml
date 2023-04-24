@@ -84,7 +84,7 @@ jobs:
       - name: Create Pull Request
         id: cpr
         if: github.event.inputs.npmDistTag == 'latest'
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
@@ -130,7 +130,7 @@ jobs:
       - name: Create Pull Request for Integration Engine
         id: cpr-integration
         if: github.event.inputs.npmDistTag == 'integration'
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
@@ -172,7 +172,7 @@ jobs:
       - name: Create Pull Request for Patch Engine
         id: cpr-patch
         if: github.event.inputs.npmDistTag == 'patch'
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
