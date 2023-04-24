@@ -2132,7 +2132,6 @@ describe('postgresql', () => {
     expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  // TODO: fix spacing
   test('introspection works with directUrl from env var', async () => {
     ctx.fixture('schema-only-data-proxy')
     const result = DbPull.new().parse(['--schema', 'with-directUrl-env.prisma'])
@@ -2150,7 +2149,7 @@ describe('postgresql', () => {
       - Introspecting based on datasource defined in with-directUrl-env.prisma
 
       ✔ Introspected 2 models and wrote them into with-directUrl-env.prisma in XXXms
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          
+            
       Run prisma generate to generate Prisma Client.
 
     `)
