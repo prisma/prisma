@@ -31,7 +31,7 @@ function buildDirnameFind(relativeOutdir: string) {
 const fs = require('fs')
 
 let dirname = __dirname
-if (!fs.existsSync(path.join(__dirname, 'schema.prisma')) {
+if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
   dirname = path.join(process.cwd(), ${JSON.stringify(relativeOutdir)}
 }`
 }
