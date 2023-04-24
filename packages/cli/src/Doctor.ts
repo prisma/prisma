@@ -14,9 +14,9 @@ import {
   pick,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint, MigrateEngine } from '@prisma/migrate'
-import chalk from 'chalk'
 import equal from 'fast-deep-equal'
 import fs from 'fs'
+import { bold, dim, green, red, underline } from 'kleur/colors'
 import path from 'path'
 import { promisify } from 'util'
 
@@ -34,22 +34,22 @@ export class Doctor implements Command {
   private static help = format(`
 Check, if the schema and the database are in sync.
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma doctor [options]
+  ${dim('$')} prisma doctor [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   With an existing schema.prisma
-    ${chalk.dim('$')} prisma doctor
+    ${dim('$')} prisma doctor
 
   Or specify a schema
-    ${chalk.dim('$')} prisma doctor --schema=./schema.prisma
+    ${dim('$')} prisma doctor --schema=./schema.prisma
 
   `)
 
@@ -154,7 +154,7 @@ ${chalk.bold('Examples')}
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Doctor.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Doctor.help}`)
     }
     return Doctor.help
   }
@@ -174,21 +174,21 @@ function printModelMessage({
   if (!missingModel && missingFields.length === 0 && incorrectFieldType.length === 0) {
     return null
   }
-  let msg = `${chalk.bold.underline(model.name)}\n`
+  let msg = `${bold(underline(model.name))}\n`
   if (missingModel) {
     msg += `↪ Model is missing in database\n`
   }
 
   for (const field of missingFields) {
-    msg += `↪ Field ${chalk.bold(field.name)} is missing in database\n`
+    msg += `↪ Field ${bold(field.name)} is missing in database\n`
   }
 
   for (const { localField, remoteField } of incorrectFieldType) {
     const printFieldType = (f: DMMF.Field) => f.type + (f.isList ? '[]' : '')
 
-    msg += `↪ Field ${localField.name} has type ${chalk.greenBright(
-      printFieldType(localField),
-    )} locally, but ${chalk.redBright(printFieldType(remoteField))} remote\n`
+    msg += `↪ Field ${localField.name} has type ${green(printFieldType(localField))} locally, but ${red(
+      printFieldType(remoteField),
+    )} remote\n`
   }
 
   return msg
