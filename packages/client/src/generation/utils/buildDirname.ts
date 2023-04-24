@@ -1,5 +1,3 @@
-import path from 'path'
-
 /**
  * Builds a `dirname` variable that holds the location of the generated client.
  * @param edge
@@ -24,32 +22,19 @@ export function buildDirname(edge: boolean, relativeOutdir: string) {
  * moved and copied out of its original spot. It all fails, it falls-back to
  * `findSync`, when `__dirname` is not available (eg. bundle, electron) or
  * nothing has been found around `__dirname`.
- * @param defaultRelativeOutdir
+ * @param relativeOutdir
  * @param runtimePath
  * @returns
  */
-function buildDirnameFind(defaultRelativeOutdir: string) {
-  // potential client location on serverless envs
-  const serverlessRelativeOutdir = defaultRelativeOutdir.split(path.sep).slice(1).join(path.sep)
-
+function buildDirnameFind(relativeOutdir: string) {
   return `
 const fs = require('fs')
 
-// some frameworks or bundlers replace or totally remove __dirname
-const hasDirname = typeof __dirname !== 'undefined' && __dirname !== '/'
-
-// will work in most cases, ie. if the client has not been bundled
-const regularDirname = hasDirname && fs.existsSync(path.join(__dirname, 'schema.prisma')) && __dirname
-
-// if the client has been bundled, we need to look for the folders
-const foundDirname = !regularDirname && findSync(process.cwd(), [
-    ${defaultRelativeOutdir ? `${JSON.stringify(defaultRelativeOutdir)},` : ''}
-    ${serverlessRelativeOutdir ? `${JSON.stringify(serverlessRelativeOutdir)},` : ''}
-], ['d'], ['d'], 1)[0]
-
-const dirname = regularDirname || foundDirname || __dirname`
+let dirname = __dirname
+if (!fs.existsSync(path.join(__dirname, 'schema.prisma')) {
+  dirname = path.join(process.cwd(), ${JSON.stringify(relativeOutdir)}
+}`
 }
-// TODO: 👆 all this complexity could fade away if we embed the schema
 
 /**
  * Builds a simple `dirname` for when it is not important to have one.
