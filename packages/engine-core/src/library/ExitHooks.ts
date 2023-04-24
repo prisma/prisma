@@ -1,4 +1,5 @@
 import Debug from '@prisma/debug'
+import os from 'os'
 
 export type BeforeExitListener = () => Promise<void> | void
 
@@ -48,8 +49,8 @@ export class ExitHooks {
     return this.idToListenerMap.get(id)
   }
 
-  private installHook(event: string, shouldExit = false) {
-    process.once(event, async (code) => {
+  private installHook(event: 'beforeExit' | 'exit' | NodeJS.Signals, shouldExit = false) {
+    const exitLikeHook = async (exitCode: number) => {
       debug(`exit event received: ${event}`)
       for (const listener of this.idToListenerMap.values()) {
         await listener()
@@ -60,8 +61,33 @@ export class ExitHooks {
       // only exit, if only we are listening
       // if there is another listener, that other listener is responsible
       if (shouldExit && process.listenerCount(event) === 0) {
-        process.exit(code)
+        process.exit(exitCode)
       }
-    })
+    }
+
+    /**
+     * Register `exitLikeHook` as a listener for the given event.
+     */
+    if (isSignal(event)) {
+      process.once(event, async (signal) => {
+        // the usual way to exit with a signal is to add 128 to the signal number
+        const exitCode = os.constants.signals[signal] + 128
+        await exitLikeHook(exitCode)
+      })
+    } else {
+      // Note: TypeScript isn't able to narrow type arguments on overloaded functions.
+      process.once(event as any, exitLikeHook)
+    }
   }
+}
+
+function isSignal<EventName extends string, SignalLike extends Capitalize<string>>(
+  eventOrSignal: NodeJS.Signals | EventName,
+): eventOrSignal is SignalLike & NodeJS.Signals {
+  // Here's a quick way of checking if the given argument is a signal, as the signal names are all uppercase,
+  // whereas the other events are in camelCase, so they start with a lowercase letter.
+  // The alternative would be comparing the event against `Object.keys(os.constants.signals)` (or a Set thereof),
+  // which would be slower and require more memory allocations.
+  const firstChar = eventOrSignal[0]
+  return firstChar.toUpperCase() === firstChar
 }
