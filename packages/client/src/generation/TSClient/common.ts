@@ -62,6 +62,7 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Extensions,
+  warnOnce,
 } = require('${runtimeDir}/${runtimeName}')
 `
 }

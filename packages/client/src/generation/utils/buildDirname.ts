@@ -32,6 +32,9 @@ const fs = require('fs')
 
 let dirname = __dirname
 if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
+  warnOnce('bundled-warning-1', 'Prisma Client could not immediately find its \`schema.prisma\`, falling back to finding it in the current working directory.')
+  warnOnce('bundled-warning-2', 'We are interested in learning more about your setup, we'd appreciate if you could take some time to share some information here.')
+  warnOnce('bundled-warning-3', '👉 https://github.com/prisma/prisma/issues/new?template=bundling_investigation.md')
   dirname = path.join(process.cwd(), ${JSON.stringify(relativeOutdir)})
 }`
 }
