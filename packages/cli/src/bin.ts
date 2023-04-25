@@ -19,7 +19,7 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import chalk from 'chalk'
+import { bold, green, red, yellow } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
@@ -65,11 +65,9 @@ process.once('SIGINT', () => {
 
 if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
   console.log(
-    chalk.yellow('deprecated') +
-      `  The ${chalk.redBright('prisma2')} command is deprecated and has been renamed to ${chalk.greenBright(
-        'prisma',
-      )}.\nPlease execute ${chalk.bold.greenBright(
-        'prisma' + (commandArray.length ? ' ' + commandArray.join(' ') : ''),
+    yellow('deprecated') +
+      `  The ${red('prisma2')} command is deprecated and has been renamed to ${green('prisma')}.\nPlease execute ${bold(
+        green('prisma' + (commandArray.length ? ' ' + commandArray.join(' ') : '')),
       )} instead.\n`,
   )
 }
@@ -87,11 +85,6 @@ const args = arg(
 
 // Redact the command options and make it a string
 const redactedCommandAsString = redactCommandArray([...commandArray]).join(' ')
-
-// because chalk ...
-if (process.env.NO_COLOR) {
-  chalk.level = 0
-}
 
 const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
@@ -220,9 +213,9 @@ function handleIndividualError(error: Error): void {
     })
       .catch((e) => {
         if (Debug.enabled('prisma')) {
-          console.error(chalk.redBright.bold('Error: ') + e.stack)
+          console.error(bold(red('Error: ')) + e.stack)
         } else {
-          console.error(chalk.redBright.bold('Error: ') + e.message)
+          console.error(bold(red('Error: ')) + e.message)
         }
       })
       .finally(() => {
@@ -230,9 +223,9 @@ function handleIndividualError(error: Error): void {
       })
   } else {
     if (Debug.enabled('prisma')) {
-      console.error(chalk.redBright.bold('Error: ') + error.stack)
+      console.error(bold(red('Error: ')) + error.stack)
     } else {
-      console.error(chalk.redBright.bold('Error: ') + error.message)
+      console.error(bold(red('Error: ')) + error.message)
     }
     process.exit(1)
   }

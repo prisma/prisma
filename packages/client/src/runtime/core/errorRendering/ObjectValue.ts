@@ -174,7 +174,7 @@ export class ObjectValue extends Value {
   private writeEmpty(writer: ErrorWriter) {
     const output = new FormattedString('{}')
     if (this.hasError) {
-      output.setColor(writer.context.chalk.redBright).underline()
+      output.setColor(writer.context.colors.red).underline()
     }
 
     writer.write(output)
@@ -188,7 +188,7 @@ export class ObjectValue extends Value {
     writer.write('}')
     if (this.hasError) {
       writer.afterNextNewline(() => {
-        writer.writeLine(writer.context.chalk.redBright('~'.repeat(this.getPrintWidth())))
+        writer.writeLine(writer.context.colors.red('~'.repeat(this.getPrintWidth())))
       })
     }
   }

@@ -3,7 +3,6 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
-  createSpinner,
   drawBox,
   format,
   formatms,
@@ -16,8 +15,8 @@ import {
   loadEnvFile,
   protocolToConnectorType,
 } from '@prisma/internals'
-import chalk from 'chalk'
 import fs from 'fs'
+import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 import { match } from 'ts-pattern'
 
@@ -29,6 +28,7 @@ import { printDatasource } from '../utils/printDatasource'
 import type { ConnectorType } from '../utils/printDatasources'
 import { printDatasources } from '../utils/printDatasources'
 import { removeDatasource } from '../utils/removeDatasource'
+import { createSpinner } from '../utils/spinner'
 
 const debug = Debug('prisma:db:pull')
 
@@ -40,39 +40,39 @@ export class DbPull implements Command {
   private static help = format(`
 Pull the state from the database to the Prisma schema using introspection
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma db pull [flags/options]
+  ${dim('$')} prisma db pull [flags/options]
 
-${chalk.bold('Flags')}
+${bold('Flags')}
 
               -h, --help   Display this help message
                  --force   Ignore current Prisma schema file
                  --print   Print the introspected Prisma schema to stdout
 
-${chalk.bold('Options')}
+${bold('Options')}
 
                 --schema   Custom path to your Prisma schema
   --composite-type-depth   Specify the depth for introspecting composite types (e.g. Embedded Documents in MongoDB)
                            Number, default is -1 for infinite depth, 0 = off
                --schemas   Specify the database schemas to introspect. This overrides the schemas defined in the datasource block of your Prisma schema.
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
 With an existing Prisma schema
-  ${chalk.dim('$')} prisma db pull
+  ${dim('$')} prisma db pull
 
 Or specify a Prisma schema path
-  ${chalk.dim('$')} prisma db pull --schema=./schema.prisma
+  ${dim('$')} prisma db pull --schema=./schema.prisma
 
 Instead of saving the result to the filesystem, you can also print it to stdout
-  ${chalk.dim('$')} prisma db pull --print
+  ${dim('$')} prisma db pull --print
 
 Overwrite the current schema with the introspected schema instead of enriching it
-  ${chalk.dim('$')} prisma db pull --force
+  ${dim('$')} prisma db pull --force
 
 Set composite types introspection depth to 2 levels
-  ${chalk.dim('$')} prisma db pull --composite-type-depth=2
+  ${dim('$')} prisma db pull --composite-type-depth=2
 
 `)
 
@@ -119,16 +119,14 @@ Set composite types introspection depth to 2 levels
       const renamedMessages: string[] = []
       if (args['--experimental-reintrospection']) {
         renamedMessages.push(
-          `The ${chalk.redBright(
+          `The ${red(
             '--experimental-reintrospection',
-          )} flag has been removed and is now the default behavior of ${chalk.greenBright('prisma db pull')}.`,
+          )} flag has been removed and is now the default behavior of ${green('prisma db pull')}.`,
         )
       }
 
       if (args['--clean']) {
-        renamedMessages.push(
-          `The ${chalk.redBright('--clean')} flag has been renamed to ${chalk.greenBright('--force')}.`,
-        )
+        renamedMessages.push(`The ${red('--clean')} flag has been renamed to ${green('--force')}.`)
       }
 
       console.error(`\n${renamedMessages.join('\n')}\n`)
@@ -141,7 +139,7 @@ Set composite types introspection depth to 2 levels
 
     // Print to console if --print is not passed to only have the schema in stdout
     if (schemaPath && !args['--print']) {
-      console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+      console.info(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
       // Load and print where the .env was loaded (if loaded)
       loadEnvFile(args['--schema'], true)
@@ -250,7 +248,7 @@ Set composite types introspection depth to 2 levels
 
       if (isReintrospection && !args['--force'] && firstDatasource?.provider === 'mongodb') {
         throw new Error(`Iterating on one schema using re-introspection with db pull is currently not supported with MongoDB provider.
-You can explicitly ignore and override your current local schema file with ${chalk.green(
+You can explicitly ignore and override your current local schema file with ${green(
           getCommandWithExecutor('prisma db pull --force'),
         )}
 Some information will be lost (relations, comments, mapped fields, @ignore...), follow ${link(
@@ -266,7 +264,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
     const basedOn =
       !args['--url'] && schemaPath
-        ? ` based on datasource defined in ${chalk.underline(path.relative(process.cwd(), schemaPath))}`
+        ? ` based on datasource defined in ${underline(path.relative(process.cwd(), schemaPath))}`
         : ''
     const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
 
@@ -297,45 +295,45 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
 
       if (e.code === 'P4001' && introspectionSchema.trim() === '') {
         /* P4001: The introspected database was empty */
-        throw new Error(`\n${chalk.red.bold(`${e.code} `)}${chalk.red('The introspected database was empty:')} ${
-          url ? chalk.underline(url) : ''
+        throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database was empty:')} ${
+          url ? underline(url) : ''
         }
 
-${chalk.bold('prisma db pull')} could not create any models in your ${chalk.bold(
+${bold('prisma db pull')} could not create any models in your ${bold(
           'schema.prisma',
-        )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
+        )} file and you will not be able to generate Prisma Client with the ${bold(
           getCommandWithExecutor('prisma generate'),
         )} command.
 
-${chalk.bold('To fix this, you have two options:')}
+${bold('To fix this, you have two options:')}
 
 - manually create a table in your database.
-- make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold(
+- make sure the database connection URL inside the ${bold('datasource')} block in ${bold(
           'schema.prisma',
         )} points to a database that is not empty (it must contain at least one table).
 
-Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again. 
+Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
 `)
       } else if (e.code === 'P1003') {
         /* P1003: Database does not exist */
-        throw new Error(`\n${chalk.red.bold(`${e.code} `)}${chalk.red('The introspected database does not exist:')} ${
-          url ? chalk.underline(url) : ''
+        throw new Error(`\n${red(bold(`${e.code} `))}${red('The introspected database does not exist:')} ${
+          url ? underline(url) : ''
         }
 
-${chalk.bold('prisma db pull')} could not create any models in your ${chalk.bold(
+${bold('prisma db pull')} could not create any models in your ${bold(
           'schema.prisma',
-        )} file and you will not be able to generate Prisma Client with the ${chalk.bold(
+        )} file and you will not be able to generate Prisma Client with the ${bold(
           getCommandWithExecutor('prisma generate'),
         )} command.
 
-${chalk.bold('To fix this, you have two options:')}
+${bold('To fix this, you have two options:')}
 
 - manually create a database.
-- make sure the database connection URL inside the ${chalk.bold('datasource')} block in ${chalk.bold(
+- make sure the database connection URL inside the ${bold('datasource')} block in ${bold(
           'schema.prisma',
         )} points to an existing database.
 
-Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again. 
+Then you can run ${green(getCommandWithExecutor('prisma db pull'))} again. 
 `)
       } else if (e.code === 'P1012') {
         /* P1012: Schema parsing error */
@@ -344,13 +342,13 @@ Then you can run ${chalk.green(getCommandWithExecutor('prisma db pull'))} again.
         // TODO: this error is misleading, as it gets thrown even when the schema is valid but the protocol of the given
         // '--url' argument is different than the one written in the schema.prisma file.
         // We should throw another error earlier in case the URL protocol is not compatible with the schema provider.
-        throw new Error(`${chalk.red(`${e.message}`)}
+        throw new Error(`${red(`${e.message}`)}
 Introspection failed as your current Prisma schema file is invalid
 
-Please fix your current schema manually (using either ${chalk.green(
+Please fix your current schema manually (using either ${green(
           getCommandWithExecutor('prisma validate'),
         )} or the Prisma VS Code extension to understand what's broken and confirm you fixed it), and then run this command again.
-Or run this command with the ${chalk.green(
+Or run this command with the ${green(
           '--force',
         )} flag to ignore your current schema and overwrite it. All local modifications will be lost.\n`)
       }
@@ -362,11 +360,11 @@ Or run this command with the ${chalk.green(
     const introspectionWarningsMessage = this.getWarningMessage(introspectionWarnings) || ''
 
     const prisma1UpgradeMessage = introspectionSchemaVersion.includes('Prisma1')
-      ? `\n${chalk.bold('Upgrading from Prisma 1 to Prisma 2+?')}
+      ? `\n${bold('Upgrading from Prisma 1 to Prisma 2+?')}
       \nThe database you introspected could belong to a Prisma 1 project.
 
 Please run the following command to upgrade to Prisma 2+:
-${chalk.green('npx prisma-upgrade [path-to-prisma-yml] [path-to-schema-prisma]')}
+${green('npx prisma-upgrade [path-to-prisma-yml] [path-to-schema-prisma]')}
 
 Note: \`prisma.yml\` and \`schema.prisma\` paths are optional.
  
@@ -416,11 +414,11 @@ Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upg
           })
         : ''
 
-      introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${chalk.underline(
+      introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
         path.relative(process.cwd(), schemaPath),
-      )} in ${chalk.bold(formatms(Date.now() - before))}${prisma1UpgradeMessageBox}
-      ${chalk.keyword('orange')(introspectionWarningsMessage)}
-${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
+      )} in ${bold(formatms(Date.now() - before))}${prisma1UpgradeMessageBox}
+      ${yellow(introspectionWarningsMessage)}
+${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }
 
     return ''
@@ -593,7 +591,7 @@ ${`Run ${chalk.green(getCommandWithExecutor('prisma generate'))} to generate Pri
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbPull.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbPull.help}`)
     }
     return DbPull.help
   }

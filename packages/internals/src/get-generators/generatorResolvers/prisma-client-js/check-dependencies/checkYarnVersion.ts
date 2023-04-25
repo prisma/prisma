@@ -1,4 +1,4 @@
-import chalk from 'chalk'
+import { bold } from 'kleur/colors'
 
 import { logger } from '../../../..'
 import { semverLt } from './semverLt'
@@ -23,11 +23,9 @@ export function checkYarnVersion() {
         const minYarnVersion = '1.19.2'
         if (semverLt(currentYarnVersion, minYarnVersion)) {
           logger.warn(
-            `Your ${chalk.bold(
-              'yarn',
-            )} has version ${currentYarnVersion}, which is outdated. Please update it to ${chalk.bold(
+            `Your ${bold('yarn')} has version ${currentYarnVersion}, which is outdated. Please update it to ${bold(
               minYarnVersion,
-            )} or ${chalk.bold('newer')} in order to use Prisma.`,
+            )} or ${bold('newer')} in order to use Prisma.`,
           )
         }
       }

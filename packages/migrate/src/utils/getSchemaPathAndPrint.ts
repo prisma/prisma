@@ -1,5 +1,5 @@
 import { getSchemaPath, logger } from '@prisma/internals'
-import chalk from 'chalk'
+import { dim } from 'kleur/colors'
 import path from 'path'
 
 import { NoSchemaFoundError } from './errors'
@@ -31,7 +31,7 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
     throw new NoSchemaFoundError()
   }
 
-  console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+  console.info(dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
 
   return schemaPath
 }
