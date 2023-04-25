@@ -1,8 +1,8 @@
-import chalk from 'chalk'
 import * as E from 'fp-ts/Either'
 import { identity, pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
+import { bold, red } from 'kleur/colors'
 import { match, P } from 'ts-pattern'
 
 export function unlinkTempDatamodelPath(options: { datamodelPath?: string }, tempDatamodelPath: string | undefined) {
@@ -29,7 +29,7 @@ export const createDebugErrorType =
   }
 
 function createSchemaValidationError(reason: string) {
-  return `${chalk.redBright.bold('Prisma schema validation')} - ${reason}`
+  return `${red(bold('Prisma schema validation'))} - ${reason}`
 }
 
 export type QueryEngineErrorInit = {
@@ -67,7 +67,7 @@ export function parseQueryEngineError({ errorOutput, reason }: ParseQueryEngineE
       () => ({ _tag: 'unparsed' as const, message: errorOutput, reason }),
     ),
     E.map((errorOutputAsJSON: Record<string, string>) => {
-      const defaultMessage = chalk.redBright(errorOutputAsJSON.message)
+      const defaultMessage = red(bold(errorOutputAsJSON.message))
       const getConfigErrorInit = match(errorOutputAsJSON)
         .with({ error_code: 'P1012' }, (eJSON) => {
           return {

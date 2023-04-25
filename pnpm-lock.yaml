@@ -24,7 +24,6 @@ importers:
       arg: 5.0.2
       batching-toposort: 1.2.0
       buffer: 6.0.3
-      chalk: 4.1.2
       chokidar: 3.5.3
       esbuild: 0.15.13
       esbuild-register: 3.3.3
@@ -43,6 +42,7 @@ importers:
       husky: 8.0.3
       is-ci: 3.0.1
       jest-junit: 15.0.0
+      kleur: 4.1.5
       lint-staged: 13.1.0
       node-fetch: 2.6.9
       p-map: 4.0.0
@@ -81,7 +81,6 @@ importers:
       arg: 5.0.2
       batching-toposort: 1.2.0
       buffer: 6.0.3
-      chalk: 4.1.2
       chokidar: 3.5.3
       esbuild: 0.15.13
       esbuild-register: 3.3.3_esbuild@0.15.13
@@ -100,6 +99,7 @@ importers:
       husky: 8.0.3
       is-ci: 3.0.1
       jest-junit: 15.0.0
+      kleur: 4.1.5
       lint-staged: 13.1.0
       node-fetch: 2.6.9
       p-map: 4.0.0
@@ -141,7 +141,6 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 29.4.0
       '@types/rimraf': 3.0.2
-      chalk: 4.1.2
       checkpoint-client: 1.1.23
       debug: 4.3.4
       dotenv: 16.0.3
@@ -156,6 +155,7 @@ importers:
       is-installed-globally: 0.4.0
       jest: 29.4.3
       jest-junit: 15.0.0
+      kleur: 4.1.5
       line-replace: 2.0.1
       log-update: 4.0.0
       node-fetch: 2.6.9
@@ -185,7 +185,6 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 29.4.0
       '@types/rimraf': 3.0.2
-      chalk: 4.1.2
       checkpoint-client: 1.1.23
       debug: 4.3.4
       dotenv: 16.0.3
@@ -200,6 +199,7 @@ importers:
       is-installed-globally: 0.4.0
       jest: 29.4.3
       jest-junit: 15.0.0
+      kleur: 4.1.5
       line-replace: 2.0.1
       log-update: 4.0.0
       node-fetch: 2.6.9
@@ -250,7 +250,6 @@ importers:
       '@types/yeoman-generator': 5.2.11
       arg: 5.0.2
       benchmark: 2.1.4
-      chalk: 4.1.2
       ci-info: 3.8.0
       decimal.js: 10.4.3
       esbuild: 0.15.13
@@ -269,6 +268,7 @@ importers:
       jest-serializer-ansi-escapes: 2.0.1
       jest-snapshot: 29.4.3
       js-levenshtein: 1.1.6
+      kleur: 4.1.5
       klona: 2.0.6
       lz-string: 1.4.4
       mariadb: 3.0.2
@@ -333,7 +333,6 @@ importers:
       '@types/yeoman-generator': 5.2.11
       arg: 5.0.2
       benchmark: 2.1.4
-      chalk: 4.1.2
       ci-info: 3.8.0
       decimal.js: 10.4.3
       esbuild: 0.15.13
@@ -352,6 +351,7 @@ importers:
       jest-serializer-ansi-escapes: 2.0.1
       jest-snapshot: 29.4.3
       js-levenshtein: 1.1.6
+      kleur: 4.1.5
       klona: 2.0.6
       lz-string: 1.4.4
       mariadb: 3.0.2
@@ -414,13 +414,13 @@ importers:
       '@swc/jest': 0.2.24
       '@types/jest': 29.4.0
       '@types/node': 16.18.23
-      chalk: 4.1.2
       esbuild: 0.15.13
       execa: 5.1.1
       get-stream: 6.0.1
       indent-string: 4.0.0
       jest: 29.4.3
       jest-junit: 15.0.0
+      kleur: 4.1.5
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
@@ -434,10 +434,10 @@ importers:
       '@prisma/engines': link:../engines
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
-      chalk: 4.1.2
       execa: 5.1.1
       get-stream: 6.0.1
       indent-string: 4.0.0
+      kleur: 4.1.5
       new-github-issue-url: 0.2.1
       p-retry: 4.6.2
       strip-ansi: 6.0.1
@@ -490,7 +490,6 @@ importers:
       '@types/node': 16.18.23
       '@types/node-fetch': 2.6.3
       '@types/progress': 2.0.5
-      chalk: 4.1.2
       del: 6.1.1
       execa: 5.1.1
       find-cache-dir: 3.3.2
@@ -499,6 +498,7 @@ importers:
       http-proxy-agent: 5.0.0
       https-proxy-agent: 5.0.1
       jest: 29.4.3
+      kleur: 4.1.5
       node-fetch: 2.6.9
       p-filter: 2.1.0
       p-map: 4.0.0
@@ -512,13 +512,13 @@ importers:
     dependencies:
       '@prisma/debug': link:../debug
       '@prisma/get-platform': link:../get-platform
-      chalk: 4.1.2
       execa: 5.1.1
       find-cache-dir: 3.3.2
       fs-extra: 11.1.1
       hasha: 5.2.2
       http-proxy-agent: 5.0.0
       https-proxy-agent: 5.0.1
+      kleur: 4.1.5
       node-fetch: 2.6.9
       p-filter: 2.1.0
       p-map: 4.0.0
@@ -549,18 +549,18 @@ importers:
       '@types/cross-spawn': 6.0.2
       '@types/jest': 29.4.0
       '@types/node': 12.20.55
-      chalk: 4.1.2
       cross-spawn: 7.0.3
       esbuild: 0.15.13
       jest: 29.4.3
       jest-junit: 15.0.0
+      kleur: 4.1.5
       ts-node: 10.9.1
       typescript: 4.9.5
     dependencies:
       '@prisma/debug': link:../debug
       '@types/cross-spawn': 6.0.2
-      chalk: 4.1.2
       cross-spawn: 7.0.3
+      kleur: 4.1.5
     devDependencies:
       '@swc-node/register': 1.5.5_ofrkegp7wplvaewrpezjkk4xzm
       '@swc/core': 1.3.32
@@ -580,12 +580,12 @@ importers:
       '@swc/jest': 0.2.24
       '@types/jest': 29.4.0
       '@types/node': 16.18.23
-      chalk: 4.1.2
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       fs-jetpack: 5.1.0
       jest: 29.4.3
       jest-junit: 15.0.0
+      kleur: 4.1.5
       replace-string: 3.1.0
       strip-ansi: 6.0.1
       tempy: 1.0.1
@@ -594,10 +594,10 @@ importers:
       typescript: 4.9.5
     dependencies:
       '@prisma/debug': link:../debug
-      chalk: 4.1.2
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       fs-jetpack: 5.1.0
+      kleur: 4.1.5
       replace-string: 3.1.0
       strip-ansi: 6.0.1
       tempy: 1.0.1
@@ -708,7 +708,6 @@ importers:
       '@types/resolve': 1.20.2
       archiver: 5.3.1
       arg: 5.0.2
-      chalk: 4.1.2
       checkpoint-client: 1.1.23
       cli-truncate: 2.1.0
       dotenv: 16.0.3
@@ -726,12 +725,12 @@ importers:
       is-wsl: 2.2.0
       jest: 29.4.3
       jest-junit: 15.0.0
+      kleur: 4.1.5
       mock-stdin: 1.0.0
       new-github-issue-url: 0.2.1
       node-fetch: 2.6.9
       npm-packlist: 5.1.3
       open: '7'
-      ora: 5.4.1
       p-map: 4.0.0
       prompts: 2.4.2
       read-pkg-up: 7.0.1
@@ -760,7 +759,6 @@ importers:
       '@prisma/prisma-fmt-wasm': 4.14.0-28.integration-warning-rendering-in-rust-2-4b3952a62109e85d5a6621208bd95eb76d248038
       archiver: 5.3.1
       arg: 5.0.2
-      chalk: 4.1.2
       checkpoint-client: 1.1.23
       cli-truncate: 2.1.0
       dotenv: 16.0.3
@@ -775,11 +773,11 @@ importers:
       has-yarn: 2.1.0
       is-windows: 1.0.2
       is-wsl: 2.2.0
+      kleur: 4.1.5
       new-github-issue-url: 0.2.1
       node-fetch: 2.6.9
       npm-packlist: 5.1.3
       open: 7.4.2
-      ora: 5.4.1
       p-map: 4.0.0
       prompts: 2.4.2
       read-pkg-up: 7.0.1
@@ -823,7 +821,6 @@ importers:
       '@types/pg': 8.6.6
       '@types/prompts': 2.4.4
       '@types/sqlite3': 3.1.8
-      chalk: 4.1.2
       esbuild: 0.15.13
       execa: 5.1.1
       fs-jetpack: 5.1.0
@@ -832,11 +829,13 @@ importers:
       indent-string: 4.0.0
       jest: 29.4.3
       jest-junit: 15.0.0
+      kleur: 4.1.5
       log-update: 4.0.0
       mariadb: 3.1.1
       mock-stdin: 1.0.0
       mongoose: 6.7.0
       mssql: 9.1.1
+      ora: 5.4.1
       pg: 8.10.0
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -849,15 +848,16 @@ importers:
       '@prisma/debug': link:../debug
       '@prisma/get-platform': link:../get-platform
       '@sindresorhus/slugify': 1.1.2
-      chalk: 4.1.2
       execa: 5.1.1
       get-stdin: 8.0.0
       has-yarn: 2.1.0
       indent-string: 4.0.0
+      kleur: 4.1.5
       log-update: 4.0.0
       mariadb: 3.1.1
       mongoose: 6.7.0
       mssql: 9.1.1
+      ora: 5.4.1
       pg: 8.10.0
       pkg-up: 3.1.0
       prompts: 2.4.2
@@ -11564,7 +11564,6 @@ packages:
   /kleur/4.1.5:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
-    dev: true
 
   /klona/2.0.6:
     resolution: {integrity: sha512-dhG34DXATL5hSxJbIexCft8FChFXtmskoZYnoPWjXQuebWYCNkVeV3KkGegCK9CP1oswI/vQibS2GY7Em/sJJA==}

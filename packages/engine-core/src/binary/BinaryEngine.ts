@@ -3,11 +3,11 @@ import { getEnginesPath } from '@prisma/engines'
 import type { ConnectorType, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
-import chalk from 'chalk'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
 import fs from 'fs'
+import { blue, bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import net from 'net'
 import pRetry from 'p-retry'
 import path from 'path'
@@ -53,9 +53,7 @@ const debug = Debug('prisma:engine')
 const exists = promisify(fs.exists)
 
 // eslint-disable-next-line
-const logger = (...args) => {
-  // console.log(chalk.red.bold('logger '), ...args)
-}
+const logger = (...args) => {}
 
 /**
  * Node.js based wrapper to run the Prisma binary
@@ -188,7 +186,7 @@ export class BinaryEngine extends Engine<undefined> {
 
     if (removedFlagsUsed.length > 0 && !process.env.PRISMA_HIDE_PREVIEW_FLAG_WARNINGS) {
       console.log(
-        `${chalk.blueBright('info')} The preview flags \`${removedFlagsUsed.join(
+        `${blue(bold('info'))} The preview flags \`${removedFlagsUsed.join(
           '`, `',
         )}\` were removed, you can now safely remove them from your schema.prisma.`,
       )
@@ -205,12 +203,10 @@ export class BinaryEngine extends Engine<undefined> {
     if (this.platform) {
       if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
         throw new PrismaClientInitializationError(
-          `Unknown ${chalk.red('PRISMA_QUERY_ENGINE_BINARY')} ${chalk.redBright.bold(
-            this.platform,
-          )}. Possible binaryTargets: ${chalk.greenBright(
+          `Unknown ${red('PRISMA_QUERY_ENGINE_BINARY')} ${red(bold(this.platform))}. Possible binaryTargets: ${green(
             knownPlatforms.join(', '),
           )} or a path to the query engine binary.
-You may have to run ${chalk.greenBright('prisma generate')} for your changes to take effect.`,
+You may have to run ${green('prisma generate')} for your changes to take effect.`,
           this.clientVersion!,
         )
       }
@@ -250,7 +246,7 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
       const runningEngines = engines.filter((e) => e.child)
       if (runningEngines.length === 10) {
         console.warn(
-          `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
+          `${bold(yellow('warn(prisma-client)'))} There are already 10 instances of Prisma Client actively running.`,
         )
       }
     }
@@ -357,14 +353,12 @@ You may have to run ${chalk.greenBright('prisma generate')} for your changes to 
     // If path to query engine doesn't exist, throw
     if (!(await exists(prismaPath))) {
       const pinnedStr = this.incorrectlyPinnedBinaryTarget
-        ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.incorrectlyPinnedBinaryTarget}`)}\n`
+        ? `\nYou incorrectly pinned it to ${red(bold(`${this.incorrectlyPinnedBinaryTarget}`))}\n`
         : ''
 
-      let errorText = `Query engine binary for current platform "${chalk.bold(
-        platform,
-      )}" could not be found.${pinnedStr}
+      let errorText = `Query engine binary for current platform "${bold(platform)}" could not be found.${pinnedStr}
 This probably happens, because you built Prisma Client on a different platform.
-(Prisma Client looked in "${chalk.underline(prismaPath)}")
+(Prisma Client looked in "${underline(prismaPath)}")
 
 Searched Locations:
 
@@ -388,8 +382,8 @@ ${searchedLocations
         ) {
           errorText += `
 You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''} ${this.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t.value)}"`)
-            .join(', ')} to the "${chalk.underline('generator')}" block
+            .map((t) => `"${bold(t.value)}"`)
+            .join(', ')} to the "${underline('generator')}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
@@ -398,12 +392,12 @@ Please create an issue at https://github.com/prisma/prisma/issues/new`
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
           // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${chalk.underline(
+          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${underline(
             'binaryTargets',
-          )}" attribute in the "${chalk.underline('generator')}" block in the "schema.prisma" file:
-${chalk.greenBright(this.getFixedGenerator())}
+          )}" attribute in the "${underline('generator')}" block in the "schema.prisma" file:
+${green(this.getFixedGenerator())}
 
-Then run "${chalk.greenBright('prisma generate')}" for your changes to take effect.
+Then run "${green('prisma generate')}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {
@@ -414,11 +408,11 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
     }
 
     if (this.incorrectlyPinnedBinaryTarget) {
-      console.error(`${chalk.yellow('Warning:')} You pinned the platform ${chalk.bold(
+      console.error(`${bold(yellow('Warning:'))} You pinned the platform ${bold(
         this.incorrectlyPinnedBinaryTarget,
-      )}, but Prisma Client detects ${chalk.bold(await this.getPlatform())}.
-This means you should very likely pin the platform ${chalk.greenBright(await this.getPlatform())} instead.
-${chalk.dim("In case we're mistaken, please report this to us 🙏.")}`)
+      )}, but Prisma Client detects ${bold(await this.getPlatform())}.
+This means you should very likely pin the platform ${green(await this.getPlatform())} instead.
+${dim("In case we're mistaken, please report this to us 🙏.")}`)
     }
 
     if (process.platform !== 'win32') {

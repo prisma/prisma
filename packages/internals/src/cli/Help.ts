@@ -1,10 +1,10 @@
-import chalk from 'chalk'
+import { bold, red } from 'kleur/colors'
 
 /**
  * Unknown command
  */
 export function unknownCommand(helpTemplate: string, cmd: string): HelpError {
-  return new HelpError(`\n${chalk.bold.red(`!`)} Unknown command "${cmd}"\n${helpTemplate}`)
+  return new HelpError(`\n${bold(red(`!`))} Unknown command "${cmd}"\n${helpTemplate}`)
 }
 
 /**
