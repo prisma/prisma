@@ -152,7 +152,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.14.0-32.0145f3f905a104fabe142ed6b861cb8f0f56f5e7"
+    "@prisma/engines-version": "4.14.0-33.integration-remove-napi-get-config-41ed105ba4faff6ac50dd73c3485b1b1989f7624"
   },
   "sideEffects": false
 }
