@@ -39,6 +39,7 @@ export { decompressFromBase64 }
 
 export { Types }
 export { Extensions }
+export { warnOnce } from '@prisma/internals'
 
 /**
  * Payload is already exported via Types but tsc will complain that it isn't reachable
