@@ -42,9 +42,9 @@ on:
       - '*.bench.ts'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
-#   schedule:
-#     # https://crontab.guru - “At every 15th minute past every hour from 3 through 5.”
-#     - cron: '*/15 3-5 * * *'
+  #   schedule:
+  #     # https://crontab.guru - “At every 15th minute past every hour from 3 through 5.”
+  #     - cron: '*/15 3-5 * * *'
   workflow_dispatch:
 
 env:
@@ -409,6 +409,7 @@ jobs:
             const reportPath = `client-memory-test/${context.issue.number}/${context.sha}.${nodeVersion}.html`
             const url = `https://prisma.github.io/ci-reports/${reportPath}`
             const localReport = './packages/client/tests/memory/memory-report.html'
+
             if (fs.existsSync(localReport)) {
               await github.rest.repos.createOrUpdateFileContents({
                 owner: 'prisma',
@@ -418,7 +419,11 @@ jobs:
                 message: `Add memory results for PR ${context.issue.number}`,
                 content: fs.readFileSync(localReport, 'base64'),
               });
-              core.setOutput('url', url);
+
+              if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+                fs.appendFileSync(process.env.GITHUB_OUTPUT, `url=${url}\n`)
+                console.debug(`url=${url} added to GITHUB_OUTPUT`)
+              }
             }
 
       - name: Find report comment

@@ -74,8 +74,13 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            const fs = require('fs')
             const hash = context.payload.inputs.version.split('.').pop()
-            core.setOutput('hash', hash)
+            console.log(`hash: ${hash}`)
+            if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `hash=${hash}\n`)
+              console.debug(`hash=${hash} added to GITHUB_OUTPUT`)
+            }
 
       #
       # Regular engines PR, from prisma-engines main branch
@@ -165,10 +170,14 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
+            const fs = require('fs')
             const parts = context.payload.inputs.version.split('.')
             const patchBranch = `${parts[0]}.${parts[1]}.x`
             console.log(`patchBranch: ${patchBranch}`)
-            core.setOutput('patchBranch', patchBranch)
+            if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+              fs.appendFileSync(process.env.GITHUB_OUTPUT, `patchBranch=${patchBranch}\n`)
+              console.debug(`patchBranch=${patchBranch} added to GITHUB_OUTPUT`)
+            }
       - name: Create Pull Request for Patch Engine
         id: cpr-patch
         if: github.event.inputs.npmDistTag == 'patch'
