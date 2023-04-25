@@ -1,12 +1,9 @@
 import { getDMMF } from '@prisma/internals'
-import chalk from 'chalk'
 
 import { DMMFClass, makeDocument, objectEnumValues, transformDocument } from '../runtime'
 import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
-chalk.level = 0
 
 const datamodel = `\
 datasource db {

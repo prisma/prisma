@@ -1,5 +1,5 @@
 import { getLogs } from '@prisma/debug'
-import chalk from 'chalk'
+import { underline } from 'kleur/colors'
 import stripAnsi from 'strip-ansi'
 
 import { getGitHubIssueUrl } from '../../utils/util'
@@ -60,7 +60,7 @@ ${query ? maskQuery(query) : ''}
 
 This is a non-recoverable error which probably happens when the Prisma Query Engine has a panic.
 
-${chalk.underline(url)}
+${underline(url)}
 
 If you want the Prisma team to look into it, please open the link above 🙏
 To increase the chance of success, please post your schema and a snippet of

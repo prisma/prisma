@@ -9,7 +9,7 @@ import {
   isError,
   loadEnvFile,
 } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
@@ -30,11 +30,11 @@ export class MigrateReset implements Command {
   private static help = format(`
 Reset your database and apply all migrations, all data will be lost
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate reset [options]
+  ${dim('$')} prisma migrate reset [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
        -h, --help   Display this help message
          --schema   Custom path to your Prisma schema
@@ -42,16 +42,16 @@ ${chalk.bold('Options')}
       --skip-seed   Skip triggering seed
       -f, --force   Skip the confirmation prompt
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   Reset your database and apply all migrations, all data will be lost
-  ${chalk.dim('$')} prisma migrate reset
+  ${dim('$')} prisma migrate reset
 
   Specify a schema
-  ${chalk.dim('$')} prisma migrate reset --schema=./schema.prisma 
+  ${dim('$')} prisma migrate reset --schema=./schema.prisma 
 
   Use --force to skip the confirmation prompt
-  ${chalk.dim('$')} prisma migrate reset --force
+  ${dim('$')} prisma migrate reset --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -110,7 +110,7 @@ ${chalk.bold('Examples')}
       const confirmation = await prompt({
         type: 'confirm',
         name: 'value',
-        message: `Are you sure you want to reset your database? ${chalk.red('All data will be lost')}.`,
+        message: `Are you sure you want to reset your database? ${red('All data will be lost')}.`,
       })
 
       console.info() // empty line
@@ -136,17 +136,15 @@ ${chalk.bold('Examples')}
     }
 
     if (migrationIds.length === 0) {
-      console.info(`${chalk.green('Database reset successful\n')}`)
+      console.info(`${green('Database reset successful\n')}`)
     } else {
       console.info() // empty line
       console.info(
-        `${chalk.green('Database reset successful')}
+        `${green('Database reset successful')}
 
-The following migration(s) have been applied:\n\n${chalk(
-          printFilesFromMigrationIds('migrations', migrationIds, {
-            'migration.sql': '',
-          }),
-        )}`,
+The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('migrations', migrationIds, {
+          'migration.sql': '',
+        })}`,
       )
     }
 
@@ -181,7 +179,7 @@ The following migration(s) have been applied:\n\n${chalk(
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateReset.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateReset.help}`)
     }
     return MigrateReset.help
   }

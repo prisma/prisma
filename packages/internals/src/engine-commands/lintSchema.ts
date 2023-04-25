@@ -1,4 +1,4 @@
-import chalk from 'chalk'
+import { yellow } from 'kleur/colors'
 
 import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
 import { prismaFmt } from '../wasm'
@@ -67,7 +67,7 @@ export function getLintWarningsAsText(lintDiagnostics: LintDiagnostic[]): string
 
   const textLines: string[] = []
   if (lintWarnings.length > 0) {
-    textLines.push(chalk.yellow(`\nPrisma schema warning${lintWarnings.length > 1 ? 's' : ''}:`))
+    textLines.push(yellow(`\nPrisma schema warning${lintWarnings.length > 1 ? 's' : ''}:`))
     for (const warning of lintWarnings) {
       textLines.push(warningToString(warning))
     }
@@ -77,7 +77,7 @@ export function getLintWarningsAsText(lintDiagnostics: LintDiagnostic[]): string
 }
 
 export function warningToString(warning: LintDiagnostic): string {
-  return chalk.yellow(`- ${warning.text}`)
+  return yellow(`- ${warning.text}`)
 }
 
 function isWarning(diagnostic: LintDiagnostic): diagnostic is LintWarning {
