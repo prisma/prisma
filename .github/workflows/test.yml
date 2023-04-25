@@ -77,7 +77,7 @@ jobs:
   cleanup-runs:
     continue-on-error: true
     runs-on: ubuntu-latest
-    if: "!startsWith(github.ref, 'refs/tags/') && github.ref != 'refs/heads/main' && !contains(github.actor, 'renovate')"
+    if: "!startsWith(github.ref, 'refs/tags/') && !contains(github.actor, 'renovate')"
     steps:
       - uses: fkirc/skip-duplicate-actions@v5
         with:
