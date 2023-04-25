@@ -110,9 +110,7 @@ Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextj
         )
       } else if (config.isBundled === true) {
         throw new PrismaClientInitializationError(
-          `Your schema.prisma could not be found, and we detected that you are using a bundler.
-This is likely because your schema.prisma was not copied and found near the bundle.
-We would appreciate if you could take the time to share some information with us.
+          `Prisma Client could not find its \`schema.prisma\`. This is likely caused by a bundling step, which leads to \`schema.prisma\` not being copied near the resulting bundle. We would appreciate if you could take the time to share some information with us.
 Please help us by answering a few questions: https://pris.ly/bundler-investigation`,
           config.clientVersion!,
         )
