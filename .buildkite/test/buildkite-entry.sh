@@ -22,6 +22,8 @@ set -ex
 # node last-git-changes/bin.js --exclude="$EXCLUDE_LIST"
 # export CHANGED_COUNT=$(node last-git-changes/bin.js --exclude="$EXCLUDE_LIST" | wc -l)
 
+BUILDKITE_GIT_CLONE_FLAGS=""
+
 echo $BUILDKITE_TAG
 echo $CHANGED_COUNT
 
