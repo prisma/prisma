@@ -27,7 +27,6 @@ npm i --silent -g pnpm@7 --unsafe-perm
 # --usafe-perm to allow install scripts
 
 echo "~~~ pnpm i"
-# Install packages
 pnpm i --unsafe-perm
 
 # JOB 0
@@ -49,11 +48,9 @@ pnpm run setup
 
 echo "~~~ @prisma/client test:functional"
 echo "Start testing..."
-# New client test suite
 pnpm run --filter "@prisma/client" test:functional
 
-echo "~~~ @prisma/client test:functional"
-# Run test for all packages
+echo "~~~ Test all packages"
 pnpm run test
 
 echo "~~~ @prisma/client test:memory"
