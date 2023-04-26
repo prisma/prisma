@@ -6,17 +6,17 @@ afterEach(() => {
   consoleMock.mockClear()
 })
 
-test('import the bundled prisma client', () => {
+test('importing the the bundled prisma client produces warning messages', () => {
   require('../dist/index.js')
 
   expect(consoleMock.mock.calls[0]).toMatchInlineSnapshot(`
 [
-  "prisma:warn Prisma Client could not immediately find its \`schema.prisma\`, falling back to finding it via the current working directory.",
+  "prisma:warn Your generated Prisma Client could not immediately find its \`schema.prisma\`, falling back to finding it via the current working directory.",
 ]
 `)
   expect(consoleMock.mock.calls[1]).toMatchInlineSnapshot(`
 [
-  "prisma:warn We are interested in learning about your setup, we'd appreciate if you could take the time to share some information with us.",
+  "prisma:warn We are interested in learning about your project setup. We'd appreciate if you could take the time to share some information with us.",
 ]
 `)
   expect(consoleMock.mock.calls[2]).toMatchInlineSnapshot(`
@@ -26,7 +26,7 @@ test('import the bundled prisma client', () => {
 `)
 })
 
-test('bundled prisma client will re-use the schema.prisma from the cwd', async () => {
+test('bundled prisma client will re-use the schema.prisma via cwd', async () => {
   const { somePrismaCall } = require('../dist/index.js')
 
   const user = await somePrismaCall()
@@ -35,9 +35,10 @@ test('bundled prisma client will re-use the schema.prisma from the cwd', async (
   expect(user).not.toBeUndefined()
 })
 
-// ! This test must be run last because it deletes the generated client
+// ! this test must be run last because it deletes the generated client
 test('bundled prisma client will fail if generated client is gone', async () => {
   await $`rm -rf generated`
+
   const { somePrismaCall } = require('../dist/index.js')
 
   await expect(somePrismaCall()).rejects.toThrowErrorMatchingInlineSnapshot(`
