@@ -20,6 +20,7 @@ import levenshtein from 'js-levenshtein'
 import { IncludeAndSelectError, IncludeOnScalarError, ValidationError } from '../types/ValidationError'
 import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { Colors } from './base'
+import { ObjectField } from './ObjectField'
 import { ObjectFieldSuggestion } from './ObjectFieldSuggestion'
 import { ObjectValue } from './ObjectValue'
 import { ScalarValue } from './ScalarValue'
@@ -74,7 +75,6 @@ export function applyValidationError(error: ValidationError, args: ArgumentsRend
       applyUnionError(error, args)
       break
     default:
-      console.log(error)
       throw new Error('not implemented: ' + error.kind)
   }
 }
@@ -251,7 +251,14 @@ function unknownArgumentMessage(colors: Colors, argName: string, options: string
 }
 
 function applyRequiredArgumentMissingError(error: RequiredArgumentMissingError, args: ArgumentsRenderingTree) {
-  args.addErrorMessage((colors) => `Argument \`${colors.green(argumentName)}\` is missing.`)
+  let existingField: ObjectField | undefined = undefined
+
+  args.addErrorMessage((colors) => {
+    if (existingField?.value instanceof ScalarValue && existingField.value.text === 'null') {
+      return `Argument \`${colors.green(argumentName)}\` must not be ${colors.red('null')}.`
+    }
+    return `Argument \`${colors.green(argumentName)}\` is missing.`
+  })
   const selection = args.arguments.getDeepSubSelectionValue(error.selectionPath)
   if (!(selection instanceof ObjectValue)) {
     return
@@ -262,6 +269,11 @@ function applyRequiredArgumentMissingError(error: RequiredArgumentMissingError, 
   const parent = selection.getDeepFieldValue(argParent)
   if (!(parent instanceof ObjectValue)) {
     return
+  }
+
+  existingField = parent.getField(argumentName)
+  if (existingField) {
+    parent.removeField(argumentName)
   }
 
   if (error.inputTypes.length === 1 && error.inputTypes[0].kind === 'object') {
@@ -314,7 +326,12 @@ function applyInvalidArgumentValueError(error: InvalidArgumentValueError, args: 
       'or',
       error.argument.typeNames.map((type) => colors.green(type)),
     )
-    return `Invalid value for argument \`${colors.bold(argName)}\`: ${error.underlyingError}. Expected ${expected}.`
+    const parts = [`Invalid value for argument \`${colors.bold(argName)}\``]
+    if (error.underlyingError) {
+      parts.push(`: ${error.underlyingError}`)
+    }
+    parts.push(`. Expected ${expected}.`)
+    return parts.join('')
   })
 }
 
@@ -413,20 +430,16 @@ function applyTooManyFieldsGivenError(error: TooManyFieldsGivenError, args: Argu
 }
 
 function applyUnionError(error: UnionError, args: ArgumentsRenderingTree) {
-  const mergedError = tryMergingUnionError(error)
-  if (mergedError) {
-    applyValidationError(mergedError, args)
-    return
+  const bestError = getBestUnionError(error)
+  if (bestError) {
+    applyValidationError(bestError, args)
+  } else {
+    args.addErrorMessage(() => 'Unknown error')
   }
+}
 
-  const longestPathError = getLongestPathError(error)
-
-  if (longestPathError) {
-    applyValidationError(longestPathError, args)
-    return
-  }
-
-  args.addErrorMessage(() => 'Unknown error')
+function getBestUnionError(error: UnionError) {
+  return tryMergingUnionError(error) ?? getLongestPathError(error)
 }
 
 function tryMergingUnionError({ errors }: UnionError): InvalidArgumentTypeError | undefined {
@@ -468,6 +481,9 @@ function isSamePath(pathA: string[], pathB: string[]): boolean {
 
 function getLongestPathError(error: UnionError) {
   return maxBy(error.errors, (error) => {
+    if (error.kind === 'Union') {
+      error = getBestUnionError(error) ?? error
+    }
     let score = 0
     if (Array.isArray(error['selectionPath'])) {
       score += error['selectionPath'].length
