@@ -28,7 +28,7 @@
     "execa": "5.1.1",
     "fs-jetpack": "5.1.0",
     "jest": "29.4.3",
-    "jest-junit": "15.0.0",
+    "jest-junit": "16.0.0",
     "mariadb": "3.0.2",
     "mssql": "9.1.1",
     "pg": "8.9.0",

@@ -111,7 +111,7 @@
     "is-obj": "2.0.0",
     "is-regexp": "2.1.0",
     "jest": "29.4.3",
-    "jest-junit": "15.0.0",
+    "jest-junit": "16.0.0",
     "jest-serializer-ansi-escapes": "2.0.1",
     "jest-snapshot": "29.4.3",
     "js-levenshtein": "1.1.6",
