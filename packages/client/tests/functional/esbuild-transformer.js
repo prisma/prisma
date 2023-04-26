@@ -42,7 +42,7 @@ const transformer = {
         loader: 'ts',
         format: 'cjs',
         platform: 'node',
-        target: 'ES2022',
+        target: 'ES2020',
         keepNames: true,
         logLevel: 'error',
         sourcemap: true,
