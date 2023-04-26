@@ -3,7 +3,8 @@ const fs = require('fs')
 const esbuild = require('esbuild')
 const getCacheKeyFunction = require('@jest/create-cache-key-function').default
 
-const cacheKeyFunction = getCacheKeyFunction([], ['v1'])
+const nodeVersion = process.version.match(/v(\d+)/)[1] || '14'
+const cacheKeyFunction = getCacheKeyFunction([], ['v1', nodeVersion])
 
 function needsTranspilation(contents, filename) {
   if (filename.endsWith('.ts') === true) {
@@ -42,7 +43,7 @@ const transformer = {
         loader: 'ts',
         format: 'cjs',
         platform: 'node',
-        target: 'ES2020',
+        target: `node${nodeVersion}`,
         keepNames: true,
         logLevel: 'error',
         sourcemap: true,
