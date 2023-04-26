@@ -45,5 +45,5 @@ if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
  * @returns
  */
 function buildDirnameDefault() {
-  return `const dirname = '/'`
+  return `config.dirname = '/'`
 }
