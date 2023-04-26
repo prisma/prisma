@@ -50,7 +50,7 @@
     "kleur": "4.1.5",
     "log-update": "4.0.0",
     "mariadb": "3.1.1",
-    "mongoose": "6.7.0",
+    "mongoose": "6.10.5",
     "mssql": "9.1.1",
     "ora": "5.4.1",
     "pg": "8.10.0",
@@ -58,7 +58,7 @@
     "prompts": "2.4.2",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
-    "ts-pattern": "4.0.5"
+    "ts-pattern": "4.2.2"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
