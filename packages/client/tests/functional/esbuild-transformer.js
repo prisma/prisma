@@ -10,6 +10,10 @@ function needsTranspilation(contents, filename) {
     return true
   }
 
+  if (filename.endsWith('.mjs') === true) {
+    return true
+  }
+
   if (contents.includes('require(') === true) {
     return false
   }
@@ -22,12 +26,12 @@ function needsTranspilation(contents, filename) {
     return false
   }
 
-  return false
+  return true
 }
 
 const transformer = {
   getCacheKey(contents, filename, ...rest) {
-    return cacheKeyFunction(filename, fs.statSync(filename).mtimeMs + '', ...rest)
+    return cacheKeyFunction(filename, fs.statSync(filename).mtimeMs.toString(), ...rest)
   },
   process(_content, filename, { transformerConfig }) {
     if (needsTranspilation(_content, filename) === true) {
@@ -38,7 +42,7 @@ const transformer = {
         loader: 'ts',
         format: 'cjs',
         platform: 'node',
-        target: 'ES2020',
+        target: 'ES2022',
         keepNames: true,
         logLevel: 'error',
         sourcemap: true,
@@ -46,12 +50,12 @@ const transformer = {
       })
     }
 
-    if (fs.existsSync(`${filename}.map`) === true) {
+    try {
       return {
         code: _content,
         map: fs.readFileSync(`${filename}.map`, 'utf8'),
       }
-    }
+    } catch (e) {}
 
     return {
       code: _content,

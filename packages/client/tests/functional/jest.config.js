@@ -51,8 +51,7 @@ module.exports = () => {
   return {
     ...configCommon,
     transform: {
-      // '^.+\\.(m?j|t)s$': '@swc/jest',
-      '^.+\\.(t|j)sx?$': ['./esbuild-transformer', {}],
+      '^.+\\.(m?j|t)s$': ['./esbuild-transformer', {}],
     },
   }
 }
