@@ -1,6 +1,6 @@
 import { EngineBatchQuery, JsonQuery, JsonQueryAction } from '@prisma/engine-core'
 
-import { BaseDMMFHelper } from '../../../dmmf'
+import { DMMFDatamodelHelper } from '../../../dmmf'
 import { ErrorFormat } from '../../../getPrismaClient'
 import { deepGet } from '../../../utils/deep-set'
 import { CreateMessageOptions, ProtocolEncoder, ProtocolMessage } from '../common'
@@ -8,7 +8,7 @@ import { deserializeJsonResponse } from './deserialize'
 import { serializeJsonQuery } from './serialize'
 
 export class JsonProtocolEncoder implements ProtocolEncoder<JsonQuery> {
-  constructor(private baseDmmf: BaseDMMFHelper, private errorFormat: ErrorFormat) {}
+  constructor(private baseDmmf: DMMFDatamodelHelper, private errorFormat: ErrorFormat) {}
 
   createMessage(createOptions: CreateMessageOptions): JsonProtocolMessage {
     const query = serializeJsonQuery({ ...createOptions, baseDmmf: this.baseDmmf, errorFormat: this.errorFormat })
