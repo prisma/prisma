@@ -2,7 +2,12 @@
 
 set -ex
 
-# Docs abou ~~~ & +++: https://buildkite.com/docs/pipelines/managing-log-output
+# Docs about ~~~ & +++: https://buildkite.com/docs/pipelines/managing-log-output
+# The folowing makes it that the relevant section will be auto-expanded if it throws an error
+expand_headers_on_error() {
+  echo "^^^ +++"
+}
+trap expand_headers_on_error ERR
 
 echo "~~~ Set variables depending on BUILDKITE_PARALLEL_JOB"
 # The below is required as during install required engines are downloaded, so this makes sure the engines being tested are already present
@@ -20,18 +25,10 @@ fi
 echo "~~~ Install pnpm"
 npm i --silent -g pnpm@7 --unsafe-perm
 # --usafe-perm to allow install scripts
-# If the previous line fails, make the log auto-expand
-if [[ $? -ne 0 ]]; then
-  echo "^^^ +++"
-fi
 
 echo "~~~ pnpm i"
 # Install packages
 pnpm i --unsafe-perm
-# If the previous line fails, make the log auto-expand
-if [[ $? -ne 0 ]]; then
-  echo "^^^ +++"
-fi
 
 # JOB 0
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
@@ -49,34 +46,18 @@ npm -v
 echo "~~~ pnpm run setup"
 # See package.json setup script
 pnpm run setup
-# If the previous line fails, make the log auto-expand
-if [[ $? -ne 0 ]]; then
-  echo "^^^ +++"
-fi
 
 echo "~~~ @prisma/client test:functional"
 echo "Start testing..."
 # New client test suite
 pnpm run --filter "@prisma/client" test:functional
-# If the previous line fails, make the log auto-expand
-if [[ $? -ne 0 ]]; then
-  echo "^^^ +++"
-fi
 
 echo "~~~ @prisma/client test:functional"
 # Run test for all packages
 pnpm run test
-# If the previous line fails, make the log auto-expand
-if [[ $? -ne 0 ]]; then
-  echo "^^^ +++"
-fi
 
 echo "~~~ @prisma/client test:memory"
 # Client memory test suite Note: we run it last as DB is not isolated and will
 # be dropped after memory tests, which in turn will fail subsequent tests.  We
 # should fix it in a similar way we did for functional tests, eventually.
 pnpm run --filter "@prisma/client" test:memory
-# If the previous line fails, make the log auto-expand
-if [[ $? -ne 0 ]]; then
-  echo "^^^ +++"
-fi
