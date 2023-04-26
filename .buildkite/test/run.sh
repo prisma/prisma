@@ -32,7 +32,7 @@ pnpm i --unsafe-perm
 
 # JOB 0
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
-  echo "+++ Linting"
+  echo "~~~ Linting"
   # Only run lint for job 0
   pnpm run lint
 fi
