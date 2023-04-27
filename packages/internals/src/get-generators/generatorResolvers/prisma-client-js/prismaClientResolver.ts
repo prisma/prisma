@@ -58,7 +58,7 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     // Automatically installing the packages with Yarn on Windows won't work because
     // Yarn will try to unlink the Query Engine DLL, which is currently being used.
     // See https://github.com/prisma/prisma/issues/9184
-    if (process.platform === 'win32' && isYarnUsed(baseDir)) {
+    if (process.platform === 'win32' && (await isYarnUsed(baseDir))) {
       const hasCli = (s: string) => (prismaCliDir !== undefined ? s : '')
       const missingCli = (s: string) => (prismaCliDir === undefined ? s : '')
 
