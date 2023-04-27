@@ -5,8 +5,3 @@ Error in migration engine.
 Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
 
 `;
-
-exports[`handlePanic migrate no interactive mode in CI 1`] = `
-Could not find a schema.prisma file that is required for this command.
-You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
-`;
