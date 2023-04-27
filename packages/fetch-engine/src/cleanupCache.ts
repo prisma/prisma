@@ -12,7 +12,6 @@ const del = promisify(rimraf)
 const readdir = promisify(fs.readdir)
 const stat = promisify(fs.stat)
 
-// TODO: why not have a n = 2 to have a smaller cache?
 export async function cleanupCache(n = 5): Promise<void> {
   try {
     const rootCacheDir = await getRootCacheDir()
