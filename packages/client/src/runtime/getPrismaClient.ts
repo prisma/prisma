@@ -58,7 +58,7 @@ import {
 } from './core/request/PrismaPromise'
 import { UserArgs } from './core/request/UserArgs'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
-import { BaseDMMFHelper, DMMFHelper } from './dmmf'
+import { DMMFDatamodelHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
@@ -297,7 +297,7 @@ export type Client = ReturnType<typeof getPrismaClient> extends new () => infer 
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient {
-    _baseDmmf: BaseDMMFHelper
+    _baseDmmf: DMMFDatamodelHelper
     _dmmf?: DMMFHelper
     _engine: Engine
     _fetcher: RequestHandler
@@ -395,7 +395,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           this._errorFormat = 'colorless' // default errorFormat
         }
 
-        this._baseDmmf = new BaseDMMFHelper(config.document)
+        this._baseDmmf = new DMMFDatamodelHelper(config.document)
         const engineProtocol = NODE_CLIENT
           ? getQueryEngineProtocol(config.generator)
           : config.edgeClientProtocol ?? getQueryEngineProtocol(config.generator)

@@ -1,6 +1,6 @@
-import chalk from 'chalk'
 import Decimal from 'decimal.js'
 import indent from 'indent-string'
+import { bold, dim, green, red, white } from 'kleur/colors'
 import stripAnsi from 'strip-ansi'
 
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
@@ -188,9 +188,7 @@ ${indent(this.children.map(String).join('\n'), tab)}
 
       let missingArgsLegend = ''
       if (hasRequiredMissingArgsErrors) {
-        missingArgsLegend += `\n${chalk.dim('Note: Lines with ')}${chalk.reset.greenBright('+')} ${chalk.dim(
-          'are required',
-        )}`
+        missingArgsLegend += `\n${dim('Note: Lines with ')}${green('+')} ${dim('are required')}`
       }
 
       if (hasOptionalMissingArgsErrors) {
@@ -198,11 +196,11 @@ ${indent(this.children.map(String).join('\n'), tab)}
           missingArgsLegend = '\n'
         }
         if (hasRequiredMissingArgsErrors) {
-          missingArgsLegend += chalk.dim(`, lines with ${chalk.green('?')} are optional`)
+          missingArgsLegend += dim(`, lines with ${green('?')} are optional`)
         } else {
-          missingArgsLegend += chalk.dim(`Note: Lines with ${chalk.green('?')} are optional`)
+          missingArgsLegend += dim(`Note: Lines with ${green('?')} are optional`)
         }
-        missingArgsLegend += chalk.dim('.')
+        missingArgsLegend += dim('.')
       }
 
       const relevantArgErrors = argErrors.filter((e) => e.error.type !== 'missingArg' || e.error.missingArg.isRequired)
@@ -258,31 +256,31 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
   }
   protected printFieldError = ({ error }: FieldError, missingItems: MissingItem[], minimal: boolean) => {
     if (error.type === 'emptySelect') {
-      const additional = minimal ? '' : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
-      return `The ${chalk.redBright('`select`')} statement for type ${chalk.bold(
+      const additional = minimal ? '' : ` Available options are listed in ${dim(green('green'))}.`
+      return `The ${red('`select`')} statement for type ${bold(
         getOutputTypeName(error.field.outputType.type),
       )} must not be empty.${additional}`
     }
     if (error.type === 'emptyInclude') {
       if (missingItems.length === 0) {
-        return `${chalk.bold(
+        return `${bold(
           getOutputTypeName(error.field.outputType.type),
-        )} does not have any relation and therefore can't have an ${chalk.redBright('`include`')} statement.`
+        )} does not have any relation and therefore can't have an ${red('`include`')} statement.`
       }
-      const additional = minimal ? '' : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
-      return `The ${chalk.redBright('`include`')} statement for type ${chalk.bold(
+      const additional = minimal ? '' : ` Available options are listed in ${dim(green('green'))}.`
+      return `The ${red('`include`')} statement for type ${red(
         getOutputTypeName(error.field.outputType.type),
       )} must not be empty.${additional}`
     }
     if (error.type === 'noTrueSelect') {
-      return `The ${chalk.redBright('`select`')} statement for type ${chalk.bold(
+      return `The ${red('`select`')} statement for type ${red(
         getOutputTypeName(error.field.outputType.type),
-      )} needs ${chalk.bold('at least one truthy value')}.`
+      )} needs ${red('at least one truthy value')}.`
     }
     if (error.type === 'includeAndSelect') {
-      return `Please ${chalk.bold('either')} use ${chalk.greenBright('`include`')} or ${chalk.greenBright(
-        '`select`',
-      )}, but ${chalk.redBright('not both')} at the same time.`
+      return `Please ${bold('either')} use ${green('`include`')} or ${green('`select`')}, but ${red(
+        'not both',
+      )} at the same time.`
     }
     if (error.type === 'invalidFieldName') {
       const statement = error.isInclude ? 'include' : 'select'
@@ -290,30 +288,28 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
       const additional = minimal
         ? ''
         : error.isInclude && missingItems.length === 0
-        ? `\nThis model has no relations, so you can't use ${chalk.redBright('include')} with it.`
-        : ` Available options are listed in ${chalk.greenBright.dim('green')}.`
-      let str = `${wording} field ${chalk.redBright(`\`${error.providedName}\``)} for ${chalk.bold(
-        statement,
-      )} statement on model ${chalk.bold.white(error.modelName)}.${additional}`
+        ? `\nThis model has no relations, so you can't use ${red('include')} with it.`
+        : ` Available options are listed in ${dim(green('green'))}.`
+      let str = `${wording} field ${red(`\`${error.providedName}\``)} for ${red(statement)} statement on model ${bold(
+        white(error.modelName),
+      )}.${additional}`
 
       if (error.didYouMean) {
-        str += ` Did you mean ${chalk.greenBright(`\`${error.didYouMean}\``)}?`
+        str += ` Did you mean ${green(`\`${error.didYouMean}\``)}?`
       }
 
       if (error.isIncludeScalar) {
-        str += `\nNote, that ${chalk.bold('include')} statements only accept relation fields.`
+        str += `\nNote, that ${bold('include')} statements only accept relation fields.`
       }
 
       return str
     }
     if (error.type === 'invalidFieldType') {
-      const str = `Invalid value ${chalk.redBright(
-        `${stringifyObject(error.providedValue)}`,
-      )} of type ${chalk.redBright(getGraphQLType(error.providedValue, undefined))} for field ${chalk.bold(
-        `${error.fieldName}`,
-      )} on model ${chalk.bold.white(error.modelName)}. Expected either ${chalk.greenBright(
+      const str = `Invalid value ${red(`${stringifyObject(error.providedValue)}`)} of type ${red(
+        getGraphQLType(error.providedValue, undefined),
+      )} for field ${bold(`${error.fieldName}`)} on model ${bold(white(error.modelName))}. Expected either ${green(
         'true',
-      )} or ${chalk.greenBright('false')}.`
+      )} or ${green('false')}.`
 
       return str
     }
@@ -323,21 +319,21 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
 
   protected printArgError = ({ error, path }: ArgError, hasMissingItems: boolean, minimal: boolean) => {
     if (error.type === 'invalidName') {
-      let str = `Unknown arg ${chalk.redBright(`\`${error.providedName}\``)} in ${chalk.bold(
-        path.join('.'),
-      )} for type ${chalk.bold(error.outputType ? error.outputType.name : getInputTypeName(error.originalType))}.`
+      let str = `Unknown arg ${red(`\`${error.providedName}\``)} in ${bold(path.join('.'))} for type ${bold(
+        error.outputType ? error.outputType.name : getInputTypeName(error.originalType),
+      )}.`
       if (error.didYouMeanField) {
-        str += `\n→ Did you forget to wrap it with \`${chalk.greenBright('select')}\`? ${chalk.dim(
-          'e.g. ' + chalk.greenBright(`{ select: { ${error.providedName}: ${error.providedValue} } }`),
+        str += `\n→ Did you forget to wrap it with \`${green('select')}\`? ${dim(
+          'e.g. ' + green(`{ select: { ${error.providedName}: ${error.providedValue} } }`),
         )}`
       } else if (error.didYouMeanArg) {
-        str += ` Did you mean \`${chalk.greenBright(error.didYouMeanArg)}\`?`
+        str += ` Did you mean \`${green(error.didYouMeanArg)}\`?`
         if (!hasMissingItems && !minimal) {
-          str += ` ${chalk.dim('Available args:')}\n` + stringifyInputType(error.originalType, true)
+          str += ` ${dim('Available args:')}\n` + stringifyInputType(error.originalType, true)
         }
       } else {
         if ((error.originalType as DMMF.InputType).fields.length === 0) {
-          str += ` The field ${chalk.bold((error.originalType as DMMF.InputType).name)} has no arguments.`
+          str += ` The field ${bold((error.originalType as DMMF.InputType).name)} has no arguments.`
         } else if (!hasMissingItems && !minimal) {
           str += ` Available args:\n\n` + stringifyInputType(error.originalType, true)
         }
@@ -354,18 +350,18 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
       // TODO: we don't yet support enums in a union with a non enum. This is mostly due to not implemented error handling
       // at this code part.
       if (error.requiredType.bestFittingType.location === 'enumTypes') {
-        return `Argument ${chalk.bold(error.argName)}: Provided value ${chalk.redBright(valueStr)}${
+        return `Argument ${bold(error.argName)}: Provided value ${red(valueStr)}${
           multilineValue ? '' : ' '
-        }of type ${chalk.redBright(getGraphQLType(error.providedValue))} on ${chalk.bold(
+        }of type ${red(getGraphQLType(error.providedValue))} on ${bold(
           `prisma.${this.children[0].name}`,
-        )} is not a ${chalk.greenBright(
+        )} is not a ${green(
           wrapWithList(
             stringifyGraphQLType(error.requiredType.bestFittingType.type),
             error.requiredType.bestFittingType.isList,
           ),
         )}.
 → Possible values: ${(error.requiredType.bestFittingType.type as DMMF.SchemaEnum).values
-          .map((v) => chalk.greenBright(`${stringifyGraphQLType(error.requiredType.bestFittingType.type)}.${v}`))
+          .map((v) => green(`${stringifyGraphQLType(error.requiredType.bestFittingType.type)}.${v}`))
           .join(', ')}`
       }
 
@@ -374,9 +370,7 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
         typeStr = ':\n' + stringifyInputType(error.requiredType.bestFittingType.type)
       }
       let expected = `${error.requiredType.inputType
-        .map((t) =>
-          chalk.greenBright(wrapWithList(stringifyGraphQLType(t.type), error.requiredType.bestFittingType.isList)),
-        )
+        .map((t) => green(wrapWithList(stringifyGraphQLType(t.type), error.requiredType.bestFittingType.isList)))
         .join(' or ')}${typeStr}`
       const inputType: null | DMMF.SchemaArgInputType =
         (error.requiredType.inputType.length === 2 &&
@@ -385,43 +379,39 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
       if (inputType) {
         expected += `\n` + stringifyInputType(inputType.type, true)
       }
-      return `Argument ${chalk.bold(error.argName)}: Got invalid value ${chalk.redBright(valueStr)}${
-        multilineValue ? '' : ' '
-      }on ${chalk.bold(`prisma.${this.children[0].name}`)}. Provided ${chalk.redBright(
-        getGraphQLType(error.providedValue),
-      )}, expected ${expected}`
+      return `Argument ${bold(error.argName)}: Got invalid value ${red(valueStr)}${multilineValue ? '' : ' '}on ${bold(
+        `prisma.${this.children[0].name}`,
+      )}. Provided ${red(getGraphQLType(error.providedValue))}, expected ${expected}`
     }
 
     if (error.type === 'invalidNullArg') {
-      const forStr = path.length === 1 && path[0] === error.name ? '' : ` for ${chalk.bold(`${path.join('.')}`)}`
-      const undefinedTip = ` Please use ${chalk.bold.greenBright('undefined')} instead.`
-      return `Argument ${chalk.greenBright(error.name)}${forStr} must not be ${chalk.bold('null')}.${undefinedTip}`
+      const forStr = path.length === 1 && path[0] === error.name ? '' : ` for ${bold(`${path.join('.')}`)}`
+      const undefinedTip = ` Please use ${bold(green('undefined'))} instead.`
+      return `Argument ${green(error.name)}${forStr} must not be ${bold('null')}.${undefinedTip}`
     }
 
     if (error.type === 'missingArg') {
-      const forStr = path.length === 1 && path[0] === error.missingName ? '' : ` for ${chalk.bold(`${path.join('.')}`)}`
-      return `Argument ${chalk.greenBright(error.missingName)}${forStr} is missing.`
+      const forStr = path.length === 1 && path[0] === error.missingName ? '' : ` for ${bold(`${path.join('.')}`)}`
+      return `Argument ${green(error.missingName)}${forStr} is missing.`
     }
 
     if (error.type === 'atLeastOne') {
-      const additional = minimal ? '' : ` Available args are listed in ${chalk.dim.green('green')}.`
+      const additional = minimal ? '' : ` Available args are listed in ${dim(green('green'))}.`
       const atLeastFieldsError = error.atLeastFields
-        ? ` and at least one argument for ${error.atLeastFields.map((field) => chalk.bold(field)).join(', or ')}`
+        ? ` and at least one argument for ${error.atLeastFields.map((field) => bold(field)).join(', or ')}`
         : ''
-      return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
-        error.inputType.name,
-      )} needs ${chalk.greenBright('at least one')} argument${chalk.bold(atLeastFieldsError)}.${additional}`
+      return `Argument ${bold(path.join('.'))} of type ${bold(error.inputType.name)} needs ${green(
+        'at least one',
+      )} argument${bold(atLeastFieldsError)}.${additional}`
     }
 
     if (error.type === 'atMostOne') {
       const additional = minimal
         ? ''
-        : ` Please choose one. ${chalk.dim('Available args:')} \n${stringifyInputType(error.inputType, true)}`
-      return `Argument ${chalk.bold(path.join('.'))} of type ${chalk.bold(
-        error.inputType.name,
-      )} needs ${chalk.greenBright('exactly one')} argument, but you provided ${error.providedKeys
-        .map((key) => chalk.redBright(key))
-        .join(' and ')}.${additional}`
+        : ` Please choose one. ${dim('Available args:')} \n${stringifyInputType(error.inputType, true)}`
+      return `Argument ${bold(path.join('.'))} of type ${bold(error.inputType.name)} needs ${green(
+        'exactly one',
+      )} argument, but you provided ${error.providedKeys.map((key) => red(key)).join(' and ')}.${additional}`
     }
 
     return undefined

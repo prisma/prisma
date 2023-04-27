@@ -1,6 +1,6 @@
 import { drawBox, isCurrentBinInstalledGlobally } from '@prisma/internals'
-import chalk from 'chalk'
 import type { Check } from 'checkpoint-client'
+import { blue, bold } from 'kleur/colors'
 
 const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
@@ -27,11 +27,11 @@ export function printUpdateMessage(checkResult: { status: 'ok'; data: Check.Resp
     }
   } catch (e) {}
 
-  const boxText = `\n${chalk.blue(
+  const boxText = `\n${blue(
     'Update available',
   )} ${currentVersionInstalled} -> ${latestVersionAvailable}\n${majorText}Run the following to update
-  ${chalk.bold(prismaCLICommand)}
-  ${chalk.bold(prismaClientCommand)}`
+  ${bold(prismaCLICommand)}
+  ${bold(prismaClientCommand)}`
 
   const boxedMessage = drawBox({
     height: boxHeight,

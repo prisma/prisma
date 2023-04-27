@@ -1,6 +1,6 @@
 import { DMMF } from '@prisma/generator-helper'
 
-import { BaseDMMFHelper } from '../../dmmf'
+import { DMMFDatamodelHelper } from '../../dmmf'
 import { JsArgs, Selection } from '../types/JsApi'
 
 type ModelVisitor = (value: object, model: DMMF.Model, queryArgs: JsArgs) => object | undefined
@@ -9,7 +9,7 @@ type VisitParams = {
   result: object
   args: JsArgs
   model: DMMF.Model
-  dmmf: BaseDMMFHelper
+  dmmf: DMMFDatamodelHelper
   visitor: ModelVisitor
 }
 
@@ -50,7 +50,7 @@ type VisitNestedParams = {
   includeOrSelect: Selection
   result: object
   parentModel: DMMF.Model
-  dmmf: BaseDMMFHelper
+  dmmf: DMMFDatamodelHelper
   visitor: ModelVisitor
 }
 

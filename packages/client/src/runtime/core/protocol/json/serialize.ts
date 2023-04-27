@@ -9,7 +9,7 @@ import {
 import { DMMF } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 
-import { BaseDMMFHelper } from '../../../dmmf'
+import { DMMFDatamodelHelper } from '../../../dmmf'
 import { ErrorFormat } from '../../../getPrismaClient'
 import { ObjectEnumValue, objectEnumValues } from '../../../object-enums'
 import { CallSite } from '../../../utils/CallSite'
@@ -45,7 +45,7 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
 }
 
 export type SerializeParams = {
-  baseDmmf: BaseDMMFHelper
+  baseDmmf: DMMFDatamodelHelper
   modelName?: string
   action: Action
   args?: JsArgs
@@ -247,7 +247,7 @@ function isRawParameters(value: JsInputValue): value is RawParameters {
 }
 
 type ContextParams = {
-  baseDmmf: BaseDMMFHelper
+  baseDmmf: DMMFDatamodelHelper
   originalMethod: string
   rootArgs: JsArgs | undefined
   extensions: MergedExtensionsList

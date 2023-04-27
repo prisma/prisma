@@ -11,7 +11,7 @@ import {
   link,
   loadEnvFile,
 } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, dim, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
@@ -26,34 +26,34 @@ export class DbDrop implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : chalk.bold('💣  ')}Drop the database
+${process.platform === 'win32' ? '' : bold('💣  ')}Drop the database
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
+${bold(yellow('WARNING'))} ${bold(
     `Prisma db drop is currently in Preview (${link('https://pris.ly/d/preview')}).
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
-${chalk.dim('When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.')}
+${dim('When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.')}
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma db drop [options] --preview-feature
+  ${dim('$')} prisma db drop [options] --preview-feature
 
-${chalk.bold('Options')}
+${bold('Options')}
 
    -h, --help   Display this help message
      --schema   Custom path to your Prisma schema
   -f, --force   Skip the confirmation prompt
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   Drop the database
-  ${chalk.dim('$')} prisma db drop --preview-feature
+  ${dim('$')} prisma db drop --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db drop --preview-feature --schema=./schema.prisma
+  ${dim('$')} prisma db drop --preview-feature --schema=./schema.prisma
 
   Use --force to skip the confirmation prompt
-  ${chalk.dim('$')} prisma db drop --preview-feature --force
+  ${dim('$')} prisma db drop --preview-feature --force
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -102,7 +102,7 @@ ${chalk.bold('Examples')}
         name: 'value',
         message: `Enter the ${datasourceInfo.prettyProvider} database name "${
           datasourceInfo.dbName
-        }" to drop it.\nLocation: "${datasourceInfo.dbLocation}".\n${chalk.red('All data will be lost')}.`,
+        }" to drop it.\nLocation: "${datasourceInfo.dbLocation}".\n${red('All data will be lost')}.`,
       })
       console.info() // empty line
 
@@ -127,7 +127,7 @@ ${chalk.bold('Examples')}
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbDrop.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbDrop.help}`)
     }
     return DbDrop.help
   }
