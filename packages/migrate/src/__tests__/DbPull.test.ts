@@ -2962,6 +2962,52 @@ describe('mysql introspection stopgaps', () => {
       expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
   })
+
+  describe('warning - multi value index', () => {
+    const stopGap = 'mysql-multi-value-index'
+    const warningCode = 1
+    const variant = 1
+    setupMysqlForWarning(stopGap, warningCode, variant)
+
+    test('basic introspection', async () => {
+      ctx.fixture(`introspection/mysql/${stopGap}-warning-${warningCode}-${variant}`)
+      const introspect = new DbPull()
+      const result = introspect.parse(['--print'])
+
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        generator js {
+          provider = "prisma-client-js"
+        }
+
+        datasource db {
+          provider = "mysql"
+            url      = env("TEST_MYSQL_URI_MIGRATE")
+        }
+
+        /// This table contains multi-value indices, which are not yet fully supported. Visit https://pris.ly/d/mysql-multi-row-index for more info.
+        model customers {
+          id       Int   @id @default(autoincrement())
+          custinfo Json?
+        }
+
+
+        // introspectionSchemaVersion: NonPrisma,
+      `)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+        // *** WARNING ***
+        // 
+        // These tables contain multi-value indices, which are not yet fully supported. Read more: https://pris.ly/d/mysql-multi-row-indextps://pris.ly/d/database-comments
+        //   - Type: "model", name: "customers"
+        // 
+      `)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
 })
 
 describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
