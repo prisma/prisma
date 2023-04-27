@@ -44,7 +44,6 @@ export interface DownloadOptions {
   version?: string
   skipDownload?: boolean
   failSilent?: boolean
-  ignoreCache?: boolean
   printVersion?: boolean
   skipCacheIntegrityCheck?: boolean
 }
@@ -134,7 +133,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     const shouldDownload =
       isSupported &&
       !job.envVarPath && // this is for custom binaries
-      (opts.ignoreCache || needsToBeDownloaded) // TODO: do we need ignoreCache?
+      needsToBeDownloaded
     if (needsToBeDownloaded && !isSupported) {
       throw new Error(`Unknown binaryTarget ${job.binaryTarget} and no custom engine files were provided`)
     }
