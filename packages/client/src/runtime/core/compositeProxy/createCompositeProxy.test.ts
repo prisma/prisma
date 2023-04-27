@@ -36,6 +36,11 @@ test('allows to add extra properties via layers', () => {
   expect(proxy).toHaveProperty('second', 2)
 })
 
+test('preserves correct Object.prototype.hasOwnProperty result', () => {
+  const proxy = createCompositeProxy({}, [])
+  expect(Object.prototype.hasOwnProperty.call(proxy, 'notThere')).toBe(false)
+})
+
 test('allows to add multiple properties via single layer', () => {
   const proxy = createCompositeProxy({}, [
     {
@@ -153,7 +158,7 @@ test('allows to have several layers', () => {
         return ['third']
       },
 
-      getPropertyValue(key) {
+      getPropertyValue() {
         return 3
       },
     },
@@ -172,7 +177,7 @@ test('allows to override target property', () => {
         return ['value']
       },
 
-      getPropertyValue(key) {
+      getPropertyValue() {
         return 'override'
       },
     },
@@ -188,7 +193,7 @@ test('last override wins', () => {
         return ['value']
       },
 
-      getPropertyValue(key) {
+      getPropertyValue() {
         return 'override 1'
       },
     },
@@ -198,7 +203,7 @@ test('last override wins', () => {
         return ['value']
       },
 
-      getPropertyValue(key) {
+      getPropertyValue() {
         return 'override 2'
       },
     },

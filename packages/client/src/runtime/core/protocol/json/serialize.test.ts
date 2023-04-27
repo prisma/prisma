@@ -38,11 +38,19 @@ const Attachment = model('Attachment', [
 
 const dmmf = baseDmmf({ models: [User, Post, Attachment] })
 
-type SimplifiedParams = Omit<SerializeParams, 'baseDmmf' | 'extensions'> & { extensions?: MergedExtensionsList }
+type SimplifiedParams = Omit<SerializeParams, 'baseDmmf' | 'extensions' | 'clientMethod' | 'errorFormat'> & {
+  extensions?: MergedExtensionsList
+}
 
 function serialize(params: SimplifiedParams) {
   return JSON.stringify(
-    serializeJsonQuery({ ...params, baseDmmf: dmmf, extensions: params.extensions ?? MergedExtensionsList.empty() }),
+    serializeJsonQuery({
+      ...params,
+      baseDmmf: dmmf,
+      extensions: params.extensions ?? MergedExtensionsList.empty(),
+      clientMethod: 'foo',
+      errorFormat: 'colorless',
+    }),
     null,
     2,
   )
@@ -710,12 +718,7 @@ test('1 level include', () => {
         "selection": {
           "$composites": true,
           "$scalars": true,
-          "posts": {
-            "selection": {
-              "$composites": true,
-              "$scalars": true
-            }
-          }
+          "posts": true
         }
       }
     }
@@ -772,12 +775,7 @@ test('multiple level include', () => {
             "selection": {
               "$composites": true,
               "$scalars": true,
-              "attachments": {
-                "selection": {
-                  "$composites": true,
-                  "$scalars": true
-                }
-              }
+              "attachments": true
             }
           }
         }
@@ -801,12 +799,7 @@ test('explicit selection', () => {
         "arguments": {},
         "selection": {
           "title": true,
-          "posts": {
-            "selection": {
-              "$composites": true,
-              "$scalars": true
-            }
-          }
+          "posts": true
         }
       }
     }
@@ -897,12 +890,7 @@ test('mixed include and select', () => {
             "selection": {
               "$composites": true,
               "$scalars": true,
-              "attachments": {
-                "selection": {
-                  "$composites": true,
-                  "$scalars": true
-                }
-              }
+              "attachments": true
             }
           }
         }

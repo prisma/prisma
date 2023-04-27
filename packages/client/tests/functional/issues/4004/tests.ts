@@ -5,7 +5,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/4004
-testMatrix.setupTestSuite(({ provider }) => {
+testMatrix.setupTestSuite(() => {
   async function seed(): Promise<{ student1Id: string; student2Id: string }> {
     const student1 = await prisma.student.create({
       data: {

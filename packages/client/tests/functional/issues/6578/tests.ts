@@ -75,9 +75,5 @@ testMatrix.setupTestSuite(
       from: ['mongodb'],
       reason: 'Params not applicable to mongodb',
     },
-    skipDataProxy: {
-      runtimes: ['node', 'edge'],
-      reason: 'Query logs are not supported for Data Proxy yet',
-    },
   },
 )

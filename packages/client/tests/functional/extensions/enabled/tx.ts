@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker'
-import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore

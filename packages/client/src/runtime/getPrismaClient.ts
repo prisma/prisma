@@ -41,6 +41,7 @@ import { PrismaClientValidationError } from '.'
 import { $extends } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
+import { checkPlatformCaching } from './core/init/checkPlatformCaching'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import { applyModelsAndClientExtensions } from './core/model/applyModelsAndClientExtensions'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
@@ -57,7 +58,7 @@ import {
 } from './core/request/PrismaPromise'
 import { UserArgs } from './core/request/UserArgs'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
-import { BaseDMMFHelper, DMMFHelper } from './dmmf'
+import { DMMFDatamodelHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
@@ -219,7 +220,7 @@ export interface GetPrismaClientConfig {
   relativePath: string
   dirname: string
   filename?: string
-  clientVersion?: string
+  clientVersion: string
   engineVersion?: string
   datasourceNames: string[]
   activeProvider: string
@@ -265,6 +266,22 @@ export interface GetPrismaClientConfig {
    * @remarks only used for the purpose of data proxy
    */
   inlineSchemaHash?: string
+
+  /**
+   * A marker to indicate that the client was not generated via `prisma
+   * generate` but was generated via `generate --postinstall` script instead.
+   * @remarks used to error for Vercel/Netlify for schema caching issues
+   */
+  postinstall?: boolean
+
+  /**
+   * Information about the CI where the Prisma Client has been generated. The
+   * name of the CI environment is stored at generation time because CI
+   * information is not always available at runtime. Moreover, the edge client
+   * has no notion of environment variables, so this works around that.
+   * @remarks used to error for Vercel/Netlify for schema caching issues
+   */
+  ciName?: string
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -280,7 +297,7 @@ export type Client = ReturnType<typeof getPrismaClient> extends new () => infer 
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient {
-    _baseDmmf: BaseDMMFHelper
+    _baseDmmf: DMMFDatamodelHelper
     _dmmf?: DMMFHelper
     _engine: Engine
     _fetcher: RequestHandler
@@ -300,11 +317,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _extensions: MergedExtensionsList
 
     constructor(optionsArg?: PrismaClientOptions) {
+      checkPlatformCaching(config)
+
       if (optionsArg) {
         validatePrismaClientOptions(optionsArg, config.datasourceNames)
       }
 
-      const logEmitter = new EventEmitter().on('error', (e) => {
+      const logEmitter = new EventEmitter().on('error', () => {
         // this is a no-op to prevent unhandled error events
         //
         // If the user enabled error logging this would never be executed. If the user did not
@@ -376,7 +395,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           this._errorFormat = 'colorless' // default errorFormat
         }
 
-        this._baseDmmf = new BaseDMMFHelper(config.document)
+        this._baseDmmf = new DMMFDatamodelHelper(config.document)
         const engineProtocol = NODE_CLIENT
           ? getQueryEngineProtocol(config.generator)
           : config.edgeClientProtocol ?? getQueryEngineProtocol(config.generator)
@@ -480,7 +499,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * Hook a middleware into the client
      * @param middleware to hook
      */
-    $use<T>(middleware: QueryMiddleware) {
+    $use(middleware: QueryMiddleware) {
       this._middlewares.use(middleware)
     }
 
@@ -952,14 +971,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           return new DMMFHelper(getPrismaClientDMMF(dmmf))
         })
       } catch (error) {
-        this._fetcher.handleAndLogRequestError({ ...params, error })
+        this._fetcher.handleAndLogRequestError({ ...params, args: {}, error })
       }
     })
 
     _getProtocolEncoder = callOnce(
       async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>): Promise<ProtocolEncoder> => {
         if (this._engineConfig.engineProtocol === 'json') {
-          return new JsonProtocolEncoder(this._baseDmmf)
+          return new JsonProtocolEncoder(this._baseDmmf, this._errorFormat)
         }
 
         if (this._dmmf === undefined) {

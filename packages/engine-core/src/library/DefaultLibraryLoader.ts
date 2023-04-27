@@ -2,8 +2,9 @@ import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName, getPlatform, getPlatformWithOSResult } from '@prisma/get-platform'
-import chalk from 'chalk'
 import fs from 'fs'
+import { bold, green, red, underline } from 'kleur/colors'
+import os from 'os'
 import path from 'path'
 
 import { EngineConfig } from '../common/Engine'
@@ -16,9 +17,56 @@ import { Library, LibraryLoader } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
 
-export function load<T>(id: string): T {
-  // this require needs to be resolved at runtime, tell webpack to ignore it
-  return eval('require')(id) as T
+const libraryCacheSymbol = Symbol('PrismaLibraryEngineCache')
+
+type LibraryCache = Record<string, Library | undefined>
+
+type GlobalWithCache = typeof globalThis & {
+  [libraryCacheSymbol]?: LibraryCache
+}
+
+function getLibraryCache(): LibraryCache {
+  const globalWithCache = globalThis as GlobalWithCache
+  if (globalWithCache[libraryCacheSymbol] === undefined) {
+    globalWithCache[libraryCacheSymbol] = {}
+  }
+  return globalWithCache[libraryCacheSymbol]
+}
+
+export function load(libraryPath: string): Library {
+  const cache = getLibraryCache()
+
+  if (cache[libraryPath] !== undefined) {
+    return cache[libraryPath]!
+  }
+
+  // `toNamespacedPath` is required for native addons on Windows, but it's a no-op on other systems.
+  // We call it here unconditionally just like `.node` CommonJS loader in Node.js does.
+  const fullLibraryPath = path.toNamespacedPath(libraryPath)
+  const libraryModule = { exports: {} as Library }
+
+  let flags = 0
+
+  if (process.platform !== 'win32') {
+    // Add RTLD_LAZY and RTLD_DEEPBIND on Unix.
+    //
+    // RTLD_LAZY: this is what Node.js uses by default on all Unix-like systems
+    // if no flags were passed to dlopen from JavaScript side.
+    //
+    // RTLD_DEEPBIND: this is not a part of POSIX standard but a widely
+    // supported extension. It prevents issues when we dynamically link to
+    // system OpenSSL on Linux but the dynamic linker resolves the symbols from
+    // the Node.js binary instead.
+    //
+    // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
+    flags = os.constants.dlopen.RTLD_LAZY | os.constants.dlopen.RTLD_DEEPBIND
+  }
+
+  // @ts-expect-error TODO: typings don't define dlopen -- needs to be fixed upstream
+  process.dlopen(libraryModule, fullLibraryPath, flags)
+
+  cache[libraryPath] = libraryModule.exports
+  return libraryModule.exports
 }
 
 export class DefaultLibraryLoader implements LibraryLoader {
@@ -64,14 +112,14 @@ export class DefaultLibraryLoader implements LibraryLoader {
     // If path to query engine doesn't exist, throw
     if (!fs.existsSync(enginePath)) {
       const incorrectPinnedPlatformErrorStr = this.platform
-        ? `\nYou incorrectly pinned it to ${chalk.redBright.bold(`${this.platform}`)}\n`
+        ? `\nYou incorrectly pinned it to ${bold(red(`${this.platform}`))}\n`
         : ''
-      // TODO Improve search engine logic possibly using findSync
-      let errorText = `Query engine library for current platform "${chalk.bold(
+      // TODO Stop searching in many locations, have more deterministic logic.
+      let errorText = `Query engine library for current platform "${bold(
         this.platform,
       )}" could not be found.${incorrectPinnedPlatformErrorStr}
 This probably happens, because you built Prisma Client on a different platform.
-(Prisma Client looked in "${chalk.underline(enginePath)}")
+(Prisma Client looked in "${underline(enginePath)}")
 
 Searched Locations:
 
@@ -97,9 +145,9 @@ ${searchedLocations
           errorText += `
 You already added the platform${
             this.config.generator.binaryTargets.length > 1 ? 's' : ''
-          } ${this.config.generator.binaryTargets
-            .map((t) => `"${chalk.bold(t.value)}"`)
-            .join(', ')} to the "${chalk.underline('generator')}" block
+          } ${this.config.generator.binaryTargets.map((t) => `"${bold(t.value)}"`).join(', ')} to the "${underline(
+            'generator',
+          )}" block
 in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
 but something went wrong. That's suboptimal.
 
@@ -108,12 +156,12 @@ Please create an issue at https://github.com/prisma/prisma/issues/new`
         } else {
           // If they didn't even have the current running platform in the schema.prisma file, it's easy
           // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${chalk.underline(
+          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${underline(
             'binaryTargets',
-          )}" attribute in the "${chalk.underline('generator')}" block in the "schema.prisma" file:
-${chalk.greenBright(this.getFixedGenerator())}
+          )}" attribute in the "${underline('generator')}" block in the "schema.prisma" file:
+${green(this.getFixedGenerator())}
 
-Then run "${chalk.greenBright('prisma generate')}" for your changes to take effect.
+Then run "${green('prisma generate')}" for your changes to take effect.
 Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
         }
       } else {

@@ -62,8 +62,10 @@
     "index-browser.js"
   ],
   "devDependencies": {
+    "@codspeed/benchmark.js-plugin": "1.0.2",
     "@faker-js/faker": "7.6.0",
     "@fast-check/jest": "1.6.0",
+    "@jest/create-cache-key-function": "29.5.0",
     "@jest/globals": "29.4.3",
     "@jest/test-sequencer": "29.4.3",
     "@opentelemetry/api": "1.4.0",
@@ -91,12 +93,12 @@
     "@types/jest": "29.4.0",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.2",
-    "@types/node": "14.18.36",
+    "@types/node": "14.18.42",
     "@types/pg": "8.6.6",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
-    "chalk": "4.1.2",
+    "ci-info": "3.8.0",
     "decimal.js": "10.4.3",
     "esbuild": "0.15.13",
     "execa": "5.1.1",
@@ -111,8 +113,10 @@
     "is-regexp": "2.1.0",
     "jest": "29.4.3",
     "jest-junit": "15.0.0",
+    "jest-serializer-ansi-escapes": "2.0.1",
     "jest-snapshot": "29.4.3",
     "js-levenshtein": "1.1.6",
+    "kleur": "4.1.5",
     "klona": "2.0.6",
     "lz-string": "1.4.4",
     "mariadb": "3.0.2",
@@ -149,7 +153,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.11.0-57.8fde8fef4033376662cad983758335009d522acb"
+    "@prisma/engines-version": "4.14.0-38.e9d4b3877607013ee1d01de5158e44e6003052b8"
   },
   "sideEffects": false
 }

@@ -1,9 +1,9 @@
 import { BinaryType, overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever, ClientEngineType, getClientEngineType, getEngineVersion, Platform } from '@prisma/internals'
-import chalk from 'chalk'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
+import { bold, dim, green, red } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
@@ -54,6 +54,7 @@ export interface GenerateClientOptions {
   clientVersion: string
   activeProvider: string
   dataProxy: boolean
+  postinstall?: boolean
 }
 
 export interface BuildClientResult {
@@ -75,6 +76,7 @@ export async function buildClient({
   projectRoot,
   activeProvider,
   dataProxy,
+  postinstall,
 }: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
@@ -94,6 +96,7 @@ export async function buildClient({
     projectRoot: projectRoot!,
     activeProvider,
     dataProxy,
+    postinstall,
   }
 
   // we create a regular client that is fit for Node.js
@@ -203,6 +206,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     dataProxy,
+    postinstall,
   } = options
 
   const clientEngineType = getClientEngineType(generator!)
@@ -223,13 +227,14 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     projectRoot,
     activeProvider,
     dataProxy,
+    postinstall,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
   if (denylistsErrors) {
-    let message = `${chalk.redBright.bold(
-      'Error: ',
+    let message = `${bold(
+      red('Error: '),
     )}The schema at "${schemaPath}" contains reserved keywords.\n       Rename the following items:`
 
     for (const error of denylistsErrors) {
@@ -319,7 +324,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
         continue
       }
       const binaryName =
-        clientEngineType === ClientEngineType.Binary ? BinaryType.queryEngine : BinaryType.libqueryEngine
+        clientEngineType === ClientEngineType.Binary ? BinaryType.QueryEngineBinary : BinaryType.QueryEngineLibrary
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
         getEngineVersion(filePath, binaryName).catch(() => null),
@@ -494,7 +499,7 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
   }
   const { name } = JSON.parse(content)
   if (name === clientPackageName) {
-    const message = [`Generating client into ${chalk.bold(directory)} is not allowed.`]
+    const message = [`Generating client into ${bold(directory)} is not allowed.`]
     message.push('This package is used by `prisma generate` and overwriting its content is dangerous.')
     message.push('')
     message.push('Suggestion:')
@@ -502,20 +507,14 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
 
     if (outputDeclaration && outputDeclaration.content.includes(clientPackageName)) {
       const outputLine = outputDeclaration.content
-      message.push(`In ${chalk.bold(schemaPath)} replace:`)
+      message.push(`In ${bold(schemaPath)} replace:`)
       message.push('')
-      message.push(
-        `${chalk.dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, chalk.red(clientPackageName))}`,
-      )
+      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, red(clientPackageName))}`)
       message.push('with')
 
-      message.push(
-        `${chalk.dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, chalk.green('.prisma/client'))}`,
-      )
+      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, green('.prisma/client'))}`)
     } else {
-      message.push(
-        `Generate client into ${chalk.bold(replacePackageName(directory, chalk.green('.prisma/client')))} instead`,
-      )
+      message.push(`Generate client into ${bold(replacePackageName(directory, green('.prisma/client')))} instead`)
     }
 
     message.push('')

@@ -21,13 +21,11 @@ import {
   getGroupByArgsName,
   getGroupByName,
   getGroupByPayloadName,
-  getIncludeName,
   getMaxAggregateName,
   getMinAggregateName,
   getModelArgName,
   getModelFieldArgsName,
   getReturnType,
-  getSelectName,
   getSumAggregateName,
   Projection,
 } from '../utils'
@@ -331,7 +329,7 @@ ${indent(
     )
   }
   public toTS(): string {
-    const { model, outputType } = this
+    const { model } = this
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField

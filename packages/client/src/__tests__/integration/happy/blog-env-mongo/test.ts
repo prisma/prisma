@@ -1,11 +1,8 @@
-import { getQueryEngineProtocol } from '@prisma/internals'
-
 import { generateTestClient } from '../../../../utils/getTestClient'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
   let prisma: PrismaClient // Generated Client instance
@@ -49,7 +46,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     expect(prisma.internalDatasources).toBeUndefined()
   })
 
-  testIf(getQueryEngineProtocol() !== 'json')('can throw validation errors', async () => {
+  test('can throw validation errors', async () => {
     expect.assertions(2)
 
     const {
@@ -190,10 +187,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       Invalid \`prisma.post.create()\` invocation in
       /client/src/__tests__/integration/happy/blog-env-mongo/test.ts:0:0
 
-        173 })
-        174 
-        175 test('should throw Malformed ObjectID error: in 2 different fields', async () => {
-      → 176   const post = prisma.post.create(
+        170 })
+        171 
+        172 test('should throw Malformed ObjectID error: in 2 different fields', async () => {
+      → 173   const post = prisma.post.create(
       Inconsistent column data: Malformed ObjectID: invalid character 's' was found at index 0 in the provided hex string: "something invalid 1111" for the field 'id'.
     `)
   })

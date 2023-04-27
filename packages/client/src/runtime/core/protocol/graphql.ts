@@ -1,8 +1,9 @@
-import { EngineBatchQuery, EngineQuery, GraphQLQuery } from '@prisma/engine-core'
+import { EngineBatchQuery, GraphQLQuery } from '@prisma/engine-core'
 
 import { DMMFHelper } from '../../dmmf'
 import { ErrorFormat } from '../../getPrismaClient'
-import { Args, Document, makeDocument, unpack } from '../../query'
+import { Args, Document, makeDocument, PrismaClientValidationError, unpack } from '../../query'
+import { createErrorMessageWithContext } from '../../utils/createErrorMessageWithContext'
 import { Action } from '../types/JsApi'
 import { CreateMessageOptions, ProtocolEncoder, ProtocolMessage } from './common'
 
@@ -48,6 +49,14 @@ export class GraphQLProtocolEncoder implements ProtocolEncoder<GraphQLQuery> {
       }
 
       rootField = mapping[action === 'count' ? 'aggregate' : action]
+      if (!rootField) {
+        const message = createErrorMessageWithContext({
+          message: `Model \`${modelName}\` does not support \`${action}\` action.`,
+          originalMethod: clientMethod,
+          callsite: callsite,
+        })
+        throw new PrismaClientValidationError(message)
+      }
     }
 
     if (operation !== 'query' && operation !== 'mutation') {

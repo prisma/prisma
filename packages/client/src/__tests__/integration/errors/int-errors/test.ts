@@ -55,7 +55,7 @@ describe('int-errors', () => {
     }
   })
 
-  testIf(getQueryEngineProtocol() !== 'json')('overflow-int', async () => {
+  test('overflow-int', async () => {
     try {
       await prisma.user.update({
         where: { id: '576eddf9-2434-421f-9a86-58bede16fd95' },
@@ -69,7 +69,7 @@ describe('int-errors', () => {
     }
   })
 
-  testIf(getQueryEngineProtocol() !== 'json')('signed-int', async () => {
+  test('signed-int', async () => {
     try {
       await prisma.user.update({
         where: { id: '576eddf9-2434-421f-9a86-58bede16fd95' },

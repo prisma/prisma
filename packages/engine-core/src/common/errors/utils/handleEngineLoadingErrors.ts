@@ -1,5 +1,5 @@
 import { link, type PlatformWithOSResult } from '@prisma/get-platform'
-import chalk from 'chalk'
+import { dim } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 type HandleLibraryLoadingErrorsInput = {
@@ -18,7 +18,7 @@ export function handleLibraryLoadingErrors(args: HandleLibraryLoadingErrorsInput
     'https://pris.ly/d/system-requirements',
   )}`
 
-  const errorTitle = `Unable to require(\`${chalk.dim(args.id)}\`).`
+  const errorTitle = `Unable to require(\`${dim(args.id)}\`).`
 
   const potentialReasonMessage = match({ message: error.message, code: error.code })
     .with({ code: 'ENOENT' }, () => `File does not exist.`)

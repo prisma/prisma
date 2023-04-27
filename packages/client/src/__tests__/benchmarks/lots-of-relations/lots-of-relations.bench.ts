@@ -1,11 +1,13 @@
 // @ts-nocheck
 
+import { withCodSpeed } from '@codspeed/benchmark.js-plugin'
 import Benchmark from 'benchmark'
 
 import { generateTestClient } from '../../../utils/getTestClient'
 
-const suite = new Benchmark.Suite('typescript')
+const suite = withCodSpeed(new Benchmark.Suite('typescript'))
 // @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 suite
   .add('client generation 100 models with relations', {
     defer: true,
