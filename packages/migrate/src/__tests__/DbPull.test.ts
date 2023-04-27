@@ -3000,7 +3000,7 @@ describe('mysql introspection stopgaps', () => {
 
         // *** WARNING ***
         // 
-        // These tables contain multi-value indices, which are not yet fully supported. Read more: https://pris.ly/d/mysql-multi-row-indextps://pris.ly/d/database-comments
+        // These tables contain multi-value indices, which are not yet fully supported. Read more: https://pris.ly/d/mysql-multi-row-index
         //   - Type: "model", name: "customers"
         // 
       `)
