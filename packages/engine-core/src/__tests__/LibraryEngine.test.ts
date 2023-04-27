@@ -23,11 +23,6 @@ function setupMockLibraryEngine() {
       return Promise.resolve({
         QueryEngine: jest.fn().mockReturnValue(rustEngineMock),
         version: jest.fn().mockResolvedValue({ commit: '123abc', version: 'mock' }),
-        getConfig: jest.fn().mockResolvedValue({
-          datasources: [],
-          generators: [],
-          warnings: [],
-        }),
         dmmf: jest.fn().mockResolvedValue(undefined),
         debugPanic: jest.fn(),
       })
