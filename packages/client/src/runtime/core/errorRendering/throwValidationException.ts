@@ -1,5 +1,3 @@
-import chalk from 'chalk'
-
 import { Writer } from '../../../generation/ts-builders/Writer'
 import { ErrorFormat } from '../../getPrismaClient'
 import { PrismaClientValidationError } from '../../query'
@@ -9,6 +7,7 @@ import { JsArgs } from '../types/JsApi'
 import { ValidationError } from '../types/ValidationError'
 import { applyValidationError } from './applyValidationError'
 import { buildArgumentsRenderingTree } from './ArgumentsRenderingTree'
+import { activeColors, inactiveColors } from './base'
 
 type ExceptionParams = {
   errors: ValidationError[]
@@ -30,12 +29,10 @@ export function throwValidationException({
     applyValidationError(error, argsTree)
   }
 
-  const chalkInstance = new chalk.Instance()
-  if (errorFormat !== 'pretty') {
-    chalkInstance.level = 0
-  }
-  const message = argsTree.renderAllMessages(chalkInstance)
-  const renderedArgs = new Writer(0, { chalk: chalkInstance }).write(argsTree).toString()
+  const colors = errorFormat === 'pretty' ? activeColors : inactiveColors
+
+  const message = argsTree.renderAllMessages(colors)
+  const renderedArgs = new Writer(0, { colors }).write(argsTree).toString()
 
   const messageWithContext = createErrorMessageWithContext({
     message,

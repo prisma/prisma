@@ -2,8 +2,8 @@ import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
-import chalk from 'chalk'
 import fs from 'fs'
+import { bold, green, red, yellow } from 'kleur/colors'
 
 import type {
   BatchQueryEngineResult,
@@ -138,9 +138,7 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
 
   private checkForTooManyEngines() {
     if (engineInstanceCount === 10) {
-      console.warn(
-        `${chalk.yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`,
-      )
+      console.warn(`${yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`)
     }
   }
 
@@ -209,12 +207,10 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     const platform = await getPlatform()
     if (!knownPlatforms.includes(platform)) {
       throw new PrismaClientInitializationError(
-        `Unknown ${chalk.red('PRISMA_QUERY_ENGINE_LIBRARY')} ${chalk.redBright.bold(
-          platform,
-        )}. Possible binaryTargets: ${chalk.greenBright(
+        `Unknown ${red('PRISMA_QUERY_ENGINE_LIBRARY')} ${red(bold(platform))}. Possible binaryTargets: ${green(
           knownPlatforms.join(', '),
         )} or a path to the query engine library.
-You may have to run ${chalk.greenBright('prisma generate')} for your changes to take effect.`,
+You may have to run ${green('prisma generate')} for your changes to take effect.`,
         this.config.clientVersion!,
       )
     }

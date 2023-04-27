@@ -156,7 +156,7 @@ export type InvalidArgumentValueError = {
    * Additional message from the engine, describing the reason value
    * can not be accepted.
    */
-  underlyingError: string
+  underlyingError: string | null
 }
 
 /**
