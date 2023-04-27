@@ -651,8 +651,8 @@ exports[`postgresql views fs I/O with preview feature and views defined introspe
 *** WARNING ***
 
 The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-- View "simpleuser"
-- View "workers"
+  - "simpleuser"
+  - "workers"
 
 Run prisma generate to generate Prisma Client.
 
@@ -680,8 +680,8 @@ exports[`postgresql views fs I/O with preview feature and views defined introspe
 *** WARNING ***
 
 The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-- View "simpleuser"
-- View "workers"
+  - "simpleuser"
+  - "workers"
 
 Run prisma generate to generate Prisma Client.
 
@@ -709,8 +709,8 @@ exports[`postgresql views fs I/O with preview feature and views defined introspe
 *** WARNING ***
 
 The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-- View "simpleuser"
-- View "workers"
+  - "simpleuser"
+  - "workers"
 
 Run prisma generate to generate Prisma Client.
 
@@ -738,8 +738,8 @@ exports[`postgresql views fs I/O with preview feature and views defined introspe
 *** WARNING ***
 
 The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-- View "simpleuser"
-- View "workers"
+  - "simpleuser"
+  - "workers"
 
 Run prisma generate to generate Prisma Client.
 
@@ -1143,17 +1143,23 @@ model Post {
 }
 
 model base_some_table {
-  id String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  id         String                     @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
+  email      String                     @db.NVarChar(1)
+  some_table transactional_some_table[] @ignore
 
   @@map("some_table")
   @@schema("base")
 }
 
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
 model transactional_some_table {
-  id    String @id(map: "PK__some_tab__RANDOM_ID_SANITIZED") @db.NVarChar(1)
-  title String @db.NVarChar(1)
+  id         String          @db.NVarChar(1)
+  title      String          @db.NVarChar(1)
+  authorId   String          @db.NVarChar(1)
+  some_table base_some_table @relation(fields: [authorId], references: [id], map: "Post_authorId_fkey2")
 
   @@map("some_table")
+  @@ignore
   @@schema("transactional")
 }
 

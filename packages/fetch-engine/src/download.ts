@@ -1,9 +1,9 @@
 import Debug from '@prisma/debug'
 import { getNodeAPIName, getos, getPlatform, isNodeAPISupported, Platform, platforms } from '@prisma/get-platform'
-import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
+import { bold, underline, yellow } from 'kleur/colors'
 import pFilter from 'p-filter'
 import path from 'path'
 import tempDir from 'temp-dir'
@@ -78,10 +78,10 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const os = await getos()
 
   if (os.targetDistro && ['nixos'].includes(os.targetDistro)) {
-    console.error(`${chalk.yellow('Warning')} Precompiled engine files are not available for ${os.targetDistro}.`)
+    console.error(`${yellow('Warning')} Precompiled engine files are not available for ${os.targetDistro}.`)
   } else if (['freebsd11', 'freebsd12', 'freebsd13', 'openbsd', 'netbsd'].includes(platform)) {
     console.error(
-      `${chalk.yellow(
+      `${yellow(
         'Warning',
       )} Precompiled engine files are not available for ${platform}. Read more about building your own engines at https://pris.ly/d/build-engines`,
     )
@@ -194,7 +194,7 @@ function getCollectiveBar(options: DownloadOptions): {
   const hasNodeAPI = 'libquery-engine' in options.binaries
   const bar = getBar(
     `Downloading Prisma engines${hasNodeAPI ? ' for Node-API' : ''} for ${options.binaryTargets
-      ?.map((p) => chalk.bold(p))
+      ?.map((p) => bold(p))
       .join(' and ')}`,
   )
 
@@ -381,14 +381,12 @@ export function getBinaryEnvVarPath(binaryName: string): string | null {
     const envVarPath = path.resolve(process.cwd(), process.env[envVar] as string)
     if (!fs.existsSync(envVarPath)) {
       throw new Error(
-        `Env var ${chalk.bold(envVar)} is provided but provided path ${chalk.underline(
-          process.env[envVar],
-        )} can't be resolved.`,
+        `Env var ${bold(envVar)} is provided but provided path ${underline(process.env[envVar]!)} can't be resolved.`,
       )
     }
     debug(
-      `Using env var ${chalk.bold(envVar)} for binary ${chalk.bold(binaryName)}, which points to ${chalk.underline(
-        process.env[envVar],
+      `Using env var ${bold(envVar)} for binary ${bold(binaryName)}, which points to ${underline(
+        process.env[envVar]!,
       )}`,
     )
     return envVarPath

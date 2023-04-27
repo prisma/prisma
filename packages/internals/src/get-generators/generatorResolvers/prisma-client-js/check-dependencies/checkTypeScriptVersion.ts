@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
-import chalk from 'chalk'
 import fs from 'fs'
+import { bold, dim } from 'kleur/colors'
 import path from 'path'
 
 import { logger } from '../../../..'
@@ -29,11 +29,11 @@ export async function checkTypeScriptVersion() {
       const currentVersion = pjson.version
       if (semverLt(currentVersion, minVersion)) {
         logger.warn(
-          `Prisma detected that your ${chalk.bold(
+          `Prisma detected that your ${bold(
             'TypeScript',
-          )} version ${currentVersion} is outdated. If you want to use Prisma Client with TypeScript please update it to version ${chalk.bold(
+          )} version ${currentVersion} is outdated. If you want to use Prisma Client with TypeScript please update it to version ${bold(
             minVersion,
-          )} or ${chalk.bold('newer')}. ${chalk.dim(`TypeScript found in: ${chalk.bold(typescriptPath)}`)}`,
+          )} or ${bold('newer')}. ${dim(`TypeScript found in: ${bold(typescriptPath)}`)}`,
         )
       }
     }

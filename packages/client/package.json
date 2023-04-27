@@ -65,6 +65,7 @@
     "@codspeed/benchmark.js-plugin": "1.0.2",
     "@faker-js/faker": "7.6.0",
     "@fast-check/jest": "1.6.0",
+    "@jest/create-cache-key-function": "29.5.0",
     "@jest/globals": "29.4.3",
     "@jest/test-sequencer": "29.4.3",
     "@opentelemetry/api": "1.4.0",
@@ -97,7 +98,6 @@
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
-    "chalk": "4.1.2",
     "ci-info": "3.8.0",
     "decimal.js": "10.4.3",
     "esbuild": "0.15.13",
@@ -116,6 +116,7 @@
     "jest-serializer-ansi-escapes": "2.0.1",
     "jest-snapshot": "29.4.3",
     "js-levenshtein": "1.1.6",
+    "kleur": "4.1.5",
     "klona": "2.0.6",
     "lz-string": "1.4.4",
     "mariadb": "3.0.2",
@@ -152,7 +153,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.14.0-20.5352fad55397f603d44cbd26599d5f37646894c0"
+    "@prisma/engines-version": "4.14.0-38.e9d4b3877607013ee1d01de5158e44e6003052b8"
   },
   "sideEffects": false
 }

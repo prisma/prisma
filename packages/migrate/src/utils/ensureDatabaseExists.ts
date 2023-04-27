@@ -8,7 +8,7 @@ import {
   getSchemaDir,
   uriToCredentials,
 } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold } from 'kleur/colors'
 
 import { ConnectorType } from './printDatasources'
 
@@ -192,7 +192,7 @@ export async function ensureDatabaseExists(action: MigrateAction, schemaPath?: s
     let message = `${prettyProvider} database${credentials.database ? ` ${credentials.database} ` : ' '}created`
     const dbLocation = getDbLocation(credentials)
     if (dbLocation) {
-      message += ` at ${chalk.bold(getDbLocation(credentials))}`
+      message += ` at ${bold(dbLocation)}`
     }
 
     return message

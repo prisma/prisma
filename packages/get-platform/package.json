@@ -24,14 +24,14 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "chalk": "4.1.2",
-    "execa": "5.1.1",
     "escape-string-regexp": "4.0.0",
+    "execa": "5.1.1",
     "fs-jetpack": "5.1.0",
+    "kleur": "4.1.5",
     "replace-string": "3.1.0",
     "strip-ansi": "6.0.1",
-    "terminal-link": "2.1.1",
     "tempy": "1.0.1",
+    "terminal-link": "2.1.1",
     "ts-pattern": "4.2.2"
   },
   "scripts": {
