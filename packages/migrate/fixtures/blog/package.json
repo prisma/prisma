@@ -5,7 +5,6 @@
   "license": "MIT",
   "devDependencies": {},
   "dependencies": {
-    "chalk": "4.1.2",
     "ts-node": "10.9.1"
   }
 }
