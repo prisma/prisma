@@ -65,6 +65,7 @@
     "@codspeed/benchmark.js-plugin": "1.0.2",
     "@faker-js/faker": "7.6.0",
     "@fast-check/jest": "1.6.0",
+    "@jest/create-cache-key-function": "29.5.0",
     "@jest/globals": "29.4.3",
     "@jest/test-sequencer": "29.4.3",
     "@opentelemetry/api": "1.4.0",
