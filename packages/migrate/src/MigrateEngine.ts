@@ -10,7 +10,7 @@ import {
 } from '@prisma/internals'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
-import { bold, red, underline } from 'kleur/colors'
+import { bold, red } from 'kleur/colors'
 import path from 'path'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
@@ -543,9 +543,5 @@ export class MigrateEngine {
 
 /** The full message with context we return to the user in case of engine panic. */
 function serializePanic(log: string): string {
-  // TODO: https://github.com/prisma/prisma/issues/17268
-  return `${red(bold('Error in migration engine.\nReason: '))}${log}
-
-Please create an issue with your \`schema.prisma\` at
-${underline('https://github.com/prisma/prisma/issues/new')}\n`
+  return `${red(bold('Error in migration engine.\nReason: '))}${log}\n`
 }
