@@ -42,10 +42,19 @@ on:
       - '*.bench.ts'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
-  schedule:
-    # https://crontab.guru - “At every 30th minute past every hour from 3 through 6.”
-    - cron: '*/30 3-6 * * *'
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      reason:
+        type: string
+        required: false
+        default: CI
+      ubuntuRunner:
+        type: string
+        required: false
+      jobTimeout:
+        type: number
+        required: false
 
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
@@ -55,8 +64,8 @@ env:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  # Don't cancel if it's on schedule (used for BuildPulse for flaky tests detection)
-  cancel-in-progress: ${{ github.event_name != 'schedule' }}
+  # Don't cancel if called from buildpulse workflow
+  cancel-in-progress: ${{ reason == 'buildpulse' }}
 
 jobs:
   detect_jobs_to_run:
@@ -64,6 +73,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       jobs: ${{ steps.detect.outputs.jobs }}
+      queryEngine: ${{ steps.matrix.outputs.queryEngine }}
+      excludeClient: ${{ steps.matrix.outputs.excludeClient }}
+      excludeDataProxy: ${{ steps.matrix.outputs.excludeDataProxy }}
     steps:
       - id: checkout
         uses: actions/checkout@v3
@@ -74,6 +86,15 @@ jobs:
         continue-on-error: true # This allow this job to fail (e.g. for scheduled runs), and then the `detect` step below will default to `all`
       - id: detect
         run: ./.github/workflows/scripts/detect-jobs-to-run.js <<< '${{ steps.files.outputs.all }}'
+      - name: Find command comment
+        uses: peter-evans/find-comment@v2
+        id: fc
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: 'ci build all'
+      - id: matrix
+        run: ./.github/workflows/scripts/build-client-matrix.js '${{ inputs.reason }}' '${{ steps.fc.outputs.comment-id }}'
 
   #
   # Linting
@@ -115,8 +136,8 @@ jobs:
   # CLIENT (without types test)
   #
   client:
-    timeout-minutes: ${{ github.event_name == 'schedule' && 70 || 35 }}
-    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
+    timeout-minutes: ${{ jobTimeout || 35 }}
+    runs-on: ${{ ubuntuRunner || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -124,10 +145,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ['library', 'binary']
+        queryEngine: ${{ fromJson(needs.detect_jobs_to_run.outputs.queryEngine) }}
         engineProtocol: ['graphql', 'json']
         os: [buildjet-4vcpu-ubuntu-2004]
         node: [16, 18]
+        exclude: ${{ fromJson(needs.detect_jobs_to_run.outputs.excludeClient) }}
 
     env:
       CI: true
@@ -210,7 +232,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && reason == 'buildpulse'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -220,7 +242,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: github.event_name == 'schedule'
+        if: reason == 'buildpulse'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
           path: packages/*/junit*.xml
@@ -229,8 +251,8 @@ jobs:
   # CLIENT (functional tests with mini-proxy)
   #
   client-dataproxy:
-    timeout-minutes: ${{ github.event_name == 'schedule' && 70 || 35 }}
-    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
+    timeout-minutes: ${{ jobTimeout || 35 }}
+    runs-on: ${{ ubuntuRunner || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -241,6 +263,7 @@ jobs:
         os: [buildjet-4vcpu-ubuntu-2004]
         node: [14, 16, 18]
         engineProtocol: ['graphql', 'json']
+        exclude: ${{ fromJson(needs.detect_jobs_to_run.outputs.excludeDataProxy) }}
 
     steps:
       - uses: actions/checkout@v3
@@ -315,7 +338,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && reason == 'buildpulse'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -325,7 +348,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: github.event_name == 'schedule'
+        if: reason == 'buildpulse'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
           path: packages/*/junit*.xml
@@ -334,8 +357,8 @@ jobs:
   # CLIENT (memory tests)
   #
   client-memory:
-    timeout-minutes: ${{ github.event_name == 'schedule' && 30 || 15 }}
-    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
+    timeout-minutes: ${{ jobTimeout || 35 }}
+    runs-on: ${{ ubuntuRunner || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -578,7 +601,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && reason == 'buildpulse'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -588,7 +611,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: github.event_name == 'schedule'
+        if: reason === 'buildpulse'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
@@ -652,7 +675,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ['library', 'binary']
+        queryEngine: ${{ fromJson(needs.detect_jobs_to_run.outputs.queryEngine) }}
         node: [16]
 
     steps:
@@ -726,7 +749,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ['library', 'binary']
+        queryEngine: ${{ fromJson(needs.detect_jobs_to_run.outputs.queryEngine) }}
         os: [ubuntu-latest]
         node: [16, 18]
 
@@ -798,7 +821,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ['library', 'binary']
+        queryEngine: ${{ fromJson(needs.detect_jobs_to_run.outputs.queryEngine) }}
         os: [ubuntu-latest]
         node: [16, 18]
 
@@ -880,7 +903,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ['library', 'binary']
+        queryEngine: ${{ fromJson(needs.detect_jobs_to_run.outputs.queryEngine) }}
         os: [ubuntu-latest]
         node: [16, 18]
 
@@ -1065,7 +1088,7 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest]
         node: [14]
-        queryEngine: ['library', 'binary']
+        queryEngine: ${{ fromJson(needs.detect_jobs_to_run.outputs.queryEngine) }}
         # Commented out as we still have limited capacity for macOS runners
         # When we have more capacity we can shard again
         # shard: ['1', '2']
@@ -1137,7 +1160,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && reason =='buildpulse'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -1147,7 +1170,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: github.event_name == 'schedule'
+        if: reason == 'buildpulse'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
@@ -1171,7 +1194,7 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest]
         node: [14]
-        queryEngine: ['library', 'binary']
+        queryEngine: ${{ fromJson(needs.detect_jobs_to_run.outputs.queryEngine) }}
 
     steps:
       - uses: actions/checkout@v3
@@ -1376,7 +1399,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && github.event_name == 'schedule'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && reason == 'buildpulse'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -1386,7 +1409,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: github.event_name == 'schedule'
+        if: reason == 'buildpulse'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
