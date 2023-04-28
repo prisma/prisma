@@ -447,6 +447,7 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
       await this.stopPromise
     }
 
+    // retries added in https://github.com/prisma/prisma/pull/18874 to avoid test flakyness
     const retries = { times: 10 }
     const retryInternalStart = async () => {
       try {
