@@ -53,9 +53,9 @@ env:
   # To hide "Update available 0.0.0 -> x.x.x"
   PRISMA_HIDE_UPDATE_MESSAGE: true
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref }}
+#   cancel-in-progress: true
 
 jobs:
   detect_jobs_to_run:
