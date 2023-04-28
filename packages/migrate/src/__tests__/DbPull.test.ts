@@ -919,10 +919,10 @@ describe('postgresql views re-introspection warnings', () => {
         // *** WARNING ***
         // 
         // These fields are not supported by the Prisma Client, because Prisma currently does not support their types:
-        //   - Model: "reservations", field: "dates", type: "daterange"
+        //   - Model: "reservations", field: "dates", original data type: "daterange"
         // 
         // These fields are not supported by the Prisma Client, because Prisma currently does not support their types:
-        //   - View: "res", field: "dates", type: "daterange"
+        //   - View: "res", field: "dates", original data type: "daterange"
         // 
       `)
       expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -977,11 +977,11 @@ describe('postgresql views re-introspection warnings', () => {
         // *** WARNING ***
         // 
         // These fields are not supported by the Prisma Client, because Prisma currently does not support their types:
-        //   - Model: "reservations", field: "dates", type: "daterange"
+        //   - Model: "reservations", field: "dates", original data type: "daterange"
         // 
         // These fields are not supported by the Prisma Client, because Prisma currently does not support their types:
-        //   - View: "res", field: "dates", type: "daterange"
-        //   - View: "dates", field: "dates", type: "daterange"
+        //   - View: "res", field: "dates", original data type: "daterange"
+        //   - View: "dates", field: "dates", original data type: "daterange"
         // 
       `)
       expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -1255,7 +1255,7 @@ describe('postgresql views re-introspection warnings', () => {
         // *** WARNING ***
         // 
         // These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` attribute:
-        //   - View: "A", field: "1"
+        //   - View: "A", field(s): ["1"]
         // 
         // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
         //   - "A"
@@ -1527,7 +1527,7 @@ describe('postgresql views introspection warnings', () => {
         // *** WARNING ***
         // 
         // These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` attribute:
-        //   - View: "A", field: "1"
+        //   - View: "A", field(s): ["1"]
         // 
         // The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
         //   - "A"
@@ -3063,11 +3063,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
       *** WARNING ***
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-        - Model: "users", field: "numberOrString1", type: "Json"
+        - Model: "users", field: "numberOrString1", original data type: "Json"
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-        - Composite type: "UsersHobbies", field: "numberOrString2", type: "Json"
-        - Composite type: "UsersHobbiesObjects", field: "numberOrString3", type: "Json"
+        - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+        - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
 
@@ -3096,11 +3096,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
       *** WARNING ***
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-        - Model: "users", field: "numberOrString1", type: "Json"
+        - Model: "users", field: "numberOrString1", original data type: "Json"
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-        - Composite type: "UsersHobbies", field: "numberOrString2", type: "Json"
-        - Composite type: "UsersHobbiesObjects", field: "numberOrString3", type: "Json"
+        - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+        - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
 
@@ -3202,7 +3202,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
       // *** WARNING ***
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-      //   - Model: "users", field: "numberOrString1", type: "Json"
+      //   - Model: "users", field: "numberOrString1", original data type: "Json"
       // 
     `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -3251,10 +3251,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
       // *** WARNING ***
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-      //   - Model: "users", field: "numberOrString1", type: "Json"
+      //   - Model: "users", field: "numberOrString1", original data type: "Json"
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-      //   - Composite type: "UsersHobbies", field: "numberOrString2", type: "Json"
+      //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
       // 
     `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -3343,11 +3343,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
       // *** WARNING ***
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-      //   - Model: "users", field: "numberOrString1", type: "Json"
+      //   - Model: "users", field: "numberOrString1", original data type: "Json"
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-      //   - Composite type: "UsersHobbies", field: "numberOrString2", type: "Json"
-      //   - Composite type: "UsersHobbiesObjects", field: "numberOrString3", type: "Json"
+      //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      //   - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
       // 
     `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -3365,11 +3365,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
       // *** WARNING ***
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-      //   - Model: "users", field: "numberOrString1", type: "Json"
+      //   - Model: "users", field: "numberOrString1", original data type: "Json"
       // 
       // The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-      //   - Composite type: "UsersHobbies", field: "numberOrString2", type: "Json"
-      //   - Composite type: "UsersHobbiesObjects", field: "numberOrString3", type: "Json"
+      //   - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+      //   - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
       // 
     `)
     expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -3398,11 +3398,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
       *** WARNING ***
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-        - Model: "users", field: "numberOrString1", type: "Json"
+        - Model: "users", field: "numberOrString1", original data type: "Json"
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-        - Composite type: "UsersHobbies", field: "numberOrString2", type: "Json"
-        - Composite type: "UsersHobbiesObjects", field: "numberOrString3", type: "Json"
+        - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+        - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
 
@@ -3431,11 +3431,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('MongoDB', () => {
       *** WARNING ***
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-        - Model: "users", field: "numberOrString1", type: "Json"
+        - Model: "users", field: "numberOrString1", original data type: "Json"
 
       The following fields had data stored in multiple types. Either use Json or normalize data to the wanted type:
-        - Composite type: "UsersHobbies", field: "numberOrString2", type: "Json"
-        - Composite type: "UsersHobbiesObjects", field: "numberOrString3", type: "Json"
+        - Composite type: "UsersHobbies", field: "numberOrString2", chosen data type: "Json"
+        - Composite type: "UsersHobbiesObjects", field: "numberOrString3", chosen data type: "Json"
 
       Run prisma generate to generate Prisma Client.
 
