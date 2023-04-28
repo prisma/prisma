@@ -1,3 +1,3 @@
 # Readme
 
-This is an example of a readme file. Put a description of your test here.
+Test that makes sure we are displaying a warning and an appropriate error when the schema isn't found when a client is bundled.
