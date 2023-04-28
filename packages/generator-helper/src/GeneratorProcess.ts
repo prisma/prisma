@@ -35,7 +35,6 @@ export class GeneratorError extends Error {
 export class GeneratorProcess {
   child?: ChildProcessByStdio<any, any, any>
   listeners: { [key: string]: (result: any, err?: Error) => void } = {}
-  private exitCode: number | null = null
   private stderrLogs = ''
   private initPromise?: Promise<void>
   private isNode: boolean
@@ -78,10 +77,13 @@ export class GeneratorProcess {
         }
 
         this.child.on('exit', (code) => {
-          this.exitCode = code
-          if (code && code > 0 && this.currentGenerateDeferred) {
-            // print last 5 lines of stderr
-            this.currentGenerateDeferred.reject(new Error(this.stderrLogs.split('\n').slice(-5).join('\n')))
+          if (code && code > 0) {
+            if (this.currentGenerateDeferred) {
+              // print last 5 lines of stderr
+              this.currentGenerateDeferred.reject(new Error(this.stderrLogs.split('\n').slice(-5).join('\n')))
+            } else {
+              reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
+            }
           }
         })
 
@@ -122,13 +124,7 @@ export class GeneratorProcess {
           // the generator explicitly send a notification when it is ready, and we should wait until we get that
           // notification. Requiring that would be a breaking change, however we could start by introducing an optional
           // notification that would stop the waiting timer as a performance optimization.
-          setTimeout(() => {
-            if (this.exitCode && this.exitCode > 0) {
-              reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
-            } else {
-              resolve()
-            }
-          }, this.initWaitTime)
+          setTimeout(resolve, this.initWaitTime)
         })
       } catch (e) {
         reject(e)
