@@ -352,7 +352,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        os: [buildjet-4vcpu-ubuntu-2004]
+        os: [ubuntu-latest]
         node: [14, 16, 18]
     steps:
       - uses: actions/checkout@v3
