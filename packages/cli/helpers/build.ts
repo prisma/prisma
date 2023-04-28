@@ -3,13 +3,10 @@ import fs from 'fs'
 import { copy } from 'fs-extra'
 import lineReplace from 'line-replace'
 import path from 'path'
-import { promisify } from 'util'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { run } from '../../../helpers/compile/run'
-
-const copyFile = promisify(fs.copyFile)
 
 /**
  * Manages the extra actions that are needed for the CLI to work
@@ -33,20 +30,20 @@ const cliLifecyclePlugin: esbuild.Plugin = {
       })
 
       // we copy the contents from checkpoint-client to build
-      await copyFile(
+      await fs.promises.copyFile(
         path.join(require.resolve('checkpoint-client/package.json'), '../dist/child.js'),
         './build/child.js',
       )
 
       // we copy the contents from xdg-open to build
-      await copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
+      await fs.promises.copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
 
       // as a convention, we install all Prisma's Wasm modules in the internals package
       const wasmResolveDir = path.join(__dirname, '..', '..', 'internals', 'node_modules')
 
       // TODO: create a glob helper for this to import all the wasm modules having pattern /^@prisma\/.*-wasm$/
       const prismaWasmFile = path.join(wasmResolveDir, '@prisma', 'prisma-fmt-wasm', 'src', 'prisma_fmt_build_bg.wasm')
-      await copyFile(prismaWasmFile, './build/prisma_fmt_build_bg.wasm')
+      await fs.promises.copyFile(prismaWasmFile, './build/prisma_fmt_build_bg.wasm')
 
       await replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
 
