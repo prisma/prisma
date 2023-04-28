@@ -150,6 +150,13 @@ export interface EngineConfig {
    * @remarks enabling is determined by the client
    */
   tracingConfig: TracingConfig
+
+  /**
+   * Information about whether we have not found a schema.prisma file in the
+   * default location, and that we fell back to finding the schema.prisma file
+   * in the current working directory. This usually means it has been bundled.
+   */
+  isBundled?: boolean
 }
 
 export type GetConfigResult = {

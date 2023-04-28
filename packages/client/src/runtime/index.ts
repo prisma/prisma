@@ -20,7 +20,6 @@ export { objectEnumValues } from './object-enums'
 export { makeDocument, PrismaClientValidationError, transformDocument, unpack } from './query'
 export { makeStrictEnum } from './strictEnum'
 export type { DecimalJsLike } from './utils/decimalJsLike'
-export { findSync } from './utils/find'
 export { NotFoundError } from './utils/rejectOnNotFound'
 export { warnEnvConflicts } from './warnEnvConflicts'
 export { Debug } from '@prisma/debug'
@@ -40,6 +39,7 @@ export { decompressFromBase64 }
 
 export { Types }
 export { Extensions }
+export { warnOnce } from '@prisma/internals'
 
 /**
  * Payload is already exported via Types but tsc will complain that it isn't reachable

@@ -282,6 +282,13 @@ export interface GetPrismaClientConfig {
    * @remarks used to error for Vercel/Netlify for schema caching issues
    */
   ciName?: string
+
+  /**
+   * Information about whether we have not found a schema.prisma file in the
+   * default location, and that we fell back to finding the schema.prisma file
+   * in the current working directory. This usually means it has been bundled.
+   */
+  isBundled?: boolean
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -440,6 +447,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingConfig: this._tracingConfig,
           logEmitter: logEmitter,
           engineProtocol,
+          isBundled: config.isBundled,
         }
 
         debug('clientVersion', config.clientVersion)
