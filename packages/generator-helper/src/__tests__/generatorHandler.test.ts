@@ -32,6 +32,7 @@ const stubOptions: GeneratorOptions = {
         model: [],
         prisma: [],
       },
+      fieldRefTypes: {},
     },
   },
   generator: {
@@ -48,6 +49,7 @@ const stubOptions: GeneratorOptions = {
   otherGenerators: [],
   schemaPath: '',
   version: 'latest',
+  dataProxy: false,
 }
 
 function getExecutable(name: string): string {
@@ -117,7 +119,11 @@ describe('generatorHandler', () => {
   })
 
   test('nonexistent executable', async () => {
-    const generator = new GeneratorProcess(getExecutable("random path that doesn't exist"))
+    const generator = new GeneratorProcess(getExecutable('this-executable-does-not-exist'), {
+      // Make initWaitTime longer than the default because it sometimes takes longer than 200 ms for the shell to parse
+      // the command on macOS CI under load.
+      initWaitTime: 2000,
+    })
     await expect(() => generator.init()).rejects.toThrow()
   })
 })
