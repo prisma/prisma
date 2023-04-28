@@ -6,10 +6,8 @@ import hasYarn from 'has-yarn'
 import { bold, green, italic, red, yellow } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
-import { promisify } from 'util'
 
 const debug = Debug('prisma:migrate:seed')
-const readFileAsync = promisify(fs.readFile)
 
 /*
   Checks if user has a prisma/seed.ts or prisma/seed.js or prisma/seed.sh
@@ -229,7 +227,7 @@ async function getScriptsFromPackageJson(cwd: string = process.cwd()) {
       return null
     }
 
-    const pkgJsonString = await readFileAsync(pkgJsonPath, 'utf-8')
+    const pkgJsonString = await fs.promises.readFile(pkgJsonPath, 'utf-8')
 
     const pkgJson: PkgJSON = JSON.parse(pkgJsonString)
 

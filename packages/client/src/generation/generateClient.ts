@@ -15,11 +15,7 @@ import type { Dictionary } from '../runtime/utils/common'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 
-const remove = promisify(fs.unlink)
-const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
-const copyFile = promisify(fs.copyFile)
-const stat = promisify(fs.stat)
 
 const GENERATED_PACKAGE_NAME = '.prisma/client'
 
@@ -261,9 +257,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
       if (await exists(filePath)) {
-        await remove(filePath)
+        await fs.promises.unlink(filePath)
       }
-      await writeFile(filePath, file)
+      await fs.promises.writeFile(filePath, file)
     }),
   )
   const runtimeSourceDir = testMode
@@ -341,28 +337,28 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
-    await copyFile(schemaPath, schemaTargetPath)
+    await fs.promises.copyFile(schemaPath, schemaTargetPath)
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
   if (!fs.existsSync(proxyIndexJsPath)) {
-    await copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
+    await fs.promises.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
   }
 
   if (!fs.existsSync(proxyIndexDTSPath)) {
-    await copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
+    await fs.promises.copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
   }
 
   if (!fs.existsSync(proxyIndexBrowserJsPath)) {
-    await copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
+    await fs.promises.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
 }
 
 async function fileSize(name: string): Promise<number | null> {
   try {
-    const statResult = await stat(name)
+    const statResult = await fs.promises.stat(name)
     return statResult.size
   } catch (e) {
     return null
@@ -574,5 +570,5 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))
   }
 
-  await Promise.all(files.map((file) => copyFile(path.join(from, file), path.join(to, file))))
+  await Promise.all(files.map((file) => fs.promises.copyFile(path.join(from, file), path.join(to, file))))
 }

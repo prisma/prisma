@@ -34,9 +34,6 @@ describe('artificial-panic introspection', () => {
         Error in migration engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
 
-        Please create an issue with your \`schema.prisma\` at
-        https://github.com/prisma/prisma/issues/new
-
       `)
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()

@@ -48,7 +48,7 @@
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@prisma/ni": "workspace:*",
-    "@prisma/prisma-fmt-wasm": "4.14.0-36.8eb8cdfef1bcc1244fc4c0a27022cd11086e76c4",
+    "@prisma/prisma-fmt-wasm": "4.14.0-38.e9d4b3877607013ee1d01de5158e44e6003052b8",
     "archiver": "5.3.1",
     "arg": "5.0.2",
     "checkpoint-client": "1.1.23",
@@ -57,12 +57,11 @@
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",
     "find-up": "5.0.0",
-    "fp-ts": "2.13.1",
+    "fp-ts": "2.14.0",
     "fs-extra": "11.1.1",
     "fs-jetpack": "5.1.0",
     "global-dirs": "3.0.1",
     "globby": "11.1.0",
-    "has-yarn": "2.1.0",
     "is-windows": "1.0.2",
     "is-wsl": "2.2.0",
     "kleur": "4.1.5",
@@ -74,7 +73,7 @@
     "prompts": "2.4.2",
     "read-pkg-up": "7.0.1",
     "replace-string": "3.1.0",
-    "resolve": "1.22.1",
+    "resolve": "1.22.2",
     "string-width": "4.2.3",
     "strip-ansi": "6.0.1",
     "strip-indent": "3.0.0",
@@ -83,7 +82,7 @@
     "tempy": "1.0.1",
     "terminal-link": "2.1.1",
     "tmp": "0.2.1",
-    "ts-pattern": "4.0.5"
+    "ts-pattern": "4.2.2"
   },
   "sideEffects": false
 }

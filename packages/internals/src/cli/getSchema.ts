@@ -7,7 +7,6 @@ import readPkgUp from 'read-pkg-up'
 import { promisify } from 'util'
 
 const exists = promisify(fs.exists)
-const readFile = promisify(fs.readFile)
 
 /**
  * Async
@@ -261,7 +260,7 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
     )
   }
 
-  return readFile(schemaPath, 'utf-8')
+  return fs.promises.readFile(schemaPath, 'utf-8')
 }
 
 /**

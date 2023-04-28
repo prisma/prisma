@@ -19,10 +19,7 @@ import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
 const { enginesOverride } = require('../package.json')
 
 const debug = Debug('prisma:download')
-const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
-const readFile = promisify(fs.readFile)
-const utimes = promisify(fs.utimes)
 
 const channel = 'master'
 export enum BinaryType {
@@ -44,7 +41,6 @@ export interface DownloadOptions {
   version?: string
   skipDownload?: boolean
   failSilent?: boolean
-  ignoreCache?: boolean
   printVersion?: boolean
   skipCacheIntegrityCheck?: boolean
 }
@@ -134,7 +130,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     const shouldDownload =
       isSupported &&
       !job.envVarPath && // this is for custom binaries
-      (opts.ignoreCache || needsToBeDownloaded) // TODO: do we need ignoreCache?
+      needsToBeDownloaded
     if (needsToBeDownloaded && !isSupported) {
       throw new Error(`Unknown binaryTarget ${job.binaryTarget} and no custom engine files were provided`)
     }
@@ -269,7 +265,7 @@ async function binaryNeedsToBeDownloaded(
 
     const sha256FilePath = cachedFile + '.sha256'
     if (await exists(sha256FilePath)) {
-      const sha256File = await readFile(sha256FilePath, 'utf-8')
+      const sha256File = await fs.promises.readFile(sha256FilePath, 'utf-8')
       const sha256Cache = await getHash(cachedFile)
       if (sha256File === sha256Cache) {
         if (!targetExists) {
@@ -277,7 +273,7 @@ async function binaryNeedsToBeDownloaded(
 
           // TODO Remove when https://github.com/docker/for-linux/issues/1015 is fixed
           // Workaround for https://github.com/prisma/prisma/issues/7037
-          await utimes(cachedFile, new Date(), new Date())
+          await fs.promises.utimes(cachedFile, new Date(), new Date())
 
           await overwriteFile(cachedFile, job.targetFilePath)
         }
@@ -319,7 +315,7 @@ async function binaryNeedsToBeDownloaded(
 export async function getVersion(enginePath: string, binaryName: string) {
   try {
     if (binaryName === BinaryType.QueryEngineLibrary) {
-      isNodeAPISupported()
+      void isNodeAPISupported()
 
       const commitHash = require(enginePath).version().commit
       return `${BinaryType.QueryEngineLibrary} ${commitHash}`
@@ -455,8 +451,8 @@ async function saveFileToCache(
 
   try {
     await overwriteFile(job.targetFilePath, cachedTargetPath)
-    await writeFile(cachedSha256Path, sha256)
-    await writeFile(cachedSha256ZippedPath, zippedSha256)
+    await fs.promises.writeFile(cachedSha256Path, sha256)
+    await fs.promises.writeFile(cachedSha256ZippedPath, zippedSha256)
   } catch (e) {
     debug(e)
     // let this fail silently - the CI system may have reached the file size limit
@@ -494,8 +490,8 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
-    const data = await readFile(file)
-    await writeFile(target, data)
+    const data = await fs.promises.readFile(file)
+    await fs.promises.writeFile(target, data)
     // We have to read and write until https://github.com/zeit/pkg/issues/639
     // is resolved
     // await copyFile(file, target)
