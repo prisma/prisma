@@ -73,7 +73,6 @@ export class GeneratorProcess {
               ...process.env,
               PRISMA_GENERATOR_INVOCATION: 'true',
             },
-            shell: true,
           })
         }
 
