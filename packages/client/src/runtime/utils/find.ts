@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/no-inferrable-types */
 import fs from 'fs'
 import path from 'path'
-import { promisify } from 'util'
-
-const readdirAsync = promisify(fs.readdir)
-const realpathAsync = promisify(fs.realpath)
-const statAsync = promisify(fs.stat)
 
 const readdirSync = fs.readdirSync
 const realpathSync = fs.realpathSync
@@ -182,7 +177,7 @@ export async function findAsync(
   seen: Record<string, true> = {},
 ) {
   try {
-    const realRoot = await realpathAsync(root)
+    const realRoot = await fs.promises.realpath(root)
 
     // we make sure not to loop infinitely
     if (seen[realRoot]) {
@@ -195,12 +190,12 @@ export async function findAsync(
     }
 
     // we check that the root is a directory
-    if (direntToType(await statAsync(realRoot)) !== 'd') {
+    if (direntToType(await fs.promises.stat(realRoot)) !== 'd') {
       return found
     }
 
     // we list the items in the current root
-    const items = await readdirAsync(root, { withFileTypes: true })
+    const items = await fs.promises.readdir(root, { withFileTypes: true })
 
     seen[realRoot] = true
     for (const item of items) {

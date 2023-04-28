@@ -18,9 +18,7 @@ import equal from 'fast-deep-equal'
 import fs from 'fs'
 import { bold, dim, green, red, underline } from 'kleur/colors'
 import path from 'path'
-import { promisify } from 'util'
 
-const readFile = promisify(fs.readFile)
 type IncorrectFieldTypes = Array<{
   localField: DMMF.Field
   remoteField: DMMF.Field
@@ -75,7 +73,7 @@ ${bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    const schema = await readFile(schemaPath, 'utf-8')
+    const schema = await fs.promises.readFile(schemaPath, 'utf-8')
     const localDmmf = await getDMMF({ datamodel: schema })
     const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
 
