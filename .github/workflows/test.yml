@@ -124,7 +124,7 @@ jobs:
   #
   client:
     timeout-minutes: ${{ github.event_name == 'schedule' && 100 || 35 }}
-    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
+    runs-on: ${{ github.event_name != 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -238,7 +238,7 @@ jobs:
   #
   client-dataproxy:
     timeout-minutes: ${{ github.event_name == 'schedule' && 100 || 35 }}
-    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
+    runs-on: ${{ github.event_name != 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -343,7 +343,7 @@ jobs:
   #
   client-memory:
     timeout-minutes: ${{ github.event_name == 'schedule' && 60 || 15 }}
-    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
+    runs-on: ${{ github.event_name != 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -606,7 +606,7 @@ jobs:
   #
   client-types:
     timeout-minutes: ${{ github.event_name == 'schedule' && 60 || 15 }}
-    runs-on: ${{ github.event_name == 'schedule' && 'ubuntu-latest' || 'buildjet-4vcpu-ubuntu-2004' }}
+    runs-on: ${{ github.event_name != 'schedule' && 'ubuntu-latest' || 'buildjet-4vcpu-ubuntu-2004' }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
