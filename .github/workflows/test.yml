@@ -53,10 +53,9 @@ env:
   # To hide "Update available 0.0.0 -> x.x.x"
   PRISMA_HIDE_UPDATE_MESSAGE: true
 
-# test
-# concurrency:
-#   group: ${{ github.workflow }}-${{ github.ref }}
-#   cancel-in-progress: true
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
   detect_jobs_to_run:
@@ -74,19 +73,6 @@ jobs:
         continue-on-error: true # This allow this job to fail (e.g. for scheduled runs), and then the `detect` step below will default to `all`
       - id: detect
         run: ./.github/workflows/scripts/detect-jobs-to-run.js <<< '${{ steps.files.outputs.all }}'
-
-  # From https://github.com/marketplace/actions/skip-duplicate-actions
-  # This action cleans up previously running instances of a workflow on the same branch.
-  # This accomplishes the task of automatically cancelling CI runs on pushes to the same branch,
-  # which is a common feature in most CI systems but currently not possible with GitHub actions.
-  cleanup-runs:
-    continue-on-error: true
-    runs-on: ubuntu-latest
-    if: "!startsWith(github.ref, 'refs/tags/') && !contains(github.actor, 'renovate')"
-    steps:
-      - uses: fkirc/skip-duplicate-actions@v5
-        with:
-          cancel_others: 'true'
 
   #
   # Linting
