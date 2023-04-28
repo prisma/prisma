@@ -1,4 +1,5 @@
 import Debug from '@prisma/debug'
+import os from 'os'
 
 export type BeforeExitListener = () => Promise<void> | void
 
@@ -15,11 +16,11 @@ export class ExitHooks {
       return
     }
 
-    this.installHook('beforeExit')
-    this.installHook('exit')
-    this.installHook('SIGINT', true)
-    this.installHook('SIGUSR2', true)
-    this.installHook('SIGTERM', true)
+    this.installExitEventHook('beforeExit')
+    this.installExitEventHook('exit')
+    this.installExitSignalHook('SIGINT')
+    this.installExitSignalHook('SIGUSR2')
+    this.installExitSignalHook('SIGTERM')
     this.areHooksInstalled = true
   }
 
@@ -48,20 +49,34 @@ export class ExitHooks {
     return this.idToListenerMap.get(id)
   }
 
-  private installHook(event: string, shouldExit = false) {
-    process.once(event, async (code) => {
-      debug(`exit event received: ${event}`)
-      for (const listener of this.idToListenerMap.values()) {
-        await listener()
+  private installExitEventHook(event: 'beforeExit' | 'exit') {
+    // Note: TypeScript isn't able to narrow type arguments on overloaded functions.
+    process.once(event as any, this.exitLikeHook)
+  }
+
+  private installExitSignalHook(signal: NodeJS.Signals) {
+    process.once(signal, async (signal) => {
+      await this.exitLikeHook(signal)
+      const isSomeoneStillListening = process.listenerCount(signal) > 0
+
+      // Only exit when there are no listeners left for this signal.
+      // If there is another listener, that other listener is responsible for exiting.
+      if (isSomeoneStillListening) {
+        return
       }
 
-      this.idToListenerMap.clear()
-
-      // only exit, if only we are listening
-      // if there is another listener, that other listener is responsible
-      if (shouldExit && process.listenerCount(event) === 0) {
-        process.exit(code)
-      }
+      // the usual way to exit with a signal is to add 128 to the signal number
+      const exitCode = os.constants.signals[signal] + 128
+      process.exit(exitCode)
     })
+  }
+
+  private exitLikeHook = async (event: 'beforeExit' | 'exit' | NodeJS.Signals) => {
+    debug(`exit event received: ${event}`)
+    for (const listener of this.idToListenerMap.values()) {
+      await listener()
+    }
+
+    this.idToListenerMap.clear()
   }
 }
