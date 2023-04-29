@@ -165,8 +165,8 @@ The following models were ignored as they do not have a valid unique identifier 
   - "no_unique_identifier"
 
 These fields are not supported by the Prisma Client, because Prisma currently does not support their types:
-  - Model: "no_unique_identifier", field: "field1", type: "integer key"
-  - Model: "unsupported_type", field: "unsupported", type: "binary(50)"
+  - Model: "no_unique_identifier", field: "field1", original data type: "integer key"
+  - Model: "unsupported_type", field: "unsupported", original data type: "binary(50)"
 
 `;
 

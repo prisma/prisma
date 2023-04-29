@@ -282,7 +282,7 @@ The following models were ignored as they do not have a valid unique identifier 
   - "no_unique_identifier"
 
 These fields are not supported by the Prisma Client, because Prisma currently does not support their types:
-  - Model: "unsupported_type", field: "unsupported", type: "polygon"
+  - Model: "unsupported_type", field: "unsupported", original data type: "polygon"
 
 `;
 
