@@ -110,7 +110,7 @@ jobs:
           echo "::remove-matcher owner=eslint-compact::"
           echo "::remove-matcher owner=eslint-stylish::"
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -198,7 +198,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
 
       # Run the functional test suite
       - run: pnpm run test:functional
@@ -274,7 +274,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -378,7 +378,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -485,7 +485,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -558,7 +558,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -628,7 +628,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -695,7 +695,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -770,7 +770,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -842,7 +842,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -916,7 +916,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -963,7 +963,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -1127,7 +1127,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
@@ -1223,7 +1223,7 @@ jobs:
           cache: 'pnpm'
           node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true

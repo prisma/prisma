@@ -56,14 +56,11 @@ jobs:
           cache: 'pnpm'
           node-version: '16'
 
-      - run: bash .github/workflows/scripts/setup.sh
+      - run: pnpm i && pnpm -r dev
         env:
           CI: true
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      #  This is required as setup.sh can modify pnpm-lock.yml
-      - run: rm -f ./pnpm-lock.yaml
 
       - name: Run benchmarks
         run: pnpm run bench
