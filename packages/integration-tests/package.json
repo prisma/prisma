@@ -43,14 +43,14 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "test:integration": "jest integration --maxWorkers=1 --verbose",
-    "test:sqlite": "jest integration.sqlite --verbose",
-    "test:postgresql": "jest integration.postgresql --maxWorkers=1 --verbose",
-    "test:mysql": "jest integration.mysql --maxWorkers=1 --verbose",
-    "test:mariadb": "jest integration.mariadb --maxWorkers=1 --verbose",
-    "test:mssql": "jest integration.mssql --maxWorkers=1 --verbose",
+    "test:integration": "jest integration --maxWorkers=1 --silent",
+    "test:sqlite": "jest integration.sqlite --silent",
+    "test:postgresql": "jest integration.postgresql --maxWorkers=1 --silent",
+    "test:mysql": "jest integration.mysql --maxWorkers=1 --silent",
+    "test:mariadb": "jest integration.mariadb --maxWorkers=1 --silent",
+    "test:mssql": "jest integration.mssql --maxWorkers=1 --silent",
     "jest": "jest",
-    "test": "jest --maxWorkers=1 --verbose"
+    "test": "jest --maxWorkers=1 --silent"
   },
   "files": [
     "README.md",
