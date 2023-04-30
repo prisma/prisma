@@ -42,9 +42,9 @@ on:
       - '*.bench.ts'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
-  #   schedule:
-  #     # https://crontab.guru - “At every 15th minute past every hour from 3 through 5.”
-  #     - cron: '*/15 3-5 * * *'
+  schedule:
+    # https://crontab.guru - “At every 30th minute past every hour from 3 through 6.”
+    - cron: '*/30 3-6 * * *'
   workflow_dispatch:
 
 env:
@@ -77,7 +77,7 @@ jobs:
   cleanup-runs:
     continue-on-error: true
     runs-on: ubuntu-latest
-    if: "!startsWith(github.ref, 'refs/tags/') && !contains(github.actor, 'renovate')"
+    if: "!startsWith(github.ref, 'refs/tags/') && !contains(github.actor, 'renovate') && github.event_name != 'schedule'"
     steps:
       - uses: fkirc/skip-duplicate-actions@v5
         with:
@@ -123,8 +123,8 @@ jobs:
   # CLIENT (without types test)
   #
   client:
-    timeout-minutes: 35
-    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ github.event_name == 'schedule' && 70 || 35 }}
+    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -237,8 +237,8 @@ jobs:
   # CLIENT (functional tests with mini-proxy)
   #
   client-dataproxy:
-    timeout-minutes: 35
-    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ github.event_name == 'schedule' && 70 || 35 }}
+    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -342,8 +342,8 @@ jobs:
   # CLIENT (memory tests)
   #
   client-memory:
-    timeout-minutes: 15
-    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ github.event_name == 'schedule' && 30 || 15 }}
+    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -605,8 +605,8 @@ jobs:
   # CLIENT (types tests only)
   #
   client-types:
-    timeout-minutes: 15
-    runs-on: buildjet-4vcpu-ubuntu-2004
+    timeout-minutes: ${{ github.event_name == 'schedule' && 30 || 15 }}
+    runs-on: ${{ github.event_name == 'schedule' && 'ubuntu-latest' || 'buildjet-4vcpu-ubuntu-2004' }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
