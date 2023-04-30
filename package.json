@@ -60,7 +60,7 @@
     "graphviz-mit": "0.0.9",
     "husky": "8.0.3",
     "is-ci": "3.0.1",
-    "jest-junit": "15.0.0",
+    "jest-junit": "16.0.0",
     "kleur": "4.1.5",
     "lint-staged": "13.1.0",
     "node-fetch": "2.6.9",
