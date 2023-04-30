@@ -105,7 +105,7 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "test": "jest --maxConcurrency=1 --verbose",
+    "test": "jest --maxConcurrency=1 --silent",
     "tsc": "tsc -d -p tsconfig.build.json",
     "preinstall": "node scripts/preinstall-entry.js",
     "prepublishOnly": "pnpm run build"
