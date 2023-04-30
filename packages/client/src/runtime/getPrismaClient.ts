@@ -511,7 +511,13 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._middlewares.use(middleware)
     }
 
-    $on(eventType: EngineEventType, callback: (event: any) => void) {
+    $on<EventType extends EngineEventType>(
+      eventType: EventType,
+      callback:
+        EventType extends 'beforeExit'
+          ? () => Promise<void>
+          : (event: any) => void
+    ) {
       if (eventType === 'beforeExit') {
         this._engine.on('beforeExit', callback)
       } else {
