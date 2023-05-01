@@ -8,7 +8,7 @@ test('exit-hook for sigint', async () => {
 
   // set up beforeExit hook and make sure we have the result available outside
   let beforeExitResult
-  prisma.$on('beforeExit', () => {
+  prisma.$on('beforeExit', async () => {
     beforeExitResult = doWork(prisma)
   })
 
