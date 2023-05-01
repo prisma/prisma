@@ -1,5 +1,4 @@
 'use strict'
-const os = require('os')
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 
@@ -30,22 +29,6 @@ module.exports = () => {
         titleTemplate: '{title}',
       },
     ])
-  }
-
-  if (os.platform() === 'win32') {
-    // swc sometimes produces incorrect source maps, in our case on windows only
-    // https://github.com/swc-project/swc/issues/3180
-    // this causes error stack traces to point to incorrect lines and all enriched errors
-    // snapshots to fail. Until this is fixed, on windows we will be still using ts-jest
-    return {
-      ...configCommon,
-      preset: 'ts-jest/presets/js-with-babel-legacy',
-      globals: {
-        'ts-jest': {
-          isolatedModules: true,
-        },
-      },
-    }
   }
 
   return {

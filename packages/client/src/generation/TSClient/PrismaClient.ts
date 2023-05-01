@@ -512,6 +512,7 @@ export class PrismaClient<
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
+
   $on<EventType extends (U | 'beforeExit')>(
     eventType: EventType,
     callback:
