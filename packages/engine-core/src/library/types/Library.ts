@@ -1,4 +1,4 @@
-import type { ConfigMetaFormat, GetConfigOptions, QueryEngineConfig } from '../../common/types/QueryEngine'
+import type { QueryEngineConfig } from '../../common/types/QueryEngine'
 
 export type QueryEngineInstance = {
   connect(headers: string): Promise<void>
@@ -33,7 +33,6 @@ export type Library = {
     // Currently 0.1.0 (Set in Cargo.toml)
     version: string
   }
-  getConfig: (options: GetConfigOptions) => Promise<ConfigMetaFormat>
   /**
    * This returns a string representation of `DMMF.Document`
    */
