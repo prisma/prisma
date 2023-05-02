@@ -81,6 +81,7 @@ export async function getDownloadUrl(
       agent: getProxyAgent(`${OfficialMirror.R2}/${engineUrlPath}`),
       timeout: 4000,
     })
+      .then((r) => (r.ok ? Promise.resolve(r) : Promise.reject(r)))
       .then(() => `${OfficialMirror.R2}/${engineUrlPath}`)
       .catch(() => `${OfficialMirror.AWS}/${engineUrlPath}`)
   }
