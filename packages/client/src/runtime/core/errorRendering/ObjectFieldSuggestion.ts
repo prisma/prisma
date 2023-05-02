@@ -11,18 +11,20 @@ export class ObjectFieldSuggestion implements ErrorBasicBuilder {
   }
 
   write(writer: ErrorWriter): void {
-    const { chalk } = writer.context
+    const {
+      colors: { green },
+    } = writer.context
 
-    writer.addMarginSymbol(chalk.greenBright(this.isRequired ? '+' : '?'))
-    writer.write(chalk.greenBright(this.name))
+    writer.addMarginSymbol(green(this.isRequired ? '+' : '?'))
+    writer.write(green(this.name))
 
     if (!this.isRequired) {
-      writer.write(chalk.greenBright('?'))
+      writer.write(green('?'))
     }
 
-    writer.write(chalk.greenBright(`: `))
+    writer.write(green(`: `))
     if (typeof this.value === 'string') {
-      writer.write(chalk.greenBright(this.value))
+      writer.write(green(this.value))
     } else {
       writer.write(this.value)
     }

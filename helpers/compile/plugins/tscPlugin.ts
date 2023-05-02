@@ -21,7 +21,6 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
         'sql-template-tag',
         '@opentelemetry/api',
         '@prisma/internals',
-        '@prisma/engine-core',
         '@prisma/generator-helper',
         '@prisma/debug',
         '@prisma/ni',

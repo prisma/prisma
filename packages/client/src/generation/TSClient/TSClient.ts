@@ -110,7 +110,6 @@ export class TSClient implements Generatable {
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(edge)}
-${buildDirname(edge, relativeOutdir)}
 
 /**
  * Enums
@@ -132,8 +131,8 @@ ${buildDMMF(dataProxy && engineProtocol === 'graphql', this.options.document)}
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-config.dirname = dirname
 config.document = dmmf
+${buildDirname(edge, relativeOutdir)}
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}

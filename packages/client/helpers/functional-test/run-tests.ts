@@ -53,7 +53,7 @@ const args = arg(
 )
 
 async function main(): Promise<number | void> {
-  let jestCli = new JestCli(['--verbose', '--config', 'tests/functional/jest.config.js'])
+  let jestCli = new JestCli(['--silent', '--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
 
   if (args['--provider']) {

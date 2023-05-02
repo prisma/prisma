@@ -6,7 +6,7 @@
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "rangeStrategy": "pin",
-  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-fmt-wasm"],
+  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-fmt-wasm", "redis", "@types/redis"],
   "constraints": {
     "pnpm": "7"
   },
@@ -53,7 +53,6 @@
         "sort-keys",
         "node.js",
         "@sindresorhus/slugify",
-        "chalk",
         "cli-truncate",
         "escape-string-regexp",
         "execa",

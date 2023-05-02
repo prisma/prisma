@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
-import chalk from 'chalk'
 import fs from 'fs'
+import { bold, green } from 'kleur/colors'
 import path from 'path'
 
 import { findPrismaClientDir } from './auto-installation/findPrismaClientDir'
@@ -50,7 +50,7 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
 }
 `
       fs.writeFileSync(path.join(process.cwd(), 'package.json'), defaultPackageJson)
-      console.info(`✔ Created ${chalk.bold.green('./package.json')}`)
+      console.info(`✔ Created ${bold(green('./package.json'))}`)
     }
 
     const prismaCliDir = await resolvePkg('prisma', { basedir: baseDir })
@@ -58,17 +58,17 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     // Automatically installing the packages with Yarn on Windows won't work because
     // Yarn will try to unlink the Query Engine DLL, which is currently being used.
     // See https://github.com/prisma/prisma/issues/9184
-    if (process.platform === 'win32' && isYarnUsed(baseDir)) {
+    if (process.platform === 'win32' && (await isYarnUsed(baseDir))) {
       const hasCli = (s: string) => (prismaCliDir !== undefined ? s : '')
       const missingCli = (s: string) => (prismaCliDir === undefined ? s : '')
 
       throw new Error(
-        `Could not resolve ${missingCli(`${chalk.bold('prisma')} and `)}${chalk.bold(
+        `Could not resolve ${missingCli(`${bold('prisma')} and `)}${bold(
           '@prisma/client',
         )} in the current project. Please install ${hasCli('it')}${missingCli('them')} with ${missingCli(
-          `${chalk.bold.greenBright(`${getPackageCmd(baseDir, 'add', 'prisma', '-D')}`)} and `,
-        )}${chalk.bold.greenBright(`${getPackageCmd(baseDir, 'add', '@prisma/client')}`)}, and rerun ${chalk.bold(
-          getPackageCmd(baseDir, 'execute', 'prisma generate'),
+          `${bold(green(`${getPackageCmd(baseDir, 'add', 'prisma', '-D')}`))} and `,
+        )}${bold(green(`${getPackageCmd(baseDir, 'add', '@prisma/client')}`))}, and rerun ${bold(
+          await getPackageCmd(baseDir, 'execute', 'prisma generate'),
         )} 🙏.`,
       )
     }
@@ -85,24 +85,22 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     if (!prismaClientDir) {
       throw new Error(
         `Could not resolve @prisma/client despite the installation that we just tried.
-Please try to install it by hand with ${chalk.bold.greenBright(
-          `${getPackageCmd(baseDir, 'add', '@prisma/client')}`,
-        )} and rerun ${chalk.bold(getPackageCmd(baseDir, 'execute', 'prisma generate'))} 🙏.`,
+Please try to install it by hand with ${bold(
+          green(`${getPackageCmd(baseDir, 'add', '@prisma/client')}`),
+        )} and rerun ${bold(await getPackageCmd(baseDir, 'execute', 'prisma generate'))} 🙏.`,
       )
     }
 
     console.info(
-      `\n✔ Installed the ${chalk.bold.green('@prisma/client')} and ${chalk.bold.green(
-        'prisma',
-      )} packages in your project`,
+      `\n✔ Installed the ${bold(green('@prisma/client'))} and ${bold(green('prisma'))} packages in your project`,
     )
   }
 
   if (!prismaClientDir) {
     throw new Error(
       `Could not resolve @prisma/client.
-Please try to install it with ${chalk.bold.greenBright('npm install @prisma/client')} and rerun ${chalk.bold(
-        getPackageCmd(baseDir, 'execute', 'prisma generate'),
+Please try to install it with ${bold(green('npm install @prisma/client'))} and rerun ${bold(
+        await getPackageCmd(baseDir, 'execute', 'prisma generate'),
       )} 🙏.`,
     )
   }

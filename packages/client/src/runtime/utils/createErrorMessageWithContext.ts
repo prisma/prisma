@@ -1,6 +1,6 @@
 import { DMMF } from '@prisma/generator-helper'
-import chalk from 'chalk'
 import indentString from 'indent-string'
+import { bold, dim, gray, red, underline } from 'kleur/colors'
 
 import { CallSite, LocationInFile } from './CallSite'
 import { SourceFileSlice } from './SourceFileSlice'
@@ -24,11 +24,11 @@ type Colors = {
 }
 
 const colorsEnabled: Colors = {
-  red: (str) => chalk.red(str),
-  gray: (str) => chalk.gray(str),
-  dim: (str) => chalk.dim(str),
-  bold: (str) => chalk.bold(str),
-  underline: (str) => chalk.underline(str),
+  red,
+  gray,
+  dim,
+  bold,
+  underline,
   highlightSource: (source) => source.highlight(),
 }
 
