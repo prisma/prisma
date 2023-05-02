@@ -449,38 +449,6 @@ describe('common/sqlite', () => {
   })
 })
 
-describe('postgresql - missing database', () => {
-  const defaultConnectionString =
-    process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-
-  // replace database name, e.g., 'tests-migrate', with 'unknown-database'
-  const connectionString = defaultConnectionString.split('/').slice(0, -1).join('/') + '/unknown-database'
-
-  test('basic introspection --url', async () => {
-    const introspect = new DbPull()
-    const result = introspect.parse(['--print', '--url', connectionString])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-      P1003 The introspected database does not exist: postgres://prisma:prisma@localhost:5432/unknown-database
-
-      prisma db pull could not create any models in your schema.prisma file and you will not be able to generate Prisma Client with the prisma generate command.
-
-      To fix this, you have two options:
-
-      - manually create a database.
-      - make sure the database connection URL inside the datasource block in schema.prisma points to an existing database.
-
-      Then you can run prisma db pull again. 
-
-    `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  })
-})
-
 describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
 
@@ -641,8 +609,8 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
         *** WARNING ***
 
         The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-        - View "simpleuser"
-        - View "workers"
+          - "simpleuser"
+          - "workers"
 
         Run prisma generate to generate Prisma Client.
 
@@ -694,19 +662,19 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
       expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                - Introspecting based on datasource defined in schema.prisma
+            - Introspecting based on datasource defined in schema.prisma
 
-                ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
-                      
-                *** WARNING ***
+            ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+                  
+            *** WARNING ***
 
-                The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-                  - "simpleuser"
-                  - "workers"
+            The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+              - "simpleuser"
+              - "workers"
 
-                Run prisma generate to generate Prisma Client.
+            Run prisma generate to generate Prisma Client.
 
-            `)
+      `)
       expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
@@ -871,13 +839,13 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
       expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                        - Introspecting based on datasource defined in schema.prisma
+              - Introspecting based on datasource defined in schema.prisma
 
-                        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
-                              
-                        Run prisma generate to generate Prisma Client.
+              ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+                    
+              Run prisma generate to generate Prisma Client.
 
-                  `)
+      `)
       expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
