@@ -227,7 +227,6 @@ importers:
       '@opentelemetry/sdk-trace-base': 1.9.1
       '@opentelemetry/semantic-conventions': 1.9.1
       '@prisma/debug': workspace:*
-      '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
       '@prisma/engines-version': 4.14.0-45.8a19c38770eeb2b3dbc148889c218fd0df6159a7
       '@prisma/fetch-engine': workspace:*
@@ -260,6 +259,7 @@ importers:
       fs-extra: 11.1.0
       fs-monkey: 1.0.3
       get-own-enumerable-property-symbols: 3.0.2
+      get-stream: 6.0.1
       globby: 11.1.0
       indent-string: 4.0.0
       is-obj: 2.0.0
@@ -275,7 +275,9 @@ importers:
       mariadb: 3.0.2
       memfs: 3.4.13
       mssql: 9.1.1
+      new-github-issue-url: 0.2.1
       node-fetch: 2.6.9
+      p-retry: 4.6.2
       pg: 8.9.0
       pkg-up: 3.1.0
       pluralize: 8.0.0
@@ -292,6 +294,7 @@ importers:
       ts-pattern: 4.1.3
       tsd: 0.28.1
       typescript: 4.9.5
+      undici: 5.22.0
       yeoman-generator: 5.7.0
       yo: 4.3.1
       zx: 7.1.1
@@ -311,7 +314,6 @@ importers:
       '@opentelemetry/sdk-trace-base': 1.9.1_@opentelemetry+api@1.4.0
       '@opentelemetry/semantic-conventions': 1.9.1
       '@prisma/debug': link:../debug
-      '@prisma/engine-core': link:../engine-core
       '@prisma/engines': link:../engines
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
@@ -343,6 +345,7 @@ importers:
       fs-extra: 11.1.0
       fs-monkey: 1.0.3
       get-own-enumerable-property-symbols: 3.0.2
+      get-stream: 6.0.1
       globby: 11.1.0
       indent-string: 4.0.0
       is-obj: 2.0.0
@@ -358,7 +361,9 @@ importers:
       mariadb: 3.0.2
       memfs: 3.4.13
       mssql: 9.1.1
+      new-github-issue-url: 0.2.1
       node-fetch: 2.6.9
+      p-retry: 4.6.2
       pg: 8.9.0
       pkg-up: 3.1.0
       pluralize: 8.0.0
@@ -375,6 +380,7 @@ importers:
       ts-pattern: 4.1.3
       tsd: 0.28.1
       typescript: 4.9.5
+      undici: 5.22.0
       yeoman-generator: 5.7.0
       yo: 4.3.1
       zx: 7.1.1
@@ -395,57 +401,6 @@ importers:
       debug: 4.3.4
       strip-ansi: 6.0.1
     devDependencies:
-      '@types/jest': 29.5.1
-      '@types/node': 14.18.42
-      esbuild: 0.15.13
-      jest: 29.5.0_@types+node@14.18.42
-      jest-junit: 16.0.0
-      typescript: 4.9.5
-
-  packages/engine-core:
-    specifiers:
-      '@opentelemetry/api': 1.3.0
-      '@opentelemetry/sdk-trace-base': 1.8.0
-      '@prisma/debug': workspace:*
-      '@prisma/engines': workspace:*
-      '@prisma/generator-helper': workspace:*
-      '@prisma/get-platform': workspace:*
-      '@swc/core': 1.3.32
-      '@swc/jest': 0.2.26
-      '@types/jest': 29.5.1
-      '@types/node': 14.18.42
-      esbuild: 0.15.13
-      execa: 5.1.1
-      get-stream: 6.0.1
-      indent-string: 4.0.0
-      jest: 29.5.0
-      jest-junit: 16.0.0
-      kleur: 4.1.5
-      new-github-issue-url: 0.2.1
-      p-retry: 4.6.2
-      strip-ansi: 6.0.1
-      ts-pattern: 4.2.2
-      typescript: 4.9.5
-      undici: 5.22.0
-    dependencies:
-      '@opentelemetry/api': 1.3.0
-      '@opentelemetry/sdk-trace-base': 1.8.0_@opentelemetry+api@1.3.0
-      '@prisma/debug': link:../debug
-      '@prisma/engines': link:../engines
-      '@prisma/generator-helper': link:../generator-helper
-      '@prisma/get-platform': link:../get-platform
-      execa: 5.1.1
-      get-stream: 6.0.1
-      indent-string: 4.0.0
-      kleur: 4.1.5
-      new-github-issue-url: 0.2.1
-      p-retry: 4.6.2
-      strip-ansi: 6.0.1
-      ts-pattern: 4.2.2
-      undici: 5.22.0
-    devDependencies:
-      '@swc/core': 1.3.32
-      '@swc/jest': 0.2.26_@swc+core@1.3.32
       '@types/jest': 29.5.1
       '@types/node': 14.18.42
       esbuild: 0.15.13
@@ -694,7 +649,6 @@ importers:
   packages/internals:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engine-core': workspace:*
       '@prisma/engines': workspace:*
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
@@ -720,6 +674,7 @@ importers:
       fs-jetpack: 5.1.0
       global-dirs: 3.0.1
       globby: 11.1.0
+      indent-string: 4.0.0
       is-windows: 1.0.2
       is-wsl: 2.2.0
       jest: 29.5.0
@@ -749,7 +704,6 @@ importers:
       yarn: 1.22.19
     dependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engine-core': link:../engine-core
       '@prisma/engines': link:../engines
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
@@ -769,6 +723,7 @@ importers:
       fs-jetpack: 5.1.0
       global-dirs: 3.0.1
       globby: 11.1.0
+      indent-string: 4.0.0
       is-windows: 1.0.2
       is-wsl: 2.2.0
       kleur: 4.1.5
@@ -1120,15 +1075,15 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/client-cognito-identity/3.321.1:
-    resolution: {integrity: sha512-6XuGHbGjKmwmBP9fxVtHtgYsSUZEDJZAdBa9jD3+//6OG9Qh4/mxRUZJFImMT8DOrmNLHU2q2W/4HjsbDql6VA==}
+  /@aws-sdk/client-cognito-identity/3.319.0:
+    resolution: {integrity: sha512-rOLKrCFP6j23MBCd1DEKPzHOvrS7oiWmAfJmGAuX+7qo/Dbx3j99KOVyZLgL1uTJQhtGRkWB+fwmubCaBN8Arw==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
-      '@aws-sdk/client-sts': 3.321.1
+      '@aws-sdk/client-sts': 3.319.0
       '@aws-sdk/config-resolver': 3.310.0
-      '@aws-sdk/credential-provider-node': 3.321.1
+      '@aws-sdk/credential-provider-node': 3.319.0
       '@aws-sdk/fetch-http-handler': 3.310.0
       '@aws-sdk/hash-node': 3.310.0
       '@aws-sdk/invalid-dependency': 3.310.0
@@ -1143,7 +1098,7 @@ packages:
       '@aws-sdk/middleware-stack': 3.310.0
       '@aws-sdk/middleware-user-agent': 3.319.0
       '@aws-sdk/node-config-provider': 3.310.0
-      '@aws-sdk/node-http-handler': 3.321.1
+      '@aws-sdk/node-http-handler': 3.310.0
       '@aws-sdk/protocol-http': 3.310.0
       '@aws-sdk/smithy-client': 3.316.0
       '@aws-sdk/types': 3.310.0
@@ -1164,8 +1119,8 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/client-sso-oidc/3.321.1:
-    resolution: {integrity: sha512-PBVfHQbyrsfzbnO6u9d9Sik8JlXGLhHj3zLd87iBkYXBdHwD5NuvwWu7OtjUtrHjP4SfzodVwfjmTbDAFqbtzw==}
+  /@aws-sdk/client-sso-oidc/3.319.0:
+    resolution: {integrity: sha512-GJBgT/tephRZY3oTbDBMv+G9taoqKUIvGPn+7shmzz2P1SerutsRSfKfDXV+VptPNRoGmjjCLPmWjMFYbFKILQ==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
@@ -1184,7 +1139,7 @@ packages:
       '@aws-sdk/middleware-stack': 3.310.0
       '@aws-sdk/middleware-user-agent': 3.319.0
       '@aws-sdk/node-config-provider': 3.310.0
-      '@aws-sdk/node-http-handler': 3.321.1
+      '@aws-sdk/node-http-handler': 3.310.0
       '@aws-sdk/protocol-http': 3.310.0
       '@aws-sdk/smithy-client': 3.316.0
       '@aws-sdk/types': 3.310.0
@@ -1205,8 +1160,8 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/client-sso/3.321.1:
-    resolution: {integrity: sha512-ecoT4tBGtRJR5G7oLBTMXZmgZZlff1amhSdKPEtkWxv6kWc8VPb5rRuRgVPsDR9HuesI6ZVlODptvGtnfkIJwA==}
+  /@aws-sdk/client-sso/3.319.0:
+    resolution: {integrity: sha512-g46KgAjRiYBS8Oi85DPwSAQpt+Hgmw/YFgGVwZqMfTL70KNJwLFKRa5D9UocQd7t7OjPRdKF7g0Gp5peyAK9dw==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
@@ -1225,7 +1180,7 @@ packages:
       '@aws-sdk/middleware-stack': 3.310.0
       '@aws-sdk/middleware-user-agent': 3.319.0
       '@aws-sdk/node-config-provider': 3.310.0
-      '@aws-sdk/node-http-handler': 3.321.1
+      '@aws-sdk/node-http-handler': 3.310.0
       '@aws-sdk/protocol-http': 3.310.0
       '@aws-sdk/smithy-client': 3.316.0
       '@aws-sdk/types': 3.310.0
@@ -1246,14 +1201,14 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/client-sts/3.321.1:
-    resolution: {integrity: sha512-AB+N4a1TVEKl9Sd5O2TxTprEZp7Va6zPZLMraFAYMdmJVBmCmmwyBs7ygju685DpQ1dos5PRsKCRcossyY5pDQ==}
+  /@aws-sdk/client-sts/3.319.0:
+    resolution: {integrity: sha512-PRGGKCSKtyM3x629J9j4DMsH1cQT8UGW+R67u9Q5HrMK05gfjpmg+X1DQ3pgve4D8MI4R/Cm3NkYl2eUTbQHQg==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-crypto/sha256-browser': 3.0.0
       '@aws-crypto/sha256-js': 3.0.0
       '@aws-sdk/config-resolver': 3.310.0
-      '@aws-sdk/credential-provider-node': 3.321.1
+      '@aws-sdk/credential-provider-node': 3.319.0
       '@aws-sdk/fetch-http-handler': 3.310.0
       '@aws-sdk/hash-node': 3.310.0
       '@aws-sdk/invalid-dependency': 3.310.0
@@ -1269,7 +1224,7 @@ packages:
       '@aws-sdk/middleware-stack': 3.310.0
       '@aws-sdk/middleware-user-agent': 3.319.0
       '@aws-sdk/node-config-provider': 3.310.0
-      '@aws-sdk/node-http-handler': 3.321.1
+      '@aws-sdk/node-http-handler': 3.310.0
       '@aws-sdk/protocol-http': 3.310.0
       '@aws-sdk/smithy-client': 3.316.0
       '@aws-sdk/types': 3.310.0
@@ -1302,11 +1257,11 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-provider-cognito-identity/3.321.1:
-    resolution: {integrity: sha512-g+3MQcwhpw1WqQ27BJLCCS90aUExH8kT9o2WM2tYjGATfTQ8+tpAqao2JxChtfzQbq6m69M175bZ3o09EaKobQ==}
+  /@aws-sdk/credential-provider-cognito-identity/3.319.0:
+    resolution: {integrity: sha512-TbNeV4jJXwBtsVackghUGVgTJ3YPb+9saZ7KJD60FMoTWsoRsftPDFVY58KezSaVvfy8xg+RPLkX+s8r43qaMg==}
     engines: {node: '>=14.0.0'}
     dependencies:
-      '@aws-sdk/client-cognito-identity': 3.321.1
+      '@aws-sdk/client-cognito-identity': 3.319.0
       '@aws-sdk/property-provider': 3.310.0
       '@aws-sdk/types': 3.310.0
       tslib: 2.5.0
@@ -1337,14 +1292,14 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-provider-ini/3.321.1:
-    resolution: {integrity: sha512-prndSVQhiikNaI40bYnM2Q8PkC35FCwhbQnBk6KXNvdtfo9RqatMC639F+6oryb3BuMy++Ij4Yoi8WnPBs5Sww==}
+  /@aws-sdk/credential-provider-ini/3.319.0:
+    resolution: {integrity: sha512-pzx388Fw1KlSgmIMUyRY8DJVYM3aXpwzjprD4RiQVPJeAI+t7oQmEvd2FiUZEuHDjWXcuonxgU+dk7i7HUk/HQ==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-sdk/credential-provider-env': 3.310.0
       '@aws-sdk/credential-provider-imds': 3.310.0
       '@aws-sdk/credential-provider-process': 3.310.0
-      '@aws-sdk/credential-provider-sso': 3.321.1
+      '@aws-sdk/credential-provider-sso': 3.319.0
       '@aws-sdk/credential-provider-web-identity': 3.310.0
       '@aws-sdk/property-provider': 3.310.0
       '@aws-sdk/shared-ini-file-loader': 3.310.0
@@ -1355,15 +1310,15 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-provider-node/3.321.1:
-    resolution: {integrity: sha512-5B1waOwSvY2JMLGRebo7IUqnTaGoCnby9cRbG/dhi7Ke97M3V8380S9THDJ/bktjL8zHEVfBVZy7HhXHzhSjEg==}
+  /@aws-sdk/credential-provider-node/3.319.0:
+    resolution: {integrity: sha512-DS4a0Rdd7ZtMshoeE+zuSgbC05YBcdzd0h89u/eX+1Yqx+HCjeb8WXkbXsz0Mwx8q9TE04aS8f6Bw9J4x4mO5g==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-sdk/credential-provider-env': 3.310.0
       '@aws-sdk/credential-provider-imds': 3.310.0
-      '@aws-sdk/credential-provider-ini': 3.321.1
+      '@aws-sdk/credential-provider-ini': 3.319.0
       '@aws-sdk/credential-provider-process': 3.310.0
-      '@aws-sdk/credential-provider-sso': 3.321.1
+      '@aws-sdk/credential-provider-sso': 3.319.0
       '@aws-sdk/credential-provider-web-identity': 3.310.0
       '@aws-sdk/property-provider': 3.310.0
       '@aws-sdk/shared-ini-file-loader': 3.310.0
@@ -1385,14 +1340,14 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-provider-sso/3.321.1:
-    resolution: {integrity: sha512-kg0rc1OacJFgAvmZj0TOu+BSc+yRdnC5dO/RAag3XU6+hlQI5/C080RQp9Qj6V7ga0HtAJMRwJcUlCPA3RJPug==}
+  /@aws-sdk/credential-provider-sso/3.319.0:
+    resolution: {integrity: sha512-gAUnWH41lxkIbANXu+Rz5zS0Iavjjmpf3C56vAMT7oaYZ3Cg/Ys5l2SwAucQGOCA2DdS2hDiSI8E+Yhr4F5toA==}
     engines: {node: '>=14.0.0'}
     dependencies:
-      '@aws-sdk/client-sso': 3.321.1
+      '@aws-sdk/client-sso': 3.319.0
       '@aws-sdk/property-provider': 3.310.0
       '@aws-sdk/shared-ini-file-loader': 3.310.0
-      '@aws-sdk/token-providers': 3.321.1
+      '@aws-sdk/token-providers': 3.319.0
       '@aws-sdk/types': 3.310.0
       tslib: 2.5.0
     transitivePeerDependencies:
@@ -1410,21 +1365,21 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-providers/3.321.1:
-    resolution: {integrity: sha512-z7uPo5B/pW8k2IHT2Nu2SFAWEzBnR/NnjUVOTwf93bxNbc7IxRODiCMggmK2wpjiRSBAc8zKKbZ4dHCcb4MyZg==}
+  /@aws-sdk/credential-providers/3.319.0:
+    resolution: {integrity: sha512-H0bGABK7Ky6wSUoH+7SxOdt9G3lsU8J4Nufp9pPMuLiJX43rOzfCLvmKYdDuTdrr+ihnii4TexQqcrkJKN7Crw==}
     engines: {node: '>=14.0.0'}
     requiresBuild: true
     dependencies:
-      '@aws-sdk/client-cognito-identity': 3.321.1
-      '@aws-sdk/client-sso': 3.321.1
-      '@aws-sdk/client-sts': 3.321.1
-      '@aws-sdk/credential-provider-cognito-identity': 3.321.1
+      '@aws-sdk/client-cognito-identity': 3.319.0
+      '@aws-sdk/client-sso': 3.319.0
+      '@aws-sdk/client-sts': 3.319.0
+      '@aws-sdk/credential-provider-cognito-identity': 3.319.0
       '@aws-sdk/credential-provider-env': 3.310.0
       '@aws-sdk/credential-provider-imds': 3.310.0
-      '@aws-sdk/credential-provider-ini': 3.321.1
-      '@aws-sdk/credential-provider-node': 3.321.1
+      '@aws-sdk/credential-provider-ini': 3.319.0
+      '@aws-sdk/credential-provider-node': 3.319.0
       '@aws-sdk/credential-provider-process': 3.310.0
-      '@aws-sdk/credential-provider-sso': 3.321.1
+      '@aws-sdk/credential-provider-sso': 3.319.0
       '@aws-sdk/credential-provider-web-identity': 3.310.0
       '@aws-sdk/property-provider': 3.310.0
       '@aws-sdk/types': 3.310.0
@@ -1599,8 +1554,8 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/node-http-handler/3.321.1:
-    resolution: {integrity: sha512-DdQBrtFFDNtzphJIN3s93Vf+qd9LHSzH6WTQRrWoXhTDMHDzSI2Cn+c5KWfk89Nggp/n3+OTwUPQeCiBT5EBuw==}
+  /@aws-sdk/node-http-handler/3.310.0:
+    resolution: {integrity: sha512-irv9mbcM9xC2xYjArQF5SYmHBMu4ciMWtGsoHII1nRuFOl9FoT4ffTvEPuLlfC6pznzvKt9zvnm6xXj7gDChKg==}
     engines: {node: '>=14.0.0'}
     dependencies:
       '@aws-sdk/abort-controller': 3.310.0
@@ -1687,11 +1642,11 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/token-providers/3.321.1:
-    resolution: {integrity: sha512-I1sXS4qXirSvgvrOIPf+e1D7GvC83DdeyMxHZvuhHgeMCqDAzToS8OLxOX0enN9xZRHWAQYja8xyeGbDL2I0Zw==}
+  /@aws-sdk/token-providers/3.319.0:
+    resolution: {integrity: sha512-5utg6VL6Pl0uiLUn8ZJPYYxzCb9VRPsgJmGXktRUwq0YlTJ6ABcaxTXwZcC++sjh/qyCQDK5PPLNU5kIBttHMQ==}
     engines: {node: '>=14.0.0'}
     dependencies:
-      '@aws-sdk/client-sso-oidc': 3.321.1
+      '@aws-sdk/client-sso-oidc': 3.319.0
       '@aws-sdk/property-provider': 3.310.0
       '@aws-sdk/shared-ini-file-loader': 3.310.0
       '@aws-sdk/types': 3.310.0
@@ -3643,16 +3598,6 @@ packages:
       '@opentelemetry/api': 1.4.0
     dev: true
 
-  /@opentelemetry/core/1.8.0_@opentelemetry+api@1.3.0:
-    resolution: {integrity: sha512-6SDjwBML4Am0AQmy7z1j6HGrWDgeK8awBRUvl1PGw6HayViMk4QpnUXvv4HTHisecgVBy43NE/cstWprm8tIfw==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@opentelemetry/api': '>=1.0.0 <1.4.0'
-    dependencies:
-      '@opentelemetry/api': 1.3.0
-      '@opentelemetry/semantic-conventions': 1.8.0
-    dev: false
-
   /@opentelemetry/core/1.9.1_@opentelemetry+api@1.4.0:
     resolution: {integrity: sha512-6/qon6tw2I8ZaJnHAQUUn4BqhTbTNRS0WP8/bA0ynaX+Uzp/DDbd0NS0Cq6TMlh8+mrlsyqDE7mO50nmv2Yvlg==}
     engines: {node: '>=14'}
@@ -3691,17 +3636,6 @@ packages:
       - supports-color
     dev: true
 
-  /@opentelemetry/resources/1.8.0_@opentelemetry+api@1.3.0:
-    resolution: {integrity: sha512-KSyMH6Jvss/PFDy16z5qkCK0ERlpyqixb1xwb73wLMvVq+j7i89lobDjw3JkpCcd1Ws0J6jAI4fw28Zufj2ssg==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@opentelemetry/api': '>=1.0.0 <1.4.0'
-    dependencies:
-      '@opentelemetry/api': 1.3.0
-      '@opentelemetry/core': 1.8.0_@opentelemetry+api@1.3.0
-      '@opentelemetry/semantic-conventions': 1.8.0
-    dev: false
-
   /@opentelemetry/resources/1.9.1_@opentelemetry+api@1.4.0:
     resolution: {integrity: sha512-VqBGbnAfubI+l+yrtYxeLyOoL358JK57btPMJDd3TCOV3mV5TNBmzvOfmesM4NeTyXuGJByd3XvOHvFezLn3rQ==}
     engines: {node: '>=14'}
@@ -3712,18 +3646,6 @@ packages:
       '@opentelemetry/core': 1.9.1_@opentelemetry+api@1.4.0
       '@opentelemetry/semantic-conventions': 1.9.1
     dev: true
-
-  /@opentelemetry/sdk-trace-base/1.8.0_@opentelemetry+api@1.3.0:
-    resolution: {integrity: sha512-iH41m0UTddnCKJzZx3M85vlhKzRcmT48pUeBbnzsGrq4nIay1oWVHKM5nhB5r8qRDGvd/n7f/YLCXClxwM0tvA==}
-    engines: {node: '>=14'}
-    peerDependencies:
-      '@opentelemetry/api': '>=1.0.0 <1.4.0'
-    dependencies:
-      '@opentelemetry/api': 1.3.0
-      '@opentelemetry/core': 1.8.0_@opentelemetry+api@1.3.0
-      '@opentelemetry/resources': 1.8.0_@opentelemetry+api@1.3.0
-      '@opentelemetry/semantic-conventions': 1.8.0
-    dev: false
 
   /@opentelemetry/sdk-trace-base/1.9.1_@opentelemetry+api@1.4.0:
     resolution: {integrity: sha512-Y9gC5M1efhDLYHeeo2MWcDDMmR40z6QpqcWnPCm4Dmh+RHAMf4dnEBBntIe1dDpor686kyU6JV1D29ih1lZpsQ==}
@@ -3736,11 +3658,6 @@ packages:
       '@opentelemetry/resources': 1.9.1_@opentelemetry+api@1.4.0
       '@opentelemetry/semantic-conventions': 1.9.1
     dev: true
-
-  /@opentelemetry/semantic-conventions/1.8.0:
-    resolution: {integrity: sha512-TYh1MRcm4JnvpqtqOwT9WYaBYY4KERHdToxs/suDTLviGRsQkIjS5yYROTYTSJQUnYLOn/TuOh5GoMwfLSU+Ew==}
-    engines: {node: '>=14'}
-    dev: false
 
   /@opentelemetry/semantic-conventions/1.9.1:
     resolution: {integrity: sha512-oPQdbFDmZvjXk5ZDoBGXG8B4tSB/qW5vQunJWQMFUBp7Xe8O1ByPANueJ+Jzg58esEBegyyxZ7LRmfJr7kFcFg==}
@@ -4032,7 +3949,7 @@ packages:
     resolution: {integrity: sha512-LOC/z9HDUmTqSAF08YIRLThGGNZLdRrjcEdoQu/EANxPSVRedYgh4AiZlOX8sY8Rp1p7S/StOmZogJLuvR4mcA==}
     dependencies:
       source-map-support: 0.5.21
-      tslib: 2.5.0
+      tslib: 2.4.1
     dev: true
 
   /@swc/core-android-arm-eabi/1.2.204:
@@ -6000,7 +5917,7 @@ packages:
     engines: {node: '>=10.16.0'}
     dependencies:
       streamsearch: 1.1.0
-    dev: false
+    dev: true
 
   /bytes/3.1.1:
     resolution: {integrity: sha512-dWe4nWO/ruEOY7HkUJ5gFt1DCFV9zPRoJr8pV0/ASQermOZjtq8jMjOprC0Kd10GLN+l7xaUPvxzJFWtxGu8Fg==}
@@ -9866,7 +9783,7 @@ packages:
       jest-util: 29.5.0
       p-limit: 3.1.0
       pretty-format: 29.5.0
-      pure-rand: 6.0.2
+      pure-rand: 6.0.1
       slash: 3.0.0
       stack-utils: 2.0.5
     transitivePeerDependencies:
@@ -11667,7 +11584,7 @@ packages:
       mongodb-connection-string-url: 2.5.4
       socks: 2.7.1
     optionalDependencies:
-      '@aws-sdk/credential-providers': 3.321.1
+      '@aws-sdk/credential-providers': 3.319.0
       saslprep: 1.0.3
     transitivePeerDependencies:
       - aws-crt
@@ -11780,7 +11697,6 @@ packages:
   /new-github-issue-url/0.2.1:
     resolution: {integrity: sha512-md4cGoxuT4T4d/HDOXbrUHkTKrp/vp+m3aOA7XXVYwNsUNMK49g3SQicTSeV5GIz/5QVGAeYRAOlyp9OvlgsYA==}
     engines: {node: '>=10'}
-    dev: false
 
   /nice-try/1.0.5:
     resolution: {integrity: sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==}
@@ -12926,8 +12842,8 @@ packages:
     resolution: {integrity: sha512-9N8x1h8dptBQpHyC7aZMS+iNOAm97WMGY0AFrguU1cpfW3I5jINkWe5BIY5md0ofy+1TCIELsVcm/GJXZSaPbw==}
     dev: true
 
-  /pure-rand/6.0.2:
-    resolution: {integrity: sha512-6Yg0ekpKICSjPswYOuC5sku/TSWaRYlA0qsXqJgM/d/4pLPHPuTxK7Nbf7jFKzAeedUhR8C7K9Uv63FBsSo8xQ==}
+  /pure-rand/6.0.1:
+    resolution: {integrity: sha512-t+x1zEHDjBwkDGY5v5ApnZ/utcd4XYDiJsaQQoptTXgUXX95sDg1elCdJghzicm7n2mbCBJ3uYWr6M22SO19rg==}
     dev: true
 
   /qs/6.9.6:
@@ -13894,7 +13810,7 @@ packages:
   /streamsearch/1.1.0:
     resolution: {integrity: sha512-Mcc5wHehp9aXz1ax6bZUyY5afg9u2rv5cqQI3mRrYkGC8rW2hM02jWuwjtL++LS5qinSyhj2QfLyNsuc+VsExg==}
     engines: {node: '>=10.0.0'}
-    dev: false
+    dev: true
 
   /strict-uri-encode/1.1.0:
     resolution: {integrity: sha512-R3f198pcvnB+5IpnBlRkphuE9n46WyVl8I39W/ZUTZLz4nqSP/oLYUrcnJrw462Ds8he4YKMov2efsTIw1BDGQ==}
@@ -14757,7 +14673,7 @@ packages:
     engines: {node: '>=14.0'}
     dependencies:
       busboy: 1.6.0
-    dev: false
+    dev: true
 
   /unique-filename/1.1.1:
     resolution: {integrity: sha512-Vmp0jIp2ln35UTXuryvjzkjGdRyf9b2lTXuSYUiPmzRcl3FDtYqAwOnTJkAngD9SWhnoJzDbTKwaOrZ+STtxNQ==}

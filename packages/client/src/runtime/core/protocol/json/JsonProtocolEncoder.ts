@@ -1,8 +1,7 @@
-import { EngineBatchQuery, JsonQuery, JsonQueryAction } from '@prisma/engine-core'
-
 import { DMMFDatamodelHelper } from '../../../dmmf'
 import { ErrorFormat } from '../../../getPrismaClient'
 import { deepGet } from '../../../utils/deep-set'
+import { EngineBatchQuery, JsonQuery, JsonQueryAction } from '../../engines'
 import { CreateMessageOptions, ProtocolEncoder, ProtocolMessage } from '../common'
 import { deserializeJsonResponse } from './deserialize'
 import { serializeJsonQuery } from './serialize'
