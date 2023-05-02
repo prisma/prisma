@@ -1,11 +1,3 @@
-import {
-  JsonArgumentValue,
-  JsonFieldSelection,
-  JsonQuery,
-  JsonQueryAction,
-  JsonSelectionSet,
-  OutputTypeDescription,
-} from '@prisma/engine-core'
 import { DMMF } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 
@@ -14,6 +6,14 @@ import { ErrorFormat } from '../../../getPrismaClient'
 import { ObjectEnumValue, objectEnumValues } from '../../../object-enums'
 import { CallSite } from '../../../utils/CallSite'
 import { isDecimalJsLike } from '../../../utils/decimalJsLike'
+import {
+  JsonArgumentValue,
+  JsonFieldSelection,
+  JsonQuery,
+  JsonQueryAction,
+  JsonSelectionSet,
+  OutputTypeDescription,
+} from '../../engines'
 import { throwValidationException } from '../../errorRendering/throwValidationException'
 import { MergedExtensionsList } from '../../extensions/MergedExtensionsList'
 import { applyComputedFieldsToSelection } from '../../extensions/resultUtils'

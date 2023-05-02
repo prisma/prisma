@@ -1,5 +1,4 @@
 import Debug from '@prisma/debug'
-import { fixBinaryTargets, getOriginalBinaryTargetsValue, printGeneratorConfig } from '@prisma/engine-core'
 import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import type { DownloadOptions } from '@prisma/fetch-engine'
 import { download } from '@prisma/fetch-engine'
@@ -25,8 +24,10 @@ import type { GeneratorPaths } from './generatorResolvers/generatorResolvers'
 import { generatorResolvers } from './generatorResolvers/generatorResolvers'
 import { binaryTypeToEngineType } from './utils/binaryTypeToEngineType'
 import { checkFeatureFlags } from './utils/check-feature-flags/checkFeatureFlags'
+import { fixBinaryTargets } from './utils/fixBinaryTargets'
 import { getBinaryPathsByVersion } from './utils/getBinaryPathsByVersion'
 import { getEngineVersionForGenerator } from './utils/getEngineVersionForGenerator'
+import { getOriginalBinaryTargetsValue, printGeneratorConfig } from './utils/printGeneratorConfig'
 
 const debug = Debug('prisma:getGenerators')
 

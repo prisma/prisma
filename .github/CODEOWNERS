@@ -9,7 +9,6 @@
 
 # Client Team
 /packages/client/            @prisma/client-team-ts
-/packages/engine-core/       @prisma/client-team-ts
 /packages/generator-helper/  @prisma/client-team-ts
 /packages/integration-tests/ @prisma/client-team-ts
 /packages/react-prisma/      @prisma/client-team-ts

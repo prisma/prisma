@@ -1,5 +1,4 @@
-import { EngineBatchQuery, GraphQLQuery } from '@prisma/engine-core'
-
+import { EngineBatchQuery, GraphQLQuery } from '../../core/engines'
 import { DMMFHelper } from '../../dmmf'
 import { ErrorFormat } from '../../getPrismaClient'
 import { Args, Document, makeDocument, PrismaClientValidationError, unpack } from '../../query'

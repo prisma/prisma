@@ -1,22 +1,5 @@
 import { Context, context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import {
-  BatchTransactionOptions,
-  BinaryEngine,
-  DataProxyEngine,
-  DatasourceOverwrite,
-  Engine,
-  EngineConfig,
-  EngineEventType,
-  Fetch,
-  getTraceParent,
-  getTracingConfig,
-  LibraryEngine,
-  Options,
-  runInChildSpan,
-  SpanOptions,
-  TracingConfig,
-} from '@prisma/engine-core'
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import {
   callOnce,
@@ -38,6 +21,18 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
+import {
+  BatchTransactionOptions,
+  BinaryEngine,
+  DataProxyEngine,
+  DatasourceOverwrite,
+  Engine,
+  EngineConfig,
+  EngineEventType,
+  Fetch,
+  LibraryEngine,
+  Options,
+} from './core/engines'
 import { $extends } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
@@ -57,6 +52,7 @@ import {
   PrismaPromiseTransaction,
 } from './core/request/PrismaPromise'
 import { UserArgs } from './core/request/UserArgs'
+import { getTraceParent, getTracingConfig, runInChildSpan, SpanOptions, TracingConfig } from './core/tracing'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { DMMFDatamodelHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'

@@ -42,7 +42,6 @@
   },
   "dependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engine-core": "workspace:*",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
@@ -62,6 +61,7 @@
     "fs-jetpack": "5.1.0",
     "global-dirs": "3.0.1",
     "globby": "11.1.0",
+    "indent-string": "4.0.0",
     "is-windows": "1.0.2",
     "is-wsl": "2.2.0",
     "kleur": "4.1.5",
