@@ -1,4 +1,3 @@
-import { plusX } from '@prisma/engine-core'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
@@ -7,10 +6,8 @@ import fs from 'fs'
 import { ensureDir } from 'fs-extra'
 import path from 'path'
 import tempDir from 'temp-dir'
-import { promisify } from 'util'
 
-const readFile = promisify(fs.readFile)
-const writeFile = promisify(fs.writeFile)
+import { plusX } from './utils/plusX'
 
 async function getBinaryName(name: BinaryType): Promise<string> {
   const platform = await getPlatform()
@@ -99,8 +96,8 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     const target = path.join(targetDir, path.basename(file))
 
     // We have to read and write until https://github.com/zeit/pkg/issues/639 is resolved
-    const data = await readFile(file)
-    await writeFile(target, data)
+    const data = await fs.promises.readFile(file)
+    await fs.promises.writeFile(target, data)
     // TODO Undo when https://github.com/vercel/pkg/pull/1484 is released
     // await copyFile(file, target)
 

@@ -1,6 +1,6 @@
-import { PrismaClientKnownRequestError } from '@prisma/engine-core'
 import { isError } from '@prisma/internals'
 
+import { PrismaClientKnownRequestError } from '../core/errors/PrismaClientKnownRequestError'
 import { Action } from '../core/types/JsApi'
 import { clientVersion } from './clientVersion'
 

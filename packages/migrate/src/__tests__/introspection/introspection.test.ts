@@ -44,7 +44,7 @@ test('introspection basic', async () => {
     ,
       version: NonPrisma,
       views: null,
-      warnings: [],
+      warnings: null,
     }
   `)
 

@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
-import { PrismaClientInitializationError } from '@prisma/engine-core'
 
 import type { GetPrismaClientConfig } from '../../getPrismaClient'
+import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 
 const debug = Debug('prisma:client')
 
@@ -32,12 +32,13 @@ export function checkPlatformCaching({ postinstall, ciName, clientVersion }: Con
 
   // and we generated on one a caching CI
   if (ciName && ciName in cachingPlatforms) {
-    throw new PrismaClientInitializationError(
-      `We have detected that you've built your project on ${ciName}, which caches dependencies.
-This leads to an outdated Prisma Client because Prisma's auto-generation isn't triggered.
-To fix this, make sure to run the \`prisma generate\` command during your build process.
-Learn how: https://pris.ly/d/${cachingPlatforms[ciName]}-build`,
-      clientVersion,
-    )
+    const message = `Prisma has detected that this project was built on ${ciName}, which caches dependencies. This leads to an outdated Prisma Client because Prisma's auto-generation isn't triggered. To fix this, make sure to run the \`prisma generate\` command during the build process.
+
+Learn how: https://pris.ly/d/${cachingPlatforms[ciName]}-build`
+
+    console.error(message) // display a nice and visible error message
+
+    // also throw an error so that the user can catch it and handle it
+    throw new PrismaClientInitializationError(message, clientVersion)
   }
 }

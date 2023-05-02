@@ -1,22 +1,5 @@
 import { Context, context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import {
-  BatchTransactionOptions,
-  BinaryEngine,
-  DataProxyEngine,
-  DatasourceOverwrite,
-  Engine,
-  EngineConfig,
-  EngineEventType,
-  Fetch,
-  getTraceParent,
-  getTracingConfig,
-  LibraryEngine,
-  Options,
-  runInChildSpan,
-  SpanOptions,
-  TracingConfig,
-} from '@prisma/engine-core'
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import {
   callOnce,
@@ -38,6 +21,18 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
+import {
+  BatchTransactionOptions,
+  BinaryEngine,
+  DataProxyEngine,
+  DatasourceOverwrite,
+  Engine,
+  EngineConfig,
+  EngineEventType,
+  Fetch,
+  LibraryEngine,
+  Options,
+} from './core/engines'
 import { $extends } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
@@ -57,8 +52,9 @@ import {
   PrismaPromiseTransaction,
 } from './core/request/PrismaPromise'
 import { UserArgs } from './core/request/UserArgs'
+import { getTraceParent, getTracingConfig, runInChildSpan, SpanOptions, TracingConfig } from './core/tracing'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
-import { BaseDMMFHelper, DMMFHelper } from './dmmf'
+import { DMMFDatamodelHelper, DMMFHelper } from './dmmf'
 import type { DMMF } from './dmmf-types'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
@@ -282,6 +278,13 @@ export interface GetPrismaClientConfig {
    * @remarks used to error for Vercel/Netlify for schema caching issues
    */
   ciName?: string
+
+  /**
+   * Information about whether we have not found a schema.prisma file in the
+   * default location, and that we fell back to finding the schema.prisma file
+   * in the current working directory. This usually means it has been bundled.
+   */
+  isBundled?: boolean
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -297,7 +300,7 @@ export type Client = ReturnType<typeof getPrismaClient> extends new () => infer 
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient {
-    _baseDmmf: BaseDMMFHelper
+    _baseDmmf: DMMFDatamodelHelper
     _dmmf?: DMMFHelper
     _engine: Engine
     _fetcher: RequestHandler
@@ -395,7 +398,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           this._errorFormat = 'colorless' // default errorFormat
         }
 
-        this._baseDmmf = new BaseDMMFHelper(config.document)
+        this._baseDmmf = new DMMFDatamodelHelper(config.document)
         const engineProtocol = NODE_CLIENT
           ? getQueryEngineProtocol(config.generator)
           : config.edgeClientProtocol ?? getQueryEngineProtocol(config.generator)
@@ -440,6 +443,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingConfig: this._tracingConfig,
           logEmitter: logEmitter,
           engineProtocol,
+          isBundled: config.isBundled,
         }
 
         debug('clientVersion', config.clientVersion)

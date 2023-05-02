@@ -1,3 +1,11 @@
+import { DMMF } from '@prisma/generator-helper'
+import { assertNever } from '@prisma/internals'
+
+import { DMMFDatamodelHelper } from '../../../dmmf'
+import { ErrorFormat } from '../../../getPrismaClient'
+import { ObjectEnumValue, objectEnumValues } from '../../../object-enums'
+import { CallSite } from '../../../utils/CallSite'
+import { isDecimalJsLike } from '../../../utils/decimalJsLike'
 import {
   JsonArgumentValue,
   JsonFieldSelection,
@@ -5,15 +13,7 @@ import {
   JsonQueryAction,
   JsonSelectionSet,
   OutputTypeDescription,
-} from '@prisma/engine-core'
-import { DMMF } from '@prisma/generator-helper'
-import { assertNever } from '@prisma/internals'
-
-import { BaseDMMFHelper } from '../../../dmmf'
-import { ErrorFormat } from '../../../getPrismaClient'
-import { ObjectEnumValue, objectEnumValues } from '../../../object-enums'
-import { CallSite } from '../../../utils/CallSite'
-import { isDecimalJsLike } from '../../../utils/decimalJsLike'
+} from '../../engines'
 import { throwValidationException } from '../../errorRendering/throwValidationException'
 import { MergedExtensionsList } from '../../extensions/MergedExtensionsList'
 import { applyComputedFieldsToSelection } from '../../extensions/resultUtils'
@@ -45,7 +45,7 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
 }
 
 export type SerializeParams = {
-  baseDmmf: BaseDMMFHelper
+  baseDmmf: DMMFDatamodelHelper
   modelName?: string
   action: Action
   args?: JsArgs
@@ -137,12 +137,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
     }
 
     if (value === true) {
-      selectionSet[key] = {
-        selection: {
-          $composites: true,
-          $scalars: true,
-        },
-      }
+      selectionSet[key] = true
     } else if (typeof value === 'object') {
       selectionSet[key] = serializeFieldSelection(value, context.atField(key))
     }
@@ -160,19 +155,12 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
       continue
     }
     if (value === true) {
-      selectionSet[key] = defaultSelectionForField(field)
+      selectionSet[key] = true
     } else if (typeof value === 'object') {
       selectionSet[key] = serializeFieldSelection(value, context.atField(key))
     }
   }
   return selectionSet
-}
-
-function defaultSelectionForField(field?: DMMF.Field) {
-  if (field?.kind === 'object') {
-    return { selection: { $composites: true, $scalars: true } }
-  }
-  return true
 }
 
 function serializeArgumentsValue(jsValue: Exclude<JsInputValue, undefined>): JsonArgumentValue {
@@ -259,7 +247,7 @@ function isRawParameters(value: JsInputValue): value is RawParameters {
 }
 
 type ContextParams = {
-  baseDmmf: BaseDMMFHelper
+  baseDmmf: DMMFDatamodelHelper
   originalMethod: string
   rootArgs: JsArgs | undefined
   extensions: MergedExtensionsList

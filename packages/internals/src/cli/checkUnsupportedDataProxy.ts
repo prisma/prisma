@@ -1,5 +1,5 @@
-import chalk from 'chalk'
 import fs from 'fs'
+import { green } from 'kleur/colors'
 import { O } from 'ts-toolbelt'
 
 import { getConfig, getEffectiveUrl, getSchemaPath, link } from '..'
@@ -28,9 +28,9 @@ type Args = O.Optional<O.Update<typeof checkedArgs, any, string>>
  * @returns
  */
 export const forbiddenCmdWithDataProxyFlagMessage = (command: string) => `
-Using the Data Proxy (connection URL starting with protocol ${chalk.green(
+Using the Data Proxy (connection URL starting with protocol ${green(
   'prisma://',
-)}) is not supported for this CLI command ${chalk.green(`prisma ${command}`)} yet. ${
+)}) is not supported for this CLI command ${green(`prisma ${command}`)} yet. ${
   command === 'studio' ? '' : "Please use a direct connection to your database via the datasource 'directUrl' setting."
 }
 

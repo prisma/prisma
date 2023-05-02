@@ -1,18 +1,15 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
+import { assertNever } from '@prisma/internals'
+import stripAnsi from 'strip-ansi'
+
 import {
   EngineValidationError,
   EventEmitter,
   Fetch,
-  getTraceParent,
-  hasBatchIndex,
   InteractiveTransactionOptions,
-  TracingConfig,
   TransactionOptions,
-} from '@prisma/engine-core'
-import { assertNever } from '@prisma/internals'
-import stripAnsi from 'strip-ansi'
-
+} from '../runtime/core/engines'
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
@@ -20,12 +17,14 @@ import {
   PrismaClientUnknownRequestError,
 } from '.'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
+import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
 import { applyResultExtensions } from './core/extensions/applyResultExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { visitQueryResult } from './core/extensions/visitQueryResult'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { ProtocolEncoder, ProtocolMessage } from './core/protocol/common'
 import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
+import { getTraceParent, TracingConfig } from './core/tracing'
 import { JsArgs } from './core/types/JsApi'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
