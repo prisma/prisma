@@ -107,7 +107,7 @@ ${bold('Examples')}
       remoteModel: remoteModels[localModel.dbName ?? localModel.name],
     }))
 
-    const getFieldName = (f: DMMF.Field) => (f.dbNames && f.dbNames.length > 0 ? f.dbNames[0] : f.name)
+    const getFieldName = (f: DMMF.Field) => (f.dbName ?? f.name)
 
     const messages: string[] = []
 
