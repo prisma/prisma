@@ -1,7 +1,8 @@
-import { BinaryEngine } from '@prisma/engine-core'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import { EventEmitter } from 'events'
 import path from 'path'
+
+import { BinaryEngine } from '../runtime/core/engines'
 
 describe('BinaryEngine', () => {
   test('should error correctly with invalid flags', async () => {

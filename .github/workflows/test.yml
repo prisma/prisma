@@ -984,20 +984,6 @@ jobs:
           name: debug-${{ matrix.os }}
 
       - run: pnpm run test
-        name: 'engine-core'
-        working-directory: packages/engine-core
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - uses: codecov/codecov-action@v3
-        with:
-          files: ./packages/engine-core/src/__tests__/coverage/clover.xml
-          flags: engine-core,${{ matrix.os }},library,binary
-          name: engine-core-${{ matrix.os }}
-
-      - run: pnpm run test
         name: 'generator-helper'
         working-directory: packages/generator-helper
         env:
@@ -1322,24 +1308,6 @@ jobs:
           files: ./packages/debug/src/__tests__/coverage/clover.xml
           flags: debug,${{ matrix.os }},library,binary
           name: debug-${{ matrix.os }}
-
-      - name: Test packages/engine-core
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
-        run: pnpm run test
-        working-directory: packages/engine-core
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/engine-core/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
-        with:
-          files: ./packages/engine-core/src/__tests__/coverage/clover.xml
-          flags: engine-core,${{ matrix.os }},library,binary
-          name: engine-core-${{ matrix.os }}
 
       - name: Test packages/generator-helper
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}

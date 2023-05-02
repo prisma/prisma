@@ -1,4 +1,3 @@
-import { plusX } from '@prisma/engine-core'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
@@ -7,6 +6,8 @@ import fs from 'fs'
 import { ensureDir } from 'fs-extra'
 import path from 'path'
 import tempDir from 'temp-dir'
+
+import { plusX } from './utils/plusX'
 
 async function getBinaryName(name: BinaryType): Promise<string> {
   const platform = await getPlatform()
