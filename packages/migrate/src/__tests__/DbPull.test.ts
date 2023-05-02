@@ -613,19 +613,19 @@ describe('postgresql views fs I/O', () => {
       expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                - Introspecting based on datasource defined in schema.prisma
+        - Introspecting based on datasource defined in schema.prisma
 
-                ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
-                      
-                *** WARNING ***
+        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+              
+        *** WARNING ***
 
-                The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-                  - "simpleuser"
-                  - "workers"
+        The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+          - "simpleuser"
+          - "workers"
 
-                Run prisma generate to generate Prisma Client.
+        Run prisma generate to generate Prisma Client.
 
-            `)
+      `)
       expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
@@ -790,13 +790,13 @@ describe('postgresql views fs I/O', () => {
       expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                        - Introspecting based on datasource defined in schema.prisma
+        - Introspecting based on datasource defined in schema.prisma
 
-                        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
-                              
-                        Run prisma generate to generate Prisma Client.
+        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+              
+        Run prisma generate to generate Prisma Client.
 
-                  `)
+      `)
       expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
