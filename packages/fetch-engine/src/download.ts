@@ -399,7 +399,9 @@ type DownloadBinaryOptions = BinaryDownloadJob & {
 
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
   const { version, progressCb, targetFilePath, binaryTarget, binaryName } = options
-  const downloadUrl = getDownloadUrl('all_commits', version, binaryTarget, binaryName)
+  const downloadUrl = await getDownloadUrl('all_commits', version, binaryTarget, binaryName)
+
+  console.log(`Downloading ${binaryName} ${version} from ${downloadUrl}`)
 
   const targetDir = path.dirname(targetFilePath)
 

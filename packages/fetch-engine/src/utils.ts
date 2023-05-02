@@ -3,10 +3,12 @@ import { getNodeAPIName, Platform } from '@prisma/get-platform'
 import findCacheDir from 'find-cache-dir'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
+import fetch from 'node-fetch'
 import os from 'os'
 import path from 'path'
 
 import { BinaryType } from './download'
+import { getProxyAgent } from './getProxyAgent'
 
 const debug = Debug('prisma:cache-dir')
 
@@ -50,24 +52,40 @@ export async function getCacheDir(channel: string, version: string, platform: st
   return cacheDir
 }
 
-export function getDownloadUrl(
+export enum OfficialMirror {
+  R2 = 'https://pub-4cbd40824ac94efbb1399ffcbf438562.r2.dev',
+  AWS = 'https://binaries.prisma.sh',
+}
+
+export async function getDownloadUrl(
   channel: string,
   version: string,
   platform: Platform,
   binaryName: string,
   extension = '.gz',
-): string {
-  const baseUrl =
+) {
+  const customMirror =
     process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
-    process.env.PRISMA_ENGINES_MIRROR ||
-    'https://binaries.prisma.sh'
+    process.env.PRISMA_ENGINES_MIRROR
+
   const finalExtension =
     platform === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
   if (binaryName === BinaryType.QueryEngineLibrary) {
     binaryName = getNodeAPIName(platform, 'url')
   }
 
-  return `${baseUrl}/${channel}/${version}/${platform}/${binaryName}${finalExtension}`
+  const engineUrlPath = `${channel}/${version}/${platform}/${binaryName}${finalExtension}`
+
+  if (customMirror === undefined) {
+    return fetch(`${OfficialMirror.R2}/${engineUrlPath}.sha256`, {
+      agent: getProxyAgent(`${OfficialMirror.R2}/${engineUrlPath}`),
+      timeout: 4000,
+    })
+      .then(() => `${OfficialMirror.R2}/${engineUrlPath}`)
+      .catch(() => `${OfficialMirror.AWS}/${engineUrlPath}`)
+  }
+
+  return `${customMirror}/${engineUrlPath}`
 }
 
 export async function overwriteFile(sourcePath: string, targetPath: string) {
