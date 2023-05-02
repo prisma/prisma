@@ -29,7 +29,6 @@ export const writeFile = ({ path, content }: { path: string; content: string }) 
 export const removeDir = (dir: string) =>
   pipe(
     TE.tryCatch(
-      // @ts-ignore: `rm` exists since Node.js 14.14.0, but doesn't seem to appear in all @types/node packages used by Prisma
       () => fs.promises.rm(dir, { recursive: true, force: true }),
       createTaggedSystemError('fs-remove-dir', { dir }),
     ),
