@@ -1,7 +1,7 @@
 import { arg, Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import chalk from 'chalk'
 import fs from 'fs'
+import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
  * $ prisma format
@@ -14,22 +14,22 @@ export class Format implements Command {
   private static help = format(`
 Format a Prisma schema.
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma format [options]
+  ${dim('$')} prisma format [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
 With an existing Prisma schema
-  ${chalk.dim('$')} prisma format
+  ${dim('$')} prisma format
 
 Or specify a Prisma schema path
-  ${chalk.dim('$')} prisma format --schema=./schema.prisma
+  ${dim('$')} prisma format --schema=./schema.prisma
 
   `)
 
@@ -62,12 +62,12 @@ Or specify a Prisma schema path
     fs.writeFileSync(schemaPath, output)
     const after = Date.now()
 
-    return `Formatted ${chalk.underline(schemaPath)} in ${formatms(after - before)} 🚀`
+    return `Formatted ${underline(schemaPath)} in ${formatms(after - before)} 🚀`
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Format.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Format.help}`)
     }
     return Format.help
   }

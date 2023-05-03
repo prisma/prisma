@@ -114,8 +114,6 @@ In the `prisma/prisma` repository we have a few places where you can write tests
   - `src/__tests__/types/**` - Tests for generated Client TS Types
 - **`debug`**
   - Unit tests for `debug` package
-- **`engine-core`**
-  - Unit tests for `engine-core` package
 - **`generator-helper`**
   - Integration tests for generator interface implementation
 - **`migrate`**

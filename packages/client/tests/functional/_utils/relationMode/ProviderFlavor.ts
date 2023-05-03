@@ -5,7 +5,7 @@ export enum ProviderFlavors {
 }
 
 const providerFlavors = [...Object.values(Providers), ProviderFlavors.VITESS_8] as const
-export type ProviderFlavor = typeof providerFlavors[number]
+export type ProviderFlavor = (typeof providerFlavors)[number]
 
 export function getProviderFromFlavor(providerFlavor: ProviderFlavor): Providers {
   switch (providerFlavor) {

@@ -1,7 +1,7 @@
-import chalk from 'chalk'
+import { bold, red } from 'kleur/colors'
 
 import type { Command, Commands } from '../../internals/src'
-import { arg, format, HelpError, isError, logger, unknownCommand } from '../../internals/src'
+import { arg, format, HelpError, isError, unknownCommand } from '../../internals/src'
 
 /**
  * Convenient Migrate CLI command, not public facing
@@ -57,7 +57,7 @@ export class CLI implements Command {
 
   public help(error?: string) {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${CLI.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${CLI.help}`)
     }
     return CLI.help
   }

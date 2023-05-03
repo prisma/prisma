@@ -2,6 +2,9 @@
 // https://prisma.github.io/prisma-engines/doc/migration_core/json_rpc/types/index.html
 //
 // https://www.jsonrpc.org/specification
+
+import type { IntrospectionViewDefinition } from '@prisma/internals'
+
 // A JSON-RPC request or response.
 export interface RpcRequestResponse {
   id: number
@@ -149,243 +152,23 @@ export namespace EngineArgs {
     compositeTypeDepth?: number
     schemas?: string[]
   }
+
   export interface IntrospectResult {
     datamodel: string
-    warnings: IntrospectionWarnings[]
+    warnings: string | null
     version: IntrospectionSchemaVersion
-  }
 
-  // See prisma-engines
-  // SQL databases:
-  // Previously at https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/sql-introspection-connector/src/warnings.rs
-  // Now at https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/sql-introspection-connector/src/warnings/generators.rs
-  //
-  // MongoDB:
-  // https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs
-
-  export type IntrospectionWarnings =
-    | IntrospectionWarningsUnhandled
-    | IntrospectionWarningsInvalidReintro
-    | IntrospectionWarningsMissingUnique
-    | IntrospectionWarningsEmptyFieldName
-    | IntrospectionWarningsUnsupportedType
-    | IntrospectionWarningsInvalidEnumName
-    | IntrospectionWarningsCuidPrisma1
-    | IntrospectionWarningsUuidPrisma1
-    | IntrospectionWarningsFieldModelReintro
-    | IntrospectionWarningsFieldMapReintro
-    | IntrospectionWarningsEnumMapReintro
-    | IntrospectionWarningsEnumValueMapReintro
-    | IntrospectionWarningsWithoutColumns
-    | IntrospectionWarningsCustomIndexNameReintro
-    | IntrospectionWarningsCustomPrimaryKeyNamesReintro
-    | IntrospectionWarningsRelationsReintro
-    | IntrospectionWarningsTopLevelItemNameIsADupe
-    // Views
-    | IntrospectionWarningsUnsupportedTypesInViews
-    | IntrospectionWarningsEnrichedWithMapOnFieldInViews
-    | IntrospectionWarningsEnrichedWithMapOnView
-    | IntrospectionWarningsViewsWithoutIdentifier
-    | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews
-    | IntrospectionWarningsFieldsWithEmptyNamesInViews
-    // Partioned Tables
-    | IntrospectionWarningsPartionedTablesFound
-    // MongoDB below
-    | IntrospectionWarningsMongoMultipleTypes
-    | IntrospectionWarningsMongoFieldsPointingToAnEmptyType
-    | IntrospectionWarningsMongoFieldsWithUnknownTypes
-    | IntrospectionWarningsMongoFieldsWithEmptyNames
-
-  type AffectedTopLevel = { type: 'Model' | 'Enum'; name: string }
-  type AffectedModel = { model: string }
-  type AffectedModelAndIndex = { model: string; index_db_name: string }
-  type AffectedModelAndField = { model: string; field: string }
-  type AffectedModelAndFieldAndType = {
-    model: string
-    field: string
-    tpe: string
+    /**
+     * Views retrieved from the databases.
+     * Supported databases: 'postgresql'.
+     *
+     * This value is:
+     * - `null` if "views" doesn't appear in the schema's preview features
+     * - `[]` if the database doesn't have any views
+     * - a non-empty array in other cases
+     */
+    views: IntrospectionViewDefinition[] | null
   }
-  type AffectedModelOrCompositeTypeAndField = {
-    // TODO: add discriminated union
-    // Either compositeType or model is defined
-    compositeType?: string
-    model?: string
-    field: string
-  }
-
-  type AffectedModelOrCompositeTypeAndFieldAndType = AffectedModelOrCompositeTypeAndField & {
-    tpe: string
-  }
-
-  type AffectedEnum = { enm: string }
-  type AffectedEnumAndValue = { enm: string; value: string }
-
-  type AffectedView = { view: string }
-  type AffectedViewAndField = { view: string; field: string }
-  type AffectedViewAndFieldAndType = {
-    view: string
-    field: string
-    tpe: string
-  }
-
-  interface IntrospectionWarning {
-    code: number
-    message: string
-    affected:
-      | AffectedTopLevel[]
-      | AffectedModel[]
-      | AffectedModelAndIndex[]
-      | AffectedModelAndField[]
-      | AffectedModelAndFieldAndType[]
-      | AffectedModelOrCompositeTypeAndField[]
-      | AffectedModelOrCompositeTypeAndFieldAndType[]
-      | AffectedEnum[]
-      | AffectedEnumAndValue[]
-      | AffectedView[]
-      | AffectedViewAndField[]
-      | AffectedViewAndFieldAndType[]
-      | null
-  }
-
-  interface IntrospectionWarningsUnhandled extends IntrospectionWarning {
-    code: -1 // -1 doesn't exist, it's just for the types
-    affected: any
-  }
-  interface IntrospectionWarningsInvalidReintro extends IntrospectionWarning {
-    code: 0
-    affected: null
-  }
-  interface IntrospectionWarningsMissingUnique extends IntrospectionWarning {
-    code: 1
-    affected: AffectedModel[]
-  }
-  interface IntrospectionWarningsEmptyFieldName extends IntrospectionWarning {
-    code: 2
-    affected: AffectedModelAndField[]
-  }
-  interface IntrospectionWarningsUnsupportedType extends IntrospectionWarning {
-    code: 3
-    affected: AffectedModelAndFieldAndType[]
-  }
-  interface IntrospectionWarningsInvalidEnumName extends IntrospectionWarning {
-    code: 4
-    affected: AffectedEnumAndValue[]
-  }
-  interface IntrospectionWarningsCuidPrisma1 extends IntrospectionWarning {
-    code: 5
-    affected: AffectedModelAndField[]
-  }
-  interface IntrospectionWarningsUuidPrisma1 extends IntrospectionWarning {
-    code: 6
-    affected: AffectedModelAndField[]
-  }
-  interface IntrospectionWarningsFieldModelReintro extends IntrospectionWarning {
-    code: 7
-    affected: AffectedModel[]
-  }
-  interface IntrospectionWarningsFieldMapReintro extends IntrospectionWarning {
-    code: 8
-    affected: AffectedModelAndField[]
-  }
-  interface IntrospectionWarningsEnumMapReintro extends IntrospectionWarning {
-    code: 9
-    affected: AffectedEnum[]
-  }
-  interface IntrospectionWarningsEnumValueMapReintro extends IntrospectionWarning {
-    code: 10
-    affected: AffectedEnum[]
-  }
-  // Note that 11, 12 were removed in
-  // https://github.com/prisma/prisma-engines/commit/610625b0588e5b55e4c5116a68ea43b939de76d9
-  //
-  // Note that 13 was removed in
-  // https://github.com/prisma/prisma-engines/commit/5dfd619bdc254a38c54079cc8a238acc224b9bc7
-  interface IntrospectionWarningsWithoutColumns extends IntrospectionWarning {
-    code: 14
-    affected: AffectedModel[]
-  }
-  // Note that 15, and 16 were removed
-  // in https://github.com/prisma/prisma-engines/commit/bffd935029e462592819b33a080e8f8953b58acb
-  interface IntrospectionWarningsCustomIndexNameReintro extends IntrospectionWarning {
-    code: 17
-    affected: AffectedModelAndIndex[]
-  }
-  interface IntrospectionWarningsCustomPrimaryKeyNamesReintro extends IntrospectionWarning {
-    code: 18
-    affected: AffectedModel[]
-  }
-  interface IntrospectionWarningsRelationsReintro extends IntrospectionWarning {
-    code: 19
-    affected: AffectedModel[]
-  }
-  interface IntrospectionWarningsTopLevelItemNameIsADupe extends IntrospectionWarning {
-    code: 20
-    affected: AffectedTopLevel[]
-  }
-
-  // Views
-  interface IntrospectionWarningsUnsupportedTypesInViews extends IntrospectionWarning {
-    code: 21
-    affected: AffectedViewAndFieldAndType[]
-  }
-
-  interface IntrospectionWarningsEnrichedWithMapOnFieldInViews extends IntrospectionWarning {
-    code: 22
-    affected: AffectedViewAndField[]
-  }
-
-  interface IntrospectionWarningsEnrichedWithMapOnView extends IntrospectionWarning {
-    code: 23
-    affected: AffectedView[]
-  }
-
-  interface IntrospectionWarningsViewsWithoutIdentifier extends IntrospectionWarning {
-    code: 24
-    affected: AffectedView[]
-  }
-
-  interface IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews extends IntrospectionWarning {
-    code: 25
-    affected: AffectedView[]
-  }
-
-  interface IntrospectionWarningsFieldsWithEmptyNamesInViews extends IntrospectionWarning {
-    code: 26
-    affected: AffectedViewAndField[]
-  }
-
-  // Partioned Tables
-  interface IntrospectionWarningsPartionedTablesFound extends IntrospectionWarning {
-    code: 27
-    affected: AffectedModel[]
-  }
-
-  // MongoDB starts at 101 see
-  // https://github.com/prisma/prisma-engines/blob/main/introspection-engine/connectors/mongodb-introspection-connector/src/warnings.rs#L39-L43
-  interface IntrospectionWarningsMongoMultipleTypes extends IntrospectionWarning {
-    code: 101
-    affected: AffectedModelOrCompositeTypeAndFieldAndType[]
-  }
-  interface IntrospectionWarningsMongoFieldsPointingToAnEmptyType extends IntrospectionWarning {
-    code: 102
-    affected: AffectedModelOrCompositeTypeAndField[]
-  }
-  interface IntrospectionWarningsMongoFieldsWithUnknownTypes extends IntrospectionWarning {
-    code: 103
-    affected: AffectedModelOrCompositeTypeAndField[]
-  }
-  interface IntrospectionWarningsMongoFieldsWithEmptyNames extends IntrospectionWarning {
-    code: 104
-    affected: AffectedModelOrCompositeTypeAndField[]
-  }
-
-  export type ViewWarningCodes =
-    | IntrospectionWarningsUnsupportedTypesInViews['code']
-    | IntrospectionWarningsEnrichedWithMapOnFieldInViews['code']
-    | IntrospectionWarningsEnrichedWithMapOnView['code']
-    | IntrospectionWarningsViewsWithoutIdentifier['code']
-    | IntrospectionWarningsEnrichedWithCustomPrimaryKeyNamesInViews['code']
-    | IntrospectionWarningsFieldsWithEmptyNamesInViews['code']
 
   export type IntrospectionSchemaVersion = 'Prisma2' | 'Prisma1' | 'Prisma11' | 'NonPrisma'
 

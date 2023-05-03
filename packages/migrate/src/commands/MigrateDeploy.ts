@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
@@ -20,22 +20,22 @@ export class MigrateDeploy implements Command {
   private static help = format(`
 Apply pending migrations to update the database schema in production/staging
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate deploy [options]
+  ${dim('$')} prisma migrate deploy [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   Deploy your pending migrations to your production/staging database
-  ${chalk.dim('$')} prisma migrate deploy
+  ${dim('$')} prisma migrate deploy
 
   Specify a schema
-  ${chalk.dim('$')} prisma migrate deploy --schema=./schema.prisma
+  ${dim('$')} prisma migrate deploy --schema=./schema.prisma
 
 `)
 
@@ -116,21 +116,21 @@ ${chalk.bold('Examples')}
 
     console.info() // empty line
     if (migrationIds.length === 0) {
-      return chalk.greenBright(`No pending migrations to apply.`)
+      return green(`No pending migrations to apply.`)
     } else {
-      return `The following migration${migrationIds.length > 1 ? 's' : ''} have been applied:\n\n${chalk(
-        printFilesFromMigrationIds('migrations', migrationIds, {
-          'migration.sql': '',
-        }),
-      )}
+      return `The following migration${
+        migrationIds.length > 1 ? 's' : ''
+      } have been applied:\n\n${printFilesFromMigrationIds('migrations', migrationIds, {
+        'migration.sql': '',
+      })}
       
-${chalk.greenBright('All migrations have been successfully applied.')}`
+${green('All migrations have been successfully applied.')}`
     }
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateDeploy.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateDeploy.help}`)
     }
     return MigrateDeploy.help
   }

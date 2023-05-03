@@ -1,5 +1,3 @@
-import path from 'path'
-
 /**
  * Builds a `dirname` variable that holds the location of the generated client.
  * @param edge
@@ -7,12 +5,12 @@ import path from 'path'
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(edge: boolean, relativeOutdir: string, runtimeDir: string) {
+export function buildDirname(edge: boolean, relativeOutdir: string) {
   if (edge === true) {
     return buildDirnameDefault()
   }
 
-  return buildDirnameFind(relativeOutdir, runtimeDir)
+  return buildDirnameFind(relativeOutdir)
 }
 
 /**
@@ -24,37 +22,28 @@ export function buildDirname(edge: boolean, relativeOutdir: string, runtimeDir: 
  * moved and copied out of its original spot. It all fails, it falls-back to
  * `findSync`, when `__dirname` is not available (eg. bundle, electron) or
  * nothing has been found around `__dirname`.
- * @param defaultRelativeOutdir
+ * @param relativeOutdir
  * @param runtimePath
  * @returns
  */
-function buildDirnameFind(defaultRelativeOutdir: string, runtimePath: string) {
-  // potential client location on serverless envs
-  const serverlessRelativeOutdir = defaultRelativeOutdir.split(path.sep).slice(1).join(path.sep)
-
+function buildDirnameFind(relativeOutdir: string) {
   return `
 const fs = require('fs')
 
-// some frameworks or bundlers replace or totally remove __dirname
-const hasDirname = typeof __dirname !== 'undefined' && __dirname !== '/'
-
-// will work in most cases, ie. if the client has not been bundled
-const regularDirname = hasDirname && fs.existsSync(path.join(__dirname, 'schema.prisma')) && __dirname
-
-// if the client has been bundled, we need to look for the folders
-const foundDirname = !regularDirname && findSync(process.cwd(), [
-    ${defaultRelativeOutdir ? `${JSON.stringify(defaultRelativeOutdir)},` : ''}
-    ${serverlessRelativeOutdir ? `${JSON.stringify(serverlessRelativeOutdir)},` : ''}
-], ['d'], ['d'], 1)[0]
-
-const dirname = regularDirname || foundDirname || __dirname`
+config.dirname = __dirname
+if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
+  warnOnce('bundled-warning-1', 'Your generated Prisma Client could not immediately find its \`schema.prisma\`, falling back to finding it via the current working directory.')
+  warnOnce('bundled-warning-2', 'We are interested in learning about your project setup. We\\'d appreciate if you could take the time to share some information with us.')
+  warnOnce('bundled-warning-3', 'Please help us by answering a few questions: https://pris.ly/bundler-investigation')
+  config.dirname = path.join(process.cwd(), ${JSON.stringify(relativeOutdir)})
+  config.isBundled = true
+}`
 }
-// TODO: 👆 all this complexity could fade away if we embed the schema
 
 /**
  * Builds a simple `dirname` for when it is not important to have one.
  * @returns
  */
 function buildDirnameDefault() {
-  return `const dirname = '/'`
+  return `config.dirname = '/'`
 }

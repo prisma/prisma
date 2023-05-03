@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "license": "MIT",
   "devDependencies": {
-    "@types/node": "^14.14.21"
+    "@types/node": "14.18.42"
   }
 }

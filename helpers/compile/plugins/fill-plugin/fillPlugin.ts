@@ -180,7 +180,7 @@ const fillPlugin = (
       readline: { contents: '' },
       repl: { contents: '' },
       tls: { contents: '' },
-      perf_hooks: { contents: '' },
+      perf_hooks: { path: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
       async_hooks: { contents: '' },
       child_process: { contents: '' },
 
@@ -190,6 +190,7 @@ const fillPlugin = (
       },
       process: {
         inject: path.join(__dirname, 'fillers', 'process.ts'),
+        path: path.join(__dirname, 'fillers', 'process.ts'),
       },
 
       // not needed

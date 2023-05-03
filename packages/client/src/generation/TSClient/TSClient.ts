@@ -1,6 +1,7 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getClientEngineType, getEnvPaths, getQueryEngineProtocol } from '@prisma/internals'
+import ciInfo from 'ci-info'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
@@ -47,6 +48,7 @@ export interface TSClientOptions {
   activeProvider: string
   dataProxy: boolean
   deno?: boolean
+  postinstall?: boolean
 }
 
 export class TSClient implements Generatable {
@@ -98,6 +100,8 @@ export class TSClient implements Generatable {
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
       dataProxy: this.options.dataProxy,
+      postinstall: this.options.postinstall,
+      ciName: ciInfo.name ?? undefined,
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -106,14 +110,10 @@ export class TSClient implements Generatable {
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(edge)}
-${buildDirname(edge, relativeOutdir, runtimeDir)}
 
 /**
  * Enums
  */
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-function makeEnum(x) { return x; }
 
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
@@ -131,8 +131,8 @@ ${buildDMMF(dataProxy && engineProtocol === 'graphql', this.options.document)}
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-config.dirname = dirname
 config.document = dmmf
+${buildDirname(edge, relativeOutdir)}
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
@@ -308,9 +308,6 @@ export const dmmf: runtime.BaseDMMF
 /**
  * Enums
  */
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-function makeEnum(x) { return x; }
 
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}

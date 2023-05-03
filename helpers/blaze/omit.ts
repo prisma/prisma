@@ -7,13 +7,13 @@ import { select } from './select'
 
 type KeyMap = { [key: A.Key]: boolean }
 
-function omitList<L extends L.List, K extends A.Key>(object: L, keys: K[]) {
+function omitList<T extends L.List, K extends A.Key>(object: T, keys: K[]) {
   const _keys = reduce(keys, (acc, key) => (acc[key] = true) && acc, {} as KeyMap)
 
   return select(object, (item, key) => !(key in _keys))
 }
 
-function omitObject<O extends O.Object, K extends A.Key>(object: O, keys: K[]) {
+function omitObject<T extends O.Object, K extends A.Key>(object: T, keys: K[]) {
   const _keys = reduce(keys, (acc, key) => (acc[key] = true) && acc, {} as KeyMap)
 
   return select(object, (item, key) => !(key in _keys))

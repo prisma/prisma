@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
-import chalk from 'chalk'
 import type { ChildProcessByStdio } from 'child_process'
 import { fork } from 'child_process'
 import { spawn } from 'cross-spawn'
+import { bold } from 'kleur/colors'
 
 import byline from './byline'
 import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
@@ -35,7 +35,6 @@ export class GeneratorError extends Error {
 export class GeneratorProcess {
   child?: ChildProcessByStdio<any, any, any>
   listeners: { [key: string]: (result: any, err?: Error) => void } = {}
-  private exitCode: number | null = null
   private stderrLogs = ''
   private initPromise?: Promise<void>
   private isNode: boolean
@@ -78,10 +77,13 @@ export class GeneratorProcess {
         }
 
         this.child.on('exit', (code) => {
-          this.exitCode = code
-          if (code && code > 0 && this.currentGenerateDeferred) {
-            // print last 5 lines of stderr
-            this.currentGenerateDeferred.reject(new Error(this.stderrLogs.split('\n').slice(-5).join('\n')))
+          if (code && code > 0) {
+            if (this.currentGenerateDeferred) {
+              // print last 5 lines of stderr
+              this.currentGenerateDeferred.reject(new Error(this.stderrLogs.split('\n').slice(-5).join('\n')))
+            } else {
+              reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
+            }
           }
         })
 
@@ -89,7 +91,7 @@ export class GeneratorProcess {
           if (err.message.includes('EACCES')) {
             reject(
               new Error(
-                `The executable at ${this.executablePath} lacks the right chmod. Please use ${chalk.bold(
+                `The executable at ${this.executablePath} lacks the right chmod. Please use ${bold(
                   `chmod +x ${this.executablePath}`,
                 )}`,
               ),
@@ -112,18 +114,18 @@ export class GeneratorProcess {
             this.handleResponse(data)
           }
         })
-        // wait initWaitTime for the binary to fail
-        // TODO: this a really flaky way to detect startup failure
-        // In future, generator should explicitly send a notification when it finishes
-        // initialization and we should wait until we got that notification. We can't introduce
-        // it now since it would be a breaking change.
-        setTimeout(() => {
-          if (this.exitCode && this.exitCode > 0) {
-            reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
-          } else {
-            resolve()
-          }
-        }, this.initWaitTime)
+
+        this.child.on('spawn', () => {
+          // Wait initWaitTime for the binary to report an error and exit with non-zero exit code before considering it
+          // successfully started.
+          // TODO: this is not a reliable way to detect a startup error as the initialization could take longer than
+          // initWaitTime (200 ms by default), and this also hurts the generation performance since it always waits even
+          // if the generator succesfully initialized in less than initWaitTime.  The proper solution would be to make
+          // the generator explicitly send a notification when it is ready, and we should wait until we get that
+          // notification. Requiring that would be a breaking change, however we could start by introducing an optional
+          // notification that would stop the waiting timer as a performance optimization.
+          setTimeout(resolve, this.initWaitTime)
+        })
       } catch (e) {
         reject(e)
       }

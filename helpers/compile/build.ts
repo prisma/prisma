@@ -124,7 +124,7 @@ async function dependencyCheck(options: BuildOptions) {
   const buildPromise = esbuild.build({
     entryPoints: glob.sync('**/*.{j,t}s', {
       // We don't check dependencies in ecosystem tests because tests are isolated from the build.
-      ignore: ['./src/__tests__/**/*', './tests/e2e/**/*'],
+      ignore: ['./src/__tests__/**/*', './tests/e2e/**/*', './dist/**/*'],
       gitignore: true,
     }),
     logLevel: 'silent', // there will be errors
@@ -145,11 +145,6 @@ async function dependencyCheck(options: BuildOptions) {
  * @param options
  */
 export async function build(options: BuildOptions[]) {
-  // When we trigger pnpm pack for e2e tests we actually don't want to always
-  // build again to go faster. We re-use what has been already build; and also
-  // implies you ran pnpm run watch/dev/build before hand.
-  if (process.env.SKIP_BUILD === 'true') return
-
   void transduce.async(options, dependencyCheck)
 
   return transduce.async(
@@ -168,7 +163,7 @@ const watch =
     if (process.env.WATCH !== 'true') return result
 
     // common chokidar options for the watchers
-    const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*'] }
+    const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*', './package.json'] }
 
     // prepare the incremental builds watcher
     const watched = getWatchedFiles(result)

@@ -68,7 +68,6 @@ describe('typescript', () => {
 })
 
 function getTestSuiteDisplayName(filePath: string) {
-  const testDir = path.join(path.dirname(filePath), '..')
   const testPath = path.relative(testsRoot, filePath)
   const suiteName = testPath.replace(/^.*\.generated\//g, '')
 

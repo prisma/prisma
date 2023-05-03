@@ -1,6 +1,4 @@
-import { IsolationLevel } from '@prisma/engine-core'
-
-import { createPrismaPromise } from './createPrismaPromise'
+import { IsolationLevel } from '../engines'
 
 export type PrismaPromiseBatchTransaction = {
   kind: 'batch'
