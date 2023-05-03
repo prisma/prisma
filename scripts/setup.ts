@@ -41,10 +41,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
   // TODO: separate into utils shared between publish & setup
   if (buildOnly === false) {
     console.debug(`Installing dependencies`)
-    await run('.', `pnpm i`, false, {
-      ...process.env,
-      DEBUG: 'prisma:download',
-    }).catch((e) => {
+    await run('.', `pnpm i`).catch((e) => {
       console.error(e)
     })
   }
@@ -67,12 +64,7 @@ if (!module.parent) {
 }
 
 // TODO: export this into a utility folder
-export async function run(
-  cwd: string,
-  cmd: string,
-  dry = false,
-  env: NodeJS.ProcessEnv = process.env,
-): Promise<execa.ExecaReturnValue<string> | undefined> {
+export async function run(cwd: string, cmd: string, dry = false): Promise<execa.ExecaReturnValue<string> | undefined> {
   const args = [underline('./' + cwd).padEnd(20), bold(cmd)]
   if (dry) {
     args.push(dim('(dry)'))
@@ -83,7 +75,6 @@ export async function run(
   }
   try {
     return await execa.command(cmd, {
-      env,
       cwd,
       stdio: 'inherit',
     })
