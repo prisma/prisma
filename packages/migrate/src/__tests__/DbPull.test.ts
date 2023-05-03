@@ -545,6 +545,36 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
         const listWithoutViews = await ctx.fs.listAsync('views')
         expect(listWithoutViews).toEqual(undefined)
       })
+
+      // This is scary, but it's the current behavior
+      // When the Prisma schema is at `prisma/schema.prisma` then the `prisma/views` directory and all its contents are deleted
+      // When the Prisma schema is at `schema.prisma` then the `views` directory and all its contents are deleted
+      it('`views` is [] and an existing views folder is deleted', async () => {
+        ctx.fixture(path.join(fixturePath))
+
+        ctx.fs.write('views/README.md', 'Some readme markdown')
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync('views')).toEqual(['README.md'])
+
+        const engine = new MigrateEngine({
+          projectDir: process.cwd(),
+          schemaPath: undefined,
+        })
+
+        const schema = await getSchema()
+
+        const introspectionResult = await engine.introspect({
+          schema,
+          force: false,
+        })
+
+        expect(introspectionResult.views).toEqual([])
+        engine.stop()
+
+        const listWithoutViews = await ctx.fs.listAsync('views')
+        expect(listWithoutViews).toEqual(undefined)
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql'])
+      })
     })
   })
 
