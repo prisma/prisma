@@ -62,11 +62,13 @@ export async function getDownloadUrl(
   version: string,
   platform: Platform,
   binaryName: string,
+  officialMirror: keyof typeof OfficialMirror = 'R2',
   extension = '.gz',
 ) {
-  const customMirror =
+  const downloadMirror =
     process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
-    process.env.PRISMA_ENGINES_MIRROR
+    process.env.PRISMA_ENGINES_MIRROR ||
+    officialMirror
 
   const finalExtension =
     platform === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
@@ -76,7 +78,7 @@ export async function getDownloadUrl(
 
   const engineUrlPath = `${channel}/${version}/${platform}/${binaryName}${finalExtension}`
 
-  if (customMirror === undefined) {
+  if (downloadMirror === OfficialMirror.R2) {
     return fetch(`${OfficialMirror.R2}/${engineUrlPath}.sha256`, {
       agent: getProxyAgent(`${OfficialMirror.R2}/${engineUrlPath}`),
       timeout: 4000,
@@ -86,7 +88,7 @@ export async function getDownloadUrl(
       .catch(() => `${OfficialMirror.AWS}/${engineUrlPath}`)
   }
 
-  return `${customMirror}/${engineUrlPath}`
+  return `${downloadMirror}/${engineUrlPath}`
 }
 
 export async function overwriteFile(sourcePath: string, targetPath: string) {

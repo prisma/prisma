@@ -14,7 +14,7 @@ import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
 import { getHash } from './getHash'
 import { getBar } from './log'
-import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
+import { getCacheDir, getDownloadUrl, OfficialMirror, overwriteFile } from './utils'
 
 const { enginesOverride } = require('../package.json')
 
@@ -399,7 +399,7 @@ type DownloadBinaryOptions = BinaryDownloadJob & {
 
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
   const { version, progressCb, targetFilePath, binaryTarget, binaryName } = options
-  const downloadUrl = await getDownloadUrl('all_commits', version, binaryTarget, binaryName)
+  let downloadUrl = await getDownloadUrl('all_commits', version, binaryTarget, binaryName)
 
   const targetDir = path.dirname(targetFilePath)
 
@@ -422,7 +422,16 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     progressCb(0)
   }
 
-  const { sha256, zippedSha256 } = await downloadZip(downloadUrl, targetFilePath, progressCb)
+  const { sha256, zippedSha256 } = await downloadZip(downloadUrl, targetFilePath, progressCb).catch(async (e) => {
+    if (downloadUrl.startsWith(OfficialMirror.R2) === true) {
+      downloadUrl = await getDownloadUrl('all_commits', version, binaryTarget, binaryName, 'AWS')
+
+      return downloadZip(downloadUrl, targetFilePath, progressCb)
+    }
+
+    throw e
+  })
+
   if (progressCb) {
     progressCb(1)
   }
