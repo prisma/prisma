@@ -43,7 +43,7 @@ has to point to the dev version you want to promote, for example 2.1.0-dev.123`)
     console.debug(`Installing dependencies`)
     await run('.', `pnpm i`, false, {
       ...process.env,
-      DEBUG: 'pnpm:download',
+      DEBUG: 'prisma:download',
     }).catch((e) => {
       console.error(e)
     })
