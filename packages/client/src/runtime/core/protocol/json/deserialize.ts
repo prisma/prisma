@@ -1,7 +1,7 @@
-import { JsonOutputTaggedValue } from '@prisma/engine-core'
 import { assertNever, mapObjectValues } from '@prisma/internals'
 import Decimal from 'decimal.js'
 
+import { JsonOutputTaggedValue } from '../../engines'
 import { JsOutputValue } from '../../types/JsApi'
 
 export function deserializeJsonResponse(result: unknown): unknown {

@@ -134,8 +134,8 @@ function isValidAggregateName(action: string): action is (typeof aggregateProps)
 function fieldsPropertyLayer(client: Client, dmmfModelName: string) {
   return cacheProperties(
     addProperty('fields', () => {
-      const model = client._baseDmmf.modelMap[dmmfModelName]
-      return applyFieldsProxy(model)
+      const model = client._runtimeDataModel.models[dmmfModelName]
+      return applyFieldsProxy(dmmfModelName, model)
     }),
   )
 }

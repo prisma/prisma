@@ -41,7 +41,7 @@ export class MigrateDev implements Command {
 
   private static help = format(`
 ${
-  process.platform === 'win32' ? '' : bold('🏋️  ')
+  process.platform === 'win32' ? '' : '🏋️  '
 }Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
  
 ${bold('Usage')}

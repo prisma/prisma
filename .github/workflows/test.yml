@@ -42,9 +42,9 @@ on:
       - '*.bench.ts'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
-  #   schedule:
-  #     # https://crontab.guru - “At every 15th minute past every hour from 3 through 5.”
-  #     - cron: '*/15 3-5 * * *'
+  schedule:
+    # https://crontab.guru - “At every 30th minute past every hour from 3 through 6.”
+    - cron: '*/30 3-6 * * *'
   workflow_dispatch:
 
 env:
@@ -55,6 +55,7 @@ env:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
+  # Don't cancel if it's on schedule (used for BuildPulse for flaky tests detection)
   cancel-in-progress: ${{ github.event_name != 'schedule' }}
 
 jobs:
@@ -114,8 +115,8 @@ jobs:
   # CLIENT (without types test)
   #
   client:
-    timeout-minutes: 35
-    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ github.event_name == 'schedule' && 70 || 35 }}
+    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -228,8 +229,8 @@ jobs:
   # CLIENT (functional tests with mini-proxy)
   #
   client-dataproxy:
-    timeout-minutes: 35
-    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ github.event_name == 'schedule' && 70 || 35 }}
+    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -333,8 +334,8 @@ jobs:
   # CLIENT (memory tests)
   #
   client-memory:
-    timeout-minutes: 15
-    runs-on: ${{ matrix.os }}
+    timeout-minutes: ${{ github.event_name == 'schedule' && 30 || 15 }}
+    runs-on: ${{ github.event_name == 'schedule' && contains(matrix.os, 'buildjet') && 'ubuntu-latest' || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -343,7 +344,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        os: [buildjet-4vcpu-ubuntu-2004]
+        os: [ubuntu-latest]
         node: [14, 16, 18]
     steps:
       - uses: actions/checkout@v3
@@ -596,8 +597,8 @@ jobs:
   # CLIENT (types tests only)
   #
   client-types:
-    timeout-minutes: 15
-    runs-on: buildjet-4vcpu-ubuntu-2004
+    timeout-minutes: ${{ github.event_name == 'schedule' && 30 || 15 }}
+    runs-on: ${{ github.event_name == 'schedule' && 'ubuntu-latest' || 'buildjet-4vcpu-ubuntu-2004' }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -975,20 +976,6 @@ jobs:
           name: debug-${{ matrix.os }}
 
       - run: pnpm run test
-        name: 'engine-core'
-        working-directory: packages/engine-core
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      - uses: codecov/codecov-action@v3
-        with:
-          files: ./packages/engine-core/src/__tests__/coverage/clover.xml
-          flags: engine-core,${{ matrix.os }},library,binary
-          name: engine-core-${{ matrix.os }}
-
-      - run: pnpm run test
         name: 'generator-helper'
         working-directory: packages/generator-helper
         env:
@@ -1313,24 +1300,6 @@ jobs:
           files: ./packages/debug/src/__tests__/coverage/clover.xml
           flags: debug,${{ matrix.os }},library,binary
           name: debug-${{ matrix.os }}
-
-      - name: Test packages/engine-core
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
-        run: pnpm run test
-        working-directory: packages/engine-core
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          JEST_JUNIT_SUITE_NAME: '${{ github.job }}/engine-core/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
-          JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-
-      - uses: codecov/codecov-action@v3
-        if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}
-        with:
-          files: ./packages/engine-core/src/__tests__/coverage/clover.xml
-          flags: engine-core,${{ matrix.os }},library,binary
-          name: engine-core-${{ matrix.os }}
 
       - name: Test packages/generator-helper
         if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') }}

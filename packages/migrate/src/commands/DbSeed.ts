@@ -14,7 +14,7 @@ export class DbSeed implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : bold('🙌  ')}Seed your database
+${process.platform === 'win32' ? '' : '🙌  '}Seed your database
 
 ${bold('Usage')}
 

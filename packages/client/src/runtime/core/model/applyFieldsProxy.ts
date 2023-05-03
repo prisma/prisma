@@ -1,6 +1,6 @@
-import { DMMF } from '@prisma/generator-helper'
 import { keyBy } from '@prisma/internals'
 
+import { RuntimeModel } from '../runtimeDataModel'
 import { FieldRefImpl } from './FieldRef'
 import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
 
@@ -8,7 +8,7 @@ export type FieldProxy = {
   readonly [key: string]: FieldRefImpl<string, string>
 }
 
-export function applyFieldsProxy(model: DMMF.Model): FieldProxy {
+export function applyFieldsProxy(modelName: string, model: RuntimeModel): FieldProxy {
   const scalarFieldsList = model.fields.filter((field) => !field.relationName)
   const scalarFields = keyBy(scalarFieldsList, (field) => field.name)
   return new Proxy(
@@ -20,7 +20,7 @@ export function applyFieldsProxy(model: DMMF.Model): FieldProxy {
         }
         const dmmfField = scalarFields[prop]
         if (dmmfField) {
-          return new FieldRefImpl(model.name, prop, dmmfField.type, dmmfField.isList)
+          return new FieldRefImpl(modelName, prop, dmmfField.type, dmmfField.isList)
         }
 
         return undefined
