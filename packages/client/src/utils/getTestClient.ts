@@ -15,6 +15,7 @@ import path from 'path'
 import { parse } from 'stacktrace-parser'
 
 import { getDMMF } from '../generation/getDMMF'
+import { dmmfToRuntimeDataModel } from '../runtime/core/runtimeDataModel'
 import type { GetPrismaClientConfig } from '../runtime/getPrismaClient'
 import { getPrismaClient } from '../runtime/getPrismaClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
@@ -50,7 +51,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: absSchemaDir })
   const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientConfig = {
-    document,
+    runtimeDataModel: dmmfToRuntimeDataModel(document.datamodel),
     generator,
     dirname: absSchemaDir,
     relativePath: path.relative(outputDir, absSchemaDir),

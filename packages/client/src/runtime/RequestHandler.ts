@@ -273,17 +273,17 @@ export class RequestHandler {
     if (extensions.isEmpty() || result == null) {
       return result
     }
-    const model = this.client._baseDmmf.getModelMap()[modelName]
+    const model = this.client._runtimeDataModel.models[modelName]
     if (!model) {
       return result
     }
     return visitQueryResult({
       result,
       args: args ?? {},
-      model,
-      dmmf: this.client._baseDmmf,
-      visitor(value, model, args) {
-        const modelName = dmmfToJSModelName(model.name)
+      modelName,
+      runtimeDataModel: this.client._runtimeDataModel,
+      visitor(value, dmmfModelName, args) {
+        const modelName = dmmfToJSModelName(dmmfModelName)
         return applyResultExtensions({ result: value, modelName, select: args.select, extensions })
       },
     })
