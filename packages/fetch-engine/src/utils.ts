@@ -53,7 +53,7 @@ export async function getCacheDir(channel: string, version: string, platform: st
 }
 
 export enum OfficialMirror {
-  R2 = 'https://pub-4cbd40824ac94efbb1399ffcbf438562.r2.dev',
+  R2 = 'https://engines.prisma.cool',
   AWS = 'https://binaries.prisma.sh',
 }
 
