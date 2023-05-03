@@ -45,7 +45,7 @@ export class DbExecute implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : bold('📝 ')}Execute native commands to your database
+${process.platform === 'win32' ? '' : '📝 '}Execute native commands to your database
 
 This command takes as input a datasource, using ${green(`--url`)} or ${green(`--schema`)} and a script, using ${green(
     `--stdin`,

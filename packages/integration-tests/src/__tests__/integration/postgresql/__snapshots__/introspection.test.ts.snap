@@ -272,7 +272,7 @@ exports[`introspection: findMany on column_name_that_becomes_empty_string: warni
 *** WARNING ***
 
 These fields were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` attribute:
-  - Model: "column_name_that_becomes_empty_string", field: "12345"
+  - Model: "column_name_that_becomes_empty_string", field(s): ["12345"]
 
 These enum values were commented out because their names are currently not supported by Prisma. Please provide valid ones that match [a-zA-Z][a-zA-Z0-9_]* using the \`@map\` attribute:
   - Enum: "invalid_enum", value: "123"
@@ -282,7 +282,7 @@ The following models were ignored as they do not have a valid unique identifier 
   - "no_unique_identifier"
 
 These fields are not supported by the Prisma Client, because Prisma currently does not support their types:
-  - Model: "unsupported_type", field: "unsupported", type: "polygon"
+  - Model: "unsupported_type", field: "unsupported", original data type: "polygon"
 
 `;
 

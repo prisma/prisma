@@ -1,3 +1,6 @@
+import { maxBy } from '@prisma/internals'
+import levenshtein from 'js-levenshtein'
+
 import {
   ArgumentDescription,
   EmptySelectionError,
@@ -13,10 +16,7 @@ import {
   UnknownInputFieldError,
   UnknownSelectionFieldError,
   ValueTooLargeError,
-} from '@prisma/engine-core'
-import { maxBy } from '@prisma/internals'
-import levenshtein from 'js-levenshtein'
-
+} from '../engines'
 import { IncludeAndSelectError, IncludeOnScalarError, ValidationError } from '../types/ValidationError'
 import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { Colors } from './base'

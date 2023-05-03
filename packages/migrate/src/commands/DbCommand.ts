@@ -8,7 +8,7 @@ export class DbCommand implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : bold('🏋️  ')}Manage your database schema and lifecycle during development.
+${process.platform === 'win32' ? '' : '🏋️  '}Manage your database schema and lifecycle during development.
 
 ${bold('Usage')}
 

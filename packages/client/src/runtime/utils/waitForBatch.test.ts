@@ -1,5 +1,4 @@
-import { PrismaClientKnownRequestError } from '@prisma/engine-core'
-
+import { PrismaClientKnownRequestError } from '../core/errors/PrismaClientKnownRequestError'
 import { waitForBatch } from './waitForBatch'
 
 test('resolves when all promises successfully resolve', async () => {
