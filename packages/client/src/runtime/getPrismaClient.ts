@@ -1,6 +1,6 @@
 import { Context, context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import {
   callOnce,
   ClientEngineType,
@@ -52,10 +52,10 @@ import {
   PrismaPromiseTransaction,
 } from './core/request/PrismaPromise'
 import { UserArgs } from './core/request/UserArgs'
+import { dmmfToRuntimeDataModel, RuntimeDataModel } from './core/runtimeDataModel'
 import { getTraceParent, getTracingConfig, runInChildSpan, SpanOptions, TracingConfig } from './core/tracing'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
-import { DMMFDatamodelHelper, DMMFHelper } from './dmmf'
-import type { DMMF } from './dmmf-types'
+import { DMMFHelper } from './dmmf'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
@@ -205,8 +205,21 @@ export type LogEvent = {
  * loaded, this same config is passed to {@link getPrismaClient} which creates a
  * closure with that config around a non-instantiated [[PrismaClient]].
  */
-export interface GetPrismaClientConfig {
-  document: Omit<DMMF.Document, 'schema'>
+export type GetPrismaClientConfig = (
+  | {
+      // Case for normal client (with both protocols) or data proxy
+      // client (with json protocol): only runtime datamodel is provided,
+      // full DMMF document is not
+      runtimeDataModel: RuntimeDataModel
+      document?: undefined
+    }
+  | {
+      // Case for data proxy client with graphql protocol: full DMMF document
+      // is provided, runtime datamodel needs to be computed
+      runtimeDataModel?: undefined
+      document: DMMF.Document
+    }
+) & {
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
@@ -300,7 +313,7 @@ export type Client = ReturnType<typeof getPrismaClient> extends new () => infer 
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient {
-    _baseDmmf: DMMFDatamodelHelper
+    _runtimeDataModel: RuntimeDataModel
     _dmmf?: DMMFHelper
     _engine: Engine
     _fetcher: RequestHandler
@@ -398,18 +411,22 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           this._errorFormat = 'colorless' // default errorFormat
         }
 
-        this._baseDmmf = new DMMFDatamodelHelper(config.document)
+        if (config.runtimeDataModel) {
+          this._runtimeDataModel = config.runtimeDataModel
+        } else {
+          this._runtimeDataModel = dmmfToRuntimeDataModel(config.document.datamodel)
+        }
+
         const engineProtocol = NODE_CLIENT
           ? getQueryEngineProtocol(config.generator)
           : config.edgeClientProtocol ?? getQueryEngineProtocol(config.generator)
 
         debug('protocol', engineProtocol)
 
-        if (this._dataProxy && engineProtocol === 'graphql') {
+        if (config.document) {
           // the data proxy can't get the dmmf from the engine
           // so the generated client always has the full dmmf
-          const rawDmmf = config.document as DMMF.Document
-          this._dmmf = new DMMFHelper(rawDmmf)
+          this._dmmf = new DMMFHelper(config.document)
         }
 
         this._engineConfig = {
@@ -982,7 +999,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     _getProtocolEncoder = callOnce(
       async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>): Promise<ProtocolEncoder> => {
         if (this._engineConfig.engineProtocol === 'json') {
-          return new JsonProtocolEncoder(this._baseDmmf, this._errorFormat)
+          return new JsonProtocolEncoder(this._runtimeDataModel, this._errorFormat)
         }
 
         if (this._dmmf === undefined) {

@@ -13,7 +13,7 @@ import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
-import { buildDMMF } from '../utils/buildDMMF'
+import { buildFullDMMF, buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildEdgeClientProtocol } from '../utils/buildEdgeClientProtocol'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasource } from '../utils/buildInlineDatasources'
@@ -90,7 +90,7 @@ export class TSClient implements Generatable {
       generator.config.engineType = engineType
     }
 
-    const config: Omit<GetPrismaClientConfig, 'document' | 'dirname'> = {
+    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
       sqliteDatasourceOverrides,
@@ -107,6 +107,8 @@ export class TSClient implements Generatable {
     // get relative output dir for it to be preserved even after bundling, or
     // being moved around as long as we keep the same project dir structure.
     const relativeOutdir = path.relative(process.cwd(), outputDir)
+
+    const needsFullDMMF = dataProxy && engineProtocol === 'graphql'
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(edge)}
@@ -125,14 +127,13 @@ ${new Enum(
   },
   true,
 ).toJS()}
-${buildDMMF(dataProxy && engineProtocol === 'graphql', this.options.document)}
-
 /**
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-config.document = dmmf
 ${buildDirname(edge, relativeOutdir)}
+${needsFullDMMF ? buildFullDMMF(this.options.document) : buildRuntimeDataModel(this.dmmf.datamodel)}
+
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}

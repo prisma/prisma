@@ -58,7 +58,7 @@ export namespace DMMF {
     uniqueIndexes: uniqueIndex[]
     documentation?: string
     primaryKey: PrimaryKey | null
-    [key: string]: any // safe net for additional new props // TODO: remove this and the others, not safe
+    isGenerated?: boolean
   }
 
   export type FieldKind = 'scalar' | 'object' | 'enum' | 'unsupported'
