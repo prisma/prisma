@@ -68,7 +68,7 @@ export async function getDownloadUrl(
   const downloadMirror =
     process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
     process.env.PRISMA_ENGINES_MIRROR ||
-    officialMirror
+    OfficialMirror[officialMirror]
 
   const finalExtension =
     platform === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
