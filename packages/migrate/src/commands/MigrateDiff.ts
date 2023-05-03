@@ -59,7 +59,7 @@ export class MigrateDiff implements Command {
 
   private static help = format(`
 ${
-  process.platform === 'win32' ? '' : bold('🔍 ')
+  process.platform === 'win32' ? '' : '🔍 '
 }Compares the database schema from two arbitrary sources, and outputs the differences either as a human-readable summary (by default) or an executable script.
 
 ${green(`prisma migrate diff`)} is a read-only command that does not write to your datasource(s).

@@ -26,7 +26,7 @@ export class DbDrop implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : bold('💣  ')}Drop the database
+${process.platform === 'win32' ? '' : '💣  '}Drop the database
 
 ${bold(yellow('WARNING'))} ${bold(
     `Prisma db drop is currently in Preview (${link('https://pris.ly/d/preview')}).
