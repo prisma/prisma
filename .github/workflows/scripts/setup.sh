@@ -6,4 +6,4 @@ npm i --silent -g pnpm@7 --unsafe-perm
 
 pnpm i
 
-pnpm run setup
+DEBUG="prisma:download" pnpm run setup
