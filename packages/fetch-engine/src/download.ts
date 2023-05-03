@@ -414,6 +414,8 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     }
   }
 
+  // TODO: remove this before merging
+  console.info(`Downloading from ${downloadUrl}`)
   debug(`Downloading ${downloadUrl} to ${targetFilePath}`)
 
   if (progressCb) {
