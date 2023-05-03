@@ -9,11 +9,9 @@ import { spawn } from 'child_process'
 import execa from 'execa'
 import fs from 'fs'
 import { blue, bold, dim, green, red, underline, yellow } from 'kleur/colors'
-import net from 'net'
 import pRetry from 'p-retry'
 import path from 'path'
 import type { Readable } from 'stream'
-import { URL } from 'url'
 import { promisify } from 'util'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -81,7 +79,6 @@ export class BinaryEngine extends Engine<undefined> {
   private logQueries: boolean
   private env?: Record<string, string>
   private flags: string[]
-  private port?: number
   private enableDebugLogs: boolean
   private allowTriggerPanic: boolean
   private child?: ChildProcessByStdio<null, Readable, Readable>
@@ -193,11 +190,6 @@ export class BinaryEngine extends Engine<undefined> {
 
     this.previewFeatures = this.previewFeatures.filter((e) => !removedFlags.includes(e))
     this.engineEndpoint = engineEndpoint
-
-    if (engineEndpoint) {
-      const url = new URL(engineEndpoint)
-      this.port = Number(url.port)
-    }
 
     if (this.platform) {
       if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
@@ -553,8 +545,7 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
           ...additionalFlag,
         ]
 
-        this.port = await this.getFreePort()
-        flags.push('--port', String(this.port))
+        flags.push('--port', '0')
 
         debug({ flags })
 
@@ -601,7 +592,20 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.target === 'query_engine::server' &&
               json.fields?.message?.startsWith('Started query engine http server')
             ) {
-              this.connection.open(`http://127.0.0.1:${this.port}`)
+              const ip = json.fields.ip
+              const port = json.fields.port
+
+              if (ip === undefined || port === undefined) {
+                this.engineStartDeferred.reject(
+                  new PrismaClientInitializationError(
+                    'This version of Query Engine is not compatible with Prisma Client: "ip" and "port" fields are missing in the startup log entry',
+                    this.clientVersion!,
+                  ),
+                )
+                return
+              }
+
+              this.connection.open(`http://${ip}:${port}`)
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
             }
@@ -821,27 +825,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.globalKillSignalReceived = signal
     this.child?.kill()
     this.connection.close()
-  }
-
-  /**
-   * Use the port 0 trick to get a new port
-   */
-  private getFreePort(): Promise<number> {
-    return new Promise((resolve, reject) => {
-      const server = net.createServer((s) => s.end(''))
-      server.unref()
-      server.on('error', reject)
-      server.listen(0, () => {
-        const address = server.address()
-        const port = typeof address === 'string' ? parseInt(address.split(':').slice(-1)[0], 10) : address!.port
-        server.close((e) => {
-          if (e) {
-            reject(e)
-          }
-          resolve(port)
-        })
-      })
-    })
   }
 
   async getDmmf(): Promise<DMMF.Document> {
