@@ -83,13 +83,9 @@ export async function tryToReadDataFromSchema(schemaPath?: string) {
   let schemaPreviewFeatures: string[] | undefined
   let schemaGeneratorsProviders: string[] | undefined
 
-  // Reads the schema or fails silently
-  let schema: string | undefined
   try {
-    schema = await getSchema(schemaPath)
-  } catch (e) {}
+    const schema = await getSchema(schemaPath)
 
-  if (schema) {
     try {
       const config = await getConfig({
         datamodel: schema,
@@ -120,6 +116,8 @@ export async function tryToReadDataFromSchema(schemaPath?: string) {
       )
       debug(e)
     }
+  } catch (e) {
+    // fail silently if schema can't be read
   }
 
   return {
