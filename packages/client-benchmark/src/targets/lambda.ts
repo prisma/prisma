@@ -77,6 +77,10 @@ export class LambdaTarget implements Target {
           DATABASE_URL: process.env.DATABASE_URL!,
         },
       },
+      TracingConfig: {
+        Mode: 'Active',
+      },
+      Layers: ['arn:aws:lambda:eu-central-1:901920570463:layer:aws-otel-nodejs-amd64-ver-1-12-0:1'],
       Timeout: 30,
       MemorySize: this.config.aws.memorySize,
     })
