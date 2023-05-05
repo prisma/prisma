@@ -1,5 +1,3 @@
-import { setClassName } from '@prisma/internals'
-
 /**
  * List of Prisma enums that must use unique objects instead of strings as their values.
  */
@@ -70,4 +68,18 @@ export const objectEnumValues = {
     JsonNull: new JsonNull(secret),
     AnyNull: new AnyNull(secret),
   },
+}
+
+/**
+ * See helper in @internals package. Can not be used here
+ * because importing internal breaks browser build.
+ *
+ * @param classObject
+ * @param name
+ */
+export function setClassName(classObject: Function, name: string) {
+  Object.defineProperty(classObject, 'name', {
+    value: name,
+    configurable: true,
+  })
 }
