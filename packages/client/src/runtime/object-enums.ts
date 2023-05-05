@@ -52,10 +52,10 @@ class DbNull extends NullTypesEnumValue {}
 setClassName(DbNull, 'DbNull')
 
 class JsonNull extends NullTypesEnumValue {}
-setClassName(DbNull, 'DbNull')
+setClassName(JsonNull, 'JsonNull')
 
 class AnyNull extends NullTypesEnumValue {}
-setClassName(DbNull, 'DbNull')
+setClassName(AnyNull, 'AnyNull')
 
 export const objectEnumValues = {
   classes: {
