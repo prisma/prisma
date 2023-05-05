@@ -1,20 +1,14 @@
 import Debug from '@prisma/debug'
 import type { MigrateEngineLogLine } from '@prisma/internals'
-import {
-  BinaryType,
-  ErrorArea,
-  handleViewsIO,
-  MigrateEngineExitCode,
-  resolveBinary,
-  RustPanic,
-} from '@prisma/internals'
-import chalk from 'chalk'
+import { BinaryType, ErrorArea, MigrateEngineExitCode, resolveBinary, RustPanic } from '@prisma/internals'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
+import { bold, red } from 'kleur/colors'
 import path from 'path'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
+import { handleViewsIO } from './views/handleViewsIO'
 
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
@@ -495,9 +489,9 @@ export class MigrateEngine {
             } else if (response.error.data?.message) {
               // Print known error code & message from engine
               // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
-              let message = `${chalk.redBright(response.error.data.message)}\n`
+              let message = `${red(response.error.data.message)}\n`
               if (response.error.data?.error_code) {
-                message = chalk.redBright(`${response.error.data.error_code}\n\n`) + message
+                message = red(`${response.error.data.error_code}\n\n`) + message
                 reject(new EngineError(message, response.error.data.error_code))
               } else {
                 reject(new Error(message))
@@ -505,11 +499,11 @@ export class MigrateEngine {
             } else {
               reject(
                 new Error(
-                  `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
-                    request,
+                  `${red('Error in RPC')}\n Request: ${JSON.stringify(request, null, 2)}\nResponse: ${JSON.stringify(
+                    response,
                     null,
                     2,
-                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message}\n`,
+                  )}\n${response.error.message}\n`,
                 ),
               )
             }
@@ -543,9 +537,5 @@ export class MigrateEngine {
 
 /** The full message with context we return to the user in case of engine panic. */
 function serializePanic(log: string): string {
-  // TODO: https://github.com/prisma/prisma/issues/17268
-  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${log}
-
-Please create an issue with your \`schema.prisma\` at
-${chalk.underline('https://github.com/prisma/prisma/issues/new')}\n`
+  return `${red(bold('Error in migration engine.\nReason: '))}${log}\n`
 }

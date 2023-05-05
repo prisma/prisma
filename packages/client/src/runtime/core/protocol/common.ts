@@ -1,6 +1,5 @@
-import type { EngineBatchQuery, EngineQuery } from '@prisma/engine-core'
-
 import { CallSite } from '../../utils/CallSite'
+import type { EngineBatchQuery, EngineQuery } from '../engines'
 import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { Action, JsArgs } from '../types/JsApi'
 

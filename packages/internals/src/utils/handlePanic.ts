@@ -1,4 +1,4 @@
-import chalk from 'chalk'
+import { bold, dim, gray, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import type { RustPanic } from '../panic'
@@ -36,12 +36,12 @@ async function panicDialog({
 }: PanicDialog): Promise<void> {
   const errorMessage = error.message.split('\n').slice(0, Math.max(20, process.stdout.rows)).join('\n')
 
-  console.log(`${chalk.red('Oops, an unexpected error occurred!')}
-${chalk.red(errorMessage)}
+  console.log(`${red('Oops, an unexpected error occurred!')}
+${red(errorMessage)}
 
-${chalk.bold('Please help us improve Prisma by submitting an error report.')}
-${chalk.bold('Error reports never contain personal or other sensitive information.')}
-${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
+${bold('Please help us improve Prisma by submitting an error report.')}
+${bold('Error reports never contain personal or other sensitive information.')}
+${dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
 `)
 
   const { value: shouldSubmitReport } = await prompt({
@@ -67,12 +67,12 @@ ${chalk.dim(`Learn more: ${link('https://pris.ly/d/telemetry')}`)}
     try {
       console.log('Submitting...')
       const reportId = await sendPanic({ error, cliVersion, enginesVersion, getDatabaseVersionSafe })
-      console.log(`\n${chalk.bold(`We successfully received the error report id: ${reportId}`)}`)
-      console.log(`\n${chalk.bold('Thanks a lot for your help! 🙏')}`)
+      console.log(`\n${bold(`We successfully received the error report id: ${reportId}`)}`)
+      console.log(`\n${bold('Thanks a lot for your help! 🙏')}`)
     } catch (error) {
-      const reportFailedMessage = `${chalk.bold.red('Oops. We could not send the error report.')}`
+      const reportFailedMessage = `${bold(red('Oops. We could not send the error report.'))}`
       console.log(reportFailedMessage)
-      console.error(`${chalk.gray('Error report submission failed due to: ')}`, error)
+      console.error(`${gray('Error report submission failed due to: ')}`, error)
     }
   }
 

@@ -6,21 +6,23 @@ export class SuggestionObjectValue implements ErrorBasicBuilder {
   addField(name: string, value: string) {
     this.fields.push({
       write(writer) {
-        const chalk = writer.context.chalk
-        writer.write(chalk.greenBright.dim(`${name}: ${value}`)).addMarginSymbol(chalk.greenBright.dim('+'))
+        const { green, dim } = writer.context.colors
+        writer.write(green(dim(`${name}: ${value}`))).addMarginSymbol(green(dim('+')))
       },
     })
     return this
   }
 
   write(writer: ErrorWriter): void {
-    const { chalk } = writer.context
+    const {
+      colors: { green },
+    } = writer.context
     writer
-      .writeLine(chalk.greenBright('{'))
+      .writeLine(green('{'))
       .withIndent(() => {
         writer.writeJoined(fieldsSeparator, this.fields).newLine()
       })
-      .write(chalk.greenBright('}'))
-      .addMarginSymbol(chalk.greenBright('+'))
+      .write(green('}'))
+      .addMarginSymbol(green('+'))
   }
 }

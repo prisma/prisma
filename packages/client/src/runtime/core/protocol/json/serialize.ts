@@ -1,3 +1,9 @@
+import { assertNever } from '@prisma/internals'
+
+import { ErrorFormat } from '../../../getPrismaClient'
+import { ObjectEnumValue, objectEnumValues } from '../../../object-enums'
+import { CallSite } from '../../../utils/CallSite'
+import { isDecimalJsLike } from '../../../utils/decimalJsLike'
 import {
   JsonArgumentValue,
   JsonFieldSelection,
@@ -5,19 +11,12 @@ import {
   JsonQueryAction,
   JsonSelectionSet,
   OutputTypeDescription,
-} from '@prisma/engine-core'
-import { DMMF } from '@prisma/generator-helper'
-import { assertNever } from '@prisma/internals'
-
-import { BaseDMMFHelper } from '../../../dmmf'
-import { ErrorFormat } from '../../../getPrismaClient'
-import { ObjectEnumValue, objectEnumValues } from '../../../object-enums'
-import { CallSite } from '../../../utils/CallSite'
-import { isDecimalJsLike } from '../../../utils/decimalJsLike'
+} from '../../engines'
 import { throwValidationException } from '../../errorRendering/throwValidationException'
 import { MergedExtensionsList } from '../../extensions/MergedExtensionsList'
 import { applyComputedFieldsToSelection } from '../../extensions/resultUtils'
 import { isFieldRef } from '../../model/FieldRef'
+import { RuntimeDataModel, RuntimeModel } from '../../runtimeDataModel'
 import { Action, JsArgs, JsInputValue, RawParameters, Selection } from '../../types/JsApi'
 import { ValidationError } from '../../types/ValidationError'
 
@@ -45,7 +44,7 @@ const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
 }
 
 export type SerializeParams = {
-  baseDmmf: BaseDMMFHelper
+  runtimeDataModel: RuntimeDataModel
   modelName?: string
   action: Action
   args?: JsArgs
@@ -59,14 +58,14 @@ export function serializeJsonQuery({
   modelName,
   action,
   args,
-  baseDmmf,
+  runtimeDataModel,
   extensions,
   callsite,
   clientMethod,
   errorFormat,
 }: SerializeParams): JsonQuery {
   const context = new SerializeContext({
-    baseDmmf,
+    runtimeDataModel,
     modelName,
     action,
     rootArgs: args,
@@ -137,12 +136,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
     }
 
     if (value === true) {
-      selectionSet[key] = {
-        selection: {
-          $composites: true,
-          $scalars: true,
-        },
-      }
+      selectionSet[key] = true
     } else if (typeof value === 'object') {
       selectionSet[key] = serializeFieldSelection(value, context.atField(key))
     }
@@ -160,19 +154,12 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
       continue
     }
     if (value === true) {
-      selectionSet[key] = defaultSelectionForField(field)
+      selectionSet[key] = true
     } else if (typeof value === 'object') {
       selectionSet[key] = serializeFieldSelection(value, context.atField(key))
     }
   }
   return selectionSet
-}
-
-function defaultSelectionForField(field?: DMMF.Field) {
-  if (field?.kind === 'object') {
-    return { selection: { $composites: true, $scalars: true } }
-  }
-  return true
 }
 
 function serializeArgumentsValue(jsValue: Exclude<JsInputValue, undefined>): JsonArgumentValue {
@@ -259,7 +246,7 @@ function isRawParameters(value: JsInputValue): value is RawParameters {
 }
 
 type ContextParams = {
-  baseDmmf: BaseDMMFHelper
+  runtimeDataModel: RuntimeDataModel
   originalMethod: string
   rootArgs: JsArgs | undefined
   extensions: MergedExtensionsList
@@ -271,11 +258,11 @@ type ContextParams = {
 }
 
 class SerializeContext {
-  public readonly model: DMMF.Model | undefined
+  public readonly model: RuntimeModel | undefined
   constructor(private params: ContextParams) {
     if (this.params.modelName) {
       // TODO: throw if not found
-      this.model = this.params.baseDmmf.modelMap[this.params.modelName]
+      this.model = this.params.runtimeDataModel.models[this.params.modelName]
     }
   }
 
@@ -294,11 +281,11 @@ class SerializeContext {
   }
 
   getOutputTypeDescription(): OutputTypeDescription | undefined {
-    if (!this.model) {
+    if (!this.params.modelName || !this.model) {
       return undefined
     }
     return {
-      name: this.model.name,
+      name: this.params.modelName,
       fields: this.model.fields.map((field) => ({
         name: field.name,
         typeName: 'boolean',
@@ -312,10 +299,11 @@ class SerializeContext {
   }
 
   getComputedFields() {
-    if (!this.model) {
+    if (!this.params.modelName) {
       return undefined
     }
-    return this.params.extensions.getAllComputedFields(this.model.name)
+
+    return this.params.extensions.getAllComputedFields(this.params.modelName)
   }
 
   findField(name: string) {

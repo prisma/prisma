@@ -1,0 +1,9 @@
+CREATE TABLE a (
+    id INT PRIMARY KEY,
+    val VARCHAR(20)
+);
+
+CREATE VIEW b AS SELECT val FROM a;
+
+COMMENT ON VIEW b IS 'mauw';
+COMMENT ON COLUMN b.val IS 'woef';

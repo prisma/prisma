@@ -4,6 +4,7 @@ import path from 'path'
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const fillPluginPath = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
 const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
@@ -28,6 +29,7 @@ function nodeRuntimeBuildConfig(
       // that fixes an issue with lz-string umd builds
       'define.amd': 'false',
     },
+    plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/)],
   }
 }
 
@@ -69,8 +71,6 @@ const edgeRuntimeBuildConfig: BuildOptions = {
 
       // TODO no tree shaking on wrapper pkgs
       '@prisma/get-platform': { contents: '' },
-      // removes un-needed code out of `chalk`
-      'supports-color': { contents: '' },
       // these can not be exported anymore
       './warnEnvConflicts': { contents: '' },
       './utils/find': { contents: '' },
