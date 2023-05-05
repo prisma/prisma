@@ -214,7 +214,7 @@ importers:
 
   packages/client:
     specifiers:
-      '@codspeed/benchmark.js-plugin': 1.0.2
+      '@codspeed/benchmark.js-plugin': 1.1.0
       '@faker-js/faker': 7.6.0
       '@fast-check/jest': 1.6.1
       '@jest/create-cache-key-function': 29.5.0
@@ -301,7 +301,7 @@ importers:
     dependencies:
       '@prisma/engines-version': 4.14.0-52.b7f558e75aa86e167f8fe2bc4a87573d065fbf4a
     devDependencies:
-      '@codspeed/benchmark.js-plugin': 1.0.2_benchmark@2.1.4
+      '@codspeed/benchmark.js-plugin': 1.1.0_benchmark@2.1.4
       '@faker-js/faker': 7.6.0
       '@fast-check/jest': 1.6.1_@jest+globals@29.5.0
       '@jest/create-cache-key-function': 29.5.0
@@ -2598,19 +2598,19 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@codspeed/benchmark.js-plugin/1.0.2_benchmark@2.1.4:
-    resolution: {integrity: sha512-1Q/aOmvdAtl56rEAiyASSCdIJVYoMPZ5POnCQpln2VLLIhhf5XjjBAP5Vc40EmhTAT5uyb7zfnyOc7AEr5v9oA==}
+  /@codspeed/benchmark.js-plugin/1.1.0_benchmark@2.1.4:
+    resolution: {integrity: sha512-sb82u775euk6uPXnDC2nxTen/O/6xk9OkswNRuenqkCuv7GPdQ3wBIITJtzWoFOWHnpRzfUPtHpDAppBhToYdw==}
     peerDependencies:
       benchmark: ^2.1.0
     dependencies:
-      '@codspeed/core': 1.0.2
+      '@codspeed/core': 1.1.0
       benchmark: 2.1.4
       find-up: 6.3.0
       stack-trace: 1.0.0-pre1
     dev: true
 
-  /@codspeed/core/1.0.2:
-    resolution: {integrity: sha512-HgdGfHWdb9hs9931LPfKU50lCUax5U1tgPsHzEEOgWOrSyaCStMURrgJbd9jLqWp2QmccWkTjoR8zTjEabaZGw==}
+  /@codspeed/core/1.1.0:
+    resolution: {integrity: sha512-OxIkM91d8qwmNRuB0zZQG0JO9ZW/4GrufkncOIi+jxzrZqaOxNPj/ivzKI9BRbHA2r+T3lfzCWB9xq+J1L9uBg==}
     dependencies:
       node-gyp-build: 4.6.0
     dev: true
