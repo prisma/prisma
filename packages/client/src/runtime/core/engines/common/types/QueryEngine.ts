@@ -1,4 +1,5 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
+import { EngineSpanEvent } from '@prisma/internals'
 
 import { EngineProtocol } from '../Engine'
 import { JsonBatchQuery } from './JsonProtocol'
@@ -33,23 +34,6 @@ export type QueryEnginePanicEvent = {
   file: string
   line: string
   column: string
-}
-
-export type EngineSpanEvent = {
-  span: boolean
-  spans: EngineSpan[]
-}
-
-export type EngineSpan = {
-  span: boolean
-  name: string
-  trace_id: string
-  span_id: string
-  parent_span_id: string
-  start_time: [number, number]
-  end_time: [number, number]
-  attributes?: Record<string, string>
-  links?: { trace_id: string; span_id: string }[]
 }
 
 // Configuration

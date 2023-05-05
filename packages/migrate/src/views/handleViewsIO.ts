@@ -1,19 +1,10 @@
+import { fsFunctional } from '@prisma/internals'
 import * as E from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as T from 'fp-ts/lib/Task'
 import * as TE from 'fp-ts/lib/TaskEither'
 import path from 'path'
 import { match } from 'ts-pattern'
-
-import {
-  createDirIfNotExists,
-  getFilesInDir,
-  getFoldersInDir,
-  normalizePossiblyWindowsDir,
-  removeDir,
-  removeFile,
-  writeFile,
-} from '../utils/fs-functional'
 
 export interface IntrospectionViewDefinition {
   // The database or schema where the view is located
@@ -38,7 +29,7 @@ type HandleViewsIOParams = {
  * These files and folders are deleted silently.
  */
 export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams): Promise<void> {
-  const prismaDir = path.dirname(normalizePossiblyWindowsDir(schemaPath))
+  const prismaDir = path.dirname(fsFunctional.normalizePossiblyWindowsDir(schemaPath))
   const viewsDir = path.posix.join(prismaDir, 'views')
 
   if (views.length === 0) {
@@ -63,21 +54,21 @@ export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams):
 
   const updateDefinitionsInViewsDirPipeline = pipe(
     // create the views directory, idempotently
-    createDirIfNotExists(viewsDir),
+    fsFunctional.createDirIfNotExists(viewsDir),
 
     // create the view directories, idempotently and concurrently, collapsing the possible errors
-    TE.chainW(() => TE.traverseArray(createDirIfNotExists)(viewPathsToWrite)),
+    TE.chainW(() => TE.traverseArray(fsFunctional.createDirIfNotExists)(viewPathsToWrite)),
 
     // write the view definitions in the directories just created, idempotently and concurrently, collapsing the possible errors
-    TE.chainW(() => TE.traverseArray(writeFile)(viewsFilesToWrite)),
+    TE.chainW(() => TE.traverseArray(fsFunctional.writeFile)(viewsFilesToWrite)),
 
     // remove any view directories related to schemas that no longer exist, concurrently, collapsing the possible errors
     TE.chainW(() =>
       pipe(
-        getFoldersInDir(viewsDir),
+        fsFunctional.getFoldersInDir(viewsDir),
         T.chain((directoriesInViewsDir) => {
           const viewDirsToRemove = directoriesInViewsDir.filter((dir) => !viewPathsToWrite.includes(dir))
-          return TE.traverseArray(removeDir)(viewDirsToRemove)
+          return TE.traverseArray(fsFunctional.removeDir)(viewDirsToRemove)
         }),
       ),
     ),
@@ -85,11 +76,11 @@ export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams):
     // remove any other files in the views directory beyond the ones just created, concurrently, collapsing the possible errors
     TE.chainW(() =>
       pipe(
-        getFilesInDir(viewsDir),
+        fsFunctional.getFilesInDir(viewsDir),
         T.chain((filesInViewsDir) => {
           const viewFilesToKeep = viewsFilesToWrite.map(({ path }) => path)
           const viewFilesToRemove = filesInViewsDir.filter((file) => !viewFilesToKeep.includes(file))
-          return TE.traverseArray(removeFile)(viewFilesToRemove)
+          return TE.traverseArray(fsFunctional.removeFile)(viewFilesToRemove)
         }),
       ),
     ),

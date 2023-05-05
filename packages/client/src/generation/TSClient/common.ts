@@ -34,6 +34,7 @@ import {
   objectEnumValues,
   makeStrictEnum,
   Extensions,
+  defineDmmfProperty
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
@@ -63,6 +64,7 @@ const {
   makeStrictEnum,
   Extensions,
   warnOnce,
+  defineDmmfProperty,
 } = require('${runtimeDir}/${runtimeName}')
 `
 }

@@ -1,9 +1,9 @@
 import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
+import { EngineSpan, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import { createSpan, getTraceParent, getTracingConfig, runInChildSpan, TracingConfig } from '../../tracing'
 import type {
   BatchQueryEngineResult,
   EngineBatchQueries,
@@ -18,7 +18,7 @@ import type {
 import { Engine } from '../common/Engine'
 import { EventEmitter } from '../common/types/Events'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import { EngineSpan, QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
+import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { LogLevel } from '../common/utils/log'
@@ -78,23 +78,23 @@ type HeaderBuilderOptions = {
 
 class DataProxyHeaderBuilder {
   readonly apiKey: string
-  readonly tracingConfig: TracingConfig
+  readonly tracingHelper: TracingHelper
   readonly logLevel: EngineConfig['logLevel']
   readonly logQueries: boolean | undefined
 
   constructor({
     apiKey,
-    tracingConfig,
+    tracingHelper,
     logLevel,
     logQueries,
   }: {
     apiKey: string
-    tracingConfig: TracingConfig
+    tracingHelper: TracingHelper
     logLevel: EngineConfig['logLevel']
     logQueries: boolean | undefined
   }) {
     this.apiKey = apiKey
-    this.tracingConfig = tracingConfig
+    this.tracingHelper = tracingHelper
     this.logLevel = logLevel
     this.logQueries = logQueries
   }
@@ -104,8 +104,8 @@ class DataProxyHeaderBuilder {
       Authorization: `Bearer ${this.apiKey}`,
     }
 
-    if (this.tracingConfig.enabled) {
-      headers.traceparent = traceparent ?? getTraceParent({})
+    if (this.tracingHelper.isEnabled()) {
+      headers.traceparent = traceparent ?? this.tracingHelper.getTraceParent()
     }
 
     if (interactiveTransaction) {
@@ -124,7 +124,7 @@ class DataProxyHeaderBuilder {
   private buildCaptureSettings() {
     const captureTelemetry: string[] = []
 
-    if (this.tracingConfig.enabled) {
+    if (this.tracingHelper.isEnabled()) {
       captureTelemetry.push('tracing')
     }
 
@@ -148,7 +148,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   private env: { [k in string]?: string }
 
   private clientVersion: string
-  private tracingConfig: TracingConfig
+  private tracingHelper: TracingHelper
   readonly remoteClientVersion: Promise<string>
   readonly host: string
   readonly headerBuilder: DataProxyHeaderBuilder
@@ -163,14 +163,14 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     this.inlineSchemaHash = config.inlineSchemaHash ?? ''
     this.clientVersion = config.clientVersion ?? 'unknown'
     this.logEmitter = config.logEmitter
-    this.tracingConfig = getTracingConfig(this.config.previewFeatures || [])
+    this.tracingHelper = this.config.tracingHelper
 
     const [host, apiKey] = this.extractHostAndApiKey()
     this.host = host
 
     this.headerBuilder = new DataProxyHeaderBuilder({
       apiKey,
-      tracingConfig: this.tracingConfig,
+      tracingHelper: this.tracingHelper,
       logLevel: config.logLevel,
       logQueries: config.logQueries,
     })
@@ -193,8 +193,6 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   async stop() {}
 
   private propagateResponseExtensions(extensions: DataProxyExtensions): void {
-    const tracingConfig = getTracingConfig(this.config.previewFeatures || [])
-
     if (extensions?.logs?.length) {
       extensions.logs.forEach((log) => {
         switch (log.level) {
@@ -208,7 +206,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
           case 'query': {
             let dbQuery = typeof log.attributes.query === 'string' ? log.attributes.query : ''
 
-            if (!tracingConfig.enabled) {
+            if (!this.tracingHelper.isEnabled()) {
               // The engine uses tracing to consolidate logs
               //  - and so we should strip the generated traceparent
               //  - if tracing is disabled.
@@ -229,8 +227,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       })
     }
 
-    if (extensions?.traces?.length && tracingConfig.enabled) {
-      void createSpan({ span: true, spans: extensions.traces })
+    if (extensions?.traces?.length) {
+      void this.tracingHelper.createEngineSpan({ span: true, spans: extensions.traces })
     }
   }
 
@@ -260,10 +258,9 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     const spanOptions = {
       name: 'schemaUpload',
       internal: true,
-      enabled: this.tracingConfig.enabled,
     }
 
-    return runInChildSpan(spanOptions, async () => {
+    return this.tracingHelper.runInChildSpan(spanOptions, async () => {
       const response = await request(await this.url('schema'), {
         method: 'PUT',
         headers: this.headerBuilder.build(),

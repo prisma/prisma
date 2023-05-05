@@ -1,6 +1,6 @@
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import { TracingHelper } from '@prisma/internals'
 
-import { TracingConfig } from '../../tracing/getTracingConfig'
 import { Fetch } from '../data-proxy/utils/request'
 import { EventEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
@@ -146,10 +146,10 @@ export interface EngineConfig {
   inlineSchemaHash?: string
 
   /**
-   * The configuration object for enabling tracing
-   * @remarks enabling is determined by the client
+   * The helper for interaction with OTEL tracing
+   * @remarks enabling is determined by the client and @prisma/instrumentation package
    */
-  tracingConfig: TracingConfig
+  tracingHelper: TracingHelper
 
   /**
    * Information about whether we have not found a schema.prisma file in the

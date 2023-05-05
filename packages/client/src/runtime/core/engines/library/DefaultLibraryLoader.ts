@@ -9,7 +9,6 @@ import os from 'os'
 import path from 'path'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
-import { runInChildSpan } from '../../tracing'
 import { EngineConfig } from '../common/Engine'
 import { Library, LibraryLoader } from './types/Library'
 
@@ -86,9 +85,7 @@ export class DefaultLibraryLoader implements LibraryLoader {
     debug(`loadEngine using ${this.libQueryEnginePath}`)
     try {
       const enginePath = this.libQueryEnginePath
-      return runInChildSpan({ name: 'loadLibrary', enabled: this.config.tracingConfig.enabled, internal: true }, () =>
-        load(enginePath),
-      )
+      return this.config.tracingHelper.runInChildSpan({ name: 'loadLibrary', internal: true }, () => load(enginePath))
     } catch (e) {
       const errorMessage = handleLibraryLoadingErrors({
         e: e as Error,

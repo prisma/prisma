@@ -3,17 +3,15 @@ import { getEnginesPath } from '@prisma/engines'
 import type { ConnectorType, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
-import { fixBinaryTargets, plusX, printGeneratorConfig } from '@prisma/internals'
+import { EngineSpanEvent, fixBinaryTargets, plusX, printGeneratorConfig, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
 import fs from 'fs'
 import { blue, bold, dim, green, red, underline, yellow } from 'kleur/colors'
-import net from 'net'
 import pRetry from 'p-retry'
 import path from 'path'
 import type { Readable } from 'stream'
-import { URL } from 'url'
 import { promisify } from 'util'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -22,8 +20,6 @@ import { PrismaClientRustError } from '../../errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import { createSpan, runInChildSpan } from '../../tracing'
-import { TracingConfig } from '../../tracing/getTracingConfig'
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
@@ -37,7 +33,7 @@ import type {
 import { Engine } from '../common/Engine'
 import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { EngineSpanEvent, QueryEngineResult } from '../common/types/QueryEngine'
+import type { QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
@@ -81,7 +77,6 @@ export class BinaryEngine extends Engine<undefined> {
   private logQueries: boolean
   private env?: Record<string, string>
   private flags: string[]
-  private port?: number
   private enableDebugLogs: boolean
   private allowTriggerPanic: boolean
   private child?: ChildProcessByStdio<null, Readable, Readable>
@@ -114,7 +109,7 @@ export class BinaryEngine extends Engine<undefined> {
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
-  private tracingConfig: TracingConfig
+  private tracingHelper: TracingHelper
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -136,7 +131,7 @@ export class BinaryEngine extends Engine<undefined> {
     allowTriggerPanic,
     dirname,
     activeProvider,
-    tracingConfig,
+    tracingHelper,
     logEmitter,
   }: EngineConfig) {
     super()
@@ -150,7 +145,7 @@ export class BinaryEngine extends Engine<undefined> {
     this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
     this.generator = generator
     this.datasources = datasources
-    this.tracingConfig = tracingConfig
+    this.tracingHelper = tracingHelper
     this.logEmitter = logEmitter
     this.showColors = showColors ?? false
     this.logQueries = logQueries ?? false
@@ -193,11 +188,6 @@ export class BinaryEngine extends Engine<undefined> {
 
     this.previewFeatures = this.previewFeatures.filter((e) => !removedFlags.includes(e))
     this.engineEndpoint = engineEndpoint
-
-    if (engineEndpoint) {
-      const url = new URL(engineEndpoint)
-      this.port = Number(url.port)
-    }
 
     if (this.platform) {
       if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
@@ -476,12 +466,11 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
       }
     }
 
-    const spanOptions = {
-      name: 'connect',
-      enabled: this.tracingConfig.enabled && !this.startPromise,
+    if (this.startPromise) {
+      return startFn()
     }
 
-    return runInChildSpan(spanOptions, startFn)
+    return this.tracingHelper.runInChildSpan('connect', startFn)
   }
 
   private getEngineEnvVars() {
@@ -553,8 +542,7 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
           ...additionalFlag,
         ]
 
-        this.port = await this.getFreePort()
-        flags.push('--port', String(this.port))
+        flags.push('--port', '0')
 
         debug({ flags })
 
@@ -601,7 +589,20 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
               json.target === 'query_engine::server' &&
               json.fields?.message?.startsWith('Started query engine http server')
             ) {
-              this.connection.open(`http://127.0.0.1:${this.port}`)
+              const ip = json.fields.ip
+              const port = json.fields.port
+
+              if (ip === undefined || port === undefined) {
+                this.engineStartDeferred.reject(
+                  new PrismaClientInitializationError(
+                    'This version of Query Engine is not compatible with Prisma Client: "ip" and "port" fields are missing in the startup log entry',
+                    this.clientVersion!,
+                  ),
+                )
+                return
+              }
+
+              this.connection.open(`http://${ip}:${port}`)
               this.engineStartDeferred.resolve()
               this.engineStartDeferred = undefined
             }
@@ -611,9 +612,7 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
               if (json.span === true) {
-                if (this.tracingConfig.enabled === true) {
-                  void createSpan(json as EngineSpanEvent)
-                }
+                void this.tracingHelper.createEngineSpan(json as EngineSpanEvent)
 
                 return
               }
@@ -766,12 +765,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       return this.stopPromise
     }
 
-    const spanOptions = {
-      name: 'disconnect',
-      enabled: this.tracingConfig.enabled,
-    }
-
-    return runInChildSpan(spanOptions, stopFn)
+    return this.tracingHelper.runInChildSpan('disconnect', stopFn)
   }
 
   /**
@@ -821,27 +815,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.globalKillSignalReceived = signal
     this.child?.kill()
     this.connection.close()
-  }
-
-  /**
-   * Use the port 0 trick to get a new port
-   */
-  private getFreePort(): Promise<number> {
-    return new Promise((resolve, reject) => {
-      const server = net.createServer((s) => s.end(''))
-      server.unref()
-      server.on('error', reject)
-      server.listen(0, () => {
-        const address = server.address()
-        const port = typeof address === 'string' ? parseInt(address.split(':').slice(-1)[0], 10) : address!.port
-        server.close((e) => {
-          if (e) {
-            reject(e)
-          }
-          resolve(port)
-        })
-      })
-    })
   }
 
   async getDmmf(): Promise<DMMF.Document> {
