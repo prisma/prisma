@@ -78,9 +78,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       jobs: ${{ steps.detect.outputs.jobs }}
-      queryEngine: ${{ steps.matrix.outputs.queryEngine }}
-      excludeClient: ${{ steps.matrix.outputs.excludeClient }}
-      excludeDataProxy: ${{ steps.matrix.outputs.excludeDataProxy }}
+      queryEngine: ${{ steps.determineBuildMatrixParams.outputs.queryEngine }}
+      excludeClient: ${{ steps.determineBuildMatrixParams.outputs.excludeClient }}
+      excludeDataProxy: ${{ steps.determineBuildMatrixParams.outputs.excludeDataProxy }}
     steps:
       - id: checkout
         uses: actions/checkout@v3
@@ -91,15 +91,15 @@ jobs:
         continue-on-error: true # This allow this job to fail (e.g. for scheduled runs), and then the `detect` step below will default to `all`
       - id: detect
         run: ./.github/workflows/scripts/detect-jobs-to-run.js <<< '${{ steps.files.outputs.all }}'
-      - name: Find command comment
+      - name: Find "ci test all" comment
         uses: peter-evans/find-comment@v2
-        id: fc
+        id: findTestAllComment
         if: ${{ github.event_name == 'pull_request' }}
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-includes: 'ci test all'
-      - id: matrix
-        run: ./.github/workflows/scripts/build-client-matrix.js '${{ inputs.reason }}' '${{ steps.fc.outputs.comment-id }}'
+      - id: determineBuildMatrixParams
+        run: ./.github/workflows/scripts/build-client-matrix.js '${{ inputs.reason }}' '${{ steps.findTestAllComment.outputs.comment-id }}'
 
   #
   # Linting

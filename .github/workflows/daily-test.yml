@@ -29,4 +29,4 @@ jobs:
           SLACK_TITLE: 'prisma/prisma daily build failed :x:'
           SLACK_COLOR: '#FF0000'
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
-          SLACK_CHANNEL: tmp-daily-build-notification-tests
+          SLACK_CHANNEL: feed-prisma-daily-build-failures
