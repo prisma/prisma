@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.14.0-58.c03b6915b9eff57212a16840d554da5f6f442f01",
+    "@prisma/engines-version": "4.14.0-60.integration-glibc-unification-eaeb8a3c8de25067d936a20c2658a445f4a17824",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.32",
