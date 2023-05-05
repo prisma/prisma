@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 import type { DataProxyErrorInfo } from './DataProxyError'
 import { DataProxyError } from './DataProxyError'
 import { setRetryable } from './utils/setRetryable'
@@ -11,3 +13,4 @@ export class InvalidDatasourceError extends DataProxyError {
     super(message, setRetryable(info, false))
   }
 }
+setClassName(InvalidDatasourceError, 'InvalidDatasourceError')

@@ -1,4 +1,4 @@
-import { isError } from '@prisma/internals'
+import { isError, setClassName } from '@prisma/internals'
 
 import { PrismaClientKnownRequestError } from '../core/errors/PrismaClientKnownRequestError'
 import { Action } from '../core/types/JsApi'
@@ -21,6 +21,7 @@ export class NotFoundError extends PrismaClientKnownRequestError {
     this.name = 'NotFoundError'
   }
 }
+setClassName(NotFoundError, 'NotFoundError')
 
 /**
  * Gets the configured rejection action

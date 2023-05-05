@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 import type { DataProxyErrorInfo } from './DataProxyError'
 import { DataProxyError } from './DataProxyError'
 import { setRetryable } from './utils/setRetryable'
@@ -12,3 +14,4 @@ export class RequestError extends DataProxyError {
     super(`Cannot fetch data from service:\n${message}`, setRetryable(info, true))
   }
 }
+setClassName(RequestError, 'RequestError')

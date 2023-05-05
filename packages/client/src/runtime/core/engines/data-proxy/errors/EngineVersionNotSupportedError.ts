@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 import type { RequestResponse } from '../utils/request'
 import type { DataProxyAPIErrorInfo } from './DataProxyAPIError'
 import { DataProxyAPIError } from './DataProxyAPIError'
@@ -15,3 +17,4 @@ export class EngineVersionNotSupportedError extends DataProxyAPIError {
     super('Engine version is not supported', setRetryable(info, false))
   }
 }
+setClassName(EngineVersionNotSupportedError, 'EngineVersionNotSupportedError')

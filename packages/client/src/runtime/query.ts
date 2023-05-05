@@ -3,6 +3,7 @@ import indent from 'indent-string'
 import { bold, dim, green, red, white } from 'kleur/colors'
 import stripAnsi from 'strip-ansi'
 
+import { setClassName } from '../../../internals/dist/utils/setClassName'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { applyComputedFieldsToSelection } from './core/extensions/resultUtils'
 import { FieldRefImpl } from './core/model/FieldRef'
@@ -453,14 +454,17 @@ export class PrismaClientValidationError extends Error {
     return 'PrismaClientValidationError'
   }
 }
+setClassName(PrismaClientValidationError, 'PrismaClientValidationError')
 export class PrismaClientConstructorValidationError extends Error {
   constructor(message: string) {
     super(message + `\nRead more at https://pris.ly/d/client-constructor`)
+    this.name = 'PrismaClientConstructorValidationError'
   }
   get [Symbol.toStringTag]() {
     return 'PrismaClientConstructorValidationError'
   }
 }
+setClassName(PrismaClientConstructorValidationError, 'PrismaClientConstructorValidationError')
 
 export interface FieldArgs {
   name: string

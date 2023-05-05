@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 export class PrismaClientInitializationError extends Error {
   clientVersion: string
   errorCode?: string
@@ -13,3 +15,5 @@ export class PrismaClientInitializationError extends Error {
     return 'PrismaClientInitializationError'
   }
 }
+
+setClassName(PrismaClientInitializationError, 'PrismaClientInitializationError')

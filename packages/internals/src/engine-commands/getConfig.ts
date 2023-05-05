@@ -47,6 +47,7 @@ ${detailsHeader} ${message}`
 [Context: getConfig]`
 
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
+    this.name = 'GetConfigError'
   }
 }
 

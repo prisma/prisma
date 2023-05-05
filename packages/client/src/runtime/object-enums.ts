@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 /**
  * List of Prisma enums that must use unique objects instead of strings as their values.
  */
@@ -49,10 +51,13 @@ class NullTypesEnumValue extends ObjectEnumValue {
 }
 
 class DbNull extends NullTypesEnumValue {}
+setClassName(DbNull, 'DbNull')
 
 class JsonNull extends NullTypesEnumValue {}
+setClassName(DbNull, 'DbNull')
 
 class AnyNull extends NullTypesEnumValue {}
+setClassName(DbNull, 'DbNull')
 
 export const objectEnumValues = {
   classes: {

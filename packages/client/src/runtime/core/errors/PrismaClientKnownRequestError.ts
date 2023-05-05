@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 import { ErrorWithBatchIndex } from './ErrorWithBatchIndex'
 
 type KnownErrorParams = {
@@ -29,3 +31,5 @@ export class PrismaClientKnownRequestError extends Error implements ErrorWithBat
     return 'PrismaClientKnownRequestError'
   }
 }
+
+setClassName(PrismaClientKnownRequestError, 'PrismaClientKnownRequestError')
