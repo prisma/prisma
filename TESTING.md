@@ -504,7 +504,7 @@ By creating a Pull Request the following pipelines will be triggered
 They are both running the same tests but with different Node.js version and will need to be successful before merging ("flaky" tests might show up and might be ignored).
 
 By default, some of the node version/engine/engine protocol combination are tested only
-during daily builds. If you need to run all of them for your PR leave `ci build all` comment on the PR and re-run the workflow.
+during daily builds. If you need to run all of them for your PR leave `ci test all` comment on the PR and re-run the workflow.
 
 ### Publishing an integration version of all the packages
 

@@ -46,13 +46,18 @@ on:
   workflow_call:
     inputs:
       reason:
+        description: |
+          Reason why this workflow was called. Could be "buildpulse" for
+          flaky tests detection or "daily-build" for scheduled full builds
         type: string
         required: false
         default: CI
       ubuntuRunner:
+        description: Override default runner used for linux tests. Can be used to opt-out of buildjet
         type: string
         required: false
       jobTimeout:
+        description: Timeout for the jobs. Default is 35 minutes
         type: number
         required: false
 
@@ -65,7 +70,7 @@ env:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   # Don't cancel if called from buildpulse workflow
-  cancel-in-progress: ${{ reason == 'buildpulse' }}
+  cancel-in-progress: ${{ reason != 'buildpulse' }}
 
 jobs:
   detect_jobs_to_run:
@@ -92,7 +97,7 @@ jobs:
         if: ${{ github.event_name == 'pull_request' }}
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          body-includes: 'ci build all'
+          body-includes: 'ci test all'
       - id: matrix
         run: ./.github/workflows/scripts/build-client-matrix.js '${{ inputs.reason }}' '${{ steps.fc.outputs.comment-id }}'
 
