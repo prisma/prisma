@@ -21,11 +21,11 @@ export async function runCheckpointClientCheck({
   command,
   telemetryInformation,
 }: {
-  schemaPath: string
   isPrismaInstalledGlobally: 'npm' | 'yarn' | false
   version: string
   command: string
   telemetryInformation: string
+  schemaPath?: string
 }): Promise<Check.Result | 0> {
   try {
     // SHA256 identifier for the project based on the Prisma schema path
@@ -78,39 +78,46 @@ export async function runCheckpointClientCheck({
  * Tries to read some data from the Prisma Schema
  * if an error occurs it will silently fail and return undefined values
  */
-export async function tryToReadDataFromSchema(schemaPath: string) {
+export async function tryToReadDataFromSchema(schemaPath?: string) {
   let schemaProvider: string | undefined
   let schemaPreviewFeatures: string[] | undefined
   let schemaGeneratorsProviders: string[] | undefined
 
   try {
     const schema = await getSchema(schemaPath)
-    const config = await getConfig({
-      datamodel: schema,
-      ignoreEnvVarErrors: true,
-    })
 
-    if (config.datasources.length > 0) {
-      schemaProvider = config.datasources[0].provider
-    }
+    try {
+      const config = await getConfig({
+        datamodel: schema,
+        ignoreEnvVarErrors: true,
+      })
 
-    // Example 'prisma-client-js'
-    schemaGeneratorsProviders = config.generators
-      // Check that value is defined
-      .filter((generator) => generator && generator.provider)
-      .map((generator) => parseEnvValue(generator.provider))
+      if (config.datasources.length > 0) {
+        schemaProvider = config.datasources[0].provider
+      }
 
-    // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
-    // (this was not scoped to `prisma-client-js` before Prisma 3.0)
-    const prismaClientJSGenerator = config.generators.find(
-      (generator) => parseEnvValue(generator.provider) === 'prisma-client-js',
-    )
-    if (prismaClientJSGenerator && prismaClientJSGenerator.previewFeatures.length > 0) {
-      schemaPreviewFeatures = prismaClientJSGenerator.previewFeatures
+      // Example 'prisma-client-js'
+      schemaGeneratorsProviders = config.generators
+        // Check that value is defined
+        .filter((generator) => generator && generator.provider)
+        .map((generator) => parseEnvValue(generator.provider))
+
+      // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
+      // (this was not scoped to `prisma-client-js` before Prisma 3.0)
+      const prismaClientJSGenerator = config.generators.find(
+        (generator) => parseEnvValue(generator.provider) === 'prisma-client-js',
+      )
+      if (prismaClientJSGenerator && prismaClientJSGenerator.previewFeatures.length > 0) {
+        schemaPreviewFeatures = prismaClientJSGenerator.previewFeatures
+      }
+    } catch (e) {
+      debug(
+        'Error from tryToReadDataFromSchema() while processing the schema. This is not a fatal error. It will continue without the processed data.',
+      )
+      debug(e)
     }
   } catch (e) {
-    debug('Error from tryToReadDataFromSchema()')
-    debug(e)
+    // fail silently if schema can't be read
   }
 
   return {
