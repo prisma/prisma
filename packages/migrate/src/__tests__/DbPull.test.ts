@@ -546,10 +546,35 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
         expect(listWithoutViews).toEqual(undefined)
       })
 
-      // This is scary, but it's the current behavior
-      // When the Prisma schema is at `prisma/schema.prisma` then the `prisma/views` directory and all its contents are deleted
-      // When the Prisma schema is at `schema.prisma` then the `views` directory and all its contents are deleted
-      it('`views` is [] and an existing views folder is deleted', async () => {
+      it('`views` is [] and an empty existing views folder is deleted', async () => {
+        ctx.fixture(path.join(fixturePath))
+
+        ctx.fs.write('views/.DS_Store', '')
+        ctx.fs.write('views/Thumbs.db', '')
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync('views')).toEqual(['.DS_Store', 'Thumbs.db'])
+
+        const engine = new MigrateEngine({
+          projectDir: process.cwd(),
+          schemaPath: undefined,
+        })
+
+        const schema = await getSchema()
+
+        const introspectionResult = await engine.introspect({
+          schema,
+          force: false,
+        })
+
+        expect(introspectionResult.views).toEqual([])
+        engine.stop()
+
+        const listWithoutViews = await ctx.fs.listAsync('views')
+        expect(listWithoutViews).toEqual(undefined)
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql'])
+      })
+
+      it('`views` is [] and a non-empty existing views folder is kept', async () => {
         ctx.fixture(path.join(fixturePath))
 
         ctx.fs.write('views/README.md', 'Some readme markdown')
@@ -572,8 +597,8 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
         engine.stop()
 
         const listWithoutViews = await ctx.fs.listAsync('views')
-        expect(listWithoutViews).toEqual(undefined)
-        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql'])
+        expect(listWithoutViews).toEqual(['README.md'])
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
       })
     })
   })
@@ -803,19 +828,23 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
       })
     }
 
-    test('extraneous files in views folder should be removed on introspect', async () => {
+    test('extraneous empty subdirectories should be deleted and top files kept in views directory on introspect', async () => {
       ctx.fixture(path.join(fixturePath))
 
       await ctx.fs.dirAsync('views')
       const initialList = await ctx.fs.listAsync('views')
       expect(initialList).toMatchInlineSnapshot(`[]`)
 
-      await ctx.fs.dirAsync('views/extraneous-dir')
+      // Empty dir should be deleted
+      await ctx.fs.dirAsync('views/empty-dir')
+      // Any file on the top level should be kept
+      await ctx.fs.fileAsync('views/README')
       await ctx.fs.fileAsync('views/extraneous-file.sql')
       const extraneousList = await ctx.fs.listAsync('views')
       expect(extraneousList).toMatchInlineSnapshot(`
         [
-          extraneous-dir,
+          README,
+          empty-dir,
           extraneous-file.sql,
         ]
       `)
@@ -829,6 +858,9 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
       const list = await ctx.fs.listAsync('views')
       expect(list).toMatchInlineSnapshot(`
         [
+          README,
+          empty-dir,
+          extraneous-file.sql,
           public,
           work,
         ]
@@ -837,6 +869,8 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
       const tree = await ctx.fs.findAsync({ directories: false, files: true, recursive: true, matching: 'views/**/*' })
       expect(tree).toMatchInlineSnapshot(`
         [
+          views/README,
+          views/extraneous-file.sql,
           views/public/simpleuser.sql,
           views/work/workers.sql,
         ]

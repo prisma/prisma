@@ -6,6 +6,9 @@ import * as TE from 'fp-ts/lib/TaskEither'
 import path from 'path'
 import { match } from 'ts-pattern'
 
+const GARBAGE_REGEX = /(?:Thumbs\.db|\.DS_Store)$/i
+export const isGarbageFile = (file) => GARBAGE_REGEX.test(file)
+
 export interface IntrospectionViewDefinition {
   // The database or schema where the view is located
   schema: string
@@ -25,8 +28,20 @@ type HandleViewsIOParams = {
 /**
  * For any given view definitions, the CLI must either create or update the corresponding view definition files
  * in the file system, in `${path.dirname(schemaPath)}/views/{viewDbSchema}/{viewName}.sql`.
- * If some other files or folders exist within the `views` directory, the CLI must remove them.
- * These files and folders are deleted silently.
+ * If we did introspect some views
+ *  the views directory exists and has some files
+ *    if there are subdirectories
+ *      any .sql files inside them will be deleted
+ *      any empty subdirectories will be deleted
+ * If we did not introspect some views
+ *  the views directory does not exists -> done
+ *  the views directory exists
+ *    if there are subdirectories
+ *      any .sql files inside them will be deleted
+ *      any empty subdirectories will be deleted
+ *    views directory is empty? -> delete views directory
+ *
+ * The .sql files in subdirectories and empty directories are deleted silently.
  */
 export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams): Promise<void> {
   const prismaDir = path.dirname(fsFunctional.normalizePossiblyWindowsDir(schemaPath))
@@ -61,62 +76,89 @@ export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams):
 
     // write the view definitions in the directories just created, idempotently and concurrently, collapsing the possible errors
     TE.chainW(() => TE.traverseArray(fsFunctional.writeFile)(viewsFilesToWrite)),
-
-    // remove any view directories related to schemas that no longer exist, concurrently, collapsing the possible errors
-    TE.chainW(() =>
-      pipe(
-        fsFunctional.getFoldersInDir(viewsDir),
-        T.chain((directoriesInViewsDir) => {
-          const viewDirsToRemove = directoriesInViewsDir.filter((dir) => !viewPathsToWrite.includes(dir))
-          return TE.traverseArray(fsFunctional.removeDir)(viewDirsToRemove)
-        }),
-      ),
-    ),
-
-    // remove any other files in the views directory beyond the ones just created, concurrently, collapsing the possible errors
-    TE.chainW(() =>
-      pipe(
-        fsFunctional.getFilesInDir(viewsDir),
-        T.chain((filesInViewsDir) => {
-          const viewFilesToKeep = viewsFilesToWrite.map(({ path }) => path)
-          const viewFilesToRemove = filesInViewsDir.filter((file) => !viewFilesToKeep.includes(file))
-          return TE.traverseArray(fsFunctional.removeFile)(viewFilesToRemove)
-        }),
-      ),
-    ),
   )
 
-  // run the fs views pipeline
+  // run the update views pipeline
   const updateDefinitionsInViewsDirEither = await updateDefinitionsInViewsDirPipeline()
+  if (E.isLeft(updateDefinitionsInViewsDirEither)) {
+    // success: no error happened while writing up in the views directory
+    // failure: check which error to throw
+    const error = match(updateDefinitionsInViewsDirEither.left)
+      .with({ type: 'fs-create-dir' }, (e) => {
+        throw new Error(`Error creating the directory: ${e.meta.dir}.\n${e.error}.`)
+      })
+      .with({ type: 'fs-write-file' }, (e) => {
+        throw new Error(`Error writing the view definition\n${e.meta.content}\nto file ${e.meta.path}.\n${e.error}.`)
+      })
+      .exhaustive()
 
-  if (E.isRight(updateDefinitionsInViewsDirEither)) {
-    // success: no error happened while writing and cleaning up the views directory
+    throw error
+  }
+
+  // Remove empty subdirectories
+  try {
+    const subdirectoriesInViewsDir = await fsFunctional.getFoldersInDir(viewsDir)()
+    subdirectoriesInViewsDir
+      .filter((dir) => !viewPathsToWrite.includes(dir))
+      .map(async (dir) => {
+        // Delete SQL files in subdirectories
+        ;(await fsFunctional.getFilesInDir(dir)())
+          .filter((filename) => filename.endsWith('.sql'))
+          .map(async (filename) => {
+            await fsFunctional.removeFile(filename)()
+          })
+
+        // Check if subdirectory is empty and delete
+        const contentWithoutGarbage = (await fsFunctional.getFilesInDir(dir)()).filter(
+          (filename) => !isGarbageFile(filename),
+        )
+        if (contentWithoutGarbage.length === 0) {
+          await fsFunctional.removeDir(dir)()
+        }
+      })
+  } catch (e) {
+    throw new Error(`Error while cleaning up the views directory.\n${e}`)
+  }
+
+  // Success: no error happened while writing & cleaning up the views directory
+  return
+}
+
+/**
+ * If we did not introspect some views
+ * then the views directory can be deleted as it is no longer needed.
+ **/
+async function onNoIntrospectedViews(viewsDir: string) {
+  // Remove empty subdirectories
+  const subdirectoriesInViewsDir = await fsFunctional.getFoldersInDir(viewsDir)()
+  subdirectoriesInViewsDir.map(async (dir) => {
+    // Delete SQL files in subdirectories
+    ;(await fsFunctional.getFilesInDir(dir)())
+      .filter((filename) => filename.endsWith('.sql'))
+      .map(async (filename) => {
+        await fsFunctional.removeFile(filename)()
+      })
+
+    // Check if subdirectory is empty and delete
+    const contentWithoutGarbage = (await fsFunctional.getFilesInDir(dir)()).filter(
+      (filename) => !isGarbageFile(filename),
+    )
+    if (contentWithoutGarbage.length === 0) {
+      await fsFunctional.removeDir(dir)()
+    }
+  })
+
+  // Check if the views directory is empty
+  const contentWithoutGarbage = (await fsFunctional.getFilesInDir(viewsDir)()).filter(
+    (filename) => !isGarbageFile(filename),
+  )
+  if (contentWithoutGarbage.length > 0) {
+    // We're keeping the views directory because it contains files
     return
   }
 
-  // failure: check which error to throw
-  const error = match(updateDefinitionsInViewsDirEither.left)
-    .with({ type: 'fs-create-dir' }, (e) => {
-      throw new Error(`Error creating the directory: ${e.meta.dir}.\n${e.error}.`)
-    })
-    .with({ type: 'fs-write-file' }, (e) => {
-      throw new Error(`Error writing the view definition\n${e.meta.content}\nto file ${e.meta.path}.\n${e.error}.`)
-    })
-    .with({ type: 'fs-remove-dir' }, (e) => {
-      throw new Error(`Error removing the directory: ${e.meta.dir}.\n${e.error}.`)
-    })
-    .with({ type: 'fs-remove-file' }, (e) => {
-      throw new Error(`Error removing the file: ${e.meta.filePath}.\n${e.error}.`)
-    })
-    .exhaustive()
-
-  throw error
-}
-
-async function onNoIntrospectedViews(viewsDir: string) {
-  // remove the views directory if it exists
-  const removeDirEither = await removeDir(viewsDir)()
-
+  // The views directory is empty, remove it
+  const removeDirEither = await fsFunctional.removeDir(viewsDir)()
   if (E.isRight(removeDirEither)) {
     return
   }
