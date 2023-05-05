@@ -70,7 +70,7 @@ env:
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   # Don't cancel if called from buildpulse workflow
-  cancel-in-progress: ${{ reason != 'buildpulse' }}
+  cancel-in-progress: ${{ inputs.reason != 'buildpulse' }}
 
 jobs:
   detect_jobs_to_run:
@@ -141,8 +141,8 @@ jobs:
   # CLIENT (without types test)
   #
   client:
-    timeout-minutes: ${{ jobTimeout || 35 }}
-    runs-on: ${{ ubuntuRunner || matrix.os }}
+    timeout-minutes: ${{ inputs.jobTimeout || 35 }}
+    runs-on: ${{ inputs.ubuntuRunner || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -237,7 +237,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -247,7 +247,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: reason == 'buildpulse'
+        if: inputs.reason == 'buildpulse'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
           path: packages/*/junit*.xml
@@ -256,8 +256,8 @@ jobs:
   # CLIENT (functional tests with mini-proxy)
   #
   client-dataproxy:
-    timeout-minutes: ${{ jobTimeout || 35 }}
-    runs-on: ${{ ubuntuRunner || matrix.os }}
+    timeout-minutes: ${{ inputs.jobTimeout || 35 }}
+    runs-on: ${{ inputs.ubuntuRunner || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -343,7 +343,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -353,7 +353,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: reason == 'buildpulse'
+        if: inputs.reason == 'buildpulse'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
           path: packages/*/junit*.xml
@@ -362,8 +362,8 @@ jobs:
   # CLIENT (memory tests)
   #
   client-memory:
-    timeout-minutes: ${{ jobTimeout || 35 }}
-    runs-on: ${{ ubuntuRunner || matrix.os }}
+    timeout-minutes: ${{ inputs.jobTimeout || 35 }}
+    runs-on: ${{ inputs.ubuntuRunner || matrix.os }}
 
     needs: detect_jobs_to_run
     if: ${{ contains(needs.detect_jobs_to_run.outputs.jobs, '-all-') || contains(needs.detect_jobs_to_run.outputs.jobs, '-client-') }}
@@ -606,7 +606,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -616,7 +616,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: reason === 'buildpulse'
+        if: inputs.reason == 'buildpulse'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
@@ -1165,7 +1165,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && reason =='buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason =='buildpulse'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -1175,7 +1175,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: reason == 'buildpulse'
+        if: inputs.reason == 'buildpulse'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
@@ -1404,7 +1404,7 @@ jobs:
       - name: Upload test results to BuildPulse for flaky test detection
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && reason == 'buildpulse'
+        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
         uses: Workshop64/buildpulse-action@main
         with:
           account: 17219288
@@ -1414,7 +1414,7 @@ jobs:
           secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
       - uses: actions/upload-artifact@v3
-        if: reason == 'buildpulse'
+        if: inputs.reason == 'buildpulse'
         with:
           name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_${{ matrix.queryEngine }}_junit.xml
           path: packages/*/junit*.xml
