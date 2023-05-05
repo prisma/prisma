@@ -41,6 +41,7 @@
     "yarn": "1.22.19"
   },
   "dependencies": {
+    "@opentelemetry/api": "1.4.1",
     "@prisma/debug": "workspace:*",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",

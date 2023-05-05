@@ -2,6 +2,7 @@ import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
+import { EngineSpanEvent } from '@prisma/internals'
 import fs from 'fs'
 import { bold, green, red, yellow } from 'kleur/colors'
 
@@ -10,7 +11,6 @@ import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownReq
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import { createSpan, getTraceParent, runInChildSpan } from '../../tracing'
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
@@ -26,7 +26,6 @@ import { Engine } from '../common/Engine'
 import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
-  EngineSpanEvent,
   QueryEngineEvent,
   QueryEngineLogLevel,
   QueryEnginePanicEvent,
@@ -286,9 +285,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     if (!event) return
 
     if ('span' in event) {
-      if (this.config.tracingConfig.enabled === true) {
-        void createSpan(event as EngineSpanEvent)
-      }
+      void this.config.tracingHelper.createEngineSpan(event as EngineSpanEvent)
 
       return
     }
@@ -376,7 +373,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
       try {
         const headers = {
-          traceparent: getTraceParent({ tracingConfig: this.config.tracingConfig }),
+          traceparent: this.config.tracingHelper.getTraceParent(),
         }
 
         await this.engine?.connect(JSON.stringify(headers))
@@ -399,12 +396,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
     }
 
-    const spanConfig = {
-      name: 'connect',
-      enabled: this.config.tracingConfig.enabled,
-    }
-
-    this.libraryStartingPromise = runInChildSpan(spanConfig, startFn)
+    this.libraryStartingPromise = this.config.tracingHelper.runInChildSpan('connect', startFn)
 
     return this.libraryStartingPromise
   }
@@ -428,7 +420,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       debug('library stopping')
 
       const headers = {
-        traceparent: getTraceParent({ tracingConfig: this.config.tracingConfig }),
+        traceparent: this.config.tracingHelper.getTraceParent(),
       }
 
       await this.engine?.disconnect(JSON.stringify(headers))
@@ -439,12 +431,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       debug('library stopped')
     }
 
-    const spanConfig = {
-      name: 'disconnect',
-      enabled: this.config.tracingConfig.enabled,
-    }
-
-    this.libraryStoppingPromise = runInChildSpan(spanConfig, stopFn)
+    this.libraryStoppingPromise = this.config.tracingHelper.runInChildSpan('disconnect', stopFn)
 
     return this.libraryStoppingPromise
   }
@@ -452,12 +439,10 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   async getDmmf(): Promise<DMMF.Document> {
     await this.start()
 
-    const traceparent = getTraceParent({ tracingConfig: this.config.tracingConfig })
+    const traceparent = this.config.tracingHelper.getTraceParent()
     const response = await this.engine!.dmmf(JSON.stringify({ traceparent }))
 
-    return runInChildSpan({ name: 'parseDmmf', enabled: this.config.tracingConfig.enabled, internal: true }, () =>
-      JSON.parse(response),
-    )
+    return this.config.tracingHelper.runInChildSpan({ name: 'parseDmmf', internal: true }, () => JSON.parse(response))
   }
 
   version(): string {
