@@ -3,7 +3,7 @@ import indent from 'indent-string'
 import { bold, dim, green, red, white } from 'kleur/colors'
 import stripAnsi from 'strip-ansi'
 
-import { setClassName } from '../../../internals/dist/utils/setClassName'
+import { setClassName } from '@prisma/internals/dist/utils/setClassName'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { applyComputedFieldsToSelection } from './core/extensions/resultUtils'
 import { FieldRefImpl } from './core/model/FieldRef'
