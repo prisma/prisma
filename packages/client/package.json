@@ -155,7 +155,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.14.0-52.b7f558e75aa86e167f8fe2bc4a87573d065fbf4a"
+    "@prisma/engines-version": "4.14.0-56.integration-buffer-datamodel-c44fb1316a4d79511325f2a127cb63db3d5178d7"
   },
   "sideEffects": false
 }
