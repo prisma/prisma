@@ -11,6 +11,8 @@ jobs:
     uses: ./.github/workflows/test.yml
     with:
       reason: daily-test
+      jobTimeout: 70
+      ubuntuRunner: ubuntu-latest
   failure:
     needs:
       - run_tests
