@@ -12,7 +12,7 @@ const excludeDataProxy = []
 
 const queryEngine = ['library']
 
-if (hasBuildAllComment || reason === 'daily-build') {
+if (hasBuildAllComment || reason === 'daily-test') {
   queryEngine.push('binary')
 } else {
   excludeClient.push({ node: 18, engineProtocol: 'json' })

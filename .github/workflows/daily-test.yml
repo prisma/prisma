@@ -10,7 +10,7 @@ jobs:
   run_tests:
     uses: ./.github/workflows/test.yml
     with:
-      reason: daily-build
+      reason: daily-test
   failure:
     needs:
       - run_tests
