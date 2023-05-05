@@ -776,6 +776,7 @@ importers:
       '@types/sqlite3': 3.1.8
       esbuild: 0.15.13
       execa: 5.1.1
+      fp-ts: 2.14.0
       fs-jetpack: 5.1.0
       get-stdin: 8.0.0
       has-yarn: 2.1.0
@@ -802,6 +803,7 @@ importers:
       '@prisma/get-platform': link:../get-platform
       '@sindresorhus/slugify': 1.1.2
       execa: 5.1.1
+      fp-ts: 2.14.0
       get-stdin: 8.0.0
       has-yarn: 2.1.0
       indent-string: 4.0.0

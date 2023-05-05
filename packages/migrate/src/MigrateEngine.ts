@@ -1,13 +1,6 @@
 import Debug from '@prisma/debug'
 import type { MigrateEngineLogLine } from '@prisma/internals'
-import {
-  BinaryType,
-  ErrorArea,
-  handleViewsIO,
-  MigrateEngineExitCode,
-  resolveBinary,
-  RustPanic,
-} from '@prisma/internals'
+import { BinaryType, ErrorArea, MigrateEngineExitCode, resolveBinary, RustPanic } from '@prisma/internals'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
 import { bold, red } from 'kleur/colors'
@@ -15,6 +8,7 @@ import path from 'path'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
+import { handleViewsIO } from './views/handleViewsIO'
 
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
