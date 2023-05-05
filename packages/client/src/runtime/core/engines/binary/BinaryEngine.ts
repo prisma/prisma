@@ -3,7 +3,7 @@ import { getEnginesPath } from '@prisma/engines'
 import type { ConnectorType, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
-import { fixBinaryTargets, plusX, printGeneratorConfig } from '@prisma/internals'
+import { EngineSpanEvent, fixBinaryTargets, plusX, printGeneratorConfig, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
@@ -20,8 +20,6 @@ import { PrismaClientRustError } from '../../errors/PrismaClientRustError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import { createSpan, runInChildSpan } from '../../tracing'
-import { TracingConfig } from '../../tracing/getTracingConfig'
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
@@ -35,7 +33,7 @@ import type {
 import { Engine } from '../common/Engine'
 import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
-import type { EngineSpanEvent, QueryEngineResult } from '../common/types/QueryEngine'
+import type { QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
 import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
@@ -111,7 +109,7 @@ export class BinaryEngine extends Engine<undefined> {
   private lastVersion?: string
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
-  private tracingConfig: TracingConfig
+  private tracingHelper: TracingHelper
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
@@ -133,7 +131,7 @@ export class BinaryEngine extends Engine<undefined> {
     allowTriggerPanic,
     dirname,
     activeProvider,
-    tracingConfig,
+    tracingHelper,
     logEmitter,
   }: EngineConfig) {
     super()
@@ -147,7 +145,7 @@ export class BinaryEngine extends Engine<undefined> {
     this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
     this.generator = generator
     this.datasources = datasources
-    this.tracingConfig = tracingConfig
+    this.tracingHelper = tracingHelper
     this.logEmitter = logEmitter
     this.showColors = showColors ?? false
     this.logQueries = logQueries ?? false
@@ -468,12 +466,11 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
       }
     }
 
-    const spanOptions = {
-      name: 'connect',
-      enabled: this.tracingConfig.enabled && !this.startPromise,
+    if (this.startPromise) {
+      return startFn()
     }
 
-    return runInChildSpan(spanOptions, startFn)
+    return this.tracingHelper.runInChildSpan('connect', startFn)
   }
 
   private getEngineEnvVars() {
@@ -615,9 +612,7 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
               if (json.span === true) {
-                if (this.tracingConfig.enabled === true) {
-                  void createSpan(json as EngineSpanEvent)
-                }
+                void this.tracingHelper.createEngineSpan(json as EngineSpanEvent)
 
                 return
               }
@@ -770,12 +765,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
       return this.stopPromise
     }
 
-    const spanOptions = {
-      name: 'disconnect',
-      enabled: this.tracingConfig.enabled,
-    }
-
-    return runInChildSpan(spanOptions, stopFn)
+    return this.tracingHelper.runInChildSpan('disconnect', stopFn)
   }
 
   /**

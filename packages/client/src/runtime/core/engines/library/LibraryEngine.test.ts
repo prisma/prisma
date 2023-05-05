@@ -4,6 +4,7 @@ import { PrismaClientInitializationError } from '../../errors/PrismaClientInitia
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
+import { disabledTracingHelper } from '../../tracing/TracingHelper'
 import { LibraryEngine } from './LibraryEngine'
 import { LibraryLoader } from './types/Library'
 
@@ -33,10 +34,7 @@ function setupMockLibraryEngine() {
     {
       datamodelPath: '/mock/schema.prisma',
       logEmitter: new EventEmitter(),
-      tracingConfig: {
-        enabled: false,
-        middleware: false,
-      },
+      tracingHelper: disabledTracingHelper,
       env: {},
       cwd: process.cwd(),
       engineProtocol: 'graphql',
@@ -106,10 +104,7 @@ test('responds to initialization error with PrismaClientInitializationError', as
     {
       datamodelPath: '/mock/schema.prisma',
       logEmitter: new EventEmitter(),
-      tracingConfig: {
-        enabled: false,
-        middleware: false,
-      },
+      tracingHelper: disabledTracingHelper,
       env: {},
       cwd: process.cwd(),
       engineProtocol: 'graphql',
