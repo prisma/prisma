@@ -3,7 +3,7 @@
 //
 // https://www.jsonrpc.org/specification
 
-import type { IntrospectionViewDefinition } from '@prisma/internals'
+import type { IntrospectionViewDefinition } from './views/handleViewsIO'
 
 // A JSON-RPC request or response.
 export interface RpcRequestResponse {
