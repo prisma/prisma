@@ -111,21 +111,8 @@ async function cleanLeftoversIO(viewsDir: string, viewFilesToKeep: string[] = []
     TE.chainW(() => fsFunctional.removeEmptyDirs(viewsDir)),
   )
 
-  const either = await pipeline()
+  // We execute the cleanup and ignore the possible errors
+  await pipeline()
 
-  if (E.isRight(either)) {
-    return
-  }
-
-  // failure: check which error to throw
-  const error = match(either.left)
-    .with({ type: 'fs-remove-empty-dirs' }, (e) => {
-      throw new Error(`Error removing empty directories in: ${e.meta.dir}.\n${e.error}.`)
-    })
-    .with({ type: 'fs-remove-file' }, (e) => {
-      throw new Error(`Error removing the file: ${e.meta.filePath}.\n${e.error}.`)
-    })
-    .exhaustive()
-
-  throw error
+  return
 }
