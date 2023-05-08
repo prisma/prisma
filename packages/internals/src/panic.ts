@@ -16,6 +16,7 @@ export class RustPanic extends Error {
     introspectionUrl?: string,
   ) {
     super(message)
+    this.name = 'RustPanic'
     this.rustStack = rustStack
     this.request = request
     this.area = area

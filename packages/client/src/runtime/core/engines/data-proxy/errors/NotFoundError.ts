@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 import type { RequestResponse } from '../utils/request'
 import type { DataProxyAPIErrorInfo } from './DataProxyAPIError'
 import { DataProxyAPIError } from './DataProxyAPIError'
@@ -17,3 +19,4 @@ export class NotFoundError extends DataProxyAPIError {
     super(message, setRetryable(info, false))
   }
 }
+setClassName(NotFoundError, 'NotFoundError')

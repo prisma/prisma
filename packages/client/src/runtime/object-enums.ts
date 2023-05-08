@@ -49,10 +49,13 @@ class NullTypesEnumValue extends ObjectEnumValue {
 }
 
 class DbNull extends NullTypesEnumValue {}
+setClassName(DbNull, 'DbNull')
 
 class JsonNull extends NullTypesEnumValue {}
+setClassName(JsonNull, 'JsonNull')
 
 class AnyNull extends NullTypesEnumValue {}
+setClassName(AnyNull, 'AnyNull')
 
 export const objectEnumValues = {
   classes: {
@@ -65,4 +68,18 @@ export const objectEnumValues = {
     JsonNull: new JsonNull(secret),
     AnyNull: new AnyNull(secret),
   },
+}
+
+/**
+ * See helper in @internals package. Can not be used here
+ * because importing internal breaks browser build.
+ *
+ * @param classObject
+ * @param name
+ */
+export function setClassName(classObject: Function, name: string) {
+  Object.defineProperty(classObject, 'name', {
+    value: name,
+    configurable: true,
+  })
 }

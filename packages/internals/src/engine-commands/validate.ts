@@ -34,6 +34,7 @@ ${detailsHeader} ${message}`
 [Context: validate]`
 
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
+    this.name = 'ValidateError'
   }
 }
 

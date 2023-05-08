@@ -1,4 +1,4 @@
-import { getCommandWithExecutor, link } from '@prisma/internals'
+import { getCommandWithExecutor, link, setClassName } from '@prisma/internals'
 import { bold, green } from 'kleur/colors'
 
 export class NoSchemaFoundError extends Error {
@@ -14,6 +14,7 @@ export class NoSchemaFoundError extends Error {
     )
   }
 }
+setClassName(NoSchemaFoundError, 'NoSchemaFoundError')
 export class OldMigrateDetectedError extends Error {
   constructor() {
     super(
@@ -24,6 +25,7 @@ ${link('https://pris.ly/d/migrate-upgrade')}`,
     )
   }
 }
+setClassName(OldMigrateDetectedError, 'OldMigrateDetectedError')
 
 export class DbPushForceFlagRenamedError extends Error {
   constructor() {
@@ -34,6 +36,7 @@ export class DbPushForceFlagRenamedError extends Error {
     )
   }
 }
+setClassName(DbPushForceFlagRenamedError, 'DbPushForceFlagRenamedError')
 
 export class DbPushIgnoreWarningsWithFlagError extends Error {
   constructor() {
@@ -44,6 +47,7 @@ export class DbPushIgnoreWarningsWithFlagError extends Error {
     )
   }
 }
+setClassName(DbPushIgnoreWarningsWithFlagError, 'DbPushIgnoreWarningsWithFlagError')
 
 export class MigrateNeedsForceError extends Error {
   constructor(subcommand: string) {
@@ -54,6 +58,7 @@ export class MigrateNeedsForceError extends Error {
     )
   }
 }
+setClassName(MigrateNeedsForceError, 'MigrateNeedsForceError')
 
 export class MigrateResetEnvNonInteractiveError extends Error {
   constructor() {
@@ -65,6 +70,7 @@ See ${link('https://www.prisma.io/docs/reference/api-reference/command-reference
     )
   }
 }
+setClassName(MigrateResetEnvNonInteractiveError, 'MigrateResetEnvNonInteractiveError')
 
 export class MigrateDevEnvNonInteractiveError extends Error {
   constructor() {
@@ -77,6 +83,7 @@ See ${link('https://www.prisma.io/docs/reference/api-reference/command-reference
     )
   }
 }
+setClassName(MigrateDevEnvNonInteractiveError, 'MigrateDevEnvNonInteractiveError')
 
 export class DbNeedsForceError extends Error {
   constructor(subcommand: string) {
@@ -87,3 +94,4 @@ export class DbNeedsForceError extends Error {
     )
   }
 }
+setClassName(DbNeedsForceError, 'DbNeedsForceError')

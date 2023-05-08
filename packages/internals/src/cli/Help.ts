@@ -14,6 +14,7 @@ export function unknownCommand(helpTemplate: string, cmd: string): HelpError {
 export class HelpError extends Error {
   constructor(msg: string) {
     super(msg)
+    this.name = 'HelpError'
     // setPrototypeOf is needed for custom errors to work
     Object.setPrototypeOf(this, HelpError.prototype)
   }
