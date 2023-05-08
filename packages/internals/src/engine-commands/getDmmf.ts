@@ -48,6 +48,7 @@ ${detailsHeader} ${message}`
 [Context: getDmmf]`
 
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
+    this.name = 'GetDmmfError'
   }
 }
 

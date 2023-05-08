@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 import { ErrorWithBatchIndex } from './ErrorWithBatchIndex'
 
 type UnknownErrorParams = {
@@ -11,6 +13,7 @@ export class PrismaClientUnknownRequestError extends Error implements ErrorWithB
 
   constructor(message: string, { clientVersion, batchRequestIdx }: UnknownErrorParams) {
     super(message)
+    this.name = 'PrismaClientUnknownRequestError'
 
     this.clientVersion = clientVersion
     Object.defineProperty(this, 'batchRequestIdx', {
@@ -23,3 +26,5 @@ export class PrismaClientUnknownRequestError extends Error implements ErrorWithB
     return 'PrismaClientUnknownRequestError'
   }
 }
+
+setClassName(PrismaClientUnknownRequestError, 'PrismaClientUnknownRequestError')

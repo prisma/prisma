@@ -25,7 +25,6 @@ export type BuildOptions = esbuild.BuildOptions & {
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
   target: 'ES2020',
-  keepNames: true,
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
   incremental: process.env.WATCH === 'true',

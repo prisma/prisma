@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 import { PrismaClientRustErrorArgs } from '../engines/common/types/PrismaClientRustErrorArgs'
 import { getBacktrace, isPanic } from '../engines/common/utils/log'
 
@@ -18,10 +20,12 @@ export class PrismaClientRustError extends Error {
   }
 
   get [Symbol.toStringTag]() {
-    return 'PrismaClientRustPanicError'
+    return 'PrismaClientRustError'
   }
 
   public isPanic(): boolean {
     return this._isPanic
   }
 }
+
+setClassName(PrismaClientRustError, 'PrismaClientRustError')

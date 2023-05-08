@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 import type { DataProxyAPIErrorInfo } from './DataProxyAPIError'
 import { DataProxyAPIError } from './DataProxyAPIError'
 import { setRetryable } from './utils/setRetryable'
@@ -14,3 +16,4 @@ export class UnauthorizedError extends DataProxyAPIError {
     super(message, setRetryable(info, false))
   }
 }
+setClassName(UnauthorizedError, 'UnauthorizedError')
