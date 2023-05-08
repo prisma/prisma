@@ -8,8 +8,9 @@ on:
 
 jobs:
   run_tests:
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/test-template.yml
     with:
       reason: buildpulse
       jobTimeout: 70
       ubuntuRunner: ubuntu-latest
+      testAll: true

@@ -8,11 +8,12 @@ on:
 
 jobs:
   run_tests:
-    uses: ./.github/workflows/test.yml
+    uses: ./.github/workflows/test-template.yml
     with:
       reason: daily-test
       jobTimeout: 70
       ubuntuRunner: ubuntu-latest
+      testAll: true
   failure:
     needs:
       - run_tests
