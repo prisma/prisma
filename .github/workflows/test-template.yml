@@ -15,17 +15,21 @@ on:
         description: Override default runner used for linux tests. Can be used to opt-out of buildjet
         type: string
         default: buildjet-4vcpu-ubuntu-2004
+        required: false
       jobTimeout:
         description: Timeout for the jobs. Default is 35 minutes
         type: number
         default: 35
-      jobs:
+        required: false
+      jobsToRun:
         description: Jobs to run. See .github/workflows/scripts/detect-jobs-to-run.js script
         type: string
         default: '-all-'
+        required: false
       testAll:
         description: Whether or not this workflow should test all possible engine/protocol combination
         type: boolean
+        required: true
 
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}
@@ -96,7 +100,7 @@ jobs:
     runs-on: ${{ inputs.ubuntuRunner }}
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-client-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -171,11 +175,11 @@ jobs:
 
       # Run the functional test suite
       - run: pnpm run test:functional
-        if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-client-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
       - run: pnpm run test-notypes
-        if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-client-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
 
       - uses: codecov/codecov-action@v3
@@ -210,7 +214,7 @@ jobs:
     runs-on: ${{ inputs.ubuntuRunner }}
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-client-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -315,7 +319,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-client-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -430,7 +434,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-client-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -475,7 +479,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-client-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -577,7 +581,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-client-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
       fail-fast: false
@@ -623,7 +627,7 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-integration-tests-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-integration-tests-') }}
 
     strategy:
       fail-fast: false
@@ -697,7 +701,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-internals-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-internals-') }}
 
     strategy:
       fail-fast: false
@@ -769,7 +773,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-migrate-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-') }}
 
     strategy:
       fail-fast: false
@@ -851,7 +855,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-cli-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-') }}
 
     strategy:
       fail-fast: false
@@ -911,7 +915,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     needs: determineBuildMatrixParams
-    if: ${{ contains(inputs.jobs, '-all-') }}
+    if: ${{ contains(inputs.jobsToRun, '-all-') }}
 
     strategy:
       fail-fast: false
@@ -1049,8 +1053,8 @@ jobs:
     needs: determineBuildMatrixParams
     if: |
       ${{
-        contains(inputs.jobs, '-all-') ||
-        contains(inputs.jobs, '-client-')
+        contains(inputs.jobsToRun, '-all-') ||
+        contains(inputs.jobsToRun, '-client-')
       }}
     steps:
       - uses: actions/checkout@v3
@@ -1135,11 +1139,11 @@ jobs:
     needs: determineBuildMatrixParams
     if: |
       ${{
-        contains(inputs.jobs, '-all-') ||
-        contains(inputs.jobs, '-internals-') ||
-        contains(inputs.jobs, '-migrate-') ||
-        contains(inputs.jobs, '-cli-') ||
-        contains(inputs.jobs, '-client-')
+        contains(inputs.jobsToRun, '-all-') ||
+        contains(inputs.jobsToRun, '-internals-') ||
+        contains(inputs.jobsToRun, '-migrate-') ||
+        contains(inputs.jobsToRun, '-cli-') ||
+        contains(inputs.jobsToRun, '-client-')
       }}
 
     strategy:
@@ -1184,7 +1188,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Test packages/internals
-        if: ${{ contains(inputs.jobs, '-all-') }} || contains(inputs.jobs, '-internals-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }} || contains(inputs.jobsToRun, '-internals-') }}
         run: pnpm run test --testTimeout=40000
         working-directory: packages/internals
         env:
@@ -1195,14 +1199,14 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(inputs.jobs, '-all-') }} || contains(inputs.jobs, '-internals-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }} || contains(inputs.jobsToRun, '-internals-') }}
         with:
           files: ./packages/internals/src/__tests__/coverage/clover.xml
           flags: internals,${{ matrix.os }},${{ matrix.queryEngine }}
           name: internals-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/client (old suite)
-        if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-client-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         run: pnpm run test-notypes --testTimeout=40000
         working-directory: packages/client
         env:
@@ -1217,14 +1221,14 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-client-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         with:
           files: ./packages/client/src/__tests__/coverage/clover.xml
           flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
           name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/migrate
-        if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-migrate-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-') }}
         run: pnpm run test --testTimeout=40000
         working-directory: packages/migrate
         env:
@@ -1235,14 +1239,14 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-migrate-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-') }}
         with:
           files: ./packages/migrate/src/__tests__/coverage/clover.xml
           flags: migrate,${{ matrix.os }},${{ matrix.queryEngine }}
           name: migrate-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/cli
-        if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-cli-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-') }}
         run: pnpm run test --testTimeout=40000
         working-directory: packages/cli
         env:
@@ -1253,14 +1257,14 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(inputs.jobs, '-all-') || contains(inputs.jobs, '-cli-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-') }}
         with:
           files: ./packages/cli/src/__tests__/coverage/clover.xml
           flags: cli,${{ matrix.os }},${{ matrix.queryEngine }}
           name: cli-${{ matrix.os }}-${{ matrix.queryEngine }}
 
       - name: Test packages/debug
-        if: ${{ contains(inputs.jobs, '-all-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }}
         run: pnpm run test
         working-directory: packages/debug
         env:
@@ -1271,14 +1275,14 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(inputs.jobs, '-all-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }}
         with:
           files: ./packages/debug/src/__tests__/coverage/clover.xml
           flags: debug,${{ matrix.os }},library,binary
           name: debug-${{ matrix.os }}
 
       - name: Test packages/generator-helper
-        if: ${{ contains(inputs.jobs, '-all-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }}
         run: pnpm run test
         working-directory: packages/generator-helper
         env:
@@ -1289,14 +1293,14 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(inputs.jobs, '-all-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }}
         with:
           files: ./packages/generator-helper/src/__tests__/coverage/clover.xml
           flags: generator-helper,${{ matrix.os }},library,binary
           name: generator-helper-${{ matrix.os }}
 
       - name: Test packages/get-platform
-        if: ${{ contains(inputs.jobs, '-all-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }}
         run: pnpm run test
         working-directory: packages/get-platform
         env:
@@ -1307,14 +1311,14 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(inputs.jobs, '-all-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }}
         with:
           files: ./packages/get-platform/src/__tests__/coverage/clover.xml
           flags: get-platform,${{ matrix.os }},library,binary
           name: get-platform-${{ matrix.os }}
 
       - name: Test packages/fetch-engine
-        if: ${{ contains(inputs.jobs, '-all-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }}
         run: pnpm run test
         working-directory: packages/fetch-engine
         env:
@@ -1325,14 +1329,14 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(inputs.jobs, '-all-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }}
         with:
           files: ./packages/fetch-engine/src/__tests__/coverage/clover.xml
           flags: fetch-engine,${{ matrix.os }},library,binary
           name: fetch-engine-${{ matrix.os }}
 
       - name: Test packages/engines
-        if: ${{ contains(inputs.jobs, '-all-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }}
         run: pnpm run test
         working-directory: packages/engines
         env:
@@ -1343,7 +1347,7 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
       - uses: codecov/codecov-action@v3
-        if: ${{ contains(inputs.jobs, '-all-') }}
+        if: ${{ contains(inputs.jobsToRun, '-all-') }}
         with:
           files: ./packages/engines/src/__tests__/coverage/clover.xml
           flags: engines,${{ matrix.os }},library,binary

@@ -70,5 +70,5 @@ jobs:
     needs: detect_jobs_to_run
     uses: ./.github/workflows/test-template.yml
     with:
-      jobs: ${{ needs.detect_jobs_to_run.outputs.jobs }}
+      jobsToRun: ${{ needs.detect_jobs_to_run.outputs.jobs }}
       testAll: ${{ needs.detect_jobs_to_run.outputs.testAllCommentId != '' }}
