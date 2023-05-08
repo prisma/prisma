@@ -2,17 +2,15 @@
 'use strict'
 const fs = require('fs')
 
-const [reason, buildComment] = process.argv.slice(2)
-console.log({ reason, buildComment })
-
-const hasBuildAllComment = buildComment?.length > 0
+const testAll = process.argv[2] === 'true'
+console.log({ testAll })
 
 const excludeClient = []
 const excludeDataProxy = []
 
 const queryEngine = ['library']
 
-if (hasBuildAllComment || reason === 'daily-test') {
+if (testAll) {
   queryEngine.push('binary')
 } else {
   excludeClient.push({ node: 18, engineProtocol: 'json' })
