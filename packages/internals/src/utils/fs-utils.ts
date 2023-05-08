@@ -61,13 +61,18 @@ export function getFilesInDir(dir: string, pattern = '**'): Promise<string[]> {
  * Note: this function can potentially fail (e.g., if the user doesn't have permissions to remove a directory).
  */
 export async function removeEmptyDirs(dir: string): Promise<void> {
-  const fileStats = await fs.lstat(dir)
-  if (!fileStats.isDirectory()) {
+  try {
+    const fileStats = await fs.lstat(dir)
+    if (!fileStats.isDirectory()) {
+      return
+    }
+  } catch (e) {
+    // If the directory doesn't exist, we don't need to remove it.
+    // This is not an error.
     return
   }
 
   const filenames = await fs.readdir(dir)
-
   if (filenames.length > 0) {
     const recursionPromises = filenames.map((filename) => removeEmptyDirs(path.join(dir, filename)))
     await Promise.all(recursionPromises)
