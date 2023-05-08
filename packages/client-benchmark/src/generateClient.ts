@@ -15,10 +15,7 @@ export type SchemaParams = {
 }
 
 function getHeader(features: string[], target: Target, dataProxy: boolean) {
-  const allFeatures: string[] = [...features]
-  if (!dataProxy) {
-    allFeatures.push('tracing')
-  }
+  const allFeatures: string[] = ['tracing', ...features]
   const featuresStr = JSON.stringify(allFeatures)
   const binaryTargets = JSON.stringify(target.getBinaryTargets())
   return /* Prisma */ `
