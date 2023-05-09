@@ -2,7 +2,7 @@
 /* eslint-disable jest/no-identical-title */
 
 import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get-platform'
-import { getSchema } from '@prisma/internals'
+import { fsUtils, getSchema } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
@@ -821,16 +821,14 @@ describe('postgresql views fs I/O', () => {
           ]
         `)
 
-        // showing the folder tree fails on Windows due to path slashes
-        if (process.platform !== 'win32') {
-          const tree = await ctx.fs.findAsync({
-            directories: false,
-            files: true,
-            recursive: true,
-            matching: `${viewsPath}/**/*`,
-          })
-          expect(tree).toMatchSnapshot()
-        }
+        const tree = await ctx.fs.findAsync({
+          directories: false,
+          files: true,
+          recursive: true,
+          matching: `${viewsPath}/**/*`,
+        })
+        const polishedTree = tree.map(fsUtils.normalizePossiblyWindowsDir)
+        expect(polishedTree).toMatchSnapshot()
 
         const publicSimpleUserView = await ctx.fs.readAsync(`${viewsPath}/public/simpleuser.sql`)
         expect(publicSimpleUserView).toMatchInlineSnapshot(`
