@@ -3,14 +3,14 @@ import {
   InstrumentationConfig,
   InstrumentationNodeModuleDefinition,
 } from '@opentelemetry/instrumentation'
+import { PrismaInstrumentationGlobalValue } from '@prisma/internals'
 
+import { ActiveTracingHelper } from './ActiveTracingHelper'
 import { GLOBAL_KEY, MODULE_NAME, NAME, VERSION } from './constants'
 
 export interface PrismaInstrumentationConfig {
   middleware?: boolean
 }
-
-export type PrismaInstrumentationGlobalValue = {} & PrismaInstrumentationConfig
 
 type Config = PrismaInstrumentationConfig & InstrumentationConfig
 
@@ -29,7 +29,7 @@ export class PrismaInstrumentation extends InstrumentationBase {
     const config = this._config as Config
 
     const globalValue: PrismaInstrumentationGlobalValue = {
-      middleware: config.middleware,
+      helper: new ActiveTracingHelper({ traceMiddleware: config.middleware ?? false }),
     }
 
     global[GLOBAL_KEY] = globalValue

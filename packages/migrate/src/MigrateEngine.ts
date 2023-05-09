@@ -1,12 +1,12 @@
 import Debug from '@prisma/debug'
-import type { MigrateEngineLogLine } from '@prisma/internals'
 import {
   BinaryType,
   ErrorArea,
-  handleViewsIO,
   MigrateEngineExitCode,
+  MigrateEngineLogLine,
   resolveBinary,
   RustPanic,
+  setClassName,
 } from '@prisma/internals'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
@@ -15,6 +15,7 @@ import path from 'path'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
+import { handleViewsIO } from './views/handleViewsIO'
 
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
@@ -34,6 +35,8 @@ export class EngineError extends Error {
     this.code = code
   }
 }
+
+setClassName(EngineError, 'EngineError')
 
 // Is incremented every time `getRPCPayload` is called
 let messageId = 1

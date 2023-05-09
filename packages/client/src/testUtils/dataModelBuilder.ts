@@ -1,6 +1,6 @@
 import { DMMF } from '@prisma/generator-helper'
 
-import { DMMFDatamodelHelper } from '../dmmf'
+import { dmmfToRuntimeDataModel, RuntimeDataModel } from '../runtime/core/runtimeDataModel'
 
 export function field(kind: DMMF.FieldKind, name: string, type: string, extra?: Partial<DMMF.Field>): DMMF.Field {
   return {
@@ -37,12 +37,10 @@ export function model(name: string, fields: DMMF.Field[]): DMMF.Model {
   }
 }
 
-export function baseDmmf({ models }: { models: DMMF.Model[] }) {
-  return new DMMFDatamodelHelper({
-    datamodel: {
-      models,
-      enums: [],
-      types: [],
-    },
+export function runtimeDataModel({ models }: { models: DMMF.Model[] }): RuntimeDataModel {
+  return dmmfToRuntimeDataModel({
+    models,
+    enums: [],
+    types: [],
   })
 }

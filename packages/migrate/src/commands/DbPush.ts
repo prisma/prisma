@@ -28,7 +28,7 @@ export class DbPush implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : bold('🙌  ')}Push the state from your Prisma schema to your database
+${process.platform === 'win32' ? '' : '🙌  '}Push the state from your Prisma schema to your database
 
 ${bold('Usage')}
 

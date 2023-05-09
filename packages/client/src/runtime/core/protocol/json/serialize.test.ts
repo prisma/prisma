@@ -1,7 +1,7 @@
 import Decimal from 'decimal.js'
 
+import { field, model, runtimeDataModel } from '../../../../testUtils/dataModelBuilder'
 import { objectEnumValues } from '../../../object-enums'
-import { baseDmmf, field, model } from '../../../utils/datmodelBuilder'
 import { MergedExtensionsList } from '../../extensions/MergedExtensionsList'
 import { FieldRefImpl } from '../../model/FieldRef'
 import { serializeJsonQuery, SerializeParams } from './serialize'
@@ -36,9 +36,9 @@ const Attachment = model('Attachment', [
   }),
 ])
 
-const dmmf = baseDmmf({ models: [User, Post, Attachment] })
+const datamodel = runtimeDataModel({ models: [User, Post, Attachment] })
 
-type SimplifiedParams = Omit<SerializeParams, 'baseDmmf' | 'extensions' | 'clientMethod' | 'errorFormat'> & {
+type SimplifiedParams = Omit<SerializeParams, 'runtimeDataModel' | 'extensions' | 'clientMethod' | 'errorFormat'> & {
   extensions?: MergedExtensionsList
 }
 
@@ -46,7 +46,7 @@ function serialize(params: SimplifiedParams) {
   return JSON.stringify(
     serializeJsonQuery({
       ...params,
-      baseDmmf: dmmf,
+      runtimeDataModel: datamodel,
       extensions: params.extensions ?? MergedExtensionsList.empty(),
       clientMethod: 'foo',
       errorFormat: 'colorless',

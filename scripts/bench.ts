@@ -19,12 +19,26 @@ async function main() {
 }
 
 async function run(benchmarks: string[]) {
+  const v8Flags = process.env.CODSPEED_V8_FLAGS ?? '' // Flags defined while running with CodSpeed
+  let failedCount = 0
+
   for (const location of benchmarks) {
-    await execa.command(`node -r esbuild-register ${location}`, {
-      stdio: 'inherit',
-    })
+    try {
+      await execa.command(`node ${v8Flags} -r esbuild-register ${location}`, {
+        stdio: 'inherit',
+      })
+    } catch (e) {
+      console.error(e)
+      failedCount++
+    }
+  }
+
+  if (failedCount > 0) {
+    const pluralMarker = failedCount === 1 ? '' : 's'
+    throw new Error(`${failedCount} benchmark${pluralMarker} failed`)
   }
 }
+
 main().catch((e) => {
   console.error(e)
   process.exit(1)

@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 import type { DataProxyAPIErrorInfo } from './DataProxyAPIError'
 import { DataProxyAPIError } from './DataProxyAPIError'
 import { setRetryable } from './utils/setRetryable'
@@ -15,3 +17,4 @@ export class BadRequestError extends DataProxyAPIError {
     if (code) this.code = code
   }
 }
+setClassName(BadRequestError, 'BadRequestError')

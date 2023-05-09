@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 export class PrismaClientRustPanicError extends Error {
   clientVersion: string
 
@@ -10,3 +12,5 @@ export class PrismaClientRustPanicError extends Error {
     return 'PrismaClientRustPanicError'
   }
 }
+
+setClassName(PrismaClientRustPanicError, 'PrismaClientRustPanicError')

@@ -1,3 +1,5 @@
+import { setClassName } from '@prisma/internals'
+
 import type { DataProxyErrorInfo } from './DataProxyError'
 import { DataProxyError } from './DataProxyError'
 import { setRetryable } from './utils/setRetryable'
@@ -12,3 +14,4 @@ export class ForcedRetryError extends DataProxyError {
     super('This request must be retried', setRetryable(info, true))
   }
 }
+setClassName(ForcedRetryError, 'ForcedRetryError')

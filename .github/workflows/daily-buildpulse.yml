@@ -1,0 +1,16 @@
+name: Daily BuildPulse run
+
+on:
+  workflow_dispatch:
+  schedule:
+    # https://crontab.guru - “At every 30th minute past every hour from 3 through 6.”
+    - cron: '*/30 3-6 * * *'
+
+jobs:
+  run_tests:
+    uses: ./.github/workflows/test-template.yml
+    with:
+      reason: buildpulse
+      jobTimeout: 70
+      ubuntuRunner: ubuntu-latest
+      testAll: true

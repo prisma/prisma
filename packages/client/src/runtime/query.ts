@@ -1,3 +1,4 @@
+import { setClassName } from '@prisma/internals'
 import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import { bold, dim, green, red, white } from 'kleur/colors'
@@ -453,14 +454,17 @@ export class PrismaClientValidationError extends Error {
     return 'PrismaClientValidationError'
   }
 }
+setClassName(PrismaClientValidationError, 'PrismaClientValidationError')
 export class PrismaClientConstructorValidationError extends Error {
   constructor(message: string) {
     super(message + `\nRead more at https://pris.ly/d/client-constructor`)
+    this.name = 'PrismaClientConstructorValidationError'
   }
   get [Symbol.toStringTag]() {
     return 'PrismaClientConstructorValidationError'
   }
 }
+setClassName(PrismaClientConstructorValidationError, 'PrismaClientConstructorValidationError')
 
 export interface FieldArgs {
   name: string

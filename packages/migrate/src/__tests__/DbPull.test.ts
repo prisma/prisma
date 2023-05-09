@@ -10,8 +10,7 @@ import { MigrateEngine } from '../MigrateEngine'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
-import type { SetupParams } from '../utils/setupPostgres'
-import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
+import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
@@ -527,12 +526,12 @@ describe('postgresql views fs I/O', () => {
       })
     })
 
-    return fixturePath
+    return { setupParams, fixturePath }
   }
 
   describe('engine output', () => {
     describe('no preview feature', () => {
-      const fixturePath = setupPostgresForViewsIO('no-preview')
+      const { fixturePath } = setupPostgresForViewsIO('no-preview')
 
       it('`views` is null', async () => {
         ctx.fixture(path.join(fixturePath))
@@ -555,9 +554,9 @@ describe('postgresql views fs I/O', () => {
     })
 
     describe('with preview feature and no views defined', () => {
-      const fixturePath = setupPostgresForViewsIO('no-views')
+      const { fixturePath } = setupPostgresForViewsIO('no-views')
 
-      it('`views` is []', async () => {
+      it('`views` is [] and no views folder is created', async () => {
         ctx.fixture(path.join(fixturePath))
 
         const engine = new MigrateEngine({
@@ -574,12 +573,151 @@ describe('postgresql views fs I/O', () => {
 
         expect(introspectionResult.views).toEqual([])
         engine.stop()
+
+        const listWithoutViews = await ctx.fs.listAsync('views')
+        expect(listWithoutViews).toEqual(undefined)
+      })
+
+      it('`views` is [] and an empty existing views folder is deleted', async () => {
+        ctx.fixture(path.join(fixturePath))
+
+        // Empty dir should be deleted along the views dir
+        await ctx.fs.dirAsync('views/empty-dir')
+
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync('views')).toEqual(['empty-dir'])
+
+        const engine = new MigrateEngine({
+          projectDir: process.cwd(),
+          schemaPath: undefined,
+        })
+
+        const schema = await getSchema()
+
+        const introspectionResult = await engine.introspect({
+          schema,
+          force: false,
+        })
+
+        expect(introspectionResult.views).toEqual([])
+        engine.stop()
+
+        const listWithoutViews = await ctx.fs.listAsync('views')
+        expect(listWithoutViews).toEqual(undefined)
+        // The views folder is deleted
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql'])
+      })
+
+      it('`views` is [] and a non-empty existing views folder is kept', async () => {
+        ctx.fixture(path.join(fixturePath))
+
+        ctx.fs.write('views/README.md', 'Some readme markdown')
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
+        expect(await ctx.fs.listAsync('views')).toEqual(['README.md'])
+
+        const engine = new MigrateEngine({
+          projectDir: process.cwd(),
+          schemaPath: undefined,
+        })
+
+        const schema = await getSchema()
+
+        const introspectionResult = await engine.introspect({
+          schema,
+          force: false,
+        })
+
+        expect(introspectionResult.views).toEqual([])
+        engine.stop()
+
+        const listWithoutViews = await ctx.fs.listAsync('views')
+        expect(listWithoutViews).toEqual(['README.md'])
+        expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
       })
     })
   })
 
+  describe('with preview feature, views defined and then removed', () => {
+    const { setupParams, fixturePath } = setupPostgresForViewsIO()
+
+    test('re-introspection with views removed', async () => {
+      ctx.fixture(fixturePath)
+
+      const introspectWithViews = new DbPull()
+      const resultWithViews = introspectWithViews.parse([])
+      await expect(resultWithViews).resolves.toMatchInlineSnapshot(``)
+
+      const listWithViews = await ctx.fs.listAsync('views')
+      expect(listWithViews).toMatchInlineSnapshot(`
+        [
+          public,
+          work,
+        ]
+      `)
+
+      const treeWithViews = await ctx.fs.findAsync({
+        directories: false,
+        files: true,
+        recursive: true,
+        matching: 'views/**/*',
+      })
+      expect(treeWithViews).toMatchInlineSnapshot(`
+        [
+          views/public/simpleuser.sql,
+          views/work/workers.sql,
+        ]
+      `)
+
+      const dropViewsSQL = await ctx.fs.readAsync('./drop_views.sql', 'utf8')
+
+      // remove any view in the database
+      await runQueryPostgres(setupParams, dropViewsSQL!)
+
+      const introspectWithoutViews = new DbPull()
+      const resultWithoutViews = introspectWithoutViews.parse([])
+      await expect(resultWithoutViews).resolves.toMatchInlineSnapshot(``)
+
+      const listWithoutViews = await ctx.fs.listAsync('views')
+      expect(listWithoutViews).toEqual(undefined)
+
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+        Prisma schema loaded from schema.prisma
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull", schemas "public, work" at "localhost:5432"
+        Prisma schema loaded from schema.prisma
+        Datasource "db": PostgreSQL database "tests-migrate-db-pull", schemas "public, work" at "localhost:5432"
+      `)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+
+
+                - Introspecting based on datasource defined in schema.prisma
+
+                ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+                      
+                *** WARNING ***
+
+                The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+                  - "simpleuser"
+                  - "workers"
+
+                Run prisma generate to generate Prisma Client.
+
+
+
+                - Introspecting based on datasource defined in schema.prisma
+
+                ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+                      
+                Run prisma generate to generate Prisma Client.
+
+            `)
+      expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+  })
+
   describe('with preview feature and views defined', () => {
-    const fixturePath = setupPostgresForViewsIO()
+    const { fixturePath } = setupPostgresForViewsIO()
 
     test('basic introspection', async () => {
       ctx.fixture(fixturePath)
@@ -724,19 +862,23 @@ describe('postgresql views fs I/O', () => {
       })
     }
 
-    test('extraneous files in views folder should be removed on introspect', async () => {
+    test('extraneous empty subdirectories should be deleted and top files kept in views directory on introspect', async () => {
       ctx.fixture(path.join(fixturePath))
 
       await ctx.fs.dirAsync('views')
       const initialList = await ctx.fs.listAsync('views')
       expect(initialList).toMatchInlineSnapshot(`[]`)
 
-      await ctx.fs.dirAsync('views/extraneous-dir')
+      // Empty dir should be deleted
+      await ctx.fs.dirAsync('views/empty-dir')
+      // Any file on the top level should be kept
+      await ctx.fs.fileAsync('views/README')
       await ctx.fs.fileAsync('views/extraneous-file.sql')
       const extraneousList = await ctx.fs.listAsync('views')
       expect(extraneousList).toMatchInlineSnapshot(`
         [
-          extraneous-dir,
+          README,
+          empty-dir,
           extraneous-file.sql,
         ]
       `)
@@ -750,6 +892,8 @@ describe('postgresql views fs I/O', () => {
       const list = await ctx.fs.listAsync('views')
       expect(list).toMatchInlineSnapshot(`
         [
+          README,
+          extraneous-file.sql,
           public,
           work,
         ]
@@ -758,6 +902,8 @@ describe('postgresql views fs I/O', () => {
       const tree = await ctx.fs.findAsync({ directories: false, files: true, recursive: true, matching: 'views/**/*' })
       expect(tree).toMatchInlineSnapshot(`
         [
+          views/README,
+          views/extraneous-file.sql,
           views/public/simpleuser.sql,
           views/work/workers.sql,
         ]
@@ -766,7 +912,7 @@ describe('postgresql views fs I/O', () => {
   })
 
   describe('no preview', () => {
-    const fixturePath = setupPostgresForViewsIO('no-preview')
+    const { fixturePath } = setupPostgresForViewsIO('no-preview')
 
     test('basic introspection', async () => {
       ctx.fixture(path.join(fixturePath))

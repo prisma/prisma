@@ -1,6 +1,13 @@
 import { BinaryType, overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import { assertNever, ClientEngineType, getClientEngineType, getEngineVersion, Platform } from '@prisma/internals'
+import {
+  assertNever,
+  ClientEngineType,
+  getClientEngineType,
+  getEngineVersion,
+  Platform,
+  setClassName,
+} from '@prisma/internals'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -27,10 +34,10 @@ type OutputDeclaration = {
 export class DenylistError extends Error {
   constructor(message: string) {
     super(message)
-    this.name = 'DenylistError'
     this.stack = undefined
   }
 }
+setClassName(DenylistError, 'DenylistError')
 
 export interface GenerateClientOptions {
   projectRoot?: string
