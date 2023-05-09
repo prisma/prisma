@@ -72,3 +72,4 @@ jobs:
     with:
       jobsToRun: ${{ needs.detect_jobs_to_run.outputs.jobs }}
       testAll: ${{ needs.detect_jobs_to_run.outputs.testAllCommentId != '' }}
+    secrets: inherit
