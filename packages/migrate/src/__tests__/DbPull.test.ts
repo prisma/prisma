@@ -888,7 +888,8 @@ describe('postgresql views fs I/O', () => {
       // the folders in `views` match the database schema names (public, work) of the views
       // defined in the `setup.sql` file
       const list = await ctx.fs.listAsync('views')
-      expect(list).toMatchInlineSnapshot(`
+      const sortedList = list?.sort()
+      expect(sortedList).toMatchInlineSnapshot(`
         [
           README,
           extraneous-file.sql,
@@ -898,7 +899,8 @@ describe('postgresql views fs I/O', () => {
       `)
 
       const tree = await ctx.fs.findAsync({ directories: false, files: true, recursive: true, matching: 'views/**/*' })
-      expect(tree).toMatchInlineSnapshot(`
+      const sortedTree = tree?.sort()
+      expect(sortedTree).toMatchInlineSnapshot(`
         [
           views/README,
           views/extraneous-file.sql,
