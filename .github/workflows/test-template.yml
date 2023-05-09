@@ -30,6 +30,17 @@ on:
         description: Whether or not this workflow should test all possible engine/protocol combination
         type: boolean
         required: true
+    secrets:
+      BUILDPULSE_ACCESS_KEY_ID:
+        required: false
+      BUILDPULSE_SECRET_ACCESS_KEY:
+        required: false
+      DOCKERHUB_USERNAME:
+        required: true
+      DOCKERHUB_TOKEN:
+        required: true
+      BOT_TOKEN:
+        required: false
 
 env:
   HAS_BUILDPULSE_SECRETS: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID != '' && secrets.BUILDPULSE_SECRET_ACCESS_KEY != '' }}

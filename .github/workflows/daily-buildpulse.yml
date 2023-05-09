@@ -14,3 +14,4 @@ jobs:
       jobTimeout: 70
       ubuntuRunner: ubuntu-latest
       testAll: true
+    secrets: inherit
