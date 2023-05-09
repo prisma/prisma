@@ -65,6 +65,7 @@ export type InvalidArgError =
   | AtLeastOneError
   | AtMostOneError
   | InvalidNullArgError
+  | InvalidDateArgError
 
 /**
  * This error occurs if the user provides an arg name that doesn't exist
@@ -101,6 +102,14 @@ export interface InvalidNullArgError {
   invalidType: DMMF.SchemaArgInputType[] // note that this could be an object or scalar type. in the object case, we print the whole object type
   atLeastOne: boolean
   atMostOne: boolean
+}
+
+/**
+ * User provided invalid date value
+ */
+export interface InvalidDateArgError {
+  type: 'invalidDateArg'
+  argName: string
 }
 
 export interface AtMostOneError {

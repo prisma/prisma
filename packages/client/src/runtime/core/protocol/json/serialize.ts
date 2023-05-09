@@ -3,6 +3,7 @@ import { assertNever } from '@prisma/internals'
 import { ErrorFormat } from '../../../getPrismaClient'
 import { ObjectEnumValue, objectEnumValues } from '../../../object-enums'
 import { CallSite } from '../../../utils/CallSite'
+import { isDate, isValidDate } from '../../../utils/date'
 import { isDecimalJsLike } from '../../../utils/decimalJsLike'
 import {
   JsonArgumentValue,
@@ -71,7 +72,8 @@ export function serializeJsonQuery({
     rootArgs: args,
     callsite,
     extensions,
-    path: [],
+    selectionPath: [],
+    argumentPath: [],
     originalMethod: clientMethod,
     errorFormat,
   })
@@ -87,7 +89,7 @@ function serializeFieldSelection(
   context: SerializeContext,
 ): JsonFieldSelection {
   return {
-    arguments: serializeArgumentsObject(args),
+    arguments: serializeArgumentsObject(args, context),
     selection: serializeSelectionSet(select, include, context),
   }
 }
@@ -138,7 +140,7 @@ function addIncludedRelations(selectionSet: JsonSelectionSet, include: Selection
     if (value === true) {
       selectionSet[key] = true
     } else if (typeof value === 'object') {
-      selectionSet[key] = serializeFieldSelection(value, context.atField(key))
+      selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
     }
   }
 }
@@ -156,13 +158,16 @@ function createExplicitSelection(select: Selection, context: SerializeContext) {
     if (value === true) {
       selectionSet[key] = true
     } else if (typeof value === 'object') {
-      selectionSet[key] = serializeFieldSelection(value, context.atField(key))
+      selectionSet[key] = serializeFieldSelection(value, context.nestSelection(key))
     }
   }
   return selectionSet
 }
 
-function serializeArgumentsValue(jsValue: Exclude<JsInputValue, undefined>): JsonArgumentValue {
+function serializeArgumentsValue(
+  jsValue: Exclude<JsInputValue, undefined>,
+  context: SerializeContext,
+): JsonArgumentValue {
   if (jsValue === null) {
     return null
   }
@@ -176,7 +181,20 @@ function serializeArgumentsValue(jsValue: Exclude<JsInputValue, undefined>): Jso
   }
 
   if (isDate(jsValue)) {
-    return { $type: 'DateTime', value: jsValue.toISOString() }
+    if (isValidDate(jsValue)) {
+      return { $type: 'DateTime', value: jsValue.toISOString() }
+    } else {
+      context.throwValidationError({
+        kind: 'InvalidArgumentValue',
+        selectionPath: context.getSelectionPath(),
+        argumentPath: context.getArgumentPath(),
+        argument: {
+          name: context.getArgumentName(),
+          typeNames: ['Date'],
+        },
+        underlyingError: 'Provided Date object is invalid',
+      })
+    }
   }
 
   if (isFieldRef(jsValue)) {
@@ -184,7 +202,7 @@ function serializeArgumentsValue(jsValue: Exclude<JsInputValue, undefined>): Jso
   }
 
   if (Array.isArray(jsValue)) {
-    return serializeArgumentsArray(jsValue)
+    return serializeArgumentsArray(jsValue, context)
   }
 
   if (ArrayBuffer.isView(jsValue)) {
@@ -207,13 +225,16 @@ function serializeArgumentsValue(jsValue: Exclude<JsInputValue, undefined>): Jso
   }
 
   if (typeof jsValue === 'object') {
-    return serializeArgumentsObject(jsValue)
+    return serializeArgumentsObject(jsValue, context)
   }
 
   assertNever(jsValue, 'Unknown value type')
 }
 
-function serializeArgumentsObject(object: Record<string, JsInputValue>): Record<string, JsonArgumentValue> {
+function serializeArgumentsObject(
+  object: Record<string, JsInputValue>,
+  context: SerializeContext,
+): Record<string, JsonArgumentValue> {
   if (object['$type']) {
     return { $type: 'Json', value: JSON.stringify(object) }
   }
@@ -221,24 +242,21 @@ function serializeArgumentsObject(object: Record<string, JsInputValue>): Record<
   for (const key in object) {
     const value = object[key]
     if (value !== undefined) {
-      result[key] = serializeArgumentsValue(value)
+      result[key] = serializeArgumentsValue(value, context.nestArgument(key))
     }
   }
   return result
 }
 
-function serializeArgumentsArray(array: JsInputValue[]): JsonArgumentValue[] {
+function serializeArgumentsArray(array: JsInputValue[], context: SerializeContext): JsonArgumentValue[] {
   const result: JsonArgumentValue[] = []
-  for (const value of array) {
+  for (let i = 0; i < array.length; i++) {
+    const value = array[i]
     if (value !== undefined) {
-      result.push(serializeArgumentsValue(value))
+      result.push(serializeArgumentsValue(value, context.nestArgument(String(i))))
     }
   }
   return result
-}
-
-function isDate(value: unknown): value is Date {
-  return Object.prototype.toString.call(value) === '[object Date]'
 }
 
 function isRawParameters(value: JsInputValue): value is RawParameters {
@@ -250,7 +268,8 @@ type ContextParams = {
   originalMethod: string
   rootArgs: JsArgs | undefined
   extensions: MergedExtensionsList
-  path: string[]
+  selectionPath: string[]
+  argumentPath: string[]
   modelName?: string
   action: Action
   callsite?: CallSite
@@ -277,7 +296,15 @@ class SerializeContext {
   }
 
   getSelectionPath() {
-    return this.params.path
+    return this.params.selectionPath
+  }
+
+  getArgumentPath() {
+    return this.params.argumentPath
+  }
+
+  getArgumentName() {
+    return this.params.argumentPath[this.params.argumentPath.length - 1]
   }
 
   getOutputTypeDescription(): OutputTypeDescription | undefined {
@@ -310,14 +337,21 @@ class SerializeContext {
     return this.model?.fields.find((field) => field.name === name)
   }
 
-  atField(fieldName: string) {
+  nestSelection(fieldName: string) {
     const field = this.findField(fieldName)
     const modelName = field?.kind === 'object' ? field.type : undefined
 
     return new SerializeContext({
       ...this.params,
       modelName,
-      path: this.params.path.concat(fieldName),
+      selectionPath: this.params.selectionPath.concat(fieldName),
+    })
+  }
+
+  nestArgument(fieldName: string) {
+    return new SerializeContext({
+      ...this.params,
+      argumentPath: this.params.argumentPath.concat(fieldName),
     })
   }
 }

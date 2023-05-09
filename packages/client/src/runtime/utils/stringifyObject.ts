@@ -3,6 +3,7 @@
 import { FieldRefImpl } from '../core/model/FieldRef'
 import { ObjectEnumValue } from '../object-enums'
 import { lowerCase } from './common'
+import { isDate, isValidDate } from './date'
 
 const isRegexp = require('is-regexp')
 const isObj = require('is-obj')
@@ -76,8 +77,9 @@ const stringifyObject = (input, options?: any, pad?: any) => {
       return String(input)
     }
 
-    if (input instanceof Date) {
-      return `new Date('${input.toISOString()}')`
+    if (isDate(input)) {
+      const value = isValidDate(input) ? input.toISOString() : 'Invalid Date'
+      return `new Date('${value}')`
     }
 
     if (input instanceof FieldRefImpl) {

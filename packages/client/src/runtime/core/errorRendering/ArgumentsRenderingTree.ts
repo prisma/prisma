@@ -2,6 +2,7 @@ import { assertNever } from '@prisma/internals'
 
 import { ObjectEnumValue } from '../../object-enums'
 import { lowerCase } from '../../utils/common'
+import { isValidDate } from '../../utils/date'
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
 import { isFieldRef } from '../model/FieldRef'
 import { JsArgs, JsInputValue } from '../types/JsApi'
@@ -90,7 +91,8 @@ function buildInputValue(value: JsInputValue) {
   }
 
   if (value instanceof Date) {
-    return new ScalarValue(`new Date("${value.toISOString()}")`)
+    const dateStr = isValidDate(value) ? value.toISOString() : 'Invalid Date'
+    return new ScalarValue(`new Date("${dateStr}")`)
   }
 
   if (value instanceof ObjectEnumValue) {
