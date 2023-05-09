@@ -60,7 +60,7 @@ export function getDownloadUrl(
   const baseUrl =
     process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
     process.env.PRISMA_ENGINES_MIRROR ||
-    'https://binaries.prisma.sh'
+    'https://engines.prisma.sh'
   const finalExtension =
     platform === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
   if (binaryName === BinaryType.QueryEngineLibrary) {
