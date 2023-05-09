@@ -12,7 +12,7 @@ export const disabledTracingHelper: TracingHelper = {
     return `00-10-10-00`
   },
 
-  async createEngineSpan(): Promise<void> {},
+  async createEngineSpan() {},
 
   getActiveContext() {
     return undefined
@@ -36,7 +36,7 @@ class DynamicTracingHelper implements TracingHelper {
     return this.getGlobalTracingHelper().getTraceParent(context)
   }
 
-  createEngineSpan(event: EngineSpanEvent): Promise<void> {
+  createEngineSpan(event: EngineSpanEvent) {
     return this.getGlobalTracingHelper().createEngineSpan(event)
   }
 
