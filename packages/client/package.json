@@ -19,9 +19,36 @@
     "typescript",
     "query-builder"
   ],
-  "main": "index.js",
-  "browser": "index-browser.js",
   "types": "index.d.ts",
+  "main": "index.js",
+  "module": "index.mjs",
+  "browser": "index-browser.js",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "require": "./index.js",
+      "import": "./index.mjs",
+      "browser": "./index-browser.js"
+    },
+    "./runtime/binary": {
+      "types": "./binary.d.ts",
+      "require": "./binary.js",
+      "import": "./binary.mjs",
+      "browser": "./index-browser.js"
+    },
+    "./runtime/library": {
+      "types": "./library.d.ts",
+      "require": "./library.js",
+      "import": "./library.mjs",
+      "browser": "./index-browser.js"
+    },
+    "./runtime/edge": {
+      "types": "./edge.d.ts",
+      "require": "./edge.js",
+      "import": "./edge.mjs",
+      "browser": "./index-browser.js"
+    }
+  },
   "license": "Apache-2.0",
   "engines": {
     "node": ">=14.17"

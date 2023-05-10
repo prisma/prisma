@@ -17,6 +17,7 @@ import { map } from '../../../../../helpers/blaze/map'
  */
 export function buildNFTAnnotations(
   dataProxy: boolean,
+  esm: boolean | undefined,
   engineType: ClientEngineType,
   platforms: Platform[] | undefined,
   relativeOutdir: string,
@@ -36,10 +37,10 @@ export function buildNFTAnnotations(
 
   const engineAnnotations = map(platforms, (platform) => {
     const engineFilename = getQueryEngineFilename(engineType, platform)
-    return engineFilename ? buildNFTAnnotation(engineFilename, relativeOutdir) : ''
+    return engineFilename ? buildNFTAnnotation(esm, engineFilename, relativeOutdir) : ''
   }).join('\n')
 
-  const schemaAnnotations = buildNFTAnnotation('schema.prisma', relativeOutdir)
+  const schemaAnnotations = buildNFTAnnotation(esm, 'schema.prisma', relativeOutdir)
 
   return `${engineAnnotations}${schemaAnnotations}`
 }
@@ -70,10 +71,15 @@ function getQueryEngineFilename(engineType: ClientEngineType, platform: Platform
  * @param relativeOutdir
  * @returns
  */
-function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
+function buildNFTAnnotation(esm: boolean | undefined, fileName: string, relativeOutdir: string) {
   const relativeFilePath = path.join(relativeOutdir, fileName)
 
-  return `
+  if (esm === true) {
+    return `
+new URL(${JSON.stringify(path.join('.', fileName))}, import.meta.url)`
+  } else {
+    return `
 path.join(__dirname, ${JSON.stringify(fileName)});
 path.join(process.cwd(), ${JSON.stringify(relativeFilePath)})`
+  }
 }

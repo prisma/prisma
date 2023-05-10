@@ -11,7 +11,7 @@ function normalizePaths(snapshot: string): string {
 
 describe('library', () => {
   it('generates annotations for a schema and a single engine', () => {
-    const annotations = buildNFTAnnotations(false, ClientEngineType.Library, ['debian-openssl-1.1.x'], 'out')
+    const annotations = buildNFTAnnotations(false, false, ClientEngineType.Library, ['debian-openssl-1.1.x'], 'out')
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
@@ -24,6 +24,7 @@ describe('library', () => {
 
   it('generates annotations for a schema and multiple engines', () => {
     const annotations = buildNFTAnnotations(
+      false,
       false,
       ClientEngineType.Library,
       ['debian-openssl-1.1.x', 'darwin', 'windows'],
@@ -48,7 +49,7 @@ describe('library', () => {
 
 describe('binary', () => {
   it('generates annotations for a schema and a single engine', () => {
-    const annotations = buildNFTAnnotations(false, ClientEngineType.Binary, ['debian-openssl-1.1.x'], 'out')
+    const annotations = buildNFTAnnotations(false, false, ClientEngineType.Binary, ['debian-openssl-1.1.x'], 'out')
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
@@ -61,6 +62,7 @@ describe('binary', () => {
 
   it('generates annotations for a schema and multiple engines', () => {
     const annotations = buildNFTAnnotations(
+      false,
       false,
       ClientEngineType.Binary,
       ['debian-openssl-1.1.x', 'darwin', 'windows'],
@@ -87,6 +89,7 @@ describe('dataproxy', () => {
   it('generates no annotations', () => {
     const annotations = buildNFTAnnotations(
       true,
+      false,
       ClientEngineType.Library,
       ['debian-openssl-1.1.x', 'darwin', 'windows'],
       'out',
@@ -107,6 +110,7 @@ describe('special cases', () => {
     process.env.NETLIFY = 'true'
 
     const annotations = buildNFTAnnotations(
+      false,
       false,
       ClientEngineType.Library,
       ['debian-openssl-1.1.x', 'darwin', 'windows'],

@@ -4,16 +4,31 @@ import os from 'os'
 import path from 'path'
 import resolve from 'resolve'
 
-type LoadCache = { [K in string]: string }
+export type LoadCache = { [K in string]: string }
 
-type Fillers = {
-  [k in string]: {
-    contents?: string
-    path?: string
-    define?: string
-    inject?: string
-  }
-}
+export type Fillers =
+  | {
+      [k in string]: {
+        contents?: string
+        path?: string
+        define?: string
+        inject?: string
+
+        import?: never
+        export?: never
+      }
+    }
+  | {
+      $?: {
+        import?: string[]
+        export?: string[]
+
+        contents?: never
+        path?: never
+        define?: never
+        inject?: never
+      }
+    }
 
 /**
  * Bundle a polyfill with all its dependencies. We use paths to files in /tmp
@@ -84,6 +99,42 @@ function setInjectionsAndDefinitions(fillers: Fillers, options: esbuild.BuildOpt
 }
 
 /**
+ * Looks through the fillers and applies their `import` or `export`. This is
+ * used to inject import and export statements mostly, but can contain any code.
+ * @param options from esbuild
+ * @param fillers to be scanned
+ */
+function setCodeBannerAndFooter(fillers: Fillers, options: esbuild.BuildOptions) {
+  if (fillers?.$?.import !== undefined) {
+    if (options.banner === undefined) {
+      options.banner = {}
+    }
+
+    if (options.banner.js === undefined) {
+      options.banner.js = ''
+    }
+
+    const content = fillers.$.import.join('\n')
+    options.banner.js = options.banner.js.concat(content)
+  }
+
+  if (fillers?.$?.export !== undefined) {
+    if (options.footer === undefined) {
+      options.footer = {}
+    }
+
+    if (options.footer.js === undefined) {
+      options.footer.js = ''
+    }
+
+    const content = fillers.$.export.join('\n')
+    options.footer.js = options.footer.js.concat(content)
+  }
+
+  delete fillers.$ // remove the special $ filler
+}
+
+/**
  * Handles the resolution step where esbuild resolves the imports before
  * bundling them. This allows us to inject a filler via its `path` if it was
  * provided. If not, we proceed to the next `onLoad` step.
@@ -125,102 +176,40 @@ function onLoad(fillers: Fillers, args: esbuild.OnLoadArgs): esbuild.OnLoadResul
   return fillers[args.path] // inject the contents
 }
 
-const load = loader({})
+export const load = loader({})
 
 /**
  * Provides a simple way to use esbuild's injection capabilities while providing
  * sensible defaults for node polyfills.
  * @see https://v2.parceljs.org/features/node-emulation/
  * @see https://github.com/Richienb/node-polyfill-webpack-plugin/blob/master/index.js
- * @param fillerOverrides override default fillers
+ * @param fillerPreset override default fillers
  * @returns
  */
 const fillPlugin = (
-  fillerOverrides: Fillers,
+  fillerPreset: Fillers,
   triggerPredicate: (options: esbuild.BuildOptions) => boolean = () => true,
 ): esbuild.Plugin => ({
   name: 'fillPlugin',
   setup(build) {
+    // do a deep clone of the preset to avoid mutation
+    fillerPreset = JSON.parse(JSON.stringify(fillerPreset))
+
     // in some cases, we just want to run this once (eg. on esm)
     if (triggerPredicate(build.initialOptions) === false) return
 
-    const fillers: Fillers = {
-      // enabled
-      // assert: { path: load('assert-browserify') },
-      buffer: { path: load('buffer') },
-      // constants: { path: load('constants-browserify') },
-      // crypto: { path: load('crypto-browserify') },
-      // domain: { path: load('domain-browser') },
-      events: { path: load('eventemitter3') },
-      // http: { path: load('stream-http') },
-      // https: { path: load('https-browserify') },
-      // inherits: { path: load('inherits') },
-      // os: { path: load('os-browserify') },
-      path: { path: load('path-browserify') },
-      // punycode: { path: load('punycode') },
-      // querystring: { path: load('querystring-es3') },
-      // stream: { path: load('readable-stream') },
-      // string_decoder: { path: load('string_decoder') },
-      // sys: { path: load('util') },
-      // timers: { path: load('timers-browserify') },
-      tty: { path: load('tty-browserify') },
-      // url: { path: load('url') },
-      util: { path: load('util') },
-      // vm: { path: load('vm-browserify') },
-      // zlib: { path: load('browserify-zlib') },
-
-      // no shims
-      fs: { path: path.join(__dirname, 'fillers', 'fs.ts') },
-      http2: { contents: '' },
-      dns: { contents: '' },
-      dgram: { contents: '' },
-      cluster: { contents: '' },
-      module: { contents: '' },
-      net: { contents: '' },
-      readline: { contents: '' },
-      repl: { contents: '' },
-      tls: { contents: '' },
-      perf_hooks: { path: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
-      async_hooks: { contents: '' },
-      child_process: { contents: '' },
-
-      // globals
-      Buffer: {
-        inject: path.join(__dirname, 'fillers', 'buffer.ts'),
-      },
-      process: {
-        inject: path.join(__dirname, 'fillers', 'process.ts'),
-        path: path.join(__dirname, 'fillers', 'process.ts'),
-      },
-
-      // not needed
-      // global: {
-      //   define: '{}',
-      // },
-      // globalThis: {
-      //   define: '{}',
-      // },
-      // console: { },
-      // __dirname: { },
-      // __filename: { },
-      // clearImmediate: { },
-      // clearInterval: { },
-
-      // overrides
-      ...fillerOverrides,
-    }
-
-    // our first step is to update options with basic injections
-    setInjectionsAndDefinitions(fillers, build.initialOptions)
+    // our first steps is to update options with basic injections
+    setCodeBannerAndFooter(fillerPreset, build.initialOptions)
+    setInjectionsAndDefinitions(fillerPreset, build.initialOptions)
 
     // allows us to change the path of a filtered import by another
-    build.onResolve({ filter: createImportFilter(fillers) }, (args) => {
-      return onResolve(fillers, args)
+    build.onResolve({ filter: createImportFilter(fillerPreset) }, (args) => {
+      return onResolve(fillerPreset, args)
     })
 
     // if no path was provided it defers to virtual nsp `fill-plugin`
     build.onLoad({ filter: /.*/, namespace: 'fill-plugin' }, (args) => {
-      return onLoad(fillers, args)
+      return onLoad(fillerPreset, args)
     })
   },
 })

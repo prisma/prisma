@@ -10,42 +10,15 @@ export const commonCodeJS = ({
   browser,
   clientVersion,
   engineVersion,
-  deno,
-}: TSClientOptions): string => `${deno ? 'const exports = {}' : ''}
-Object.defineProperty(exports, "__esModule", { value: true });
-${
-  deno
+  esm,
+}: TSClientOptions): string => `
+${esm === true ? 'import' : 'const'} {${
+  browser === true
     ? `
-import {
-  PrismaClientKnownRequestError,
-  PrismaClientUnknownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientInitializationError,
-  PrismaClientValidationError,
-  NotFoundError,
-  decompressFromBase64,
-  getPrismaClient,
-  sqltag,
-  empty,
-  join,
-  raw,
-  Decimal,
-  Debug,
-  objectEnumValues,
-  makeStrictEnum,
-  Extensions,
-  defineDmmfProperty
-} from '${runtimeDir}/edge-esm.js'`
-    : browser
-    ? `
-const {
   Decimal,
   objectEnumValues,
-  makeStrictEnum
-} = require('${runtimeDir}/${runtimeName}')
-`
+  makeStrictEnum`
     : `
-const {
   PrismaClientKnownRequestError,
   PrismaClientUnknownRequestError,
   PrismaClientRustPanicError,
@@ -64,14 +37,12 @@ const {
   makeStrictEnum,
   Extensions,
   warnOnce,
-  defineDmmfProperty,
-} = require('${runtimeDir}/${runtimeName}')
-`
+  warnEnvConflicts,
+  defineDmmfProperty`
 }
+} ${esm === true ? 'from ' : '= require('}'${runtimeDir}/${runtimeName}'${esm === true ? '' : ')'}
 
 const Prisma = {}
-
-exports.Prisma = Prisma
 
 /**
  * Prisma Client JS version: ${clientVersion}

@@ -15,11 +15,12 @@ import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildFullDMMF, buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildEdgeClientProtocol } from '../utils/buildEdgeClientProtocol'
+import { buildExports } from '../utils/buildExports'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasource } from '../utils/buildInlineDatasources'
 import { buildInlineSchema } from '../utils/buildInlineSchema'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
-import { buildRequirePath } from '../utils/buildRequirePath'
+import { buildNodeImports } from '../utils/buildNodeImports'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
@@ -47,8 +48,8 @@ export interface TSClientOptions {
   outputDir: string
   activeProvider: string
   dataProxy: boolean
-  deno?: boolean
   postinstall?: boolean
+  esm?: boolean
 }
 
 export class TSClient implements Generatable {
@@ -64,18 +65,8 @@ export class TSClient implements Generatable {
   }
 
   public async toJS(edge = false): Promise<string> {
-    const {
-      platforms,
-      generator,
-      sqliteDatasourceOverrides,
-      outputDir,
-      schemaPath,
-      runtimeDir,
-      runtimeName,
-      datasources,
-      dataProxy,
-      deno,
-    } = this.options
+    const { platforms, generator, sqliteDatasourceOverrides, outputDir, schemaPath, datasources, dataProxy } =
+      this.options
     const engineProtocol = getQueryEngineProtocol(generator)
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
@@ -110,8 +101,8 @@ export class TSClient implements Generatable {
 
     const needsFullDMMF = dataProxy && engineProtocol === 'graphql'
 
-    const code = `${commonCodeJS({ ...this.options, browser: false })}
-${buildRequirePath(edge)}
+    const code = `${buildNodeImports(edge, this.options.esm)}
+${commonCodeJS({ ...this.options, browser: false })}
 
 /**
  * Enums
@@ -131,19 +122,17 @@ ${new Enum(
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-${buildDirname(edge, relativeOutdir)}
+${buildDirname(edge, this.options.esm, relativeOutdir)}
 ${needsFullDMMF ? buildFullDMMF(this.options.document) : buildRuntimeDataModel(this.dmmf.datamodel)}
 
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
-${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
+${buildWarnEnvConflicts(edge)}
 ${buildEdgeClientProtocol(edge, generator)}
 ${buildDebugInitialization(edge)}
-const PrismaClient = getPrismaClient(config)
-exports.PrismaClient = PrismaClient
-Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
-${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
+${buildExports(this.options.esm)}
+${buildNFTAnnotations(dataProxy, this.options.esm, engineType, platforms, relativeOutdir)}
 `
     return code
   }

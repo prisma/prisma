@@ -38,7 +38,6 @@ const DEFAULT_BUILD_OPTIONS = {
 const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
-  outExtension: { '.js': '.js' },
   resolveExtensions: ['.ts', '.js', '.node'],
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
     ignore: ['./src/__tests__/**/*'],
@@ -85,6 +84,14 @@ function addExtensionFormat(options: BuildOptions) {
     const ext = options.outExtension['.js']
 
     options.outfile = `${options.outfile}${ext}`
+  }
+
+  if (options.format === 'cjs' && options.outfile) {
+    options.outfile = `${options.outfile}.js`
+  }
+
+  if (options.format === 'esm' && options.outfile) {
+    options.outfile = `${options.outfile}.mjs`
   }
 
   return options

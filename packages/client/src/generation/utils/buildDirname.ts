@@ -5,12 +5,12 @@
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(edge: boolean, relativeOutdir: string) {
+export function buildDirname(edge: boolean, esm: boolean | undefined, relativeOutdir: string) {
   if (edge === true) {
     return buildDirnameDefault()
   }
 
-  return buildDirnameFind(relativeOutdir)
+  return buildDirnameFind(esm, relativeOutdir)
 }
 
 /**
@@ -26,12 +26,17 @@ export function buildDirname(edge: boolean, relativeOutdir: string) {
  * @param runtimePath
  * @returns
  */
-function buildDirnameFind(relativeOutdir: string) {
-  return `
-const fs = require('fs')
+function buildDirnameFind(esm: boolean | undefined, relativeOutdir: string) {
+  let dirname = ''
+  if (esm === true) {
+    dirname = `new URL('.', import.meta.url).pathname`
+  } else {
+    dirname = `__dirname`
+  }
 
-config.dirname = __dirname
-if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
+  return `
+config.dirname = ${dirname}
+if (!fs.existsSync(path.join(config.dirname, 'schema.prisma'))) {
   warnOnce('bundled-warning-1', 'Your generated Prisma Client could not immediately find its \`schema.prisma\`, falling back to finding it via the current working directory.')
   warnOnce('bundled-warning-2', 'We are interested in learning about your project setup. We\\'d appreciate if you could take the time to share some information with us.')
   warnOnce('bundled-warning-3', 'Please help us by answering a few questions: https://pris.ly/bundler-investigation')

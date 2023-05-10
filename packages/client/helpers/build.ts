@@ -4,18 +4,19 @@ import path from 'path'
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { edgePreset } from '../../../helpers/compile/plugins/fill-plugin/presets/edge'
+import { esmPreset } from '../../../helpers/compile/plugins/fill-plugin/presets/esm'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
-const fillPluginPath = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
-const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
 function nodeRuntimeBuildConfig(
   targetEngineType: 'binary' | 'library' | 'data-proxy' | 'all',
+  format: 'esm' | 'cjs',
   outFileName: string = targetEngineType,
 ): BuildOptions {
-  return {
+  const buildConfig: BuildOptions = {
     name: targetEngineType,
     entryPoints: ['src/runtime/index.ts'],
     outfile: `runtime/${outFileName}`,
@@ -31,6 +32,13 @@ function nodeRuntimeBuildConfig(
     },
     plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/)],
   }
+
+  if (format === 'esm') {
+    buildConfig.format = 'esm'
+    buildConfig.plugins?.push(fillPlugin(esmPreset))
+  }
+
+  return buildConfig
 }
 
 // we define the config for browser
@@ -43,7 +51,7 @@ const browserBuildConfig: BuildOptions = {
 }
 
 // we define the config for edge
-const edgeRuntimeBuildConfig: BuildOptions = {
+const edgeCjsRuntimeBuildConfig: BuildOptions = {
   name: 'edge',
   target: 'ES2018',
   entryPoints: ['src/runtime/index.ts'],
@@ -60,31 +68,17 @@ const edgeRuntimeBuildConfig: BuildOptions = {
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
-  plugins: [
-    fillPlugin({
-      // we remove eval and Function for vercel
-      eval: { define: 'undefined' },
-      Function: {
-        define: 'fn',
-        inject: functionPolyfillPath,
-      },
-
-      // TODO no tree shaking on wrapper pkgs
-      '@prisma/get-platform': { contents: '' },
-      // these can not be exported anymore
-      './warnEnvConflicts': { contents: '' },
-      './utils/find': { contents: '' },
-    }),
-  ],
+  plugins: [fillPlugin(edgePreset)],
   logLevel: 'error',
 }
 
 // we define the config for edge in esm format (used by deno)
 const edgeEsmRuntimeBuildConfig: BuildOptions = {
-  ...edgeRuntimeBuildConfig,
-  name: 'edge-esm',
-  outfile: 'runtime/edge-esm',
+  ...edgeCjsRuntimeBuildConfig,
+  name: 'edge',
+  outfile: 'runtime/edge',
   format: 'esm',
+  plugins: [fillPlugin({ ...edgePreset, ...esmPreset })],
 }
 
 // we define the config for generator
@@ -96,22 +90,26 @@ const generatorBuildConfig: BuildOptions = {
   emitTypes: false,
 }
 
-function writeDtsRexport(fileName: string) {
+function writeDtsReExport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./index"\n')
 }
 
 void build([
   generatorBuildConfig,
   // Exists for backward compatibility. Could be removed in next major
-  nodeRuntimeBuildConfig('all', 'index'),
-  nodeRuntimeBuildConfig('binary'),
-  nodeRuntimeBuildConfig('library'),
-  nodeRuntimeBuildConfig('data-proxy'),
+  nodeRuntimeBuildConfig('all', 'cjs', 'index'),
+  nodeRuntimeBuildConfig('binary', 'cjs'),
+  nodeRuntimeBuildConfig('library', 'cjs'),
+  nodeRuntimeBuildConfig('data-proxy', 'cjs'),
+  nodeRuntimeBuildConfig('all', 'esm', 'index'),
+  nodeRuntimeBuildConfig('binary', 'esm'),
+  nodeRuntimeBuildConfig('library', 'esm'),
+  nodeRuntimeBuildConfig('data-proxy', 'esm'),
   browserBuildConfig,
-  edgeRuntimeBuildConfig,
+  edgeCjsRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
 ]).then(() => {
-  writeDtsRexport('binary.d.ts')
-  writeDtsRexport('library.d.ts')
-  writeDtsRexport('data-proxy.d.ts')
+  writeDtsReExport('binary.d.ts')
+  writeDtsReExport('library.d.ts')
+  writeDtsReExport('data-proxy.d.ts')
 })

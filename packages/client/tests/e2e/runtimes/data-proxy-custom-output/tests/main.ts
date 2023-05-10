@@ -49,7 +49,8 @@ test('runtime files exists', async () => {
 [
   "data-proxy.d.ts",
   "data-proxy.js",
-  "edge-esm.js",
+  "data-proxy.mjs",
+  "edge.mjs",
   "edge.js",
   "index-browser.d.ts",
   "index-browser.js",

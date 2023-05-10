@@ -36,7 +36,6 @@ pnpm-debug.log
 
 .envrc
 
-esm
 reproductions/*
 !reproductions/basic-sqlite
 !reproductions/tracing

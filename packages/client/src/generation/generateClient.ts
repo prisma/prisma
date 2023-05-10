@@ -103,10 +103,18 @@ export async function buildClient({
   }
 
   // we create a regular client that is fit for Node.js
-  const nodeTsClient = new TSClient({
+  const nodeCjsClient = new TSClient({
     ...tsClientOptions,
     runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
     runtimeDir: runtimeDirs.node,
+  })
+
+  // we create a regular client that is fit for Node.js
+  const nodeEsmClient = new TSClient({
+    ...tsClientOptions,
+    runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
+    runtimeDir: runtimeDirs.node,
+    esm: true,
   })
 
   // we create a client that is fit for edge runtimes
@@ -120,15 +128,25 @@ export async function buildClient({
   const fileMap = {} // we will store the generated contents here
 
   // we generate the default client that is meant to work on Node
-  fileMap['index.js'] = await JS(nodeTsClient, false)
-  fileMap['index.d.ts'] = await TS(nodeTsClient)
-  fileMap['index-browser.js'] = await BrowserJS(nodeTsClient)
+  fileMap['index.d.ts'] = await TS(nodeCjsClient)
+  fileMap['index.js'] = await JS(nodeCjsClient, false)
+  fileMap['index.mjs'] = await JS(nodeEsmClient, false)
+  fileMap['index-browser.js'] = await BrowserJS(nodeCjsClient)
   fileMap['package.json'] = JSON.stringify(
     {
       name: GENERATED_PACKAGE_NAME,
-      main: 'index.js',
       types: 'index.d.ts',
+      main: 'index.js',
+      module: 'index.mjs',
       browser: 'index-browser.js',
+      exports: {
+        '.': {
+          types: './index.d.ts',
+          require: './index.js',
+          import: './index.mjs',
+          browser: './index-browser.js',
+        },
+      },
     },
     null,
     2,
@@ -143,16 +161,16 @@ export async function buildClient({
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
     if (dataProxy === true) {
       // we create a client that is fit for edge runtimes
-      const denoEdgeTsClient = new TSClient({
+      const denoEsmEdgeClient = new TSClient({
         ...tsClientOptions,
         dataProxy: true, // edge only works w/ data proxy
         runtimeName: 'index.d.ts',
         runtimeDir: '../' + runtimeDirs.edge,
-        deno: true,
+        esm: true,
       })
 
-      fileMap['deno/edge.js'] = await JS(denoEdgeTsClient, true)
-      fileMap['deno/index.d.ts'] = await TS(denoEdgeTsClient)
+      fileMap['deno/edge.js'] = await JS(denoEsmEdgeClient, true)
+      fileMap['deno/index.d.ts'] = await TS(denoEsmEdgeClient)
       fileMap['deno/edge.ts'] = `
 import './polyfill.js'
 // @deno-types="./index.d.ts"
@@ -570,7 +588,7 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
   files.push(`${runtimeName}.js`, `${runtimeName}.d.ts`)
 
   if (runtimeName === 'data-proxy') {
-    files.push('edge.js', 'edge-esm.js')
+    files.push('edge.js', 'edge.mjs')
   }
 
   if (sourceMaps) {

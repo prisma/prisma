@@ -44,10 +44,13 @@ class EnabledCallSite implements CallSite {
         !posixFile.includes('@prisma') && // Internal, unbundled code
         !posixFile.includes('/packages/client/src/runtime/') && // Runtime sources when source maps are used
         !posixFile.endsWith('/runtime/binary.js') && // Bundled runtimes
+        !posixFile.endsWith('/runtime/binary.mjs') && // Bundled runtimes
         !posixFile.endsWith('/runtime/library.js') &&
+        !posixFile.endsWith('/runtime/library.mjs') &&
         !posixFile.endsWith('/runtime/data-proxy.js') &&
+        !posixFile.endsWith('/runtime/data-proxy.mjs') &&
         !posixFile.endsWith('/runtime/edge.js') &&
-        !posixFile.endsWith('/runtime/edge-esm.js') &&
+        !posixFile.endsWith('/runtime/edge.mjs') &&
         !posixFile.startsWith('internal/') && // We don't want internal nodejs files
         !t.methodName.includes('new ') && // "new CallSite" call and maybe other constructors
         !t.methodName.includes('getCallSite') && // getCallSite function from this module
