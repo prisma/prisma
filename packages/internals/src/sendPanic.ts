@@ -1,4 +1,3 @@
-import Debug from '@prisma/debug'
 import { getPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
 import * as checkpoint from 'checkpoint-client'
@@ -15,7 +14,6 @@ import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
 import { mapScalarValues, maskSchema } from './utils/maskSchema'
 
-const debug = Debug('prisma:sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
@@ -33,64 +31,68 @@ export async function sendPanic({
   enginesVersion,
   getDatabaseVersionSafe,
 }: SendPanic): Promise<number> {
+  const schema: string | undefined = match(error)
+    .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
+      return fs.readFileSync(err.schemaPath, 'utf-8')
+    })
+    .with({ schema: P.when((schema) => Boolean(schema)) }, (err) => err.schema)
+    .otherwise(() => undefined)
+
+  const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined
+
+  let dbVersion: string | undefined
+  // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
+  const schemaOrUrl = schema || error.introspectionUrl
+  if (error.area === ErrorArea.LIFT_CLI && schemaOrUrl) {
+    dbVersion = await getDatabaseVersionSafe(schemaOrUrl)
+  }
+
+  const migrateRequest = error.request
+    ? JSON.stringify(
+        mapScalarValues(error.request, (value) => {
+          if (typeof value === 'string') {
+            return maskSchema(value)
+          }
+          return value
+        }),
+      )
+    : undefined
+
+  const params = {
+    area: error.area,
+    kind: ErrorKind.RUST_PANIC,
+    cliVersion,
+    binaryVersion: enginesVersion,
+    command: getCommand(),
+    jsStackTrace: stripAnsi(error.stack || error.message),
+    rustStackTrace: error.rustStack,
+    operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
+    platform: await getPlatform(),
+    liftRequest: migrateRequest,
+    schemaFile: maskedSchema,
+    fingerprint: await checkpoint.getSignature(),
+    sqlDump: undefined,
+    dbVersion: dbVersion,
+  }
+
+  // Get an AWS S3 signed URL from the server, so we can upload a zip file
+  const signedUrl = await createErrorReport(params)
+
+  // Create & upload the zip file
+  // only log if something fails
   try {
-    const schema: string | undefined = match(error)
-      .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
-        return fs.readFileSync(err.schemaPath, 'utf-8')
-      })
-      .with({ schema: P.when((schema) => Boolean(schema)) }, (err) => err.schema)
-      .otherwise(() => undefined)
-
-    const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined
-
-    let dbVersion: string | undefined
-    // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
-    const schemaOrUrl = schema || error.introspectionUrl
-    if (error.area === ErrorArea.LIFT_CLI && schemaOrUrl) {
-      dbVersion = await getDatabaseVersionSafe(schemaOrUrl)
-    }
-
-    const migrateRequest = error.request
-      ? JSON.stringify(
-          mapScalarValues(error.request, (value) => {
-            if (typeof value === 'string') {
-              return maskSchema(value)
-            }
-            return value
-          }),
-        )
-      : undefined
-
-    const params = {
-      area: error.area,
-      kind: ErrorKind.RUST_PANIC,
-      cliVersion,
-      binaryVersion: enginesVersion,
-      command: getCommand(),
-      jsStackTrace: stripAnsi(error.stack || error.message),
-      rustStackTrace: error.rustStack,
-      operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
-      platform: await getPlatform(),
-      liftRequest: migrateRequest,
-      schemaFile: maskedSchema,
-      fingerprint: await checkpoint.getSignature(),
-      sqlDump: undefined,
-      dbVersion: dbVersion,
-    }
-
-    const signedUrl = await createErrorReport(params)
-
     if (error.schemaPath) {
       const zip = await makeErrorZip(error)
       await uploadZip(zip, signedUrl)
     }
-
-    const id = await makeErrorReportCompleted(signedUrl)
-    return id
-  } catch (e) {
-    debug(e)
-    throw e
+  } catch (zipUploadError) {
+    console.error(`Error uploading zip file: ${zipUploadError.message}`)
   }
+
+  // Mark the error report as completed
+  const id = await makeErrorReportCompleted(signedUrl)
+
+  return id
 }
 
 function getCommand(): string {
