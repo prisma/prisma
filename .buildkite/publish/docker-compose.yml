@@ -132,7 +132,7 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:d22f18e468096200fcb9ced305faf7771ab234ae3714364f36cd5406d57ff628
+    image: vitess/vttestserver:mysql80@sha256:06066301568d583ec19d0f8f49626e7d08e3eb9fdcfffaac094e0b7c63731bec
     restart: always
     ports:
       - 33807:33807
