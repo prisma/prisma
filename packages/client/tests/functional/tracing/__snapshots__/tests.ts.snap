@@ -208,22 +208,22 @@ exports[`tracing (provider=cockroachdb) tracing on crud methods create 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -328,22 +328,22 @@ exports[`tracing (provider=cockroachdb) tracing on crud methods delete 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -520,22 +520,22 @@ exports[`tracing (provider=cockroachdb) tracing on crud methods update 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -668,10 +668,12 @@ exports[`tracing (provider=cockroachdb) tracing on transactions $transaction 1`]
         {
           children: [],
           span: {
-            attributes: {},
+            attributes: {
+              db.statement: <dbStatement>,
+            },
             kind: 0,
             links: [],
-            name: prisma:engine:serialize,
+            name: prisma:engine:db_query,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -700,12 +702,10 @@ exports[`tracing (provider=cockroachdb) tracing on transactions $transaction 1`]
         {
           children: [],
           span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
+            attributes: {},
             kind: 0,
             links: [],
-            name: prisma:engine:db_query,
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -810,100 +810,6 @@ exports[`tracing (provider=cockroachdb) tracing on transactions interactive-tran
           },
         },
         {
-          children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [
-              {
-                context: {
-                  spanId: <spanId>,
-                  traceFlags: 1,
-                  traceId: <traceId>,
-                },
-              },
-            ],
-            name: prisma:engine:itx_query_builder,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [
-              {
-                context: {
-                  spanId: <spanId>,
-                  traceFlags: 1,
-                  traceId: <traceId>,
-                },
-              },
-            ],
-            name: prisma:engine:itx_query_builder,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
           children: [],
           span: {
             attributes: {
@@ -912,6 +818,100 @@ exports[`tracing (provider=cockroachdb) tracing on transactions interactive-tran
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [
+              {
+                context: {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
+              },
+            ],
+            name: prisma:engine:itx_query_builder,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [
+              {
+                context: {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
+              },
+            ],
+            name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -1006,22 +1006,22 @@ exports[`tracing (provider=cockroachdb) tracing with custom span 1`] = `
             {
               children: [],
               span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
                 attributes: {
                   db.statement: <dbStatement>,
                 },
                 kind: 0,
                 links: [],
                 name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
                 parentSpanId: <parentSpanId>,
               },
             },
@@ -1219,22 +1219,22 @@ exports[`tracing (provider=cockroachdb) tracing with middleware tracing with mid
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -1703,22 +1703,22 @@ exports[`tracing (provider=mongodb) tracing on transactions $transaction 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -2420,22 +2420,22 @@ exports[`tracing (provider=mysql) tracing on crud methods create 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -2540,22 +2540,22 @@ exports[`tracing (provider=mysql) tracing on crud methods delete 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -2732,22 +2732,22 @@ exports[`tracing (provider=mysql) tracing on crud methods update 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -2880,10 +2880,12 @@ exports[`tracing (provider=mysql) tracing on transactions $transaction 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
+            attributes: {
+              db.statement: <dbStatement>,
+            },
             kind: 0,
             links: [],
-            name: prisma:engine:serialize,
+            name: prisma:engine:db_query,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -2912,12 +2914,10 @@ exports[`tracing (provider=mysql) tracing on transactions $transaction 1`] = `
         {
           children: [],
           span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
+            attributes: {},
             kind: 0,
             links: [],
-            name: prisma:engine:db_query,
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -3022,100 +3022,6 @@ exports[`tracing (provider=mysql) tracing on transactions interactive-transactio
           },
         },
         {
-          children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [
-              {
-                context: {
-                  spanId: <spanId>,
-                  traceFlags: 1,
-                  traceId: <traceId>,
-                },
-              },
-            ],
-            name: prisma:engine:itx_query_builder,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [
-              {
-                context: {
-                  spanId: <spanId>,
-                  traceFlags: 1,
-                  traceId: <traceId>,
-                },
-              },
-            ],
-            name: prisma:engine:itx_query_builder,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
           children: [],
           span: {
             attributes: {
@@ -3124,6 +3030,100 @@ exports[`tracing (provider=mysql) tracing on transactions interactive-transactio
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [
+              {
+                context: {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
+              },
+            ],
+            name: prisma:engine:itx_query_builder,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [
+              {
+                context: {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
+              },
+            ],
+            name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -3218,22 +3218,22 @@ exports[`tracing (provider=mysql) tracing with custom span 1`] = `
             {
               children: [],
               span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
                 attributes: {
                   db.statement: <dbStatement>,
                 },
                 kind: 0,
                 links: [],
                 name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
                 parentSpanId: <parentSpanId>,
               },
             },
@@ -3431,22 +3431,22 @@ exports[`tracing (provider=mysql) tracing with middleware tracing with middlewar
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -3681,22 +3681,22 @@ exports[`tracing (provider=postgresql) tracing on crud methods create 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -3801,22 +3801,22 @@ exports[`tracing (provider=postgresql) tracing on crud methods delete 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -3993,22 +3993,22 @@ exports[`tracing (provider=postgresql) tracing on crud methods update 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -4141,10 +4141,12 @@ exports[`tracing (provider=postgresql) tracing on transactions $transaction 1`] 
         {
           children: [],
           span: {
-            attributes: {},
+            attributes: {
+              db.statement: <dbStatement>,
+            },
             kind: 0,
             links: [],
-            name: prisma:engine:serialize,
+            name: prisma:engine:db_query,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -4173,12 +4175,10 @@ exports[`tracing (provider=postgresql) tracing on transactions $transaction 1`] 
         {
           children: [],
           span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
+            attributes: {},
             kind: 0,
             links: [],
-            name: prisma:engine:db_query,
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -4283,100 +4283,6 @@ exports[`tracing (provider=postgresql) tracing on transactions interactive-trans
           },
         },
         {
-          children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [
-              {
-                context: {
-                  spanId: <spanId>,
-                  traceFlags: 1,
-                  traceId: <traceId>,
-                },
-              },
-            ],
-            name: prisma:engine:itx_query_builder,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [
-              {
-                context: {
-                  spanId: <spanId>,
-                  traceFlags: 1,
-                  traceId: <traceId>,
-                },
-              },
-            ],
-            name: prisma:engine:itx_query_builder,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
           children: [],
           span: {
             attributes: {
@@ -4385,6 +4291,100 @@ exports[`tracing (provider=postgresql) tracing on transactions interactive-trans
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [
+              {
+                context: {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
+              },
+            ],
+            name: prisma:engine:itx_query_builder,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [
+              {
+                context: {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
+              },
+            ],
+            name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -4479,22 +4479,22 @@ exports[`tracing (provider=postgresql) tracing with custom span 1`] = `
             {
               children: [],
               span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
                 attributes: {
                   db.statement: <dbStatement>,
                 },
                 kind: 0,
                 links: [],
                 name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
                 parentSpanId: <parentSpanId>,
               },
             },
@@ -4692,22 +4692,22 @@ exports[`tracing (provider=postgresql) tracing with middleware tracing with midd
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -4871,22 +4871,22 @@ exports[`tracing (provider=sqlite) tracing on crud methods create 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -4991,22 +4991,22 @@ exports[`tracing (provider=sqlite) tracing on crud methods delete 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -5183,22 +5183,22 @@ exports[`tracing (provider=sqlite) tracing on crud methods update 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -5331,10 +5331,12 @@ exports[`tracing (provider=sqlite) tracing on transactions $transaction 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
+            attributes: {
+              db.statement: <dbStatement>,
+            },
             kind: 0,
             links: [],
-            name: prisma:engine:serialize,
+            name: prisma:engine:db_query,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -5363,12 +5365,10 @@ exports[`tracing (provider=sqlite) tracing on transactions $transaction 1`] = `
         {
           children: [],
           span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
+            attributes: {},
             kind: 0,
             links: [],
-            name: prisma:engine:db_query,
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -5473,100 +5473,6 @@ exports[`tracing (provider=sqlite) tracing on transactions interactive-transacti
           },
         },
         {
-          children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [
-              {
-                context: {
-                  spanId: <spanId>,
-                  traceFlags: 1,
-                  traceId: <traceId>,
-                },
-              },
-            ],
-            name: prisma:engine:itx_query_builder,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [
-              {
-                context: {
-                  spanId: <spanId>,
-                  traceFlags: 1,
-                  traceId: <traceId>,
-                },
-              },
-            ],
-            name: prisma:engine:itx_query_builder,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
           children: [],
           span: {
             attributes: {
@@ -5575,6 +5481,100 @@ exports[`tracing (provider=sqlite) tracing on transactions interactive-transacti
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [
+              {
+                context: {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
+              },
+            ],
+            name: prisma:engine:itx_query_builder,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [
+              {
+                context: {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
+              },
+            ],
+            name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -5669,22 +5669,22 @@ exports[`tracing (provider=sqlite) tracing with custom span 1`] = `
             {
               children: [],
               span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
                 attributes: {
                   db.statement: <dbStatement>,
                 },
                 kind: 0,
                 links: [],
                 name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
                 parentSpanId: <parentSpanId>,
               },
             },
@@ -5882,22 +5882,22 @@ exports[`tracing (provider=sqlite) tracing with middleware tracing with middlewa
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -6132,22 +6132,22 @@ exports[`tracing (provider=sqlserver) tracing on crud methods create 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -6252,22 +6252,22 @@ exports[`tracing (provider=sqlserver) tracing on crud methods delete 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -6444,22 +6444,22 @@ exports[`tracing (provider=sqlserver) tracing on crud methods update 1`] = `
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -6592,10 +6592,12 @@ exports[`tracing (provider=sqlserver) tracing on transactions $transaction 1`] =
         {
           children: [],
           span: {
-            attributes: {},
+            attributes: {
+              db.statement: <dbStatement>,
+            },
             kind: 0,
             links: [],
-            name: prisma:engine:serialize,
+            name: prisma:engine:db_query,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -6624,12 +6626,10 @@ exports[`tracing (provider=sqlserver) tracing on transactions $transaction 1`] =
         {
           children: [],
           span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
+            attributes: {},
             kind: 0,
             links: [],
-            name: prisma:engine:db_query,
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -6734,100 +6734,6 @@ exports[`tracing (provider=sqlserver) tracing on transactions interactive-transa
           },
         },
         {
-          children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [
-              {
-                context: {
-                  spanId: <spanId>,
-                  traceFlags: 1,
-                  traceId: <traceId>,
-                },
-              },
-            ],
-            name: prisma:engine:itx_query_builder,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-          ],
-          span: {
-            attributes: {},
-            kind: 0,
-            links: [
-              {
-                context: {
-                  spanId: <spanId>,
-                  traceFlags: 1,
-                  traceId: <traceId>,
-                },
-              },
-            ],
-            name: prisma:engine:itx_query_builder,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
           children: [],
           span: {
             attributes: {
@@ -6836,6 +6742,100 @@ exports[`tracing (provider=sqlserver) tracing on transactions interactive-transa
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [
+              {
+                context: {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
+              },
+            ],
+            name: prisma:engine:itx_query_builder,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [
+            {
+              children: [],
+              span: {
+                attributes: {
+                  db.statement: <dbStatement>,
+                },
+                kind: 0,
+                links: [],
+                name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+          ],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [
+              {
+                context: {
+                  spanId: <spanId>,
+                  traceFlags: 1,
+                  traceId: <traceId>,
+                },
+              },
+            ],
+            name: prisma:engine:itx_query_builder,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -6930,22 +6930,22 @@ exports[`tracing (provider=sqlserver) tracing with custom span 1`] = `
             {
               children: [],
               span: {
-                attributes: {},
-                kind: 0,
-                links: [],
-                name: prisma:engine:serialize,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
                 attributes: {
                   db.statement: <dbStatement>,
                 },
                 kind: 0,
                 links: [],
                 name: prisma:engine:db_query,
+                parentSpanId: <parentSpanId>,
+              },
+            },
+            {
+              children: [],
+              span: {
+                attributes: {},
+                kind: 0,
+                links: [],
+                name: prisma:engine:serialize,
                 parentSpanId: <parentSpanId>,
               },
             },
@@ -7143,22 +7143,22 @@ exports[`tracing (provider=sqlserver) tracing with middleware tracing with middl
         {
           children: [],
           span: {
-            attributes: {},
-            kind: 0,
-            links: [],
-            name: prisma:engine:serialize,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {
               db.statement: <dbStatement>,
             },
             kind: 0,
             links: [],
             name: prisma:engine:db_query,
+            parentSpanId: <parentSpanId>,
+          },
+        },
+        {
+          children: [],
+          span: {
+            attributes: {},
+            kind: 0,
+            links: [],
+            name: prisma:engine:serialize,
             parentSpanId: <parentSpanId>,
           },
         },

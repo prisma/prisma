@@ -228,7 +228,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     }
 
     if (extensions?.traces?.length) {
-      void this.tracingHelper.createEngineSpan({ span: true, spans: extensions.traces })
+      this.tracingHelper.createEngineSpan({ span: true, spans: extensions.traces })
     }
   }
 

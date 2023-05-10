@@ -285,7 +285,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     if (!event) return
 
     if ('span' in event) {
-      void this.config.tracingHelper.createEngineSpan(event as EngineSpanEvent)
+      this.config.tracingHelper.createEngineSpan(event as EngineSpanEvent)
 
       return
     }
