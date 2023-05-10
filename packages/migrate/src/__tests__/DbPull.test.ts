@@ -873,11 +873,12 @@ describe('postgresql views fs I/O', () => {
       await ctx.fs.fileAsync('views/README')
       await ctx.fs.fileAsync('views/extraneous-file.sql')
       const extraneousList = await ctx.fs.listAsync('views')
+      extraneousList?.sort((a, b) => a.localeCompare(b, 'en-US'))
       expect(extraneousList).toMatchInlineSnapshot(`
         [
-          README,
           empty-dir,
           extraneous-file.sql,
+          README,
         ]
       `)
 
