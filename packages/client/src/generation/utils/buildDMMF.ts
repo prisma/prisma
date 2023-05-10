@@ -22,7 +22,7 @@ const decompressedDMMF = decompressFromBase64(compressedDMMF)
 // We are parsing 2 times, as we want independent objects, because
 // DMMFClass introduces circular references in the dmmf object
 const dmmf = JSON.parse(decompressedDMMF)
-exports.Prisma.dmmf = JSON.parse(decompressedDMMF)
+Prisma.dmmf = JSON.parse(decompressedDMMF)
 config.document = dmmf`
 }
 
