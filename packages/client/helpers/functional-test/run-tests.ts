@@ -47,6 +47,7 @@ const args = arg(
     '--changedFilesWithAncestor': Boolean,
     // Passes the same flag to Jest to shard tests between multiple machines
     '--shard': String,
+    '--verbose': Boolean,
   },
   true,
   true,
@@ -120,6 +121,9 @@ async function main(): Promise<number | void> {
   }
   if (args['--shard']) {
     jestArgs.push('--shard', args['--shard'])
+  }
+  if (args['--verbose']) {
+    jestArgs.push('--verbose')
   }
   const codeTestCli = jestCli.withArgs(jestArgs)
 

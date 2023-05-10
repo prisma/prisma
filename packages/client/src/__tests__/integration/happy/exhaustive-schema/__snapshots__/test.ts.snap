@@ -2,18 +2,13 @@
 
 exports[`exhaustive-schema: generatedBrowserJS 1`] = `
 
-Object.defineProperty(exports, "__esModule", { value: true });
-
 const {
   Decimal,
   objectEnumValues,
   makeStrictEnum
 } = require('@prisma/client/runtime/index-browser')
 
-
 const Prisma = {}
-
-exports.Prisma = Prisma
 
 /**
  * Prisma Client JS version: local
@@ -89,7 +84,7 @@ Prisma.NullTypes = {
  * Enums
  */
 
-exports.Prisma.AScalarFieldEnum = {
+Prisma.AScalarFieldEnum = {
   id: 'id',
   email: 'email',
   name: 'name',
@@ -101,7 +96,7 @@ exports.Prisma.AScalarFieldEnum = {
   inc_bInt: 'inc_bInt'
 };
 
-exports.Prisma.BScalarFieldEnum = {
+Prisma.BScalarFieldEnum = {
   id: 'id',
   float: 'float',
   dFloat: 'dFloat',
@@ -109,7 +104,7 @@ exports.Prisma.BScalarFieldEnum = {
   numFloat: 'numFloat'
 };
 
-exports.Prisma.CScalarFieldEnum = {
+Prisma.CScalarFieldEnum = {
   id: 'id',
   char: 'char',
   vChar: 'vChar',
@@ -119,7 +114,7 @@ exports.Prisma.CScalarFieldEnum = {
   uuid: 'uuid'
 };
 
-exports.Prisma.DScalarFieldEnum = {
+Prisma.DScalarFieldEnum = {
   id: 'id',
   bool: 'bool',
   byteA: 'byteA',
@@ -129,24 +124,24 @@ exports.Prisma.DScalarFieldEnum = {
   list: 'list'
 };
 
-exports.Prisma.EScalarFieldEnum = {
+Prisma.EScalarFieldEnum = {
   id: 'id',
   date: 'date',
   time: 'time',
   ts: 'ts'
 };
 
-exports.Prisma.JsonNullValueFilter = {
+Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
   AnyNull: Prisma.AnyNull
 };
 
-exports.Prisma.JsonNullValueInput = {
+Prisma.JsonNullValueInput = {
   JsonNull: Prisma.JsonNull
 };
 
-exports.Prisma.MScalarFieldEnum = {
+Prisma.MScalarFieldEnum = {
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -162,7 +157,7 @@ exports.Prisma.MScalarFieldEnum = {
   optionalBoolean: 'optionalBoolean'
 };
 
-exports.Prisma.ManyRequiredScalarFieldEnum = {
+Prisma.ManyRequiredScalarFieldEnum = {
   id: 'id',
   oneOptionalId: 'oneOptionalId',
   int: 'int',
@@ -179,7 +174,7 @@ exports.Prisma.ManyRequiredScalarFieldEnum = {
   optionalBoolean: 'optionalBoolean'
 };
 
-exports.Prisma.NScalarFieldEnum = {
+Prisma.NScalarFieldEnum = {
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -195,12 +190,12 @@ exports.Prisma.NScalarFieldEnum = {
   optionalBoolean: 'optionalBoolean'
 };
 
-exports.Prisma.NullableJsonNullValueInput = {
+Prisma.NullableJsonNullValueInput = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull
 };
 
-exports.Prisma.OneOptionalScalarFieldEnum = {
+Prisma.OneOptionalScalarFieldEnum = {
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -216,7 +211,7 @@ exports.Prisma.OneOptionalScalarFieldEnum = {
   optionalBoolean: 'optionalBoolean'
 };
 
-exports.Prisma.OptionalSide1ScalarFieldEnum = {
+Prisma.OptionalSide1ScalarFieldEnum = {
   id: 'id',
   optionalSide2Id: 'optionalSide2Id',
   int: 'int',
@@ -233,7 +228,7 @@ exports.Prisma.OptionalSide1ScalarFieldEnum = {
   optionalBoolean: 'optionalBoolean'
 };
 
-exports.Prisma.OptionalSide2ScalarFieldEnum = {
+Prisma.OptionalSide2ScalarFieldEnum = {
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -249,7 +244,7 @@ exports.Prisma.OptionalSide2ScalarFieldEnum = {
   optionalBoolean: 'optionalBoolean'
 };
 
-exports.Prisma.PostScalarFieldEnum = {
+Prisma.PostScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
   title: 'title',
@@ -258,24 +253,24 @@ exports.Prisma.PostScalarFieldEnum = {
   authorId: 'authorId'
 };
 
-exports.Prisma.QueryMode = {
+Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 };
 
-exports.Prisma.SortOrder = {
+Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
 };
 
-exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
+Prisma.TransactionIsolationLevel = makeStrictEnum({
   ReadUncommitted: 'ReadUncommitted',
   ReadCommitted: 'ReadCommitted',
   RepeatableRead: 'RepeatableRead',
   Serializable: 'Serializable'
 });
 
-exports.Prisma.UserScalarFieldEnum = {
+Prisma.UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
   int: 'int',
@@ -291,13 +286,13 @@ exports.Prisma.UserScalarFieldEnum = {
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
 };
-exports.ABeautifulEnum = {
+ABeautifulEnum = {
   A: 'A',
   B: 'B',
   C: 'C'
 };
 
-exports.Prisma.ModelName = {
+Prisma.ModelName = {
   Post: 'Post',
   User: 'User',
   M: 'M',

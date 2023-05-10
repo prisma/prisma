@@ -23,7 +23,7 @@ export class Enum implements Generatable {
 ${indent(type.values.map((v) => `${v}: ${this.getValueJS(v)}`).join(',\n'), TAB_SIZE)}
 }`
     const enumBody = this.isStrictEnum() ? `makeStrictEnum(${enumVariants})` : enumVariants
-    return `exports.${this.useNamespace ? 'Prisma.' : ''}${type.name} = ${enumBody};`
+    return `${this.useNamespace ? 'Prisma.' : ''}${type.name} = ${enumBody};`
   }
 
   private getValueJS(value: string): string {

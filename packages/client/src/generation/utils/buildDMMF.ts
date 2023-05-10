@@ -44,5 +44,5 @@ export function buildRuntimeDataModel(datamodel: DMMF.Datamodel) {
   const datamodelString = escapeJson(JSON.stringify(runtimeDataModel))
   return `
 config.runtimeDataModel = JSON.parse(${JSON.stringify(datamodelString)})
-defineDmmfProperty(exports.Prisma, config.runtimeDataModel)`
+defineDmmfProperty(Prisma, config.runtimeDataModel)`
 }
