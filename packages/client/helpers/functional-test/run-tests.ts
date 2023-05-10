@@ -54,7 +54,7 @@ const args = arg(
 )
 
 async function main(): Promise<number | void> {
-  let jestCli = new JestCli(['--silent', '--config', 'tests/functional/jest.config.js'])
+  let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
 
   if (args['--provider']) {
@@ -124,6 +124,8 @@ async function main(): Promise<number | void> {
   }
   if (args['--verbose']) {
     jestArgs.push('--verbose')
+  } else {
+    jestArgs.push('--silent')
   }
   const codeTestCli = jestCli.withArgs(jestArgs)
 
