@@ -2,7 +2,7 @@
 /* eslint-disable jest/no-identical-title */
 
 import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get-platform'
-import { getSchema } from '@prisma/internals'
+import { fsUtils, getSchema } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../commands/DbPull'
@@ -481,7 +481,7 @@ describe('postgresql - missing database', () => {
   })
 })
 
-describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
+describe('postgresql views fs I/O', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-pull')
 
   type ViewVariant =
@@ -751,19 +751,19 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
       expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                - Introspecting based on datasource defined in schema.prisma
+        - Introspecting based on datasource defined in schema.prisma
 
-                ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
-                      
-                *** WARNING ***
+        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+              
+        *** WARNING ***
 
-                The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
-                  - "simpleuser"
-                  - "workers"
+        The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+          - "simpleuser"
+          - "workers"
 
-                Run prisma generate to generate Prisma Client.
+        Run prisma generate to generate Prisma Client.
 
-            `)
+      `)
       expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
@@ -821,16 +821,14 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
           ]
         `)
 
-        // showing the folder tree fails on Windows due to path slashes
-        if (process.platform !== 'win32') {
-          const tree = await ctx.fs.findAsync({
-            directories: false,
-            files: true,
-            recursive: true,
-            matching: `${viewsPath}/**/*`,
-          })
-          expect(tree).toMatchSnapshot()
-        }
+        const tree = await ctx.fs.findAsync({
+          directories: false,
+          files: true,
+          recursive: true,
+          matching: `${viewsPath}/**/*`,
+        })
+        const polishedTree = tree.map(fsUtils.normalizePossiblyWindowsDir)
+        expect(polishedTree).toMatchSnapshot()
 
         const publicSimpleUserView = await ctx.fs.readAsync(`${viewsPath}/public/simpleuser.sql`)
         expect(publicSimpleUserView).toMatchInlineSnapshot(`
@@ -875,11 +873,12 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
       await ctx.fs.fileAsync('views/README')
       await ctx.fs.fileAsync('views/extraneous-file.sql')
       const extraneousList = await ctx.fs.listAsync('views')
+      extraneousList?.sort((a, b) => a.localeCompare(b, 'en-US'))
       expect(extraneousList).toMatchInlineSnapshot(`
         [
-          README,
           empty-dir,
           extraneous-file.sql,
+          README,
         ]
       `)
 
@@ -890,21 +889,23 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
       // the folders in `views` match the database schema names (public, work) of the views
       // defined in the `setup.sql` file
       const list = await ctx.fs.listAsync('views')
+      list?.sort((a, b) => a.localeCompare(b, 'en-US'))
       expect(list).toMatchInlineSnapshot(`
         [
-          README,
           extraneous-file.sql,
           public,
+          README,
           work,
         ]
       `)
 
       const tree = await ctx.fs.findAsync({ directories: false, files: true, recursive: true, matching: 'views/**/*' })
+      tree?.sort((a, b) => a.localeCompare(b, 'en-US'))
       expect(tree).toMatchInlineSnapshot(`
         [
-          views/README,
           views/extraneous-file.sql,
           views/public/simpleuser.sql,
+          views/README,
           views/work/workers.sql,
         ]
       `)
@@ -936,13 +937,13 @@ describeIf(process.platform != 'win32')('postgresql views fs I/O', () => {
       expect(ctx.mocked['process.stdout.write'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
 
-                        - Introspecting based on datasource defined in schema.prisma
+        - Introspecting based on datasource defined in schema.prisma
 
-                        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
-                              
-                        Run prisma generate to generate Prisma Client.
+        ✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+              
+        Run prisma generate to generate Prisma Client.
 
-                  `)
+      `)
       expect(ctx.mocked['process.stderr.write'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
 
