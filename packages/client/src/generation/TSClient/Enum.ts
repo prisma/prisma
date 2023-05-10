@@ -7,7 +7,11 @@ import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 
 export class Enum implements Generatable {
-  constructor(protected readonly type: DMMF.SchemaEnum, protected readonly useNamespace: boolean) {}
+  constructor(
+    protected readonly type: DMMF.SchemaEnum,
+    protected readonly useNamespace: boolean,
+    protected readonly esm: boolean | undefined,
+  ) {}
 
   private isObjectEnum(): boolean {
     return this.useNamespace && objectEnumNames.includes(this.type.name)
@@ -23,7 +27,7 @@ export class Enum implements Generatable {
 ${indent(type.values.map((v) => `${v}: ${this.getValueJS(v)}`).join(',\n'), TAB_SIZE)}
 }`
     const enumBody = this.isStrictEnum() ? `makeStrictEnum(${enumVariants})` : enumVariants
-    return `${this.useNamespace ? 'Prisma.' : ''}${type.name} = ${enumBody};`
+    return `${this.useNamespace ? 'Prisma.' : this.esm ? 'export const ' : 'exports.'}${type.name} = ${enumBody};`
   }
 
   private getValueJS(value: string): string {

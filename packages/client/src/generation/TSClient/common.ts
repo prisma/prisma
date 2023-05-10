@@ -11,8 +11,7 @@ export const commonCodeJS = ({
   clientVersion,
   engineVersion,
   esm,
-}: TSClientOptions): string => `
-${esm === true ? 'import' : 'const'} {${
+}: TSClientOptions): string => `${esm === true ? 'import' : 'const'} {${
   browser === true
     ? `
   Decimal,
@@ -86,7 +85,6 @@ Prisma.defineExtension = ${notSupportOnBrowser('Extensions.defineExtension', bro
 Prisma.DbNull = objectEnumValues.instances.DbNull
 Prisma.JsonNull = objectEnumValues.instances.JsonNull
 Prisma.AnyNull = objectEnumValues.instances.AnyNull
-
 Prisma.NullTypes = {
   DbNull: objectEnumValues.classes.DbNull,
   JsonNull: objectEnumValues.classes.JsonNull,

@@ -108,8 +108,8 @@ ${commonCodeJS({ ...this.options, browser: false })}
  * Enums
  */
 
-${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, this.options.esm).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, this.options.esm).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {
@@ -117,6 +117,7 @@ ${new Enum(
     values: this.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
+  this.options.esm,
 ).toJS()}
 /**
  * Create the Client
@@ -131,8 +132,8 @@ ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge)}
 ${buildEdgeClientProtocol(edge, generator)}
 ${buildDebugInitialization(edge)}
-${buildExports(this.options.esm)}
 ${buildNFTAnnotations(dataProxy, this.options.esm, engineType, platforms, relativeOutdir)}
+${buildExports(this.options.esm)}
 `
     return code
   }
@@ -160,9 +161,9 @@ ${buildNFTAnnotations(dataProxy, this.options.esm, engineType, platforms, relati
 
     // TODO: Make this code more efficient and directly return 2 arrays
 
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toTS())
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, this.options.esm).toTS())
 
-    const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toTS())
+    const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, this.options.esm).toTS())
 
     const fieldRefs = this.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
 
@@ -203,6 +204,7 @@ ${new Enum(
     values: this.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
+  this.options.esm,
 ).toTS()}
 
 ${prismaClientClass.toTS()}
@@ -299,8 +301,8 @@ export const dmmf: runtime.BaseDMMF
  * Enums
  */
 
-${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
+${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, this.options.esm).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, this.options.esm).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {
@@ -308,6 +310,7 @@ ${new Enum(
     values: this.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
+  this.options.esm,
 ).toJS()}
 
 /**
@@ -321,10 +324,8 @@ In case this error is unexpected for you, please report it in https://github.com
     )
   }
 }
-exports.PrismaClient = PrismaClient
 
-Object.assign(exports, Prisma)
-`
+${buildExports(this.options.esm)}`
     return code
   }
 }
