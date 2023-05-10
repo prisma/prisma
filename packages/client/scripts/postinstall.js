@@ -201,30 +201,40 @@ function run(cmd, params, cwd = process.cwd()) {
 async function createDefaultGeneratedThrowFiles() {
   try {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
-    const defaultNodeIndexPath = path.join(dotPrismaClientDir, 'index.js')
+    const defaultNodeIndexCjsPath = path.join(dotPrismaClientDir, 'index.js')
+    const defaultNodeIndexMjsPath = path.join(dotPrismaClientDir, 'index.mjs')
     const defaultNodeIndexDtsPath = path.join(dotPrismaClientDir, 'index.d.ts')
-    const defaultBrowserIndexPath = path.join(dotPrismaClientDir, 'index-browser.js')
-    const defaultEdgeIndexPath = path.join(dotPrismaClientDir, 'edge.js')
+    const defaultBrowserIndexMjsPath = path.join(dotPrismaClientDir, 'index-browser.mjs')
+    const defaultEdgeIndexCjsPath = path.join(dotPrismaClientDir, 'edge.js')
+    const defaultEdgeIndexMjsPath = path.join(dotPrismaClientDir, 'edge.mjs')
     const defaultEdgeIndexDtsPath = path.join(dotPrismaClientDir, 'edge.d.ts')
     const defaultDenoClientDir = path.join(dotPrismaClientDir, 'deno')
     const defaultDenoEdgeIndexPath = path.join(defaultDenoClientDir, 'edge.ts')
     await makeDir(dotPrismaClientDir)
     await makeDir(defaultDenoClientDir)
 
-    if (!fs.existsSync(defaultNodeIndexPath)) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
+    if (!fs.existsSync(defaultNodeIndexCjsPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexCjsPath)
     }
 
-    if (!fs.existsSync(defaultBrowserIndexPath)) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-index-browser.js'), defaultBrowserIndexPath)
+    if (!fs.existsSync(defaultNodeIndexMjsPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-index.mjs'), defaultNodeIndexCjsPath)
+    }
+
+    if (!fs.existsSync(defaultBrowserIndexMjsPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-index-browser.mjs'), defaultBrowserIndexMjsPath)
     }
 
     if (!fs.existsSync(defaultNodeIndexDtsPath)) {
       await fs.promises.copyFile(path.join(__dirname, 'default-index.d.ts'), defaultNodeIndexDtsPath)
     }
 
-    if (!fs.existsSync(defaultEdgeIndexPath)) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-edge.js'), defaultEdgeIndexPath)
+    if (!fs.existsSync(defaultEdgeIndexCjsPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-edge.js'), defaultEdgeIndexCjsPath)
+    }
+
+    if (!fs.existsSync(defaultEdgeIndexMjsPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-edge.mjs'), defaultEdgeIndexCjsPath)
     }
 
     if (!fs.existsSync(defaultEdgeIndexDtsPath)) {

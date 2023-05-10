@@ -388,6 +388,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await fs.promises.copyFile(schemaPath, schemaTargetPath)
   }
 
+  // TODO: this block is weird
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')

@@ -7,6 +7,4 @@ In case this error is unexpected for you, please report it in https://github.com
   }
 }
 
-module.exports = {
-  PrismaClient,
-}
+export { PrismaClient }
