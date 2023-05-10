@@ -1,4 +1,4 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getClientEngineType, getEnvPaths, getQueryEngineProtocol } from '@prisma/internals'
 import ciInfo from 'ci-info'
@@ -9,7 +9,6 @@ import path from 'path'
 import { DMMFHelper } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
@@ -22,7 +21,6 @@ import { buildInlineSchema } from '../utils/buildInlineSchema'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildNodeImports } from '../utils/buildNodeImports'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
-import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
 import { Enum } from './Enum'
@@ -40,10 +38,9 @@ export interface TSClientOptions {
   runtimeDir: string
   runtimeName: string
   browser?: boolean
-  datasources: InternalDatasource[]
+  datasources: DataSource[]
   generator?: GeneratorConfig
   platforms?: Platform[] // TODO: consider making it non-nullable
-  sqliteDatasourceOverrides?: DatasourceOverwrite[]
   schemaPath: string
   outputDir: string
   activeProvider: string
@@ -65,8 +62,7 @@ export class TSClient implements Generatable {
   }
 
   public async toJS(edge = false): Promise<string> {
-    const { platforms, generator, sqliteDatasourceOverrides, outputDir, schemaPath, datasources, dataProxy } =
-      this.options
+    const { platforms, generator, outputDir, schemaPath, datasources, dataProxy } = this.options
     const engineProtocol = getQueryEngineProtocol(generator)
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
@@ -84,7 +80,6 @@ export class TSClient implements Generatable {
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
-      sqliteDatasourceOverrides,
       relativePath: path.relative(outputDir, path.dirname(schemaPath)),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
@@ -148,7 +143,6 @@ ${buildExports(this.options.esm)}
       this.options.outputDir,
       this.options.browser,
       this.options.generator,
-      this.options.sqliteDatasourceOverrides,
       path.dirname(this.options.schemaPath),
     )
 

@@ -1,10 +1,10 @@
+import { DataSource } from '@prisma/generator-helper'
 import indent from 'indent-string'
 
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import type { Generatable } from './Generatable'
 
 export class Datasources implements Generatable {
-  constructor(protected readonly internalDatasources: InternalDatasource[]) {}
+  constructor(protected readonly internalDatasources: DataSource[]) {}
   public toTS(): string {
     const sources = this.internalDatasources
     return `export type Datasources = {

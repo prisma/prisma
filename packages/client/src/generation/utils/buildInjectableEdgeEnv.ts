@@ -1,4 +1,4 @@
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { DataSource } from '@prisma/generator-helper'
 
 type InjectableEnv = {
   parsed: {
@@ -19,7 +19,7 @@ type InjectableEnv = {
  * @param datasources
  * @returns
  */
-export function buildInjectableEdgeEnv(edge: boolean, datasources: InternalDatasource[]) {
+export function buildInjectableEdgeEnv(edge: boolean, datasources: DataSource[]) {
   if (edge === true) {
     return declareInjectableEdgeEnv(datasources)
   }
@@ -32,7 +32,7 @@ export function buildInjectableEdgeEnv(edge: boolean, datasources: InternalDatas
  * generated client. We abuse a custom `JSON.stringify` to generate the code.
  * @param datasources to find env vars in
  */
-function declareInjectableEdgeEnv(datasources: InternalDatasource[]) {
+function declareInjectableEdgeEnv(datasources: DataSource[]) {
   // we create a base env with empty values for env names
   const injectableEdgeEnv: InjectableEnv = { parsed: {} }
   const envVarNames = getSelectedEnvVarNames(datasources)
@@ -55,7 +55,7 @@ config.injectableEdgeEnv = ${injectableEdgeEnvCode}`
  * @param datasources to find env vars in
  * @returns
  */
-function getSelectedEnvVarNames(datasources: InternalDatasource[]) {
+function getSelectedEnvVarNames(datasources: DataSource[]) {
   return datasources.reduce((acc, datasource) => {
     if (datasource.url.fromEnvVar) {
       return [...acc, datasource.url.fromEnvVar]

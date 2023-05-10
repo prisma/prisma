@@ -1,9 +1,9 @@
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { DataSource } from '@prisma/generator-helper'
 
 // that is all we need for the data proxy
 export type InlineDatasources = {
-  [name in InternalDatasource['name']]: {
-    url: InternalDatasource['url']
+  [name in DataSource['name']]: {
+    url: DataSource['url']
   }
 }
 
@@ -11,15 +11,15 @@ export type InlineDatasources = {
  * Builds the important datasource information for the data proxy. Essentially,
  * it saves the URL or env var name for the data proxy engine to read later.
  * @param dataProxy
- * @param internalDatasources
+ * @param datasources
  * @returns
  */
-export function buildInlineDatasource(dataProxy: boolean, internalDatasources: InternalDatasource[]) {
+export function buildInlineDatasource(dataProxy: boolean, datasources: DataSource[]) {
   if (dataProxy === true) {
-    const datasources = internalToInlineDatasources(internalDatasources)
+    const inlineDataSources = dataSourcesToInlineDataSources(datasources)
 
     return `
-config.inlineDatasources = ${JSON.stringify(datasources, null, 2)}`
+config.inlineDatasources = ${JSON.stringify(inlineDataSources, null, 2)}`
   }
 
   return ``
@@ -27,11 +27,11 @@ config.inlineDatasources = ${JSON.stringify(datasources, null, 2)}`
 
 /**
  * Transforms an array of datasources into an inline datasources
- * @param internalDatasources
+ * @param datasources
  * @returns
  */
-function internalToInlineDatasources(internalDatasources: InternalDatasource[]) {
-  return internalDatasources.reduce((acc, ds) => {
+function dataSourcesToInlineDataSources(datasources: DataSource[]) {
+  return datasources.reduce((acc, ds) => {
     acc[ds.name] = { url: ds.url }
 
     return acc

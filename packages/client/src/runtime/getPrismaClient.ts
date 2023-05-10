@@ -27,7 +27,6 @@ import {
   BatchTransactionOptions,
   BinaryEngine,
   DataProxyEngine,
-  DatasourceOverwrite,
   Engine,
   EngineConfig,
   EngineEventType,
@@ -223,7 +222,6 @@ export type GetPrismaClientConfig = (
     }
 ) & {
   generator?: GeneratorConfig
-  sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
     rootEnvPath?: string | null
     schemaEnvPath?: string | null

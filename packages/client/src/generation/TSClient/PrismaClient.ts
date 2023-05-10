@@ -1,13 +1,11 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import * as ts from '../ts-builders'
 import { getModelArgName } from '../utils'
 import { runtimeImport } from '../utils/runtimeImport'
-import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
@@ -461,11 +459,10 @@ export class PrismaClientClass implements Generatable {
   }
   constructor(
     protected readonly dmmf: DMMFHelper,
-    protected readonly internalDatasources: InternalDatasource[],
+    protected readonly dataSources: DataSource[],
     protected readonly outputDir: string,
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
-    protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
     protected readonly cwd?: string,
   ) {
     this.clientExtensionsDefinitions = clientExtensionsDefinitions.bind(this)()
@@ -568,7 +565,7 @@ get ${methodName}(): ${ifExtensions(
 }`
   }
   public toTS(): string {
-    return `${new Datasources(this.internalDatasources).toTS()}
+    return `${new Datasources(this.dataSources).toTS()}
 ${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
 export type DefaultPrismaClient = PrismaClient
 export type RejectOnNotFound = boolean | ((error: Error) => Error)
