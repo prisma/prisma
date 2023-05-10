@@ -40,7 +40,7 @@ ${esm === true ? 'import' : 'const'} {${
   warnEnvConflicts,
   defineDmmfProperty`
 }
-} ${esm === true ? 'from ' : '= require('}'${runtimeDir}/${runtimeName}'${esm === true ? '' : ')'}
+} ${esm === true ? 'from ' : '= require('}'${runtimeDir}/${runtimeName}${esm === true ? ".mjs'" : "')"}
 
 const Prisma = {}
 

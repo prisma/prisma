@@ -146,6 +146,29 @@ export async function buildClient({
           import: './index.mjs',
           browser: './index-browser.js',
         },
+        './runtime/binary': {
+          types: './runtime/binary.d.ts',
+          require: './runtime/binary.js',
+          import: './runtime/binary.mjs',
+          browser: './runtime/index-browser.js',
+        },
+        './runtime/library': {
+          types: './runtime/library.d.ts',
+          require: './runtime/library.js',
+          import: './runtime/library.mjs',
+          browser: './runtime/index-browser.js',
+        },
+        './runtime/edge': {
+          types: './runtime/index.d.ts',
+          require: './runtime/edge.js',
+          import: './runtime/edge.mjs',
+          browser: './runtime/index-browser.js',
+        },
+        './runtime/index-browser': {
+          types: './runtime/index.d.ts',
+          require: './runtime/index-browser.js',
+          browser: './runtime/index-browser.js',
+        },
       },
     },
     null,
@@ -585,7 +608,7 @@ type CopyRuntimeOptions = {
 async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
   const files = ['index.d.ts', 'index-browser.js', 'index-browser.d.ts']
 
-  files.push(`${runtimeName}.js`, `${runtimeName}.d.ts`)
+  files.push(`${runtimeName}.js`, `${runtimeName}.mjs`, `${runtimeName}.d.ts`)
 
   if (runtimeName === 'data-proxy') {
     files.push('edge.js', 'edge.mjs')

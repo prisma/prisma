@@ -12,8 +12,4 @@ export const esmPreset: Fillers = {
   __filename: {
     inject: path.join(__dirname, 'esm', 'filename.ts'),
   },
-  eval: {
-    define: 'evaluate',
-    inject: path.join(__dirname, 'esm', 'eval.ts'),
-  },
 }
