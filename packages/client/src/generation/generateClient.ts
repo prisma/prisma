@@ -131,7 +131,7 @@ export async function buildClient({
   fileMap['index.d.ts'] = await TS(nodeCjsClient)
   fileMap['index.js'] = await JS(nodeCjsClient, false)
   fileMap['index.mjs'] = await JS(nodeEsmClient, false)
-  fileMap['index-browser.js'] = await BrowserJS(nodeCjsClient)
+  fileMap['index-browser.js'] = await BrowserJS(nodeEsmClient)
   fileMap['package.json'] = JSON.stringify(
     {
       name: GENERATED_PACKAGE_NAME,

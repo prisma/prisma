@@ -133,6 +133,7 @@ ${buildWarnEnvConflicts(edge)}
 ${buildEdgeClientProtocol(edge, generator)}
 ${buildDebugInitialization(edge)}
 ${buildNFTAnnotations(dataProxy, this.options.esm, engineType, platforms, relativeOutdir)}
+const PrismaClient = getPrismaClient(config)
 ${buildExports(this.options.esm)}
 `
     return code
@@ -325,7 +326,8 @@ In case this error is unexpected for you, please report it in https://github.com
   }
 }
 
-${buildExports(this.options.esm)}`
+${buildExports(this.options.esm)}
+`
     return code
   }
 }
