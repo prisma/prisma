@@ -41,11 +41,7 @@ export class ActiveTracingHelper implements TracingHelper {
     return nonSampledTraceParent
   }
 
-  async createEngineSpan(engineSpanEvent: EngineSpanEvent): Promise<void> {
-    // this is only needed for tests and isn't useful otherwise
-    // so that "engine" spans are always emitted after "client"
-    await new Promise((res) => setTimeout(res, 0))
-
+  createEngineSpan(engineSpanEvent: EngineSpanEvent) {
     const tracer = trace.getTracer('prisma') as Tracer
 
     engineSpanEvent.spans.forEach((engineSpan) => {
