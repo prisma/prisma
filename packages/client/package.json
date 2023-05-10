@@ -92,7 +92,7 @@
     "@types/jest": "29.5.1",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.2",
-    "@types/node": "18.16.3",
+    "@types/node": "18.16.6",
     "@types/pg": "8.6.6",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
@@ -123,7 +123,7 @@
     "memfs": "3.4.13",
     "mssql": "9.1.1",
     "new-github-issue-url": "0.2.1",
-    "node-fetch": "2.6.9",
+    "node-fetch": "2.6.11",
     "p-retry": "4.6.2",
     "pg": "8.9.0",
     "pkg-up": "3.1.0",
@@ -155,7 +155,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.14.0-67.d9a4c5988f480fa576d43970d5a23641aa77bc9c"
+    "@prisma/engines-version": "4.14.0-68.d9c07544fc26f4e90f8662fbb2276b3e09980208"
   },
   "sideEffects": false
 }
