@@ -47,6 +47,30 @@
       "require": "./index-browser.js",
       "import": "./index-browser.mjs",
       "browser": "./index-browser.mjs"
+    },
+    "./runtime/binary": {
+      "types": "./runtime/binary.d.ts",
+      "require": "./runtime/binary.js",
+      "import": "./runtime/binary.mjs",
+      "browser": "./runtime/index-browser.mjs"
+    },
+    "./runtime/library": {
+      "types": "./runtime/library.d.ts",
+      "require": "./runtime/library.js",
+      "import": "./runtime/library.mjs",
+      "browser": "./runtime/index-browser.mjs"
+    },
+    "./runtime/edge": {
+      "types": "./runtime/index.d.ts",
+      "require": "./runtime/edge.js",
+      "import": "./runtime/edge.mjs",
+      "browser": "./runtime/index-browser.mjs"
+    },
+    "./runtime/index-browser": {
+      "types": "./runtime/index.d.ts",
+      "require": "./runtime/index-browser.js",
+      "import": "./runtime/index-browser.mjs",
+      "browser": "./runtime/index-browser.mjs"
     }
   },
   "license": "Apache-2.0",
