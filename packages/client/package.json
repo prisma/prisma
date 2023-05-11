@@ -110,6 +110,7 @@
     "edge.mjs",
     "edge.d.ts",
     "index.js",
+    "index.mjs",
     "index.d.ts",
     "index-browser.js",
     "index-browser.mjs"
