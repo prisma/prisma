@@ -1,6 +1,6 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths, getQueryEngineProtocol } from '@prisma/internals'
+import { getClientEngineType, getEnvPaths } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import indent from 'indent-string'
 import { klona } from 'klona'
@@ -12,7 +12,7 @@ import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
-import { buildFullDMMF, buildRuntimeDataModel } from '../utils/buildDMMF'
+import { buildDMMF } from '../utils/buildDMMF'
 import { buildEdgeClientProtocol } from '../utils/buildEdgeClientProtocol'
 import { buildExports } from '../utils/buildExports'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
@@ -31,22 +31,22 @@ import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
 export interface TSClientOptions {
-  projectRoot: string
   clientVersion: string
   engineVersion: string
   document: DMMF.Document
   runtimeDir: string
   runtimeName: string
-  browser?: boolean
   datasources: DataSource[]
   generator?: GeneratorConfig
   platforms?: Platform[] // TODO: consider making it non-nullable
   schemaPath: string
   outputDir: string
   activeProvider: string
-  dataProxy: boolean
   postinstall?: boolean
-  esm?: boolean
+  dataProxy: boolean
+  browser: boolean
+  edge: boolean
+  esm: boolean
 }
 
 export class TSClient implements Generatable {
@@ -61,9 +61,8 @@ export class TSClient implements Generatable {
     TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
   }
 
-  public async toJS(edge = false): Promise<string> {
-    const { platforms, generator, outputDir, schemaPath, datasources, dataProxy } = this.options
-    const engineProtocol = getQueryEngineProtocol(generator)
+  public async toJS(): Promise<string> {
+    const { generator, outputDir, schemaPath, datasources } = this.options
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -72,9 +71,8 @@ export class TSClient implements Generatable {
     }
 
     // This ensures that any engine override is propagated to the generated clients config
-    const engineType = getClientEngineType(generator!)
     if (generator) {
-      generator.config.engineType = engineType
+      generator.config.engineType = getClientEngineType(generator)
     }
 
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
@@ -94,17 +92,15 @@ export class TSClient implements Generatable {
     // being moved around as long as we keep the same project dir structure.
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
-    const needsFullDMMF = dataProxy && engineProtocol === 'graphql'
-
-    const code = `${buildNodeImports(edge, this.options.esm)}
-${commonCodeJS({ ...this.options, browser: false })}
+    const code = `${buildNodeImports(this.options)}
+${commonCodeJS(this.options)}
 
 /**
  * Enums
  */
 
-${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, this.options.esm).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, this.options.esm).toJS()).join('\n\n') ?? ''}
+${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, this.options).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, this.options).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {
@@ -112,30 +108,29 @@ ${new Enum(
     values: this.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
-  this.options.esm,
+  this.options,
 ).toJS()}
 /**
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-${buildDirname(edge, this.options.esm, relativeOutdir)}
-${needsFullDMMF ? buildFullDMMF(this.options.document) : buildRuntimeDataModel(this.dmmf.datamodel)}
-
-${await buildInlineSchema(dataProxy, schemaPath)}
-${buildInlineDatasource(dataProxy, datasources)}
-${buildInjectableEdgeEnv(edge, datasources)}
-${buildWarnEnvConflicts(edge)}
-${buildEdgeClientProtocol(edge, generator)}
-${buildDebugInitialization(edge)}
-${buildNFTAnnotations(dataProxy, this.options.esm, engineType, platforms, relativeOutdir)}
+${buildDirname(this.options, relativeOutdir)}
+${buildDMMF(this.options)}
+${await buildInlineSchema(this.options)}
+${buildInlineDatasource(this.options)}
+${buildInjectableEdgeEnv(this.options)}
+${buildWarnEnvConflicts(this.options)}
+${buildEdgeClientProtocol(this.options)}
+${buildDebugInitialization(this.options)}
+${buildNFTAnnotations(this.options, relativeOutdir)}
 const PrismaClient = getPrismaClient(config)
-${buildExports(this.options.esm)}
+${buildExports(this.options)}
 `
     return code
   }
-  public toTS(edge = false): string {
+  public toTS(): string {
     // edge exports the same ts definitions as the index
-    if (edge === true) return `export * from './index'`
+    if (this.options.edge === true) return `export * from './index'`
 
     const prismaClientClass = new PrismaClientClass(
       this.dmmf,
@@ -156,9 +151,9 @@ ${buildExports(this.options.esm)}
 
     // TODO: Make this code more efficient and directly return 2 arrays
 
-    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, this.options.esm).toTS())
+    const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, this.options).toTS())
 
-    const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, this.options.esm).toTS())
+    const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, this.options).toTS())
 
     const fieldRefs = this.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
 
@@ -199,7 +194,7 @@ ${new Enum(
     values: this.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
-  this.options.esm,
+  this.options,
 ).toTS()}
 
 ${prismaClientClass.toTS()}
@@ -296,8 +291,8 @@ export const dmmf: runtime.BaseDMMF
  * Enums
  */
 
-${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, this.options.esm).toJS()).join('\n\n')}
-${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, this.options.esm).toJS()).join('\n\n') ?? ''}
+${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true, this.options).toJS()).join('\n\n')}
+${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false, this.options).toJS()).join('\n\n') ?? ''}
 
 ${new Enum(
   {
@@ -305,7 +300,7 @@ ${new Enum(
     values: this.dmmf.mappings.modelOperations.map((m) => m.model),
   },
   true,
-  this.options.esm,
+  this.options,
 ).toJS()}
 
 /**
@@ -320,7 +315,7 @@ In case this error is unexpected for you, please report it in https://github.com
   }
 }
 
-${buildExports(this.options.esm)}
+${buildExports(this.options)}
 `
     return code
   }

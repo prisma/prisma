@@ -1,6 +1,8 @@
 import crypto from 'crypto'
 import fs from 'fs'
 
+import { TSClientOptions } from '../TSClient/TSClient'
+
 const readFile = fs.promises.readFile
 
 /**
@@ -10,7 +12,7 @@ const readFile = fs.promises.readFile
  * @param schemaPath
  * @returns
  */
-export async function buildInlineSchema(dataProxy: boolean, schemaPath: string) {
+export async function buildInlineSchema({ dataProxy, schemaPath }: TSClientOptions) {
   if (dataProxy === true) {
     const b64Schema = (await readFile(schemaPath)).toString('base64')
     const schemaHash = crypto.createHash('sha256').update(b64Schema).digest('hex')

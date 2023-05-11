@@ -16,11 +16,11 @@ import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 import { promisify } from 'util'
 
-import { name as clientPackageName } from '../../package.json'
+import clientPackage from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
 import type { Dictionary } from '../runtime/utils/common'
 import { getPrismaClientDMMF } from './getDMMF'
-import { BrowserJS, JS, TS, TSClient } from './TSClient'
+import { TSClient } from './TSClient'
 
 const exists = promisify(fs.exists)
 
@@ -76,7 +76,6 @@ export async function buildClient({
   datasources,
   engineVersion,
   clientVersion,
-  projectRoot,
   activeProvider,
   dataProxy,
   postinstall,
@@ -96,80 +95,55 @@ export async function buildClient({
     outputDir,
     clientVersion,
     engineVersion,
-    projectRoot: projectRoot!,
     activeProvider,
     dataProxy,
     postinstall,
   }
 
-  // we create a regular client that is fit for Node.js
-  const nodeCjsClient = new TSClient({
+  const nodeClientOptions = {
     ...tsClientOptions,
     runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
     runtimeDir: runtimeDirs.node,
-  })
+    browser: false,
+    edge: false,
+  }
 
-  // we create a regular client that is fit for Node.js
-  const nodeEsmClient = new TSClient({
+  const edgeClientOptions = {
     ...tsClientOptions,
-    runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
-    runtimeDir: runtimeDirs.node,
-    esm: true,
-  })
-
-  // we create a client that is fit for edge runtimes
-  const edgeTsClient = new TSClient({
-    ...tsClientOptions,
-    dataProxy: true, // edge only works w/ data proxy
     runtimeName: 'edge',
     runtimeDir: runtimeDirs.edge,
-  })
+    dataProxy: true,
+    browser: false,
+    edge: true,
+  }
+
+  const denoEdgeClientOptions = {
+    ...edgeClientOptions,
+    runtimeName: 'index.d.ts',
+    runtimeDir: '../' + runtimeDirs.edge,
+    esm: true,
+  }
 
   const fileMap = {} // we will store the generated contents here
 
+  // we create a regular client that is fit for Node.js
+  const nodeCjsClient = new TSClient({ ...nodeClientOptions, esm: false })
+  const nodeEsmClient = new TSClient({ ...nodeClientOptions, esm: true })
+
   // we generate the default client that is meant to work on Node
-  fileMap['index.d.ts'] = await TS(nodeCjsClient)
-  fileMap['index.js'] = await JS(nodeCjsClient, false)
-  fileMap['index.mjs'] = await JS(nodeEsmClient, false)
-  fileMap['index-browser.js'] = await BrowserJS(nodeEsmClient)
+  fileMap['index.d.ts'] = nodeCjsClient.toTS()
+  fileMap['index.js'] = await nodeCjsClient.toJS()
+  fileMap['index.mjs'] = await nodeEsmClient.toJS()
+  fileMap['index-browser.js'] = nodeCjsClient.toBrowserJS()
+  fileMap['index-browser.mjs'] = nodeEsmClient.toBrowserJS()
   fileMap['package.json'] = JSON.stringify(
     {
       name: GENERATED_PACKAGE_NAME,
-      types: 'index.d.ts',
-      main: 'index.js',
-      module: 'index.mjs',
-      browser: 'index-browser.js',
-      exports: {
-        '.': {
-          types: './index.d.ts',
-          require: './index.js',
-          import: './index.mjs',
-          browser: './index-browser.js',
-        },
-        './runtime/binary': {
-          types: './runtime/binary.d.ts',
-          require: './runtime/binary.js',
-          import: './runtime/binary.mjs',
-          browser: './runtime/index-browser.js',
-        },
-        './runtime/library': {
-          types: './runtime/library.d.ts',
-          require: './runtime/library.js',
-          import: './runtime/library.mjs',
-          browser: './runtime/index-browser.js',
-        },
-        './runtime/edge': {
-          types: './runtime/index.d.ts',
-          require: './runtime/edge.js',
-          import: './runtime/edge.mjs',
-          browser: './runtime/index-browser.js',
-        },
-        './runtime/index-browser': {
-          types: './runtime/index.d.ts',
-          require: './runtime/index-browser.js',
-          browser: './runtime/index-browser.js',
-        },
-      },
+      types: clientPackage.types,
+      main: clientPackage.main,
+      module: clientPackage.module,
+      browser: clientPackage.browser,
+      exports: clientPackage.exports,
     },
     null,
     2,
@@ -177,29 +151,25 @@ export async function buildClient({
 
   // we only generate the edge client if `--data-proxy` is passed
   if (dataProxy === true) {
-    fileMap['edge.js'] = await JS(edgeTsClient, true)
-    fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
+    const edgeCjsClient = new TSClient({ ...edgeClientOptions, esm: false })
+    const edgeEsmClient = new TSClient({ ...edgeClientOptions, esm: true })
+
+    fileMap['edge.d.ts'] = nodeCjsClient.toTS()
+    fileMap['edge.js'] = await edgeCjsClient.toJS()
+    fileMap['edge.mjs'] = await edgeEsmClient.toJS()
   }
 
-  if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
-    if (dataProxy === true) {
-      // we create a client that is fit for edge runtimes
-      const denoEsmEdgeClient = new TSClient({
-        ...tsClientOptions,
-        dataProxy: true, // edge only works w/ data proxy
-        runtimeName: 'index.d.ts',
-        runtimeDir: '../' + runtimeDirs.edge,
-        esm: true,
-      })
+  // we create a client that is fit for the deno deploy runtime
+  if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno && dataProxy === true) {
+    const denoEsmEdgeClient = new TSClient({ ...denoEdgeClientOptions })
 
-      fileMap['deno/edge.js'] = await JS(denoEsmEdgeClient, true)
-      fileMap['deno/index.d.ts'] = await TS(denoEsmEdgeClient)
-      fileMap['deno/edge.ts'] = `
+    fileMap['deno/index.d.ts'] = denoEsmEdgeClient.toTS()
+    fileMap['deno/edge.js'] = await denoEsmEdgeClient.toJS()
+    fileMap['deno/edge.ts'] = `
 import './polyfill.js'
 // @deno-types="./index.d.ts"
 export * from './edge.js'`
-      fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
-    }
+    fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
   }
 
   return {
@@ -252,9 +222,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     dataProxy,
     postinstall,
   } = options
-
   const clientEngineType = getClientEngineType(generator!)
-  const { runtimeDirs, finalOutputDir, projectRoot } = await getGenerationDirs(options)
+  const { runtimeDirs, finalOutputDir } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
     datamodel,
@@ -268,7 +237,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     binaryPaths,
     clientVersion,
     engineVersion,
-    projectRoot,
     activeProvider,
     dataProxy,
     postinstall,
@@ -521,13 +489,9 @@ async function getGenerationDirs({
     await verifyOutputDirectory(finalOutputDir, datamodel, schemaPath)
   }
 
-  const packageRoot = await pkgUp({ cwd: path.dirname(finalOutputDir) })
-  const projectRoot = packageRoot ? path.dirname(packageRoot) : process.cwd()
-
   return {
     runtimeDirs: _runtimeDirs,
     finalOutputDir,
-    projectRoot,
   }
 }
 
@@ -543,18 +507,18 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
     throw e
   }
   const { name } = JSON.parse(content)
-  if (name === clientPackageName) {
+  if (name === clientPackage.name) {
     const message = [`Generating client into ${bold(directory)} is not allowed.`]
     message.push('This package is used by `prisma generate` and overwriting its content is dangerous.')
     message.push('')
     message.push('Suggestion:')
     const outputDeclaration = findOutputPathDeclaration(datamodel)
 
-    if (outputDeclaration && outputDeclaration.content.includes(clientPackageName)) {
+    if (outputDeclaration && outputDeclaration.content.includes(clientPackage.name)) {
       const outputLine = outputDeclaration.content
       message.push(`In ${bold(schemaPath)} replace:`)
       message.push('')
-      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, red(clientPackageName))}`)
+      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, red(clientPackage.name))}`)
       message.push('with')
 
       message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, green('.prisma/client'))}`)
@@ -571,7 +535,7 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
 }
 
 function replacePackageName(directoryPath: string, replacement: string): string {
-  return directoryPath.replace(clientPackageName, replacement)
+  return directoryPath.replace(clientPackage.name, replacement)
 }
 
 function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null {
@@ -607,7 +571,7 @@ type CopyRuntimeOptions = {
 }
 
 async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
-  const files = ['index.d.ts', 'index-browser.js', 'index-browser.d.ts']
+  const files = ['index.d.ts', 'index-browser.js', 'index-browser.mjs', 'index-browser.d.ts']
 
   files.push(`${runtimeName}.js`, `${runtimeName}.mjs`, `${runtimeName}.d.ts`)
 

@@ -1,11 +1,13 @@
-import { GeneratorConfig } from '@prisma/generator-helper'
 import { getQueryEngineProtocol } from '@prisma/internals'
 
-export function buildEdgeClientProtocol(edge: boolean, config: GeneratorConfig | undefined) {
-  if (!edge) {
+import { TSClientOptions } from '../TSClient/TSClient'
+
+export function buildEdgeClientProtocol({ edge, generator }: TSClientOptions) {
+  if (edge === false) {
     return ''
   }
-  const protocol = getQueryEngineProtocol(config)
+
+  const protocol = getQueryEngineProtocol(generator)
 
   return `config.edgeClientProtocol = "${protocol}";`
 }

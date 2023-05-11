@@ -1,4 +1,6 @@
-export function buildExports(esm?: boolean) {
+import { TSClientOptions } from '../TSClient/TSClient'
+
+export function buildExports({ esm }: TSClientOptions) {
   if (esm === true) {
     return `export { Prisma, PrismaClient }`
   } else {

@@ -8,7 +8,6 @@ import { capitalize, getFieldArgName, getSelectName } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
-import { TS } from './Generatable'
 import { OutputType } from './Output'
 import { PayloadType } from './Payload'
 import { ifExtensions } from './utils/ifExtensions'
@@ -84,7 +83,7 @@ ${ifExtensions('', new PayloadType(outputType, this.dmmf, false).toTS())}
 
 
 // Custom InputTypes
-${this.argsTypes.map((gen) => TS(gen)).join('\n')}
+${this.argsTypes.map((gen) => gen.toTS()).join('\n')}
 `
   }
 }

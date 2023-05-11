@@ -1,9 +1,11 @@
+import { TSClientOptions } from '../TSClient/TSClient'
+
 /**
  * Builds a require statement for `path`.
- * @param edge
+ * @param options
  * @returns
  */
-export function buildNodeImports(edge: boolean, esm: boolean | undefined) {
+export function buildNodeImports({ edge, esm }: TSClientOptions) {
   if (edge === true) return ''
 
   if (esm === true) {

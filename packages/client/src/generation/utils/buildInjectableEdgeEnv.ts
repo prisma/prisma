@@ -1,5 +1,7 @@
 import { DataSource } from '@prisma/generator-helper'
 
+import { TSClientOptions } from '../TSClient/TSClient'
+
 type InjectableEnv = {
   parsed: {
     [x: string]: string | undefined
@@ -19,7 +21,7 @@ type InjectableEnv = {
  * @param datasources
  * @returns
  */
-export function buildInjectableEdgeEnv(edge: boolean, datasources: DataSource[]) {
+export function buildInjectableEdgeEnv({ edge, datasources }: TSClientOptions) {
   if (edge === true) {
     return declareInjectableEdgeEnv(datasources)
   }

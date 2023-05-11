@@ -1,9 +1,10 @@
 import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
-import { ClientEngineType } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { map } from '../../../../../helpers/blaze/map'
+import { TSClientOptions } from '../TSClient/TSClient'
 
 // NFT is the Node File Trace utility by Vercel https://github.com/vercel/nft
 
@@ -15,13 +16,9 @@ import { map } from '../../../../../helpers/blaze/map'
  * @param relativeOutdir outdir relative to root
  * @returns
  */
-export function buildNFTAnnotations(
-  dataProxy: boolean,
-  esm: boolean | undefined,
-  engineType: ClientEngineType,
-  platforms: Platform[] | undefined,
-  relativeOutdir: string,
-) {
+export function buildNFTAnnotations({ dataProxy, platforms, esm, generator }: TSClientOptions, relativeOutdir: string) {
+  const engineType = getClientEngineType(generator)
+
   // We don't want to bundle engines when `--data-proxy` is enabled
   if (dataProxy === true) return ''
 
@@ -71,7 +68,7 @@ function getQueryEngineFilename(engineType: ClientEngineType, platform: Platform
  * @param relativeOutdir
  * @returns
  */
-function buildNFTAnnotation(esm: boolean | undefined, fileName: string, relativeOutdir: string) {
+function buildNFTAnnotation(esm: boolean, fileName: string, relativeOutdir: string) {
   const relativeFilePath = path.join(relativeOutdir, fileName)
 
   if (esm === true) {

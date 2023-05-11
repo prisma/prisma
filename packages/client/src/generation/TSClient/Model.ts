@@ -34,7 +34,6 @@ import { InputField } from './../TSClient'
 import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
-import { TS } from './Generatable'
 import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelFieldRefs } from './ModelFieldRefs'
@@ -369,7 +368,7 @@ ${new ModelDelegate(this.outputType, this.dmmf, this.generator).toTS()}
 ${new ModelFieldRefs(this.generator, this.outputType).toTS()}
 
 // Custom InputTypes
-${this.argsTypes.map((gen) => TS(gen)).join('\n')}
+${this.argsTypes.map((gen) => gen.toTS()).join('\n')}
 `
   }
 }

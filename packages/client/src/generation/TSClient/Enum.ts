@@ -5,12 +5,13 @@ import { objectEnumNames } from '../../runtime/object-enums'
 import { strictEnumNames } from '../../runtime/strictEnum'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
+import { TSClientOptions } from './TSClient'
 
 export class Enum implements Generatable {
   constructor(
     protected readonly type: DMMF.SchemaEnum,
     protected readonly useNamespace: boolean,
-    protected readonly esm: boolean | undefined,
+    protected readonly options: TSClientOptions,
   ) {}
 
   private isObjectEnum(): boolean {
@@ -27,7 +28,9 @@ export class Enum implements Generatable {
 ${indent(type.values.map((v) => `${v}: ${this.getValueJS(v)}`).join(',\n'), TAB_SIZE)}
 }`
     const enumBody = this.isStrictEnum() ? `makeStrictEnum(${enumVariants})` : enumVariants
-    return `${this.useNamespace ? 'Prisma.' : this.esm ? 'export const ' : 'exports.'}${type.name} = ${enumBody};`
+    return `${this.useNamespace ? 'Prisma.' : this.options.esm ? 'export const ' : 'exports.'}${
+      type.name
+    } = ${enumBody};`
   }
 
   private getValueJS(value: string): string {

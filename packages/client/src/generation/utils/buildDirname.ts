@@ -1,3 +1,5 @@
+import { TSClientOptions } from '../TSClient/TSClient'
+
 /**
  * Builds a `dirname` variable that holds the location of the generated client.
  * @param edge
@@ -5,7 +7,7 @@
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(edge: boolean, esm: boolean | undefined, relativeOutdir: string) {
+export function buildDirname({ edge, esm }: TSClientOptions, relativeOutdir: string) {
   if (edge === true) {
     return buildDirnameDefault()
   }
@@ -26,7 +28,7 @@ export function buildDirname(edge: boolean, esm: boolean | undefined, relativeOu
  * @param runtimePath
  * @returns
  */
-function buildDirnameFind(esm: boolean | undefined, relativeOutdir: string) {
+function buildDirnameFind(esm: boolean, relativeOutdir: string) {
   let dirname = ''
   if (esm === true) {
     dirname = `new URL('.', import.meta.url).pathname`

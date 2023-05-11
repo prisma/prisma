@@ -1,5 +1,7 @@
 import { DataSource } from '@prisma/generator-helper'
 
+import { TSClientOptions } from '../TSClient/TSClient'
+
 // that is all we need for the data proxy
 export type InlineDatasources = {
   [name in DataSource['name']]: {
@@ -14,7 +16,7 @@ export type InlineDatasources = {
  * @param datasources
  * @returns
  */
-export function buildInlineDatasource(dataProxy: boolean, datasources: DataSource[]) {
+export function buildInlineDatasource({ dataProxy, datasources }: TSClientOptions) {
   if (dataProxy === true) {
     const inlineDataSources = dataSourcesToInlineDataSources(datasources)
 

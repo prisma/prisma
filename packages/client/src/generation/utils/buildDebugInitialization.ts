@@ -1,3 +1,4 @@
+import { TSClientOptions } from '../TSClient/TSClient'
 import { getRuntimeEdgeEnvVar } from './buildInjectableEdgeEnv'
 
 /**
@@ -9,10 +10,10 @@ import { getRuntimeEdgeEnvVar } from './buildInjectableEdgeEnv'
  * available in `process.env`. The entry point fetches the value of `DEBUG` and
  * passes into the `debug` package.
  *
- * @param edge Whether the edge runtime is used
+ * @param flavor Whether the edge runtime is used
  */
-export function buildDebugInitialization(edge: boolean) {
-  if (!edge) {
+export function buildDebugInitialization({ edge }: TSClientOptions) {
+  if (edge === false) {
     return ''
   }
 

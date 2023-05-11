@@ -1,3 +1,5 @@
+import { TSClientOptions } from '../TSClient/TSClient'
+
 /**
  * Builds the necessary bits so that our users can get a helpful warning during
  * "generate" in case of conflicts between their environment & their env files.
@@ -6,7 +8,7 @@
  * @param runtimeName
  * @returns
  */
-export function buildWarnEnvConflicts(edge: boolean) {
+export function buildWarnEnvConflicts({ edge }: TSClientOptions) {
   if (edge === true) return ''
 
   return `

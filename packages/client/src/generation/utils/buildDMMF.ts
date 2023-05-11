@@ -1,8 +1,21 @@
 import { DMMF } from '@prisma/generator-helper'
+import { getQueryEngineProtocol } from '@prisma/internals'
 import lzString from 'lz-string'
 
 import { dmmfToRuntimeDataModel } from '../../runtime/core/runtimeDataModel'
 import { escapeJson } from '../TSClient/helpers'
+import { TSClientOptions } from '../TSClient/TSClient'
+
+export function buildDMMF({ document, dataProxy, generator }: TSClientOptions) {
+  const engineProtocol = getQueryEngineProtocol(generator)
+  const needsFullDMMF = dataProxy && engineProtocol === 'graphql'
+
+  if (needsFullDMMF === true) {
+    return buildFullDMMF(document)
+  }
+
+  return buildRuntimeDataModel(document.datamodel)
+}
 
 /**
  * Embeds compressed snapshot of full DMMF document into generated client.
@@ -12,7 +25,7 @@ import { escapeJson } from '../TSClient/helpers'
  * @param dmmf
  * @returns
  */
-export function buildFullDMMF(dmmf: DMMF.Document) {
+function buildFullDMMF(dmmf: DMMF.Document) {
   const dmmfString = escapeJson(JSON.stringify(dmmf))
   const compressedDMMF = lzString.compressToBase64(dmmfString)
 
@@ -39,7 +52,7 @@ config.document = dmmf`
  * @param datamodel
  * @returns
  */
-export function buildRuntimeDataModel(datamodel: DMMF.Datamodel) {
+function buildRuntimeDataModel(datamodel: DMMF.Datamodel) {
   const runtimeDataModel = dmmfToRuntimeDataModel(datamodel)
   const datamodelString = escapeJson(JSON.stringify(runtimeDataModel))
   return `
