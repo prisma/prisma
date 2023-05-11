@@ -12,30 +12,29 @@ function normalizePaths(snapshot: string): string {
 
 describe('library', () => {
   it('generates annotations for a schema and a single engine', () => {
+    process.env.PRISMA_CLIENT_ENGINE_TYPE = ClientEngineType.Library
+
     const annotations = buildNFTAnnotations(
       {
         dataProxy: false,
         platforms: ['debian-openssl-1.1.x'],
         esm: false,
-        generator: {
-          config: {
-            engineType: ClientEngineType.Library,
-          },
-        },
       } as any as TSClientOptions,
       'out',
     )
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-            path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-            path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
-            path.join(__dirname, "schema.prisma");
-            path.join(process.cwd(), "out/schema.prisma")
-        `)
+                        path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+                        path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
+                        path.join(__dirname, "schema.prisma");
+                        path.join(process.cwd(), "out/schema.prisma")
+                `)
   })
 
   it('generates annotations for a schema and multiple engines', () => {
+    process.env.PRISMA_CLIENT_ENGINE_TYPE = ClientEngineType.Library
+
     const annotations = buildNFTAnnotations(
       {
         dataProxy: false,
@@ -52,88 +51,79 @@ describe('library', () => {
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-            path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-            path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
+                        path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+                        path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
 
-            path.join(__dirname, "libquery_engine-TEST_PLATFORM.dylib.node");
-            path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.dylib.node")
+                        path.join(__dirname, "libquery_engine-TEST_PLATFORM.dylib.node");
+                        path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.dylib.node")
 
-            path.join(__dirname, "query_engine-TEST_PLATFORM.dll.node");
-            path.join(process.cwd(), "out/query_engine-TEST_PLATFORM.dll.node")
-            path.join(__dirname, "schema.prisma");
-            path.join(process.cwd(), "out/schema.prisma")
-        `)
+                        path.join(__dirname, "query_engine-TEST_PLATFORM.dll.node");
+                        path.join(process.cwd(), "out/query_engine-TEST_PLATFORM.dll.node")
+                        path.join(__dirname, "schema.prisma");
+                        path.join(process.cwd(), "out/schema.prisma")
+                `)
   })
 })
 
 describe('binary', () => {
   it('generates annotations for a schema and a single engine', () => {
+    process.env.PRISMA_CLIENT_ENGINE_TYPE = ClientEngineType.Binary
+
     const annotations = buildNFTAnnotations(
       {
         dataProxy: false,
         platforms: ['debian-openssl-1.1.x'],
         esm: false,
-        generator: {
-          config: {
-            engineType: ClientEngineType.Binary,
-          },
-        },
       } as any as TSClientOptions,
       'out',
     )
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-            path.join(__dirname, "query-engine-TEST_PLATFORM");
-            path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
-            path.join(__dirname, "schema.prisma");
-            path.join(process.cwd(), "out/schema.prisma")
-        `)
+                        path.join(__dirname, "query-engine-TEST_PLATFORM");
+                        path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
+                        path.join(__dirname, "schema.prisma");
+                        path.join(process.cwd(), "out/schema.prisma")
+                `)
   })
 
   it('generates annotations for a schema and multiple engines', () => {
+    process.env.PRISMA_CLIENT_ENGINE_TYPE = ClientEngineType.Binary
+
     const annotations = buildNFTAnnotations(
       {
         dataProxy: false,
         platforms: ['debian-openssl-1.1.x', 'darwin', 'windows'],
         esm: false,
-        generator: {
-          config: {
-            engineType: ClientEngineType.Binary,
-          },
-        },
       } as any as TSClientOptions,
       'out',
     )
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-      path.join(__dirname, "query-engine-TEST_PLATFORM");
-      path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
+                  path.join(__dirname, "query-engine-TEST_PLATFORM");
+                  path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
 
-      path.join(__dirname, "query-engine-TEST_PLATFORM");
-      path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
+                  path.join(__dirname, "query-engine-TEST_PLATFORM");
+                  path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
 
-      path.join(__dirname, "query-engine-TEST_PLATFORM");
-      path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
-      path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
-    `)
+                  path.join(__dirname, "query-engine-TEST_PLATFORM");
+                  path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
+                  path.join(__dirname, "schema.prisma");
+                  path.join(process.cwd(), "out/schema.prisma")
+            `)
   })
 })
 
 describe('dataproxy', () => {
   it('generates no annotations', () => {
+    process.env.PRISMA_CLIENT_ENGINE_TYPE = ClientEngineType.Library
+
     const annotations = buildNFTAnnotations(
       {
         dataProxy: true,
         platforms: ['debian-openssl-1.1.x', 'darwin', 'windows'],
         esm: false,
-        generator: {
-          config: {
-            engineType: ClientEngineType.Library,
-          },
-        },
       } as any as TSClientOptions,
       'out',
     )
@@ -150,6 +140,7 @@ describe('special cases', () => {
    * so the build-time targets are replaced with what will actually be required at run time.
    */
   it('replaces platforms with ["rhel-openssl-1.0.x"] on Netlify', () => {
+    process.env.PRISMA_CLIENT_ENGINE_TYPE = ClientEngineType.Library
     process.env.NETLIFY = 'true'
 
     const annotations = buildNFTAnnotations(
@@ -157,11 +148,6 @@ describe('special cases', () => {
         dataProxy: false,
         platforms: ['debian-openssl-1.1.x', 'darwin', 'windows'],
         esm: false,
-        generator: {
-          config: {
-            engineType: ClientEngineType.Library,
-          },
-        },
       } as any as TSClientOptions,
       'out',
     )
@@ -170,11 +156,11 @@ describe('special cases', () => {
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-            path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-            path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
-            path.join(__dirname, "schema.prisma");
-            path.join(process.cwd(), "out/schema.prisma")
-        `)
+      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
+      path.join(__dirname, "schema.prisma");
+      path.join(process.cwd(), "out/schema.prisma")
+    `)
 
     expect(annotations).toContain('rhel-openssl-1.0.x')
   })
