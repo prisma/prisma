@@ -24,13 +24,13 @@
   "module": "index.mjs",
   "browser": "index-browser.mjs",
   "exports": {
+    "./*": "./*",
     ".": {
       "types": "./index.d.ts",
       "require": "./index.js",
       "import": "./index.mjs",
       "browser": "./index-browser.mjs"
     },
-    "./package.json": "./package.json",
     "./index": {
       "types": "./index.d.ts",
       "require": "./index.js",
