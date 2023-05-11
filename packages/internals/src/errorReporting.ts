@@ -62,6 +62,7 @@ async function request(query: string, variables: any): Promise<any> {
     query,
     variables,
   })
+
   return await fetch(url, {
     method: 'POST',
     agent: getProxyAgent(url) as any,
@@ -71,11 +72,16 @@ async function request(query: string, variables: any): Promise<any> {
       'Content-Type': 'application/json',
     },
   })
-    .then((res) => res.json())
-    .then((res) => {
-      if (res.errors) {
-        throw new Error(JSON.stringify(res.errors))
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Error during request: ${response.status} ${response.statusText} - Query: ${query}`)
       }
-      return res.data
+      return response.json()
+    })
+    .then((responseAsJson) => {
+      if (responseAsJson.errors) {
+        throw new Error(JSON.stringify(responseAsJson.errors))
+      }
+      return responseAsJson.data
     })
 }
