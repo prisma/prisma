@@ -170,19 +170,20 @@ const fillPlugin = (
       // zlib: { path: load('browserify-zlib') },
 
       // no shims
-      fs: { path: path.join(__dirname, 'fillers', 'fs.ts') },
-      http2: { contents: '' },
+      async_hooks: { contents: '' },
+      child_process: { contents: '' },
+      cluster: { contents: '' },
       dns: { contents: '' },
       dgram: { contents: '' },
-      cluster: { contents: '' },
+      fs: { path: path.join(__dirname, 'fillers', 'fs.ts') },
+      http2: { contents: '' },
       module: { contents: '' },
       net: { contents: '' },
+      os: { contents: '' },
+      perf_hooks: { path: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
       readline: { contents: '' },
       repl: { contents: '' },
       tls: { contents: '' },
-      perf_hooks: { path: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
-      async_hooks: { contents: '' },
-      child_process: { contents: '' },
 
       // globals
       Buffer: {
