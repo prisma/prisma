@@ -169,6 +169,24 @@ const fillPlugin = (
       // vm: { path: load('vm-browserify') },
       // zlib: { path: load('browserify-zlib') },
 
+      // disabled
+      constants: { contents: '' },
+      crypto: { contents: '' },
+      domain: { contents: '' },
+      http: { contents: '' },
+      https: { contents: '' },
+      inherits: { contents: '' },
+      os: { contents: '' },
+      punycode: { contents: '' },
+      querystring: { contents: '' },
+      stream: { contents: '' },
+      string_decoder: { contents: '' },
+      sys: { contents: '' },
+      timers: { contents: '' },
+      url: { contents: '' },
+      vm: { contents: '' },
+      zlib: { contents: '' },
+
       // no shims
       async_hooks: { contents: '' },
       child_process: { contents: '' },
@@ -179,7 +197,6 @@ const fillPlugin = (
       http2: { contents: '' },
       module: { contents: '' },
       net: { contents: '' },
-      os: { contents: '' },
       perf_hooks: { path: path.join(__dirname, 'fillers', 'perf_hooks.ts') },
       readline: { contents: '' },
       repl: { contents: '' },
@@ -193,6 +210,8 @@ const fillPlugin = (
         inject: path.join(__dirname, 'fillers', 'process.ts'),
         path: path.join(__dirname, 'fillers', 'process.ts'),
       },
+      __dirname: { define: '"/"' },
+      __filename: { define: '"index.js"' },
 
       // not needed
       // global: {
@@ -201,11 +220,6 @@ const fillPlugin = (
       // globalThis: {
       //   define: '{}',
       // },
-      // console: { },
-      // __dirname: { },
-      // __filename: { },
-      // clearImmediate: { },
-      // clearInterval: { },
 
       // overrides
       ...fillerOverrides,
