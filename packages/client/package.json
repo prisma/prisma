@@ -28,30 +28,25 @@
       "types": "./index.d.ts",
       "require": "./index.js",
       "import": "./index.mjs",
-      "browser": "./index-browser.js"
+      "browser": "./index-browser.mjs"
     },
-    "./runtime/binary": {
-      "types": "./runtime/binary.d.ts",
-      "require": "./runtime/binary.js",
-      "import": "./runtime/binary.mjs",
-      "browser": "./runtime/index-browser.js"
+    "./index": {
+      "types": "./index.d.ts",
+      "require": "./index.js",
+      "import": "./index.mjs",
+      "browser": "./index-browser.mjs"
     },
-    "./runtime/library": {
-      "types": "./runtime/library.d.ts",
-      "require": "./runtime/library.js",
-      "import": "./runtime/library.mjs",
-      "browser": "./runtime/index-browser.js"
+    "./edge": {
+      "types": "./edge.d.ts",
+      "require": "./edge.js",
+      "import": "./edge.mjs",
+      "browser": "./edge.mjs"
     },
-    "./runtime/edge": {
-      "types": "./runtime/index.d.ts",
-      "require": "./runtime/edge.js",
-      "import": "./runtime/edge.mjs",
-      "browser": "./runtime/index-browser.js"
-    },
-    "./runtime/index-browser": {
-      "types": "./runtime/index.d.ts",
-      "require": "./runtime/index-browser.js",
-      "browser": "./runtime/index-browser.js"
+    "./index-browser": {
+      "types": "./index.d.ts",
+      "require": "./index-browser.js",
+      "import": "./index-browser.mjs",
+      "browser": "./index-browser.mjs"
     }
   },
   "license": "Apache-2.0",
@@ -88,10 +83,12 @@
     "scripts",
     "generator-build",
     "edge.js",
+    "edge.mjs",
     "edge.d.ts",
     "index.js",
     "index.d.ts",
-    "index-browser.js"
+    "index-browser.js",
+    "index-browser.mjs"
   ],
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "1.1.0",

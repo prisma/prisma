@@ -77,13 +77,10 @@ const edgeCjsRuntimeBuildConfig: BuildOptions = {
   logLevel: 'error',
 }
 
-// we define the config for edge in esm format (used by deno)
+// we define the config for edge in esm format
 const edgeEsmRuntimeBuildConfig: BuildOptions = {
   ...edgeCjsRuntimeBuildConfig,
-  name: 'edge',
-  outfile: 'runtime/edge',
   format: 'esm',
-  plugins: [fillPlugin({ ...edgePreset, ...esmPreset })],
 }
 
 // we define the config for generator
