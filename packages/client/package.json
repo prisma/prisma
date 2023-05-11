@@ -24,6 +24,7 @@
   "module": "index.mjs",
   "browser": "index-browser.mjs",
   "exports": {
+    "./package.json": "./package.json",
     ".": {
       "types": "./index.d.ts",
       "require": {
