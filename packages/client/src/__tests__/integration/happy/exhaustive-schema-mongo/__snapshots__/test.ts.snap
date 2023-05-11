@@ -1,7 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`exhaustive-schema: generatedBrowserJS 1`] = `
-
 const {
   Decimal,
   objectEnumValues,
@@ -73,7 +72,6 @@ Prisma.validator = () => (val) => val
 Prisma.DbNull = objectEnumValues.instances.DbNull
 Prisma.JsonNull = objectEnumValues.instances.JsonNull
 Prisma.AnyNull = objectEnumValues.instances.AnyNull
-
 Prisma.NullTypes = {
   DbNull: objectEnumValues.classes.DbNull,
   JsonNull: objectEnumValues.classes.JsonNull,
@@ -269,7 +267,7 @@ Prisma.UserScalarFieldEnum = {
   optionalBoolean: 'optionalBoolean',
   embedHolderId: 'embedHolderId'
 };
-ABeautifulEnum = {
+exports.ABeautifulEnum = {
   A: 'A',
   B: 'B',
   C: 'C'
@@ -303,9 +301,10 @@ In case this error is unexpected for you, please report it in https://github.com
     )
   }
 }
-exports.PrismaClient = PrismaClient
 
-Object.assign(exports, Prisma)
+Object.defineProperty(exports, "__esModule", { value: true })
+exports.PrismaClient = PrismaClient
+exports.Prisma = Prisma
 
 `;
 
