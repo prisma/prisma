@@ -23,7 +23,7 @@ function nodeRuntimeBuildConfig(
     bundle: true,
     minify: true,
     sourcemap: 'linked',
-    emitTypes: targetEngineType === 'all',
+    emitTypes: targetEngineType === 'all' && format === 'cjs',
     define: {
       NODE_CLIENT: 'true',
       TARGET_ENGINE_TYPE: JSON.stringify(targetEngineType),
@@ -52,6 +52,7 @@ const browserCjsBuildConfig: BuildOptions = {
 
 const browserEsmBuildConfig: BuildOptions = {
   ...browserCjsBuildConfig,
+  emitTypes: false,
   format: 'esm',
 }
 

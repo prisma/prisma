@@ -1,6 +1,5 @@
 import indent from 'indent-string'
 
-import { get } from '../../../../../helpers/blaze/get'
 import { DMMFHelper } from '../../runtime/dmmf'
 import { DMMF } from '../../runtime/dmmf-types'
 import { lowerCase } from '../../runtime/utils/common'
@@ -8,6 +7,8 @@ import { getArgName, getModelArgName, getPayloadName, Projection } from '../util
 import type { Generatable } from './Generatable'
 import type { OutputType } from './Output'
 import { ifExtensions } from './utils/ifExtensions'
+
+const { get } = require('../../../../../helpers/blaze/get')
 
 export class PayloadType implements Generatable {
   constructor(

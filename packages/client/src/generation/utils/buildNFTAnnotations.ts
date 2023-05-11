@@ -3,8 +3,9 @@ import { getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
-import { map } from '../../../../../helpers/blaze/map'
 import { TSClientOptions } from '../TSClient/TSClient'
+
+const { map } = require('../../../../../helpers/blaze/map')
 
 // NFT is the Node File Trace utility by Vercel https://github.com/vercel/nft
 
