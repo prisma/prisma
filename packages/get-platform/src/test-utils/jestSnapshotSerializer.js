@@ -1,4 +1,5 @@
 const path = require('path')
+const dedent = require('strip-indent')
 const replaceAll = require('replace-string') // sindre's replaceAll polyfill
 const stripAnsi = require('strip-ansi')
 const { platformRegex } = require('./platformRegex')
@@ -154,6 +155,7 @@ module.exports = {
       normalizeMigrateTimestamps,
       // artificial panic
       normalizeArtificialPanic,
+      dedent,
     )(message)
   },
 }
