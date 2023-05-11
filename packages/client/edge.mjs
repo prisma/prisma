@@ -1,1 +1,1 @@
-export * from '.prisma/client/edge.mjs'
+export * from '../../.prisma/client/edge.mjs'

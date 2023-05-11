@@ -1,1 +1,1 @@
-export * from '.prisma/client/index-browser.mjs'
+export * from '../../.prisma/client/index-browser.mjs'
