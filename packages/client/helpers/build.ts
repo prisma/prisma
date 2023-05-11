@@ -42,12 +42,17 @@ function nodeRuntimeBuildConfig(
 }
 
 // we define the config for browser
-const browserBuildConfig: BuildOptions = {
+const browserCjsBuildConfig: BuildOptions = {
   name: 'browser',
   entryPoints: ['src/runtime/index-browser.ts'],
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
+}
+
+const browserEsmBuildConfig: BuildOptions = {
+  ...browserCjsBuildConfig,
+  format: 'esm',
 }
 
 // we define the config for edge
@@ -105,7 +110,8 @@ void build([
   nodeRuntimeBuildConfig('binary', 'esm'),
   nodeRuntimeBuildConfig('library', 'esm'),
   nodeRuntimeBuildConfig('data-proxy', 'esm'),
-  browserBuildConfig,
+  browserCjsBuildConfig,
+  browserEsmBuildConfig,
   edgeCjsRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
 ]).then(() => {

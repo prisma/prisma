@@ -204,6 +204,7 @@ async function createDefaultGeneratedThrowFiles() {
     const defaultNodeIndexCjsPath = path.join(dotPrismaClientDir, 'index.js')
     const defaultNodeIndexMjsPath = path.join(dotPrismaClientDir, 'index.mjs')
     const defaultNodeIndexDtsPath = path.join(dotPrismaClientDir, 'index.d.ts')
+    const defaultBrowserIndexCjsPath = path.join(dotPrismaClientDir, 'index-browser.js')
     const defaultBrowserIndexMjsPath = path.join(dotPrismaClientDir, 'index-browser.mjs')
     const defaultEdgeIndexCjsPath = path.join(dotPrismaClientDir, 'edge.js')
     const defaultEdgeIndexMjsPath = path.join(dotPrismaClientDir, 'edge.mjs')
@@ -218,7 +219,11 @@ async function createDefaultGeneratedThrowFiles() {
     }
 
     if (!fs.existsSync(defaultNodeIndexMjsPath)) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-index.mjs'), defaultNodeIndexCjsPath)
+      await fs.promises.copyFile(path.join(__dirname, 'default-index.mjs'), defaultNodeIndexMjsPath)
+    }
+
+    if (!fs.existsSync(defaultBrowserIndexCjsPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-index-browser.js'), defaultBrowserIndexCjsPath)
     }
 
     if (!fs.existsSync(defaultBrowserIndexMjsPath)) {
@@ -234,7 +239,7 @@ async function createDefaultGeneratedThrowFiles() {
     }
 
     if (!fs.existsSync(defaultEdgeIndexMjsPath)) {
-      await fs.promises.copyFile(path.join(__dirname, 'default-edge.mjs'), defaultEdgeIndexCjsPath)
+      await fs.promises.copyFile(path.join(__dirname, 'default-edge.mjs'), defaultEdgeIndexMjsPath)
     }
 
     if (!fs.existsSync(defaultEdgeIndexDtsPath)) {
