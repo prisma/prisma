@@ -27,6 +27,24 @@ export const edgePreset: Fillers = {
   // vm: { path: load('vm-browserify') },
   // zlib: { path: load('browserify-zlib') },
 
+  // disabled
+  constants: { contents: '' },
+  crypto: { contents: '' },
+  domain: { contents: '' },
+  http: { contents: '' },
+  https: { contents: '' },
+  inherits: { contents: '' },
+  os: { contents: '' },
+  punycode: { contents: '' },
+  querystring: { contents: '' },
+  stream: { contents: '' },
+  string_decoder: { contents: '' },
+  sys: { contents: '' },
+  timers: { contents: '' },
+  url: { contents: '' },
+  vm: { contents: '' },
+  zlib: { contents: '' },
+
   // no shims
   fs: { path: path.join(__dirname, 'edge', 'fs.ts') },
   http2: { contents: '' },
@@ -50,6 +68,8 @@ export const edgePreset: Fillers = {
     inject: path.join(__dirname, 'edge', 'process.ts'),
     path: path.join(__dirname, 'edge', 'process.ts'),
   },
+  __dirname: { define: '"/"' },
+  __filename: { define: '"index.js"' },
 
   // we remove eval and Function for vercel edge
   eval: { define: 'undefined' },
@@ -65,9 +85,4 @@ export const edgePreset: Fillers = {
   // globalThis: {
   //   define: '{}',
   // },
-  // console: { },
-  // __dirname: { },
-  // __filename: { },
-  // clearImmediate: { },
-  // clearInterval: { },
 }

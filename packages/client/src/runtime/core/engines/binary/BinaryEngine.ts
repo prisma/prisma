@@ -612,7 +612,7 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
             // these logs can still include error logs
             if (typeof json.is_panic === 'undefined') {
               if (json.span === true) {
-                void this.tracingHelper.createEngineSpan(json as EngineSpanEvent)
+                this.tracingHelper.createEngineSpan(json as EngineSpanEvent)
 
                 return
               }

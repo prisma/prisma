@@ -1,9 +1,15 @@
 import Debug from '@prisma/debug'
-import os from 'os'
 
 export type BeforeExitListener = () => Promise<void> | void
 
 const debug = Debug('prisma:client:libraryEngine:exitHooks')
+
+// subset of `os.constants.signals`, as we can't import 'os' in Cloudflare Workers
+const signals = {
+  SIGINT: 2,
+  SIGUSR2: 31,
+  SIGTERM: 15,
+} as const
 
 export class ExitHooks {
   private nextOwnerId = 1
@@ -54,7 +60,7 @@ export class ExitHooks {
     process.once(event as any, this.exitLikeHook)
   }
 
-  private installExitSignalHook(signal: NodeJS.Signals) {
+  private installExitSignalHook(signal: keyof typeof signals) {
     process.once(signal, async (signal) => {
       await this.exitLikeHook(signal)
       const isSomeoneStillListening = process.listenerCount(signal) > 0
@@ -66,7 +72,7 @@ export class ExitHooks {
       }
 
       // the usual way to exit with a signal is to add 128 to the signal number
-      const exitCode = os.constants.signals[signal] + 128
+      const exitCode = signals[signal] + 128
       process.exit(exitCode)
     })
   }

@@ -11,7 +11,6 @@ import {
 } from '@opentelemetry/sdk-trace-base'
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions'
 import { PrismaInstrumentation } from '@prisma/instrumentation'
-import { ClientEngineType, getClientEngineType, getQueryEngineProtocol } from '@prisma/internals'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
@@ -26,7 +25,15 @@ type Tree = {
 function buildTree(tree: Tree, spans: ReadableSpan[]): Tree {
   const childrenSpans = spans.filter((span) => span.parentSpanId === tree.span.spanContext().spanId)
   if (childrenSpans.length) {
-    tree.children = childrenSpans.map((span) => buildTree({ span }, spans))
+    tree.children = childrenSpans
+      .sort((a, b) => {
+        // Ensures fixed order of children spans regardless of the
+        // actual timings. Why use name instead of start time? Sometimes
+        // things happen in parallel/different order and startTime does not
+        // provide stable ordering guarantee.
+        return a.name.localeCompare(b.name)
+      })
+      .map((span) => buildTree({ span }, spans))
   } else {
     tree.children = []
   }
@@ -206,12 +213,12 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
 
-      const engineSerialize = (engine.children || [])[4]
-      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
-
-      const dbQuery4 = (engine.children || [])[5]
+      const dbQuery4 = (engine.children || [])[4]
       expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+
+      const engineSerialize = (engine.children || [])[5]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
     })
 
     test('read', async () => {
@@ -335,12 +342,12 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery4.span.attributes['db.statement']).toContain('SELECT')
 
-      const engineSerialize = (engine.children || [])[5]
-      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
-
-      const dbQuery5 = (engine.children || [])[6]
+      const dbQuery5 = (engine.children || [])[5]
       expect(dbQuery5.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery5.span.attributes['db.statement']).toContain('COMMIT')
+
+      const engineSerialize = (engine.children || [])[6]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
     })
 
     test('delete', async () => {
@@ -408,12 +415,12 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery4.span.attributes['db.statement']).toContain('DELETE')
 
-      const engineSerialize = (engine.children || [])[5]
-      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
-
-      const dbQuery5 = (engine.children || [])[6]
+      const dbQuery5 = (engine.children || [])[5]
       expect(dbQuery5.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery5.span.attributes['db.statement']).toContain('COMMIT')
+
+      const engineSerialize = (engine.children || [])[6]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
     })
   })
 
@@ -654,12 +661,12 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
     expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
     expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
 
-    const engineSerialize = (engine.children || [])[4]
-    expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
-
-    const dbQuery4 = (engine.children || [])[5]
+    const dbQuery4 = (engine.children || [])[4]
     expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
     expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+
+    const engineSerialize = (engine.children || [])[5]
+    expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
   })
 
   describe('tracing with middleware', () => {
@@ -747,12 +754,12 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
 
-      const serialize = (engine.children || [])[4]
-      expect(serialize.span.name).toEqual('prisma:engine:serialize')
-
-      const dbQuery4 = (engine.children || [])[5]
+      const dbQuery4 = (engine.children || [])[4]
       expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
       expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+
+      const serialize = (engine.children || [])[5]
+      expect(serialize.span.name).toEqual('prisma:engine:serialize')
     })
   })
 
@@ -785,20 +792,8 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       expect(tree.span.attributes['model']).toEqual('User')
 
       expect(tree.children).toHaveLength(3)
-      let connect: Tree | undefined
-      let serialize: Tree | undefined
-
-      // order of connect and serialize calls is different depending on the engine and protocol.
-      // JSON + library engine: serialize the query, connect to the engine, execute it
-      // GraphQL + library engine: connect to the engine to get DMMF, serialize the query, execute it
-      // Binary engine: get DMMF (does not require running engine in this case), serialize query, connect, execute
-      if (getQueryEngineProtocol() === 'json' || getClientEngineType() == ClientEngineType.Binary) {
-        serialize = tree?.children?.[0]
-        connect = tree?.children?.[1]
-      } else {
-        connect = tree?.children?.[0]
-        serialize = tree?.children?.[1]
-      }
+      const connect: Tree | undefined = tree?.children?.[0]
+      const serialize: Tree | undefined = tree?.children?.[1]
 
       expect(connect?.span.name).toEqual('prisma:client:connect')
 

@@ -35,7 +35,7 @@ export type EngineSpan = {
 export interface TracingHelper {
   isEnabled(): boolean
   getTraceParent(context?: Context): string
-  createEngineSpan(engineSpanEvent: EngineSpanEvent): Promise<void>
+  createEngineSpan(engineSpanEvent: EngineSpanEvent): void
 
   getActiveContext(): Context | undefined
 
