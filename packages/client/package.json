@@ -53,11 +53,11 @@
       "import": "./edge.mjs"
     },
     "./*": {
-      "import": "./*.mjs",
-      "require": "./*.js"
+      "require": "./*.js",
+      "import": "./*.mjs"
     },
-    "./*.mjs": "./*.mjs",
-    "./*.js": "./*.mjs"
+    "./*.js": "./*.js",
+    "./*.mjs": "./*.mjs"
   },
   "license": "Apache-2.0",
   "engines": {
