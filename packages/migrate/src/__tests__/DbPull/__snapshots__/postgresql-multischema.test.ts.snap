@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`postgresql-multi-schema --url  --schemas=base,does-not-exist (1 existing schemas + 1 non-existing) should succeed 2`] = `
+exports[`postgresql-multischema --url  --schemas=base,does-not-exist (1 existing schemas + 1 non-existing) should succeed 2`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
@@ -37,7 +37,7 @@ enum status {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`postgresql-multi-schema --url  --schemas=base,transactional (2 existing schemas) should succeed 2`] = `
+exports[`postgresql-multischema --url  --schemas=base,transactional (2 existing schemas) should succeed 2`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
@@ -105,7 +105,7 @@ enum transactional_status {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`postgresql-multi-schema --url --schemas=base (1 existing schema) should succeed 2`] = `
+exports[`postgresql-multischema --url --schemas=base (1 existing schema) should succeed 2`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
@@ -142,7 +142,7 @@ enum status {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`postgresql-multi-schema --url with \`?schema=base\` should succeed 2`] = `
+exports[`postgresql-multischema --url with \`?schema=base\` should succeed 2`] = `
 datasource db {
   provider = "postgresql"
   url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-multischema-postgresql?schema=base"
@@ -167,9 +167,9 @@ enum status {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`postgresql-multi-schema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
+exports[`postgresql-multischema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
 
-exports[`postgresql-multi-schema --url with --schemas=["does-not-exist", "base"] should error 2`] = `
+exports[`postgresql-multischema --url with --schemas=["does-not-exist", "base"] should error 2`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
@@ -206,11 +206,11 @@ enum status {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`postgresql-multi-schema --url with --schemas=base without preview feature should error 2`] = ``;
+exports[`postgresql-multischema --url with --schemas=base without preview feature should error 2`] = ``;
 
-exports[`postgresql-multi-schema --url with --schemas=does-not-exist should error 2`] = ``;
+exports[`postgresql-multischema --url with --schemas=does-not-exist should error 2`] = ``;
 
-exports[`postgresql-multi-schema datasource property \`schemas=["base", "transactional"]\` should succeed 2`] = `
+exports[`postgresql-multischema datasource property \`schemas=["base", "transactional"]\` should succeed 2`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
@@ -278,7 +278,7 @@ enum transactional_status {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`postgresql-multi-schema datasource property \`schemas=["base"]\` should succeed 2`] = `
+exports[`postgresql-multischema datasource property \`schemas=["base"]\` should succeed 2`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
@@ -315,7 +315,7 @@ enum status {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
+exports[`postgresql-multischema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
@@ -352,4 +352,4 @@ enum status {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`postgresql-multi-schema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;
+exports[`postgresql-multischema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;

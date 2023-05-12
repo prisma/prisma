@@ -34,7 +34,7 @@ model jobs {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`sqlserver-multi-schema --url with \`?schema=base\` should succeed 2`] = `
+exports[`sqlserver-multischema --url with \`?schema=base\` should succeed 2`] = `
 datasource db {
   provider = "sqlserver"
   url      = "sqlserver://localhost:1433;database=tests-migrate-db-pull-sqlserver-multischema;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;schema=base"
@@ -54,9 +54,9 @@ model SomeUser {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`sqlserver-multi-schema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
+exports[`sqlserver-multischema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
 
-exports[`sqlserver-multi-schema datasource property \`schemas=["base"]\` should succeed 2`] = `
+exports[`sqlserver-multischema datasource property \`schemas=["base"]\` should succeed 2`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
@@ -86,7 +86,7 @@ model SomeUser {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`sqlserver-multi-schema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
+exports[`sqlserver-multischema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
 generator client {
   provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
@@ -116,4 +116,4 @@ model SomeUser {
 // introspectionSchemaVersion: NonPrisma,
 `;
 
-exports[`sqlserver-multi-schema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;
+exports[`sqlserver-multischema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;
