@@ -27,7 +27,7 @@ npm i --silent -g pnpm@7 --unsafe-perm
 # --usafe-perm to allow install scripts
 
 echo "~~~ pnpm i"
-pnpm i --unsafe-perm
+pnpm i
 
 # JOB 0
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
