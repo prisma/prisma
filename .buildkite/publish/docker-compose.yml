@@ -145,7 +145,7 @@ services:
       TABLET_REFRESH_INTERVAL: '1s'
 
   mariadb:
-    image: mariadb:10.7.3
+    image: mariadb:10.11.3
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
