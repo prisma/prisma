@@ -1,4 +1,4 @@
-import { klona } from 'klona'
+import { klona } from 'klona/full'
 
 import { Client, InternalRequestParams } from '../../getPrismaClient'
 import { createPrismaPromise } from '../request/createPrismaPromise'

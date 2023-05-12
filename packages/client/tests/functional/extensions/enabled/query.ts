@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto'
 import { expectTypeOf } from 'expect-type'
+import sql from 'sql-template-tag'
 
 import { wait } from '../../_utils/tests/wait'
 import { waitFor } from '../../_utils/tests/waitFor'
@@ -977,12 +978,18 @@ testMatrix.setupTestSuite(
         await xprisma.$executeRawUnsafe(`SELECT 3`)
         // @ts-test-if: provider !== 'mongodb'
         await xprisma.$queryRawUnsafe(`SELECT 4`)
+        // @ts-test-if: provider !== 'mongodb'
+        await xprisma.$executeRaw(sql`SELECT 5`)
+        // @ts-test-if: provider !== 'mongodb'
+        await xprisma.$queryRaw(sql`SELECT 6`)
 
-        await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(4))
+        await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(6))
         expect(fnUser).toHaveBeenNthCalledWith(1, [[`SELECT 1`]])
         expect(fnUser).toHaveBeenNthCalledWith(2, [[`SELECT 2`]])
         expect(fnUser).toHaveBeenNthCalledWith(3, [`SELECT 3`])
         expect(fnUser).toHaveBeenNthCalledWith(4, [`SELECT 4`])
+        expect(fnUser).toHaveBeenNthCalledWith(5, [sql`SELECT 5`])
+        expect(fnUser).toHaveBeenNthCalledWith(6, [sql`SELECT 6`])
       } else {
         // @ts-test-if: provider === 'mongodb'
         await xprisma.$runCommandRaw({ aggregate: 'User', pipeline: [], explain: false })
