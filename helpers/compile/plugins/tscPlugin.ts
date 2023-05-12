@@ -1,5 +1,5 @@
 import { Extractor, ExtractorConfig } from '@microsoft/api-extractor'
-import type * as esbuild from 'esbuild'
+import { Plugin } from 'esbuild'
 import fs from 'fs-extra'
 import path from 'path'
 
@@ -61,7 +61,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
 /**
  * Triggers the TypeScript compiler and the type bundler.
  */
-export const tscPlugin: (emitTypes?: boolean) => esbuild.Plugin = (emitTypes?: boolean) => ({
+export const tscPlugin = (emitTypes?: boolean): Plugin => ({
   name: 'tscPlugin',
   setup(build) {
     const options = build.initialOptions

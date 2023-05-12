@@ -1,4 +1,5 @@
 import fs from 'fs'
+import { builtinModules } from 'module'
 import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
@@ -7,6 +8,7 @@ import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlu
 import { edgePreset } from '../../../helpers/compile/plugins/fill-plugin/presets/edge'
 import { esmPreset } from '../../../helpers/compile/plugins/fill-plugin/presets/esm'
 import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
+import { requireToImportPlugin } from '../../../helpers/compile/plugins/requireToImportPlugin'
 
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
@@ -36,6 +38,7 @@ function nodeRuntimeBuildConfig(
   if (format === 'esm') {
     buildConfig.format = 'esm'
     buildConfig.plugins?.push(fillPlugin(esmPreset))
+    buildConfig.plugins?.push(requireToImportPlugin(builtinModules))
   }
 
   return buildConfig

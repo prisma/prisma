@@ -1,4 +1,4 @@
-import type * as esbuild from 'esbuild'
+import { Plugin } from 'esbuild'
 import fs from 'fs'
 import { builtinModules } from 'module'
 
@@ -21,7 +21,7 @@ async function applyReplacements(contents: string, replacements: Replacement[]) 
  * @param replacements
  * @returns
  */
-export const replaceWithPlugin = (replacements: Replacement[]): esbuild.Plugin => {
+export const replaceWithPlugin = (replacements: Replacement[]): Plugin => {
   return {
     name: 'replaceWithPlugin',
     setup(build) {

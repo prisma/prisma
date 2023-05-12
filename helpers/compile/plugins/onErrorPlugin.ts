@@ -1,9 +1,9 @@
-import type * as esbuild from 'esbuild'
+import { Plugin } from 'esbuild'
 
 /**
  * Causes esbuild to exit immediately with an error code.
  */
-export const onErrorPlugin: esbuild.Plugin = {
+export const onErrorPlugin: Plugin = {
   name: 'onErrorPlugin',
   setup(build) {
     build.onEnd((result) => {

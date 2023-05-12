@@ -1,4 +1,4 @@
-import type * as esbuild from 'esbuild'
+import { Plugin } from 'esbuild'
 import { builtinModules } from 'module'
 import path from 'path'
 
@@ -42,7 +42,7 @@ const missingIgnore = ['.prisma', '@prisma/client', 'ts-toolbelt']
 /**
  * Checks for unused and missing dependencies.
  */
-export const depCheckPlugin = (bundle?: boolean): esbuild.Plugin => ({
+export const depCheckPlugin = (bundle?: boolean): Plugin => ({
   name: 'depCheckPlugin',
   setup(build) {
     // we load the package.json of the project do do our analysis
