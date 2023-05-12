@@ -5,6 +5,7 @@ import {
   ClientEngineType,
   getClientEngineType,
   getEngineVersion,
+  getPlatform,
   Platform,
   setClassName,
 } from '@prisma/internals'
@@ -304,12 +305,22 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       await ensureDir('/tmp/prisma-engines')
     }
 
+    const currentPlatform = await getPlatform()
+
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
       const fileName = path.basename(filePath)
       const target =
         process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
           ? path.join('/tmp/prisma-engines', fileName)
           : path.join(finalOutputDir, fileName)
+
+      // If the engine is not native, copy it unconditionally regardless of whether it already exists since we can't
+      // check its version.
+      if (binaryTarget !== currentPlatform) {
+        await overwriteFile(filePath, target)
+        continue
+      }
+
       const [sourceFileSize, targetFileSize] = await Promise.all([fileSize(filePath), fileSize(target)])
 
       // If the target doesn't exist yet, copy it
