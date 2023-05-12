@@ -6,7 +6,6 @@ import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
 import { setupCockroach, tearDownCockroach } from '../../utils/setupCockroach'
-import { SetupParams, tearDownPostgres } from '../../utils/setupPostgres'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
 if (isMacOrWindowsCI) {
