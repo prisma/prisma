@@ -1059,9 +1059,7 @@ jobs:
         os: [macos-latest, windows-latest]
         node: [14]
         queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
-        # Commented out as we still have limited capacity for macOS runners
-        # When we have more capacity we can shard again
-        # shard: ['1', '2']
+        shard: ['1/2', '2/2']
 
     needs: determineBuildMatrixParams
     if: |
@@ -1105,11 +1103,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Test packages/client
-        # Commented out as we still have limited capacity for macOS runners
-        # When we have more capacity we can shard again
-        # run: pnpm run test:functional:code --shard=${{matrix.shard}}/2
-        # No shard:
-        run: pnpm run test:functional:code
+        run: pnpm run test:functional:code --shard ${{matrix.shard}}
         working-directory: packages/client
         env:
           CI: true
