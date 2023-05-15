@@ -43,7 +43,7 @@ test('bundled prisma client will fail if generated client is gone', async () => 
 
   await expect(somePrismaCall()).rejects.toThrowErrorMatchingInlineSnapshot(`
 "Prisma Client could not find its \`schema.prisma\`. This is likely caused by a bundling step, which leads to \`schema.prisma\` not being copied near the resulting bundle. We would appreciate if you could take the time to share some information with us.
-Please help us by answering a few questions: https://pris.ly/bundler-investigation"
+Please help us by answering a few questions: https://pris.ly/bundler-investigation-error"
 `)
 })
 
