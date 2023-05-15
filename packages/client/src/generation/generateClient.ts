@@ -129,6 +129,7 @@ export async function buildClient({
       main: 'index.js',
       types: 'index.d.ts',
       browser: 'index-browser.js',
+      sideEffects: false,
     },
     null,
     2,
