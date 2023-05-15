@@ -423,9 +423,6 @@ describe('migrate diff', () => {
               Error in migration engine.
               Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
 
-              Please create an issue with your \`schema.prisma\` at
-              https://github.com/prisma/prisma/issues/new
-
             `)
     })
   })
@@ -502,9 +499,6 @@ describe('migrate diff', () => {
         Error in migration engine.
         Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
 
-        Please create an issue with your \`schema.prisma\` at
-        https://github.com/prisma/prisma/issues/new
-
       `)
     })
 
@@ -578,9 +572,6 @@ describe('migrate diff', () => {
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         Error in migration engine.
         Reason: [/some/rust/path:0:0] Column native type missing in mysql_renderer::render_column_type()
-
-        Please create an issue with your \`schema.prisma\` at
-        https://github.com/prisma/prisma/issues/new
 
       `)
     })
@@ -673,9 +664,6 @@ describe('migrate diff', () => {
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
         Error in migration engine.
         Reason: [/some/rust/path:0:0] Missing column native type in mssql_renderer::render_column_type()
-
-        Please create an issue with your \`schema.prisma\` at
-        https://github.com/prisma/prisma/issues/new
 
       `)
     })

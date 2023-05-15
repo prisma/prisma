@@ -1,13 +1,12 @@
-import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
+import { bold, green } from 'kleur/colors'
 import path from 'path'
 import type { NormalizedPackageJson } from 'read-pkg-up'
 import readPkgUp from 'read-pkg-up'
 import { promisify } from 'util'
 
 const exists = promisify(fs.exists)
-const readFile = promisify(fs.readFile)
 
 /**
  * Async
@@ -251,17 +250,17 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
 
   if (!schemaPath) {
     throw new Error(
-      `Could not find a ${chalk.bold(
+      `Could not find a ${bold(
         'schema.prisma',
-      )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
+      )} file that is required for this command.\nYou can either provide it with ${green(
         '--schema',
-      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
+      )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${green(
         './prisma/schema.prisma',
       )} https://pris.ly/d/prisma-schema-location`,
     )
   }
 
-  return readFile(schemaPath, 'utf-8')
+  return fs.promises.readFile(schemaPath, 'utf-8')
 }
 
 /**

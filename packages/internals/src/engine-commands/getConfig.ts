@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
 import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
-import chalk from 'chalk'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
+import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
@@ -37,7 +37,7 @@ ${errorCodeMessage}
 ${message}`
       })
       .with({ _tag: 'unparsed' }, ({ message, reason }) => {
-        const detailsHeader = chalk.red.bold('Details:')
+        const detailsHeader = red(bold('Details:'))
         return `${reason}
 ${detailsHeader} ${message}`
       })
@@ -47,6 +47,7 @@ ${detailsHeader} ${message}`
 [Context: getConfig]`
 
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
+    this.name = 'GetConfigError'
   }
 }
 

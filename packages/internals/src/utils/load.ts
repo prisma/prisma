@@ -1,5 +1,6 @@
-import { handleLibraryLoadingErrors } from '@prisma/engine-core'
 import type { PlatformWithOSResult } from '@prisma/get-platform'
+
+import { handleLibraryLoadingErrors } from './handleEngineLoadingErrors'
 
 /**
  * This is a wrapper around `require` for loading a Node-API library.

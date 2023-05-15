@@ -83,7 +83,7 @@ services:
 
   postgres:
     image: postgres:10
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
@@ -93,7 +93,7 @@ services:
 
   postgres_isolated:
     image: postgres:10
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
@@ -103,7 +103,7 @@ services:
 
   cockroachdb:
     image: prismagraphql/cockroachdb-custom:22.1.0
-    restart: always
+    restart: unless-stopped
     command: start-single-node --insecure
     ports:
       - '26257:26257'
@@ -111,7 +111,7 @@ services:
   mysql:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -122,7 +122,7 @@ services:
   mysql_isolated:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -132,8 +132,8 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:01172edb90ef2b8de6f96a623d8e037cfa80fe39b67e95522d17162580f982d6
-    restart: always
+    image: vitess/vttestserver:mysql80@sha256:06066301568d583ec19d0f8f49626e7d08e3eb9fdcfffaac094e0b7c63731bec
+    restart: unless-stopped
     ports:
       - 33807:33807
     environment:
@@ -146,7 +146,7 @@ services:
 
   mariadb:
     image: mariadb:10.7.3
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -157,7 +157,7 @@ services:
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
-    restart: always
+    restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=Pr1sm4_Pr1sm4
@@ -166,7 +166,7 @@ services:
 
   mongodb_migrate:
     image: mongo:4
-    restart: always
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma

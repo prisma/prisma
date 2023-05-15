@@ -1,10 +1,10 @@
 import Debug from '@prisma/debug'
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import chalk from 'chalk'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
+import { blue, bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
@@ -39,7 +39,7 @@ ${errorCodeMessage}
 ${message}`
       })
       .with({ _tag: 'unparsed' }, ({ message, reason }) => {
-        const detailsHeader = chalk.red.bold('Details:')
+        const detailsHeader = red(bold('Details:'))
         return `${reason}
 ${detailsHeader} ${message}`
       })
@@ -48,6 +48,7 @@ ${detailsHeader} ${message}`
 [Context: getDmmf]`
 
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
+    this.name = 'GetDmmfError'
   }
 }
 
@@ -177,12 +178,10 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 }
 
 // See also removedFlags at
-// https://github.com/prisma/prisma/blob/main/packages/engine-core/src/binary/BinaryEngine.ts#L174
+// https://github.com/prisma/prisma/blob/main/packages/client/src/runtime/core/engine/BinaryEngine.ts
 function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
   const getMessage = (flag: string) =>
-    `${chalk.blueBright(
-      'info',
-    )} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`
+    `${blue(bold('info'))} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`
 
   const removedFeatureFlagMap = {
     insensitiveFilters: getMessage('insensitiveFilters'),

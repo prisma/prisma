@@ -1,4 +1,4 @@
-import chalk from 'chalk'
+import { bold, dim } from 'kleur/colors'
 import path from 'path'
 
 import { getClientEngineType } from '../client/getClientEngineType'
@@ -15,7 +15,7 @@ export function getGeneratorSuccessMessage(generator: Generator, time: number): 
   const name = generator.getPrettyName()
   const version = formatVersion(generator)
   const to = formatOutput(generator)
-  return `✔ Generated ${chalk.bold(name)}${version ? ` (${version})` : ''}${to} in ${formatms(time)}`
+  return `✔ Generated ${bold(name)}${version ? ` (${version})` : ''}${to} in ${formatms(time)}`
 }
 
 function formatVersion(generator: Generator): string | undefined {
@@ -32,5 +32,5 @@ function formatVersion(generator: Generator): string | undefined {
 
 function formatOutput(generator: Generator): string {
   const output = generator.options?.generator.output
-  return output ? chalk.dim(` to .${path.sep}${path.relative(process.cwd(), parseEnvValue(output))}`) : ''
+  return output ? dim(` to .${path.sep}${path.relative(process.cwd(), parseEnvValue(output))}`) : ''
 }

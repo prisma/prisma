@@ -1,0 +1,8 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "mysql"
+    url      = env("TEST_MYSQL_URI_MIGRATE")
+}

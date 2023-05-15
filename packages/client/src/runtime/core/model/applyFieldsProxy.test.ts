@@ -1,7 +1,6 @@
 import { applyFieldsProxy } from './applyFieldsProxy'
 
-const fields = applyFieldsProxy({
-  name: 'MyModel',
+const fields = applyFieldsProxy('MyModel', {
   dbName: '',
   fields: [
     {

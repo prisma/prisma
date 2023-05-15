@@ -1,0 +1,7 @@
+CREATE TABLE a (
+    id INT PRIMARY KEY,
+    val VARCHAR(20)
+);
+
+COMMENT ON TABLE a IS 'vof';
+COMMENT ON COLUMN a.val IS 'mjau';

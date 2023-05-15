@@ -1,4 +1,6 @@
-import { identity, theme } from './theme'
+import { theme } from './theme'
+
+const identity = (str: string) => str
 
 /* eslint-disable */
 

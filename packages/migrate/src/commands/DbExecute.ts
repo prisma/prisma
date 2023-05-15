@@ -10,31 +10,31 @@ import {
   loadEnvFile,
   logger,
 } from '@prisma/internals'
-import chalk from 'chalk'
 import fs from 'fs'
 import getStdin from 'get-stdin'
+import { bold, dim, green, italic, red } from 'kleur/colors'
 import path from 'path'
 
 import { Migrate } from '../Migrate'
 import type { EngineArgs } from '../types'
 
 const helpOptions = format(
-  `${chalk.bold('Usage')}
+  `${bold('Usage')}
 
-${chalk.dim('$')} prisma db execute [options]
+${dim('$')} prisma db execute [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
 -h, --help            Display this help message
 
-${chalk.italic('Datasource input, only 1 must be provided:')}
+${italic('Datasource input, only 1 must be provided:')}
 --url                 URL of the datasource to run the command on
 --schema              Path to your Prisma schema file to take the datasource URL from
 
-${chalk.italic('Script input, only 1 must be provided:')}
+${italic('Script input, only 1 must be provided:')}
 --file                Path to a file. The content will be sent as the script to be executed
 
-${chalk.bold('Flags')}
+${bold('Flags')}
 
 --stdin              Use the terminal standard input as the script to be executed`,
 )
@@ -45,11 +45,11 @@ export class DbExecute implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : chalk.bold('📝 ')}Execute native commands to your database
+${process.platform === 'win32' ? '' : '📝 '}Execute native commands to your database
 
-This command takes as input a datasource, using ${chalk.green(`--url`)} or ${chalk.green(
-    `--schema`,
-  )} and a script, using ${chalk.green(`--stdin`)} or ${chalk.green(`--file`)}.
+This command takes as input a datasource, using ${green(`--url`)} or ${green(`--schema`)} and a script, using ${green(
+    `--stdin`,
+  )} or ${green(`--file`)}.
 The input parameters are mutually exclusive, only 1 of each (datasource & script) must be provided.
  
 The output of the command is connector-specific, and is not meant for returning data, but only to report success or failure.
@@ -57,24 +57,24 @@ The output of the command is connector-specific, and is not meant for returning 
 On SQL databases, this command takes as input a SQL script.
 The whole script will be sent as a single command to the database.
 
-${chalk.italic(`This command is currently not supported on MongoDB.`)}
+${italic(`This command is currently not supported on MongoDB.`)}
 
 ${helpOptions}
-${chalk.bold('Examples')}
+${bold('Examples')}
  
   Execute the content of a SQL script file to the datasource URL taken from the schema
-  ${chalk.dim('$')} prisma db execute
+  ${dim('$')} prisma db execute
     --file ./script.sql \\
     --schema schema.prisma
 
   Execute the SQL script from stdin to the datasource URL specified via the \`DATABASE_URL\` environment variable
-  ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | \\
+  ${dim('$')} echo 'TRUNCATE TABLE dev;' | \\
     prisma db execute \\
     --stdin \\
     --url="$DATABASE_URL"
 
   Like previous example, but exposing the datasource url credentials to your terminal history
-  ${chalk.dim('$')} echo 'TRUNCATE TABLE dev;' | \\
+  ${dim('$')} echo 'TRUNCATE TABLE dev;' | \\
     prisma db execute \\
     --stdin \\
     --url="mysql://root:root@localhost/mydb"
@@ -108,7 +108,7 @@ ${chalk.bold('Examples')}
 
     if (args['--preview-feature']) {
       logger.warn(`"prisma db execute" was in Preview and is now Generally Available.
-You can now remove the ${chalk.red('--preview-feature')} flag.`)
+You can now remove the ${red('--preview-feature')} flag.`)
     }
 
     loadEnvFile(args['--schema'], false)
@@ -117,12 +117,12 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
     if (args['--stdin'] && args['--file']) {
       throw new Error(
         `--stdin and --file cannot be used at the same time. Only 1 must be provided. 
-See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
+See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
     } else if (!args['--stdin'] && !args['--file']) {
       throw new Error(
         `Either --stdin or --file must be provided.
-See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
+See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
     }
 
@@ -130,12 +130,12 @@ See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
     if (args['--url'] && args['--schema']) {
       throw new Error(
         `--url and --schema cannot be used at the same time. Only 1 must be provided.
-See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
+See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
     } else if (!args['--url'] && !args['--schema']) {
       throw new Error(
         `Either --url or --schema must be provided.
-See \`${chalk.green(getCommandWithExecutor('prisma db execute -h'))}\``,
+See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       )
     }
 
