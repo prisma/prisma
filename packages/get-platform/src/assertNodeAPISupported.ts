@@ -3,7 +3,7 @@ import fs from 'fs'
 /**
  * Determines whether Node API is supported on the current platform and throws if not
  */
-export function isNodeAPISupported(): void {
+export function assertNodeAPISupported(): void {
   const customLibraryPath = process.env.PRISMA_QUERY_ENGINE_LIBRARY
   const customLibraryExists = customLibraryPath && fs.existsSync(customLibraryPath)
   if (!customLibraryExists && process.arch === 'ia32') {
