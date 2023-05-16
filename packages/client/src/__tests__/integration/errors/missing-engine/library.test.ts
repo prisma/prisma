@@ -50,6 +50,7 @@ test('missing-engine: library', async () => {
     Searched Locations:
 
       /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client
+      /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client
 
 
     To solve this problem, add the platform "TEST_PLATFORM" to the "binaryTargets" attribute in the "generator" block in the "schema.prisma" file:
