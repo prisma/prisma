@@ -1,6 +1,6 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import { getPlatformWithOSResult, isNodeAPISupported } from '@prisma/get-platform'
+import { assertNodeAPISupported, getPlatformWithOSResult } from '@prisma/get-platform'
 import execa from 'execa'
 import * as TE from 'fp-ts/TaskEither'
 
@@ -19,7 +19,7 @@ export async function getEngineVersion(enginePath?: string, binaryName?: BinaryT
 
   const platformInfo = await getPlatformWithOSResult()
   if (binaryName === BinaryType.QueryEngineLibrary) {
-    isNodeAPISupported()
+    assertNodeAPISupported()
 
     const QE = loadLibrary<NodeAPILibrary>(enginePath, platformInfo)
     return `${BinaryType.QueryEngineLibrary} ${QE.version().commit}`
