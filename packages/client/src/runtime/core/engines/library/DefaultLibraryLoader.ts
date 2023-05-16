@@ -189,18 +189,8 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
 
     const dirname = eval('__dirname') as string
     const searchLocations: string[] = [
-      // TODO: why hardcoded path? why not look for .prisma/client upwards?
-      path.resolve(dirname, '../../../.prisma/client'), // Dot Prisma Path
-      this.config.generator?.output?.value ?? dirname, // Custom Generator Path
-      path.resolve(dirname, '..'), // parentDirName
-      path.dirname(this.config.datamodelPath), // Datamodel Dir
-      this.config.cwd, //cwdPath
-      '/tmp/prisma-engines',
+      path.dirname(this.config.datamodelPath),
     ]
-
-    if (this.config.dirname) {
-      searchLocations.push(this.config.dirname)
-    }
 
     for (const location of searchLocations) {
       searchedLocations.push(location)
