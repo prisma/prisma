@@ -310,17 +310,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       return { prismaPath: enginePath, searchedLocations }
     }
     const searchLocations: string[] = [
-      eval(`require('path').join(__dirname, '../../../.prisma/client')`), // Dot Prisma Path
-      this.generator?.output?.value ?? eval('__dirname'), // Custom Generator Path
-      path.join(eval('__dirname'), '..'), // parentDirName
       path.dirname(this.datamodelPath), // Datamodel Dir
-      this.cwd, //cwdPath
-      '/tmp/prisma-engines',
     ]
-
-    if (this.dirname) {
-      searchLocations.push(this.dirname)
-    }
 
     for (const location of searchLocations) {
       searchedLocations.push(location)
