@@ -1,1 +1,0 @@
-CREATE VIEW "if" AS SELECT 1 AS id;
