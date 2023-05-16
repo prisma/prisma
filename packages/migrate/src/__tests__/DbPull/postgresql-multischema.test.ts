@@ -19,7 +19,7 @@ process.env.CI = 'true'
 
 const originalEnv = { ...process.env }
 
-describe('postgresql-multi-schema', () => {
+describe('postgresql-multischema', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-pull-multischema-postgresql',
@@ -29,7 +29,7 @@ describe('postgresql-multi-schema', () => {
     connectionString,
     // Note: at this location there is a setup.sql file
     // which will be executed a SQL file so the database is not empty
-    dirname: path.join(__dirname, '..', '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multi-schema'),
+    dirname: path.join(__dirname, '..', '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multischema'),
   }
 
   beforeAll(async () => {
@@ -57,7 +57,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
     await expect(result).rejects.toThrow(`P4001`)
@@ -69,7 +69,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
@@ -95,7 +95,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -117,7 +117,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -129,7 +129,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
     await expect(result).rejects.toThrow(`P4001`)
@@ -141,7 +141,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
     const introspect = new DbPull()
     const result = introspect.parse([
       '--print',
@@ -157,7 +157,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('--url with --schemas=base without preview feature should error', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
     ctx.fs.remove(`./schema.prisma`)
 
     const introspect = new DbPull()
@@ -175,7 +175,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('--url with --schemas=does-not-exist should error', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'does-not-exist'])
@@ -201,7 +201,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('--url --schemas=base (1 existing schema) should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
@@ -214,7 +214,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('--url  --schemas=base,transactional (2 existing schemas) should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
     const result = introspect.parse([
@@ -243,7 +243,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('--url  --schemas=base,does-not-exist (1 existing schemas + 1 non-existing) should succeed', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
     const result = introspect.parse([
@@ -262,7 +262,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   test('--url with --schemas=["does-not-exist", "base"] should error', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
 
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--url', setupParams.connectionString, '--schemas', 'base'])
