@@ -109,7 +109,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
   })
 })
 
-describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
+describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multischema', () => {
   if (process.env.CI) {
     // to avoid timeouts on macOS
     jest.setTimeout(80_000)
@@ -127,7 +127,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
     connectionString: process.env.TEST_MSSQL_URI!,
     // Note: at this location there is a setup.sql file
     // which will be executed a SQL file so the database is not empty
-    dirname: path.join(__dirname, '..', '..', '__tests__', 'fixtures', 'introspection', 'sqlserver-multi-schema'),
+    dirname: path.join(__dirname, '..', '..', '__tests__', 'fixtures', 'introspection', 'sqlserver-multischema'),
   }
 
   beforeAll(async () => {
@@ -158,7 +158,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
   })
 
   test('without datasource property `schemas` it should error with P4001, empty database', async () => {
-    ctx.fixture('introspection/sqlserver-multi-schema')
+    ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'without-schemas-in-datasource.prisma'])
     await expect(result).rejects.toThrow(`P4001`)
@@ -170,7 +170,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
   })
 
   test('datasource property `schemas=[]` should error with P1012, array can not be empty', async () => {
-    ctx.fixture('introspection/sqlserver-multi-schema')
+    ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-0-value.prisma'])
     await expect(result).rejects.toMatchInlineSnapshot(`
@@ -202,7 +202,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
   // https://github.com/prisma/prisma/actions/runs/4013789656/jobs/6893546711 (most recent)
   // https://buildkite.com/prisma/test-prisma-typescript/builds/18825#01855966-3d90-4362-b130-502021a1047b
   test.skip('datasource property `schemas=["base", "transactional"]` should succeed', async () => {
-    ctx.fixture('introspection/sqlserver-multi-schema')
+    ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-2-values.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -225,7 +225,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
   })
 
   test('datasource property `schemas=["base"]` should succeed', async () => {
-    ctx.fixture('introspection/sqlserver-multi-schema')
+    ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-value.prisma'])
     await expect(result).resolves.toMatchInlineSnapshot(``)
@@ -237,7 +237,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
   })
 
   test('datasource property `schemas=["does-not-exist"]` should error with P4001, empty database', async () => {
-    ctx.fixture('introspection/sqlserver-multi-schema')
+    ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
     const result = introspect.parse(['--print', '--schema', 'with-schemas-in-datasource-1-non-existing-value.prisma'])
     await expect(result).rejects.toThrow(`P4001`)
@@ -249,7 +249,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver-multi-schema', () => {
   })
 
   test('datasource property `schemas=["does-not-exist", "base"]` should succeed', async () => {
-    ctx.fixture('introspection/sqlserver-multi-schema')
+    ctx.fixture('introspection/sqlserver-multischema')
     const introspect = new DbPull()
     const result = introspect.parse([
       '--print',
