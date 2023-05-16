@@ -310,7 +310,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       return { prismaPath: enginePath, searchedLocations }
     }
     const searchLocations: string[] = [
-      path.dirname(this.datamodelPath), // Datamodel Dir
+      path.dirname(this.datamodelPath),
+      path.join(eval('__dirname'), '..') // For the tests
     ]
 
     for (const location of searchLocations) {
