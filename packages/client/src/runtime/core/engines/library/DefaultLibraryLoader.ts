@@ -187,7 +187,6 @@ Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
       return { enginePath, searchedLocations }
     }
 
-    const dirname = eval('__dirname') as string
     const searchLocations: string[] = [
       path.dirname(this.config.datamodelPath),
     ]
