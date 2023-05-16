@@ -369,6 +369,7 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
   if (libsslFilename) {
     debug(`Found libssl.so file using "ldconfig" or other generic paths: ${libsslFilename}`)
     const libsslVersion = parseLibSSLVersion(libsslFilename)
+    debug(`The parsed libssl version is: ${libsslVersion}`)
     if (libsslVersion) {
       return { libssl: libsslVersion, strategy: 'ldconfig' }
     }
