@@ -271,7 +271,7 @@ importers:
       js-levenshtein: 1.1.6
       kleur: 4.1.5
       klona: 2.0.6
-      lz-string: 1.4.4
+      lz-string: 1.5.0
       mariadb: 3.0.2
       memfs: 3.4.13
       mssql: 9.1.1
@@ -357,7 +357,7 @@ importers:
       js-levenshtein: 1.1.6
       kleur: 4.1.5
       klona: 2.0.6
-      lz-string: 1.4.4
+      lz-string: 1.5.0
       mariadb: 3.0.2
       memfs: 3.4.13
       mssql: 9.1.1
@@ -11187,8 +11187,8 @@ packages:
     engines: {node: 14 || >=16.14}
     dev: true
 
-  /lz-string/1.4.4:
-    resolution: {integrity: sha1-wNjq82BZ9wV5bh40SBHPTEmNOiY=}
+  /lz-string/1.5.0:
+    resolution: {integrity: sha512-h5bgJWpxJNswbU7qCrV0tIKQCaS3blPDrqKWx+QxzuzL1zGUzij9XCWLrSLsJPu5t+eWA/ycetzYAO5IOMcWAQ==}
     hasBin: true
     dev: true
 
