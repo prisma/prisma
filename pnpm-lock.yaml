@@ -1,5 +1,10 @@
 lockfileVersion: 5.4
 
+patchedDependencies:
+  node-fetch@2.6.7:
+    hash: 3wcp6bao3dfksocwsfev5pt7km
+    path: patches/node-fetch@2.6.7.patch
+
 importers:
 
   .:
@@ -211,7 +216,7 @@ importers:
     specifiers:
       '@codspeed/benchmark.js-plugin': 1.1.0
       '@faker-js/faker': 7.6.0
-      '@fast-check/jest': 1.6.1
+      '@fast-check/jest': 1.6.2
       '@jest/create-cache-key-function': 29.5.0
       '@jest/globals': 29.5.0
       '@jest/test-sequencer': 29.5.0
@@ -298,7 +303,7 @@ importers:
     devDependencies:
       '@codspeed/benchmark.js-plugin': 1.1.0_benchmark@2.1.4
       '@faker-js/faker': 7.6.0
-      '@fast-check/jest': 1.6.1_@jest+globals@29.5.0
+      '@fast-check/jest': 1.6.2_@jest+globals@29.5.0
       '@jest/create-cache-key-function': 29.5.0
       '@jest/globals': 29.5.0
       '@jest/test-sequencer': 29.5.0
@@ -2917,8 +2922,8 @@ packages:
     engines: {node: '>=14.0.0', npm: '>=6.0.0'}
     dev: true
 
-  /@fast-check/jest/1.6.1_@jest+globals@29.5.0:
-    resolution: {integrity: sha512-PjBjcLjtANwFZx6rLHPepQ3UUI5KAXXoG0t43wZaX0tvVOMur7C/itnqZyG8P3mIVTVHKCdMvBWe+K6Jrsu1tQ==}
+  /@fast-check/jest/1.6.2_@jest+globals@29.5.0:
+    resolution: {integrity: sha512-NaIgmKsnVmlsmIAscJaxyo4ETgtrASGkiki6ZRNQGL3xXgTacZ2zZXViH8Ba/vKJcoZqu+e5+Lc4sUECTSFm4A==}
     peerDependencies:
       '@fast-check/worker': ~0.0.1
       '@jest/expect': '>=28.0.0'
@@ -6242,7 +6247,7 @@ packages:
       fast-write-atomic: 0.2.1
       make-dir: 3.1.0
       ms: 2.1.3
-      node-fetch: 2.6.7
+      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
       uuid: 8.3.2
     transitivePeerDependencies:
       - encoding
@@ -11662,7 +11667,7 @@ packages:
     dependencies:
       whatwg-url: 5.0.0
 
-  /node-fetch/2.6.7:
+  /node-fetch/2.6.7_3wcp6bao3dfksocwsfev5pt7km:
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
     engines: {node: 4.x || >=6.0.0}
     peerDependencies:
@@ -11672,6 +11677,7 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
+    patched: true
 
   /node-fetch/3.2.10:
     resolution: {integrity: sha512-MhuzNwdURnZ1Cp4XTazr69K0BTizsBroX7Zx3UgDSVcZYKF/6p0CBe4EUb/hLqmzVhl0UpYfgRljQ4yxE+iCxA==}
@@ -15523,8 +15529,3 @@ packages:
       which: 2.0.2
       yaml: 2.2.1
     dev: true
-
-patchedDependencies:
-  node-fetch@2.6.7:
-    hash: 3wcp6bao3dfksocwsfev5pt7km
-    path: patches/node-fetch@2.6.7.patch
