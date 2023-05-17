@@ -34,7 +34,7 @@
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
     "terminal-link": "2.1.1",
-    "ts-pattern": "4.2.2"
+    "ts-pattern": "4.3.0"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
