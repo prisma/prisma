@@ -29,7 +29,7 @@ suite
   .add('typescript compilation ~50 Models', {
     defer: true,
     fn: function (deferred) {
-      compileFile(path.join(__dirname, './compile.ts'))
+      compileFile(path.join(__dirname, './compile.ts'), { isolateCompiler: false })
         .then(() => {
           deferred.resolve()
         })

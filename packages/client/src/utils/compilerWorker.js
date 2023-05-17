@@ -1,5 +1,6 @@
-const { createCompilerHost, createProgram, ModuleKind, ScriptTarget } = require('typescript')
 const ts = require('typescript')
+
+const { createCompilerHost, createProgram, ModuleKind, ScriptTarget } = ts
 
 function compileFile(filePath) {
   const options = {
@@ -25,4 +26,8 @@ function compileFile(filePath) {
   }
 }
 
-compileFile(process.argv[2])
+module.exports = compileFile
+
+if (require.main === module) {
+  compileFile(process.argv[2])
+}
