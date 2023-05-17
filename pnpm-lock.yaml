@@ -216,7 +216,7 @@ importers:
     specifiers:
       '@codspeed/benchmark.js-plugin': 1.1.0
       '@faker-js/faker': 7.6.0
-      '@fast-check/jest': 1.6.1
+      '@fast-check/jest': 1.6.2
       '@jest/create-cache-key-function': 29.5.0
       '@jest/globals': 29.5.0
       '@jest/test-sequencer': 29.5.0
@@ -303,7 +303,7 @@ importers:
     devDependencies:
       '@codspeed/benchmark.js-plugin': 1.1.0_benchmark@2.1.4
       '@faker-js/faker': 7.6.0
-      '@fast-check/jest': 1.6.1_@jest+globals@29.5.0
+      '@fast-check/jest': 1.6.2_@jest+globals@29.5.0
       '@jest/create-cache-key-function': 29.5.0
       '@jest/globals': 29.5.0
       '@jest/test-sequencer': 29.5.0
@@ -3120,8 +3120,8 @@ packages:
     engines: {node: '>=14.0.0', npm: '>=6.0.0'}
     dev: true
 
-  /@fast-check/jest/1.6.1_@jest+globals@29.5.0:
-    resolution: {integrity: sha512-PjBjcLjtANwFZx6rLHPepQ3UUI5KAXXoG0t43wZaX0tvVOMur7C/itnqZyG8P3mIVTVHKCdMvBWe+K6Jrsu1tQ==}
+  /@fast-check/jest/1.6.2_@jest+globals@29.5.0:
+    resolution: {integrity: sha512-NaIgmKsnVmlsmIAscJaxyo4ETgtrASGkiki6ZRNQGL3xXgTacZ2zZXViH8Ba/vKJcoZqu+e5+Lc4sUECTSFm4A==}
     peerDependencies:
       '@fast-check/worker': ~0.0.1
       '@jest/expect': '>=28.0.0'
