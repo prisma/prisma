@@ -63,7 +63,7 @@
   ],
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "1.1.0",
-    "@faker-js/faker": "7.6.0",
+    "@faker-js/faker": "8.0.1",
     "@fast-check/jest": "1.6.2",
     "@jest/create-cache-key-function": "29.5.0",
     "@jest/globals": "29.5.0",
