@@ -870,7 +870,7 @@ importers:
       find-up: 6.3.0
       fs-extra: 11.1.1
       fzf: 0.5.1
-      ini: 4.0.0
+      ini: 4.1.1
       kleur: 4.1.5
       rimraf: 4.4.1
       terminal-link: 3.0.0
@@ -893,7 +893,7 @@ importers:
       find-up: 6.3.0
       fs-extra: 11.1.1
       fzf: 0.5.1
-      ini: 4.0.0
+      ini: 4.1.1
       kleur: 4.1.5
       rimraf: 4.4.1
       terminal-link: 3.0.0
@@ -9542,8 +9542,8 @@ packages:
     resolution: {integrity: sha512-7PnF4oN3CvZF23ADhA5wRaYEQpJ8qygSkbtTXWBeXWXmEVRXK+1ITciHWwHhsjv1TmW0MgacIv6hEi5pX5NQdA==}
     engines: {node: '>=10'}
 
-  /ini/4.0.0:
-    resolution: {integrity: sha512-t0ikzf5qkSFqRl1e6ejKBe+Tk2bsQd8ivEkcisyGXsku2t8NvXZ1Y3RRz5vxrDgOrTBOi13CvGsVoI5wVpd7xg==}
+  /ini/4.1.1:
+    resolution: {integrity: sha512-QQnnxNyfvmHFIsj7gkPcYymR8Jdw/o7mp5ZFihxn6h8Ci6fh3Dx4E1gPjpQEpIuPo9XVNY/ZUwh4BPMjGyL01g==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     dev: true
 
