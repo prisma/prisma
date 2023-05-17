@@ -1,5 +1,10 @@
 lockfileVersion: 5.4
 
+patchedDependencies:
+  node-fetch@2.6.7:
+    hash: 3wcp6bao3dfksocwsfev5pt7km
+    path: patches/node-fetch@2.6.7.patch
+
 importers:
 
   .:
@@ -154,7 +159,7 @@ importers:
       line-replace: 2.0.1
       log-update: 4.0.0
       node-fetch: 2.6.11
-      npm-packlist: 5.1.3
+      npm-packlist: 7.0.4
       open: 7.4.2
       pkg-up: 3.1.0
       resolve-pkg: 2.0.0
@@ -198,7 +203,7 @@ importers:
       line-replace: 2.0.1
       log-update: 4.0.0
       node-fetch: 2.6.11
-      npm-packlist: 5.1.3
+      npm-packlist: 7.0.4
       open: 7.4.2
       pkg-up: 3.1.0
       resolve-pkg: 2.0.0
@@ -687,7 +692,7 @@ importers:
       mock-stdin: 1.0.0
       new-github-issue-url: 0.2.1
       node-fetch: 2.6.11
-      npm-packlist: 5.1.3
+      npm-packlist: 7.0.4
       open: 7.4.2
       p-map: 4.0.0
       prompts: 2.4.2
@@ -734,7 +739,7 @@ importers:
       kleur: 4.1.5
       new-github-issue-url: 0.2.1
       node-fetch: 2.6.11
-      npm-packlist: 5.1.3
+      npm-packlist: 7.0.4
       open: 7.4.2
       p-map: 4.0.0
       prompts: 2.4.2
@@ -6242,7 +6247,7 @@ packages:
       fast-write-atomic: 0.2.1
       make-dir: 3.1.0
       ms: 2.1.3
-      node-fetch: 2.6.7
+      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
       uuid: 8.3.2
     transitivePeerDependencies:
       - encoding
@@ -8822,6 +8827,7 @@ packages:
       inherits: 2.0.4
       minimatch: 5.1.6
       once: 1.4.0
+    dev: true
 
   /glob/9.3.5:
     resolution: {integrity: sha512-e1LleDykUz2Iu+MTYdkSsuWX8lvAjAcs0Xef0lNIu0S2wOAzuTxCJtcd9S3cijlwYF18EsU3rzb8jPVobxDh9Q==}
@@ -9238,11 +9244,11 @@ packages:
       minimatch: 3.1.2
     dev: true
 
-  /ignore-walk/5.0.1:
-    resolution: {integrity: sha512-yemi4pMf51WKT7khInJqAvsIGzoqYXblnsz0ql8tM+yi1EKYTY1evX4NAbJrLL/Aanr2HyZeluqU+Oi7MGHokw==}
-    engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
+  /ignore-walk/6.0.3:
+    resolution: {integrity: sha512-C7FfFoTA+bI10qfeydT8aZbvr91vAEU+2W5BZUlzPec47oNb07SsOfwYrtxuvOYdUApPP/Qlh4DtAO51Ekk2QA==}
+    engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     dependencies:
-      minimatch: 5.1.6
+      minimatch: 9.0.0
 
   /ignore/5.2.4:
     resolution: {integrity: sha512-MAb38BcSbH0eHNBxn7ql2NH/kX33OkB3lZ1BNdh7ENeRChHTYsTvWrMubiIAMNS2llXEEgZ1MUOBtXChP3kaFQ==}
@@ -11328,6 +11334,12 @@ packages:
       brace-expansion: 2.0.1
     dev: true
 
+  /minimatch/9.0.0:
+    resolution: {integrity: sha512-0jJj8AvgKqWN05mrwuqi8QYKx1WmYSUoKSxu5Qhs9prezTz10sxAHGNZe9J9cqIJzta8DWsleh2KaVaLl6Ru2w==}
+    engines: {node: '>=16 || 14 >=14.17'}
+    dependencies:
+      brace-expansion: 2.0.1
+
   /minimist-options/3.0.2:
     resolution: {integrity: sha512-FyBrT/d0d4+uiZRbqznPXqw3IpZZG3gl3wKWiX784FycUKVwBt0uLBFkQrtE4tZOrgo78nZp2jnKz3L65T5LdQ==}
     engines: {node: '>= 4'}
@@ -11662,7 +11674,7 @@ packages:
     dependencies:
       whatwg-url: 5.0.0
 
-  /node-fetch/2.6.7:
+  /node-fetch/2.6.7_3wcp6bao3dfksocwsfev5pt7km:
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
     engines: {node: 4.x || >=6.0.0}
     peerDependencies:
@@ -11672,6 +11684,7 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
+    patched: true
 
   /node-fetch/3.2.10:
     resolution: {integrity: sha512-MhuzNwdURnZ1Cp4XTazr69K0BTizsBroX7Zx3UgDSVcZYKF/6p0CBe4EUb/hLqmzVhl0UpYfgRljQ4yxE+iCxA==}
@@ -11770,12 +11783,6 @@ packages:
       npm-normalize-package-bin: 1.0.1
     dev: true
 
-  /npm-bundled/2.0.1:
-    resolution: {integrity: sha512-gZLxXdjEzE/+mOstGDqR6b0EkhJ+kM6fxM6vUuckuctuVPh80Q6pw/rSZj9s4Gex9GxWtIicO1pc8DB9KZWudw==}
-    engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
-    dependencies:
-      npm-normalize-package-bin: 2.0.0
-
   /npm-conf/1.1.3:
     resolution: {integrity: sha512-Yic4bZHJOt9RCFbRP3GgpqhScOY4HH3V2P8yBj6CeYq118Qr+BLXqT2JvpJ00mryLESpgOxf5XlFv4ZjXxLScw==}
     engines: {node: '>=4'}
@@ -11806,6 +11813,7 @@ packages:
   /npm-normalize-package-bin/2.0.0:
     resolution: {integrity: sha512-awzfKUO7v0FscrSpRoogyNm0sajikhBWpU0QMrW09AMi9n1PoKU6WaIqUzuJSQnpciZZmJ/jMZ2Egfmb/9LiWQ==}
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
+    dev: true
 
   /npm-package-arg/8.1.5:
     resolution: {integrity: sha512-LhgZrg0n0VgvzVdSm1oiZworPbTxYHUJCgtsJW8mGvlDpxTM1vSJc3m5QZeUkhAHIzbz3VCHd/R4osi1L1Tg/Q==}
@@ -11827,15 +11835,11 @@ packages:
       npm-normalize-package-bin: 1.0.1
     dev: true
 
-  /npm-packlist/5.1.3:
-    resolution: {integrity: sha512-263/0NGrn32YFYi4J533qzrQ/krmmrWwhKkzwTuM4f/07ug51odoaNjUexxO4vxlzURHcmYMH1QjvHjsNDKLVg==}
-    engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
-    hasBin: true
+  /npm-packlist/7.0.4:
+    resolution: {integrity: sha512-d6RGEuRrNS5/N84iglPivjaJPxhDbZmlbTwTDX2IbcRHG5bZCdtysYMhwiPvcF4GisXHGn7xsxv+GQ7T/02M5Q==}
+    engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     dependencies:
-      glob: 8.1.0
-      ignore-walk: 5.0.1
-      npm-bundled: 2.0.1
-      npm-normalize-package-bin: 2.0.0
+      ignore-walk: 6.0.3
 
   /npm-pick-manifest/6.1.1:
     resolution: {integrity: sha512-dBsdBtORT84S8V8UTad1WlUyKIY9iMsAmqxHbLdeEeBNMLQDlDWWra3wYUx9EBEIiG/YwAy0XyNHDd2goAsfuA==}
@@ -15523,8 +15527,3 @@ packages:
       which: 2.0.2
       yaml: 2.2.1
     dev: true
-
-patchedDependencies:
-  node-fetch@2.6.7:
-    hash: 3wcp6bao3dfksocwsfev5pt7km
-    path: patches/node-fetch@2.6.7.patch
