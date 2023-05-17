@@ -1,18 +1,15 @@
 import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
+import { assertNever } from '@prisma/internals'
+import stripAnsi from 'strip-ansi'
+
 import {
   EngineValidationError,
   EventEmitter,
   Fetch,
-  getTraceParent,
-  hasBatchIndex,
   InteractiveTransactionOptions,
-  TracingConfig,
   TransactionOptions,
-} from '@prisma/engine-core'
-import { assertNever } from '@prisma/internals'
-import stripAnsi from 'strip-ansi'
-
+} from '../runtime/core/engines'
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
@@ -20,6 +17,7 @@ import {
   PrismaClientUnknownRequestError,
 } from '.'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
+import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
 import { applyResultExtensions } from './core/extensions/applyResultExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { visitQueryResult } from './core/extensions/visitQueryResult'
@@ -67,7 +65,6 @@ export type Request = {
   transaction?: PrismaPromiseTransaction
   otelParentCtx?: Context
   otelChildCtx?: Context
-  tracingConfig?: TracingConfig
   customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
@@ -88,10 +85,9 @@ export class RequestHandler {
     this.client = client
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        const transaction = requests[0].transaction
-        const encoder = requests[0].protocolEncoder
-        const queries = encoder.createBatch(requests.map((r) => r.protocolMessage))
-        const traceparent = getTraceParent({ context: requests[0].otelParentCtx, tracingConfig: client._tracingConfig })
+        const { transaction, protocolEncoder, otelParentCtx } = requests[0]
+        const queries = protocolEncoder.createBatch(requests.map((r) => r.protocolMessage))
+        const traceparent = this.client._tracingHelper.getTraceParent(otelParentCtx)
 
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
@@ -110,7 +106,7 @@ export class RequestHandler {
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
         return this.client._engine.request(request.protocolMessage.toEngineQuery(), {
-          traceparent: getTraceParent({ tracingConfig: request.tracingConfig }),
+          traceparent: this.client._tracingHelper.getTraceParent(),
           interactiveTransaction,
           isWrite: request.protocolMessage.isWrite(),
           customDataProxyFetch: request.customDataProxyFetch,
@@ -149,7 +145,6 @@ export class RequestHandler {
         transaction,
         otelParentCtx,
         otelChildCtx,
-        tracingConfig: this.client._tracingConfig,
         customDataProxyFetch,
       })
       const data = response?.data
@@ -274,17 +269,17 @@ export class RequestHandler {
     if (extensions.isEmpty() || result == null) {
       return result
     }
-    const model = this.client._baseDmmf.getModelMap()[modelName]
+    const model = this.client._runtimeDataModel.models[modelName]
     if (!model) {
       return result
     }
     return visitQueryResult({
       result,
       args: args ?? {},
-      model,
-      dmmf: this.client._baseDmmf,
-      visitor(value, model, args) {
-        const modelName = dmmfToJSModelName(model.name)
+      modelName,
+      runtimeDataModel: this.client._runtimeDataModel,
+      visitor(value, dmmfModelName, args) {
+        const modelName = dmmfToJSModelName(dmmfModelName)
         return applyResultExtensions({ result: value, modelName, select: args.select, extensions })
       },
     })

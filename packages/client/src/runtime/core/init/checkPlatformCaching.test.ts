@@ -1,5 +1,4 @@
-import { PrismaClientInitializationError } from '@prisma/engine-core'
-
+import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 import { checkPlatformCaching } from './checkPlatformCaching'
 
 const consoleMock = jest.spyOn(global.console, 'error').mockImplementation()

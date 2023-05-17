@@ -18,7 +18,7 @@ export class ObjectField implements ErrorBasicBuilder {
   write(writer: ErrorWriter): void {
     const name = new FormattedString(this.name)
     if (this.hasError) {
-      name.underline().setColor(writer.context.chalk.redBright)
+      name.underline().setColor(writer.context.colors.red)
     }
     writer.write(name).write(separator).write(this.value)
   }

@@ -1,7 +1,7 @@
-import chalk from 'chalk'
+import { yellow } from 'kleur/colors'
 
 export const tags = {
-  warn: chalk.yellow('prisma:warn'),
+  warn: yellow('prisma:warn'),
 }
 export const should = {
   warn: () => !process.env.PRISMA_DISABLE_WARNINGS,

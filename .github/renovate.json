@@ -6,7 +6,7 @@
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "rangeStrategy": "pin",
-  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-fmt-wasm"],
+  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-fmt-wasm", "redis", "@types/redis"],
   "constraints": {
     "pnpm": "7"
   },
@@ -25,17 +25,17 @@
       "schedule": ["at any time"]
     },
     {
-      "groupName": "devDependencies (non-major)",
+      "groupName": "devDependencies patch (non-major)",
       "automerge": "true",
       "depTypeList": ["devDependencies"],
-      "updateTypes": ["patch", "minor"],
+      "updateTypes": ["patch"],
       "excludePackageNames": ["@prisma/studio", "@prisma/studio-server", "checkpoint-client"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
-      "groupName": "dependencies (non-major)",
+      "groupName": "dependencies patch (non-major)",
       "depTypeList": ["dependencies"],
-      "updateTypes": ["patch", "minor"],
+      "updateTypes": ["patch"],
       "excludePackageNames": ["checkpoint-client"],
       "schedule": ["before 7am on Wednesday"]
     },
@@ -53,7 +53,6 @@
         "sort-keys",
         "node.js",
         "@sindresorhus/slugify",
-        "chalk",
         "cli-truncate",
         "escape-string-regexp",
         "execa",

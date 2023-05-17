@@ -15,7 +15,7 @@ on:
       - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
-      - 'src/.buildkite/**'
+      - '.buildkite/**'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
@@ -28,7 +28,7 @@ on:
       - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
-      - 'src/.buildkite/**'
+      - '.buildkite/**'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
@@ -36,6 +36,10 @@ on:
 
 env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma benchmark.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   benchmark:

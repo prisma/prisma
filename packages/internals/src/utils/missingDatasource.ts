@@ -1,14 +1,12 @@
-import chalk from 'chalk'
+import { bold } from 'kleur/colors'
 
 import { highlightDatamodel } from '../highlight/highlight'
 import { link } from './link'
 
-export const missingDatasource = `\nYou don't have any ${chalk.bold('datasource')} defined in your ${chalk.bold(
-  'schema.prisma',
-)}.
+export const missingDatasource = `\nYou don't have any ${bold('datasource')} defined in your ${bold('schema.prisma')}.
 You can define a datasource like this:
 
-${chalk.bold(
+${bold(
   highlightDatamodel(`datasource db {
   provider = "postgresql"
   url      = env("DB_URL")

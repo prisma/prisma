@@ -1,54 +1,34 @@
 import { pipe } from 'fp-ts/lib/function'
 import * as T from 'fp-ts/lib/Task'
 import * as TE from 'fp-ts/lib/TaskEither'
-import fs from 'fs'
-import globby from 'globby'
-import path from 'path'
+import fs from 'fs/promises'
 
-import { pathToPosix } from './path'
+import * as fsUtils from './fs-utils'
 
 export const createDirIfNotExists = (dir: string) =>
-  pipe(
-    TE.tryCatch(
-      // Note: { recursive: true } prevents EEEXIST error codes when the directory already exists
-      () => fs.promises.mkdir(dir, { recursive: true }),
-      createTaggedSystemError('fs-create-dir', { dir }),
-    ),
-  )
+  TE.tryCatch(() => fsUtils.createDirIfNotExists(dir), createTaggedSystemError('fs-create-dir', { dir }))
 
-export const writeFile = ({ path, content }: { path: string; content: string }) =>
-  pipe(
-    TE.tryCatch(
-      () => fs.promises.writeFile(path, content, { encoding: 'utf-8' }),
-      createTaggedSystemError('fs-write-file', { path, content }),
-    ),
-  )
+export const writeFile = (params: { path: string; content: string }) =>
+  TE.tryCatch(() => fsUtils.writeFile(params), createTaggedSystemError('fs-write-file', params))
 
-/**
- * Note to future self: in Node.js, `removeDir` and `removeFile` can both be implemented with a single `fs.promises.rm` call.
- */
+export const removeEmptyDirs = (dir: string) =>
+  TE.tryCatch(() => fsUtils.removeEmptyDirs(dir), createTaggedSystemError('fs-remove-empty-dirs', { dir }))
 
 export const removeDir = (dir: string) =>
-  pipe(
-    TE.tryCatch(() => fs.promises.rmdir(dir, { recursive: true }), createTaggedSystemError('fs-remove-dir', { dir })),
-  )
+  pipe(TE.tryCatch(() => fs.rm(dir, { recursive: true }), createTaggedSystemError('fs-remove-dir', { dir })))
 
 export const removeFile = (filePath: string) =>
-  pipe(TE.tryCatch(() => fs.promises.unlink(filePath), createTaggedSystemError('fs-remove-file', { filePath })))
+  pipe(TE.tryCatch(() => fs.unlink(filePath), createTaggedSystemError('fs-remove-file', { filePath })))
 
-export const getFoldersInDir =
+export const getNestedFoldersInDir =
   (dir: string): T.Task<string[]> =>
-  () => {
-    const normalizedDir = pathToPosix(path.join(dir, '**'))
-    return globby(normalizedDir, { onlyFiles: false, onlyDirectories: true })
-  }
+  () =>
+    fsUtils.getNestedFoldersInDir(dir)
 
 export const getFilesInDir =
-  (dir: string): T.Task<string[]> =>
-  () => {
-    const normalizedDir = pathToPosix(path.join(dir, '**'))
-    return globby(normalizedDir, { onlyFiles: true, onlyDirectories: false })
-  }
+  (dir: string, pattern = '**'): T.Task<string[]> =>
+  () =>
+    fsUtils.getFilesInDir(dir, pattern)
 
 /**
  * Closure that creates a tagged system error for a given error callback.

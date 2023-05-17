@@ -114,8 +114,6 @@ In the `prisma/prisma` repository we have a few places where you can write tests
   - `src/__tests__/types/**` - Tests for generated Client TS Types
 - **`debug`**
   - Unit tests for `debug` package
-- **`engine-core`**
-  - Unit tests for `engine-core` package
 - **`generator-helper`**
   - Integration tests for generator interface implementation
 - **`migrate`**
@@ -504,6 +502,9 @@ By creating a Pull Request the following pipelines will be triggered
 - [GitHub Action `CI`](https://github.com/prisma/prisma/blob/main/.github/workflows/test.yml)
 
 They are both running the same tests but with different Node.js version and will need to be successful before merging ("flaky" tests might show up and might be ignored).
+
+By default, some of the node version/engine/engine protocol combination are tested only
+during daily builds. If you need to run all of them for your PR leave `ci test all` comment on the PR and re-run the workflow.
 
 ### Publishing an integration version of all the packages
 

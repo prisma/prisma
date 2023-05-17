@@ -105,9 +105,9 @@ describe('handlePanic', () => {
       })
     } catch (error) {
       error.schemaPath = 'Some Schema Path'
-      expect(error).toMatchInlineSnapshot(`[Error: Some error message!]`)
+      expect(error).toMatchInlineSnapshot(`[RustPanic: Some error message!]`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `"{"__typename":"RustPanic","rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}"`,
+        `"{"__typename":"RustPanic","name":"RustPanic","rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}"`,
       )
     }
   })
