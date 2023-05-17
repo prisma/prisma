@@ -83,7 +83,7 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.7.0",
-    "@swc-node/register": "1.5.5",
+    "@swc-node/register": "1.6.5",
     "@swc/core": "1.3.32",
     "@swc/jest": "0.2.26",
     "@timsuchanek/copy": "1.4.5",
