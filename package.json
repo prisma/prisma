@@ -74,7 +74,7 @@
     "regenerator-runtime": "0.13.11",
     "resolve": "1.22.1",
     "safe-buffer": "5.2.1",
-    "semver": "7.3.8",
+    "semver": "7.5.1",
     "spdx-exceptions": "2.3.0",
     "spdx-license-ids": "3.0.12",
     "staged-git-files": "1.3.0",
