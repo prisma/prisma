@@ -120,7 +120,7 @@
     "klona": "2.0.6",
     "lz-string": "1.4.4",
     "mariadb": "3.0.2",
-    "memfs": "3.4.13",
+    "memfs": "3.5.1",
     "mssql": "9.1.1",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.6.11",
