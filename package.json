@@ -62,7 +62,7 @@
     "is-ci": "3.0.1",
     "jest-junit": "16.0.0",
     "kleur": "4.1.5",
-    "lint-staged": "13.1.0",
+    "lint-staged": "13.2.2",
     "node-fetch": "2.6.11",
     "p-map": "4.0.0",
     "p-reduce": "2.1.0",
