@@ -678,7 +678,7 @@ importers:
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
-      fp-ts: 2.14.0
+      fp-ts: 2.15.0
       fs-extra: 11.1.1
       fs-jetpack: 5.1.0
       global-dirs: 3.0.1
@@ -728,7 +728,7 @@ importers:
       escape-string-regexp: 4.0.0
       execa: 5.1.1
       find-up: 5.0.0
-      fp-ts: 2.14.0
+      fp-ts: 2.15.0
       fs-extra: 11.1.1
       fs-jetpack: 5.1.0
       global-dirs: 3.0.1
@@ -786,7 +786,7 @@ importers:
       '@types/sqlite3': 3.1.8
       esbuild: 0.15.13
       execa: 5.1.1
-      fp-ts: 2.14.0
+      fp-ts: 2.15.0
       fs-jetpack: 5.1.0
       get-stdin: 8.0.0
       has-yarn: 2.1.0
@@ -813,7 +813,7 @@ importers:
       '@prisma/get-platform': link:../get-platform
       '@sindresorhus/slugify': 1.1.2
       execa: 5.1.1
-      fp-ts: 2.14.0
+      fp-ts: 2.15.0
       get-stdin: 8.0.0
       has-yarn: 2.1.0
       indent-string: 4.0.0
@@ -8753,8 +8753,8 @@ packages:
     engines: {node: '>= 0.6'}
     dev: true
 
-  /fp-ts/2.14.0:
-    resolution: {integrity: sha512-QLagLSYAgMA00pZzUzeksH/78Sd14y7+Gc2A8Yaja3/IpGOFMdm/gYBuDMxYqLsJ58iT5lz+bJb953RAeFfp1A==}
+  /fp-ts/2.15.0:
+    resolution: {integrity: sha512-3o6EllAvGuCsDgjM+frscLKDRPR9pqbrg13tJ13z86F4eni913kBV8h85rM6zpu2fEvJ8RWA0ouYlUWwHEmxTg==}
     dev: false
 
   /fresh/0.5.2:
