@@ -57,7 +57,7 @@
     "escape-string-regexp": "4.0.0",
     "execa": "5.1.1",
     "find-up": "5.0.0",
-    "fp-ts": "2.14.0",
+    "fp-ts": "2.15.0",
     "fs-extra": "11.1.1",
     "fs-jetpack": "5.1.0",
     "global-dirs": "3.0.1",
