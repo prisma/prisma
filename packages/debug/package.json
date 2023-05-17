@@ -34,7 +34,7 @@
   "dependencies": {
     "@types/debug": "4.1.7",
     "debug": "4.3.4",
-    "strip-ansi": "6.0.1"
+    "strip-ansi": "7.0.1"
   },
   "sideEffects": false
 }

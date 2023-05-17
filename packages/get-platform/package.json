@@ -27,14 +27,14 @@
   "dependencies": {
     "@prisma/debug": "workspace:*",
     "escape-string-regexp": "4.0.0",
-    "execa": "5.1.1",
+    "execa": "7.1.1",
     "fs-jetpack": "5.1.0",
     "kleur": "4.1.5",
     "replace-string": "3.1.0",
-    "strip-ansi": "6.0.1",
+    "strip-ansi": "7.0.1",
     "tempy": "1.0.1",
-    "terminal-link": "2.1.1",
-    "ts-pattern": "4.2.2"
+    "terminal-link": "3.0.0",
+    "ts-pattern": "4.3.0"
   },
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
