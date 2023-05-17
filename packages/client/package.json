@@ -118,7 +118,7 @@
     "js-levenshtein": "1.1.6",
     "kleur": "4.1.5",
     "klona": "2.0.6",
-    "lz-string": "1.4.4",
+    "lz-string": "1.5.0",
     "mariadb": "3.0.2",
     "memfs": "3.4.13",
     "mssql": "9.1.1",
