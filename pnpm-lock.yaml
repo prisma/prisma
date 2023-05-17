@@ -797,7 +797,7 @@ importers:
       log-update: 4.0.0
       mariadb: 3.1.1
       mock-stdin: 1.0.0
-      mongoose: 6.10.5
+      mongoose: 6.11.1
       mssql: 9.1.1
       ora: 5.4.1
       pg: 8.10.0
@@ -820,7 +820,7 @@ importers:
       kleur: 4.1.5
       log-update: 4.0.0
       mariadb: 3.1.1
-      mongoose: 6.10.5
+      mongoose: 6.11.1
       mssql: 9.1.1
       ora: 5.4.1
       pg: 8.10.0
@@ -6113,8 +6113,8 @@ packages:
       node-int64: 0.4.0
     dev: true
 
-  /bson/4.7.0:
-    resolution: {integrity: sha512-VrlEE4vuiO1WTpfof4VmaVolCVYkYTgB9iWgYNOrVlnifpME/06fhFRmONgBhClD5pFC1t9ZWqFUQEQAzY43bA==}
+  /bson/4.7.2:
+    resolution: {integrity: sha512-Ry9wCtIZ5kGqkJoi6aD8KjxFZEx78guTQDnpXWiNthsxzrxAK/i8E6pCHAIZTbaEFWcOCvbecMukfK7XUvyLpQ==}
     engines: {node: '>=6.9.0'}
     dependencies:
       buffer: 5.7.1
@@ -11749,11 +11749,11 @@ packages:
       whatwg-url: 11.0.0
     dev: false
 
-  /mongodb/4.14.0:
-    resolution: {integrity: sha512-coGKkWXIBczZPr284tYKFLg+KbGPPLlSbdgfKAb6QqCFt5bo5VFZ50O3FFzsw4rnkqjwT6D8Qcoo9nshYKM7Mg==}
+  /mongodb/4.16.0:
+    resolution: {integrity: sha512-0EB113Fsucaq1wsY0dOhi1fmZOwFtLOtteQkiqOXGklvWMnSH3g2QS53f0KTP+/6qOkuoXE2JksubSZNmxeI+g==}
     engines: {node: '>=12.9.0'}
     dependencies:
-      bson: 4.7.0
+      bson: 4.7.2
       mongodb-connection-string-url: 2.5.4
       socks: 2.7.1
     optionalDependencies:
@@ -11763,13 +11763,13 @@ packages:
       - aws-crt
     dev: false
 
-  /mongoose/6.10.5:
-    resolution: {integrity: sha512-y4HL4/9EySec7L0gJ+pCm9heLSF45uIIvRS4fSeAFWDfe4vXW1vRZJwTz7OGkra3ZoSfRnFTo9bNZkuggDVlVA==}
+  /mongoose/6.11.1:
+    resolution: {integrity: sha512-AvQ8C5ZGF6GcsQhoRg/i7pbNZpb96qLGU5ICBllckp7qMOxcfUF1nA6JstZw841BqRcE6myZ/mx9CluEESaw5Q==}
     engines: {node: '>=12.0.0'}
     dependencies:
-      bson: 4.7.0
+      bson: 4.7.2
       kareem: 2.5.1
-      mongodb: 4.14.0
+      mongodb: 4.16.0
       mpath: 0.9.0
       mquery: 4.0.3
       ms: 2.1.3
