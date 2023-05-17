@@ -83,7 +83,7 @@
     "tempy": "1.0.1",
     "terminal-link": "2.1.1",
     "tmp": "0.2.1",
-    "ts-pattern": "4.2.2"
+    "ts-pattern": "4.3.0"
   },
   "sideEffects": false
 }
