@@ -83,7 +83,7 @@
     "tty-browserify": "0.0.1",
     "typescript": "4.9.5",
     "util": "0.12.5",
-    "zx": "7.1.1"
+    "zx": "7.2.2"
   },
   "pnpm": {
     "peerDependencyRules": {
