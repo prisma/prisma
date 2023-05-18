@@ -57,7 +57,7 @@ export async function resolveEnginePath(engineType: 'binary' | 'library', config
     expectedLocation: path.relative(process.cwd(), config.dirname), // TODO pathToPosix
   }
 
-  let errorMessage: string | undefined
+  let errorMessage: string
   if (hasNativeBinaryTarget && hasMissingBinaryTarget) {
     errorMessage = nativeGeneratedOnDifferentPlatform(errorInput)
   } else if (hasMissingBinaryTarget) {
@@ -88,8 +88,8 @@ async function findEnginePath(engineType: 'binary' | 'library', config: EngineCo
     path.resolve(dirname, '..'), // generation directory one level up
     config.generator?.output?.value ?? dirname, // custom generator local path
     path.resolve(dirname, '../../../.prisma/client'), // dot prisma node_modules ???
-    config.cwd, //cwdPath
-    '/tmp/prisma-engines',
+    '/tmp/prisma-engines', // used for netlify
+    config.cwd, // cwdPath, not cwd
   ]
 
   if (__filename.includes('resolveEnginePath')) {
@@ -111,7 +111,7 @@ async function findEnginePath(engineType: 'binary' | 'library', config: EngineCo
 
 /**
  * Utility function to get the name of the query engine file for a given engine
- * and a given given binary target.
+ * and a given binary target.
  * @param engineType
  * @param binaryTarget
  * @returns

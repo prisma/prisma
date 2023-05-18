@@ -1,4 +1,4 @@
-import { fixBinaryTargets, printGeneratorConfig } from '@prisma/internals'
+import { printGeneratorConfig } from '@prisma/internals'
 
 import { EngineNotFoundErrorInput } from './EngineNotFoundErrorInput'
 
@@ -12,11 +12,8 @@ ${getGeneratorBlockSuggestion(input)}`
 
 function getGeneratorBlockSuggestion(input: EngineNotFoundErrorInput) {
   const { generator, generatorBinaryTargets, runtimeBinaryTarget } = input
+  const suggestedBinaryTarget = { fromEnvVar: null, value: runtimeBinaryTarget }
+  const binaryTargets = [...generatorBinaryTargets, suggestedBinaryTarget]
 
-  const fixedGenerator = {
-    ...generator,
-    binaryTargets: fixBinaryTargets(generatorBinaryTargets, runtimeBinaryTarget),
-  }
-
-  return printGeneratorConfig(fixedGenerator)
+  return printGeneratorConfig({ ...generator, binaryTargets })
 }
