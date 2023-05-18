@@ -1,18 +1,15 @@
 import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
-import type { ConnectorType, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import type { ConnectorType, DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
-import { EngineSpanEvent, fixBinaryTargets, plusX, printGeneratorConfig, TracingHelper } from '@prisma/internals'
+import { EngineSpanEvent, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
 import fs from 'fs'
-import { blue, bold, dim, green, red, underline, yellow } from 'kleur/colors'
+import { blue, bold, green, red, yellow } from 'kleur/colors'
 import pRetry from 'p-retry'
-import path from 'path'
 import type { Readable } from 'stream'
-import { promisify } from 'util'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownRequestError'
@@ -31,6 +28,7 @@ import type {
   RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
+import { resolveEnginePath } from '../common/resolveEnginePath'
 import { EventEmitter } from '../common/types/Events'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { QueryEngineResult } from '../common/types/QueryEngine'
@@ -45,7 +43,6 @@ import type { Result } from './Connection'
 import { Connection } from './Connection'
 
 const debug = Debug('prisma:engine')
-const exists = promisify(fs.exists)
 
 // eslint-disable-next-line
 const logger = (...args) => {}
@@ -72,6 +69,7 @@ const MAX_STARTS = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 const MAX_REQUEST_RETRIES = process.env.PRISMA_CLIENT_NO_RETRY ? 1 : 2
 
 export class BinaryEngine extends Engine<undefined> {
+  private config: EngineConfig
   private logEmitter: EventEmitter
   private showColors: boolean
   private logQueries: boolean
@@ -89,16 +87,12 @@ export class BinaryEngine extends Engine<undefined> {
   private getDmmfPromise?: Promise<DMMF.Document>
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
-  private dirname?: string
   private cwd: string
   private datamodelPath: string
-  private prismaPath?: string
   private stderrLogs = ''
   private currentRequestPromise?: any
   private platformPromise?: Promise<Platform>
   private platform?: Platform | string
-  private generator?: GeneratorConfig
-  private incorrectlyPinnedBinaryTarget?: string
   private datasources?: DatasourceOverwrite[]
   private startPromise?: Promise<void>
   private versionPromise?: Promise<string>
@@ -110,49 +104,29 @@ export class BinaryEngine extends Engine<undefined> {
   private lastActiveProvider?: ConnectorType
   private activeProvider?: string
   private tracingHelper: TracingHelper
+
   /**
    * exiting is used to tell the .on('exit') hook, if the exit came from our script.
    * As soon as the Prisma binary returns a correct return code (like 1 or 0), we don't need this anymore
    */
-  constructor({
-    cwd,
-    datamodelPath,
-    prismaPath,
-    generator,
-    datasources,
-    showColors,
-    logQueries,
-    env,
-    flags,
-    clientVersion,
-    previewFeatures,
-    engineEndpoint,
-    enableDebugLogs,
-    allowTriggerPanic,
-    dirname,
-    activeProvider,
-    tracingHelper,
-    logEmitter,
-  }: EngineConfig) {
+  constructor(config: EngineConfig) {
     super()
 
-    this.dirname = dirname
-    this.env = env
-    this.cwd = this.resolveCwd(cwd)
-    this.enableDebugLogs = enableDebugLogs ?? false
-    this.allowTriggerPanic = allowTriggerPanic ?? false
-    this.datamodelPath = datamodelPath
-    this.prismaPath = process.env.PRISMA_QUERY_ENGINE_BINARY ?? prismaPath
-    this.generator = generator
-    this.datasources = datasources
-    this.tracingHelper = tracingHelper
-    this.logEmitter = logEmitter
-    this.showColors = showColors ?? false
-    this.logQueries = logQueries ?? false
-    this.clientVersion = clientVersion
-    this.flags = flags ?? []
-    this.previewFeatures = previewFeatures ?? []
-    this.activeProvider = activeProvider
+    this.config = config
+    this.env = config.env
+    this.cwd = this.resolveCwd(config.cwd)
+    this.enableDebugLogs = config.enableDebugLogs ?? false
+    this.allowTriggerPanic = config.allowTriggerPanic ?? false
+    this.datamodelPath = config.datamodelPath
+    this.datasources = config.datasources
+    this.tracingHelper = config.tracingHelper
+    this.logEmitter = config.logEmitter
+    this.showColors = config.showColors ?? false
+    this.logQueries = config.logQueries ?? false
+    this.clientVersion = config.clientVersion
+    this.flags = config.flags ?? []
+    this.previewFeatures = config.previewFeatures ?? []
+    this.activeProvider = config.activeProvider
     this.connection = new Connection()
 
     initHooks()
@@ -187,7 +161,7 @@ export class BinaryEngine extends Engine<undefined> {
     }
 
     this.previewFeatures = this.previewFeatures.filter((e) => !removedFlags.includes(e))
-    this.engineEndpoint = engineEndpoint
+    this.engineEndpoint = config.engineEndpoint
 
     if (this.platform) {
       if (!knownPlatforms.includes(this.platform as Platform) && !fs.existsSync(this.platform)) {
@@ -276,148 +250,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     this.platformPromise = getPlatform()
 
     return this.platformPromise
-  }
-
-  private getQueryEnginePath(platform: string, prefix: string = __dirname): string {
-    let queryEnginePath = path.join(prefix, `query-engine-${platform}`)
-
-    if (platform === 'windows') {
-      queryEnginePath = `${queryEnginePath}.exe`
-    }
-
-    return queryEnginePath
-  }
-
-  private async resolvePrismaPath(): Promise<{
-    prismaPath: string
-    searchedLocations: string[]
-  }> {
-    const searchedLocations: string[] = []
-    let enginePath
-    if (this.prismaPath) {
-      return { prismaPath: this.prismaPath, searchedLocations }
-    }
-
-    const platform = await this.getPlatform()
-    if (this.platform && this.platform !== platform) {
-      this.incorrectlyPinnedBinaryTarget = this.platform
-    }
-
-    this.platform = this.platform || platform
-
-    if (__filename.includes('BinaryEngine')) {
-      enginePath = this.getQueryEnginePath(this.platform, getEnginesPath())
-      return { prismaPath: enginePath, searchedLocations }
-    }
-    const searchLocations: string[] = [
-      eval(`require('path').join(__dirname, '../../../.prisma/client')`), // Dot Prisma Path
-      this.generator?.output?.value ?? eval('__dirname'), // Custom Generator Path
-      path.join(eval('__dirname'), '..'), // parentDirName
-      path.dirname(this.datamodelPath), // Datamodel Dir
-      this.cwd, //cwdPath
-      '/tmp/prisma-engines',
-    ]
-
-    if (this.dirname) {
-      searchLocations.push(this.dirname)
-    }
-
-    for (const location of searchLocations) {
-      searchedLocations.push(location)
-      debug(`Search for Query Engine in ${location}`)
-      enginePath = this.getQueryEnginePath(this.platform, location)
-      if (fs.existsSync(enginePath)) {
-        return { prismaPath: enginePath, searchedLocations }
-      }
-    }
-    enginePath = this.getQueryEnginePath(this.platform)
-
-    return { prismaPath: enginePath ?? '', searchedLocations }
-  }
-
-  // get prisma path
-  private async getPrismaPath(): Promise<string> {
-    const { prismaPath, searchedLocations } = await this.resolvePrismaPath()
-    const platform = await this.getPlatform()
-    // If path to query engine doesn't exist, throw
-    if (!(await exists(prismaPath))) {
-      const pinnedStr = this.incorrectlyPinnedBinaryTarget
-        ? `\nYou incorrectly pinned it to ${red(bold(`${this.incorrectlyPinnedBinaryTarget}`))}\n`
-        : ''
-
-      let errorText = `Query engine binary for current platform "${bold(platform)}" could not be found.${pinnedStr}
-This probably happens, because you built Prisma Client on a different platform.
-(Prisma Client looked in "${underline(prismaPath)}")
-
-Searched Locations:
-
-${searchedLocations
-  .map((f) => {
-    let msg = `  ${f}`
-    if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
-      const dir = fs.readdirSync(f)
-      msg += dir.map((d) => `    ${d}`).join('\n')
-    }
-    return msg
-  })
-  .join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
-      // The generator should always be there during normal usage
-      if (this.generator) {
-        // The user already added it, but it still doesn't work 🤷‍♀️
-        // That means, that some build system just deleted the files 🤔
-        if (
-          this.generator.binaryTargets.find((object) => object.value === this.platform!) ||
-          this.generator.binaryTargets.find((object) => object.value === 'native')
-        ) {
-          errorText += `
-You already added the platform${this.generator.binaryTargets.length > 1 ? 's' : ''} ${this.generator.binaryTargets
-            .map((t) => `"${bold(t.value)}"`)
-            .join(', ')} to the "${underline('generator')}" block
-in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
-but something went wrong. That's suboptimal.
-
-Please create an issue at https://github.com/prisma/prisma/issues/new`
-          errorText += ``
-        } else {
-          // If they didn't even have the current running platform in the schema.prisma file, it's easy
-          // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${underline(
-            'binaryTargets',
-          )}" attribute in the "${underline('generator')}" block in the "schema.prisma" file:
-${green(this.getFixedGenerator())}
-
-Then run "${green('prisma generate')}" for your changes to take effect.
-Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
-        }
-      } else {
-        errorText += `\n\nRead more about deploying Prisma Client: https://pris.ly/d/client-generator\n`
-      }
-
-      throw new PrismaClientInitializationError(errorText, this.clientVersion!)
-    }
-
-    if (this.incorrectlyPinnedBinaryTarget) {
-      console.error(`${bold(yellow('Warning:'))} You pinned the platform ${bold(
-        this.incorrectlyPinnedBinaryTarget,
-      )}, but Prisma Client detects ${bold(await this.getPlatform())}.
-This means you should very likely pin the platform ${green(await this.getPlatform())} instead.
-${dim("In case we're mistaken, please report this to us 🙏.")}`)
-    }
-
-    if (process.platform !== 'win32') {
-      plusX(prismaPath)
-    }
-
-    return prismaPath
-  }
-
-  private getFixedGenerator(): string {
-    const fixedGenerator = {
-      ...this.generator!,
-      binaryTargets: fixBinaryTargets(this.generator!.binaryTargets, this.platform!),
-    }
-
-    return printGeneratorConfig(fixedGenerator)
   }
 
   private printDatasources(): string {
@@ -530,7 +362,7 @@ ${dim("In case we're mistaken, please report this to us 🙏.")}`)
 
         debug({ cwd: this.cwd })
 
-        const prismaPath = await this.getPrismaPath()
+        const prismaPath = await resolveEnginePath('binary', this.config)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
@@ -825,11 +657,11 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   private async _getDmmf(): Promise<DMMF.Document> {
-    const prismaPath = await this.getPrismaPath()
+    const enginePath = await resolveEnginePath('binary', this.config)
 
     const env = await this.getEngineEnvVars()
 
-    const result = await execa(prismaPath, ['--enable-raw-queries', 'cli', 'dmmf'], {
+    const result = await execa(enginePath, ['--enable-raw-queries', 'cli', 'dmmf'], {
       env: omit(env, ['PORT']),
       cwd: this.cwd,
     })
@@ -846,9 +678,9 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async internalVersion() {
-    const prismaPath = await this.getPrismaPath()
+    const enginePath = await resolveEnginePath('binary', this.config)
 
-    const result = await execa(prismaPath, ['--version'])
+    const result = await execa(enginePath, ['--version'])
 
     this.lastVersion = result.stdout
     return this.lastVersion

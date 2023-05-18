@@ -46,24 +46,19 @@ test('missing-engine-native-binaryTarget: binary', async () => {
       37 
       38 await expect(async () => {
     → 39   await prisma.user.findMany(
-    Query engine binary for current platform "TEST_PLATFORM" could not be found.
-    This probably happens, because you built Prisma Client on a different platform.
-    (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime/query-engine-TEST_PLATFORM")
+    Prisma Client could not locate the Query Engine for runtime "TEST_PLATFORM".
 
-    Searched Locations:
+    This is likely caused by tooling that has not copied "query-engine-TEST_PLATFORM" to the deployment.
+    Please try to make sure that "query-engine-TEST_PLATFORM" is copied to "src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client".
 
+    We would appreciate if you could take the time to share some information with us.
+    Please help us by answering a few questions: https://pris.ly/engine-not-found-tooling-investigation
+
+    The following locations have been searched:
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget
       /tmp/prisma-engines
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-
-    You already added the platform "native" to the "generator" block
-    in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
-    but something went wrong. That's suboptimal.
-
-    Please create an issue at https://github.com/prisma/prisma/issues/new
   `)
 })

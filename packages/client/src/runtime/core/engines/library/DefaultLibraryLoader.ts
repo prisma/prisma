@@ -1,21 +1,12 @@
-import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
-import { getNodeAPIName, getPlatformInfo, Platform } from '@prisma/get-platform'
+import { getPlatformInfo } from '@prisma/get-platform'
 import { handleLibraryLoadingErrors } from '@prisma/internals'
-import fs from 'fs'
 import os from 'os'
 import path from 'path'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { EngineConfig } from '../common/Engine'
-import { binaryTargetsWasIncorrectlyPinned } from '../common/errors/engine-not-found/binaryTargetsWasIncorrectlyPinned'
-import { bundlerHasTamperedWithEngineCopy } from '../common/errors/engine-not-found/bundlerHasTamperedWithEngineCopy'
-import { EngineNotFoundErrorInput } from '../common/errors/engine-not-found/EngineNotFoundErrorInput'
-import { nativeGeneratedOnDifferentPlatform } from '../common/errors/engine-not-found/nativeGeneratedOnDifferentPlatform'
-import { toolingHasTamperedWithEngineCopy } from '../common/errors/engine-not-found/toolingHasTamperedWithEngineCopy'
+import { resolveEnginePath } from '../common/resolveEnginePath'
 import { Library, LibraryLoader } from './types/Library'
-
-const debug = Debug('prisma:client:libraryEngine:loader')
 
 const libraryCacheSymbol = Symbol('PrismaLibraryEngineCache')
 
@@ -71,8 +62,6 @@ export function load(libraryPath: string): Library {
 
 export class DefaultLibraryLoader implements LibraryLoader {
   private config: EngineConfig
-  private libQueryEnginePath?: string
-  private binaryTarget!: Platform
 
   constructor(config: EngineConfig) {
     this.config = config
@@ -80,14 +69,7 @@ export class DefaultLibraryLoader implements LibraryLoader {
 
   async loadLibrary(): Promise<Library> {
     const platformInfo = await getPlatformInfo()
-    this.binaryTarget = platformInfo.binaryTarget
-
-    if (this.libQueryEnginePath === undefined) {
-      this.libQueryEnginePath = this.getLibQueryEnginePath()
-    }
-
-    const enginePath = this.libQueryEnginePath
-    debug('enginePath', enginePath)
+    const enginePath = await resolveEnginePath('library', this.config)
 
     try {
       return this.config.tracingHelper.runInChildSpan({ name: 'loadLibrary', internal: true }, () => load(enginePath))
@@ -96,78 +78,5 @@ export class DefaultLibraryLoader implements LibraryLoader {
 
       throw new PrismaClientInitializationError(errorMessage, this.config.clientVersion!)
     }
-  }
-
-  private getLibQueryEnginePath() {
-    // if the user provided a custom prismaPath, we will use that one
-    const libPath = process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
-    if (libPath !== undefined && fs.existsSync(libPath) && libPath.endsWith('.node')) {
-      return libPath
-    }
-
-    // otherwise we will search to find the nearest query engine file
-    const { enginePath, searchedLocations } = this.resolveEnginePath()
-
-    if (enginePath !== undefined) return enginePath
-
-    const generatorBinaryTargets = this.config.generator?.binaryTargets ?? []
-    const hasNativeBinaryTarget = generatorBinaryTargets.some((bt) => bt.native === true)
-    const hasMissingBinaryTarget = generatorBinaryTargets.some((bt) => bt.value === this.binaryTarget) === false
-    const clientHasBeenBundled = __filename.match(/library\.m?js/) === null // runtime bundle name
-
-    const errorInput: EngineNotFoundErrorInput = {
-      searchedLocations,
-      generatorBinaryTargets,
-      generator: this.config.generator!,
-      runtimeBinaryTarget: this.binaryTarget,
-      expectedLocation: path.relative(process.cwd(), this.config.dirname), // TODO pathToPosix
-    }
-
-    let errorMessage: string | undefined
-    if (hasNativeBinaryTarget && hasMissingBinaryTarget) {
-      errorMessage = nativeGeneratedOnDifferentPlatform(errorInput)
-    } else if (hasMissingBinaryTarget) {
-      errorMessage = binaryTargetsWasIncorrectlyPinned(errorInput)
-    } else if (clientHasBeenBundled) {
-      errorMessage = bundlerHasTamperedWithEngineCopy(errorInput)
-    } else {
-      errorMessage = toolingHasTamperedWithEngineCopy(errorInput)
-    }
-
-    throw new PrismaClientInitializationError(errorMessage, this.config.clientVersion!)
-  }
-
-  private resolveEnginePath() {
-    const searchedLocations: string[] = []
-
-    if (this.libQueryEnginePath !== undefined) {
-      return { enginePath: this.libQueryEnginePath, searchedLocations }
-    }
-
-    const dirname = eval('__dirname') as string
-    const searchLocations: string[] = [
-      this.config.dirname, // generation directory
-      path.resolve(dirname, '..'), // generation directory one level up
-      this.config.generator?.output?.value ?? dirname, // custom generator local path
-      path.resolve(dirname, '../../../.prisma/client'), // dot prisma node_modules ???
-      this.config.cwd, //cwdPath
-      '/tmp/prisma-engines',
-    ]
-
-    if (__filename.includes('DefaultLibraryLoader')) {
-      searchLocations.push(getEnginesPath()) // for tests
-    }
-
-    for (const location of searchLocations) {
-      const engineName = getNodeAPIName(this.binaryTarget, 'fs')
-      const enginePath = path.join(location, engineName)
-
-      searchedLocations.push(location)
-      if (fs.existsSync(enginePath)) {
-        return { enginePath, searchedLocations }
-      }
-    }
-
-    return { enginePath: undefined, searchedLocations }
   }
 }

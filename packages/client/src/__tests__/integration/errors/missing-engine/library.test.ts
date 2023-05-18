@@ -41,10 +41,10 @@ test('missing-engine: library', async () => {
       32 
       33 await expect(async () => {
     → 34   await prisma.user.findMany(
-    Prisma Client could not locate the Query Engine file called "TEST_PLATFORM".
+    Prisma Client could not locate the Query Engine for runtime "TEST_PLATFORM".
 
-    This is likely caused by tooling that has not copied "TEST_PLATFORM" to the deployment.
-    Please try to make sure that "TEST_PLATFORM" is copied to "src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client".
+    This is likely caused by tooling that has not copied "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node" to the deployment.
+    Please try to make sure that "libquery_engine-TEST_PLATFORM.so.node" is copied to "src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client".
 
     We would appreciate if you could take the time to share some information with us.
     Please help us by answering a few questions: https://pris.ly/engine-not-found-tooling-investigation

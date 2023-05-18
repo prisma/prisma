@@ -4,12 +4,12 @@ import { queryEngineCannotBeFound } from './queryEngineCannotBeFound'
 import { theseLocationsHaveBeenSearched } from './theseLocationsHaveBeenSearched'
 
 export function bundlerHasTamperedWithEngineCopy(input: EngineNotFoundErrorInput) {
-  const { runtimeBinaryTarget } = input
+  const { queryEngineName } = input
 
   return `${queryEngineCannotBeFound(input)}
 
-This is likely caused by a bundler that has not copied "${runtimeBinaryTarget}" near the resulting bundle.
-Please try to make sure that "${runtimeBinaryTarget}" is copied to "${input.expectedLocation}".
+This is likely caused by a bundler that has not copied "${queryEngineName}" near the resulting bundle.
+Please try to make sure that "${queryEngineName}" is copied to "${input.expectedLocation}".
 
 ${weWouldAppreciateIfYouCouldShareInfo('engine-not-found-bundler-investigation')}
 
