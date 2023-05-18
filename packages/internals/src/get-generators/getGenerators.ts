@@ -406,12 +406,7 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
     }
 
     if (generator.binaryTargets) {
-      const binaryTargets =
-        generator.binaryTargets && generator.binaryTargets.length > 0
-          ? generator.binaryTargets
-          : [{ fromEnvVar: null, value: 'native' }]
-
-      const resolvedBinaryTargets: string[] = binaryTargets
+      const resolvedBinaryTargets: string[] = generator.binaryTargets
         .flatMap((object) => parseBinaryTargetsEnvValue(object))
         .map((p) => (p === 'native' ? platform : p))
 
