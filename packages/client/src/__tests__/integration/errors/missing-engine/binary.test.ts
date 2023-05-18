@@ -58,7 +58,7 @@ test('missing-engine: binary', async () => {
       /client/src/__tests__/integration/errors/missing-engine/node_modules/.prisma/client
       /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client
       /client/src/__tests__/integration/errors/missing-engine/node_modules/@prisma/client/runtime
-      /client/src/__tests__/integration/errors/missing-engine
       /tmp/prisma-engines
+      /client/src/__tests__/integration/errors/missing-engine
   `)
 })

@@ -53,7 +53,7 @@ test('missing-engine-native-binaryTarget: library', async () => {
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget
       /tmp/prisma-engines
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget
   `)
 })
