@@ -294,7 +294,7 @@ importers:
       tsd: 0.28.1
       typescript: 4.9.5
       undici: 5.22.0
-      yeoman-generator: 5.7.0
+      yeoman-generator: 5.8.0
       yo: 4.3.1
       zx: 7.2.2
     dependencies:
@@ -379,7 +379,7 @@ importers:
       tsd: 0.28.1
       typescript: 4.9.5
       undici: 5.22.0
-      yeoman-generator: 5.7.0
+      yeoman-generator: 5.8.0
       yo: 4.3.1
       zx: 7.2.2
 
@@ -11001,7 +11001,7 @@ packages:
     resolution: {integrity: sha512-g1MWMLBiz8FKi1e4w0UyVL3w+iJceWAFBAaBnnGKOpNa5f8TLktkbre1+s6oICydWAm+HRUGTmI+//xv2hvXYA==}
     hasBin: true
     dependencies:
-      minimist: 1.2.7
+      minimist: 1.2.8
     dev: true
 
   /json5/2.2.3:
@@ -11824,10 +11824,6 @@ packages:
       arrify: 1.0.1
       is-plain-obj: 1.1.0
       kind-of: 6.0.3
-    dev: true
-
-  /minimist/1.2.7:
-    resolution: {integrity: sha512-bzfL1YUZsP41gmu/qjrEk0Q6i2ix/cVeAhbCbqH9u3zYutS1cLg00qhrD0M2MVdCcx4Sc0UpP2eBWo9rotpq6g==}
     dev: true
 
   /minimist/1.2.8:
@@ -14890,7 +14886,7 @@ packages:
     dependencies:
       '@types/json5': 0.0.29
       json5: 1.0.2
-      minimist: 1.2.7
+      minimist: 1.2.8
       strip-bom: 3.0.0
     dev: true
 
@@ -15873,8 +15869,8 @@ packages:
       - supports-color
     dev: true
 
-  /yeoman-generator/5.7.0:
-    resolution: {integrity: sha512-z9ZwgKoDOd+llPDCwn8Ax2l4In5FMhlslxdeByW4AMxhT+HbTExXKEAahsClHSbwZz1i5OzRwLwRIUdOJBr5Bw==}
+  /yeoman-generator/5.8.0:
+    resolution: {integrity: sha512-dsrwFn9/c2/MOe80sa2nKfbZd/GaPTgmmehdgkFifs1VN/I7qPsW2xcBfvSkHNGK+PZly7uHyH8kaVYSFNUDhQ==}
     engines: {node: '>=12.10.0'}
     peerDependencies:
       yeoman-environment: ^3.2.0
@@ -15888,15 +15884,17 @@ packages:
       execa: 5.1.1
       github-username: 6.0.0
       lodash: 4.17.21
-      minimist: 1.2.7
+      mem-fs-editor: 9.5.0
+      minimist: 1.2.8
       read-pkg-up: 7.0.1
       run-async: 2.4.1
-      semver: 7.3.8
+      semver: 7.5.1
       shelljs: 0.8.5
       sort-keys: 4.2.0
       text-table: 0.2.0
     transitivePeerDependencies:
       - encoding
+      - mem-fs
       - supports-color
     dev: true
 
