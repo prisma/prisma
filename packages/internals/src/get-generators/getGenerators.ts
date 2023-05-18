@@ -276,6 +276,11 @@ generator gen {
 
         const generatorBinaryTargets = g.options?.generator?.binaryTargets
 
+        if (generatorBinaryTargets && generatorBinaryTargets.length === 0) {
+          // if no binaryTargets are set, we add the native one by default
+          generatorBinaryTargets.push({ value: 'native', fromEnvVar: null })
+        }
+
         if (generatorBinaryTargets && generatorBinaryTargets.length > 0) {
           const binaryTarget0 = generatorBinaryTargets[0]
           // If set from env var, there is only one item
@@ -283,9 +288,8 @@ generator gen {
           if (binaryTarget0.fromEnvVar !== null) {
             const parsedBinaryTargetsEnvValue = parseBinaryTargetsEnvValue(binaryTarget0)
 
-            // remove item and replace with parsed values
-            // value is an array
-            // so we create one new item for each element in the array
+            // remove item and replace with parsed values value is an array so
+            // we create one new item for each element in the array
             generatorBinaryTargets.shift()
 
             if (Array.isArray(parsedBinaryTargetsEnvValue)) {
@@ -306,6 +310,7 @@ generator gen {
           for (const binaryTarget of generatorBinaryTargets) {
             if (binaryTarget.value === 'native') {
               binaryTarget.value = platform
+              binaryTarget.native = true
             }
 
             if (!neededVersions[neededVersion].binaryTargets.find((object) => object.value === binaryTarget.value)) {

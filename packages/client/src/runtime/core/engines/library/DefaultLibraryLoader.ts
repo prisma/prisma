@@ -1,15 +1,17 @@
 import Debug from '@prisma/debug'
-import { getEnginesPath } from '@prisma/engines'
-import type { Platform } from '@prisma/get-platform'
-import { getNodeAPIName, getPlatform, getPlatformWithOSResult } from '@prisma/get-platform'
+import { getNodeAPIName, getPlatformInfo, Platform } from '@prisma/get-platform'
 import { fixBinaryTargets, handleLibraryLoadingErrors, printGeneratorConfig } from '@prisma/internals'
 import fs from 'fs'
-import { bold, green, red, underline } from 'kleur/colors'
 import os from 'os'
 import path from 'path'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
 import { EngineConfig } from '../common/Engine'
+import { binaryTargetsWasIncorrectlyPinned } from '../common/errors/engine-not-found/binaryTargetsWasIncorrectlyPinned'
+import { bundlerHasTamperedWithEngineCopy } from '../common/errors/engine-not-found/bundlerHasTamperedWithEngineCopy'
+import { EngineNotFoundErrorInput } from '../common/errors/engine-not-found/EngineNotFoundErrorInput'
+import { nativeGeneratedOnDifferentPlatform } from '../common/errors/engine-not-found/nativeGeneratedOnDifferentPlatform'
+import { toolingHasTamperedWithEngineCopy } from '../common/errors/engine-not-found/toolingHasTamperedWithEngineCopy'
 import { Library, LibraryLoader } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine:loader')
@@ -68,158 +70,109 @@ export function load(libraryPath: string): Library {
 
 export class DefaultLibraryLoader implements LibraryLoader {
   private config: EngineConfig
-  private libQueryEnginePath: string | null = null
-  private platform: Platform | null = null
+  private libQueryEnginePath?: string
+  private binaryTarget!: Platform
 
   constructor(config: EngineConfig) {
     this.config = config
   }
 
   async loadLibrary(): Promise<Library> {
-    const platformInfo = await getPlatformWithOSResult()
-    this.platform = platformInfo.binaryTarget
-    if (!this.libQueryEnginePath) {
-      this.libQueryEnginePath = await this.getLibQueryEnginePath()
+    const platformInfo = await getPlatformInfo()
+    this.binaryTarget = platformInfo.binaryTarget
+
+    if (this.libQueryEnginePath === undefined) {
+      this.libQueryEnginePath = this.getLibQueryEnginePath()
     }
 
-    debug(`loadEngine using ${this.libQueryEnginePath}`)
+    const enginePath = this.libQueryEnginePath
+    debug(`loadEngine using ${enginePath}`)
+
     try {
-      const enginePath = this.libQueryEnginePath
       return this.config.tracingHelper.runInChildSpan({ name: 'loadLibrary', internal: true }, () => load(enginePath))
     } catch (e) {
-      const errorMessage = handleLibraryLoadingErrors({
-        e: e as Error,
-        platformInfo,
-        id: this.libQueryEnginePath,
-      })
+      const errorMessage = handleLibraryLoadingErrors({ e: e as Error, platformInfo, id: enginePath })
 
       throw new PrismaClientInitializationError(errorMessage, this.config.clientVersion!)
     }
   }
 
-  private async getLibQueryEnginePath(): Promise<string> {
+  private getLibQueryEnginePath() {
+    // if the user provided a custom prismaPath, we will use that one
     const libPath = process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? this.config.prismaPath
-    if (libPath && fs.existsSync(libPath) && libPath.endsWith('.node')) {
+    if (libPath !== undefined && fs.existsSync(libPath) && libPath.endsWith('.node')) {
       return libPath
     }
-    this.platform = this.platform ?? (await getPlatform())
-    const { enginePath, searchedLocations } = await this.resolveEnginePath()
-    // If path to query engine doesn't exist, throw
-    if (!fs.existsSync(enginePath)) {
-      const incorrectPinnedPlatformErrorStr = this.platform
-        ? `\nYou incorrectly pinned it to ${bold(red(`${this.platform}`))}\n`
-        : ''
-      // TODO Stop searching in many locations, have more deterministic logic.
-      let errorText = `Query engine library for current platform "${bold(
-        this.platform,
-      )}" could not be found.${incorrectPinnedPlatformErrorStr}
-This probably happens, because you built Prisma Client on a different platform.
-(Prisma Client looked in "${underline(enginePath)}")
 
-Searched Locations:
+    // otherwise we will search to find the nearest query engine file
+    const { enginePath, searchedLocations } = this.resolveEnginePath()
 
-${searchedLocations
-  .map((f) => {
-    let msg = `  ${f}`
-    if (process.env.DEBUG === 'node-engine-search-locations' && fs.existsSync(f)) {
-      const dir = fs.readdirSync(f)
-      msg += dir.map((d) => `    ${d}`).join('\n')
+    if (enginePath !== undefined) return enginePath
+
+    const generatorBinaryTargets = this.config.generator?.binaryTargets ?? []
+    const hasNativeBinaryTarget = generatorBinaryTargets.some((bt) => bt.native === true)
+    const hasMissingBinaryTarget = !generatorBinaryTargets.some((bt) => bt.value === this.binaryTarget)
+    const clientHasBeenBundled = __filename.match(/library\.m?js/) === null // runtime bundle name
+
+    const errorInput: EngineNotFoundErrorInput = {
+      searchedLocations,
+      generatorBinaryTargets,
+      generator: this.config.generator!,
+      runtimeBinaryTarget: this.binaryTarget,
+      expectedLocation: path.relative(process.cwd(), this.config.dirname), // TODO pathToPosix
     }
-    return msg
-  })
-  .join('\n' + (process.env.DEBUG === 'node-engine-search-locations' ? '\n' : ''))}\n`
-      // The generator should always be there during normal usage
-      if (this.config.generator) {
-        // The user already added it, but it still doesn't work 🤷‍♀️
-        // That means, that some build system just deleted the files 🤔
-        this.platform = this.platform ?? (await getPlatform())
-        if (
-          this.config.generator.binaryTargets.find((object) => object.value === this.platform!) ||
-          this.config.generator.binaryTargets.find((object) => object.value === 'native')
-        ) {
-          errorText += `
-You already added the platform${
-            this.config.generator.binaryTargets.length > 1 ? 's' : ''
-          } ${this.config.generator.binaryTargets.map((t) => `"${bold(t.value)}"`).join(', ')} to the "${underline(
-            'generator',
-          )}" block
-in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
-but something went wrong. That's suboptimal.
 
-Please create an issue at https://github.com/prisma/prisma/issues/new`
-          errorText += ``
-        } else {
-          // If they didn't even have the current running platform in the schema.prisma file, it's easy
-          // Just add it
-          errorText += `\n\nTo solve this problem, add the platform "${this.platform}" to the "${underline(
-            'binaryTargets',
-          )}" attribute in the "${underline('generator')}" block in the "schema.prisma" file:
-${green(this.getFixedGenerator())}
-
-Then run "${green('prisma generate')}" for your changes to take effect.
-Read more about deploying Prisma Client: https://pris.ly/d/client-generator`
-        }
-      } else {
-        errorText += `\n\nRead more about deploying Prisma Client: https://pris.ly/d/client-generator\n`
-      }
-
-      throw new PrismaClientInitializationError(errorText, this.config.clientVersion!)
+    let errorMessage: string | undefined
+    if (hasNativeBinaryTarget && hasMissingBinaryTarget) {
+      errorMessage = nativeGeneratedOnDifferentPlatform(errorInput)
+    } else if (hasMissingBinaryTarget) {
+      errorMessage = binaryTargetsWasIncorrectlyPinned(errorInput)
+    } else if (clientHasBeenBundled) {
+      errorMessage = bundlerHasTamperedWithEngineCopy(errorInput)
+    } else {
+      errorMessage = toolingHasTamperedWithEngineCopy(errorInput)
     }
-    this.platform = this.platform ?? (await getPlatform())
-    return enginePath
+
+    throw new PrismaClientInitializationError(errorMessage, this.config.clientVersion!)
   }
 
-  private async resolveEnginePath(): Promise<{
-    enginePath: string
-    searchedLocations: string[]
-  }> {
+  private resolveEnginePath() {
     const searchedLocations: string[] = []
-    let enginePath: string
-    if (this.libQueryEnginePath) {
+
+    if (this.libQueryEnginePath !== undefined) {
       return { enginePath: this.libQueryEnginePath, searchedLocations }
-    }
-
-    this.platform = this.platform ?? (await getPlatform())
-
-    // TODO Why special case dependent on file name?
-    if (__filename.includes('DefaultLibraryLoader')) {
-      enginePath = path.join(getEnginesPath(), getNodeAPIName(this.platform, 'fs'))
-      return { enginePath, searchedLocations }
     }
 
     const dirname = eval('__dirname') as string
     const searchLocations: string[] = [
+      this.config.dirname, // Generation Dir
       // TODO: why hardcoded path? why not look for .prisma/client upwards?
       path.resolve(dirname, '../../../.prisma/client'), // Dot Prisma Path
       this.config.generator?.output?.value ?? dirname, // Custom Generator Path
       path.resolve(dirname, '..'), // parentDirName
-      path.dirname(this.config.datamodelPath), // Datamodel Dir
       this.config.cwd, //cwdPath
       '/tmp/prisma-engines',
     ]
 
-    if (this.config.dirname) {
-      searchLocations.push(this.config.dirname)
-    }
-
     for (const location of searchLocations) {
-      searchedLocations.push(location)
       debug(`Searching for Query Engine Library in ${location}`)
-      enginePath = path.join(location, getNodeAPIName(this.platform, 'fs'))
+
+      const engineName = getNodeAPIName(this.binaryTarget, 'fs')
+      const enginePath = path.join(location, engineName)
+
+      searchedLocations.push(location)
       if (fs.existsSync(enginePath)) {
         return { enginePath, searchedLocations }
       }
     }
-    enginePath = path.join(__dirname, getNodeAPIName(this.platform, 'fs'))
 
-    return { enginePath, searchedLocations }
+    return { enginePath: undefined, searchedLocations }
   }
 
-  // TODO Fixed as in "not broken" or fixed as in "written down"? If any of these, why and how and where?
-  private getFixedGenerator(): string {
+  private getGeneratorBlockSuggestion(): string {
     const fixedGenerator = {
       ...this.config.generator!,
-      binaryTargets: fixBinaryTargets(this.config.generator!.binaryTargets, this.platform!),
+      binaryTargets: fixBinaryTargets(this.config.generator!.binaryTargets, this.binaryTarget),
     }
 
     return printGeneratorConfig(fixedGenerator)
