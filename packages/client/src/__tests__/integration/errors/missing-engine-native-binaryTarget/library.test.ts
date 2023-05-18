@@ -44,7 +44,7 @@ test('missing-engine-native-binaryTarget: library', async () => {
     Prisma Client could not locate the Query Engine for runtime "TEST_PLATFORM".
 
     This is likely caused by tooling that has not copied "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node" to the deployment.
-    Please try to make sure that "libquery_engine-TEST_PLATFORM.so.node" is copied to "src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client".
+    Please try to make sure that "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node" is copied to "src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client".
 
     We would appreciate if you could take the time to share some information with us.
     Please help us by answering a few questions: https://pris.ly/engine-not-found-tooling-investigation
