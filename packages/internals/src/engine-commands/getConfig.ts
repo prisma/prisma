@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
+import { getPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import { bold, red } from 'kleur/colors'
@@ -105,6 +106,20 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
   if (E.isRight(configEither)) {
     debug('config data retrieved without errors in getConfig Wasm')
     const { right: data } = configEither
+
+    for (const generator of data.generators) {
+      for (const binaryTarget of generator.binaryTargets) {
+        if (binaryTarget.value === 'native') {
+          binaryTarget.value = await getPlatform()
+          binaryTarget.native = true
+        }
+      }
+
+      if (generator.binaryTargets.length === 0) {
+        generator.binaryTargets = [{ fromEnvVar: null, value: await getPlatform(), native: true }]
+      }
+    }
+
     return Promise.resolve(data)
   }
 

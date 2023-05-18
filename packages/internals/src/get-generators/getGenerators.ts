@@ -276,13 +276,14 @@ generator gen {
 
         const generatorBinaryTargets = g.options?.generator?.binaryTargets
 
-        if (generatorBinaryTargets && generatorBinaryTargets.length === 0) {
-          // if no binaryTargets are set, we add the native one by default
-          generatorBinaryTargets.push({ value: 'native', fromEnvVar: null })
-        }
-
         if (generatorBinaryTargets && generatorBinaryTargets.length > 0) {
           const binaryTarget0 = generatorBinaryTargets[0]
+          // TODO I don't think this is true as we discovered we could pass an
+          // array of env mutating the original array here is problematic
+          // because tests use `getConfig` to generate their client, and not the
+          // full-blown CLI tooling, so there can be differences between the
+          // setups and reality. Maybe this should be moved to getConfig?
+
           // If set from env var, there is only one item
           // and we need to read the env var
           if (binaryTarget0.fromEnvVar !== null) {
@@ -308,11 +309,6 @@ generator gen {
           }
 
           for (const binaryTarget of generatorBinaryTargets) {
-            if (binaryTarget.value === 'native') {
-              binaryTarget.value = platform
-              binaryTarget.native = true
-            }
-
             if (!neededVersions[neededVersion].binaryTargets.find((object) => object.value === binaryTarget.value)) {
               neededVersions[neededVersion].binaryTargets.push(binaryTarget)
             }
