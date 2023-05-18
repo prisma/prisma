@@ -1,6 +1,7 @@
 import Debug from '@prisma/debug'
+import { getEnginesPath } from '@prisma/engines'
 import { getNodeAPIName, getPlatformInfo, Platform } from '@prisma/get-platform'
-import { fixBinaryTargets, handleLibraryLoadingErrors, printGeneratorConfig } from '@prisma/internals'
+import { handleLibraryLoadingErrors } from '@prisma/internals'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -86,7 +87,7 @@ export class DefaultLibraryLoader implements LibraryLoader {
     }
 
     const enginePath = this.libQueryEnginePath
-    debug(`loadEngine using ${enginePath}`)
+    debug('enginePath', enginePath)
 
     try {
       return this.config.tracingHelper.runInChildSpan({ name: 'loadLibrary', internal: true }, () => load(enginePath))
@@ -111,7 +112,7 @@ export class DefaultLibraryLoader implements LibraryLoader {
 
     const generatorBinaryTargets = this.config.generator?.binaryTargets ?? []
     const hasNativeBinaryTarget = generatorBinaryTargets.some((bt) => bt.native === true)
-    const hasMissingBinaryTarget = !generatorBinaryTargets.some((bt) => bt.value === this.binaryTarget)
+    const hasMissingBinaryTarget = generatorBinaryTargets.some((bt) => bt.value === this.binaryTarget) === false
     const clientHasBeenBundled = __filename.match(/library\.m?js/) === null // runtime bundle name
 
     const errorInput: EngineNotFoundErrorInput = {
@@ -145,18 +146,19 @@ export class DefaultLibraryLoader implements LibraryLoader {
 
     const dirname = eval('__dirname') as string
     const searchLocations: string[] = [
-      this.config.dirname, // Generation Dir
-      // TODO: why hardcoded path? why not look for .prisma/client upwards?
-      path.resolve(dirname, '../../../.prisma/client'), // Dot Prisma Path
-      this.config.generator?.output?.value ?? dirname, // Custom Generator Path
-      path.resolve(dirname, '..'), // parentDirName
+      this.config.dirname, // generation directory
+      path.resolve(dirname, '..'), // generation directory one level up
+      this.config.generator?.output?.value ?? dirname, // custom generator local path
+      path.resolve(dirname, '../../../.prisma/client'), // dot prisma node_modules ???
       this.config.cwd, //cwdPath
       '/tmp/prisma-engines',
     ]
 
-    for (const location of searchLocations) {
-      debug(`Searching for Query Engine Library in ${location}`)
+    if (__filename.includes('DefaultLibraryLoader')) {
+      searchLocations.push(getEnginesPath()) // for tests
+    }
 
+    for (const location of searchLocations) {
       const engineName = getNodeAPIName(this.binaryTarget, 'fs')
       const enginePath = path.join(location, engineName)
 
@@ -167,14 +169,5 @@ export class DefaultLibraryLoader implements LibraryLoader {
     }
 
     return { enginePath: undefined, searchedLocations }
-  }
-
-  private getGeneratorBlockSuggestion(): string {
-    const fixedGenerator = {
-      ...this.config.generator!,
-      binaryTargets: fixBinaryTargets(this.config.generator!.binaryTargets, this.binaryTarget),
-    }
-
-    return printGeneratorConfig(fixedGenerator)
   }
 }
