@@ -156,7 +156,8 @@ async function resolveBinaryTargets(generator: GeneratorConfig) {
       const value = JSON.parse(process.env[binaryTarget.fromEnvVar]!)
 
       if (Array.isArray(value)) {
-        generator.binaryTargets = value.map((v) => ({ fromEnvVar: binaryTarget.fromEnvVar, value: v }))
+        generator.binaryTargets = value.map((v) => ({ fromEnvVar: null, value: v }))
+        await resolveBinaryTargets(generator) // resolve again if we have native
       } else {
         binaryTarget.value = value
       }
