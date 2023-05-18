@@ -406,7 +406,12 @@ Please use the PRISMA_QUERY_ENGINE_BINARY env var instead to pin the binary targ
     }
 
     if (generator.binaryTargets) {
-      const resolvedBinaryTargets: string[] = generator.binaryTargets
+      const binaryTargets =
+        generator.binaryTargets && generator.binaryTargets.length > 0
+          ? generator.binaryTargets
+          : [{ fromEnvVar: null, value: 'native' }]
+
+      const resolvedBinaryTargets: string[] = binaryTargets
         .flatMap((object) => parseBinaryTargetsEnvValue(object))
         .map((p) => (p === 'native' ? platform : p))
 
@@ -431,12 +436,11 @@ Possible binaryTargets: ${green(knownBinaryTargets.join(', '))}`,
       if (!resolvedBinaryTargets.includes(platform)) {
         const originalBinaryTargetsConfig = getOriginalBinaryTargetsValue(generator.binaryTargets)
 
-        if (generator) {
-          console.log(`${yellow('Warning:')} Your current platform \`${bold(
-            platform,
-          )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
-            originalBinaryTargetsConfig,
-          )}.
+        console.log(`${yellow('Warning:')} Your current platform \`${bold(
+          platform,
+        )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
+          originalBinaryTargetsConfig,
+        )}.
 To fix it, use this generator config in your ${bold('schema.prisma')}:
 ${green(
   printGeneratorConfig({
@@ -450,16 +454,6 @@ Read more about deploying Prisma Client: ${underline(
     'https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators',
   )}`,
 )}\n`)
-        } else {
-          console.log(
-            `${yellow('Warning')} The binaryTargets ${JSON.stringify(
-              originalBinaryTargetsConfig,
-            )} don't include your local platform ${platform}, which you can also point to with \`native\`.
-In case you want to fix this, you can provide ${green(
-              `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
-            )} in the schema.prisma file.`,
-          )
-        }
       }
     }
   }
