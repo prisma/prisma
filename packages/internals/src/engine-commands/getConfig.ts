@@ -108,16 +108,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     const { right: data } = configEither
 
     for (const generator of data.generators) {
-      for (const binaryTarget of generator.binaryTargets) {
-        if (binaryTarget.value === 'native') {
-          binaryTarget.value = await getPlatform()
-          binaryTarget.native = true
-        }
-      }
-
-      if (generator.binaryTargets.length === 0) {
-        generator.binaryTargets = [{ fromEnvVar: null, value: await getPlatform(), native: true }]
-      }
+      await resolveBinaryTargets(generator)
     }
 
     return Promise.resolve(data)
@@ -156,4 +147,31 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     })
 
   throw error
+}
+
+async function resolveBinaryTargets(generator: GeneratorConfig) {
+  for (const binaryTarget of generator.binaryTargets) {
+    // load the binaryTargets from the env var
+    if (binaryTarget.fromEnvVar && process.env[binaryTarget.fromEnvVar]) {
+      const value = JSON.parse(process.env[binaryTarget.fromEnvVar]!)
+
+      if (Array.isArray(value)) {
+        generator.binaryTargets = value.map((v) => ({ fromEnvVar: binaryTarget.fromEnvVar, value: v }))
+      } else {
+        binaryTarget.value = value
+      }
+    } else {
+      binaryTarget.value = null
+    }
+
+    // resolve native to the current platform
+    if (binaryTarget.value === 'native') {
+      binaryTarget.value = await getPlatform()
+      binaryTarget.native = true
+    }
+  }
+
+  if (generator.binaryTargets.length === 0) {
+    generator.binaryTargets = [{ fromEnvVar: null, value: await getPlatform(), native: true }]
+  }
 }

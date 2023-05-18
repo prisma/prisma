@@ -277,37 +277,6 @@ generator gen {
         const generatorBinaryTargets = g.options?.generator?.binaryTargets
 
         if (generatorBinaryTargets && generatorBinaryTargets.length > 0) {
-          const binaryTarget0 = generatorBinaryTargets[0]
-          // TODO I don't think this is true as we discovered we could pass an
-          // array of env mutating the original array here is problematic
-          // because tests use `getConfig` to generate their client, and not the
-          // full-blown CLI tooling, so there can be differences between the
-          // setups and reality. Maybe this should be moved to getConfig?
-
-          // If set from env var, there is only one item
-          // and we need to read the env var
-          if (binaryTarget0.fromEnvVar !== null) {
-            const parsedBinaryTargetsEnvValue = parseBinaryTargetsEnvValue(binaryTarget0)
-
-            // remove item and replace with parsed values value is an array so
-            // we create one new item for each element in the array
-            generatorBinaryTargets.shift()
-
-            if (Array.isArray(parsedBinaryTargetsEnvValue)) {
-              for (const platformName of parsedBinaryTargetsEnvValue) {
-                generatorBinaryTargets.push({
-                  fromEnvVar: binaryTarget0.fromEnvVar,
-                  value: platformName,
-                })
-              }
-            } else {
-              generatorBinaryTargets.push({
-                fromEnvVar: binaryTarget0.fromEnvVar,
-                value: parsedBinaryTargetsEnvValue,
-              })
-            }
-          }
-
           for (const binaryTarget of generatorBinaryTargets) {
             if (!neededVersions[neededVersion].binaryTargets.find((object) => object.value === binaryTarget.value)) {
               neededVersions[neededVersion].binaryTargets.push(binaryTarget)
