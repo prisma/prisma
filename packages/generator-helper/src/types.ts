@@ -48,7 +48,7 @@ export interface EnvValue {
 
 export interface BinaryTargetsEnvValue {
   fromEnvVar: string | null
-  value: string | null
+  value: string
   native?: boolean
 }
 

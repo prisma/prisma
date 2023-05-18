@@ -160,8 +160,6 @@ async function resolveBinaryTargets(generator: GeneratorConfig) {
       } else {
         binaryTarget.value = value
       }
-    } else {
-      binaryTarget.value = null
     }
 
     // resolve native to the current platform
