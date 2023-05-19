@@ -141,7 +141,7 @@
     "tsd": "0.28.1",
     "typescript": "4.9.5",
     "undici": "5.22.0",
-    "yeoman-generator": "5.7.0",
+    "yeoman-generator": "5.8.0",
     "yo": "4.3.1",
     "zx": "7.2.2"
   },
@@ -154,7 +154,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.15.0-10.2a74471c3ffd9b901226c08d11c27617a69b421f"
+    "@prisma/engines-version": "4.15.0-12.08464e12680725cf8375f2ab314206401f8581a3"
   },
   "sideEffects": false
 }
