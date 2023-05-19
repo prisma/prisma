@@ -34,7 +34,7 @@
     "find-cache-dir": "3.3.2",
     "fs-extra": "11.1.1",
     "hasha": "5.2.2",
-    "http-proxy-agent": "5.0.0",
+    "http-proxy-agent": "6.1.0",
     "https-proxy-agent": "5.0.1",
     "kleur": "4.1.5",
     "node-fetch": "2.6.11",
