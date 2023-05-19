@@ -9,7 +9,7 @@ export function bundlerHasTamperedWithEngineCopy(input: EngineNotFoundErrorInput
   return `${queryEngineCannotBeFound(input)}
 
 This is likely caused by a bundler that has not copied "${queryEngineName}" near the resulting bundle.
-Please try to make sure that "${queryEngineName}" is copied to "${input.expectedLocation}".
+Please try to make sure that "${queryEngineName}" is copied right near your bundle or "${input.expectedLocation}".
 
 ${weWouldAppreciateIfYouCouldShareInfo('engine-not-found-bundler-investigation')}
 
