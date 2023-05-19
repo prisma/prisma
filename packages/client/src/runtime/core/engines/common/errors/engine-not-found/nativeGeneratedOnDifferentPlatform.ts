@@ -9,7 +9,9 @@ export function nativeGeneratedOnDifferentPlatform(input: EngineNotFoundErrorInp
 
   return `${queryEngineCannotBeFound(input)}
 
-This happened because Prisma Client was generated with "${nativeBinaryTarget}", but the actual deployment required "${runtimeBinaryTarget}".
+This happened because Prisma Client was generated for "${
+    nativeBinaryTarget.value
+  }", but the actual deployment required "${runtimeBinaryTarget}".
 ${addRuntimeToYourBinaryTargets(input)}
 
 ${theseLocationsHaveBeenSearched(input)}`

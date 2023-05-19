@@ -11,7 +11,7 @@ export function fixBinaryTargets(
 ): BinaryTargetsEnvValue[] {
   binaryTargets = binaryTargets || []
 
-  if (!binaryTargets.find((object) => object.value === 'native')) {
+  if (!binaryTargets.find((object) => object.native === true)) {
     return [transformPlatformToEnvValue('native'), ...binaryTargets]
   }
 

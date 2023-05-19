@@ -33,7 +33,7 @@ export function getOriginalBinaryTargetsValue(binaryTargets: BinaryTargetsEnvVal
     if (binaryTargetsFromEnvVar) {
       value = `env("${binaryTargetsFromEnvVar.fromEnvVar}")`
     } else {
-      value = binaryTargets.map((object) => object.value)
+      value = binaryTargets.map((object) => (object.native ? 'native' : object.value))
     }
   } else {
     value = undefined
