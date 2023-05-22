@@ -22,6 +22,7 @@ type GeneratorProcessOptions = {
 export class GeneratorError extends Error {
   public code: number
   public data?: any
+
   constructor(message: string, code: number, data?: any) {
     super(message)
     this.code = code
@@ -43,16 +44,19 @@ export class GeneratorProcess {
     resolve: (result: any) => void
     reject: (error: Error) => void
   }
+
   constructor(private executablePath: string, { isNode = false, initWaitTime = 200 }: GeneratorProcessOptions = {}) {
     this.isNode = isNode
     this.initWaitTime = initWaitTime
   }
+
   async init(): Promise<void> {
     if (!this.initPromise) {
       this.initPromise = this.initSingleton()
     }
     return this.initPromise
   }
+
   initSingleton(): Promise<void> {
     return new Promise((resolve, reject) => {
       try {
@@ -131,6 +135,7 @@ export class GeneratorProcess {
       }
     })
   }
+
   private handleResponse(data: any): void {
     if (data.jsonrpc && data.id) {
       if (typeof data.id !== 'number') {
@@ -147,20 +152,25 @@ export class GeneratorProcess {
       }
     }
   }
+
   private registerListener(messageId: number, cb: (result: any, err?: Error) => void): void {
     this.listeners[messageId] = cb
   }
+
   private sendMessage(message: JsonRPC.Request): void {
     this.child!.stdin.write(JSON.stringify(message) + '\n')
   }
+
   private getMessageId(): number {
     return globalMessageId++
   }
+
   stop(): void {
     if (!this.child!.killed) {
       this.child!.kill()
     }
   }
+
   getManifest(config: GeneratorConfig): Promise<GeneratorManifest | null> {
     return new Promise((resolve, reject) => {
       const messageId = this.getMessageId()
@@ -184,6 +194,7 @@ export class GeneratorProcess {
       })
     })
   }
+
   generate(options: GeneratorOptions): Promise<any> {
     return new Promise((resolve, reject) => {
       const messageId = this.getMessageId()
