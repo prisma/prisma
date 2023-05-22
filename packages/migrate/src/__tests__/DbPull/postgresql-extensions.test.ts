@@ -99,8 +99,6 @@ describe('postgresql-extensions', () => {
         ADMIN
       }
 
-
-      // introspectionSchemaVersion: NonPrisma,
     `)
     expect(introspectedSchema).toContain('[citext(schema:')
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
@@ -152,8 +150,6 @@ describe('postgresql-extensions', () => {
         ADMIN
       }
 
-
-      // introspectionSchemaVersion: NonPrisma,
     `)
     expect(introspectedSchema).toContain('[citext(schema:')
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)

@@ -31,8 +31,6 @@ enum Role {
   ADMIN
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`postgresql basic introspection 2`] = `
@@ -66,6 +64,4 @@ enum Role {
   ADMIN
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;

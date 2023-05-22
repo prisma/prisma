@@ -31,6 +31,4 @@ model users {
   numberOrString1 Json
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;

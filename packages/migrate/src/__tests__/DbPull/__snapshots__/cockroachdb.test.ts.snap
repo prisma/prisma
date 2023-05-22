@@ -35,8 +35,6 @@ enum Role {
   ADMIN
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`cockroachdb basic introspection (with cockroach provider) --url  2`] = `
@@ -74,8 +72,6 @@ enum Role {
   ADMIN
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`cockroachdb basic introspection (with cockroach provider) --url  6`] = `
@@ -113,8 +109,6 @@ enum Role {
   ADMIN
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`cockroachdb basic introspection (with cockroachdb provider) 2`] = `
@@ -152,8 +146,6 @@ enum Role {
   ADMIN
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`cockroachdb basic introspection (with postgresql provider) 2`] = `
@@ -191,6 +183,4 @@ enum Role {
   ADMIN
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;

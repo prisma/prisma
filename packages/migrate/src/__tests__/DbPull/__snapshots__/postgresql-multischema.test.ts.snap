@@ -33,8 +33,6 @@ enum status {
   @@schema("base")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`postgresql-multischema --url  --schemas=base,transactional (2 existing schemas) should succeed 2`] = `
@@ -101,8 +99,6 @@ enum transactional_status {
   @@schema("transactional")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`postgresql-multischema --url --schemas=base (1 existing schema) should succeed 2`] = `
@@ -138,8 +134,6 @@ enum status {
   @@schema("base")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`postgresql-multischema --url with \`?schema=base\` should succeed 2`] = `
@@ -163,8 +157,6 @@ enum status {
   OFF
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`postgresql-multischema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
@@ -202,8 +194,6 @@ enum status {
   @@schema("base")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`postgresql-multischema --url with --schemas=base without preview feature should error 2`] = ``;
@@ -274,8 +264,6 @@ enum transactional_status {
   @@schema("transactional")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`postgresql-multischema datasource property \`schemas=["base"]\` should succeed 2`] = `
@@ -311,8 +299,6 @@ enum status {
   @@schema("base")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`postgresql-multischema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
@@ -348,8 +334,6 @@ enum status {
   @@schema("base")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`postgresql-multischema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;

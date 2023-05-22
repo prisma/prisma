@@ -35,8 +35,6 @@ model User {
   profile Profile?
 }
 
-
-// introspectionSchemaVersion: Prisma2,
 `;
 
 exports[`common/sqlite basic introspection with --url 1`] = `
@@ -74,8 +72,6 @@ model User {
   profile Profile?
 }
 
-
-// introspectionSchemaVersion: Prisma2,
 `;
 
 exports[`common/sqlite basic introspection with invalid --url - empty host 2`] = ``;
@@ -121,8 +117,6 @@ model User {
   Profile Profile?
 }
 
-
-// introspectionSchemaVersion: Prisma2,
 `;
 
 exports[`common/sqlite should succeed and keep changes to valid schema and output warnings when using --print 2`] = `
@@ -167,8 +161,6 @@ model AwesomeProfile {
   @@map("Profile")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`common/sqlite should succeed when schema is invalid and using --force 7`] = `
