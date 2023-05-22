@@ -26,7 +26,7 @@ testMatrix.setupTestSuite(
         → XX       prisma.user.findMany({
                      where: {
                        date: new Date('Invalid Date')
-                       ~~~~~~~~~~~~~~~~~~~~~~~~~~
+                             ~~~~~~~~~~~~~~~~~~~~~~~~
                      }
                    })
 
@@ -45,21 +45,21 @@ testMatrix.setupTestSuite(
         }),
       ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-              Invalid \`prisma.user.findMany()\` invocation in
-              /client/tests/functional/issues/18970-invalid-date/tests.ts:0:0
+                              Invalid \`prisma.user.findMany()\` invocation in
+                              /client/tests/functional/issues/18970-invalid-date/tests.ts:0:0
 
-                XX 
-                XX testIf(getQueryEngineProtocol() === 'json')('throws on invalid date (json)', async () => {
-                XX   await expect(
-              → XX     prisma.user.findMany({
-                         where: {
-                           date: new Date("Invalid Date")
-                                 ~~~~~~~~~~~~~~~~~~~~~~~~
-                         }
-                       })
+                                XX 
+                                XX testIf(getQueryEngineProtocol() === 'json')('throws on invalid date (json)', async () => {
+                                XX   await expect(
+                              → XX     prisma.user.findMany({
+                                         where: {
+                                           date: new Date("Invalid Date")
+                                                 ~~~~~~~~~~~~~~~~~~~~~~~~
+                                         }
+                                       })
 
-              Invalid value for argument \`date\`: Provided Date object is invalid. Expected Date.
-          `)
+                              Invalid value for argument \`date\`: Provided Date object is invalid. Expected Date.
+                      `)
     })
   },
   {
