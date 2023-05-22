@@ -700,6 +700,7 @@ jobs:
           TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
           TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
           TEST_MARIADB_URI: mysql://root:root@localhost:4306/tests
+          TEST_TIDB_URI: mysql://root@localhost:4000/tests
           TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
 
       - uses: codecov/codecov-action@v3
