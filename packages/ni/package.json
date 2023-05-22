@@ -30,7 +30,7 @@
     "@types/node": "18.16.12",
     "@types/which": "3.0.0",
     "bumpp": "9.1.0",
-    "eslint": "8.40.0",
+    "eslint": "8.41.0",
     "esno": "0.16.3",
     "execa": "7.1.1",
     "fast-glob": "3.2.12",
