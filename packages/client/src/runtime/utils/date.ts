@@ -1,5 +1,9 @@
 export function isDate(value: unknown): value is Date {
-  return Object.prototype.toString.call(value) === '[object Date]'
+  return (
+    value instanceof Date ||
+    // date created in other JS context (for example, worker)
+    Object.prototype.toString.call(value) === '[object Date]'
+  )
 }
 
 export function isValidDate(date: Date) {
