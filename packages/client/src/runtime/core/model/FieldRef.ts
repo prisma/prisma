@@ -27,6 +27,7 @@ export class FieldRefImpl<Model, FieldType> implements FieldRef<Model, FieldType
   _toGraphQLInputType() {
     const listPrefix = this.isList ? `List` : ''
     const enumPrefix = this.isEnum ? 'Enum' : ''
+
     return `${listPrefix}${enumPrefix}${this.typeName}FieldRefInput<${this.modelName}>`
   }
 }
