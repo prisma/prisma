@@ -2,6 +2,7 @@ import { bold, dim, green, red } from 'kleur/colors'
 import stripAnsi from 'strip-ansi'
 
 import { ObjectEnumValue } from '../object-enums'
+import { isDate, isValidDate } from './date'
 import { deepSet } from './deep-set'
 import stringifyObject from './stringifyObject'
 
@@ -120,11 +121,18 @@ function getValueLength(indent: string, key: string, value: any, stringifiedValu
     return Math.abs(getLongestLine(`${key}: ${stripAnsi(stringifiedValue)}`) - indent.length)
   }
 
+  if (isDate(value)) {
+    if (isValidDate(value)) {
+      return `new Date('${value.toISOString()}')`.length
+    }
+    return `new Date('Invalid Date')`.length
+  }
+
   return String(value).length
 }
 
 function isRenderedAsObject(value: any) {
-  return typeof value === 'object' && value !== null && !(value instanceof ObjectEnumValue)
+  return typeof value === 'object' && value !== null && !(value instanceof ObjectEnumValue) && !isDate(value)
 }
 
 function getLongestLine(str: string): number {

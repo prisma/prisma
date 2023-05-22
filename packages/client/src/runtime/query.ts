@@ -32,6 +32,7 @@ import {
   wrapWithList,
 } from './utils/common'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
+import { isDate, isValidDate } from './utils/date'
 import { isDecimalJsLike } from './utils/decimalJsLike'
 import { deepExtend } from './utils/deep-extend'
 import { deepGet } from './utils/deep-set'
@@ -389,6 +390,11 @@ ${fieldErrors.map((e) => this.printFieldError(e, missingItems, errorFormat === '
       const forStr = path.length === 1 && path[0] === error.name ? '' : ` for ${bold(`${path.join('.')}`)}`
       const undefinedTip = ` Please use ${bold(green('undefined'))} instead.`
       return `Argument ${green(error.name)}${forStr} must not be ${bold('null')}.${undefinedTip}`
+    }
+
+    if (error.type === 'invalidDateArg') {
+      const forStr = path.length === 1 && path[0] === error.argName ? '' : ` for ${bold(`${path.join('.')}`)}`
+      return `Argument ${green(error.argName)}${forStr} is not a valid Date object.`
     }
 
     if (error.type === 'missingArg') {
@@ -769,7 +775,18 @@ ${indent(value.toString(), 2)}
   }
 }
 
-export type ArgValue = string | boolean | number | undefined | Args | string[] | boolean[] | number[] | Args[] | null
+export type ArgValue =
+  | string
+  | boolean
+  | number
+  | undefined
+  | Args
+  | string[]
+  | boolean[]
+  | number[]
+  | Args[]
+  | Date
+  | null
 
 export interface DocumentInput {
   dmmf: DMMFHelper
@@ -1525,6 +1542,18 @@ function scalarToArg(
   inputType: DMMF.SchemaArgInputType,
   context: MakeDocumentContext,
 ): Arg {
+  if (isDate(value) && !isValidDate(value)) {
+    return new Arg({
+      key,
+      value,
+      schemaArg: arg,
+      inputType,
+      error: {
+        type: 'invalidDateArg',
+        argName: key,
+      },
+    })
+  }
   if (hasCorrectScalarType(value, inputType, context)) {
     return new Arg({
       key,
