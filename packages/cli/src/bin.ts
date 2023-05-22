@@ -54,9 +54,11 @@ process.removeAllListeners('warning')
 const debug = Debug('prisma:cli')
 process.on('uncaughtException', (e) => {
   debug(e)
+  throw e
 })
 process.on('unhandledRejection', (e) => {
   debug(e)
+  throw e
 })
 // Listen to Ctr + C and exit
 process.once('SIGINT', () => {
