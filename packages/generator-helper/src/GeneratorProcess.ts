@@ -3,6 +3,7 @@ import type { ChildProcessByStdio } from 'child_process'
 import { fork } from 'child_process'
 import { spawn } from 'cross-spawn'
 import { bold } from 'kleur/colors'
+import { Readable, Writable } from 'stream'
 
 import byline from './byline'
 import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
@@ -20,13 +21,10 @@ type GeneratorProcessOptions = {
 }
 
 export class GeneratorError extends Error {
-  public code: number
-  public data?: any
+  name = 'GeneratorError'
 
-  constructor(message: string, code: number, data?: any) {
+  constructor(message: string, public code?: number, public data?: any) {
     super(message)
-    this.code = code
-    this.data = data
     if (data?.stack) {
       this.stack = data.stack
     }
@@ -34,20 +32,14 @@ export class GeneratorError extends Error {
 }
 
 export class GeneratorProcess {
-  child?: ChildProcessByStdio<any, any, any>
+  child?: ChildProcessByStdio<Writable, null, Readable>
   listeners: { [key: string]: (result: any, err?: Error) => void } = {}
-  private stderrLogs = ''
   private initPromise?: Promise<void>
   private isNode: boolean
-  private initWaitTime: number
-  private currentGenerateDeferred?: {
-    resolve: (result: any) => void
-    reject: (error: Error) => void
-  }
+  private errorLogs = ''
 
-  constructor(private executablePath: string, { isNode = false, initWaitTime = 200 }: GeneratorProcessOptions = {}) {
+  constructor(private pathOrCommand: string, { isNode = false }: GeneratorProcessOptions = {}) {
     this.isNode = isNode
-    this.initWaitTime = initWaitTime
   }
 
   async init(): Promise<void> {
@@ -59,80 +51,68 @@ export class GeneratorProcess {
 
   initSingleton(): Promise<void> {
     return new Promise((resolve, reject) => {
-      try {
-        if (this.isNode) {
-          this.child = fork(this.executablePath, [], {
-            stdio: ['pipe', 'inherit', 'pipe', 'ipc'],
-            env: {
-              ...process.env,
-              PRISMA_GENERATOR_INVOCATION: 'true',
-            },
-            execArgv: ['--max-old-space-size=8096'],
-          })
-        } else {
-          this.child = spawn(this.executablePath, {
-            stdio: ['pipe', 'inherit', 'pipe'],
-            env: {
-              ...process.env,
-              PRISMA_GENERATOR_INVOCATION: 'true',
-            },
-            shell: true,
-          })
-        }
-
-        this.child.on('exit', (code) => {
-          if (code && code > 0) {
-            if (this.currentGenerateDeferred) {
-              // print last 5 lines of stderr
-              this.currentGenerateDeferred.reject(new Error(this.stderrLogs.split('\n').slice(-5).join('\n')))
-            } else {
-              reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
-            }
-          }
+      if (this.isNode) {
+        this.child = fork(this.pathOrCommand, [], {
+          stdio: ['pipe', 'inherit', 'pipe', 'ipc'],
+          env: {
+            ...process.env,
+            PRISMA_GENERATOR_INVOCATION: 'true',
+          },
+          execArgv: ['--max-old-space-size=8096'],
+        }) as ChildProcessByStdio<Writable, null, Readable>
+      } else {
+        this.child = spawn(this.pathOrCommand, {
+          stdio: ['pipe', 'inherit', 'pipe'],
+          env: {
+            ...process.env,
+            PRISMA_GENERATOR_INVOCATION: 'true',
+          },
+          shell: true,
         })
-
-        this.child.on('error', (err) => {
-          if (err.message.includes('EACCES')) {
-            reject(
-              new Error(
-                `The executable at ${this.executablePath} lacks the right chmod. Please use ${bold(
-                  `chmod +x ${this.executablePath}`,
-                )}`,
-              ),
-            )
-          } else {
-            reject(err)
-          }
-        })
-
-        byline(this.child.stderr).on('data', (line) => {
-          const response = String(line)
-          this.stderrLogs += response + '\n'
-          let data
-          try {
-            data = JSON.parse(response)
-          } catch (e) {
-            debug(response)
-          }
-          if (data) {
-            this.handleResponse(data)
-          }
-        })
-
-        this.child.on('spawn', () => {
-          // Wait initWaitTime for the binary to report an error and exit with non-zero exit code before considering it
-          // successfully started.
-          // TODO: this is not a reliable way to detect a startup error as the initialization could take longer than
-          // initWaitTime (200 ms by default), and this also hurts the generation performance since it always waits even
-          // if the generator succesfully initialized in less than initWaitTime.  The proper solution would be to make
-          // the generator explicitly send a notification when it is ready, and we should wait until we get that
-          // notification. Requiring that would be a breaking change, however we could start by introducing an optional
-          // notification that would stop the waiting timer as a performance optimization.
-          setTimeout(resolve, this.initWaitTime)
-        })
-      } catch (e) {
-        reject(e)
       }
+
+      this.child.on('exit', (code) => {
+        debug(`child exited with code ${code}`)
+        if (code) {
+          const error = new GeneratorError(
+            `Generator ${JSON.stringify(this.pathOrCommand)} failed:\n\n${this.errorLogs}`,
+          )
+          for (const listener of Object.values(this.listeners)) {
+            listener(null, error)
+          }
+        }
+      })
+
+      this.child.on('error', (err) => {
+        if (err.message.includes('EACCES')) {
+          debug(err)
+          reject(
+            new Error(
+              `The executable at ${this.pathOrCommand} lacks the right permissions. Please use ${bold(
+                `chmod +x ${this.pathOrCommand}`,
+              )}`,
+            ),
+          )
+        } else {
+          reject(err)
+        }
+      })
+
+      byline(this.child.stderr).on('data', (line: Buffer) => {
+        const response = String(line)
+        let data: string | undefined
+        try {
+          data = JSON.parse(response)
+        } catch (e) {
+          this.errorLogs += response + '\n'
+          debug(response)
+        }
+        if (data) {
+          this.handleResponse(data)
+        }
+      })
+
+      this.child.on('spawn', resolve)
     })
   }
 
@@ -199,16 +179,12 @@ export class GeneratorProcess {
     return new Promise((resolve, reject) => {
       const messageId = this.getMessageId()
 
-      this.currentGenerateDeferred = { resolve, reject }
-
       this.registerListener(messageId, (result, error) => {
         if (error) {
           reject(error)
-          this.currentGenerateDeferred = undefined
           return
         }
         resolve(result)
-        this.currentGenerateDeferred = undefined
       })
 
       this.sendMessage({
