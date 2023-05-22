@@ -43,9 +43,6 @@ export const scenarios = [
     },
   },
   {
-    // TODO: Wait for Foreign Key constraints support
-    // See: https://github.com/pingcap/tidb/issues/18209
-    todo: true,
     name: 'findUnique where PK with include',
     up: `
         create table users (
@@ -424,9 +421,6 @@ export const scenarios = [
     ],
   },
   {
-    // TODO: Wait for Foreign Key constraints support
-    // See: https://github.com/pingcap/tidb/issues/18209
-    todo: true,
     name: 'findUnique where unique with foreign key and unpack',
     up: `
         create table users (
@@ -916,15 +910,13 @@ export const scenarios = [
           id bigint unsigned primary key auto_increment,
           job varchar(50) unique not null,
           frequency text
-        ) DEFAULT CHARSET=utf8mb4 DEFAULT COLLATE utf8mb4_general_ci;
+        );
         insert into crons (job, frequency) values ('j1', '* * * * *');
         insert into crons (job, frequency) values ('j20', '* * * * 1-5');
         insert into crons (job, frequency) values ('j21', '* * * * 1-5');
       `,
     do: (client) => {
-      // Notice: The order of the results returned by TiDB will be related to
-      // the order of the values in the `in` clause.
-      return client.crons.findMany({ where: { job: { in: ['j1', 'j20'] } } })
+      return client.crons.findMany({ where: { job: { in: ['j20', 'j1'] } } })
     },
     expect: [
       {
@@ -1638,9 +1630,6 @@ export const scenarios = [
     },
   },
   {
-    // TODO: Wait for Foreign Key constraints support
-    // See: https://github.com/pingcap/tidb/issues/18209
-    todo: true,
     name: 'findUnique where composite PK with foreign key',
     up: `
           create table a (

@@ -24,12 +24,13 @@ export const database = {
     CREATE DATABASE ${ctx.id};
     USE ${ctx.id};`
     await db.query(sqlUp + sqlScenario)
+    await db.end()
   },
   close: (db) => db.end(),
 } as Input<mariadb.Connection>['database']
 
 function getConnectionInfo(ctx: Context) {
-  const serviceConnectionString = process.env.TEST_TIDB_BASE_URI || 'mysql://root@localhost:4000'
+  const serviceConnectionString = process.env.TEST_TIDB_BASE_URI!
   const connectionString = `${serviceConnectionString}/${ctx.id}`
   const credentials = uriToCredentials(connectionString)
 
