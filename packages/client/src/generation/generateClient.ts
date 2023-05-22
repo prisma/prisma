@@ -1,11 +1,16 @@
 import { BinaryType, overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import type { Platform } from '@prisma/internals'
-import { ClientEngineType, getClientEngineType, getEngineVersion } from '@prisma/internals'
-import copy from '@timsuchanek/copy'
-import chalk from 'chalk'
+import {
+  assertNever,
+  ClientEngineType,
+  getClientEngineType,
+  getEngineVersion,
+  Platform,
+  setClassName,
+} from '@prisma/internals'
 import fs from 'fs'
-import makeDir from 'make-dir'
+import { ensureDir } from 'fs-extra'
+import { bold, dim, green, red } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
@@ -17,11 +22,7 @@ import type { Dictionary } from '../runtime/utils/common'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 
-const remove = promisify(fs.unlink)
-const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
-const copyFile = promisify(fs.copyFile)
-const stat = promisify(fs.stat)
 
 const GENERATED_PACKAGE_NAME = '.prisma/client'
 
@@ -33,10 +34,10 @@ type OutputDeclaration = {
 export class DenylistError extends Error {
   constructor(message: string) {
     super(message)
-    this.name = 'DenylistError'
     this.stack = undefined
   }
 }
+setClassName(DenylistError, 'DenylistError')
 
 export interface GenerateClientOptions {
   projectRoot?: string
@@ -51,10 +52,12 @@ export interface GenerateClientOptions {
   binaryPaths: BinaryPaths
   testMode?: boolean
   copyRuntime?: boolean
+  copyRuntimeSourceMaps?: boolean
   engineVersion: string
   clientVersion: string
   activeProvider: string
   dataProxy: boolean
+  postinstall?: boolean
 }
 
 export interface BuildClientResult {
@@ -76,6 +79,7 @@ export async function buildClient({
   projectRoot,
   activeProvider,
   dataProxy,
+  postinstall,
 }: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
@@ -95,12 +99,13 @@ export async function buildClient({
     projectRoot: projectRoot!,
     activeProvider,
     dataProxy,
+    postinstall,
   }
 
   // we create a regular client that is fit for Node.js
   const nodeTsClient = new TSClient({
     ...tsClientOptions,
-    runtimeName: 'index',
+    runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
     runtimeDir: runtimeDirs.node,
   })
 
@@ -124,6 +129,7 @@ export async function buildClient({
       main: 'index.js',
       types: 'index.d.ts',
       browser: 'index-browser.js',
+      sideEffects: false,
     },
     null,
     2,
@@ -133,6 +139,27 @@ export async function buildClient({
   if (dataProxy === true) {
     fileMap['edge.js'] = await JS(edgeTsClient, true)
     fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
+  }
+
+  if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
+    if (dataProxy === true) {
+      // we create a client that is fit for edge runtimes
+      const denoEdgeTsClient = new TSClient({
+        ...tsClientOptions,
+        dataProxy: true, // edge only works w/ data proxy
+        runtimeName: 'index.d.ts',
+        runtimeDir: '../' + runtimeDirs.edge,
+        deno: true,
+      })
+
+      fileMap['deno/edge.js'] = await JS(denoEdgeTsClient, true)
+      fileMap['deno/index.d.ts'] = await TS(denoEdgeTsClient)
+      fileMap['deno/edge.ts'] = `
+import './polyfill.js'
+// @deno-types="./index.d.ts"
+export * from './edge.js'`
+      fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
+    }
   }
 
   return {
@@ -178,10 +205,12 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     binaryPaths,
     testMode,
     copyRuntime,
+    copyRuntimeSourceMaps = false,
     clientVersion,
     engineVersion,
     activeProvider,
     dataProxy,
+    postinstall,
   } = options
 
   const clientEngineType = getClientEngineType(generator!)
@@ -202,13 +231,14 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     projectRoot,
     activeProvider,
     dataProxy,
+    postinstall,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
   if (denylistsErrors) {
-    let message = `${chalk.redBright.bold(
-      'Error: ',
+    let message = `${bold(
+      red('Error: '),
     )}The schema at "${schemaPath}" contains reserved keywords.\n       Rename the following items:`
 
     for (const error of denylistsErrors) {
@@ -220,8 +250,11 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
-  await makeDir(finalOutputDir)
-  await makeDir(path.join(outputDir, 'runtime'))
+  await ensureDir(finalOutputDir)
+  await ensureDir(path.join(outputDir, 'runtime'))
+  if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
+    await ensureDir(path.join(outputDir, 'deno'))
+  }
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
   // outputDir:       /home/millsp/Work/prisma/packages/client
   // finalOutputDir:  /home/millsp/Work/prisma/.prisma/client
@@ -232,9 +265,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
       if (await exists(filePath)) {
-        await remove(filePath)
+        await fs.promises.unlink(filePath)
       }
-      await writeFile(filePath, file)
+      await fs.promises.writeFile(filePath, file)
     }),
   )
   const runtimeSourceDir = testMode
@@ -245,14 +278,13 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
     // TODO: Windows, / is not working here...
     const copyTarget = path.join(outputDir, 'runtime')
-    await makeDir(copyTarget)
+    await ensureDir(copyTarget)
     if (runtimeSourceDir !== copyTarget) {
-      await copy({
+      await copyRuntimeFiles({
         from: runtimeSourceDir,
         to: copyTarget,
-        recursive: true,
-        parallelJobs: process.platform === 'win32' ? 1 : 20,
-        overwrite: true,
+        sourceMaps: copyRuntimeSourceMaps,
+        runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
       })
     }
   }
@@ -269,7 +301,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   if (transpile === true && dataProxy !== true) {
     if (process.env.NETLIFY) {
-      await makeDir('/tmp/prisma-engines')
+      await ensureDir('/tmp/prisma-engines')
     }
 
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
@@ -296,7 +328,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
         continue
       }
       const binaryName =
-        clientEngineType === ClientEngineType.Binary ? BinaryType.queryEngine : BinaryType.libqueryEngine
+        clientEngineType === ClientEngineType.Binary ? BinaryType.QueryEngineBinary : BinaryType.QueryEngineLibrary
       // They must have an equal size now, let's check for the hash
       const [sourceVersion, targetVersion] = await Promise.all([
         getEngineVersion(filePath, binaryName).catch(() => null),
@@ -313,28 +345,28 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
-    await copyFile(schemaPath, schemaTargetPath)
+    await fs.promises.copyFile(schemaPath, schemaTargetPath)
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
   if (!fs.existsSync(proxyIndexJsPath)) {
-    await copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
+    await fs.promises.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
   }
 
   if (!fs.existsSync(proxyIndexDTSPath)) {
-    await copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
+    await fs.promises.copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
   }
 
   if (!fs.existsSync(proxyIndexBrowserJsPath)) {
-    await copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
+    await fs.promises.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
 }
 
 async function fileSize(name: string): Promise<number | null> {
   try {
-    const statResult = await stat(name)
+    const statResult = await fs.promises.stat(name)
     return statResult.size
   } catch (e) {
     return null
@@ -346,7 +378,7 @@ function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Documen
 
   const denylists = {
     // A copy of this list is also in prisma-engines. Any edit should be done in both places.
-    // https://github.com/prisma/prisma-engines/blob/main/libs/datamodel/core/src/transform/ast_to_dml/reserved_model_names.rs
+    // https://github.com/prisma/prisma-engines/blob/main/psl/parser-database/src/names/reserved_model_names.rs
     models: [
       // Reserved Prisma keywords
       'PrismaClient',
@@ -471,7 +503,7 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
   }
   const { name } = JSON.parse(content)
   if (name === clientPackageName) {
-    const message = [`Generating client into ${chalk.bold(directory)} is not allowed.`]
+    const message = [`Generating client into ${bold(directory)} is not allowed.`]
     message.push('This package is used by `prisma generate` and overwriting its content is dangerous.')
     message.push('')
     message.push('Suggestion:')
@@ -479,20 +511,14 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
 
     if (outputDeclaration && outputDeclaration.content.includes(clientPackageName)) {
       const outputLine = outputDeclaration.content
-      message.push(`In ${chalk.bold(schemaPath)} replace:`)
+      message.push(`In ${bold(schemaPath)} replace:`)
       message.push('')
-      message.push(
-        `${chalk.dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, chalk.red(clientPackageName))}`,
-      )
+      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, red(clientPackageName))}`)
       message.push('with')
 
-      message.push(
-        `${chalk.dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, chalk.green('.prisma/client'))}`,
-      )
+      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, green('.prisma/client'))}`)
     } else {
-      message.push(
-        `Generate client into ${chalk.bold(replacePackageName(directory, chalk.green('.prisma/client')))} instead`,
-      )
+      message.push(`Generate client into ${bold(replacePackageName(directory, green('.prisma/client')))} instead`)
     }
 
     message.push('')
@@ -516,4 +542,41 @@ function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null 
     }
   }
   return null
+}
+
+function getNodeRuntimeName(engineType: ClientEngineType, dataProxy: boolean): string {
+  if (dataProxy) {
+    return 'data-proxy'
+  }
+  if (engineType === ClientEngineType.Binary) {
+    return 'binary'
+  }
+  if (engineType === ClientEngineType.Library) {
+    return 'library'
+  }
+
+  assertNever(engineType, 'Unknown engine type')
+}
+
+type CopyRuntimeOptions = {
+  from: string
+  to: string
+  runtimeName: string
+  sourceMaps: boolean
+}
+
+async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
+  const files = ['index.d.ts', 'index-browser.js', 'index-browser.d.ts']
+
+  files.push(`${runtimeName}.js`, `${runtimeName}.d.ts`)
+
+  if (runtimeName === 'data-proxy') {
+    files.push('edge.js', 'edge-esm.js')
+  }
+
+  if (sourceMaps) {
+    files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))
+  }
+
+  await Promise.all(files.map((file) => fs.promises.copyFile(path.join(from, file), path.join(to, file))))
 }

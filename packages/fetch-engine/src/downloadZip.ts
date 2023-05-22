@@ -10,7 +10,7 @@ import { promisify } from 'util'
 import zlib from 'zlib'
 
 import { getProxyAgent } from './getProxyAgent'
-import { overwriteFile } from './util'
+import { overwriteFile } from './utils'
 
 const debug = Debug('prisma:downloadZip')
 const del = promisify(rimraf)
@@ -102,7 +102,7 @@ export async function downloadZip(
           }
 
           if (hash !== sha256) {
-            throw new Error(`sha256 of ${url} (uzipped) should be ${sha256} but is ${hash}`)
+            throw new Error(`sha256 of ${url} (unzipped) should be ${sha256} but is ${hash}`)
           }
         })
       } finally {

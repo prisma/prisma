@@ -43,7 +43,7 @@ export interface GeneratorConfig {
 
 export interface EnvValue {
   fromEnvVar: null | string
-  value: string
+  value: null | string
 }
 
 export interface BinaryTargetsEnvValue {
@@ -56,24 +56,27 @@ export type ConnectorType =
   | 'mongodb'
   | 'sqlite'
   | 'postgresql'
+  | 'postgres' // TODO: we could normalize postgres to postgresql this in engines to reduce the complexity?
   | 'sqlserver'
-  | 'jdbc:sqlserver'
   | 'cockroachdb'
+
+  // TODO: this should be removed in favor of `'sqlserver'`, as per `getConfig({ ... }).datasources[0]?.provider` from a schema with `provider = "sqlserver"`
+  // 'jdbc:sqlserver' has been removed in https://github.com/prisma/prisma-engines/pull/2830
+  | 'jdbc:sqlserver'
 
 export interface DataSource {
   name: string
-  activeProvider: ConnectorType
   provider: ConnectorType
+  activeProvider: ConnectorType
   url: EnvValue
-  config: { [key: string]: string }
+  directUrl?: EnvValue
+  schemas: string[] | []
 }
 
 export type BinaryPaths = {
   migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
-  introspectionEngine?: { [binaryTarget: string]: string }
-  prismaFmt?: { [binaryTarget: string]: string }
 }
 
 /** The options passed to the generator implementations */
@@ -90,9 +93,10 @@ export type GeneratorOptions = {
   version: string // version hash
   binaryPaths?: BinaryPaths
   dataProxy: boolean
+  postinstall?: boolean
 }
 
-export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
+export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine'
 
 export type GeneratorManifest = {
   prettyName?: string

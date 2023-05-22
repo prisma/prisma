@@ -14,19 +14,23 @@ export function idForProvider(provider: string, options: Options = { includeDefa
       strs.push('@map("_id") @db.ObjectId')
 
       break
-    case 'cockroachdb':
+
+    default:
       if (options.includeDefault) {
         strs.push('@default(cuid())')
       }
 
       break
+  }
 
-    default:
-      if (options.includeDefault) {
-        strs.push('@default(uuid())')
-      }
+  return strs.join(' ')
+}
 
-      break
+export function foreignKeyForProvider(provider: string): string {
+  const strs = ['String']
+
+  if (provider === 'mongodb') {
+    strs.push('@db.ObjectId')
   }
 
   return strs.join(' ')

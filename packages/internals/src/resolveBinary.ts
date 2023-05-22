@@ -1,33 +1,27 @@
-import Debug from '@prisma/debug'
-import { plusX } from '@prisma/engine-core'
 import { getEnginesPath } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
-import makeDir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import path from 'path'
 import tempDir from 'temp-dir'
-import { promisify } from 'util'
 
-const readFile = promisify(fs.readFile)
-const writeFile = promisify(fs.writeFile)
+import { plusX } from './utils/plusX'
 
 async function getBinaryName(name: BinaryType): Promise<string> {
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
 
-  if (name === BinaryType.libqueryEngine) {
+  if (name === BinaryType.QueryEngineLibrary) {
     return getNodeAPIName(platform, 'fs')
   }
   return `${name}-${platform}${extension}`
 }
 export const engineEnvVarMap = {
-  [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
-  [BinaryType.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-  [BinaryType.introspectionEngine]: 'PRISMA_INTROSPECTION_ENGINE_BINARY',
-  [BinaryType.prismaFmt]: 'PRISMA_FMT_BINARY',
+  [BinaryType.QueryEngineBinary]: 'PRISMA_QUERY_ENGINE_BINARY',
+  [BinaryType.QueryEngineLibrary]: 'PRISMA_QUERY_ENGINE_LIBRARY',
+  [BinaryType.MigrationEngineBinary]: 'PRISMA_MIGRATION_ENGINE_BINARY',
 }
 export { BinaryType }
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
@@ -92,18 +86,18 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   const dir = eval('__dirname')
 
   if (dir.startsWith('/snapshot/')) {
-    // in this case, we are in a "pkg" context with a virtual fs
-    // to make this work, we need to copy the binary to /tmp and execute it from there
-    // TODO Why is this needed? What happens if you do not do it?
-    // TODO Probably to be able to make the file executable?
-    // TODO Go and Python Client (which use pkg) actually provide the binaries _outside_ of the CLI via env vars - so never and up here
+    // In this case, we are in a "pkg" context with a simulated fs.
+    // We can't execute a binary from here because it's not a real
+    // file system but rather something implemented on JavaScript
+    // side, and the operating system cannot work with it, so we have
+    // to copy the binary to /tmp and execute it from there.
     const targetDir = path.join(tempDir, 'prisma-binaries')
-    await makeDir(targetDir)
+    await ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
 
     // We have to read and write until https://github.com/zeit/pkg/issues/639 is resolved
-    const data = await readFile(file)
-    await writeFile(target, data)
+    const data = await fs.promises.readFile(file)
+    await fs.promises.writeFile(target, data)
     // TODO Undo when https://github.com/vercel/pkg/pull/1484 is released
     // await copyFile(file, target)
 

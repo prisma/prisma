@@ -1,6 +1,9 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('uncheckedScalarInputs validation', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+testIf(getQueryEngineProtocol() !== 'json')('uncheckedScalarInputs validation', async () => {
   expect.assertions(1)
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
@@ -39,10 +42,10 @@ test('uncheckedScalarInputs validation', async () => {
       Invalid \`prisma.trip.create()\` invocation in
       /client/src/__tests__/integration/errors/uncheckedScalarValidation/test.ts:0:0
 
-         6 const prisma = new PrismaClient()
-         7 
-         8 try {
-      →  9   await prisma.trip.create({
+         9 const prisma = new PrismaClient()
+        10 
+        11 try {
+      → 12   await prisma.trip.create({
                data: {
                  name: 'Trip 1',
                  description: 'This is a description',

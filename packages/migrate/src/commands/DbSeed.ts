@@ -1,5 +1,5 @@
 import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, dim, red, yellow } from 'kleur/colors'
 
 import {
   executeSeedCommand,
@@ -14,13 +14,13 @@ export class DbSeed implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : chalk.bold('🙌  ')}Seed your database
+${process.platform === 'win32' ? '' : '🙌  '}Seed your database
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma db seed [options]
+  ${dim('$')} prisma db seed [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help   Display this help message
 `)
@@ -48,7 +48,7 @@ ${chalk.bold('Options')}
 
     if (args['--preview-feature']) {
       logger.warn(`Prisma "db seed" was in Preview and is now Generally Available.
-You can now remove the ${chalk.red('--preview-feature')} flag.`)
+You can now remove the ${red('--preview-feature')} flag.`)
 
       // Print warning if user has a "ts-node" script in their package.json, not supported anymore
       await legacyTsNodeScriptWarning()
@@ -59,7 +59,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
     // Print warning if user is using --schema
     if (args['--schema']) {
       logger.warn(
-        chalk.yellow(
+        yellow(
           `The "--schema" parameter is not used anymore by "prisma db seed" since version 3.0 and can now be removed.`,
         ),
       )
@@ -87,14 +87,12 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {
       process.exit(1)
-      // For snapshot test, because exit() is mocked
-      return ``
     }
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbSeed.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbSeed.help}`)
     }
     return DbSeed.help
   }

@@ -9,10 +9,9 @@ const baseUri = process.env.TEST_POSTGRES_URI
 
 describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', () => {
   beforeAll(async () => {
-    process.env.TEST_POSTGRES_URI += '-default-onDelete-Cascade'
+    process.env.TEST_POSTGRES_URI += 'referentialActions-onDelete-default'
     await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
     await migrateDb({
-      connectionString: process.env.TEST_POSTGRES_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
@@ -37,7 +36,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', ()
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like pinguins' },
+          create: { bio: 'I like penguins' },
         },
       },
     })
@@ -56,11 +55,11 @@ describe('referentialActions-onDelete-default-foreign-key-error(postgresql)', ()
         Invalid \`prisma.user.delete()\` invocation in
         /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-postgresql/test.ts:0:0
 
-          45 expect(await prisma.user.findMany()).toHaveLength(1)
-          46 
-          47 try {
-        → 48   await prisma.user.delete(
-          Foreign key constraint failed on the field: \`Post_authorId_fkey (index)\`
+          44 expect(await prisma.user.findMany()).toHaveLength(1)
+          45 
+          46 try {
+        → 47   await prisma.user.delete(
+        Foreign key constraint failed on the field: \`Post_authorId_fkey (index)\`
       `)
     }
   })

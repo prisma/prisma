@@ -2,7 +2,7 @@
 
 set -ex
 
-# Disabled (commented) because Builkite agents are missing Node.js right now and are failing.
+# Disabled (commented) because Buildkite agents are missing Node.js right now and are failing.
 
 # https://github.com/timsuchanek/last-git-changes/blob/master/src/bin.ts
 # git clone https://github.com/timsuchanek/last-git-changes.git
@@ -25,7 +25,6 @@ set -ex
 echo $BUILDKITE_TAG
 # echo $CHANGED_COUNT
 echo $BUILDKITE_SOURCE
-echo $UPDATE_STUDIO # TODO can we to remove this?
 
 # Make sure docker instances are stopped to avoid the following flaky errors
 # `Bind for 0.0.0.0:27017 failed: port is already allocated`
@@ -38,7 +37,7 @@ else
   docker rm --force -v $DOCKER_IDS
 fi
 
-# if [ $CHANGED_COUNT -gt 0 ] || [ $BUILDKITE_TAG ] || [ $BUILDKITE_SOURCE == "trigger_job" ] || [ $UPDATE_STUDIO ]; then
+# if [ $CHANGED_COUNT -gt 0 ] || [ $BUILDKITE_TAG ] || [ $BUILDKITE_SOURCE == "trigger_job" ]; then
   buildkite-agent pipeline upload .buildkite/publish/publish.yml
 # else
 #   echo "Nothing changed"

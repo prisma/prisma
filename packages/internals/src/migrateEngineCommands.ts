@@ -1,14 +1,7 @@
 import { BinaryType } from '@prisma/fetch-engine'
 import execa from 'execa'
-import fs from 'fs'
-import path from 'path'
-import { promisify } from 'util'
 
-import { getSchemaDir } from './cli/getSchema'
-import { protocolToConnectorType } from './convertCredentials'
 import { resolveBinary } from './resolveBinary'
-
-const exists = promisify(fs.exists)
 
 // ### Exit codes
 // `0`: normal exit
@@ -39,6 +32,7 @@ interface LogFields {
   // Only for ERROR level messages
   is_panic?: boolean
   error_code?: string
+  backtrace?: string
   [key: string]: any
 }
 
@@ -105,7 +99,7 @@ export async function canConnectToDatabase(
         throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
       }
     } else {
-      throw new Error(`Migration engine exited.`)
+      throw new Error(`Migration engine exited. ${_e}`)
     }
   }
 
@@ -143,7 +137,7 @@ export async function createDatabase(connectionString: string, cwd = process.cwd
         throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
       }
     } else {
-      throw new Error(`Migration engine exited.`)
+      throw new Error(`Migration engine exited. ${_e}`)
     }
   }
 }
@@ -168,7 +162,7 @@ export async function dropDatabase(connectionString: string, cwd = process.cwd()
 
       throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
     } else {
-      throw new Error(`Migration engine exited.`)
+      throw new Error(`Migration engine exited. ${e}`)
     }
   }
 }
@@ -184,7 +178,7 @@ export async function execaCommand({
   migrationEnginePath?: string
   engineCommandName: 'create-database' | 'drop-database' | 'can-connect-to-database'
 }) {
-  migrationEnginePath = migrationEnginePath || (await resolveBinary(BinaryType.migrationEngine))
+  migrationEnginePath = migrationEnginePath || (await resolveBinary(BinaryType.MigrationEngineBinary))
 
   try {
     return await execa(migrationEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {

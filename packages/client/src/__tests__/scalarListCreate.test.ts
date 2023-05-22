@@ -1,10 +1,8 @@
-import chalk from 'chalk'
+import { getDMMF } from '@prisma/internals'
 
 import { enums } from '../fixtures/enums'
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
-
-chalk.level = 0
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 describe('scalar where transformation', () => {
   let dmmf
@@ -37,6 +35,7 @@ describe('scalar where transformation', () => {
         select,
         rootTypeName: 'mutation',
         rootField: 'createOneUser',
+        extensions: MergedExtensionsList.empty(),
       }),
     )
 
@@ -54,7 +53,7 @@ describe('scalar where transformation', () => {
             }
           }
           someFloats: {
-            set: [1, 1.2]
+            set: [1e+0, 1.2e+0]
           }
         }) {
           id
@@ -96,6 +95,7 @@ describe('scalar where transformation', () => {
         select,
         rootTypeName: 'mutation',
         rootField: 'createOneUser',
+        extensions: MergedExtensionsList.empty(),
       }),
     )
 
@@ -112,7 +112,7 @@ describe('scalar where transformation', () => {
               id: 5
             }
           }
-          someFloats: [1, 1.2]
+          someFloats: [1e+0, 1.2e+0]
         }) {
           id
           name

@@ -1,6 +1,4 @@
-import { TransactionTracer } from '@prisma/engine-core'
-
-import type { PrismaPromise } from './PrismaPromise'
+import type { PrismaPromise, PrismaPromiseTransaction } from './PrismaPromise'
 
 /**
  * Creates a [[PrismaPromise]]. It is Prisma's implementation of `Promise` which
@@ -12,17 +10,18 @@ import type { PrismaPromise } from './PrismaPromise'
  * @returns
  */
 export function createPrismaPromise(
-  callback: (
-    txId?: string | number,
-    lock?: PromiseLike<void> | undefined,
-    transactionTracer?: TransactionTracer,
-  ) => PrismaPromise<unknown>,
+  callback: (transaction?: PrismaPromiseTransaction) => PrismaPromise<unknown>,
 ): PrismaPromise<unknown> {
   let promise: PrismaPromise<unknown> | undefined
-  const _callback = (txId?: string | number, lock?: PromiseLike<void>, transactionTracer?: TransactionTracer) => {
+  const _callback = (transaction?: PrismaPromiseTransaction) => {
     try {
-      // we allow the callback to be executed only one time
-      return (promise ??= callback(txId, lock, transactionTracer))
+      // promises cannot be triggered twice after resolving
+      if (transaction === undefined || transaction?.kind === 'itx') {
+        return (promise ??= valueToPromise(callback(transaction)))
+      }
+
+      // but for batch tx we can trigger them again & again
+      return valueToPromise(callback(transaction))
     } catch (error) {
       // if the callback throws, then we reject the promise
       // and that is because exceptions are not always async
@@ -31,25 +30,34 @@ export function createPrismaPromise(
   }
 
   return {
-    then(onFulfilled, onRejected, txId?: string, transactionTracer?: TransactionTracer) {
-      return _callback(txId, undefined, transactionTracer).then(onFulfilled, onRejected, txId)
+    then(onFulfilled, onRejected, transaction?) {
+      return _callback(transaction).then(onFulfilled, onRejected, transaction)
     },
-    catch(onRejected, txId?: string, transactionTracer?: TransactionTracer) {
-      return _callback(txId, undefined, transactionTracer).catch(onRejected, txId)
+    catch(onRejected, transaction?) {
+      return _callback(transaction).catch(onRejected, transaction)
     },
-    finally(onFinally, txId?: string, transactionTracer?: TransactionTracer) {
-      return _callback(txId, undefined, transactionTracer).finally(onFinally, txId)
+    finally(onFinally, transaction?) {
+      return _callback(transaction).finally(onFinally, transaction)
     },
-    requestTransaction(txId: number, lock?: PromiseLike<void>, transactionTracer?: TransactionTracer) {
-      const promise = _callback(txId, lock, transactionTracer)
+
+    requestTransaction(batchTransaction) {
+      const promise = _callback(batchTransaction)
 
       if (promise.requestTransaction) {
         // we want to have support for nested promises
-        return promise.requestTransaction(txId, lock, transactionTracer)
+        return promise.requestTransaction(batchTransaction)
       }
 
       return promise
     },
     [Symbol.toStringTag]: 'PrismaPromise',
   }
+}
+
+function valueToPromise<T>(thing: T): PrismaPromise<T> {
+  if (typeof thing['then'] === 'function') {
+    return thing as Promise<T>
+  }
+
+  return Promise.resolve(thing)
 }

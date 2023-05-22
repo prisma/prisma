@@ -18,12 +18,13 @@ import { tscPlugin } from './plugins/tscPlugin'
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
   name?: string
+  emitTypes?: boolean
   outbase?: never // we don't support this
 }
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
-  keepNames: true,
+  target: 'ES2020',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
   incremental: process.env.WATCH === 'true',
@@ -37,7 +38,6 @@ const DEFAULT_BUILD_OPTIONS = {
 const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
   format: 'cjs',
-  target: 'es2018',
   outExtension: { '.js': '.js' },
   resolveExtensions: ['.ts', '.js', '.node'],
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
@@ -48,7 +48,7 @@ const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   // outfile has precedence over outdir, hence these ternaries
   outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
-  plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin, onErrorPlugin],
+  plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin(options.emitTypes), onErrorPlugin],
 })
 
 /**
@@ -105,7 +105,7 @@ function addDefaultOutDir(options: BuildOptions) {
  * Execute esbuild with all the configurations we pass
  */
 async function executeEsBuild(options: BuildOptions) {
-  return [options, await esbuild.build(omit(options, ['name']))] as const
+  return [options, await esbuild.build(omit(options, ['name', 'emitTypes']))] as const
 }
 
 /**
@@ -122,7 +122,8 @@ async function dependencyCheck(options: BuildOptions) {
   // we need to bundle everything to do the analysis
   const buildPromise = esbuild.build({
     entryPoints: glob.sync('**/*.{j,t}s', {
-      ignore: ['./src/__tests__/**/*'],
+      // We don't check dependencies in ecosystem tests because tests are isolated from the build.
+      ignore: ['./src/__tests__/**/*', './tests/e2e/**/*', './dist/**/*'],
       gitignore: true,
     }),
     logLevel: 'silent', // there will be errors
@@ -143,7 +144,7 @@ async function dependencyCheck(options: BuildOptions) {
  * @param options
  */
 export async function build(options: BuildOptions[]) {
-  await transduce.async(options, dependencyCheck)
+  void transduce.async(options, dependencyCheck)
 
   return transduce.async(
     createBuildOptions(options),
@@ -161,7 +162,7 @@ const watch =
     if (process.env.WATCH !== 'true') return result
 
     // common chokidar options for the watchers
-    const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*'] }
+    const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*', './package.json'] }
 
     // prepare the incremental builds watcher
     const watched = getWatchedFiles(result)

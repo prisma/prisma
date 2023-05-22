@@ -1,8 +1,6 @@
 node_modules
 migration-engine*
 query-engine*
-introspection-engine*
-prisma-fmt*
 libquery*
 yarn-error.log
 dist

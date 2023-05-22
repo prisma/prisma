@@ -1,10 +1,8 @@
-import chalk from 'chalk'
+import { getDMMF } from '@prisma/internals'
 
 import { blog } from '../fixtures/blog'
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
-
-chalk.level = 0
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 let dmmf
 describe('minimal where transformation', () => {
@@ -329,7 +327,7 @@ describe('minimal where transformation', () => {
     `)
   })
 
-  test('one-to-one realtion where null', () => {
+  test('one-to-one relation where null', () => {
     const transformedDocument = getTransformedDocument({
       where: {
         profile: {
@@ -372,6 +370,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'query',
     rootField: 'findManyUser',
+    extensions: MergedExtensionsList.empty(),
   })
   return String(transformDocument(document))
 }

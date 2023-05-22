@@ -1,15 +1,13 @@
 import Debug from '@prisma/debug'
 import { getPrismaConfigFromPackageJson, link, logger } from '@prisma/internals'
-import chalk from 'chalk'
 import execa from 'execa'
 import fs from 'fs'
 import hasYarn from 'has-yarn'
+import { bold, green, italic, red, yellow } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
-import { promisify } from 'util'
 
 const debug = Debug('prisma:migrate:seed')
-const readFileAsync = promisify(fs.readFile)
 
 /*
   Checks if user has a prisma/seed.ts or prisma/seed.js or prisma/seed.sh
@@ -31,7 +29,7 @@ export async function verifySeedConfigAndReturnMessage(schemaPath: string | null
   // If new "seed" config is not set, help user to set it
   const packageManager = hasYarn() ? 'yarn add -D' : 'npm i -D'
 
-  let message = `${chalk.red(
+  let message = `${red(
     'To configure seeding in your project you need to add a "prisma.seed" property in your package.json with the command to execute it:',
   )}
 
@@ -68,7 +66,7 @@ If you are using ESM (ECMAScript modules):
 \`\`\`
 
 3. Install the required dependencies by running:
-${chalk.green(`${packageManager} ts-node typescript @types/node`)}
+${green(`${packageManager} ts-node typescript @types/node`)}
 `
     } else if (detected.sh) {
       message += `
@@ -82,7 +80,7 @@ And run \`chmod +x ${detected.sh}\` to make it executable.`
   } else {
     message += `2. Add one of the following examples to your package.json:
 
-${chalk.bold('TypeScript:')}
+${bold('TypeScript:')}
 \`\`\`
 "prisma": {
   "seed": "ts-node ./prisma/seed.ts"
@@ -98,14 +96,14 @@ If you are using ESM (ECMAScript modules):
 And install the required dependencies by running:
 ${packageManager} ts-node typescript @types/node
 
-${chalk.bold('JavaScript:')}
+${bold('JavaScript:')}
 \`\`\`
 "prisma": {
   "seed": "node ./prisma/seed.js"
 }
 \`\`\`
 
-${chalk.bold('Bash:')}
+${bold('Bash:')}
 \`\`\`
 "prisma": {
   "seed": "./prisma/seed.sh"
@@ -130,7 +128,7 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
 
   const seedCommandFromPkgJson = prismaConfig.data.seed
 
-  // Validate if seed commad is a string
+  // Validate if seed command is a string
   if (typeof seedCommandFromPkgJson !== 'string') {
     throw new Error(
       `Provided seed command \`${seedCommandFromPkgJson}\` from \`${path.relative(
@@ -153,7 +151,7 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
 }
 
 export async function executeSeedCommand(command: string): Promise<boolean> {
-  console.info(`Running seed command \`${chalk.italic(command)}\` ...`)
+  console.info(`Running seed command \`${italic(command)}\` ...`)
   try {
     await execa.command(command, {
       stdout: 'inherit',
@@ -162,8 +160,8 @@ export async function executeSeedCommand(command: string): Promise<boolean> {
   } catch (_e) {
     const e = _e as execa.ExecaError
     debug({ e })
-    console.error(chalk.bold.red(`\nAn error occured while running the seed command:`))
-    console.error(chalk.red(e.stderr || e))
+    console.error(bold(red(`\nAn error occurred while running the seed command:`)))
+    console.error(red(e.stderr || String(e)))
     return false
   }
 
@@ -207,9 +205,7 @@ export async function legacyTsNodeScriptWarning() {
 
   if (scripts?.['ts-node']) {
     logger.warn(
-      chalk.yellow(
-        `The "ts-node" script in the package.json is not used anymore since version 3.0 and can now be removed.`,
-      ),
+      yellow(`The "ts-node" script in the package.json is not used anymore since version 3.0 and can now be removed.`),
     )
   }
 
@@ -231,7 +227,7 @@ async function getScriptsFromPackageJson(cwd: string = process.cwd()) {
       return null
     }
 
-    const pkgJsonString = await readFileAsync(pkgJsonPath, 'utf-8')
+    const pkgJsonString = await fs.promises.readFile(pkgJsonPath, 'utf-8')
 
     const pkgJson: PkgJSON = JSON.parse(pkgJsonString)
 

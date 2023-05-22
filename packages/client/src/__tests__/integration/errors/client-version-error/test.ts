@@ -1,6 +1,9 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('client-version-error', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+testIf(getQueryEngineProtocol() !== 'json')('client-version-error', async () => {
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
   try {
@@ -12,10 +15,10 @@ test('client-version-error', async () => {
       Invalid \`prisma.user.findMany()\` invocation in
       /client/src/__tests__/integration/errors/client-version-error/test.ts:0:0
 
-         4 const PrismaClient = await getTestClient()
-         5 const prisma = new PrismaClient()
-         6 try {
-      →  7   await prisma.user.findMany({
+         7 const PrismaClient = await getTestClient()
+         8 const prisma = new PrismaClient()
+         9 try {
+      → 10   await prisma.user.findMany({
                invalidArg: true
                ~~~~~~~~~~
              })

@@ -15,7 +15,7 @@ on:
       - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
-      - 'src/.buildkite/**'
+      - '.buildkite/**'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
@@ -28,22 +28,30 @@ on:
       - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
-      - 'src/.buildkite/**'
+      - '.buildkite/**'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
+  workflow_dispatch:
 
 env:
   PRISMA_TELEMETRY_INFORMATION: 'prisma benchmark.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   benchmark:
     name: all
     runs-on: ubuntu-latest
+    # Only run on main repo (not on forks)
+    # This avoids notifications to be sent to `alert-comment-cc-users`, see below
+    if: github.repository == 'prisma/prisma'
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.2
+      - uses: pnpm/action-setup@v2.2.4
         with:
           version: 7
 
@@ -71,14 +79,20 @@ jobs:
           name: Benchmark.js Benchmark
           tool: 'benchmarkjs'
           output-file-path: output.txt
-          # Use personal access token instead of GITHUB_TOKEN due to https://github.community/t5/GitHub-Actions/Github-action-not-triggering-gh-pages-upon-push/td-p/26869/highlight/false
+          # Note: must use personal access token
           github-token: ${{ secrets.GITHUB_TOKEN }}
           auto-push: true
           # Show alert with commit comment on detecting possible performance regression
           alert-threshold: '200%'
           comment-on-alert: true
           fail-on-alert: true
-          alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@danstarns,@jkomyno'
+          alert-comment-cc-users: '@Jolg42,@millsp,@aqrln,@SevInf,@jkomyno'
+
+      - name: Run benchmarks for Codspeed
+        uses: CodSpeedHQ/action@v1
+        with:
+          run: pnpm run bench-stdout-only
+          token: ${{ secrets.CODSPEED_TOKEN }}
 
       - name: 'Set current job url in SLACK_FOOTER env var'
         if: ${{ failure() && github.ref == 'refs/heads/main' }}

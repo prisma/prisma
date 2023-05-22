@@ -1,7 +1,7 @@
 import { ensureBinariesExist } from '@prisma/engines'
 import type { Command, Commands } from '@prisma/internals'
 import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, dim, green, red, underline } from 'kleur/colors'
 
 import { Version } from './Version'
 
@@ -45,16 +45,14 @@ export class CLI implements Command {
     const cmdName = args._[0]
     // Throw if "lift"
     if (cmdName === 'lift') {
-      throw new Error(`${chalk.red('prisma lift')} has been renamed to ${chalk.green('prisma migrate')}`)
+      throw new Error(`${red('prisma lift')} has been renamed to ${green('prisma migrate')}`)
     }
     // warn if "introspect"
     else if (cmdName === 'introspect') {
       logger.warn('')
       logger.warn(
-        `${chalk.bold(
-          `The ${chalk.underline('prisma introspect')} command is deprecated. Please use ${chalk.green(
-            'prisma db pull',
-          )} instead.`,
+        `${bold(
+          `The ${underline('prisma introspect')} command is deprecated. Please use ${green('prisma db pull')} instead.`,
         )}`,
       )
       logger.warn('')
@@ -86,51 +84,58 @@ export class CLI implements Command {
 
   public help(error?: string) {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${CLI.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${CLI.help}`)
     }
     return CLI.help
   }
 
   private static help = format(`
     ${
-      process.platform === 'win32' ? '' : chalk.bold.green('◭  ')
+      process.platform === 'win32' ? '' : bold(green('◭  '))
     }Prisma is a modern DB toolkit to query, migrate and model your database (${link('https://prisma.io')})
 
-    ${chalk.bold('Usage')}
+    ${bold('Usage')}
 
-      ${chalk.dim('$')} prisma [command]
+      ${dim('$')} prisma [command]
 
-    ${chalk.bold('Commands')}
+    ${bold('Commands')}
 
                 init   Set up Prisma for your app
             generate   Generate artifacts (e.g. Prisma Client)
                   db   Manage your database schema and lifecycle
              migrate   Migrate your database
               studio   Browse your data with Prisma Studio
-              format   Format your schema
+            validate   Validate your Prisma schema
+              format   Format your Prisma schema
 
-    ${chalk.bold('Flags')}
+    ${bold('Flags')}
 
          --preview-feature   Run Preview Prisma commands
 
-    ${chalk.bold('Examples')}
+    ${bold('Examples')}
 
       Set up a new Prisma project
-      ${chalk.dim('$')} prisma init
+      ${dim('$')} prisma init
 
       Generate artifacts (e.g. Prisma Client)
-      ${chalk.dim('$')} prisma generate
+      ${dim('$')} prisma generate
 
       Browse your data
-      ${chalk.dim('$')} prisma studio
+      ${dim('$')} prisma studio
 
       Create migrations from your Prisma schema, apply them to the database, generate artifacts (e.g. Prisma Client)
-      ${chalk.dim('$')} prisma migrate dev
+      ${dim('$')} prisma migrate dev
   
       Pull the schema from an existing database, updating the Prisma schema
-      ${chalk.dim('$')} prisma db pull
+      ${dim('$')} prisma db pull
 
       Push the Prisma schema state to the database
-      ${chalk.dim('$')} prisma db push
+      ${dim('$')} prisma db push
+
+      Validate your Prisma schema
+      ${dim('$')} prisma validate
+
+      Format your Prisma schema
+      ${dim('$')} prisma format
   `)
 }

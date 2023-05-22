@@ -1,14 +1,11 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
 import { DbDrop } from '../commands/DbDrop'
 
-// TODO: Windows: snapshot tests fail on Windows because of emoji and different error messages.
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
-describeIf(process.platform !== 'win32')('drop', () => {
+describe('drop', () => {
   it('requires --preview-feature flag', async () => {
     ctx.fixture('empty')
 
@@ -45,12 +42,13 @@ describeIf(process.platform !== 'win32')('drop', () => {
     ctx.fs.remove('prisma/dev.db')
 
     const result = DbDrop.new().parse(['--preview-feature', '--force'])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-Migration engine error:
-Failed to delete SQLite database at \`dev.db\`.
-No such file or directory (os error 2)
-
-`)
+    // Migration engine error:
+    // Failed to delete SQLite database at \`dev.db\`.
+    // On Linux/macOS:
+    // No such file or directory (os error 2)
+    // On Windows:
+    // No such file or directory (os error 2)
+    await expect(result).rejects.toThrow(`Failed to delete SQLite database at \`dev.db\`.`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -60,10 +58,7 @@ No such file or directory (os error 2)
     prompt.inject(['dev.db']) // simulate user input
 
     const result = DbDrop.new().parse(['--preview-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-            🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
-
-          `)
+    await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -77,10 +72,7 @@ No such file or directory (os error 2)
     ctx.fixture('reset')
 
     const result = DbDrop.new().parse(['--preview-feature', '--force'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-            🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
-
-          `)
+    await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -92,10 +84,7 @@ No such file or directory (os error 2)
   it('should work (-f)', async () => {
     ctx.fixture('reset')
     const result = DbDrop.new().parse(['--preview-feature', '-f'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-            🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
-
-          `)
+    await expect(result).resolves.toContain(`The SQLite database "dev.db" from "file:dev.db" was successfully dropped.`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -106,15 +95,14 @@ No such file or directory (os error 2)
 
   it('should be cancelled (prompt)', async () => {
     ctx.fixture('reset')
-    const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+    const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+      throw new Error('process.exit: ' + number)
+    })
 
     prompt.inject([new Error()]) // simulate cancel
 
     const result = DbDrop.new().parse(['--preview-feature'])
-    await expect(result).resolves.toMatchInlineSnapshot(`
-            🚀  The SQLite database "dev.db" from "file:dev.db" was successfully dropped.
-
-          `)
+    await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 130`)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -123,7 +111,7 @@ No such file or directory (os error 2)
       Drop cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(0)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('should ask for --force if not provided if CI', async () => {
@@ -132,7 +120,7 @@ No such file or directory (os error 2)
 
     const result = DbDrop.new().parse(['--preview-feature'])
     await expect(result).rejects.toMatchInlineSnapshot(
-      `Use the --force flag to use the drop command in an unnattended environment like prisma db drop --force --preview-feature`,
+      `Use the --force flag to use the drop command in an unattended environment like prisma db drop --force --preview-feature`,
     )
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })

@@ -1,11 +1,9 @@
-import chalk from 'chalk'
+import { getDMMF } from '@prisma/internals'
 
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, objectEnumValues, transformDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
-
-chalk.level = 0
 
 const datamodel = `\
 datasource db {
@@ -64,6 +62,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'mutation',
       rootField: 'createOneUser',
+      extensions: MergedExtensionsList.empty(),
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
@@ -83,6 +82,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
@@ -100,6 +100,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyOptionalUser',
+      extensions: MergedExtensionsList.empty(),
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
@@ -117,6 +118,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyOptionalUser',
+      extensions: MergedExtensionsList.empty(),
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
@@ -134,6 +136,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyOptionalUser',
+      extensions: MergedExtensionsList.empty(),
     })
     document.validate(undefined, false, 'user', 'colorless')
     expect(String(document)).toMatchSnapshot()
@@ -151,6 +154,7 @@ describeIf(process.platform !== 'win32')('json', () => {
       },
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(() => document.validate(undefined, false, 'user', 'colorless')).toThrowErrorMatchingSnapshot()
   })
@@ -162,6 +166,7 @@ describeIf(process.platform !== 'win32')('json', () => {
         select,
         rootTypeName: 'mutation',
         rootField: 'updateOneUser',
+        extensions: MergedExtensionsList.empty(),
       })
       return String(transformDocument(document))
     }

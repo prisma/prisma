@@ -10,7 +10,6 @@ beforeEach(async () => {
   process.env.TEST_POSTGRES_URI += '-logging-library'
   await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
   await migrateDb({
-    connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
 })
@@ -49,9 +48,9 @@ test('basic event logging - library', async () => {
   replaceTimeValues(onQuery)
 
   expect(onInfo.mock.calls).toMatchInlineSnapshot(`
-    Array [
-      Array [
-        Object {
+    [
+      [
+        {
           message: Starting a postgresql pool with XX connections.,
           target: quaint::pooled,
           timestamp: 1970-01-01T00:00:00.000Z,
@@ -61,9 +60,9 @@ test('basic event logging - library', async () => {
   `)
 
   expect(onQuery.mock.calls).toMatchInlineSnapshot(`
-    Array [
-      Array [
-        Object {
+    [
+      [
+        {
           duration: 0,
           params: [0],
           query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1,
@@ -104,34 +103,34 @@ test('interactive transactions logging - library', async () => {
   replaceTimeValues(onQuery)
 
   expect(onQuery.mock.calls).toMatchInlineSnapshot(`
-Array [
-  Array [
-    Object {
-      duration: 0,
-      params: [],
-      query: BEGIN,
-      target: quaint::connector::metrics,
-      timestamp: 1970-01-01T00:00:00.000Z,
-    },
-  ],
-  Array [
-    Object {
-      duration: 0,
-      params: [0],
-      query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1,
-      target: quaint::connector::metrics,
-      timestamp: 1970-01-01T00:00:00.000Z,
-    },
-  ],
-  Array [
-    Object {
-      duration: 0,
-      params: [],
-      query: COMMIT,
-      target: quaint::connector::metrics,
-      timestamp: 1970-01-01T00:00:00.000Z,
-    },
-  ],
-]
-`)
+    [
+      [
+        {
+          duration: 0,
+          params: [],
+          query: BEGIN,
+          target: quaint::connector::metrics,
+          timestamp: 1970-01-01T00:00:00.000Z,
+        },
+      ],
+      [
+        {
+          duration: 0,
+          params: [0],
+          query: SELECT "public"."User"."id" FROM "public"."User" WHERE 1=1 OFFSET $1,
+          target: quaint::connector::metrics,
+          timestamp: 1970-01-01T00:00:00.000Z,
+        },
+      ],
+      [
+        {
+          duration: 0,
+          params: [],
+          query: COMMIT,
+          target: quaint::connector::metrics,
+          timestamp: 1970-01-01T00:00:00.000Z,
+        },
+      ],
+    ]
+  `)
 })

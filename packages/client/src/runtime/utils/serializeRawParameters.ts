@@ -1,5 +1,7 @@
 import Decimal from 'decimal.js'
 
+import { isDate } from './date'
+
 export function serializeRawParameters(parameters: any[]): string {
   try {
     return serializeRawParametersInternal(parameters, 'fast')
@@ -46,7 +48,8 @@ function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): 
   if (isArrayBufferLike(parameter) || ArrayBuffer.isView(parameter)) {
     return {
       prisma__type: 'bytes',
-      prisma__value: Buffer.from(parameter).toString('base64'),
+      // TODO: node typings do not include ArrayBufferView as of 14.x
+      prisma__value: Buffer.from(parameter as ArrayBuffer).toString('base64'),
     }
   }
 
@@ -55,16 +58,6 @@ function encodeParameter(parameter: any, objectSerialization: 'fast' | 'slow'): 
   }
 
   return parameter
-}
-
-function isDate(value: any): value is Date {
-  if (value instanceof Date) {
-    return true
-  }
-
-  // Support dates created in another V8 context
-  // Note: dates don't have Symbol.toStringTag defined
-  return Object.prototype.toString.call(value) === '[object Date]' && typeof value.toJSON === 'function'
 }
 
 function isArrayBufferLike(value: any): value is ArrayBufferLike {

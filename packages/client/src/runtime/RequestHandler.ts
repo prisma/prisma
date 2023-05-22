@@ -1,190 +1,240 @@
+import { Context } from '@opentelemetry/api'
 import Debug from '@prisma/debug'
+import { assertNever } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 
+import {
+  EngineValidationError,
+  EventEmitter,
+  Fetch,
+  InteractiveTransactionOptions,
+  TransactionOptions,
+} from '../runtime/core/engines'
 import {
   PrismaClientInitializationError,
   PrismaClientKnownRequestError,
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
+import { throwValidationException } from './core/errorRendering/throwValidationException'
+import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
+import { applyResultExtensions } from './core/extensions/applyResultExtensions'
+import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
+import { visitQueryResult } from './core/extensions/visitQueryResult'
+import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
+import { ProtocolEncoder, ProtocolMessage } from './core/protocol/common'
+import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
+import { JsArgs } from './core/types/JsApi'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
-import type { EngineMiddleware } from './MiddlewareHandler'
-import type { Document } from './query'
-import { Args, unpack } from './query'
-import { printStack } from './utils/printStack'
-import type { RejectOnNotFound } from './utils/rejectOnNotFound'
-import { throwIfNotFound } from './utils/rejectOnNotFound'
+import { CallSite } from './utils/CallSite'
+import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
+import { NotFoundError, RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 
 const debug = Debug('prisma:client:request_handler')
 
 export type RequestParams = {
-  document: Document
+  modelName?: string
+  protocolMessage: ProtocolMessage
+  protocolEncoder: ProtocolEncoder
   dataPath: string[]
-  rootField: string
-  typeName: string
-  isList: boolean
   clientMethod: string
-  callsite?: string
+  callsite?: CallSite
   rejectOnNotFound?: RejectOnNotFound
-  runInTransaction?: boolean
-  engineHook?: EngineMiddleware
-  args: any
+  transaction?: PrismaPromiseTransaction
+  extensions: MergedExtensionsList
+  args?: any
   headers?: Record<string, string>
-  transactionId?: string | number
   unpacker?: Unpacker
+  otelParentCtx?: Context
+  otelChildCtx?: Context
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
 export type HandleErrorParams = {
+  args: JsArgs
   error: any
   clientMethod: string
-  callsite?: string
+  callsite?: CallSite
+  transaction?: PrismaPromiseTransaction
 }
 
 export type Request = {
-  document: Document
-  runInTransaction?: boolean
-  transactionId?: string | number
-  headers?: Record<string, string>
+  protocolMessage: ProtocolMessage
+  protocolEncoder: ProtocolEncoder
+  transaction?: PrismaPromiseTransaction
+  otelParentCtx?: Context
+  otelChildCtx?: Context
+  customDataProxyFetch?: (fetch: Fetch) => Fetch
 }
 
-function getRequestInfo(requests: Request[]) {
-  const txId = requests[0].transactionId
-  const inTx = requests[0].runInTransaction
-  const headers = requests[0].headers ?? {}
-
-  // if the tx has a number for an id, then it's a regular batch tx
-  const _inTx = typeof txId === 'number' && inTx ? true : undefined
-  // if the tx has a string for id, it's an interactive transaction
-  const _txId = typeof txId === 'string' && inTx ? txId : undefined
-
-  if (_txId !== undefined) headers.transactionId = _txId
-
-  return { inTx: _inTx, headers }
+type ApplyExtensionsParams = {
+  result: object
+  modelName: string
+  args: JsArgs
+  extensions: MergedExtensionsList
 }
 
 export class RequestHandler {
   client: Client
-  hooks: any
   dataloader: DataLoader<Request>
+  private logEmitter?: EventEmitter
 
-  constructor(client: Client, hooks?: any) {
+  constructor(client: Client, logEmitter?: EventEmitter) {
+    this.logEmitter = logEmitter
     this.client = client
-    this.hooks = hooks
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        const info = getRequestInfo(requests)
-        const queries = requests.map((r) => String(r.document))
+        const { transaction, protocolEncoder, otelParentCtx } = requests[0]
+        const queries = protocolEncoder.createBatch(requests.map((r) => r.protocolMessage))
+        const traceparent = this.client._tracingHelper.getTraceParent(otelParentCtx)
 
-        return this.client._engine.requestBatch(queries, info.headers, info.inTx)
+        // TODO: pass the child information to QE for it to issue links to queries
+        // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
+
+        const containsWrite = requests.some((r) => r.protocolMessage.isWrite())
+
+        return this.client._engine.requestBatch(queries, {
+          traceparent,
+          transaction: getTransactionOptions(transaction),
+          containsWrite,
+          customDataProxyFetch: requests[0].customDataProxyFetch,
+        })
       },
       singleLoader: (request) => {
-        const info = getRequestInfo([request])
-        const query = String(request.document)
+        const interactiveTransaction =
+          request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
-        return this.client._engine.request(query, info.headers)
+        return this.client._engine.request(request.protocolMessage.toEngineQuery(), {
+          traceparent: this.client._tracingHelper.getTraceParent(),
+          interactiveTransaction,
+          isWrite: request.protocolMessage.isWrite(),
+          customDataProxyFetch: request.customDataProxyFetch,
+        })
       },
       batchBy: (request) => {
-        if (request.transactionId) {
-          return `transaction-${request.transactionId}`
+        if (request.transaction?.id) {
+          return `transaction-${request.transaction.id}`
         }
 
-        return batchFindUniqueBy(request)
+        return request.protocolMessage.getBatchId()
       },
     })
   }
 
   async request({
-    document,
+    protocolMessage,
+    protocolEncoder,
     dataPath = [],
-    rootField,
-    typeName,
-    isList,
     callsite,
+    modelName,
     rejectOnNotFound,
     clientMethod,
-    runInTransaction,
-    engineHook,
     args,
-    headers,
-    transactionId,
+    transaction,
     unpacker,
+    extensions,
+    otelParentCtx,
+    otelChildCtx,
+    customDataProxyFetch,
   }: RequestParams) {
-    if (this.hooks && this.hooks.beforeRequest) {
-      const query = String(document)
-      this.hooks.beforeRequest({
-        query,
-        path: dataPath,
-        rootField,
-        typeName,
-        document,
-        isList,
-        clientMethod,
-        args,
-      })
-    }
     try {
-      /**
-       * If there's an engine hook, use it here
-       */
-      let data, elapsed
-      if (engineHook) {
-        const result = await engineHook(
-          {
-            document,
-            runInTransaction,
-          },
-          (params) => this.dataloader.request(params),
-        )
-        data = result.data
-        elapsed = result.elapsed
-      } else {
-        const result = await this.dataloader.request({
-          document,
-          runInTransaction,
-          headers,
-          transactionId,
-        })
-        data = result?.data
-        elapsed = result?.elapsed
-      }
+      const response = await this.dataloader.request({
+        protocolMessage,
+        protocolEncoder,
+        transaction,
+        otelParentCtx,
+        otelChildCtx,
+        customDataProxyFetch,
+      })
+      const data = response?.data
+      const elapsed = response?.elapsed
 
       /**
        * Unpack
        */
-      const unpackResult = this.unpack(document, data, dataPath, rootField, unpacker)
-      throwIfNotFound(unpackResult, clientMethod, typeName, rejectOnNotFound)
-      if (process.env.PRISMA_CLIENT_GET_TIME) {
-        return { data: unpackResult, elapsed }
+      let result = this.unpack(protocolMessage, data, dataPath, unpacker)
+      throwIfNotFound(result, clientMethod, modelName, rejectOnNotFound)
+      if (modelName) {
+        result = this.applyResultExtensions({ result, modelName, args, extensions })
       }
-      return unpackResult
+      if (process.env.PRISMA_CLIENT_GET_TIME) {
+        return { data: result, elapsed }
+      }
+      return result
     } catch (error) {
-      this.handleRequestError({ error, clientMethod, callsite })
+      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
     }
   }
 
-  handleRequestError({ error, clientMethod, callsite }: HandleErrorParams): never {
+  /**
+   * Handles the error and logs it, logging the error is done synchronously waiting for the event
+   * handlers to finish.
+   */
+  handleAndLogRequestError(params: HandleErrorParams): never {
+    try {
+      this.handleRequestError(params)
+    } catch (err) {
+      if (this.logEmitter) {
+        this.logEmitter.emit('error', { message: err.message, target: params.clientMethod, timestamp: new Date() })
+      }
+      throw err
+    }
+  }
+
+  handleRequestError({ error, clientMethod, callsite, transaction, args }: HandleErrorParams): never {
     debug(error)
+
+    if (isMismatchingBatchIndex(error, transaction)) {
+      // if this is batch error and current request was not it's cause, we don't add
+      // context information to the error: this wasn't a request that caused batch to fail
+      throw error
+    }
+
+    if (error instanceof NotFoundError) {
+      // TODO: This is a workaround to keep backwards compatibility with clients
+      // consuming NotFoundError
+      throw error
+    }
+
+    if (error instanceof PrismaClientKnownRequestError && isValidationError(error)) {
+      const validationError = convertValidationError(error.meta as EngineValidationError)
+      throwValidationException({
+        args,
+        errors: [validationError],
+        callsite,
+        errorFormat: this.client._errorFormat,
+        originalMethod: clientMethod,
+      })
+    }
 
     let message = error.message
     if (callsite) {
-      const { stack } = printStack({
+      message = createErrorMessageWithContext({
         callsite,
         originalMethod: clientMethod,
-        onUs: error.isPanic,
+        isPanic: error.isPanic,
         showColors: this.client._errorFormat === 'pretty',
+        message,
       })
-      message = `${stack}\n  ${error.message}`
     }
 
     message = this.sanitizeMessage(message)
     // TODO: Do request with callsite instead, so we don't need to rethrow
     if (error.code) {
-      throw new PrismaClientKnownRequestError(message, error.code, this.client._clientVersion, error.meta)
+      throw new PrismaClientKnownRequestError(message, {
+        code: error.code,
+        clientVersion: this.client._clientVersion,
+        meta: error.meta,
+        batchRequestIdx: error.batchRequestIdx,
+      })
     } else if (error.isPanic) {
       throw new PrismaClientRustPanicError(message, this.client._clientVersion)
     } else if (error instanceof PrismaClientUnknownRequestError) {
-      throw new PrismaClientUnknownRequestError(message, this.client._clientVersion)
+      throw new PrismaClientUnknownRequestError(message, {
+        clientVersion: this.client._clientVersion,
+        batchRequestIdx: error.batchRequestIdx,
+      })
     } else if (error instanceof PrismaClientInitializationError) {
       throw new PrismaClientInitializationError(message, this.client._clientVersion)
     } else if (error instanceof PrismaClientRustPanicError) {
@@ -202,21 +252,37 @@ export class RequestHandler {
     }
     return message
   }
-  unpack(document, data, path, rootField, unpacker?: Unpacker) {
-    if (data?.data) {
-      data = data.data
+
+  unpack(message: ProtocolMessage, data: unknown, dataPath: string[], unpacker?: Unpacker) {
+    if (!data) {
+      return data
     }
-    // to lift up _all in count
-    if (unpacker) {
-      data[rootField] = unpacker(data[rootField])
+    if (data['data']) {
+      data = data['data']
     }
 
-    const getPath: any[] = []
-    if (rootField) {
-      getPath.push(rootField)
+    const deserializeResponse = message.deserializeResponse(data, dataPath)
+    return unpacker ? unpacker(deserializeResponse) : deserializeResponse
+  }
+
+  applyResultExtensions({ result, modelName, args, extensions }: ApplyExtensionsParams) {
+    if (extensions.isEmpty() || result == null) {
+      return result
     }
-    getPath.push(...path.filter((p) => p !== 'select' && p !== 'include'))
-    return unpack({ document, data, path: getPath })
+    const model = this.client._runtimeDataModel.models[modelName]
+    if (!model) {
+      return result
+    }
+    return visitQueryResult({
+      result,
+      args: args ?? {},
+      modelName,
+      runtimeDataModel: this.client._runtimeDataModel,
+      visitor(value, dmmfModelName, args) {
+        const modelName = dmmfToJSModelName(dmmfModelName)
+        return applyResultExtensions({ result: value, modelName, select: args.select, extensions })
+      },
+    })
   }
 
   get [Symbol.toStringTag]() {
@@ -224,36 +290,75 @@ export class RequestHandler {
   }
 }
 
-/**
- * Determines which `findUnique` queries can be batched together so that the
- * query engine can collapse/optimize the queries into a single one. This is
- * especially useful for GQL to generate more efficient queries.
- *
- * @see https://www.prisma.io/docs/guides/performance-and-optimization/query-optimization-performance
- * @param request
- * @returns
- */
-function batchFindUniqueBy(request: Request) {
-  // if it's not a findUnique query then we don't attempt optimizing
-  if (!request.document.children[0].name.startsWith('findUnique')) {
+function getTransactionOptions<PayloadType>(
+  transaction?: PrismaPromiseTransaction<PayloadType>,
+): TransactionOptions<PayloadType> | undefined {
+  if (!transaction) {
     return undefined
   }
 
-  // we generate a string for the fields we have used in the `where`
-  const args = request.document.children[0].args?.args
-    .map((a) => {
-      if (a.value instanceof Args) {
-        return `${a.key}-${a.value.args.map((a) => a.key).join(',')}`
-      }
-      return a.key
-    })
-    .join(',')
+  if (transaction.kind === 'batch') {
+    return {
+      kind: 'batch',
+      options: {
+        isolationLevel: transaction.isolationLevel,
+      },
+    }
+  }
 
-  // we generate a string for the fields we have used in the `includes`
-  const selectionSet = request.document.children[0].children!.join(',')
+  if (transaction.kind === 'itx') {
+    return {
+      kind: 'itx',
+      options: getItxTransactionOptions(transaction),
+    }
+  }
 
-  // queries that share this token will be batched and collapsed alltogether
-  return `${request.document.children[0].name}|${args}|${selectionSet}`
-  // this way, the query engine will be able to collapse into a single call
-  // and that is because all the queries share their `where` and `includes`
+  assertNever(transaction, 'Unknown transaction kind')
+}
+
+function getItxTransactionOptions<PayloadType>(
+  transaction: PrismaPromiseInteractiveTransaction<PayloadType>,
+): InteractiveTransactionOptions<PayloadType> {
+  return {
+    id: transaction.id,
+    payload: transaction.payload,
+  }
+}
+
+function isMismatchingBatchIndex(error: any, transaction: PrismaPromiseTransaction | undefined) {
+  return hasBatchIndex(error) && transaction?.kind === 'batch' && error.batchRequestIdx !== transaction.index
+}
+
+function isValidationError(error: PrismaClientKnownRequestError) {
+  return (
+    error.code === 'P2009' || // validation error
+    error.code === 'P2012' // required argument missing
+  )
+}
+
+/**
+ * Engine validation errors include extra segment for selectionPath - root query field.
+ * This function removes it (since it does not exist on js arguments). In case of `Union`
+ * error type, removes heading element from selectionPath of nested errors as well.
+ * @param error
+ * @returns
+ */
+function convertValidationError(error: EngineValidationError): EngineValidationError {
+  if (error.kind === 'Union') {
+    return {
+      kind: 'Union',
+      errors: error.errors.map(convertValidationError),
+    }
+  }
+
+  if (Array.isArray(error['selectionPath'])) {
+    const [, ...selectionPath] = error['selectionPath']
+
+    return {
+      ...error,
+      selectionPath,
+    } as EngineValidationError
+  }
+
+  return error
 }

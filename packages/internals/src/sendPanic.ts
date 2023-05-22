@@ -1,4 +1,3 @@
-import Debug from '@prisma/debug'
 import { getPlatform } from '@prisma/get-platform'
 import archiver from 'archiver'
 import * as checkpoint from 'checkpoint-client'
@@ -11,86 +10,89 @@ import tmp from 'tmp'
 import { match, P } from 'ts-pattern'
 
 import { createErrorReport, ErrorKind, makeErrorReportCompleted, uploadZip } from './errorReporting'
-import { IntrospectionEngine } from './IntrospectionEngine'
 import type { RustPanic } from './panic'
 import { ErrorArea } from './panic'
 import { mapScalarValues, maskSchema } from './utils/maskSchema'
 
-const debug = Debug('prisma:sendPanic')
 // cleanup the temporary files even when an uncaught exception occurs
 tmp.setGracefulCleanup()
 
-export async function sendPanic(error: RustPanic, cliVersion: string, engineVersion: string): Promise<number> {
+type SendPanic = {
+  error: RustPanic
+  cliVersion: string
+  enginesVersion: string
+
+  // retrieve the database version for the given schema or url, without throwing any error
+  getDatabaseVersionSafe: (schemaOrUrl: string) => Promise<string | undefined>
+}
+export async function sendPanic({
+  error,
+  cliVersion,
+  enginesVersion,
+  getDatabaseVersionSafe,
+}: SendPanic): Promise<number> {
+  const schema: string | undefined = match(error)
+    .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
+      return fs.readFileSync(err.schemaPath, 'utf-8')
+    })
+    .with({ schema: P.when((schema) => Boolean(schema)) }, (err) => err.schema)
+    .otherwise(() => undefined)
+
+  const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined
+
+  let dbVersion: string | undefined
+  // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
+  const schemaOrUrl = schema || error.introspectionUrl
+  if (error.area === ErrorArea.LIFT_CLI && schemaOrUrl) {
+    dbVersion = await getDatabaseVersionSafe(schemaOrUrl)
+  }
+
+  const migrateRequest = error.request
+    ? JSON.stringify(
+        mapScalarValues(error.request, (value) => {
+          if (typeof value === 'string') {
+            return maskSchema(value)
+          }
+          return value
+        }),
+      )
+    : undefined
+
+  const params = {
+    area: error.area,
+    kind: ErrorKind.RUST_PANIC,
+    cliVersion,
+    binaryVersion: enginesVersion,
+    command: getCommand(),
+    jsStackTrace: stripAnsi(error.stack || error.message),
+    rustStackTrace: error.rustStack,
+    operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
+    platform: await getPlatform(),
+    liftRequest: migrateRequest,
+    schemaFile: maskedSchema,
+    fingerprint: await checkpoint.getSignature(),
+    sqlDump: undefined,
+    dbVersion: dbVersion,
+  }
+
+  // Get an AWS S3 signed URL from the server, so we can upload a zip file
+  const signedUrl = await createErrorReport(params)
+
+  // Create & upload the zip file
+  // only log if something fails
   try {
-    const schema: string | undefined = match(error)
-      .with({ schemaPath: P.when((schemaPath) => Boolean(schemaPath)) }, (err) => {
-        return fs.readFileSync(err.schemaPath, 'utf-8')
-      })
-      .with({ schema: P.when((schema) => Boolean(schema)) }, (err) => err.schema)
-      .otherwise(() => undefined)
-
-    const maskedSchema: string | undefined = schema ? maskSchema(schema) : undefined
-
-    let sqlDump: string | undefined
-    let dbVersion: string | undefined
-    // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
-    const schemaOrUrl = schema || error.introspectionUrl
-    if (error.area === ErrorArea.INTROSPECTION_CLI && schemaOrUrl) {
-      let engine: undefined | IntrospectionEngine
-      try {
-        engine = new IntrospectionEngine()
-        sqlDump = await engine.getDatabaseDescription(schemaOrUrl)
-        dbVersion = await engine.getDatabaseVersion(schemaOrUrl)
-        engine.stop()
-      } catch (e) {
-        debug(e)
-        if (engine && engine.isRunning) {
-          engine.stop()
-        }
-      }
-    }
-
-    const migrateRequest = error.request
-      ? JSON.stringify(
-          mapScalarValues(error.request, (value) => {
-            if (typeof value === 'string') {
-              return maskSchema(value)
-            }
-            return value
-          }),
-        )
-      : undefined
-
-    const params = {
-      area: error.area,
-      kind: ErrorKind.RUST_PANIC,
-      cliVersion,
-      binaryVersion: engineVersion,
-      command: getCommand(),
-      jsStackTrace: stripAnsi(error.stack || error.message),
-      rustStackTrace: error.rustStack,
-      operatingSystem: `${os.arch()} ${os.platform()} ${os.release()}`,
-      platform: await getPlatform(),
-      liftRequest: migrateRequest,
-      schemaFile: maskedSchema,
-      fingerprint: await checkpoint.getSignature(),
-      sqlDump: sqlDump,
-      dbVersion: dbVersion,
-    }
-
-    const signedUrl = await createErrorReport(params)
-
     if (error.schemaPath) {
       const zip = await makeErrorZip(error)
       await uploadZip(zip, signedUrl)
     }
-
-    const id = await makeErrorReportCompleted(signedUrl)
-    return id
-  } catch (e) {
-    debug(e)
-    throw e
+  } catch (zipUploadError) {
+    console.error(`Error uploading zip file: ${zipUploadError.message}`)
   }
+
+  // Mark the error report as completed
+  const id = await makeErrorReportCompleted(signedUrl)
+
+  return id
 }
 
 function getCommand(): string {

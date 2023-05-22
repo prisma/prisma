@@ -8,57 +8,82 @@ To run tests requiring a database, start the test databases using Docker, see [D
 
 - Create a `.envrc` in the root directory of the project with this content:
 
-```sh
-export TEST_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/tests"
-export TEST_POSTGRES_ISOLATED_URI="postgres://prisma:prisma@localhost:5435/tests"
-export TEST_POSTGRES_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate"
-export TEST_POSTGRES_SHADOWDB_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb"
+  ```sh
+  # PostgreSQL
+  export TEST_POSTGRES_BASE_URI="postgres://prisma:prisma@localhost:5432"
+  export TEST_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/tests"
+  # Note: the isolated instance is only needed for one test (client/src/__tests__/integration/errors/connection-limit-postgres/test.ts)
+  export TEST_POSTGRES_ISOLATED_URI="postgres://prisma:prisma@localhost:5435/tests"
+  export TEST_POSTGRES_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate"
+  export TEST_POSTGRES_SHADOWDB_URI_MIGRATE="postgres://prisma:prisma@localhost:5432/tests-migrate-shadowdb"
 
-export TEST_MYSQL_URI="mysql://root:root@localhost:3306/tests"
-export TEST_MYSQL_ISOLATED_URI="mysql://root:root@localhost:3307/tests"
-export TEST_MYSQL_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate"
-export TEST_MYSQL_SHADOWDB_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate-shadowdb"
+  # MySQL
+  export TEST_MYSQL_BASE_URI="mysql://root:root@localhost:3306"
+  export TEST_MYSQL_URI="mysql://root:root@localhost:3306/tests"
+  # Note: the isolated instance is only needed for one test (client/src/__tests__/integration/errors/connection-limit-mysql/test.ts)
+  export TEST_MYSQL_ISOLATED_URI="mysql://root:root@localhost:3307/tests"
+  export TEST_MYSQL_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate"
+  export TEST_MYSQL_SHADOWDB_URI_MIGRATE="mysql://root:root@localhost:3306/tests-migrate-shadowdb"
 
-export TEST_MARIADB_URI="mysql://prisma:prisma@localhost:4306/tests"
+  # MariaDB
+  export TEST_MARIADB_BASE_URI="mysql://root:root@localhost:4306"
+  export TEST_MARIADB_URI="mysql://prisma:prisma@localhost:4306/tests"
 
-export TEST_MSSQL_URI="mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master" # for `mssql` lib used in some tests
-export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  # SQL Server
+  export TEST_MSSQL_URI="mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master" # for `mssql` lib used in some tests
+  export TEST_MSSQL_JDBC_URI="sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  export TEST_MSSQL_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  export TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE="sqlserver://localhost:1433;database=tests-migrate-shadowdb;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
 
-export TEST_MONGO_URI="mongodb://root:prisma@localhost:27018/tests?authSource=admin"
-export TEST_MONGO_URI_MIGRATE="mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
+  # MongoDB
+  export TEST_MONGO_URI="mongodb://root:prisma@localhost:27018/tests?authSource=admin"
+  export TEST_MONGO_URI_MIGRATE="mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
+  export TEST_MONGO_URI_MIGRATE_EXISTING_DB="mongodb://root:prisma@localhost:27017/tests-migrate-existing-db?authSource=admin"
 
-export TEST_COCKROACH_URI=postgresql://prisma@localhost:26257/tests
+  # CockroachDB
+  export TEST_COCKROACH_URI="postgresql://prisma@localhost:26257/tests"
+  export TEST_COCKROACH_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate"
+  export TEST_COCKROACH_SHADOWDB_URI_MIGRATE="postgresql://prisma@localhost:26257/tests-migrate-shadowdb"
 
-export TEST_FUNCTIONAL_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME"
-export TEST_FUNCTIONAL_MYSQL_URI="mysql://root:root@localhost:3306/PRISMA_DB_NAME"
-export TEST_FUNCTIONAL_MSSQL_URI="sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
-export TEST_FUNCTIONAL_MONGO_URI="mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin"
-export TEST_FUNCTIONAL_COCKROACH_URI="postgresql://prisma@localhost:26257/PRISMA_DB_NAME"
-```
+  # Prisma Client - Functional test suite
+  export TEST_FUNCTIONAL_POSTGRES_URI="postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME"
+  export TEST_FUNCTIONAL_MYSQL_URI="mysql://root:root@localhost:3306/PRISMA_DB_NAME"
+  export TEST_FUNCTIONAL_VITESS_8_URI="mysql://root:root@localhost:33807/PRISMA_DB_NAME"
+  export TEST_FUNCTIONAL_MSSQL_URI="sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;"
+  export TEST_FUNCTIONAL_MONGO_URI="mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin"
+  export TEST_FUNCTIONAL_COCKROACH_URI="postgresql://prisma@localhost:26257/PRISMA_DB_NAME"
+
+  # To hide "Update available 0.0.0 -> x.x.x"
+  export PRISMA_HIDE_UPDATE_MESSAGE="true"
+  ```
 
 - Load the environment variables with:
 
-```sh
-direnv allow
-```
+  ```sh
+  direnv allow
+  ```
 
 ## Jest tips
 
+1. Install/update the dependencies, run the following command in the root directory:
+
+   ```sh
+   pnpm i
+   ```
+
 1. We use the [Jest test framework](https://jestjs.io/). Its CLI is powerful and removes the need for npm scripts mostly. For most cases this is what you need to know:
 
-Note: the following command `pnpm run test` can be used inside the packages folders like `packages/client`. In the base folder you can only run `pnpm run test` without extra arguments.
+   Note: the following command `pnpm run test` can be used inside the packages folders like `packages/client`. In the base folder you can only run `pnpm run test` without extra arguments.
 
-```sh
-pnpm run test <fileNamePattern> -t <testNamePattern>
-```
+   ```sh
+   pnpm run test <fileNamePattern> -t <testNamePattern>
+   ```
 
-and to update snapshots use the -u option like this (the `--` are required, anything after the dashes will be passed to Jest):
+   and to update snapshots use the -u option
 
-```sh
-pnpm run test <fileNamePattern> -- -u
-```
+   ```sh
+   pnpm run test <fileNamePattern> -u
+   ```
 
 1. In `integration-tests` [Jest's `each` feature](https://jestjs.io/docs/en/api#testeachtablename-fn-timeout) is used. If you only want to run a subset of the test cases, simply leverage the `-t` flag on the command line (see above point). For example in `packages/cli` here is how you would run Just the `findOne where PK` cases for sqlite integration:
 
@@ -83,13 +108,12 @@ In the `prisma/prisma` repository we have a few places where you can write tests
 - **`client`**
   - `src/__tests__/*.test.ts` - Unit tests
   - `test/functional` - New functional tests setup
+  - `test/memory` - Memory leaks tests
   - `src/__tests__/integration/happy/**` - Legacy integration tests for the happy path. Please, write functional tests instead.
   - `src/__tests__/integration/errors/**` - Legacy integration tests for error cases. Please write functional tests instead.
   - `src/__tests__/types/**` - Tests for generated Client TS Types
 - **`debug`**
   - Unit tests for `debug` package
-- **`engine-core`**
-  - Unit tests for `engine-core` package
 - **`generator-helper`**
   - Integration tests for generator interface implementation
 - **`migrate`**
@@ -138,10 +162,6 @@ To change the default Rust artifacts' type used under the hood, you can set the 
 
 - run `FORCE_PANIC_MIGRATION_ENGINE=1 npx prisma migrate dev`
 
-### Trigger panic in Introspection Engine
-
-- run `FORCE_PANIC_INTROSPECTION_ENGINE=1 npx prisma db pull`
-
 ### Trigger panic in Formatter
 
 - run `FORCE_PANIC_PRISMA_FMT=1 npx prisma format`
@@ -175,6 +195,25 @@ Test consists of the 3 files:
 - test matrix `_matrix.ts`
 - schema template `prisma/_schema.ts`
 - test suite `tests.ts`
+
+#### Nesting tests
+
+If you have related tests but different schemas, you can nest directories. For example, composite indexes have the following file structure:
+
+`composite-index/`
+
+1.  `list/`
+
+    - `test.ts`
+    - `_matrix.ts`
+    - `prisma/`
+      - `_schema.ts`
+
+2.  `named/`
+    - `test.ts`
+    - `_matrix.ts`
+    - `prisma/`
+      - ` _schema.ts`
 
 #### Test matrix
 
@@ -231,6 +270,39 @@ Will generate following test suites:
 - `{ provider: 'sqlite', providerFeatures: 'improvedQueryRaw' }`
 - `{ provider: 'postgresql', providerFeatures: '' }`
 - `{ provider: 'postgresql', providerFeatures: 'improvedQueryRaw' }`
+
+You can also optionally exclude certain combinations from matrix by using second argument of `defineMatrix` function:
+
+```ts
+import { defineMatrix } from '../_utils/defineMatrix'
+
+export default defineMatrix(
+  () => [
+    [
+      {
+        provider: 'sqlite',
+      },
+      {
+        provider: 'postgresql',
+      },
+    ],
+    [
+      {
+        providerFeatures: '',
+      },
+
+      {
+        providerFeatures: 'improvedQueryRaw',
+      },
+    ],
+  ],
+  {
+    exclude: ({ provider, providerFeatures }) => provider === 'sqlite' && providerFeatures === 'improvedQueryRaw',
+  },
+)
+```
+
+This will generate the same test suites as the previous example, except `sqlite`/`improvedQuery` combination
 
 #### Schema template
 
@@ -291,6 +363,13 @@ testMatrix.setupTestSuite(
       from: ['mongodb'],
       reason: 'The test is for SQL databases only',
     },
+    skipDataProxy: {
+      // similarly, you can opt out of testing with the Data Proxy
+      // client (either completely or for certain runtimes) and
+      // specify the reason
+      runtimes: ['node', 'edge'],
+      reason: "This test doesn't work with Data Proxy",
+    },
   },
 )
 ```
@@ -302,6 +381,17 @@ This test will run for every permutation of the parameters from the matrix. Curr
 - `pnpm test:functional:code` generates and runs the test suites, defined by test matrix. It does no typechecking, but prepares all necessary files for it.
 - `pnpm test:functional:types` runs typechecking on all the suites, generated by `pnpm test:functional:code` command. If it reports any errors, you might want to examine generated test suite under `tests/functional/<your test name>/.generated` directory to get a better diagnostic.
 - `pnpm test:functional` will run tests and perform type checks.
+
+Add `--data-proxy` CLI flag to any of these commands to generate the Data Proxy client and run the
+tests under the local Data Proxy simulator called Mini-Proxy.
+
+When using `--data-proxy`, you can additionally pass the following CLI flags:
+
+- `--no-mini-proxy-server`: don't start the Mini-Proxy server in `node_modules` automatically. This
+  requires you to start the Mini-Proxy server and prepare the environment to make the root
+  certificate trusted by Node.js in the current shell with `eval $(mini-proxy env)` before starting
+  the tests.
+- `--mini-proxy-debug`: enable debug logs when using the default Mini-Proxy server.
 
 ### Conditionally skipping type tests
 
@@ -318,6 +408,92 @@ If JS expression, following `@ts-test-if:` evaluates to truthy value, `@ts-expec
 inserted in its place during the generation. All parameters from the test matrix can be used within that
 expression.
 
+## Memory tests
+
+This suite tests client for memory leaks. It works by repeatedly running test code in a loop
+and monitoring V8 heap usage after every iteration. If it detects that memory usage grows
+with a rate higher than the threshold, it will report a memory leak and fail the test.
+
+To create a memory test you need 2 files:
+
+- schema, located in `tests/memory/<your-test-name>/prisma/schema.prisma` file, which will be
+  used for setting up the database.
+- test code, `tests/memory/<your-test-name>/test.ts`
+
+### Writing memory test
+
+Tests are created using `createMemoryTest` function:
+
+```ts
+import { createMemoryTest } from '../_utils/createMemoryTest'
+
+//@ts-ignore
+type PrismaModule = typeof import('./.generated/node_modules/@prisma/client')
+
+void createMemoryTest({
+  async prepare({ PrismaClient }: PrismaModule) {
+    const client = new PrismaClient()
+    await client.$connect()
+    return client
+  },
+  async run(client) {
+    await client.user.findMany()
+  },
+  async cleanup(client) {
+    await client.$disconnect()
+  },
+  iterations: 1500,
+})
+```
+
+`createMemoryTest` accepts following options:
+
+- `prepare(prismaModule)` is used for any setup code, needed by the test. It is executed only once. Return value of this function will be passed into `run` and `cleanup` methods.
+- `run(prepareResult)` - actual test code. It is expected that after executing this function, memory usage does not increase. This function is repeatedly executed in a loop while the test runs.
+- `cleanup(prepareResult)` used for cleaning up any work, done in `prepare` function.
+- `iterations` specifies the number of executions of `run` function, for which memory measurement will be done, default is 1000. On top of that, test setup also adds 100 iterations for warming up.
+
+### Running memory tests
+
+- `pnpm test:memory` for running whole test suite
+- `pnpm test:memory <test name>` for running single test
+
+## How to use custom engines
+
+By default, you get the engines that are downloaded on postinstall in `@prisma/engines` thanks to `@prisma/engines-version`.
+
+However, you may want to use a custom engine via from a branch in [`prisma/prisma-engines`](https://github.com/prisma/prisma-engines), or one that you've built locally.
+
+### Prerequisites
+
+You will need to have installed the Rust toolchain and just a few extra dependencies. See [Building Prisma Engines](https://github.com/prisma/prisma-engines#building-prisma-engines).
+
+### Using custom engines
+
+1. Edit `prisma/packages/fetch-engine/package.json`
+
+- **Either, add a `branch` property to `enginesOverride`**
+
+  This will `git pull` the [branch](https://github.com/prisma/prisma-engines) and build the engines from there.
+
+  ```diff
+    "enginesOverride": {
+  +    "branch": "feat/column-comparison",
+    }
+  ```
+
+- **Or, add a `folder` property to `enginesOverride`**
+
+  This will copy the engines from the folder where you've built them.
+
+  ```diff
+    "enginesOverride": {
+  +    "folder": "/home/john/dev/prisma/prisma-engines/target/release"
+    }
+  ```
+
+2. Run `pnpm install` again to propagate the new engines.
+
 ## CI - Continuous Integration
 
 By creating a Pull Request the following pipelines will be triggered
@@ -326,6 +502,9 @@ By creating a Pull Request the following pipelines will be triggered
 - [GitHub Action `CI`](https://github.com/prisma/prisma/blob/main/.github/workflows/test.yml)
 
 They are both running the same tests but with different Node.js version and will need to be successful before merging ("flaky" tests might show up and might be ignored).
+
+By default, some of the node version/engine/engine protocol combination are tested only
+during daily builds. If you need to run all of them for your PR leave `ci test all` comment on the PR and re-run the workflow.
 
 ### Publishing an integration version of all the packages
 
@@ -353,4 +532,4 @@ Internal note: You can check the #feed-prisma-releases channel on our private Sl
 Once the integration version is published on npm:
 
 - The `check-for-update` workflow, which runs continuously, will find the new version, update the package.json and do a commit on the [`integration` branch](https://github.com/prisma/ecosystem-tests/tree/integration)
-- The tests worflows will then run for that commit and will be visible [here](https://github.com/prisma/ecosystem-tests/actions?query=branch%3Aintegration)
+- The tests workflows will then run for that commit and will be visible [here](https://github.com/prisma/ecosystem-tests/actions?query=branch%3Aintegration)

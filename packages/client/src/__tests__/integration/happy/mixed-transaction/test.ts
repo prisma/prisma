@@ -8,7 +8,7 @@ test('mixed transaction', async () => {
 
   try {
     // Test connecting and disconnecting all the time
-    const result = await prisma.$transaction([
+    await prisma.$transaction([
       prisma.user.create({
         data: {
           email: 'test@hey.com',
@@ -28,12 +28,12 @@ test('mixed transaction', async () => {
   await new Promise<void>((r) => r())
 
   let users = await prisma.user.findMany()
-  expect(users).toMatchInlineSnapshot(`Array []`)
+  expect(users).toMatchInlineSnapshot(`[]`)
 
   await new Promise<void>((r) => r())
 
   users = await prisma.user.findMany()
-  expect(users).toMatchInlineSnapshot(`Array []`)
+  expect(users).toMatchInlineSnapshot(`[]`)
 
   await prisma.$disconnect()
 })

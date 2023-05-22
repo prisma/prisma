@@ -1,19 +1,19 @@
-import chalk from 'chalk'
+import { blue, cyan, red, yellow } from 'kleur/colors'
 
 export const tags = {
-  error: chalk.red('prisma:error'),
-  warn: chalk.yellow('prisma:warn'),
-  info: chalk.cyan('prisma:info'),
-  query: chalk.blue('prisma:query'),
+  error: red('prisma:error'),
+  warn: yellow('prisma:warn'),
+  info: cyan('prisma:info'),
+  query: blue('prisma:query'),
 }
 export const should = {
-  warn: !process.env.PRISMA_DISABLE_WARNINGS,
+  warn: () => !process.env.PRISMA_DISABLE_WARNINGS,
 }
 export function log(...data: any[]) {
   console.log(...data)
 }
 export function warn(message: any, ...optionalParams: any[]) {
-  if (should.warn) {
+  if (should.warn()) {
     console.warn(`${tags.warn} ${message}`, ...optionalParams)
   }
 }

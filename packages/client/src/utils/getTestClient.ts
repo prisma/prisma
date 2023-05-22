@@ -1,5 +1,6 @@
 import { getPlatform } from '@prisma/get-platform'
 import {
+  ClientEngineType,
   extractPreviewFeatures,
   getClientEngineType,
   getConfig,
@@ -12,15 +13,13 @@ import {
 import fs from 'fs'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
-import { promisify } from 'util'
 
 import { getDMMF } from '../generation/getDMMF'
+import { dmmfToRuntimeDataModel } from '../runtime/core/runtimeDataModel'
 import type { GetPrismaClientConfig } from '../runtime/getPrismaClient'
 import { getPrismaClient } from '../runtime/getPrismaClient'
 import { ensureTestClientQueryEngine } from './ensureTestClientQueryEngine'
 import { generateInFolder } from './generateInFolder'
-
-const readFile = promisify(fs.readFile)
 
 //TODO Rename to generateTestClientInMemory
 /**
@@ -30,7 +29,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const callSite = path.dirname(require.main?.filename ?? '')
   const absSchemaDir = path.resolve(callSite, schemaDir ?? '')
   const schemaPath = await getRelativeSchemaPath(absSchemaDir)
-  const datamodel = await readFile(schemaPath!, 'utf-8')
+  const datamodel = await fs.promises.readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   if (printWarnings) {
     printConfigWarnings(config.warnings)
@@ -40,6 +39,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
   const platform = await getPlatform()
   const clientEngineType = getClientEngineType(generator!)
+  ;(global as any).TARGET_ENGINE_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'
 
   await ensureTestClientQueryEngine(clientEngineType, platform)
 
@@ -51,7 +51,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const relativeEnvPaths = getEnvPaths(schemaPath, { cwd: absSchemaDir })
   const activeProvider = config.datasources[0].activeProvider
   const options: GetPrismaClientConfig = {
-    document,
+    runtimeDataModel: dmmfToRuntimeDataModel(document.datamodel),
     generator,
     dirname: absSchemaDir,
     relativePath: path.relative(outputDir, absSchemaDir),
@@ -60,7 +60,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
-    dataProxy: false,
+    dataProxy: Boolean(process.env.TEST_DATA_PROXY),
   }
 
   return getPrismaClient(options)

@@ -1,13 +1,15 @@
 import path from 'path'
 
-import { map } from '../../../../../helpers/blaze/map'
 import { matrix } from '../../../../../helpers/blaze/matrix'
 import { merge } from '../../../../../helpers/blaze/merge'
 import { MatrixTestHelper } from './defineMatrix'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 
-export type TestSuiteMatrix = { [K in string]: string }[][]
-export type TestSuiteConfig = ReturnType<typeof getTestSuiteConfigs>[number]
+export type TestSuiteMatrix = { [K in string]: any }[][]
+export type NamedTestSuiteConfig = {
+  parametersString: string
+  matrixOptions: Record<string, string>
+}
 
 type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
 
@@ -17,16 +19,12 @@ type MatrixModule = (() => TestSuiteMatrix) | MatrixTestHelper<TestSuiteMatrix>
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   let name = ``
 
   name += `${suiteMeta.testName.replace(/\\|\//g, '.')}`
 
-  const suiteParams = Object.entries(suiteConfig)
-    .map(([key, value]) => `${key}=${value}`)
-    .join(', ')
-
-  name += ` (${suiteParams})`
+  name += ` (${suiteConfig.parametersString})`
 
   // replace illegal chars with empty string
   return name.replace(/[<>:"\/\\|?*]/g, '')
@@ -37,10 +35,10 @@ export function getTestSuiteFullName(suiteMeta: TestSuiteMeta, suiteConfig: Test
  * @param suiteConfig
  * @returns
  */
-export function getTestSuitePreviewFeatures(suiteConfig: TestSuiteConfig) {
+export function getTestSuitePreviewFeatures(matrixOptions: Record<string, string>) {
   return [
-    ...(suiteConfig['providerFeatures']?.split(', ') ?? []),
-    ...(suiteConfig['previewFeatures']?.split(', ') ?? []),
+    ...(matrixOptions['providerFeatures']?.split(', ') ?? []),
+    ...(matrixOptions['previewFeatures']?.split(', ') ?? []),
   ]
 }
 
@@ -50,7 +48,7 @@ export function getTestSuitePreviewFeatures(suiteConfig: TestSuiteConfig) {
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const generatedFolder = path.join(suiteMeta.prismaPath, '..', '.generated')
   const suiteName = getTestSuiteFullName(suiteMeta, suiteConfig)
   const suiteFolder = path.join(generatedFolder, suiteName)
@@ -64,7 +62,7 @@ export function getTestSuiteFolderPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const prismaFolder = getTestSuitePrismaPath(suiteMeta, suiteConfig)
   const schemaPath = path.join(prismaFolder, 'schema.prisma')
 
@@ -77,7 +75,7 @@ export function getTestSuiteSchemaPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @param suiteConfig
  * @returns
  */
-export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
+export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: NamedTestSuiteConfig) {
   const suiteFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
   const prismaPath = path.join(suiteFolder, 'prisma')
 
@@ -89,12 +87,54 @@ export function getTestSuitePrismaPath(suiteMeta: TestSuiteMeta, suiteConfig: Te
  * @param suiteMeta
  * @returns
  */
-export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
+export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta): NamedTestSuiteConfig[] {
   const matrixModule = require(suiteMeta._matrixPath).default as MatrixModule
 
-  const rawMatrix = typeof matrixModule === 'function' ? matrixModule() : matrixModule.matrix()
+  let rawMatrix: TestSuiteMatrix
+  let exclude: (config: Record<string, string>) => boolean
 
-  return map(matrix(rawMatrix), (configs) => merge(configs))
+  if (typeof matrixModule === 'function') {
+    rawMatrix = matrixModule()
+    exclude = () => false
+  } else {
+    rawMatrix = matrixModule.matrix()
+    exclude = matrixModule.matrixOptions?.exclude ?? (() => false)
+  }
+
+  return matrix(rawMatrix)
+    .map((configs) => ({
+      parametersString: getTestSuiteParametersString(configs),
+      matrixOptions: merge(configs),
+    }))
+    .filter(({ matrixOptions }) => !exclude(matrixOptions))
+}
+
+/**
+ * Returns "parameters string" part of the suite name
+ * - From each matrix dimension takes first key-value pair. Assumption is that first pair
+ * is what really distinguishes this particular suite and the rest are just additional options, related to that
+ * parameter and do need to be part of the suite name.
+ * - Computes "key1=value1,key2=value2" string from each dimension of the matrix
+ * @param configs
+ * @returns
+ */
+function getTestSuiteParametersString(configs: Record<string, string>[]) {
+  return configs
+    .map((config) => {
+      // Note: if the name is too long tests will fail with
+      // `ENAMETOOLONG: name too long` as this is used for the directory name
+
+      // For `relationMode` tests
+      // we hardcode how it looks like for test results
+      if (config.relationMode !== undefined) {
+        const providerFlavorStr = config.providerFlavor === undefined ? '' : `providerFlavor=${config.providerFlavor},`
+        return `relationMode=${config.relationMode},provider=${config.provider},${providerFlavorStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
+      } else {
+        const firstKey = Object.keys(config)[0]
+        return `${firstKey}=${config[firstKey]}`
+      }
+    })
+    .join(', ')
 }
 
 /**
@@ -103,8 +143,16 @@ export function getTestSuiteConfigs(suiteMeta: TestSuiteMeta) {
  * @param suiteConfig
  * @returns
  */
-export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSuiteConfig) {
-  return require(suiteMeta._schemaPath).default(suiteConfig)
+export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, matrixOptions: Record<string, string>) {
+  const schemaStr = require(suiteMeta._schemaPath).default(matrixOptions)
+
+  // By default, mini-proxy distinguishes different engine instances using inline schema hash
+  // In case 2 tests are running in parallel with identical schema, this can cause all kinds of problems
+  // Adding a unique comment at the top of schema file forces them to have different hash and avoids
+  // those problems
+  const header = `// ${JSON.stringify({ test: suiteMeta.testPath, matrixOptions })}`
+
+  return `${header}\n${schemaStr}`
 }
 
 /**
@@ -114,11 +162,14 @@ export function getTestSuiteSchema(suiteMeta: TestSuiteMeta, suiteConfig: TestSu
 export function getTestSuiteMeta() {
   const testsDir = path.join(path.dirname(__dirname), '/')
   const testPath = expect.getState().testPath
-  const testRootDirName = testPath.replace(testsDir, '').split(path.sep)[0]
+  if (testPath === undefined) {
+    throw new Error(`getTestSuiteMeta can be executed only within jest test`)
+  }
+  const testRootDirName = path.parse(testPath.replace(testsDir, '')).dir
   const testRoot = path.join(testsDir, testRootDirName)
   const rootRelativeTestPath = path.relative(testRoot, testPath)
   const rootRelativeTestDir = path.dirname(rootRelativeTestPath)
-  let testName
+  let testName: string
   if (rootRelativeTestPath === 'tests.ts') {
     testName = testRootDirName
   } else {

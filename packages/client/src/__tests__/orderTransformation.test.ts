@@ -1,8 +1,9 @@
+import { getDMMF } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 
 import { enums } from '../fixtures/enums'
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 describe('where transformation', () => {
   let dmmf
@@ -21,6 +22,7 @@ describe('where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     document.validate(select, false)
     expect(String(document)).toMatchInlineSnapshot(`
@@ -75,6 +77,7 @@ describe('where transformation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(String(document)).toMatchInlineSnapshot(`
       query {
@@ -121,33 +124,33 @@ describe('where transformation', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
 
-Invalid \`prisma.users()\` invocation:
+        Invalid \`prisma.users()\` invocation:
 
-{
-  orderBy: {
-    email: 'asc',
-    id: 'asc'
-  }
-  ~~~~~~~~~~~~~~~
-}
+        {
+          orderBy: {
+            email: 'asc',
+            id: 'asc'
+          }
+          ~~~~~~~~~~~~~~~
+        }
 
-Argument orderBy of type UserOrderByWithRelationInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
-type UserOrderByWithRelationInput {
-  id?: SortOrder
-  name?: SortOrder
-  email?: SortOrder
-  status?: SortOrder
-  nicknames?: SortOrder
-  permissions?: SortOrder
-  favoriteTree?: SortOrder
-  locationId?: SortOrder
-  location?: LocationOrderByWithRelationInput
-  posts?: PostOrderByRelationAggregateInput
-  someFloats?: SortOrder
-}
+        Argument orderBy of type UserOrderByWithRelationInput needs exactly one argument, but you provided email and id. Please choose one. Available args: 
+        type UserOrderByWithRelationInput {
+          id?: SortOrder
+          name?: SortOrder
+          email?: SortOrder
+          status?: SortOrder
+          nicknames?: SortOrder
+          permissions?: SortOrder
+          favoriteTree?: SortOrder
+          locationId?: SortOrder
+          someFloats?: SortOrder
+          location?: LocationOrderByWithRelationInput
+          posts?: PostOrderByRelationAggregateInput
+        }
 
 
-`)
+      `)
     }
   })
 
@@ -171,6 +174,7 @@ type UserOrderByWithRelationInput {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       query {
@@ -198,6 +202,7 @@ type UserOrderByWithRelationInput {
       select,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`
       query {

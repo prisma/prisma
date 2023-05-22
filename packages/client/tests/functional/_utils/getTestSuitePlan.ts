@@ -1,20 +1,17 @@
-import { getTestSuiteFullName } from './getTestSuiteInfo'
+import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
+import { ClientMeta, MatrixOptions } from './types'
 
 export type TestPlanEntry = {
   name: string
   skip: boolean
-  suiteConfig: SuiteConfig
+  suiteConfig: NamedTestSuiteConfig
 }
 
 type SuitePlanContext = {
   includedProviders?: string[]
   excludedProviders: string[]
   updateSnapshots: 'inline' | 'external' | undefined
-}
-
-type SuiteConfig = {
-  [x: string]: string
 }
 
 /**
@@ -24,22 +21,37 @@ type SuiteConfig = {
  * @returns [test-suite-title: string, test-suite-config: object]
  */
 
-export function getTestSuitePlan(suiteMeta: TestSuiteMeta, suiteConfig: SuiteConfig[]): TestPlanEntry[] {
+export function getTestSuitePlan(
+  suiteMeta: TestSuiteMeta,
+  suiteConfig: NamedTestSuiteConfig[],
+  clientMeta: ClientMeta,
+  options?: MatrixOptions,
+): TestPlanEntry[] {
   const context = buildPlanContext()
 
-  return suiteConfig.map((config, configIndex) => ({
-    name: getTestSuiteFullName(suiteMeta, config),
-    skip: shouldSkipProvider(context, config, configIndex),
-    suiteConfig: config,
+  const shouldSkipAll = shouldSkipTestSuite(clientMeta, options)
+
+  return suiteConfig.map((namedConfig, configIndex) => ({
+    name: getTestSuiteFullName(suiteMeta, namedConfig),
+    skip: shouldSkipAll || shouldSkipProvider(context, namedConfig, configIndex, clientMeta),
+    suiteConfig: namedConfig,
   }))
+}
+
+function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
+  if (!clientMeta.dataProxy || !options?.skipDataProxy) {
+    return false
+  }
+  return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
 }
 
 function shouldSkipProvider(
   { updateSnapshots, includedProviders, excludedProviders }: SuitePlanContext,
-  config: SuiteConfig,
+  config: NamedTestSuiteConfig,
   configIndex: number,
+  clientMeta: ClientMeta,
 ): boolean {
-  const provider = config['provider'].toLocaleLowerCase()
+  const provider = config.matrixOptions['provider'].toLocaleLowerCase()
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
     // otherwise jest will fail with "Multiple inline snapshots for the same call are not supported" error
@@ -53,6 +65,10 @@ function shouldSkipProvider(
   }
 
   if (includedProviders && !includedProviders.includes(provider)) {
+    return true
+  }
+
+  if (clientMeta.dataProxy && provider === 'sqlite') {
     return true
   }
 

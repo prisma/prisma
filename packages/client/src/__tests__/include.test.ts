@@ -1,7 +1,8 @@
+import { getDMMF } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 
 import { blog } from '../fixtures/blog'
-import { getDMMF } from '../generation/getDMMF'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 import { DMMFHelper } from '../runtime/dmmf'
 import { makeDocument } from '../runtime/query'
 
@@ -28,6 +29,7 @@ describe('include validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -44,6 +46,7 @@ describe('include validation', () => {
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -77,6 +80,7 @@ The \`include\` statement for type Post must not be empty. Available options are
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyNoRelations',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -92,6 +96,7 @@ The \`include\` statement for type Post must not be empty. Available options are
       dmmf,
       select: ast,
       rootTypeName: 'query',
+      extensions: MergedExtensionsList.empty(),
       rootField: 'findManyNoRelations',
     })
 
@@ -126,6 +131,7 @@ The \`include\` statement for type Post must not be empty. Available options are
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyNoRelations',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -167,6 +173,7 @@ The \`include\` statement for type Post must not be empty. Available options are
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -185,6 +192,7 @@ The \`include\` statement for type Post must not be empty. Available options are
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchInlineSnapshot(`
@@ -231,6 +239,7 @@ The \`include\` statement for type Post must not be empty. Available options are
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -249,6 +258,7 @@ The \`include\` statement for type Post must not be empty. Available options are
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -289,6 +299,7 @@ Note, that include statements only accept relation fields.
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -333,6 +344,7 @@ Unknown field \`mauthor\` for include statement on model Post. Available options
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchInlineSnapshot(`
@@ -380,6 +392,7 @@ Unknown field \`mauthor\` for include statement on model Post. Available options
       select: ast,
       rootTypeName: 'query',
       rootField: 'findManyUser',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchInlineSnapshot(`

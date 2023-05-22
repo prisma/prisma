@@ -1,0 +1,29 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("TEST_POSTGRES_URI")
+  schemas  = ["base", "transactional"]
+}
+
+model User {
+  id    String @id @default(cuid())
+  email String
+  posts Post[]
+
+  @@map("some_table") // same @@map table name but different schema
+  @@schema("base")
+}
+
+model Post {
+  id       String @id @default(cuid())
+  title    String
+  authorId String
+  author   User?  @relation(fields: [authorId], references: [id])
+
+  @@map("some_table") // same @@map table name but different schema
+  @@schema("transactional")
+}

@@ -1,10 +1,8 @@
-import chalk from 'chalk'
+import { getDMMF } from '@prisma/internals'
 
 import { singularRelation } from '../fixtures/singularRelation'
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
-
-chalk.level = 0
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 let dmmf
 describe('minimal where transformation', () => {
@@ -38,6 +36,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'query',
     rootField: 'findManyLocation',
+    extensions: MergedExtensionsList.empty(),
   })
   return String(transformDocument(document))
 }

@@ -1,10 +1,8 @@
-import chalk from 'chalk'
+import { getDMMF } from '@prisma/internals'
 
 import { saleBuyers } from '../fixtures/saleBuyers'
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
-
-chalk.level = 0
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 let dmmf
 describe('minimal where transformation', () => {
@@ -48,6 +46,7 @@ function getDocument(select) {
     select,
     rootTypeName: 'query',
     rootField: 'findManySale',
+    extensions: MergedExtensionsList.empty(),
   })
   return String(document)
 }

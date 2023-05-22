@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
-import chalk from 'chalk'
 import type { ChildProcessByStdio } from 'child_process'
 import { fork } from 'child_process'
 import { spawn } from 'cross-spawn'
+import { bold } from 'kleur/colors'
 
 import byline from './byline'
 import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
@@ -10,6 +10,14 @@ import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } fr
 const debug = Debug('prisma:GeneratorProcess')
 
 let globalMessageId = 1
+
+type GeneratorProcessOptions = {
+  isNode?: boolean
+  /**
+   * Time to wait before we consider generator successfully started, ms
+   */
+  initWaitTime?: number
+}
 
 export class GeneratorError extends Error {
   public code: number
@@ -27,15 +35,18 @@ export class GeneratorError extends Error {
 export class GeneratorProcess {
   child?: ChildProcessByStdio<any, any, any>
   listeners: { [key: string]: (result: any, err?: Error) => void } = {}
-  private exitCode: number | null = null
   private stderrLogs = ''
   private initPromise?: Promise<void>
-  private lastError?: Error
+  private isNode: boolean
+  private initWaitTime: number
   private currentGenerateDeferred?: {
     resolve: (result: any) => void
     reject: (error: Error) => void
   }
-  constructor(private executablePath: string, private isNode?: boolean) {}
+  constructor(private executablePath: string, { isNode = false, initWaitTime = 200 }: GeneratorProcessOptions = {}) {
+    this.isNode = isNode
+    this.initWaitTime = initWaitTime
+  }
   async init(): Promise<void> {
     if (!this.initPromise) {
       this.initPromise = this.initSingleton()
@@ -66,19 +77,21 @@ export class GeneratorProcess {
         }
 
         this.child.on('exit', (code) => {
-          this.exitCode = code
-          if (code && code > 0 && this.currentGenerateDeferred) {
-            // print last 5 lines of stderr
-            this.currentGenerateDeferred.reject(new Error(this.stderrLogs.split('\n').slice(-5).join('\n')))
+          if (code && code > 0) {
+            if (this.currentGenerateDeferred) {
+              // print last 5 lines of stderr
+              this.currentGenerateDeferred.reject(new Error(this.stderrLogs.split('\n').slice(-5).join('\n')))
+            } else {
+              reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
+            }
           }
         })
 
         this.child.on('error', (err) => {
-          this.lastError = err
           if (err.message.includes('EACCES')) {
             reject(
               new Error(
-                `The executable at ${this.executablePath} lacks the right chmod. Please use ${chalk.bold(
+                `The executable at ${this.executablePath} lacks the right chmod. Please use ${bold(
                   `chmod +x ${this.executablePath}`,
                 )}`,
               ),
@@ -101,14 +114,18 @@ export class GeneratorProcess {
             this.handleResponse(data)
           }
         })
-        // wait 200ms for the binary to fail
-        setTimeout(() => {
-          if (this.exitCode && this.exitCode > 0) {
-            reject(new Error(`Generator at ${this.executablePath} could not start:\n\n${this.stderrLogs}`))
-          } else {
-            resolve()
-          }
-        }, 200)
+
+        this.child.on('spawn', () => {
+          // Wait initWaitTime for the binary to report an error and exit with non-zero exit code before considering it
+          // successfully started.
+          // TODO: this is not a reliable way to detect a startup error as the initialization could take longer than
+          // initWaitTime (200 ms by default), and this also hurts the generation performance since it always waits even
+          // if the generator succesfully initialized in less than initWaitTime.  The proper solution would be to make
+          // the generator explicitly send a notification when it is ready, and we should wait until we get that
+          // notification. Requiring that would be a breaking change, however we could start by introducing an optional
+          // notification that would stop the waiting timer as a performance optimization.
+          setTimeout(resolve, this.initWaitTime)
+        })
       } catch (e) {
         reject(e)
       }

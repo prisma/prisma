@@ -1,13 +1,12 @@
-import { ErrorArea, handlePanic, isCi, RustPanic } from '@prisma/internals'
+import { handlePanic, isCi, RustPanic } from '@prisma/internals'
 import fs from 'fs'
-import mkdir from 'make-dir'
+import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
-import { dirname, join, resolve } from 'path'
+import { dirname, join } from 'path'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import dedent from 'strip-indent'
 import tempy from 'tempy'
-import { promisify } from 'util'
 
 import { Migrate } from '../Migrate'
 import CaptureStdout from './__helpers__/captureStdout'
@@ -26,7 +25,6 @@ const sendKeystrokes = async (io) => {
 // helper function for timing
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) // Mock stdin so we can send messages to the CLI
 
-const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -40,8 +38,8 @@ async function writeFiles(
 ): Promise<string> {
   for (const name in files) {
     const filepath = join(root, name)
-    await mkdir(dirname(filepath))
-    await writeFile(filepath, dedent(files[name]))
+    await ensureDir(dirname(filepath))
+    await fs.promises.writeFile(filepath, dedent(files[name]))
   }
   // return the test path
   return root
@@ -56,7 +54,7 @@ describe('handlePanic migrate', () => {
     jest.resetModules() // most important - it clears the cache
     process.env = { ...OLD_ENV } // make a copy
     process.cwd = () => testRootDir
-    await mkdir(testRootDir)
+    await ensureDir(testRootDir)
   })
   afterEach(() => {
     process.cwd = oldProcessCwd
@@ -69,15 +67,8 @@ describe('handlePanic migrate', () => {
     io.restore()
   })
 
-  const error = new RustPanic(
-    'Some error message!',
-    '',
-    undefined,
-    ErrorArea.LIFT_CLI,
-    resolve(join('fixtures', 'blog', 'prisma', 'schema.prisma')),
-  )
   const packageJsonVersion = '0.0.0'
-  const engineVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
+  const enginesVersion = '734ab53bd8e2cadf18b8b71cb53bf2d2bed46517'
   const command = 'something-test'
 
   it('test interactive engine panic', async () => {
@@ -117,8 +108,15 @@ describe('handlePanic migrate', () => {
       // No to create new issue
       setTimeout(() => sendKeystrokes(io).then(), 5)
       // This allows this test to be run in the CI
+      const getDatabaseVersionSafe = () => Promise.resolve(undefined)
       try {
-        await handlePanic(err, packageJsonVersion, engineVersion, command)
+        await handlePanic({
+          error: err,
+          cliVersion: packageJsonVersion,
+          enginesVersion,
+          command,
+          getDatabaseVersionSafe,
+        })
       } catch (err) {
         error = err
       }
@@ -129,32 +127,10 @@ describe('handlePanic migrate', () => {
         Error in migration engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
 
-        Please create an issue with your \`schema.prisma\` at
-        https://github.com/prisma/prisma/issues/new
-
       `)
     } else {
       const output = captureStdout.getCapturedText()
-      expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(`
-
-                                  console.log    Oops, an unexpected error occured!    Error in migration engine.    Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic        Please create an issue with your \`schema.prisma\` at     https://github.com/prisma/prisma/issues/new            Please help us improve Prisma by submitting an error report.    Error reports never contain personal or other sensitive information.    Learn more: https://pris.ly/d/telemetry      at panicDialog (src/utils/handlePanic.ts:25:11)
-
-                                ? Submit error report › - Use arrow-keys. Return to submit.❯   Yes - Send error report once    No
-
-                                ? Submit error report › - Use arrow-keys. Return to submit.    Yes❯   No - Don't send error report
-
-                                ✔ Submit error report › No
-
-
-
-                                ? Would you like to create a GitHub issue? › - Use arrow-keys. Return to submit.❯   Yes - Create a new GitHub issue    No
-
-                                ? Would you like to create a GitHub issue? › - Use arrow-keys. Return to submit.    Yes❯   No - Don't create a new GitHub issue
-
-                                ✔ Would you like to create a GitHub issue? › No
-
-
-                        `)
+      expect(stripAnsi(output.join('\n'))).toMatchInlineSnapshot(``)
     }
     captureStdout.stopCapture()
   })
@@ -187,13 +163,21 @@ describe('handlePanic migrate', () => {
         draft: false,
         prismaSchema: migrate.getPrismaSchema(),
       })
-    } catch (error) {
+    } catch (e) {
+      const error = e as RustPanic
+
       expect(error).toMatchSnapshot()
       expect(JSON.parse(JSON.stringify(error))).toMatchObject({
         area: 'LIFT_CLI',
         schemaPath,
       })
-      expect(error.rustStack).toContain('This is the debugPanic artificial panic')
+      expect(error.message).toContain('This is the debugPanic artificial panic')
+      expect(error.rustStack).toContain('[EXIT_PANIC]')
+
+      const isWindows = ['win32'].includes(process.platform)
+      if (!isWindows) {
+        expect(error.rustStack).toContain('std::panicking::')
+      }
     }
   })
 })

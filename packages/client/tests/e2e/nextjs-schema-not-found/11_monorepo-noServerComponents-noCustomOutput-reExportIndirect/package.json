@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "pnpm -r build"
+  }
+}

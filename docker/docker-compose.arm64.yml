@@ -3,37 +3,9 @@ version: '3.7'
 services:
   mssql:
     image: mcr.microsoft.com/azure-sql-edge:latest
-    restart: always
+    restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
       - MSSQL_SA_PASSWORD=Pr1sm4_Pr1sm4
     ports:
       - '1433:1433'
-
-  mariadb:
-    ports:
-      - '3306:3306'
-
-  mariadb_isolated:
-    image: mariadb:10
-    restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=root
-      - MYSQL_DATABASE=tests
-      - MYSQL_USER=prisma
-      - MYSQL_PASSWORD=prisma
-    volumes:
-      - mariadb_isolated:/var/lib/mysql
-    ports:
-      - '3307:3306'
-
-  mysql:
-    profiles:
-      - donotstart
-
-  mysql_isolated:
-    profiles:
-      - donotstart
-
-volumes:
-  mariadb_isolated:

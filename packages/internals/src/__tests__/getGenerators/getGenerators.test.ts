@@ -1,12 +1,11 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import { getPlatform } from '@prisma/get-platform'
+import { getPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { getGenerators } from '../../get-generators/getGenerators'
 import { resolveBinary } from '../../resolveBinary'
-import { jestConsoleContext, jestContext } from '../../utils/jestContext'
 import { omit } from '../../utils/omit'
 import { pick } from '../../utils/pick'
 
@@ -41,14 +40,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
-          "requiresEngines": Array [
+          "prettyName": "This is a pretty name",
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -57,15 +56,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = [\\"darwin\\"]
+        provider      = "predefined-generator"
+        binaryTargets = ["darwin"]
       }
 
       model User {
@@ -73,33 +72,34 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "schemas": [],
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
     expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        "binaryTargets": Array [
-          Object {
+      {
+        "binaryTargets": [
+          {
             "fromEnvVar": null,
             "value": "darwin",
           },
         ],
-        "config": Object {},
+        "config": {},
         "name": "gen",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -124,14 +124,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
-          "requiresEngines": Array [
+          "prettyName": "This is a pretty name",
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -140,15 +140,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = \\"native\\"
+        provider      = "predefined-generator"
+        binaryTargets = "native"
       }
 
       model User {
@@ -156,18 +156,19 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "schemas": [],
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
@@ -179,11 +180,11 @@ describe('getGenerators', () => {
     expect(generator.binaryTargets[0].fromEnvVar).toEqual(null)
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
-      Object {
-        "config": Object {},
+      {
+        "config": {},
         "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -215,14 +216,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
-          "requiresEngines": Array [
+          "prettyName": "This is a pretty name",
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -231,15 +232,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+        provider      = "predefined-generator"
+        binaryTargets = env("BINARY_TARGETS_ENV_VAR_TEST")
       }
 
       model User {
@@ -247,18 +248,19 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "schemas": [],
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
@@ -270,11 +272,11 @@ describe('getGenerators', () => {
     expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
-      Object {
-        "config": Object {},
+      {
+        "config": {},
         "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -306,14 +308,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
-          "requiresEngines": Array [
+          "prettyName": "This is a pretty name",
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -322,15 +324,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+        provider      = "predefined-generator"
+        binaryTargets = env("BINARY_TARGETS_ENV_VAR_TEST")
       }
 
       model User {
@@ -338,18 +340,19 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "schemas": [],
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
@@ -361,11 +364,11 @@ describe('getGenerators', () => {
     expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
-      Object {
-        "config": Object {},
+      {
+        "config": {},
         "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -381,7 +384,8 @@ describe('getGenerators', () => {
   })
 
   it('basic - binaryTargets as env var - darwin, windows, debian', async () => {
-    process.env.BINARY_TARGETS_ENV_VAR_TEST = '["darwin", "windows", "debian-openssl-1.1.x"]'
+    process.env.BINARY_TARGETS_ENV_VAR_TEST =
+      '["darwin", "darwin-arm64", "windows", "debian-openssl-1.1.x", "debian-openssl-3.0.x"]'
 
     const aliases = {
       'predefined-generator': {
@@ -397,14 +401,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
-          "requiresEngines": Array [
+          "prettyName": "This is a pretty name",
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -413,15 +417,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+        provider      = "predefined-generator"
+        binaryTargets = env("BINARY_TARGETS_ENV_VAR_TEST")
       }
 
       model User {
@@ -429,41 +433,50 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "schemas": [],
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
     expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        "binaryTargets": Array [
-          Object {
+      {
+        "binaryTargets": [
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "darwin",
           },
-          Object {
+          {
+            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "value": "darwin-arm64",
+          },
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "windows",
           },
-          Object {
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "debian-openssl-1.1.x",
           },
+          {
+            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "value": "debian-openssl-3.0.x",
+          },
         ],
-        "config": Object {},
+        "config": {},
         "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -495,14 +508,14 @@ describe('getGenerators', () => {
     })
 
     expect(generators.map((g) => g.manifest)).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           "defaultOutput": "default-output",
-          "denylist": Array [
+          "denylist": [
             "SomeForbiddenType",
           ],
-          "prettyName": "This is a pretty pretty name",
-          "requiresEngines": Array [
+          "prettyName": "This is a pretty name",
+          "requiresEngines": [
             "queryEngine",
             "migrationEngine",
           ],
@@ -511,15 +524,15 @@ describe('getGenerators', () => {
     `)
 
     expect(pick(generators[0].options!, ['datamodel', 'datasources', 'otherGenerators'])).toMatchInlineSnapshot(`
-      Object {
+      {
         "datamodel": "datasource db {
-        provider = \\"sqlite\\"
-        url      = \\"file:./dev.db\\"
+        provider = "sqlite"
+        url      = "file:./dev.db"
       }
 
       generator gen_env {
-        provider      = \\"predefined-generator\\"
-        binaryTargets = env(\\"BINARY_TARGETS_ENV_VAR_TEST\\")
+        provider      = "predefined-generator"
+        binaryTargets = env("BINARY_TARGETS_ENV_VAR_TEST")
       }
 
       model User {
@@ -527,33 +540,34 @@ describe('getGenerators', () => {
         name String
       }
       ",
-        "datasources": Array [
-          Object {
+        "datasources": [
+          {
             "activeProvider": "sqlite",
             "name": "db",
             "provider": "sqlite",
-            "url": Object {
+            "schemas": [],
+            "url": {
               "fromEnvVar": null,
               "value": "file:./dev.db",
             },
           },
         ],
-        "otherGenerators": Array [],
+        "otherGenerators": [],
       }
     `)
 
     expect(omit(generators[0].options!.generator, ['output'])).toMatchInlineSnapshot(`
-      Object {
-        "binaryTargets": Array [
-          Object {
+      {
+        "binaryTargets": [
+          {
             "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
             "value": "linux-musl",
           },
         ],
-        "config": Object {},
+        "config": {},
         "name": "gen_env",
-        "previewFeatures": Array [],
-        "provider": Object {
+        "previewFeatures": [],
+        "provider": {
           "fromEnvVar": null,
           "value": "predefined-generator",
         },
@@ -578,7 +592,7 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
+    const migrationEngine = await resolveBinary(BinaryType.MigrationEngineBinary)
 
     const queryEngineBinaryType = getCliQueryEngineBinaryType()
     const queryEnginePath = await resolveBinary(queryEngineBinaryType)
@@ -600,6 +614,38 @@ describe('getGenerators', () => {
     expect(options[0]?.queryEngine?.[platform]).toBe(queryEnginePath)
     // we did not override the migrationEngine, so their paths should not be equal
     expect(options[0]?.migrationEngine?.[platform]).not.toBe(migrationEngine)
+
+    generators.forEach((g) => g.stop())
+  })
+
+  test('filter generator names', async () => {
+    const aliases = {
+      'predefined-generator-1': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-2': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-3': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'multiple-generators-schema.prisma'),
+      dataProxy: false,
+      providerAliases: aliases,
+      generatorNames: ['client_1', 'client_3'],
+    })
+
+    expect(generators).toHaveLength(2)
+    expect(generators[0].config.name).toEqual('client_1')
+    expect(generators[0].getProvider()).toEqual('predefined-generator-1')
+    expect(generators[1].config.name).toEqual('client_3')
+    expect(generators[1].getProvider()).toEqual('predefined-generator-3')
 
     generators.forEach((g) => g.stop())
   })
@@ -665,8 +711,8 @@ describe('getGenerators', () => {
         You can define a datasource like this:
 
         datasource db {
-          provider = \\"postgresql\\"
-          url      = env(\\"DB_URL\\")
+          provider = "postgresql"
+          url      = env("DB_URL")
         }
 
         More information in our documentation:
@@ -742,7 +788,7 @@ describe('getGenerators', () => {
         You can define a model like this:
 
         model User {
-          id    String  @id @default(auto()) @map(\\"_id\\") @db.ObjectId
+          id    String  @id @default(auto()) @map("_id") @db.ObjectId
           email String  @unique
           name  String?
         }
@@ -759,7 +805,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('fail if dataProxy and interactiveTransactions are used together - prisma-client-js - postgres', async () => {
+  test('fail if dataProxy and metrics are used together - prisma-client-js - postgres', async () => {
     expect.assertions(5)
     const aliases = {
       'predefined-generator': {
@@ -770,7 +816,7 @@ describe('getGenerators', () => {
 
     try {
       await getGenerators({
-        schemaPath: path.join(__dirname, 'proxy-and-interactiveTransactions-client-js.prisma'),
+        schemaPath: path.join(__dirname, 'proxy-and-metrics-client-js.prisma'),
         providerAliases: aliases,
         skipDownload: true,
         dataProxy: true,
@@ -778,8 +824,8 @@ describe('getGenerators', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        interactiveTransactions preview feature is not yet available with --data-proxy.
-        Please remove interactiveTransactions from the previewFeatures in your schema.
+        metrics preview feature is not yet available with --data-proxy.
+        Please remove metrics from the previewFeatures in your schema.
 
         More information about Data Proxy: https://pris.ly/d/data-proxy
         "
@@ -790,5 +836,37 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  test('fail if generator not found', async () => {
+    expect.assertions(1)
+
+    const aliases = {
+      'predefined-generator-1': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-2': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-3': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(__dirname, 'multiple-generators-schema.prisma'),
+        dataProxy: false,
+        providerAliases: aliases,
+        generatorNames: ['client_1', 'invalid_generator'],
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(
+        `"The generator invalid_generator specified via --generator does not exist in your Prisma schema"`,
+      )
+    }
   })
 })

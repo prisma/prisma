@@ -1,10 +1,8 @@
-import chalk from 'chalk'
+import { getDMMF } from '@prisma/internals'
 
 import { blog } from '../fixtures/blog'
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
-
-chalk.level = 0
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 let dmmf
 
@@ -14,6 +12,7 @@ function getTransformedDocument(select) {
     select,
     rootTypeName: 'mutation',
     rootField: 'updateOneUser',
+    extensions: MergedExtensionsList.empty(),
   })
   return String(transformDocument(document))
 }
@@ -40,7 +39,7 @@ describe('minimal atomic update transformation', () => {
       mutation {
         updateOneUser(
           data: {
-            countFloat: 3.1415926
+            countFloat: 3.1415926e+0
             countInt1: 3
           }
         ) {
@@ -97,6 +96,7 @@ describe('minimal atomic update transformation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'updateOneUser',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchInlineSnapshot(`
@@ -146,6 +146,6 @@ describe('minimal atomic update transformation', () => {
       }
     `)
 
-    expect(() => document.validate(select, false)).not.toThrowError()
+    expect(() => document.validate(select, false)).not.toThrow()
   })
 })

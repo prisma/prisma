@@ -1,4 +1,4 @@
-import { jestContext } from '@prisma/internals'
+import { jestContext } from '@prisma/get-platform'
 
 import { redactCommandArray, SENSITIVE_CLI_OPTIONS, tryToReadDataFromSchema } from '../utils/checkpoint'
 
@@ -19,7 +19,7 @@ it('should redact --option=[value]', () => {
 it('should redact a PostgreSQL connection string', () => {
   expect(redactCommandArray(['init', '--url', '"postgresql://janedoe:mypassword@localhost:5432/mydb?schema=sample"']))
     .toMatchInlineSnapshot(`
-    Array [
+    [
       init,
       --url,
       [redacted],
@@ -34,7 +34,7 @@ it('should redact a MySQL connection string', () => {
       `--url "mysql://janedoe:mypassword@localhost:3306/mydb?connection_limit=5&socket_timeout"`,
     ]),
   ).toMatchInlineSnapshot(`
-    Array [
+    [
       init,
       --url=[redacted],
     ]
@@ -48,7 +48,7 @@ it('should redact a MongoDB connection string', () => {
       `--url "mongodb+srv://root:<password>@cluster0.ab1cd.mongodb.net/myDatabase?retryWrites=true&w=majority"`,
     ]),
   ).toMatchInlineSnapshot(`
-    Array [
+    [
       init,
       --url=[redacted],
     ]
@@ -57,7 +57,7 @@ it('should redact a MongoDB connection string', () => {
 
 it('should redact a SQLite connection string', () => {
   expect(redactCommandArray(['init', '--url', '"file:./dev.db"'])).toMatchInlineSnapshot(`
-    Array [
+    [
       init,
       --url,
       [redacted],
@@ -72,7 +72,7 @@ it('should redact a SQL Server connection string', () => {
       `--url="sqlserver://localhost:1433;initial catalog=sample;user=sa;password=mypassword;"`,
     ]),
   ).toMatchInlineSnapshot(`
-    Array [
+    [
       init,
       --url=[redacted],
     ]
@@ -81,7 +81,7 @@ it('should redact a SQL Server connection string', () => {
 
 it('should redact a path with for example --schema', () => {
   expect(redactCommandArray(['cmd', '--schema', '../../../../directory/my_schema.prisma'])).toMatchInlineSnapshot(`
-    Array [
+    [
       cmd,
       --schema,
       [redacted],
@@ -91,7 +91,7 @@ it('should redact a path with for example --schema', () => {
 
 it('should redact a name with for example --name', () => {
   expect(redactCommandArray(['cmd', '--name', '1234_my_name'])).toMatchInlineSnapshot(`
-    Array [
+    [
       cmd,
       --name,
       [redacted],
@@ -103,15 +103,15 @@ it('should read data from Prisma schema', async () => {
   ctx.fixture('checkpoint-read-schema')
 
   await expect(tryToReadDataFromSchema('./schema.prisma')).resolves.toMatchInlineSnapshot(`
-          Object {
-            schemaGeneratorsProviders: Array [
-              prisma-client-js,
-              something,
-            ],
-            schemaPreviewFeatures: Array [
-              extendedIndexes,
-            ],
-            schemaProvider: sqlite,
-          }
-        `)
+    {
+      schemaGeneratorsProviders: [
+        prisma-client-js,
+        something,
+      ],
+      schemaPreviewFeatures: [
+        extendedIndexes,
+      ],
+      schemaProvider: sqlite,
+    }
+  `)
 })

@@ -6,8 +6,8 @@ import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../../
 import { buildComment } from '../utils/types/buildComment'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
-import type { ExportCollector } from './helpers'
 import { wrapComment } from './helpers'
+import { ifExtensions } from './utils/ifExtensions'
 
 export class ModelOutputField implements Generatable {
   constructor(
@@ -26,7 +26,21 @@ export class ModelOutputField implements Generatable {
     const nullableStr = !field.isRequired && !field.isList ? ' | null' : ''
     const namespaceStr = useNamespace && needsNamespace(field.type, this.dmmf) ? `Prisma.` : ''
 
-    return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+    return ifExtensions(
+      () => {
+        if (field.kind === 'object') {
+          fieldType = `${fieldType}Payload`
+          return `${buildComment(field.documentation)}${
+            field.name
+          }: ${namespaceStr}${fieldType}<ExtArgs>${arrayStr}${nullableStr}`
+        }
+
+        return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+      },
+      () => {
+        return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
+      },
+    )
   }
 }
 
@@ -69,14 +83,9 @@ export class OutputField implements Generatable {
 export class OutputType implements Generatable {
   public name: string
   public fields: DMMF.SchemaField[]
-  constructor(
-    protected readonly dmmf: DMMFHelper,
-    protected readonly type: DMMF.OutputType,
-    protected readonly collector?: ExportCollector,
-  ) {
+  constructor(protected readonly dmmf: DMMFHelper, protected readonly type: DMMF.OutputType) {
     this.name = type.name
     this.fields = type.fields
-    collector?.addSymbol(this.name)
   }
   public toTS(): string {
     const { type } = this

@@ -1,8 +1,19 @@
-import type { Command } from '@prisma/internals'
-import { arg, format, getConfig, getDMMF, HelpError, loadEnvFile } from '@prisma/internals'
+import {
+  arg,
+  Command,
+  format,
+  getConfig,
+  getLintWarningsAsText,
+  handleLintPanic,
+  HelpError,
+  lintSchema,
+  loadEnvFile,
+  logger,
+  validate,
+} from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import chalk from 'chalk'
 import fs from 'fs'
+import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
  * $ prisma validate
@@ -15,22 +26,22 @@ export class Validate implements Command {
   private static help = format(`
 Validate a Prisma schema.
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma validate [options]
+  ${dim('$')} prisma validate [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   With an existing Prisma schema
-    ${chalk.dim('$')} prisma validate
+    ${dim('$')} prisma validate
 
   Or specify a Prisma schema path
-    ${chalk.dim('$')} prisma validate --schema=./schema.prisma
+    ${dim('$')} prisma validate --schema=./schema.prisma
 
 `)
 
@@ -56,22 +67,38 @@ ${chalk.bold('Examples')}
 
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
-    // TODO is the order of getDMMF / getConfig important
-    await getDMMF({
+    const { lintDiagnostics } = handleLintPanic(
+      () => {
+        // the only possible error here is a Rust panic
+        const lintDiagnostics = lintSchema({ schema })
+        return { lintDiagnostics }
+      },
+      { schema },
+    )
+
+    const lintWarnings = getLintWarningsAsText(lintDiagnostics)
+    if (lintWarnings && logger.should.warn()) {
+      // Output warnings to stderr
+      console.warn(lintWarnings)
+    }
+
+    validate({
       datamodel: schema,
     })
 
+    // We could have a CLI flag to ignore env var validation
     await getConfig({
       datamodel: schema,
+      ignoreEnvVarErrors: false,
     })
 
-    return `The schema at ${chalk.underline(schemaPath)} is valid 🚀`
+    return `The schema at ${underline(schemaPath)} is valid 🚀`
   }
 
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Validate.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Validate.help}`)
     }
     return Validate.help
   }

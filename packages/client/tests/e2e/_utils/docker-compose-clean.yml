@@ -1,0 +1,27 @@
+version: '3.7'
+
+services:
+  # not an actual service, just a helper to clean up the workspace
+  # useful because docker linux creates files with root permissions
+  pre-clean:
+    image: alpine
+    command:
+      - /bin/sh
+      - -c
+      - |
+        rm -fr /e2e/*.tgz
+        find /e2e -name "LOGS*.txt" -type f -exec rm -fr {} +
+    volumes:
+      - ../:/e2e
+
+  clean:
+    image: alpine
+    command:
+      - /bin/sh
+      - -c
+      - |
+        rm -fr /e2e/.cache
+        rm -fr /e2e/*.tgz
+        find /e2e -name "LOGS*.txt" -type f -exec rm -fr {} +
+    volumes:
+      - ../:/e2e

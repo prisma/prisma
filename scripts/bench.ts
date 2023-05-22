@@ -1,21 +1,44 @@
 import execa from 'execa'
 import globby from 'globby'
-import path from 'path'
 
 async function main() {
-  const benchmarks = await globby('./packages/**/*.bench.ts', {
+  let benchmarks = await globby('./packages/**/*.bench.ts', {
     gitignore: true,
   })
+
+  if (process.argv.length > 2) {
+    const filterRegex = new RegExp(process.argv[2])
+    benchmarks = benchmarks.filter((name) => filterRegex.test(name))
+
+    if (benchmarks.length === 0) {
+      throw new Error(`No benchmarks found that match the pattern ${filterRegex}`)
+    }
+  }
+
   await run(benchmarks)
 }
+
 async function run(benchmarks: string[]) {
+  const v8Flags = process.env.CODSPEED_V8_FLAGS ?? '' // Flags defined while running with CodSpeed
+  let failedCount = 0
+
   for (const location of benchmarks) {
-    await execa.command(`pnpm ts-node ${location}`, {
-      cwd: path.join(__dirname, `..`),
-      stdio: 'inherit',
-    })
+    try {
+      await execa.command(`node ${v8Flags} -r esbuild-register ${location}`, {
+        stdio: 'inherit',
+      })
+    } catch (e) {
+      console.error(e)
+      failedCount++
+    }
+  }
+
+  if (failedCount > 0) {
+    const pluralMarker = failedCount === 1 ? '' : 's'
+    throw new Error(`${failedCount} benchmark${pluralMarker} failed`)
   }
 }
+
 main().catch((e) => {
   console.error(e)
   process.exit(1)

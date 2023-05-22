@@ -16,7 +16,7 @@ function wrap(item: unknown) {
  * @param list
  * @returns
  */
-function flatten<L extends L.List, I>(list: L & L.List<I>): Flatten<L> {
+function flatten<T extends L.List, I>(list: T & L.List<I>): Flatten<T> {
   return reduce(list, (acc, item) => concat(acc, wrap(item)), [] as any[])
 }
 

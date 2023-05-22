@@ -7,6 +7,22 @@ In case this error is unexpected for you, please report it in https://github.com
   }
 }
 
+function defineExtension(ext) {
+  if (typeof ext === 'function') {
+    return ext
+  }
+
+  return (client) => client.$extends(ext)
+}
+
+function getExtensionContext(that) {
+  return that
+}
+
 module.exports = {
   PrismaClient,
+  Prisma: {
+    defineExtension,
+    getExtensionContext,
+  },
 }

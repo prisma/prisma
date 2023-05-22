@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["DOM", "ES2016"],
+    "lib": ["DOM", "ES2020"],
     "types": ["node"]
   }
 }

@@ -1,7 +1,8 @@
-import chalk from 'chalk'
+import { bold, dim, green, red } from 'kleur/colors'
 import stripAnsi from 'strip-ansi'
 
 import { ObjectEnumValue } from '../object-enums'
+import { isDate, isValidDate } from './date'
 import { deepSet } from './deep-set'
 import stringifyObject from './stringifyObject'
 
@@ -43,10 +44,10 @@ export function printJsonWithErrors({ ast, keyPaths, valuePaths, missingItems }:
         }
         const isRequiredStr = missingItem.isRequired ? '' : '?'
         const prefix = missingItem.isRequired ? '+' : '?'
-        const color = missingItem.isRequired ? chalk.greenBright : chalk.green
+        const color = missingItem.isRequired ? (s: string) => bold(green(s)) : green
         let output = color(prefixLines(key + isRequiredStr + ': ' + valueStr + eol, indent, prefix))
         if (!missingItem.isRequired) {
-          output = chalk.dim(output)
+          output = dim(output)
         }
         return output
       } else {
@@ -64,17 +65,17 @@ export function printJsonWithErrors({ ast, keyPaths, valuePaths, missingItems }:
         if (isOnMissingItemPath && typeof value === 'string') {
           valueStr = valueStr.slice(1, valueStr.length - 1)
           if (!isOptional) {
-            valueStr = chalk.bold(valueStr)
+            valueStr = bold(valueStr)
           }
         }
         if ((typeof value !== 'object' || value === null) && !valueError && !isOnMissingItemPath) {
-          valueStr = chalk.dim(valueStr)
+          valueStr = dim(valueStr)
         }
 
-        const keyStr = keyError ? chalk.redBright(key) : key
-        valueStr = valueError ? chalk.redBright(valueStr) : valueStr
+        const keyStr = keyError ? red(key) : key
+        valueStr = valueError ? red(valueStr) : valueStr
         // valueStr can be multiple lines if it's an object
-        let output = indent + keyStr + ': ' + valueStr + (isOnMissingItemPath ? eol : chalk.dim(eol))
+        let output = indent + keyStr + ': ' + valueStr + (isOnMissingItemPath ? eol : dim(eol))
 
         // if there is an error, add the scribble lines
         // 3 options:
@@ -84,13 +85,13 @@ export function printJsonWithErrors({ ast, keyPaths, valuePaths, missingItems }:
         if (keyError || valueError) {
           const lines = output.split('\n')
           const keyLength = String(key).length
-          const keyScribbles = keyError ? chalk.redBright('~'.repeat(keyLength)) : ' '.repeat(keyLength)
+          const keyScribbles = keyError ? red('~'.repeat(keyLength)) : ' '.repeat(keyLength)
 
           const valueLength = valueError ? getValueLength(indent, key, value, stringifiedValue) : 0
           const hideValueScribbles = valueError && isRenderedAsObject(value)
-          const valueScribbles = valueError ? '  ' + chalk.redBright('~'.repeat(valueLength)) : ''
+          const valueScribbles = valueError ? '  ' + red('~'.repeat(valueLength)) : ''
 
-          // Either insert both keyScribles and valueScribbles in one line
+          // Either insert both keyScribbles and valueScribbles in one line
           if (keyScribbles && keyScribbles.length > 0 && !hideValueScribbles) {
             lines.splice(1, 0, indent + keyScribbles + valueScribbles)
           }
@@ -120,11 +121,18 @@ function getValueLength(indent: string, key: string, value: any, stringifiedValu
     return Math.abs(getLongestLine(`${key}: ${stripAnsi(stringifiedValue)}`) - indent.length)
   }
 
+  if (isDate(value)) {
+    if (isValidDate(value)) {
+      return `new Date('${value.toISOString()}')`.length
+    }
+    return `new Date('Invalid Date')`.length
+  }
+
   return String(value).length
 }
 
 function isRenderedAsObject(value: any) {
-  return typeof value === 'object' && value !== null && !(value instanceof ObjectEnumValue)
+  return typeof value === 'object' && value !== null && !(value instanceof ObjectEnumValue) && !isDate(value)
 }
 
 function getLongestLine(str: string): number {
@@ -138,11 +146,11 @@ function prefixLines(str: string, indent: string, prefix: string): string {
       index === 0 ? prefix + indent.slice(1) + line : index < arr.length - 1 ? prefix + line.slice(1) : line,
     )
     .map((line) => {
-      // we need to use a special token to "mark" a line a "to be dimmed", as chalk (or rather ansi) doesn't allow nesting of dimmed & colored content
+      // we need to use a special token to "mark" a line a "to be dimmed", as ansi doesn't allow nesting of dimmed & colored content
       return stripAnsi(line).includes(DIM_TOKEN)
-        ? chalk.dim(line.replace(DIM_TOKEN, ''))
+        ? dim(line.replace(DIM_TOKEN, ''))
         : line.includes('?')
-        ? chalk.dim(line)
+        ? dim(line)
         : line
     })
     .join('\n')

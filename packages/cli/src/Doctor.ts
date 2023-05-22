@@ -7,20 +7,18 @@ import {
   format,
   getConfig,
   getDMMF,
+  getEffectiveUrl,
   HelpError,
-  IntrospectionEngine,
   keyBy,
   loadEnvFile,
   pick,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint } from '@prisma/migrate'
-import chalk from 'chalk'
+import { getSchemaPathAndPrint, MigrateEngine } from '@prisma/migrate'
 import equal from 'fast-deep-equal'
 import fs from 'fs'
+import { bold, dim, green, red, underline } from 'kleur/colors'
 import path from 'path'
-import { promisify } from 'util'
 
-const readFile = promisify(fs.readFile)
 type IncorrectFieldTypes = Array<{
   localField: DMMF.Field
   remoteField: DMMF.Field
@@ -34,22 +32,22 @@ export class Doctor implements Command {
   private static help = format(`
 Check, if the schema and the database are in sync.
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma doctor [options]
+  ${dim('$')} prisma doctor [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   With an existing schema.prisma
-    ${chalk.dim('$')} prisma doctor
+    ${dim('$')} prisma doctor
 
   Or specify a schema
-    ${chalk.dim('$')} prisma doctor --schema=./schema.prisma
+    ${dim('$')} prisma doctor --schema=./schema.prisma
 
   `)
 
@@ -75,28 +73,29 @@ ${chalk.bold('Examples')}
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    const schema = await readFile(schemaPath, 'utf-8')
+    const schema = await fs.promises.readFile(schemaPath, 'utf-8')
     const localDmmf = await getDMMF({ datamodel: schema })
-    const config = await getConfig({ datamodel: schema })
+    const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
 
     console.error(`👩‍⚕️🏥 Prisma Doctor checking the database...`)
 
-    const connectionString = config.datasources[0].url
-    const canConnect = await canConnectToDatabase(connectionString.value, path.dirname(schemaPath))
+    const connectionString = getEffectiveUrl(config.datasources[0])
+    // connectionString.value exists because `ignoreEnvVarErrors: false` would have thrown an error if not
+    const canConnect = await canConnectToDatabase(connectionString.value!, path.dirname(schemaPath))
     if (typeof canConnect !== 'boolean') {
       throw new Error(`${canConnect.code}: ${canConnect.message}`)
     }
 
-    const engine = new IntrospectionEngine({
-      cwd: path.dirname(schemaPath),
+    const engine = new MigrateEngine({
+      projectDir: path.dirname(schemaPath),
+      schemaPath,
     })
 
     let datamodel
     try {
-      const result = await engine.introspect(schema)
+      const result = await engine.introspect({ schema })
       datamodel = result.datamodel
     } finally {
-      engine.stop()
     }
 
     const remoteDmmf = await getDMMF({ datamodel })
@@ -108,7 +107,7 @@ ${chalk.bold('Examples')}
       remoteModel: remoteModels[localModel.dbName ?? localModel.name],
     }))
 
-    const getFieldName = (f: DMMF.Field) => (f.dbNames && f.dbNames.length > 0 ? f.dbNames[0] : f.name)
+    const getFieldName = (f: DMMF.Field) => f.dbName ?? f.name
 
     const messages: string[] = []
 
@@ -153,7 +152,7 @@ ${chalk.bold('Examples')}
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Doctor.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Doctor.help}`)
     }
     return Doctor.help
   }
@@ -173,21 +172,21 @@ function printModelMessage({
   if (!missingModel && missingFields.length === 0 && incorrectFieldType.length === 0) {
     return null
   }
-  let msg = `${chalk.bold.underline(model.name)}\n`
+  let msg = `${bold(underline(model.name))}\n`
   if (missingModel) {
     msg += `↪ Model is missing in database\n`
   }
 
   for (const field of missingFields) {
-    msg += `↪ Field ${chalk.bold(field.name)} is missing in database\n`
+    msg += `↪ Field ${bold(field.name)} is missing in database\n`
   }
 
   for (const { localField, remoteField } of incorrectFieldType) {
     const printFieldType = (f: DMMF.Field) => f.type + (f.isList ? '[]' : '')
 
-    msg += `↪ Field ${localField.name} has type ${chalk.greenBright(
-      printFieldType(localField),
-    )} locally, but ${chalk.redBright(printFieldType(remoteField))} remote\n`
+    msg += `↪ Field ${localField.name} has type ${green(printFieldType(localField))} locally, but ${red(
+      printFieldType(remoteField),
+    )} remote\n`
   }
 
   return msg

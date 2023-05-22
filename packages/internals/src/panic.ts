@@ -1,5 +1,3 @@
-import { ExecaError } from 'execa'
-
 export class RustPanic extends Error {
   public readonly __typename = 'RustPanic'
   public request: any
@@ -18,6 +16,7 @@ export class RustPanic extends Error {
     introspectionUrl?: string,
   ) {
     super(message)
+    this.name = 'RustPanic'
     this.rustStack = rustStack
     this.request = request
     this.area = area
@@ -35,6 +34,7 @@ export enum ErrorArea {
   LIFT_CLI = 'LIFT_CLI',
   // Looks unused, could probably be removed
   PHOTON_STUDIO = 'PHOTON_STUDIO',
+  // Unused since 4.9.0 and now using `LIFT_CLI`
   INTROSPECTION_CLI = 'INTROSPECTION_CLI',
   FMT_CLI = 'FMT_CLI',
   QUERY_ENGINE_BINARY_CLI = 'QUERY_ENGINE_BINARY_CLI',
@@ -42,9 +42,20 @@ export enum ErrorArea {
 }
 
 /**
- * @param error error thrown by execa
- * @returns true if the given error is caused by a panic on a Rust binary.
+ * Branded type for Wasm panics.
  */
-export function isExecaErrorCausedByRustPanic<E extends ExecaError>(error: E) {
-  return error.exitCode === 101 || error.stderr?.includes('panicked at')
+export type WasmPanic = Error & { name: 'RuntimeError' }
+
+/**
+ * Returns true if the given error is a Wasm panic.
+ */
+export function isWasmPanic(error: Error): error is WasmPanic {
+  return error.name === 'RuntimeError'
+}
+
+export function getWasmError(error: WasmPanic) {
+  const message: string = globalThis.PRISMA_WASM_PANIC_REGISTRY.get()
+  const stack = [message, ...(error.stack || 'NO_BACKTRACE').split('\n').slice(1)].join('\n')
+
+  return { message, stack }
 }

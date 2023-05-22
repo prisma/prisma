@@ -72,14 +72,25 @@ Create a reproduction folder for developing, trying a new feature, or a fix.
 Set up a local project that will be linked to the local packages.
 
 ```sh
-cd reproductions && pnpm install
+cd reproductions
 # Copy a template from the reproduction folder
 cp -r basic-sqlite my-repro && cd my-repro
+# Install dependencies
+pnpm install
 # Ensure that the db and the schema are synced
-pnpx prisma db push --skip-generate
+pnpm dbpush
 # Do some code changes, always re-generate the client, then try it out
-pnpx prisma generate && pnpx ts-node index.ts
+pnpm generate && pnpm dev
 ```
+
+To run the `index.ts` under debugger, do the following steps:
+
+1. Run `pnpm debug` from a reproduction folder
+2. In Google Chrome or any Chromium-based browser open `chrome://inspect` page.
+3. Press "Open dedicated dev tools for Node.js" button
+4. To resume the script go to the "Sources" tab and press "Resume script execution" button (F8).
+
+To add breakpoints use either DevTools UI or add [`debugger`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger) statements to the source code.
 
 > 💡 This works best when compiling with `pnpm run watch` in the background.
 
@@ -93,7 +104,7 @@ pnpx prisma generate && pnpx ts-node index.ts
   cd reproductions
   mkdir my-repro
   cd my-repro
-  pnpm init -y
+  pnpm init
   pnpm add ../../packages/client
   pnpm add -D ../../packages/cli
   pnpm add -D typescript ts-node
@@ -249,8 +260,11 @@ List of directories in the monorepo
 - cli
 - client
 - debug
-- engine-core
+- engines
+- fetch-engine
 - generator-helper
+- get-platform
+- instrumentation
 - integration-tests
 - internals
 - migrate

@@ -1,10 +1,8 @@
-const forceTranspile = require('../../helpers/jest/forceTranspile')
-
 module.exports = {
   transform: {
     '^.+\\.(m?j|t)s$': '@swc/jest',
   },
-  transformIgnorePatterns: [forceTranspile()],
+  transformIgnorePatterns: [],
   testEnvironment: 'node',
   collectCoverage: process.env.CI ? true : false,
   coverageReporters: ['clover'],
@@ -17,6 +15,9 @@ module.exports = {
     '<rootDir>/runtime-dist/',
     '<rootDir>/sandbox/',
     '<rootDir>/scripts/',
+    '<rootDir>/tests/memory',
+    '<rootDir>/tests/functional',
+    '<rootDir>/tests/e2e',
     '<rootDir>/src/__tests__/benchmarks/',
     '<rootDir>/src/__tests__/types/.*/test.ts',
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema/generated-dmmf.ts',
@@ -31,7 +32,7 @@ module.exports = {
     '.bench.ts',
   ],
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*', '!src/**/*.test.ts'],
-  snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
+  snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
   testTimeout: 90000,
   setupFiles: ['./helpers/jestSetup.js'],
   reporters: [

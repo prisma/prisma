@@ -2,7 +2,7 @@
 
 [![npm version](https://img.shields.io/npm/v/@prisma/instrumentation.svg?style=flat)](https://www.npmjs.com/package/@prisma/instrumentation) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md) [![GitHub license](https://img.shields.io/badge/license-Apache%202-blue)](https://github.com/prisma/prisma/blob/main/LICENSE) [![Slack](https://img.shields.io/badge/chat-on%20slack-blue.svg)](https://slack.prisma.io/)
 
-[OTEL - OpenTelemetry](https://opentelemetry.io/) compliant instrumentation for Prisma.
+[OTEL - OpenTelemetry](https://opentelemetry.io/) compliant instrumentation for Prisma Client.
 
 ⚠️ **Warning**: This package is provided as part of the `tracing` Preview Feature
 Its release cycle does not follow SemVer, which means we might release breaking changes (change APIs, remove functionality) without any prior warning.
@@ -24,7 +24,7 @@ registerInstrumentations({
 })
 ```
 
-Dont forget to set `previewFeatures`:
+Don't forget to set `previewFeatures`:
 
 ```prisma
 generator client {
@@ -35,7 +35,7 @@ generator client {
 
 ## Jaeger
 
-Exporting traces to [Jaeger Tracing](jaegertracing.io).
+Exporting traces to [Jaeger Tracing](https://jaegertracing.io).
 
 ```ts
 import { context } from '@opentelemetry/api'

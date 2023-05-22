@@ -5,7 +5,7 @@ version: '3.7'
 services:
   postgres:
     image: postgres:10
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
@@ -15,7 +15,7 @@ services:
 
   postgres_isolated:
     image: postgres:10
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
@@ -25,15 +25,37 @@ services:
 
   cockroachdb:
     image: prismagraphql/cockroachdb-custom:22.1.0
-    restart: always
+    restart: unless-stopped
     command: start-single-node --insecure
     ports:
       - '26257:26257'
 
+  # Planetscale
+  # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
+  vitess-8:
+    image: vitess/vttestserver:mysql80@sha256:d696e1c79d366f7cb19ff0dcbc5db463e50b8c4bf518bb841b8df051e6f5883f
+    restart: unless-stopped
+    ports:
+      - 33807:33807
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h127.0.0.1', '-P33577']
+      interval: 5s
+      timeout: 2s
+      retries: 5
+      start_period: 25s
+    environment:
+      PORT: '33804' # unused in testing, but required by vttestserver
+      KEYSPACES: 'unsharded' # unused in testing, but required by vttestserver
+      NUM_SHARDS: '1' # unused in testing, but required by vttestserver
+      MYSQL_BIND_HOST: '0.0.0.0'
+      FOREIGN_KEY_MODE: 'disallow'
+      MYSQL_MAX_CONNECTIONS: 100000
+      TABLET_REFRESH_INTERVAL: '1s'
+
   mysql:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -44,7 +66,7 @@ services:
   mysql_isolated:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -55,7 +77,7 @@ services:
 
   mariadb:
     image: mariadb:10
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -72,7 +94,7 @@ services:
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
-    restart: always
+    restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=Pr1sm4_Pr1sm4
@@ -81,7 +103,7 @@ services:
 
   mongodb_migrate:
     image: mongo:4
-    restart: always
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma

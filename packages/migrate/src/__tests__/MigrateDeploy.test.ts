@@ -1,9 +1,12 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
 
 import { MigrateDeploy } from '../commands/MigrateDeploy'
+import type { SetupParams } from '../utils/setupPostgres'
+import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+const originalEnv = { ...process.env }
 
 describe('common', () => {
   it('should fail if no schema file', async () => {
@@ -112,5 +115,60 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls).toMatchSnapshot()
     expect(ctx.mocked['console.error'].mock.calls).toMatchSnapshot()
+  })
+})
+
+describe('postgresql', () => {
+  const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-deploy')
+
+  const setupParams: SetupParams = {
+    connectionString,
+    dirname: '',
+  }
+
+  beforeEach(async () => {
+    await setupPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+  })
+
+  afterEach(async () => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    await tearDownPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
+
+  it('should fail if url is prisma://', async () => {
+    ctx.fixture('schema-only-data-proxy')
+    const result = MigrateDeploy.new().parse([])
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+    Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma migrate deploy yet. Please use a direct connection to your database via the datasource 'directUrl' setting.
+
+    More information about Data Proxy: https://pris.ly/d/data-proxy-cli
+
+  `)
+  })
+
+  it('should work if directUrl is set as an env var', async () => {
+    ctx.fixture('schema-only-data-proxy')
+    const result = MigrateDeploy.new().parse(['--schema', 'with-directUrl-env.prisma'])
+    await expect(result).resolves.toMatchInlineSnapshot(`No pending migrations to apply.`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Environment variables loaded from .env
+      Prisma schema loaded from with-directUrl-env.prisma
+      Datasource "db": PostgreSQL database "tests-migrate-deploy", schema "public" at "localhost:5432"
+
+      No migration found in prisma/migrations
+
+
+    `)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })

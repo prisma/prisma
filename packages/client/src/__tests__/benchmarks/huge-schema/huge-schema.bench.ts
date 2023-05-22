@@ -1,5 +1,6 @@
 // @ts-nocheck
 
+import { withCodSpeed } from '@codspeed/benchmark.js-plugin'
 import Benchmark from 'benchmark'
 import execa from 'execa'
 import fs from 'fs'
@@ -8,13 +9,14 @@ import path from 'path'
 import { compileFile } from '../../../utils/compileFile'
 import { generateTestClient } from '../../../utils/getTestClient'
 
-const suite = new Benchmark.Suite('typescript')
+const suite = withCodSpeed(new Benchmark.Suite('typescript'))
 // @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 suite
   .add('client generation ~50 Models', {
     defer: true,
     fn: function (deferred) {
-      generateTestClient()
+      generateTestClient(__dirname)
         .then(() => {
           deferred.resolve()
         })

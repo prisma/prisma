@@ -1,4 +1,7 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+// describeIf is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import stripAnsi from 'strip-ansi'
 
 import { MigrateDiff } from '../commands/MigrateDiff'
@@ -10,6 +13,8 @@ import { setupPostgres, tearDownPostgres } from '../utils/setupPostgres'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+
+const originalEnv = { ...process.env }
 
 describe('migrate diff', () => {
   describe('generic', () => {
@@ -27,35 +32,35 @@ describe('migrate diff', () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse([])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --from-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--from-empty'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if only --to-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--to-empty'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --from-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--from-empty', '--from-url=file:dev.db'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if more than 1 --to-... is provided', async () => {
       ctx.fixture('empty')
 
       const result = MigrateDiff.new().parse(['--to-empty', '--to-url=file:dev.db'])
-      await expect(result).rejects.toThrowError()
+      await expect(result).rejects.toThrow()
     })
 
     it('should fail if schema does no exists, --from-schema-datasource', async () => {
@@ -133,18 +138,18 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                [+] Added tables
-                                                                                                                  - Post
-                                                                                                                  - Profile
-                                                                                                                  - User
-                                                                                                                  - _Migration
+                                                                                                                        [+] Added tables
+                                                                                                                          - Post
+                                                                                                                          - Profile
+                                                                                                                          - User
+                                                                                                                          - _Migration
 
-                                                                                                                [*] Changed the \`Profile\` table
-                                                                                                                  [+] Added unique index on columns (userId)
+                                                                                                                        [*] Changed the \`Profile\` table
+                                                                                                                          [+] Added unique index on columns (userId)
 
-                                                                                                                [*] Changed the \`User\` table
-                                                                                                                  [+] Added unique index on columns (email)
-                                                                                    `)
+                                                                                                                        [*] Changed the \`User\` table
+                                                                                                                          [+] Added unique index on columns (email)
+                                                                                          `)
     })
     it('should diff --from-empty --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
@@ -161,9 +166,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                [+] Added tables
-                                                                                                                  - Blog
-                                                                                    `)
+                                                                                                                        [+] Added tables
+                                                                                                                          - Blog
+                                                                                          `)
     })
     it('should diff --from-empty --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -190,9 +195,9 @@ describe('migrate diff', () => {
       await expect(result).resolves.toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                [-] Removed tables
-                                                                                                                  - Blog
-                                                                                    `)
+                                                                                                                        [-] Removed tables
+                                                                                                                          - Blog
+                                                                                          `)
     })
     it('should diff --from-schema-datamodel=./prisma/schema.prisma --to-empty --script', async () => {
       ctx.fixture('schema-only-sqlite')
@@ -225,7 +230,9 @@ describe('migrate diff', () => {
       it('should exit with code 2 when diff is not empty without --script', async () => {
         ctx.fixture('schema-only-sqlite')
 
-        const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+        const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+          throw new Error('process.exit: ' + number)
+        })
 
         const result = MigrateDiff.new().parse([
           '--from-schema-datamodel=./prisma/schema.prisma',
@@ -233,13 +240,13 @@ describe('migrate diff', () => {
           '--exit-code',
         ])
 
-        await expect(result).resolves.toMatchInlineSnapshot(``)
+        await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 2`)
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
         expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                      [-] Removed tables
-                                                                        - Blog
-                                                        `)
+                                                                                [-] Removed tables
+                                                                                  - Blog
+                                                                `)
 
         expect(mockExit).toHaveBeenCalledTimes(1)
         expect(mockExit).toHaveBeenCalledWith(2)
@@ -249,7 +256,9 @@ describe('migrate diff', () => {
       it('should exit with code 2 when diff is not empty with --script', async () => {
         ctx.fixture('schema-only-sqlite')
 
-        const mockExit = jest.spyOn(process, 'exit').mockImplementation()
+        const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
+          throw new Error('process.exit: ' + number)
+        })
 
         const result = MigrateDiff.new().parse([
           '--from-schema-datamodel=./prisma/schema.prisma',
@@ -258,7 +267,7 @@ describe('migrate diff', () => {
           '--exit-code',
         ])
 
-        await expect(result).resolves.toMatchInlineSnapshot(``)
+        await expect(result).rejects.toMatchInlineSnapshot(`process.exit: 2`)
         expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
         expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
           -- DropTable
@@ -335,34 +344,45 @@ describe('migrate diff', () => {
   })
 
   describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-    const connectionString = (
-      process.env.TEST_COCKROACH_URI_MIGRATE || 'postgresql://prisma@localhost:26257/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-diff')
-
+    if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
+      throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
+    }
+    const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE?.replace('tests-migrate', 'tests-migrate-diff')
     const setupParams = {
-      connectionString,
+      connectionString: connectionString!,
       dirname: '',
     }
 
     beforeAll(async () => {
-      await setupCockroach(setupParams).catch((e) => {
-        console.error(e)
-      })
-    })
-
-    afterAll(async () => {
       await tearDownCockroach(setupParams).catch((e) => {
         console.error(e)
       })
     })
 
-    // eslint-disable-next-line jest/no-identical-title
+    beforeEach(async () => {
+      await setupCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      // Update env var because it's the one that is used in the schemas tested
+      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    })
+
+    afterEach(async () => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      await tearDownCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
       const result = MigrateDiff.new().parse([
         '--from-url',
-        connectionString,
+        connectionString!,
         '--to-schema-datamodel=./prisma/schema.prisma',
         '--script',
       ])
@@ -378,7 +398,6 @@ describe('migrate diff', () => {
       `)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should use env var from .env file with --from-schema-datasource', async () => {
       ctx.fixture('schema-only-cockroachdb')
 
@@ -396,39 +415,39 @@ describe('migrate diff', () => {
             `)
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should fail for 2 different connectors --from-url=connectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-url', connectionString, '--to-url=file:dev.db', '--script'])
+      const result = MigrateDiff.new().parse(['--from-url', connectionString!, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
               Error in migration engine.
               Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
-
-              Please create an issue with your \`schema.prisma\` at
-              https://github.com/prisma/prisma/issues/new
 
             `)
     })
   })
 
   describe('postgresql', () => {
-    const connectionString = (
-      process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-diff')
+    const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-diff')
 
     const setupParams: SetupParams = {
       connectionString,
       dirname: '',
     }
 
-    beforeAll(async () => {
+    beforeEach(async () => {
       await setupPostgres(setupParams).catch((e) => {
         console.error(e)
       })
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      // Update env var because it's the one that is used in the schemas tested
+      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
     })
 
-    afterAll(async () => {
+    afterEach(async () => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
       await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
@@ -477,20 +496,24 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--from-url', connectionString, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Error in migration engine.
-              Reason: [/some/rust/path:0:0] Missing native type in postgres_renderer::render_column_type()
+        Error in migration engine.
+        Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
 
-              Please create an issue with your \`schema.prisma\` at
-              https://github.com/prisma/prisma/issues/new
+      `)
+    })
 
-            `)
+    it('should work if directUrl is set as an env var', async () => {
+      ctx.fixture('schema-only-data-proxy')
+      const result = MigrateDiff.new().parse(['--from-schema-datasource', 'with-directUrl-env.prisma', '--to-empty'])
+      await expect(result).resolves.toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`No difference detected.`)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })
   })
 
   describe('mysql', () => {
-    const connectionString = (
-      process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-diff')
+    const databaseName = 'tests-migrate-diff'
+    const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', databaseName)
 
     const setupParams: SetupParams = {
       connectionString,
@@ -498,12 +521,24 @@ describe('migrate diff', () => {
     }
 
     beforeAll(async () => {
-      await setupMysql(setupParams).catch((e) => {
+      await tearDownMysql(setupParams).catch((e) => {
         console.error(e)
       })
     })
 
-    afterAll(async () => {
+    beforeEach(async () => {
+      await setupMysql(setupParams).catch((e) => {
+        console.error(e)
+      })
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      // Update env var because it's the one that is used in the schemas tested
+      process.env.TEST_MYSQL_URI_MIGRATE = connectionString
+    })
+
+    afterEach(async () => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
       await tearDownMysql(setupParams).catch((e) => {
         console.error(e)
       })
@@ -535,21 +570,19 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--from-url', connectionString, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Error in migration engine.
-              Reason: [/some/rust/path:0:0] Column native type missing in mysql_renderer::render_column_type()
+        Error in migration engine.
+        Reason: [/some/rust/path:0:0] Column native type missing in mysql_renderer::render_column_type()
 
-              Please create an issue with your \`schema.prisma\` at
-              https://github.com/prisma/prisma/issues/new
-
-            `)
+      `)
     })
   })
 
   describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
-    const jdbcConnectionString = (
-      process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-      'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-    ).replace('tests-migrate', 'tests-migrate-diff')
+    if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
+    }
+    const databaseName = 'tests-migrate-diff'
+    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace('tests-migrate', databaseName)
 
     const setupParams: SetupParams = {
       connectionString: process.env.TEST_MSSQL_URI!,
@@ -557,24 +590,42 @@ describe('migrate diff', () => {
     }
 
     beforeAll(async () => {
-      await setupMSSQL(setupParams, 'tests-migrate-diff').catch((e) => {
+      await tearDownMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })
     })
 
-    afterAll(async () => {
-      await tearDownMSSQL(setupParams, 'tests-migrate-diff').catch((e) => {
+    beforeEach(async () => {
+      await setupMSSQL(setupParams, databaseName).catch((e) => {
+        console.error(e)
+      })
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      // Update env var because it's the one that is used in the schemas tested
+      process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
+        'tests-migrate',
+        databaseName,
+      )
+      process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
+        'tests-migrate-shadowdb',
+        `${databaseName}-shadowdb`,
+      )
+    })
+
+    afterEach(async () => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      await tearDownMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })
     })
 
-    // eslint-disable-next-line jest/no-identical-title
     it('should diff --from-url=connectionString --to-schema-datamodel=./prisma/schema.prisma --script', async () => {
       ctx.fixture('schema-only-sqlserver')
 
       const result = MigrateDiff.new().parse([
         '--from-url',
-        jdbcConnectionString,
+        jdbcConnectionString!,
         '--to-schema-datamodel=./prisma/schema.prisma',
         '--script',
       ])
@@ -609,15 +660,12 @@ describe('migrate diff', () => {
     it('should fail for 2 different connectors --from-url=jdbcConnectionString --to-url=file:dev.db --script', async () => {
       ctx.fixture('introspection/sqlite')
 
-      const result = MigrateDiff.new().parse(['--from-url', jdbcConnectionString, '--to-url=file:dev.db', '--script'])
+      const result = MigrateDiff.new().parse(['--from-url', jdbcConnectionString!, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Error in migration engine.
-              Reason: [/some/rust/path:0:0] Missing column native type in mssql_renderer::render_column_type()
+        Error in migration engine.
+        Reason: [/some/rust/path:0:0] Missing column native type in mssql_renderer::render_column_type()
 
-              Please create an issue with your \`schema.prisma\` at
-              https://github.com/prisma/prisma/issues/new
-
-            `)
+      `)
     })
   })
 })

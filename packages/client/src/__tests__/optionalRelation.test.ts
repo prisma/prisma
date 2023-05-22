@@ -1,10 +1,8 @@
-import chalk from 'chalk'
+import { getDMMF } from '@prisma/internals'
 
 import { blog } from '../fixtures/blog'
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
-
-chalk.level = 0
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 
 describe('optional to one relation', () => {
   let dmmf
@@ -23,6 +21,7 @@ describe('optional to one relation', () => {
       select,
       rootTypeName: 'query',
       rootField: 'findManyPost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(transformDocument(document))).toMatchInlineSnapshot(`

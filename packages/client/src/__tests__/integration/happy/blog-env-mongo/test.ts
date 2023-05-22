@@ -6,7 +6,6 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 
 describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
   let prisma: PrismaClient // Generated Client instance
-  const requests: any[] = []
 
   beforeAll(async () => {
     await generateTestClient()
@@ -16,9 +15,6 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       errorFormat: 'colorless',
       __internal: {
         measurePerformance: true,
-        hooks: {
-          beforeRequest: (r: any) => requests.push(r),
-        },
       },
       log: [
         {
@@ -48,11 +44,6 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
   test('does not leak connection strings in node_modules', () => {
     // @ts-ignore
     expect(prisma.internalDatasources).toBeUndefined()
-  })
-
-  test('invokes beforeRequest hook', async () => {
-    await prisma.user.findMany()
-    expect(requests.length).toBeGreaterThan(0)
   })
 
   test('can throw validation errors', async () => {
@@ -132,13 +123,13 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     })
 
     expect(deletedPost).toMatchInlineSnapshot(`
-          Object {
-            authorId: null,
-            content: null,
-            published: false,
-            title: Some title,
-          }
-      `)
+      {
+        authorId: null,
+        content: null,
+        published: false,
+        title: Some title,
+      }
+    `)
   })
 
   test('can run update queries', async () => {
@@ -166,10 +157,10 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     })
 
     expect(updatedPost).toMatchInlineSnapshot(`
-      Object {
+      {
         authorId: null,
         content: null,
-        ids: Array [
+        ids: [
           620e79866f46aba24d751441,
         ],
         published: false,
@@ -193,15 +184,15 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
     // https://github.com/prisma/prisma/issues/11885
     await expect(post).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-            Invalid \`prisma.post.create()\` invocation in
-            /client/src/__tests__/integration/happy/blog-env-mongo/test.ts:0:0
+      Invalid \`prisma.post.create()\` invocation in
+      /client/src/__tests__/integration/happy/blog-env-mongo/test.ts:0:0
 
-              179 })
-              180 
-              181 test('should throw Malformed ObjectID error: in 2 different fields', async () => {
-            → 182   const post = prisma.post.create(
-              Inconsistent column data: Malformed ObjectID: invalid character 's' was found at index 0 in the provided hex string: "something invalid 1111" for the field 'id'.
-          `)
+        170 })
+        171 
+        172 test('should throw Malformed ObjectID error: in 2 different fields', async () => {
+      → 173   const post = prisma.post.create(
+      Inconsistent column data: Malformed ObjectID: invalid character 's' was found at index 0 in the provided hex string: "something invalid 1111" for the field 'id'.
+    `)
   })
 
   test('should throw Malformed ObjectID error for: _id', async () => {
@@ -213,7 +204,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       },
     })
 
-    await expect(post).rejects.toThrowError(
+    await expect(post).rejects.toThrow(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       expect.objectContaining({
         message: expect.stringContaining('Malformed ObjectID'),
@@ -230,7 +221,7 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       },
     })
 
-    await expect(post).rejects.toThrowError(
+    await expect(post).rejects.toThrow(
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       expect.objectContaining({
         message: expect.stringContaining('Malformed ObjectID'),
@@ -258,8 +249,8 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
         options: { projection: { _id: false } },
       })
       expect(users).toMatchInlineSnapshot(`
-        Array [
-          Object {
+        [
+          {
             email: e@a.de,
             name: E,
           },
@@ -278,12 +269,12 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
         pipeline: [{ $group: { _id: '$name', total: { $sum: 1 } } }, { $sort: { _id: -1 } }],
       })
       expect(users).toMatchInlineSnapshot(`
-        Array [
-          Object {
+        [
+          {
             _id: B,
             total: 2,
           },
-          Object {
+          {
             _id: A,
             total: 2,
           },
@@ -298,11 +289,11 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
         pipeline: [{ $match: { name: 'A' } }, { $project: { email: true, _id: false } }],
       })
       expect(users).toMatchInlineSnapshot(`
-        Array [
-          Object {
+        [
+          {
             email: 1@a.de,
           },
-          Object {
+          {
             email: 3@a.de,
           },
         ]
@@ -322,13 +313,13 @@ describeIf(!process.env.TEST_SKIP_MONGODB)('blog-env-mongo', () => {
       })
 
       expect(users).toMatchInlineSnapshot(`
-        Object {
-          cursor: Object {
-            firstBatch: Array [
-              Object {
+        {
+          cursor: {
+            firstBatch: [
+              {
                 email: 1@a.de,
               },
-              Object {
+              {
                 email: 3@a.de,
               },
             ],

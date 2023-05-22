@@ -1,73 +1,33 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`sqlite baseline-sqlite 3`] = `
-Array [
-  Array [],
-]
-`;
+exports[`postgresql should fail if cannot connect 3`] = ``;
 
-exports[`sqlite baseline-sqlite 4`] = `Array []`;
+exports[`postgresql should fail if cannot connect 4`] = ``;
 
-exports[`sqlite existing-db-1-failed-migration 3`] = `
-Array [
-  Array [],
-]
-`;
+exports[`sqlite existing-db-1-failed-migration 3`] = ``;
 
-exports[`sqlite existing-db-1-failed-migration 4`] = `Array []`;
+exports[`sqlite existing-db-1-migration 3`] = ``;
 
-exports[`sqlite existing-db-1-migration 3`] = `
-Array [
-  Array [],
-]
-`;
+exports[`sqlite existing-db-1-migration 4`] = ``;
 
-exports[`sqlite existing-db-1-migration 4`] = `Array []`;
+exports[`sqlite existing-db-1-migration-conflict 3`] = ``;
 
-exports[`sqlite existing-db-1-migration-conflict 3`] = `
-Array [
-  Array [],
-]
-`;
+exports[`sqlite existing-db-brownfield 3`] = ``;
 
-exports[`sqlite existing-db-1-migration-conflict 4`] = `Array []`;
+exports[`sqlite existing-db-histories-diverge 3`] = ``;
 
-exports[`sqlite existing-db-brownfield 3`] = `
-Array [
-  Array [],
-]
-`;
+exports[`sqlite existing-db-warnings 3`] = ``;
 
-exports[`sqlite existing-db-brownfield 4`] = `Array []`;
+exports[`sqlite old-migrate 3`] = ``;
 
-exports[`sqlite existing-db-histories-diverge 3`] = `
-Array [
-  Array [],
-]
-`;
+exports[`sqlite old-migrate 4`] = ``;
 
-exports[`sqlite existing-db-histories-diverge 4`] = `Array []`;
+exports[`sqlite reset 3`] = ``;
 
-exports[`sqlite existing-db-warnings 3`] = `
-Array [
-  Array [],
-]
-`;
+exports[`sqlite reset 4`] = ``;
 
-exports[`sqlite existing-db-warnings 4`] = `Array []`;
+exports[`sqlite should error when database needs to be baselined 3`] = ``;
 
-exports[`sqlite old-migrate 3`] = `Array []`;
+exports[`sqlite should fail if no sqlite db - empty schema 3`] = ``;
 
-exports[`sqlite old-migrate 4`] = `Array []`;
-
-exports[`sqlite reset 3`] = `
-Array [
-  Array [],
-]
-`;
-
-exports[`sqlite reset 4`] = `Array []`;
-
-exports[`sqlite should fail if no sqlite db - empty schema 3`] = `Array []`;
-
-exports[`sqlite should fail if no sqlite db - empty schema 4`] = `Array []`;
+exports[`sqlite should fail if no sqlite db - empty schema 4`] = ``;

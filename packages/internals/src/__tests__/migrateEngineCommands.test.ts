@@ -1,3 +1,4 @@
+import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import tempy from 'tempy'
 
 import { credentialsToUri, uriToCredentials } from '../convertCredentials'
@@ -34,24 +35,24 @@ describe('canConnectToDatabase', () => {
 
   test('sqlite - cannot', async () => {
     await expect(canConnectToDatabase('file:./doesnotexist.db')).resolves.toMatchInlineSnapshot(`
-            Object {
-              "code": "P1003",
-              "message": "Database doesnotexist.db does not exist at ./doesnotexist.db",
-            }
-          `)
+      {
+        "code": "P1003",
+        "message": "Database doesnotexist.db does not exist at ./doesnotexist.db",
+      }
+    `)
   })
 
   test('postgresql - server does not exist', async () => {
     await expect(
       canConnectToDatabase('postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public', __dirname),
     ).resolves.toMatchInlineSnapshot(`
-            Object {
-              "code": "P1001",
-              "message": "Can't reach database server at \`doesnotexist\`:\`5432\`
+      {
+        "code": "P1001",
+        "message": "Can't reach database server at \`doesnotexist\`:\`5432\`
 
-            Please make sure your database server is running at \`doesnotexist\`:\`5432\`.",
-            }
-          `)
+      Please make sure your database server is running at \`doesnotexist\`:\`5432\`.",
+      }
+    `)
   }, 10000)
 })
 
@@ -65,9 +66,15 @@ describe('createDatabase', () => {
   })
 
   test('sqlite - invalid cwd (file path instead of directory)', async () => {
-    await expect(createDatabase('file:./doesnotexist.db', tempy.file())).rejects.toThrowErrorMatchingInlineSnapshot(
-      `"Migration engine exited."`,
-    )
+    expect.assertions(1)
+    try {
+      await createDatabase('file:./doesnotexist.db', tempy.file())
+    } catch (e) {
+      expect(serialize(e)).toMatchInlineSnapshot(`
+        "Migration engine exited. Error: Command failed with ENOENT: /engines/migration-engine-TEST_PLATFORM cli --datasource <REDACTED> can-connect-to-database
+        spawn /engines/migration-engine-TEST_PLATFORM ENOENT"
+      `)
+    }
   })
 
   test('postgresql - create database', async () => {
@@ -123,17 +130,22 @@ describe('createDatabase', () => {
   })
 
   testIf(!process.env.TEST_SKIP_MSSQL)('sqlserver - create database', async () => {
-    let uri = process.env.TEST_MSSQL_JDBC_URI!
-    uri = uri.replace(/database=(.*?);/, 'database=can-create-a-db;')
+    if (!process.env.TEST_MSSQL_JDBC_URI) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI. See TESTING.md')
+    }
+    const connectionString = process.env.TEST_MSSQL_JDBC_URI.replace(/database=(.*?);/, 'database=can-create-a-db;')
     try {
-      await dropDatabase(uri, __dirname)
+      await dropDatabase(connectionString, __dirname)
     } catch (e) {}
-    await expect(createDatabase(uri, __dirname)).resolves.toEqual(true)
+    await expect(createDatabase(connectionString, __dirname)).resolves.toEqual(true)
   })
 
   testIf(!process.env.TEST_SKIP_MSSQL)('sqlserver - database already exists', async () => {
-    const uri = process.env.TEST_MSSQL_JDBC_URI!
-    await expect(createDatabase(uri, __dirname)).resolves.toEqual(false)
+    if (!process.env.TEST_MSSQL_JDBC_URI) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI. See TESTING.md')
+    }
+    const connectionString = process.env.TEST_MSSQL_JDBC_URI
+    await expect(createDatabase(connectionString, __dirname)).resolves.toEqual(false)
   })
 
   test('invalid database type', async () => {

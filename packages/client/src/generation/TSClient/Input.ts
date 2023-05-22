@@ -3,63 +3,99 @@ import indent from 'indent-string'
 import type { DMMF } from '../../runtime/dmmf-types'
 import { argIsInputType, GraphQLScalarToJSTypeTable, JSOutputTypeToInputType } from '../../runtime/utils/common'
 import { uniqueBy } from '../../runtime/utils/uniqueBy'
+import { GenericArgsInfo } from '../GenericsArgsInfo'
+import * as ts from '../ts-builders'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
-import type { ExportCollector } from './helpers'
-import { wrapComment } from './helpers'
+import { ifExtensions } from './utils/ifExtensions'
 
 export class InputField implements Generatable {
   constructor(
     protected readonly field: DMMF.SchemaArg,
-    protected readonly prefixFilter = false,
     protected readonly noEnumerable = false,
+    protected readonly genericsInfo: GenericArgsInfo,
+    protected readonly source?: string,
   ) {}
   public toTS(): string {
-    const { field } = this
-
-    const optionalStr = field.isRequired ? '' : '?'
-    const deprecated = field.deprecation
-      ? `@deprecated since ${field.deprecation.sinceVersion}: ${field.deprecation.reason}\n`
-      : ''
-    const comment = `${field.comment ? field.comment + '\n' : ''}${deprecated}`
-    const jsdoc = comment ? wrapComment(comment) + '\n' : ''
-    const fieldType = stringifyInputTypes(field.inputTypes, this.prefixFilter, this.noEnumerable)
-
-    return `${jsdoc}${field.name}${optionalStr}: ${fieldType}`
+    const property = buildInputField(this.field, this.noEnumerable, this.genericsInfo, this.source)
+    return ts.stringify(property)
   }
 }
 
-function stringifyInputType(
-  t: DMMF.SchemaArgInputType,
-  prefixFilter: boolean,
-  noEnumerable = false, // used for group by, there we need an Array<> for "by"
-): string {
-  let type =
-    typeof t.type === 'string'
-      ? GraphQLScalarToJSTypeTable[t.type] || t.type
-      : prefixFilter
-      ? `Base${t.type.name}`
-      : t.type.name
-  type = JSOutputTypeToInputType[type] ?? type
+function buildInputField(field: DMMF.SchemaArg, noEnumerable = false, genericsInfo: GenericArgsInfo, source?: string) {
+  const tsType = buildAllFieldTypes(field.inputTypes, noEnumerable, genericsInfo, source)
 
-  if (type === 'Null') {
-    return 'null'
+  const tsProperty = ts.property(field.name, tsType)
+  if (!field.isRequired) {
+    tsProperty.optional()
+  }
+  const docComment = ts.docComment()
+  if (field.comment) {
+    docComment.addText(field.comment)
+  }
+  if (field.deprecation) {
+    docComment.addText(`@deprecated since ${field.deprecation.sinceVersion}: ${field.deprecation.reason}`)
   }
 
-  if (t.isList) {
-    const keyword = noEnumerable ? 'Array' : 'Enumerable'
-    if (Array.isArray(type)) {
-      return type.map((t) => `${keyword}<${t}>`).join(' | ')
+  if (docComment.lines.length > 0) {
+    tsProperty.setDocComment(docComment)
+  }
+
+  return tsProperty
+}
+
+function buildSingleFieldType(
+  t: DMMF.SchemaArgInputType,
+  noEnumerable = false, // used for group by, there we need an Array<> for "by"
+  genericsInfo: GenericArgsInfo,
+  source?: string,
+): ts.TypeBuilder {
+  let type: ts.NamedType
+  if (typeof t.type === 'string') {
+    if (t.type === 'Null') {
+      return ts.nullType
+    }
+    const scalarType = GraphQLScalarToJSTypeTable[t.type]
+    if (Array.isArray(scalarType)) {
+      const union = ts.unionType(scalarType.map(namedInputType))
+      if (t.isList) {
+        return union.mapVariants((variant) => wrapList(variant, noEnumerable))
+      }
+      return union
+    }
+
+    type = namedInputType(scalarType ?? t.type)
+  } else {
+    type = namedInputType(t.type.name)
+  }
+
+  ifExtensions(() => {
+    if (type.name.endsWith('Select') || type.name.endsWith('Include')) {
+      type.addGenericArgument(ts.namedType('ExtArgs'))
+    }
+  }, undefined)
+
+  if (genericsInfo.needsGenericModelArg(t)) {
+    if (source) {
+      type.addGenericArgument(ts.stringLiteral(source))
     } else {
-      return `${keyword}<${type}>`
+      type.addGenericArgument(ts.namedType('$PrismaModel'))
     }
   }
 
-  if (Array.isArray(type)) {
-    type = type.join(' | ')
+  if (t.isList) {
+    return wrapList(type, noEnumerable)
   }
 
   return type
+}
+
+function namedInputType(typeName: string) {
+  return ts.namedType(JSOutputTypeToInputType[typeName] ?? typeName)
+}
+
+function wrapList(type: ts.TypeBuilder, noEnumerable: boolean): ts.TypeBuilder {
+  return noEnumerable ? ts.array(type) : ts.namedType('Enumerable').addGenericArgument(type)
 }
 
 /**
@@ -74,11 +110,12 @@ function stringifyInputType(
  * 2. Separate XOR and non XOR items (objects and non-objects)
  * 3. Generate them out and `|` them
  */
-function stringifyInputTypes(
+function buildAllFieldTypes(
   inputTypes: DMMF.SchemaArgInputType[],
-  prefixFilter: boolean,
   noEnumerable = false,
-): string {
+  genericsInfo: GenericArgsInfo,
+  source?: string,
+): ts.TypeBuilder {
   const pairMap: Record<string, number> = Object.create(null)
 
   const singularPairIndexes = new Set<number>()
@@ -103,37 +140,35 @@ function stringifyInputTypes(
 
   const inputObjectTypes = filteredInputTypes.filter((t) => t.location === 'inputObjectTypes')
 
-  const nonInputObjectTypes = filteredInputTypes.filter((t) => t.location !== 'inputObjectTypes')
+  const otherTypes = filteredInputTypes.filter((t) => t.location !== 'inputObjectTypes')
 
-  const stringifiedInputObjectTypes = inputObjectTypes.reduce<string>((acc, curr) => {
-    const currentStringified = stringifyInputType(curr, prefixFilter, noEnumerable)
-    if (acc.length > 0) {
-      return `XOR<${acc}, ${currentStringified}>`
-    }
+  const tsInputObjectTypes = inputObjectTypes.map((type) =>
+    buildSingleFieldType(type, noEnumerable, genericsInfo, source),
+  )
 
-    return currentStringified
-  }, '')
+  const tsOtherTypes = otherTypes.map((type) => buildSingleFieldType(type, noEnumerable, genericsInfo, source))
 
-  const stringifiedNonInputTypes = nonInputObjectTypes
-    .map((type) => stringifyInputType(type, prefixFilter, noEnumerable))
-    .join(' | ')
-
-  if (stringifiedNonInputTypes.length === 0) {
-    return stringifiedInputObjectTypes
+  if (tsOtherTypes.length === 0) {
+    return xorTypes(tsInputObjectTypes)
   }
 
-  if (stringifiedInputObjectTypes.length === 0) {
-    return stringifiedNonInputTypes
+  if (tsInputObjectTypes.length === 0) {
+    return ts.unionType(tsOtherTypes)
   }
 
-  return `${stringifiedInputObjectTypes} | ${stringifiedNonInputTypes}`
+  return ts.unionType(xorTypes(tsInputObjectTypes)).addVariants(tsOtherTypes)
+}
+
+function xorTypes(types: ts.TypeBuilder[]) {
+  return types.reduce((prev, curr) => ts.namedType('XOR').addGenericArgument(prev).addGenericArgument(curr))
 }
 
 export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType, protected readonly collector?: ExportCollector) {}
+  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {}
+
   public toTS(): string {
     const { type } = this
-    this.collector?.addSymbol(type.name)
+    const source = type.meta?.source
 
     const fields = uniqueBy(type.fields, (f) => f.name)
     // TO DISCUSS: Should we rely on TypeScript's error messages?
@@ -143,13 +178,35 @@ ${indent(
     .map((arg) => {
       // This disables enumerable on JsonFilter path argument
       const noEnumerable = type.name.includes('Json') && type.name.includes('Filter') && arg.name === 'path'
-      return new InputField(arg, false, noEnumerable).toTS()
+      return new InputField(arg, noEnumerable, this.genericsInfo, source).toTS()
     })
     .join('\n'),
   TAB_SIZE,
 )}
 }`
     return `
-export type ${type.name} = ${body}`
+export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
   }
+
+  private getTypeName() {
+    if (this.genericsInfo.inputTypeNeedsGenericModelArg(this.type)) {
+      return `${this.type.name}<$PrismaModel = never>`
+    }
+    return this.type.name
+  }
+}
+
+/**
+ * Wraps an input type with `Prisma.AtLeast`
+ * @param body type string to wrap
+ * @param input original input type
+ * @returns
+ */
+function wrapWithAtLeast(body: string, input: DMMF.InputType) {
+  if (input.constraints?.fields && input.constraints.fields.length > 0) {
+    const fields = input.constraints.fields.map((f) => `"${f}"`).join(' | ')
+    return `Prisma.AtLeast<${body}, ${fields}>`
+  }
+
+  return body
 }

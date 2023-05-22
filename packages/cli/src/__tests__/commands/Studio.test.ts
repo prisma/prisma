@@ -1,9 +1,14 @@
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
 import rimraf from 'rimraf'
 
 import { Studio } from '../../Studio'
+
+const originalEnv = { ...process.env }
+
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 const STUDIO_TEST_PORT = 5678
 
@@ -18,6 +23,49 @@ function sendRequest(message: any): Promise<any> {
 }
 
 let studio: Studio
+
+describe('Studio CLI', () => {
+  beforeEach(() => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.STUDIO_URL = 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY'
+    process.env.STUDIO_DIRECT_URL = 'postgres://localhost:1234'
+  })
+
+  afterEach(() => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
+  })
+
+  it('should fail if url is prisma://', async () => {
+    ctx.fixture('schema-only-data-proxy')
+
+    const result = Studio.new().parse([])
+
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
+
+      More information about Data Proxy: https://pris.ly/d/data-proxy-cli
+
+    `)
+  })
+
+  it('should fail if url is prisma:// and directUrl is set', async () => {
+    ctx.fixture('schema-only-data-proxy-direct-url')
+
+    const result = Studio.new().parse([])
+
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+
+      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
+
+      More information about Data Proxy: https://pris.ly/d/data-proxy-cli
+
+    `)
+  })
+})
 
 describe('studio with default schema.prisma filename', () => {
   jest.setTimeout(20_000)

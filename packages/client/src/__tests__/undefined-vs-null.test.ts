@@ -1,7 +1,8 @@
+import { getDMMF } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
 
 import { blog } from '../fixtures/blog'
-import { getDMMF } from '../generation/getDMMF'
+import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
 import { DMMFHelper } from '../runtime/dmmf'
 import { makeDocument } from '../runtime/query'
 
@@ -27,6 +28,7 @@ describe('select validation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'updateOnePost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchSnapshot()
@@ -66,6 +68,7 @@ describe('select validation', () => {
       select,
       rootTypeName: 'mutation',
       rootField: 'createOnePost',
+      extensions: MergedExtensionsList.empty(),
     })
 
     expect(String(document)).toMatchSnapshot()

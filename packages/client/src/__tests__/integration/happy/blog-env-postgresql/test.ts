@@ -9,7 +9,7 @@ test('Blog fixture: Postgres', async () => {
 
   const { PrismaClientValidationError, prismaVersion } = Prisma
 
-  let originalConnectionString = process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/tests'
+  let originalConnectionString = process.env.TEST_POSTGRES_URI!
   originalConnectionString += '-blog-env-postgresql'
 
   const SetupParams: SetupParams = {
@@ -19,15 +19,11 @@ test('Blog fixture: Postgres', async () => {
 
   await setupPostgres(SetupParams).catch((e) => console.error(e))
 
-  const requests: any[] = []
   const errorLogs: any[] = []
   const prisma = new PrismaClient({
     errorFormat: 'colorless',
     __internal: {
       measurePerformance: true,
-      hooks: {
-        beforeRequest: (request) => requests.push(request),
-      },
     },
     datasources: {
       db: {
@@ -183,9 +179,9 @@ test('Blog fixture: Postgres', async () => {
   })
 
   expect(resultJsonUpdateWithSet).toMatchInlineSnapshot(`
-    Object {
+    {
       authorId: null,
-      coinflips: Array [
+      coinflips: [
         true,
         true,
         true,
@@ -193,9 +189,9 @@ test('Blog fixture: Postgres', async () => {
         true,
       ],
       content: null,
-      jsonData: Object {
-        set: Array [
-          Object {
+      jsonData: {
+        set: [
+          {
             array1key: array1valueupdated,
           },
         ],
