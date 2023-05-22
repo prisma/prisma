@@ -12,6 +12,8 @@ testMatrix.setupTestSuite(
           title: 'Potato',
           quantity: 100,
           forbiddenQuantities: [1, 500, 100],
+          enum1: 'a',
+          enum2: ['a'],
         },
       })
 
@@ -20,6 +22,8 @@ testMatrix.setupTestSuite(
           title: 'Rice',
           quantity: 500,
           forbiddenQuantities: [10, 100, 1000],
+          enum1: 'a',
+          enum2: ['b'],
         },
       })
 
@@ -40,6 +44,14 @@ testMatrix.setupTestSuite(
       })
 
       expect(products).toEqual([expect.objectContaining({ title: 'Potato' })])
+
+      const enums = await prisma.product.findMany({
+        where: {
+          enum1: { in: prisma.product.fields.enum2 },
+        },
+      })
+
+      expect(enums).toEqual([expect.objectContaining({ title: 'Potato' })])
     })
 
     test('notIn', async () => {
@@ -53,6 +65,14 @@ testMatrix.setupTestSuite(
         expect.objectContaining({ title: 'Rice' }),
         expect.objectContaining({ title: 'Tomato' }),
       ])
+
+      const enums = await prisma.product.findMany({
+        where: {
+          enum1: { notIn: prisma.product.fields.enum2 },
+        },
+      })
+
+      expect(enums).toEqual([expect.objectContaining({ title: 'Rice' }), expect.objectContaining({ title: 'Tomato' })])
     })
   },
   {
