@@ -90,9 +90,11 @@ export class GeneratorProcess {
       this.child.stdin.on('error', () => {})
 
       this.child.on('error', (err) => {
+        debug(err)
         this.pendingError = err
-        if (err.message.includes('EACCES')) {
-          debug(err)
+
+        // Handle startup errors: reject the `init` promise.
+        if ((err as NodeJS.ErrnoException).code === 'EACCES') {
           reject(
             new Error(
               `The executable at ${this.pathOrCommand} lacks the right permissions. Please use ${bold(
@@ -102,6 +104,12 @@ export class GeneratorProcess {
           )
         } else {
           reject(err)
+        }
+
+        // Reject any pending requests if the error event happened after spawning.
+        const error = new GeneratorError(`${err.message}\n${this.errorLogs}`)
+        for (const listener of Object.values(this.listeners)) {
+          listener(null, error)
         }
       })
 
