@@ -107,7 +107,7 @@ export class GeneratorProcess {
 
       byline(this.child.stderr).on('data', (line: Buffer) => {
         const response = String(line)
-        let data: string | undefined
+        let data: JsonRPC.Response | undefined
         try {
           data = JSON.parse(response)
         } catch (e) {
@@ -123,13 +123,13 @@ export class GeneratorProcess {
     })
   }
 
-  private handleResponse(data: any): void {
+  private handleResponse(data: JsonRPC.Response): void {
     if (data.jsonrpc && data.id) {
       if (typeof data.id !== 'number') {
         throw new Error(`message.id has to be a number. Found value ${data.id}`)
       }
       if (this.listeners[data.id]) {
-        if (data.error) {
+        if (isErrorResponse(data)) {
           const error = new GeneratorError(data.error.message, data.error.code, data.error.data)
           this.listeners[data.id](null, error)
         } else {
@@ -219,4 +219,8 @@ export class GeneratorProcess {
   )
 
   generate = this.rpcMethod<GeneratorOptions, void>('generate')
+}
+
+function isErrorResponse(response: JsonRPC.Response): response is JsonRPC.ErrorResponse {
+  return (response as JsonRPC.ErrorResponse).error !== undefined
 }
