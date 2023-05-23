@@ -129,6 +129,6 @@ describe('generatorHandler', () => {
   test('nonexistent executable', async () => {
     const generator = new GeneratorProcess(getExecutable('this-executable-does-not-exist'))
     await generator.init()
-    await expect(() => generator.getManifest(stubOptions.generator)).rejects.toThrow()
+    await expect(generator.getManifest(stubOptions.generator)).resolves.toThrow()
   })
 })
