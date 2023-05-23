@@ -4,7 +4,6 @@ import { fork } from 'child_process'
 import { spawn } from 'cross-spawn'
 import { bold } from 'kleur/colors'
 import { Readable, Writable } from 'stream'
-import timers from 'timers/promises'
 
 import byline from './byline'
 import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
@@ -141,33 +140,38 @@ export class GeneratorProcess {
     this.listeners[messageId] = cb
   }
 
-  private async sendMessage(message: JsonRPC.Request): Promise<void> {
+  private sendMessage(message: JsonRPC.Request, callback: (error?: Error) => void): void {
     if (!this.child) {
-      throw new GeneratorError('Generator process has not started yet')
+      callback(new GeneratorError('Generator process has not started yet'))
+      return
     }
 
     if (!this.child.stdin.writable) {
-      throw new GeneratorError('Cannot send data to the generator process, process already exited')
+      callback(new GeneratorError('Cannot send data to the generator process, process already exited'))
+      return
     }
 
-    try {
-      this.child.stdin.write(JSON.stringify(message) + '\n')
-    } catch (err) {
-      console.log(err.code)
-      if ((err as NodeJS.ErrnoException).code === 'EPIPE') {
+    this.child.stdin.write(JSON.stringify(message) + '\n', (error) => {
+      if (!error) {
+        return callback()
+      }
+
+      console.log((error as NodeJS.ErrnoException).code)
+      if ((error as NodeJS.ErrnoException).code === 'EPIPE') {
         // Child process already terminated but we didn't know about it yet on Node.js side, so the `exit` even hasn't
         // been emitted yet, and the `child.stdin.writable` check also passed. Wait one even loop tick, and re-throw the
         // error if it exists.
-        await timers.setImmediate()
-        if (this.pendingError) {
-          throw this.pendingError
-        } else {
-          throw new GeneratorError('Cannot send data to the generator process, process already exited')
-        }
-      } else {
-        throw err
+        setImmediate(() => {
+          if (this.pendingError) {
+            callback(this.pendingError)
+          } else {
+            callback(new GeneratorError('Cannot send data to the generator process, process already exited'))
+          }
+        })
       }
-    }
+
+      callback(error)
+    })
   }
 
   private getMessageId(): number {
@@ -198,12 +202,17 @@ export class GeneratorProcess {
           }
         })
 
-        this.sendMessage({
-          jsonrpc: '2.0',
-          method,
-          params,
-          id: messageId,
-        }).catch(reject)
+        this.sendMessage(
+          {
+            jsonrpc: '2.0',
+            method,
+            params,
+            id: messageId,
+          },
+          (error) => {
+            if (error) reject(error)
+          },
+        )
       })
   }
 
