@@ -4,6 +4,7 @@ import { fork } from 'child_process'
 import { spawn } from 'cross-spawn'
 import { bold } from 'kleur/colors'
 import { Readable, Writable } from 'stream'
+import timers from 'timers/promises'
 
 import byline from './byline'
 import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
@@ -78,10 +79,10 @@ export class GeneratorProcess {
           const error = new GeneratorError(
             `Generator ${JSON.stringify(this.pathOrCommand)} failed:\n\n${this.errorLogs}`,
           )
+          this.pendingError = error
           for (const listener of Object.values(this.listeners)) {
             listener(null, error)
           }
-          this.pendingError = error
         }
       })
 
@@ -140,10 +141,11 @@ export class GeneratorProcess {
     this.listeners[messageId] = cb
   }
 
-  private sendMessage(message: JsonRPC.Request): void {
+  private async sendMessage(message: JsonRPC.Request): Promise<void> {
     if (!this.child) {
       throw new GeneratorError('Generator process has not started yet')
     }
+
     if (!this.child.stdin.writable) {
       throw new GeneratorError('Cannot send data to the generator process, process already exited')
     }
@@ -151,7 +153,20 @@ export class GeneratorProcess {
     try {
       this.child.stdin.write(JSON.stringify(message) + '\n')
     } catch (err) {
-      console.error(err.code)
+      console.log(err.code)
+      if ((err as NodeJS.ErrnoException).code === 'EPIPE') {
+        // Child process already terminated but we didn't know about it yet on Node.js side, so the `exit` even hasn't
+        // been emitted yet, and the `child.stdin.writable` check also passed. Wait one even loop tick, and re-throw the
+        // error if it exists.
+        await timers.setImmediate()
+        if (this.pendingError) {
+          throw this.pendingError
+        } else {
+          throw new GeneratorError('Cannot send data to the generator process, process already exited')
+        }
+      } else {
+        throw err
+      }
     }
   }
 
@@ -188,7 +203,7 @@ export class GeneratorProcess {
           method,
           params,
           id: messageId,
-        })
+        }).catch(reject)
       })
   }
 
