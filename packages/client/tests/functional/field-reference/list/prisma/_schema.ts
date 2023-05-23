@@ -25,6 +25,7 @@ export default testMatrix.setupSchema(({ provider }) => {
   enum MyEnum {
     a
     b
+    c
   }
   `
 })

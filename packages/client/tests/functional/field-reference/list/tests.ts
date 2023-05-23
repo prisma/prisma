@@ -32,6 +32,8 @@ testMatrix.setupTestSuite(
           title: 'Tomato',
           forbiddenQuantities: [1, 500, 100],
           quantity: 30,
+          enum1: 'b',
+          enum2: ['c'],
         },
       })
     })
