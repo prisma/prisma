@@ -26,7 +26,7 @@ testMatrix.setupTestSuite(
     test('simple enum equality', async () => {
       const result = await prisma.testModel.findMany({ where: { enum1: { equals: prisma.testModel.fields.enum2 } } })
 
-      expect(result).toEqual([expect.objectContaining({ enum1: 'a', enum2: 'b' })])
+      expect(result).toEqual([expect.objectContaining({ enum1: 'a', enum2: 'a' })])
     })
   },
   {
