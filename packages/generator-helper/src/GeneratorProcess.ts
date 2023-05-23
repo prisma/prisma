@@ -156,7 +156,6 @@ export class GeneratorProcess {
         return callback()
       }
 
-      console.log((error as NodeJS.ErrnoException).code)
       if ((error as NodeJS.ErrnoException).code === 'EPIPE') {
         // Child process already terminated but we didn't know about it yet on Node.js side, so the `exit` even hasn't
         // been emitted yet, and the `child.stdin.writable` check also passed. Wait one even loop tick, and re-throw the
