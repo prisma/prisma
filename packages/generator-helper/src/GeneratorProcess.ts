@@ -147,7 +147,12 @@ export class GeneratorProcess {
     if (!this.child.stdin.writable) {
       throw new GeneratorError('Cannot send data to the generator process, process already exited')
     }
-    this.child.stdin.write(JSON.stringify(message) + '\n')
+
+    try {
+      this.child.stdin.write(JSON.stringify(message) + '\n')
+    } catch (err) {
+      console.error(err.code)
+    }
   }
 
   private getMessageId(): number {
