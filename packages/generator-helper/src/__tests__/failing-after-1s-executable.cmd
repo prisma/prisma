@@ -1,2 +1,2 @@
 @ECHO off
-node "%~dp0\immediately-failing-executable" %*
+node "%~dp0\failing-after-1s-executable" %*
