@@ -14,8 +14,8 @@ import { nativeGeneratedOnDifferentPlatform } from './errors/engine-not-found/na
 import { toolingHasTamperedWithEngineCopy } from './errors/engine-not-found/toolingHasTamperedWithEngineCopy'
 
 const debug = Debug('prisma:client:engines:resolveEnginePath')
-const runtimeName = TARGET_ENGINE_TYPE === 'all' ? 'index' : TARGET_ENGINE_TYPE
-const runtimeFileRegex = new RegExp(`${runtimeName}\\.m?js$`)
+const runtimeName = () => (TARGET_ENGINE_TYPE === 'all' ? 'index' : TARGET_ENGINE_TYPE)
+const runtimeFileRegex = () => new RegExp(`${runtimeName}\\.m?js$`)
 
 /**
  * Resolves the path of a given engine type (binary or library) and config. If
@@ -49,7 +49,7 @@ export async function resolveEnginePath(engineType: 'binary' | 'library', config
   const generatorBinaryTargets = config.generator?.binaryTargets ?? []
   const hasNativeBinaryTarget = generatorBinaryTargets.some((bt) => bt.native)
   const hasMissingBinaryTarget = !generatorBinaryTargets.some((bt) => bt.value === binaryTarget)
-  const clientHasBeenBundled = __filename.match(runtimeFileRegex) === null // runtime name
+  const clientHasBeenBundled = __filename.match(runtimeFileRegex()) === null // runtime name
 
   const errorInput: EngineNotFoundErrorInput = {
     searchedLocations,
