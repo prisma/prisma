@@ -8,8 +8,8 @@ export function toolingHasTamperedWithEngineCopy(input: EngineNotFoundErrorInput
 
   return `${queryEngineCannotBeFound(input)}
 
-This is likely caused by tooling that has not copied "${queryEngineName}" to the deployment.
-Please try to make sure that "${queryEngineName}" is copied to "${input.expectedLocation}".
+This is likely caused by tooling that has not copied "${queryEngineName}" to the deployment folder.
+Ensure that you ran \`prisma generate\` and that "${queryEngineName}" is copied to "${input.expectedLocation}".
 
 ${weWouldAppreciateIfYouCouldShareInfo('engine-not-found-tooling-investigation')}
 

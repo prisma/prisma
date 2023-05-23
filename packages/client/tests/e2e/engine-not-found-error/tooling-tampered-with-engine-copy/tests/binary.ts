@@ -18,8 +18,8 @@ Invalid \`prisma.user.create()\` invocation in
 → 6   const result = prisma.user.create(
 Prisma Client could not locate the Query Engine for runtime "debian-openssl-1.1.x".
 
-This is likely caused by tooling that has not copied "query-engine-debian-openssl-1.1.x" to the deployment.
-Please try to make sure that "query-engine-debian-openssl-1.1.x" is copied to "prisma/client".
+This is likely caused by tooling that has not copied "query-engine-debian-openssl-1.1.x" to the deployment folder.
+Ensure that you ran \`prisma generate\` and that "query-engine-debian-openssl-1.1.x" is copied to "prisma/client".
 
 We would appreciate if you could take the time to share some information with us.
 Please help us by answering a few questions: https://pris.ly/engine-not-found-tooling-investigation
