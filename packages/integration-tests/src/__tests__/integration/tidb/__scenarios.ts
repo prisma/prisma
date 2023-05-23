@@ -916,7 +916,7 @@ export const scenarios = [
         insert into crons (job, frequency) values ('j21', '* * * * 1-5');
       `,
     do: (client) => {
-      return client.crons.findMany({ where: { job: { in: ['j20', 'j1'] } } })
+      return client.crons.findMany({ where: { job: { in: ['j20', 'j1'] } }, orderBy: { job: 'asc' } })
     },
     expect: [
       {
