@@ -146,8 +146,8 @@ export class GeneratorProcess {
   }
 
   stop(): void {
-    if (!this.child!.killed) {
-      this.child!.kill()
+    if (!this.child?.killed) {
+      this.child?.kill()
     }
   }
 
