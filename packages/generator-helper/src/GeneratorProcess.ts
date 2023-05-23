@@ -85,6 +85,15 @@ export class GeneratorProcess {
         }
       })
 
+      this.child.stdin.on('error', (error) => {
+        if ((error as NodeJS.ErrnoException).code !== 'EPIPE') {
+          this.pendingError = error
+          for (const listener of Object.values(this.listeners)) {
+            listener(null, error)
+          }
+        }
+      })
+
       this.child.on('error', (err) => {
         this.pendingError = err
         if (err.message.includes('EACCES')) {
@@ -151,27 +160,29 @@ export class GeneratorProcess {
       return
     }
 
-    this.child.stdin.write(JSON.stringify(message) + '\n', (error) => {
-      if (!error) {
-        return callback()
-      }
+    this.child.stdin.write(JSON.stringify(message) + '\n')
+    callback()
+    // this.child.stdin.write(JSON.stringify(message) + '\n', (error) => {
+    //   if (!error) {
+    //     return callback()
+    //   }
 
-      if ((error as NodeJS.ErrnoException).code === 'EPIPE') {
-        // Child process already terminated but we didn't know about it yet on Node.js side, so the `exit` even hasn't
-        // been emitted yet, and the `child.stdin.writable` check also passed. Wait one even loop tick, and re-throw the
-        // error if it exists.
-        setImmediate(() => {
-          if (this.pendingError) {
-            callback(this.pendingError)
-          } else {
-            callback(new GeneratorError('Cannot send data to the generator process, process already exited'))
-          }
-        })
-        return
-      }
+    //   if ((error as NodeJS.ErrnoException).code === 'EPIPE') {
+    //     // Child process already terminated but we didn't know about it yet on Node.js side, so the `exit` even hasn't
+    //     // been emitted yet, and the `child.stdin.writable` check also passed. Wait one even loop tick, and re-throw the
+    //     // error if it exists.
+    //     setImmediate(() => {
+    //       if (this.pendingError) {
+    //         callback(this.pendingError)
+    //       } else {
+    //         callback(new GeneratorError('Cannot send data to the generator process, process already exited'))
+    //       }
+    //     })
+    //     return
+    //   }
 
-      callback(error)
-    })
+    //   callback(error)
+    // })
   }
 
   private getMessageId(): number {
