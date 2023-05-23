@@ -1,5 +1,3 @@
 # See https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
 
-# These owners will be the default owners for everything in
-# the repo. Unless a later match takes precedence,
 * @prisma/team-orm-ts
