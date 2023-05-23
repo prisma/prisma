@@ -85,14 +85,9 @@ export class GeneratorProcess {
         }
       })
 
-      this.child.stdin.on('error', (error) => {
-        if ((error as NodeJS.ErrnoException).code !== 'EPIPE') {
-          this.pendingError = error
-          for (const listener of Object.values(this.listeners)) {
-            listener(null, error)
-          }
-        }
-      })
+      // Set the error handler for stdin to prevent unhandled error events.
+      // We handle write errors explicitly in `sendMessage` method.
+      this.child.stdin.on('error', () => {})
 
       this.child.on('error', (err) => {
         this.pendingError = err
@@ -160,29 +155,20 @@ export class GeneratorProcess {
       return
     }
 
-    this.child.stdin.write(JSON.stringify(message) + '\n')
-    callback()
-    // this.child.stdin.write(JSON.stringify(message) + '\n', (error) => {
-    //   if (!error) {
-    //     return callback()
-    //   }
+    this.child.stdin.write(JSON.stringify(message) + '\n', (error) => {
+      if (!error) {
+        return callback()
+      }
 
-    //   if ((error as NodeJS.ErrnoException).code === 'EPIPE') {
-    //     // Child process already terminated but we didn't know about it yet on Node.js side, so the `exit` even hasn't
-    //     // been emitted yet, and the `child.stdin.writable` check also passed. Wait one even loop tick, and re-throw the
-    //     // error if it exists.
-    //     setImmediate(() => {
-    //       if (this.pendingError) {
-    //         callback(this.pendingError)
-    //       } else {
-    //         callback(new GeneratorError('Cannot send data to the generator process, process already exited'))
-    //       }
-    //     })
-    //     return
-    //   }
+      if ((error as NodeJS.ErrnoException).code === 'EPIPE') {
+        // Child process already terminated but we didn't know about it yet on Node.js side, so the `exit` event hasn't
+        // been emitted yet, and the `child.stdin.writable` check also passed. We skip this error and let the `exit`
+        // event handler reject active requests (including this one).
+        return callback()
+      }
 
-    //   callback(error)
-    // })
+      callback(error)
+    })
   }
 
   private getMessageId(): number {
