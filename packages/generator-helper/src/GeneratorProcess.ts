@@ -72,8 +72,8 @@ export class GeneratorProcess {
         })
       }
 
-      this.child.on('exit', (code) => {
-        debug(`child exited with code ${code}`)
+      this.child.on('exit', (code, signal) => {
+        debug(`child exited with code ${code} on signal ${signal}`)
         if (code) {
           const error = new GeneratorError(
             `Generator ${JSON.stringify(this.pathOrCommand)} failed:\n\n${this.errorLogs}`,
