@@ -137,7 +137,7 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
 
   private checkForTooManyEngines() {
     if (engineInstanceCount === 10) {
-      console.warn(`${yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`)
+      console.warn(`${yellow('warn(prisma-client)')} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`)
     }
   }
 
