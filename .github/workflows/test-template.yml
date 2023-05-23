@@ -671,7 +671,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
+      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql tidb
 
       - uses: pnpm/action-setup@v2.2.4
         with:
