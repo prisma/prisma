@@ -19,7 +19,7 @@ export class Generator {
   stop(): void {
     this.generatorProcess.stop()
   }
-  generate(): Promise<any> {
+  generate(): Promise<void> {
     if (!this.options) {
       throw new Error(`Please first run .setOptions() on the Generator to initialize the options`)
     }

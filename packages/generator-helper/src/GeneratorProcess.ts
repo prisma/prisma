@@ -37,6 +37,7 @@ export class GeneratorProcess {
   private initPromise?: Promise<void>
   private isNode: boolean
   private errorLogs = ''
+  private pendingError: Error | undefined
 
   constructor(private pathOrCommand: string, { isNode = false }: GeneratorProcessOptions = {}) {
     this.isNode = isNode
@@ -80,10 +81,12 @@ export class GeneratorProcess {
           for (const listener of Object.values(this.listeners)) {
             listener(null, error)
           }
+          this.pendingError = error
         }
       })
 
       this.child.on('error', (err) => {
+        this.pendingError = err
         if (err.message.includes('EACCES')) {
           debug(err)
           reject(
@@ -157,48 +160,37 @@ export class GeneratorProcess {
     }
   }
 
-  getManifest(config: GeneratorConfig): Promise<GeneratorManifest | null> {
-    return new Promise((resolve, reject) => {
-      const messageId = this.getMessageId()
-
-      this.registerListener(messageId, (result, error) => {
-        if (error) {
-          return reject(error)
-        }
-        if (result.manifest) {
-          resolve(result.manifest)
-        } else {
-          resolve(null)
-        }
-      })
-
-      this.sendMessage({
-        jsonrpc: '2.0',
-        method: 'getManifest',
-        params: config,
-        id: messageId,
-      })
-    })
-  }
-
-  generate(options: GeneratorOptions): Promise<any> {
-    return new Promise((resolve, reject) => {
-      const messageId = this.getMessageId()
-
-      this.registerListener(messageId, (result, error) => {
-        if (error) {
-          reject(error)
+  private rpcMethod<T, U>(method: string, mapResult: (x: unknown) => U = (x) => x as U): (arg: T) => Promise<U> {
+    return (params: T): Promise<U> =>
+      new Promise((resolve, reject) => {
+        if (this.pendingError) {
+          reject(this.pendingError)
           return
         }
-        resolve(result)
-      })
 
-      this.sendMessage({
-        jsonrpc: '2.0',
-        method: 'generate',
-        params: options,
-        id: messageId,
+        const messageId = this.getMessageId()
+
+        this.registerListener(messageId, (result, error) => {
+          if (error) {
+            reject(error)
+          } else {
+            resolve(mapResult(result))
+          }
+        })
+
+        this.sendMessage({
+          jsonrpc: '2.0',
+          method,
+          params,
+          id: messageId,
+        })
       })
-    })
   }
+
+  getManifest = this.rpcMethod<GeneratorConfig, GeneratorManifest | null>(
+    'getManifest',
+    (result) => (result as { manifest?: GeneratorManifest | null }).manifest ?? null,
+  )
+
+  generate = this.rpcMethod<GeneratorOptions, void>('generate')
 }
