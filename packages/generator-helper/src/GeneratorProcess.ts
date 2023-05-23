@@ -138,7 +138,13 @@ export class GeneratorProcess {
   }
 
   private sendMessage(message: JsonRPC.Request): void {
-    this.child!.stdin.write(JSON.stringify(message) + '\n')
+    if (!this.child) {
+      throw new GeneratorError('Generator process has not started yet')
+    }
+    if (!this.child.stdin.writable) {
+      throw new GeneratorError('Cannot send data to the generator process, process already exited')
+    }
+    this.child.stdin.write(JSON.stringify(message) + '\n')
   }
 
   private getMessageId(): number {
