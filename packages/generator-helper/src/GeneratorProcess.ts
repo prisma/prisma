@@ -32,8 +32,8 @@ export class GeneratorError extends Error {
 }
 
 export class GeneratorProcess {
-  child?: ChildProcessByStdio<Writable, null, Readable>
-  listeners: { [key: string]: (result: any, err?: Error) => void } = {}
+  private child?: ChildProcessByStdio<Writable, null, Readable>
+  private listeners: { [key: string]: (result: any, err?: Error) => void } = {}
   private initPromise?: Promise<void>
   private isNode: boolean
   private errorLogs = ''
