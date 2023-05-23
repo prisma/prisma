@@ -1,4 +1,4 @@
-import path from 'path'
+import { pathToPosix } from '@prisma/internals'
 import * as stackTraceParser from 'stacktrace-parser'
 
 import { ErrorFormat } from '../getPrismaClient'
@@ -38,7 +38,7 @@ class EnabledCallSite implements CallSite {
       }
 
       // convert windows path to posix path
-      const posixFile = t.file.split(path.sep).join('/')
+      const posixFile = pathToPosix(t.file)
       return (
         posixFile !== '<anonymous>' && // Ignore as we can not read an <anonymous> file
         !posixFile.includes('@prisma') && // Internal, unbundled code
