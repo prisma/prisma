@@ -14,8 +14,10 @@ import { nativeGeneratedOnDifferentPlatform } from './errors/engine-not-found/na
 import { toolingHasTamperedWithEngineCopy } from './errors/engine-not-found/toolingHasTamperedWithEngineCopy'
 
 const debug = Debug('prisma:client:engines:resolveEnginePath')
-const runtimeName = () => (TARGET_ENGINE_TYPE === 'all' ? 'index' : TARGET_ENGINE_TYPE)
-const runtimeFileRegex = () => new RegExp(`${runtimeName}\\.m?js$`)
+
+// this name will be injected by esbuild when we build/bundle the runtime
+const runtimeBuildName = () => (TARGET_ENGINE_TYPE === 'all' ? 'index' : TARGET_ENGINE_TYPE)
+const runtimeFileRegex = () => new RegExp(`${runtimeBuildName}\\.m?js$`)
 
 /**
  * Resolves the path of a given engine type (binary or library) and config. If
