@@ -27,10 +27,11 @@ const runtimeFileRegex = new RegExp(`${runtimeName}\\.m?js$`)
  */
 export async function resolveEnginePath(engineType: 'binary' | 'library', config: EngineConfig) {
   // if the user provided a custom path, or if engine previously found
-  const prismaPath = {
-    binary: process.env.PRISMA_QUERY_ENGINE_BINARY ?? config.prismaPath,
-    library: process.env.PRISMA_QUERY_ENGINE_LIBRARY ?? config.prismaPath,
-  }[engineType]
+  const prismaPath =
+    {
+      binary: process.env.PRISMA_QUERY_ENGINE_BINARY,
+      library: process.env.PRISMA_QUERY_ENGINE_LIBRARY,
+    }[engineType] ?? config.prismaPath
 
   if (prismaPath !== undefined) return prismaPath
 
