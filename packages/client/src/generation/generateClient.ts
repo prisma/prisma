@@ -1,13 +1,6 @@
-import { BinaryType, overwriteFile } from '@prisma/fetch-engine'
+import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import {
-  assertNever,
-  ClientEngineType,
-  getClientEngineType,
-  getEngineVersion,
-  Platform,
-  setClassName,
-} from '@prisma/internals'
+import { assertNever, ClientEngineType, getClientEngineType, Platform, setClassName } from '@prisma/internals'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -309,36 +302,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
         process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
           ? path.join('/tmp/prisma-engines', fileName)
           : path.join(finalOutputDir, fileName)
-      const [sourceFileSize, targetFileSize] = await Promise.all([fileSize(filePath), fileSize(target)])
-
-      // If the target doesn't exist yet, copy it
-      if (!targetFileSize) {
-        if (fs.existsSync(filePath)) {
-          await overwriteFile(filePath, target)
-          continue
-        } else {
-          throw new Error(`File at ${filePath} is required but was not present`)
-        }
-      }
-
-      // If target !== source size, they're definitely different, copy it
-      if (targetFileSize && sourceFileSize && targetFileSize !== sourceFileSize) {
-        await overwriteFile(filePath, target)
-        continue
-      }
-      const binaryName =
-        clientEngineType === ClientEngineType.Binary ? BinaryType.QueryEngineBinary : BinaryType.QueryEngineLibrary
-      // They must have an equal size now, let's check for the hash
-      const [sourceVersion, targetVersion] = await Promise.all([
-        getEngineVersion(filePath, binaryName).catch(() => null),
-        getEngineVersion(target, binaryName).catch(() => null),
-      ])
-
-      if (sourceVersion && targetVersion && sourceVersion === targetVersion) {
-        // skip
-      } else {
-        await overwriteFile(filePath, target)
-      }
+      await overwriteFile(filePath, target)
     }
   }
 
@@ -360,15 +324,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   if (!fs.existsSync(proxyIndexBrowserJsPath)) {
     await fs.promises.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
-  }
-}
-
-async function fileSize(name: string): Promise<number | null> {
-  try {
-    const statResult = await fs.promises.stat(name)
-    return statResult.size
-  } catch (e) {
-    return null
   }
 }
 
