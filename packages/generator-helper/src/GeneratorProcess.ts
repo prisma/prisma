@@ -168,6 +168,7 @@ export class GeneratorProcess {
             callback(new GeneratorError('Cannot send data to the generator process, process already exited'))
           }
         })
+        return
       }
 
       callback(error)
