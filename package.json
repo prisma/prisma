@@ -34,7 +34,7 @@
     "@types/benchmark": "2.1.2",
     "@types/fs-extra": "9.0.13",
     "@types/graphviz": "0.0.35",
-    "@types/node": "18.16.12",
+    "@types/node": "18.16.14",
     "@types/node-fetch": "2.6.4",
     "@types/redis": "2.8.32",
     "@types/resolve": "1.20.2",
