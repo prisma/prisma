@@ -61,7 +61,9 @@ function getExecutable(name: string): string {
 }
 
 describe('generatorHandler', () => {
-  // TODO: Windows: this test fails with timeout.
+  // TODO: Windows: this test fails with ENOENT on CI because it can't file the .cmd file:
+  //   spawn D:\\a\\prisma\\prisma\\packages\\generator-helper\\src\\__tests__\\exiting-executable.cmd ENOENT
+  // This does not happen on Windows locally.
   testIf(process.platform !== 'win32')('exiting', async () => {
     const generator = new GeneratorProcess(getExecutable('exiting-executable'))
     await generator.init()
@@ -73,7 +75,9 @@ describe('generatorHandler', () => {
     }
   })
 
-  // TODO: Windows: this test fails with ENOENT even though the .cmd file is there and can be run manually.
+  // TODO: Windows: this test fails with ENOENT on CI because it can't file the .cmd file:
+  //   spawn D:\\a\\prisma\\prisma\\packages\\generator-helper\\src\\__tests__\\invalid-executable.cmd ENOENT
+  // This does not happen on Windows locally.
   testIf(process.platform !== 'win32')(
     'parsing error',
     async () => {
