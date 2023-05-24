@@ -616,7 +616,7 @@ importers:
       mariadb: 3.0.2
       mssql: 9.1.1
       pg: 8.9.0
-      sqlite-async: 1.1.3
+      sqlite-async: 1.2.0
       string-hash: 1.1.3
       strip-ansi: 6.0.1
       tempy: 1.0.1
@@ -644,7 +644,7 @@ importers:
       mariadb: 3.0.2
       mssql: 9.1.1
       pg: 8.9.0
-      sqlite-async: 1.1.3
+      sqlite-async: 1.2.0
       string-hash: 1.1.3
       strip-ansi: 6.0.1
       tempy: 1.0.1
@@ -14003,8 +14003,8 @@ packages:
     engines: {node: '>=14'}
     dev: true
 
-  /sqlite-async/1.1.3:
-    resolution: {integrity: sha512-C71fZoTO7u355bTONhq9ncj4Ged3pXM0Un7oCDnrsCu7BPzITrCqTANP99XD7b6uGz4fY+RdgSPF/zVS7Iy9Tg==}
+  /sqlite-async/1.2.0:
+    resolution: {integrity: sha512-gx9DUUA2UZzz/8Mh3qdA3RtTm8aJuF7dZgFdZ43WB29Iswdsp0KmPtem/2QDW8K4CrajR8yQ+gEniSFgolNscQ==}
     dependencies:
       sqlite3: 5.1.2
     transitivePeerDependencies:

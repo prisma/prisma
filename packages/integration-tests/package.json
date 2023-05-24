@@ -32,7 +32,7 @@
     "mariadb": "3.0.2",
     "mssql": "9.1.1",
     "pg": "8.9.0",
-    "sqlite-async": "1.1.3",
+    "sqlite-async": "1.2.0",
     "string-hash": "1.1.3",
     "strip-ansi": "6.0.1",
     "tempy": "1.0.1",
