@@ -72,10 +72,13 @@ export function printJsonWithErrors({ ast, keyPaths, valuePaths, missingItems }:
           valueStr = dim(valueStr)
         }
 
-        const keyStr = keyError ? red(key) : key
+        let keyStr = ''
+        if (typeof key === 'string') {
+          keyStr = (keyError ? red(key) : key) + ': '
+        }
         valueStr = valueError ? red(valueStr) : valueStr
         // valueStr can be multiple lines if it's an object
-        let output = indent + keyStr + ': ' + valueStr + (isOnMissingItemPath ? eol : dim(eol))
+        let output = indent + keyStr + valueStr + (isOnMissingItemPath ? eol : dim(eol))
 
         // if there is an error, add the scribble lines
         // 3 options:
@@ -115,6 +118,10 @@ function getValueLength(indent: string, key: string, value: any, stringifiedValu
   }
   if (typeof value === 'string') {
     return value.length + 2 // +2 for the quotes
+  }
+
+  if (Array.isArray(value) && value.length == 0) {
+    return 2
   }
 
   if (isRenderedAsObject(value)) {

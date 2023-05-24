@@ -691,33 +691,53 @@ export class Arg {
     this.hasError =
       Boolean(error) ||
       (value instanceof Args ? value.hasInvalidArg : false) ||
-      (Array.isArray(value) && value.some((v) => (v instanceof Args ? v.hasInvalidArg : false)))
+      (Array.isArray(value) &&
+        value.some((v) => {
+          if (v instanceof Args) {
+            return v.hasInvalidArg
+          }
+          if (v instanceof Arg) {
+            return v.hasError
+          }
+          return false
+        }))
   }
   get [Symbol.toStringTag]() {
     return 'Arg'
   }
   public _toString(value: ArgValue, key: string): string | undefined {
-    if (typeof value === 'undefined') {
+    const strValue = this.stringifyValue(value)
+    if (typeof strValue === 'undefined') {
       return undefined
     }
 
+    return `${key}: ${strValue}`
+  }
+
+  public stringifyValue(value: ArgValue) {
+    if (typeof value === 'undefined') {
+      return undefined
+    }
     if (value instanceof Args) {
-      return `${key}: {
+      return `{
 ${indent(value.toString(), 2)}
 }`
     }
 
     if (Array.isArray(value)) {
       if (this.inputType?.type === 'Json') {
-        return `${key}: ${stringify(value, this.inputType)}`
+        return stringify(value, this.inputType)
       }
 
       const isScalar = !(value as any[]).some((v) => typeof v === 'object')
-      return `${key}: [${isScalar ? '' : '\n'}${indent(
+      return `[${isScalar ? '' : '\n'}${indent(
         (value as any[])
           .map((nestedValue) => {
             if (nestedValue instanceof Args) {
               return `{\n${indent(nestedValue.toString(), tab)}\n}`
+            }
+            if (nestedValue instanceof Arg) {
+              return nestedValue.stringifyValue(nestedValue.value)
             }
             return stringify(nestedValue, this.inputType)
           })
@@ -726,8 +746,9 @@ ${indent(value.toString(), 2)}
       )}${isScalar ? '' : '\n'}]`
     }
 
-    return `${key}: ${stringify(value, this.inputType)}`
+    return stringify(value, this.inputType)
   }
+
   public toString() {
     return this._toString(this.value, this.key)
   }
@@ -755,13 +776,18 @@ ${indent(value.toString(), 2)}
     if (Array.isArray(this.value)) {
       return errors.concat(
         (this.value as any[]).flatMap((val, index) => {
-          if (!val?.collectErrors) {
-            return []
+          if (val instanceof Args) {
+            return val.collectErrors().map((e) => {
+              return { ...e, path: [this.key, String(index), ...e.path] }
+            })
           }
 
-          return val.collectErrors().map((e) => {
-            return { ...e, path: [this.key, index, ...e.path] }
-          })
+          if (val instanceof Arg) {
+            return val.collectErrors().map((e) => {
+              return { ...e, path: [this.key, ...e.path] }
+            })
+          }
+          return []
         }),
       )
     }
@@ -1507,12 +1533,12 @@ function tryInferArgs(
 
   return new Arg({
     key,
-    value: value.map((v) => {
+    value: value.map((v, i) => {
       if (inputType.isList && typeof v !== 'object') {
         return v
       }
-      if (typeof v !== 'object' || !value) {
-        return getInvalidTypeArg(key, v, arg, inputType)
+      if (typeof v !== 'object' || !value || Array.isArray(v)) {
+        return getInvalidTypeArg(String(i), v, scalarOnlyArg(arg), scalarType(inputType))
       }
       return objectToArgs(v, argInputType, context)
     }),
@@ -1521,6 +1547,20 @@ function tryInferArgs(
     schemaArg: arg,
     error: err,
   })
+}
+
+function scalarType(listType: DMMF.SchemaArgInputType): DMMF.SchemaArgInputType {
+  return {
+    ...listType,
+    isList: false,
+  }
+}
+
+function scalarOnlyArg(arg: DMMF.SchemaArg): DMMF.SchemaArg {
+  return {
+    ...arg,
+    inputTypes: arg.inputTypes.filter((inputType) => !inputType.isList),
+  }
 }
 
 export function isInputArgType(argType: DMMF.ArgType): argType is DMMF.InputType {
