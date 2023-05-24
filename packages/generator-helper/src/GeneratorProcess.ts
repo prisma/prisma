@@ -31,9 +31,14 @@ export class GeneratorError extends Error {
   }
 }
 
+type ResultHandler<T = unknown> = {
+  resolve: (value: T) => void
+  reject: (error: Error) => void
+}
+
 export class GeneratorProcess {
   private child?: ChildProcessByStdio<Writable, null, Readable>
-  private listeners: { [key: string]: (result: any, err?: Error) => void } = {}
+  private handlers: Record<string, ResultHandler> = {}
   private initPromise?: Promise<void>
   private isNode: boolean
   private errorLogs = ''
@@ -79,7 +84,7 @@ export class GeneratorProcess {
             `Generator ${JSON.stringify(this.pathOrCommand)} failed:\n\n${this.errorLogs}`,
           )
           this.pendingError = error
-          this.rejectAllListeners(error)
+          this.rejectAllHandlers(error)
         }
       })
 
@@ -105,7 +110,7 @@ export class GeneratorProcess {
         }
 
         // Reject any pending requests if the error event happened after spawning.
-        this.rejectAllListeners(error)
+        this.rejectAllHandlers(error)
       })
 
       byline(this.child.stderr).on('data', (line: Buffer) => {
@@ -126,10 +131,10 @@ export class GeneratorProcess {
     })
   }
 
-  private rejectAllListeners(error: Error) {
-    for (const id of Object.keys(this.listeners)) {
-      this.listeners[id](null, error)
-      delete this.listeners[id]
+  private rejectAllHandlers(error: Error) {
+    for (const id of Object.keys(this.handlers)) {
+      this.handlers[id].reject(error)
+      delete this.handlers[id]
     }
   }
 
@@ -138,20 +143,16 @@ export class GeneratorProcess {
       if (typeof data.id !== 'number') {
         throw new Error(`message.id has to be a number. Found value ${data.id}`)
       }
-      if (this.listeners[data.id]) {
+      if (this.handlers[data.id]) {
         if (isErrorResponse(data)) {
           const error = new GeneratorError(data.error.message, data.error.code, data.error.data)
-          this.listeners[data.id](null, error)
+          this.handlers[data.id].reject(error)
         } else {
-          this.listeners[data.id](data.result)
+          this.handlers[data.id].resolve(data.result)
         }
-        delete this.listeners[data.id]
+        delete this.handlers[data.id]
       }
     }
-  }
-
-  private registerListener(messageId: number, cb: (result: any, err?: Error) => void): void {
-    this.listeners[messageId] = cb
   }
 
   private sendMessage(message: JsonRPC.Request, callback: (error?: Error) => void): void {
@@ -201,13 +202,10 @@ export class GeneratorProcess {
 
         const messageId = this.getMessageId()
 
-        this.registerListener(messageId, (result, error) => {
-          if (error) {
-            reject(error)
-          } else {
-            resolve(mapResult(result))
-          }
-        })
+        this.handlers[messageId] = {
+          resolve: (result) => resolve(mapResult(result)),
+          reject,
+        }
 
         this.sendMessage(
           {
