@@ -64,6 +64,7 @@ export class GeneratorProcess {
             ...process.env,
             PRISMA_GENERATOR_INVOCATION: 'true',
           },
+          // TODO: this assumes the host has at least 8 GB of RAM which may not be the case.
           execArgv: ['--max-old-space-size=8096'],
         }) as ChildProcessByStdio<Writable, null, Readable>
       } else {
