@@ -42,11 +42,11 @@ const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
  * @returns
  */
 export function applyModel(client: Client, dmmfModelName: string) {
-  const layers: CompositeProxyLayer[] = [modelActionsLayer(client, dmmfModelName), modelMetaLayer(dmmfModelName)]
-
-  if (client._engineConfig.previewFeatures?.includes('fieldReference')) {
-    layers.push(fieldsPropertyLayer(client, dmmfModelName))
-  }
+  const layers: CompositeProxyLayer[] = [
+    modelActionsLayer(client, dmmfModelName),
+    modelMetaLayer(dmmfModelName),
+    fieldsPropertyLayer(client, dmmfModelName),
+  ]
 
   const modelExtensions = client._extensions.getAllModelExtensions(dmmfModelName)
   if (modelExtensions) {

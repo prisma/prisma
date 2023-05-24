@@ -404,15 +404,6 @@ export class ModelDelegate implements Generatable {
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
 
-    let fieldsProxy = ''
-    if (this.generator?.previewFeatures.includes('fieldReference')) {
-      fieldsProxy = `
-  /**
-   * Fields of the ${name} model
-   */
-  readonly fields: ${getFieldRefsTypeName(name)};
-`
-    }
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
@@ -539,7 +530,10 @@ ${
       )}<T> : Prisma.PrismaPromise<InputErrors>`
     : ''
 }
-${fieldsProxy}
+/**
+ * Fields of the ${name} model
+ */
+readonly fields: ${getFieldRefsTypeName(name)};
 }
 
 /**
