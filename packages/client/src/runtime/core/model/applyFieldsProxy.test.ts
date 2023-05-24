@@ -68,12 +68,14 @@ test('returns values', () => {
   expect(Object.values(fields)).toMatchInlineSnapshot(`
     [
       FieldRefImpl {
+        isEnum: false,
         isList: false,
         modelName: MyModel,
         name: intField,
         typeName: Int,
       },
       FieldRefImpl {
+        isEnum: false,
         isList: true,
         modelName: MyModel,
         name: listField,
