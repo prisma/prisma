@@ -17,7 +17,7 @@ const debug = Debug('prisma:client:engines:resolveEnginePath')
 
 // this name will be injected by esbuild when we build/bundle the runtime
 const runtimeBuildName = () => (TARGET_ENGINE_TYPE === 'all' ? 'index' : TARGET_ENGINE_TYPE)
-const runtimeFileRegex = () => new RegExp(`${runtimeBuildName()}\\.m?js$`)
+const runtimeFileRegex = () => new RegExp(`runtime[\\\\/]${runtimeBuildName()}\\.m?js$`)
 
 /**
  * Resolves the path of a given engine type (binary or library) and config. If
