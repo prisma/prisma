@@ -6,7 +6,6 @@ export interface FieldRef<Model, FieldType> {
   readonly name: string
   readonly typeName: FieldType
   readonly isList: boolean
-  readonly isEnum: boolean
 }
 
 export class FieldRefImpl<Model, FieldType> implements FieldRef<Model, FieldType> {
