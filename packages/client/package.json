@@ -122,7 +122,7 @@
     "memfs": "3.5.1",
     "mssql": "9.1.1",
     "new-github-issue-url": "0.2.1",
-    "node-fetch": "2.6.11",
+    "node-fetch": "3.3.1",
     "p-retry": "4.6.2",
     "pg": "8.9.0",
     "pkg-up": "3.1.0",
