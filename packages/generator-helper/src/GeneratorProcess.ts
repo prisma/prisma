@@ -79,9 +79,7 @@ export class GeneratorProcess {
             `Generator ${JSON.stringify(this.pathOrCommand)} failed:\n\n${this.errorLogs}`,
           )
           this.pendingError = error
-          for (const listener of Object.values(this.listeners)) {
-            listener(null, error)
-          }
+          this.rejectAllListeners(error)
         }
       })
 
@@ -89,12 +87,12 @@ export class GeneratorProcess {
       // We handle write errors explicitly in `sendMessage` method.
       this.child.stdin.on('error', () => {})
 
-      this.child.on('error', (err) => {
-        debug(err)
-        this.pendingError = err
+      this.child.on('error', (error) => {
+        debug(error)
+        this.pendingError = error
 
         // Handle startup errors: reject the `init` promise.
-        if ((err as NodeJS.ErrnoException).code === 'EACCES') {
+        if ((error as NodeJS.ErrnoException).code === 'EACCES') {
           reject(
             new Error(
               `The executable at ${this.pathOrCommand} lacks the right permissions. Please use ${bold(
@@ -103,14 +101,11 @@ export class GeneratorProcess {
             ),
           )
         } else {
-          reject(err)
+          reject(error)
         }
 
         // Reject any pending requests if the error event happened after spawning.
-        const error = new GeneratorError(`${err.message}\n${this.errorLogs}`)
-        for (const listener of Object.values(this.listeners)) {
-          listener(null, error)
-        }
+        this.rejectAllListeners(error)
       })
 
       byline(this.child.stderr).on('data', (line: Buffer) => {
@@ -129,6 +124,13 @@ export class GeneratorProcess {
 
       this.child.on('spawn', resolve)
     })
+  }
+
+  private rejectAllListeners(error: Error) {
+    for (const id of Object.keys(this.listeners)) {
+      this.listeners[id](null, error)
+      delete this.listeners[id]
+    }
   }
 
   private handleResponse(data: JsonRPC.Response): void {
