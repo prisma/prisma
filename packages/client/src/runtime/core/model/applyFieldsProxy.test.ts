@@ -83,7 +83,7 @@ test('does not return relationship info', () => {
 })
 
 test('returns keys', () => {
-  expect(Object.keys(fields)).toEqual(['intField', 'listField'])
+  expect(Object.keys(fields)).toEqual(['intField', 'listField', 'enumField', 'listEnumField'])
 })
 
 test('returns values', () => {
