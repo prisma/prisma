@@ -56,8 +56,7 @@
     ]
   },
   "bin": {
-    "prisma": "build/index.js",
-    "prisma2": "build/index.js"
+    "prisma": "build/index.js"
   },
   "devDependencies": {
     "@prisma/client": "workspace:*",
