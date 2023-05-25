@@ -99,6 +99,7 @@
     "benchmark": "2.1.4",
     "ci-info": "3.8.0",
     "decimal.js": "10.4.3",
+    "env-paths": "2.2.1",
     "esbuild": "0.15.13",
     "execa": "5.1.1",
     "expect-type": "0.15.0",
