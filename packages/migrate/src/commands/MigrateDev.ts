@@ -319,7 +319,7 @@ ${green('Your database is now in sync with your schema.')}`,
 
         if (seedCommandFromPkgJson) {
           console.info() // empty line
-          const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+          const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson })
           if (successfulSeeding) {
             console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
           } else {

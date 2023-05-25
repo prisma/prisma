@@ -1,4 +1,5 @@
 import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import { ArgError } from 'arg'
 import { bold, dim, red } from 'kleur/colors'
 
 import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
@@ -18,6 +19,11 @@ ${bold('Usage')}
 ${bold('Options')}
 
   -h, --help   Display this help message
+
+${bold('Examples')}
+
+  Passing extra arguments to the seed command
+    ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -33,6 +39,11 @@ ${bold('Options')}
     )
 
     if (isError(args)) {
+      if (args instanceof ArgError && args.code === 'ARG_UNKNOWN_OPTION') {
+        throw new Error(`${args.message}
+Did you mean to pass these as arguments to your seed script? If so, add a -- separator before them:
+${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
+      }
       return this.help(args.message)
     }
 
@@ -57,9 +68,14 @@ ${bold('Options')}
       return ``
     }
 
+    // We pass the extra params after a -- separator
+    // Example: db seed -- --custom-param
+    // Then args._ will be ['--custom-param']
+    const extraArgs = args._.join(' ')
+
     // Seed command is set
     // Execute user seed command
-    const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+    const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson, extraArgs })
     if (successfulSeeding) {
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {

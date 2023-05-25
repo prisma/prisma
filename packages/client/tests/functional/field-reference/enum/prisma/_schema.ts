@@ -13,19 +13,15 @@ export default testMatrix.setupSchema(({ provider }) => {
     url      = env("DATABASE_URI_${provider}")
   }
 
-  model Product {
+  model TestModel {
     id ${idForProvider(provider)}
-    title String
-    quantity Int
-    forbiddenQuantities Int[]
-    enum1 MyEnum
-    enum2 MyEnum[]
+    enum1 MyEnum?
+    enum2 MyEnum?
   }
 
   enum MyEnum {
     a
     b
-    c
   }
   `
 })
