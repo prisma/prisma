@@ -21,6 +21,6 @@
   "author": "Pierre-Antoine Mills",
   "license": "Apache-2.0",
   "devDependencies": {
-    "webpack": "5.83.1"
+    "webpack": "5.84.0"
   }
 }
