@@ -80,9 +80,14 @@ You can now remove the ${red('--preview-feature')} flag.`)
       return ``
     }
 
+    // We pass the extra params after a -- separator
+    // Example: db seed -- --custom-param
+    // Then args._ will be ['--custom-param']
+    const extraArgs = args._.join(' ')
+
     // Seed command is set
     // Execute user seed command
-    const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+    const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson, extraArgs })
     if (successfulSeeding) {
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {

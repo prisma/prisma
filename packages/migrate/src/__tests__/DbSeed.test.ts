@@ -18,6 +18,18 @@ describe('seed', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  it('seed.js with extra args', async () => {
+    ctx.fixture('seed-sqlite-js-extra-args')
+
+    const result = DbSeed.new().parse(['--', '--my-custom-arg-from-cli=my-value', '-z'])
+    await expect(result).resolves.toContain(`The seed command has been executed.`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
+      `Running seed command \`node prisma/seed.js --my-custom-arg-from-config=my-value --my-custom-arg-from-cli=my-value -z\` ...`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
   it('one broken seed.js file', async () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
       throw new Error('process.exit: ' + number)

@@ -150,7 +150,22 @@ export async function getSeedCommandFromPackageJson(cwd: string) {
   return seedCommandFromPkgJson
 }
 
-export async function executeSeedCommand(command: string): Promise<boolean> {
+export async function executeSeedCommand({
+  commandFromConfig,
+  extraArgs,
+}: {
+  commandFromConfig: string
+  extraArgs?: string
+}): Promise<boolean> {
+  let command = commandFromConfig
+
+  // Used in `DbSeed.ts` to pass the extra params after a -- separator
+  // Example: db seed -- --custom-param
+  // Then extraArgs will be '--custom-param'
+  if (extraArgs) {
+    command = `${commandFromConfig} ${extraArgs}`
+  }
+
   console.info(`Running seed command \`${italic(command)}\` ...`)
   try {
     await execa.command(command, {
