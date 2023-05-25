@@ -328,8 +328,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   }
 
   // we tell our vscode extension to reload the types by modifying this file
-  const prismaCache = paths('checkpoint').cache
+  const prismaCache = paths('prisma').cache
   const signalsPath = path.join(prismaCache, 'last-generate')
+  await fs.promises.mkdir(prismaCache, { recursive: true }).catch(() => {})
   await fs.promises.writeFile(signalsPath, Date.now().toString()).catch(() => {})
 }
 
