@@ -69,7 +69,13 @@ describe('generator', () => {
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       {
-        binaryTargets: [],
+        binaryTargets: [
+          {
+            fromEnvVar: null,
+            native: true,
+            value: TEST_PLATFORM,
+          },
+        ],
         config: {},
         name: client,
         previewFeatures: [],
@@ -262,7 +268,13 @@ describe('generator', () => {
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       {
-        binaryTargets: [],
+        binaryTargets: [
+          {
+            fromEnvVar: null,
+            native: true,
+            value: TEST_PLATFORM,
+          },
+        ],
         config: {},
         name: client,
         previewFeatures: [],

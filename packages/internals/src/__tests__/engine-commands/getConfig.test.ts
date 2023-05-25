@@ -1,3 +1,5 @@
+import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
+
 import { getConfig } from '../..'
 import { isRustPanic } from '../../panic'
 
@@ -33,7 +35,7 @@ describe('getConfig', () => {
     expect(config.datasources[0].provider).toEqual('sqlite')
     expect(config.generators).toHaveLength(0)
     expect(config.warnings).toHaveLength(0)
-    expect(config).toMatchSnapshot()
+    expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
   })
 
   test('with generator and datasource', async () => {
@@ -59,7 +61,7 @@ describe('getConfig', () => {
     expect(config.datasources).toHaveLength(1)
     expect(config.generators).toHaveLength(1)
     expect(config.warnings).toHaveLength(0)
-    expect(config).toMatchSnapshot()
+    expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
   })
 
   test('datasource with env var', async () => {
@@ -75,7 +77,7 @@ describe('getConfig', () => {
       `,
     })
 
-    expect(config).toMatchSnapshot()
+    expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
   })
 
   test('datasource with env var - ignoreEnvVarErrors', async () => {
@@ -89,7 +91,7 @@ describe('getConfig', () => {
       `,
     })
 
-    expect(config).toMatchSnapshot()
+    expect(serialize(JSON.stringify(config, null, 2))).toMatchSnapshot()
   })
   test('with engineType="binary"', async () => {
     const binaryConfig = await getConfig({
@@ -111,37 +113,43 @@ describe('getConfig', () => {
       }`,
     })
 
-    expect(binaryConfig).toMatchInlineSnapshot(`
-      {
-        "datasources": [
-          {
-            "activeProvider": "sqlite",
-            "name": "db",
-            "provider": "sqlite",
-            "schemas": [],
-            "url": {
-              "fromEnvVar": null,
-              "value": "file:../hello.db",
-            },
-          },
-        ],
+    expect(serialize(JSON.stringify(binaryConfig, null, 2))).toMatchInlineSnapshot(`
+      "{
         "generators": [
           {
-            "binaryTargets": [],
-            "config": {
-              "engineType": "binary",
-            },
             "name": "gen",
-            "output": null,
-            "previewFeatures": [],
             "provider": {
               "fromEnvVar": null,
-              "value": "fancy-provider",
+              "value": "fancy-provider"
             },
-          },
+            "output": null,
+            "config": {
+              "engineType": "binary"
+            },
+            "binaryTargets": [
+              {
+                "fromEnvVar": null,
+                "value": "TEST_PLATFORM",
+                "native": true
+              }
+            ],
+            "previewFeatures": []
+          }
         ],
-        "warnings": [],
-      }
+        "datasources": [
+          {
+            "name": "db",
+            "provider": "sqlite",
+            "activeProvider": "sqlite",
+            "url": {
+              "fromEnvVar": null,
+              "value": "file:../hello.db"
+            },
+            "schemas": []
+          }
+        ],
+        "warnings": []
+      }"
     `)
   })
   test('with engineType="library"', async () => {
@@ -164,37 +172,43 @@ describe('getConfig', () => {
       }`,
     })
 
-    expect(libraryConfig).toMatchInlineSnapshot(`
-      {
-        "datasources": [
-          {
-            "activeProvider": "sqlite",
-            "name": "db",
-            "provider": "sqlite",
-            "schemas": [],
-            "url": {
-              "fromEnvVar": null,
-              "value": "file:../hello.db",
-            },
-          },
-        ],
+    expect(serialize(JSON.stringify(libraryConfig, null, 2))).toMatchInlineSnapshot(`
+      "{
         "generators": [
           {
-            "binaryTargets": [],
-            "config": {
-              "engineType": "library",
-            },
             "name": "gen",
-            "output": null,
-            "previewFeatures": [],
             "provider": {
               "fromEnvVar": null,
-              "value": "fancy-provider",
+              "value": "fancy-provider"
             },
-          },
+            "output": null,
+            "config": {
+              "engineType": "library"
+            },
+            "binaryTargets": [
+              {
+                "fromEnvVar": null,
+                "value": "TEST_PLATFORM",
+                "native": true
+              }
+            ],
+            "previewFeatures": []
+          }
         ],
-        "warnings": [],
-      }
+        "datasources": [
+          {
+            "name": "db",
+            "provider": "sqlite",
+            "activeProvider": "sqlite",
+            "url": {
+              "fromEnvVar": null,
+              "value": "file:../hello.db"
+            },
+            "schemas": []
+          }
+        ],
+        "warnings": []
+      }"
     `)
   })
 })

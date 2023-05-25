@@ -36,8 +36,7 @@ test('custom engine binary path (internal API)', async () => {
   expect(prisma._engineConfig.prismaPath).toBe(customBinaryPath)
 
   if (getClientEngineType() === ClientEngineType.Binary) {
-    expect(prisma._engine.prismaPath).toBe(customBinaryPath)
-    expect(await prisma._engine.getPrismaPath()).toBe(customBinaryPath)
+    expect(prisma._engine.config.prismaPath).toBe(customBinaryPath)
   }
 
   const users = await prisma.user.findMany()
