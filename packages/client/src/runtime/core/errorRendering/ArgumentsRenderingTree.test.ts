@@ -162,7 +162,7 @@ test('AnyNull', () => {
 
 test('FieldRef', () => {
   const tree = buildArgumentsRenderingTree({
-    where: { field: new FieldRefImpl('User', 'someField', 'Int', false) },
+    where: { field: new FieldRefImpl('User', 'someField', 'Int', false, false) },
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
