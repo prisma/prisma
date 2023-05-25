@@ -157,14 +157,10 @@ export async function executeSeedCommand({
   commandFromConfig: string
   extraArgs?: string
 }): Promise<boolean> {
-  let command = commandFromConfig
-
-  // Used in `DbSeed.ts` to pass the extra params after a -- separator
-  // Example: db seed -- --custom-param
-  // Then extraArgs will be '--custom-param'
-  if (extraArgs) {
-    command = `${commandFromConfig} ${extraArgs}`
-  }
+  // extraArgs can be passed in `DbSeed.ts` for the extra args after a -- separator
+  // Example: db seed -- --custom-arg
+  // Then extraArgs will be '--custom-arg'
+  const command = extraArgs ? `${commandFromConfig} ${extraArgs}` : commandFromConfig
 
   console.info(`Running seed command \`${italic(command)}\` ...`)
   try {

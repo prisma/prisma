@@ -6,6 +6,6 @@
     "@types/node": "14.18.42"
   },
   "prisma": {
-    "seed": "node prisma/seed.js --my-custom-arg-from-config=my-value"
+    "seed": "node prisma/seed.js --my-custom-arg-from-config-1 my-value --my-custom-arg-from-config-2=my-value -y"
   }
 }
