@@ -24,11 +24,11 @@ function isPackageInstalledGlobally(name) {
 }
 
 function prismaIsInstalledGlobally() {
-  const prisma2InstalledGlobally = isPackageInstalledGlobally('prisma2')
-  if (prisma2InstalledGlobally) {
+  const prismaInstalledGlobally = isPackageInstalledGlobally('prisma')
+  if (prismaInstalledGlobally) {
     return {
-      ...prisma2InstalledGlobally,
-      name: 'prisma2',
+      ...prismaInstalledGlobally,
+      name: 'prisma',
     }
   }
 
