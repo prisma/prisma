@@ -59,7 +59,7 @@ function removePlatforms(str) {
 // Note that on Windows the file name doesn't start with "lib".
 function normalizeNodeApiLibFilePath(str) {
   return str.replace(
-    /((lib)?query_engine-TEST_PLATFORM.)(.*)(.node)/,
+    /((lib)?query_engine-TEST_PLATFORM\.)(.*)(\.node)/g,
     'libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node',
   )
 }

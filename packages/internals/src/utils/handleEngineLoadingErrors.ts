@@ -1,10 +1,10 @@
-import { link, type PlatformWithOSResult } from '@prisma/get-platform'
+import { link, type PlatformInfo } from '@prisma/get-platform'
 import { dim } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 type HandleLibraryLoadingErrorsInput = {
   e: Error
-  platformInfo: PlatformWithOSResult
+  platformInfo: PlatformInfo
   id: string
 }
 
