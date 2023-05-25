@@ -734,11 +734,16 @@ ${indent(value.toString(), 2)}
         (value as any[])
           .map((nestedValue) => {
             if (nestedValue instanceof Args) {
+              // array element is an object - stringify it, wrapping in {}
               return `{\n${indent(nestedValue.toString(), tab)}\n}`
             }
             if (nestedValue instanceof Arg) {
+              // array element is scalar value, wrapped in Arg (for example, for error reporting purposes)
+              // Stringify just the value, ignoring the key
               return nestedValue.stringifyValue(nestedValue.value)
             }
+
+            // array element is a plain scalar value
             return stringify(nestedValue, this.inputType)
           })
           .join(`,${isScalar ? ' ' : '\n'}`),
@@ -777,16 +782,22 @@ ${indent(value.toString(), 2)}
       return errors.concat(
         (this.value as any[]).flatMap((val, index) => {
           if (val instanceof Args) {
+            // array element is in object
             return val.collectErrors().map((e) => {
+              // append parent path and index to a nested error path
               return { ...e, path: [this.key, String(index), ...e.path] }
             })
           }
 
           if (val instanceof Arg) {
+            // value is not an object and has errors attached to it
             return val.collectErrors().map((e) => {
+              // append parent path to the error. index is already a part of e.path
               return { ...e, path: [this.key, ...e.path] }
             })
           }
+
+          // scalar value that has no errors attached
           return []
         }),
       )
@@ -1549,6 +1560,12 @@ function tryInferArgs(
   })
 }
 
+/**
+ * Turns list input type into scalar - used for reporting
+ * mismatched array elements errors.
+ * @param listType
+ * @returns
+ */
 function scalarType(listType: DMMF.SchemaArgInputType): DMMF.SchemaArgInputType {
   return {
     ...listType,
@@ -1556,6 +1573,13 @@ function scalarType(listType: DMMF.SchemaArgInputType): DMMF.SchemaArgInputType 
   }
 }
 
+/**
+ * Filters out all list input types out of an arg, so out
+ * of T | T[] union only T will remain. Used for reporting mismatched
+ * array element errors
+ * @param arg
+ * @returns
+ */
 function scalarOnlyArg(arg: DMMF.SchemaArg): DMMF.SchemaArg {
   return {
     ...arg,
