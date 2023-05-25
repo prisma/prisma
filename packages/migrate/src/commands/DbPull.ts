@@ -98,9 +98,6 @@ Set composite types introspection depth to 2 levels
       '--schemas': String,
       '--force': Boolean,
       '--composite-type-depth': Number, // optional, only on mongodb
-      // deprecated
-      '--experimental-reintrospection': Boolean,
-      '--clean': Boolean,
     })
 
     const spinnerFactory = createSpinner(!args['--print'])
@@ -113,24 +110,6 @@ Set composite types introspection depth to 2 levels
 
     if (args['--help']) {
       return this.help()
-    }
-
-    if (args['--clean'] || args['--experimental-reintrospection']) {
-      const renamedMessages: string[] = []
-      if (args['--experimental-reintrospection']) {
-        renamedMessages.push(
-          `The ${red(
-            '--experimental-reintrospection',
-          )} flag has been removed and is now the default behavior of ${green('prisma db pull')}.`,
-        )
-      }
-
-      if (args['--clean']) {
-        renamedMessages.push(`The ${red('--clean')} flag has been renamed to ${green('--force')}.`)
-      }
-
-      console.error(`\n${renamedMessages.join('\n')}\n`)
-      process.exit(1)
     }
 
     const url: string | undefined = args['--url']

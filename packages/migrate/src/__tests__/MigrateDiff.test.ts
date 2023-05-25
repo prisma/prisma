@@ -2,7 +2,6 @@
 /* eslint-disable jest/no-identical-title */
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import stripAnsi from 'strip-ansi'
 
 import { MigrateDiff } from '../commands/MigrateDiff'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
@@ -18,16 +17,6 @@ const originalEnv = { ...process.env }
 
 describe('migrate diff', () => {
   describe('generic', () => {
-    it('should trigger a warning if --preview-feature is provided', async () => {
-      ctx.fixture('introspection/sqlite')
-      await MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-url=file:dev.db'])
-
-      expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
-        prisma:warn "prisma migrate diff" was in Preview and is now Generally Available.
-        You can now remove the --preview-feature flag.
-      `)
-    })
-
     it('should fail if missing --from-... and --to-...', async () => {
       ctx.fixture('empty')
 

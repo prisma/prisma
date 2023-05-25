@@ -21,7 +21,6 @@ export class CLI implements Command {
       '--version': Boolean,
       '-v': '--version',
       '--json': Boolean, // for -v
-      '--experimental': Boolean,
       '--preview-feature': Boolean,
       '--early-access-feature': Boolean,
       '--telemetry-information': String,

@@ -13,10 +13,8 @@ import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
-import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
-import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 import { printFilesFromMigrationIds } from '../utils/printFiles'
@@ -62,8 +60,6 @@ ${bold('Examples')}
       '-f': '--force',
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
-      '--experimental': Boolean,
-      '--early-access-feature': Boolean,
       '--schema': String,
       '--telemetry-information': String,
     })
@@ -78,21 +74,11 @@ ${bold('Examples')}
       return this.help()
     }
 
-    if (args['--experimental']) {
-      throw new ExperimentalFlagWithMigrateError()
-    }
-
-    if (args['--early-access-feature']) {
-      throw new EarlyAccessFeatureFlagWithMigrateError()
-    }
-
     loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
     printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
-
-    throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // Automatically create the database if it doesn't exist
     const wasDbCreated = await ensureDatabaseExists('create', schemaPath)

@@ -19,11 +19,9 @@ import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
-import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
 import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
-import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
 import { printDatasource } from '../utils/printDatasource'
@@ -82,8 +80,6 @@ ${bold('Examples')}
       '--schema': String,
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
-      '--experimental': Boolean,
-      '--early-access-feature': Boolean,
       '--telemetry-information': String,
     })
 
@@ -97,14 +93,6 @@ ${bold('Examples')}
       return this.help()
     }
 
-    if (args['--experimental']) {
-      throw new ExperimentalFlagWithMigrateError()
-    }
-
-    if (args['--early-access-feature']) {
-      throw new EarlyAccessFeatureFlagWithMigrateError()
-    }
-
     loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
@@ -113,8 +101,6 @@ ${bold('Examples')}
     printDatasource({ datasourceInfo })
 
     console.info() // empty line
-
-    throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // Validate schema (same as prisma validate)
     const schema = fs.readFileSync(schemaPath, 'utf-8')

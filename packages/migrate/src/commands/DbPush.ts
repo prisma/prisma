@@ -9,7 +9,6 @@ import {
   HelpError,
   isError,
   loadEnvFile,
-  logger,
   protocolToConnectorType,
 } from '@prisma/internals'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
@@ -18,7 +17,7 @@ import prompt from 'prompts'
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
 import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
-import { DbPushForceFlagRenamedError, DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
+import { DbPushIgnoreWarningsWithFlagError } from '../utils/errors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 
@@ -60,16 +59,11 @@ ${bold('Examples')}
       {
         '--help': Boolean,
         '-h': '--help',
-        '--preview-feature': Boolean,
         '--accept-data-loss': Boolean,
         '--force-reset': Boolean,
         '--skip-generate': Boolean,
         '--schema': String,
         '--telemetry-information': String,
-        // Deprecated
-        // --force renamed to --accept-data-loss in 2.17.0
-        '--force': Boolean,
-        '-f': '--force',
       },
       false,
     )
@@ -82,15 +76,6 @@ ${bold('Examples')}
 
     if (args['--help']) {
       return this.help()
-    }
-
-    if (args['--preview-feature']) {
-      logger.warn(`Prisma "db push" was in Preview and is now Generally Available.
-You can now remove the ${red('--preview-feature')} flag.`)
-    }
-
-    if (args['--force']) {
-      throw new DbPushForceFlagRenamedError()
     }
 
     loadEnvFile(args['--schema'], true)

@@ -13,22 +13,6 @@ describe('common', () => {
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
           `)
   })
-  it('should fail if experimental flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateResolve.new().parse(['--experimental'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was Experimental and is now Generally Available.
-            WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
-          `)
-  })
-  it('should fail if early access flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateResolve.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now Generally Available.
-            Remove the --early-access-feature flag.
-          `)
-  })
   it('should fail if no --applied or --rolled-back', async () => {
     ctx.fixture('schema-only-sqlite')
     const result = MigrateResolve.new().parse([])

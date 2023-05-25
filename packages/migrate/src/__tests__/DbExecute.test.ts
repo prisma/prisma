@@ -4,7 +4,6 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
-import stripAnsi from 'strip-ansi'
 
 import { DbExecute } from '../commands/DbExecute'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
@@ -24,23 +23,6 @@ const originalEnv = { ...process.env }
 
 describe('db execute', () => {
   describe('generic', () => {
-    it('should trigger a warning if --preview-feature is provided', async () => {
-      ctx.fixture('empty')
-      expect.assertions(3)
-
-      try {
-        await DbExecute.new().parse(['--preview-feature', '--file=./doesnotexists.sql', '--schema=1'])
-      } catch (e) {
-        expect(e.code).toEqual(undefined)
-        expect(e.message).toMatchInlineSnapshot(`Provided --file at ./doesnotexists.sql doesn't exist.`)
-      }
-
-      expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
-        prisma:warn "prisma db execute" was in Preview and is now Generally Available.
-        You can now remove the --preview-feature flag.
-      `)
-    })
-
     it('should fail if missing --file and --stdin', async () => {
       ctx.fixture('empty')
 

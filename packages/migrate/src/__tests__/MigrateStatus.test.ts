@@ -13,22 +13,6 @@ describe('common', () => {
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
           `)
   })
-  it('should fail if experimental flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateStatus.new().parse(['--experimental'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was Experimental and is now Generally Available.
-            WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
-          `)
-  })
-  it('should fail if early access flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateStatus.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now Generally Available.
-            Remove the --early-access-feature flag.
-          `)
-  })
 })
 
 describe('sqlite', () => {
@@ -200,24 +184,6 @@ describe('sqlite', () => {
     `)
     expect(mockExit).toHaveBeenCalledWith(1)
     mockExit.mockRestore()
-  })
-
-  it('old-migrate', async () => {
-    ctx.fixture('old-migrate')
-    const result = MigrateStatus.new().parse([])
-    await expect(result).rejects.toMatchInlineSnapshot(`
-            The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
-
-            Read more about how to upgrade to the new version of Migrate:
-            https://pris.ly/d/migrate-upgrade
-          `)
-
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      Prisma schema loaded from schema.prisma
-      Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
-    `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchSnapshot()
   })
 
   it('reset', async () => {
