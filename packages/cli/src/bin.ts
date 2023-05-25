@@ -19,7 +19,7 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import { bold, green, red, yellow } from 'kleur/colors'
+import { bold, red } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
