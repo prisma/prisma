@@ -1,4 +1,5 @@
 import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/internals'
+import { ArgError } from 'arg'
 import { bold, dim, red, yellow } from 'kleur/colors'
 
 import {
@@ -23,6 +24,11 @@ ${bold('Usage')}
 ${bold('Options')}
 
   -h, --help   Display this help message
+
+${bold('Examples')}
+
+  Passing extra arguments to the seed command
+    ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -39,6 +45,11 @@ ${bold('Options')}
     )
 
     if (isError(args)) {
+      if (args instanceof ArgError && args.code === 'ARG_UNKNOWN_OPTION') {
+        throw new Error(`${args.message}
+Did you mean to pass these as arguments to your seed script? If so, add a -- separator before them:
+${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
+      }
       return this.help(args.message)
     }
 

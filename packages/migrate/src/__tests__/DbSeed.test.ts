@@ -18,7 +18,7 @@ describe('seed', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
-  it('seed.js with extra args', async () => {
+  it('seed.js with -- extra args should succeed', async () => {
     ctx.fixture('seed-sqlite-js-extra-args')
 
     const result = DbSeed.new().parse(['--', '--my-custom-arg-from-cli=my-value', '-z'])
@@ -26,6 +26,20 @@ describe('seed', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
       `Running seed command \`node prisma/seed.js --my-custom-arg-from-config=my-value --my-custom-arg-from-cli=my-value -z\` ...`,
     )
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  it('seed.js with extra args but missing -- should throw with specific message', async () => {
+    ctx.fixture('seed-sqlite-js-extra-args')
+
+    const result = DbSeed.new().parse(['--my-custom-arg-from-cli=my-value', '-z'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+      unknown or unexpected option: --my-custom-arg-from-cli
+      Did you mean to pass these as arguments to your seed script? If so, add a -- separator before them:
+      $ prisma db seed -- --arg1 value1 --arg2 value2
+    `)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
