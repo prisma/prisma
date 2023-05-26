@@ -14,7 +14,7 @@ type DefineMatrixOptions<MatrixT extends TestSuiteMatrix> = {
 }
 
 /**
- * Trests factory function. Receives all matrix parameters, used for this suite as a moment
+ * Tests factory function. Receives all matrix parameters, used for this suite as a moment
  * and generic suite metadata as an arguments.
  *
  * @param setupDatabase Manually setup the database of a test. Can only be called if `skipDb` is true.
