@@ -111,13 +111,6 @@ export async function buildClient({
     edge: true,
   }
 
-  const denoEdgeClientOptions = {
-    ...edgeClientOptions,
-    runtimeName: 'index.d.ts',
-    runtimeDir: '../' + runtimeDirs.edge,
-    esm: true,
-  }
-
   const fileMap = {} // we will store the generated contents here
 
   // we create a regular client that is fit for Node.js
@@ -156,15 +149,11 @@ export async function buildClient({
 
   // we create a client that is fit for the deno deploy runtime
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno && dataProxy === true) {
-    const denoEsmEdgeClient = new TSClient({ ...denoEdgeClientOptions })
-
-    fileMap['deno/index.d.ts'] = denoEsmEdgeClient.toTS()
-    fileMap['deno/edge.js'] = await denoEsmEdgeClient.toJS()
     fileMap['deno/edge.ts'] = `
-import './polyfill.js'
-// @deno-types="./index.d.ts"
-export * from './edge.js'`
-    fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
+globalThis.global = globalThis
+globalThis.process = { env: Deno.env.toObject() }
+// @deno-types="../index.d.ts"
+export * from '../edge.mjs'`
   }
 
   return {
