@@ -17,7 +17,7 @@ testMatrix.setupTestSuite(
       await setupDatabase()
 
       // Expect it to work
-      await expect(client.$connect()).resolves.toBeUndefined()
+      await expect(client.user.findMany()).resolves.toEqual([])
     })
   },
   {
