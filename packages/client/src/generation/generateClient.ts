@@ -1,6 +1,7 @@
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever, ClientEngineType, getClientEngineType, Platform, setClassName } from '@prisma/internals'
+import paths from 'env-paths'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
@@ -325,6 +326,14 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   if (!fs.existsSync(proxyIndexBrowserJsPath)) {
     await fs.promises.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
+
+  try {
+    // we tell our vscode extension to reload the types by modifying this file
+    const prismaCache = paths('prisma').cache
+    const signalsPath = path.join(prismaCache, 'last-generate')
+    await fs.promises.mkdir(prismaCache, { recursive: true })
+    await fs.promises.writeFile(signalsPath, Date.now().toString())
+  } catch {}
 }
 
 function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Document): Error[] | null {
