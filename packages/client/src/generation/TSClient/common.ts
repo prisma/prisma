@@ -102,7 +102,7 @@ In case this error is unexpected for you, please report it in https://github.com
 }
 
 export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion, deno }: TSClientOptions) => ({
-  tsWithoutNamespace: () => `import type * as runtime from '${runtimeDir}/${runtimeName}${deno ? '.d.ts' : ''}';
+  tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}${deno ? '.d.ts' : ''}';
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
 type UnwrapTuple<Tuple extends readonly unknown[]> = {
   [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
