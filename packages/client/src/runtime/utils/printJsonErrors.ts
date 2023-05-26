@@ -2,6 +2,7 @@ import { bold, dim, green, red } from 'kleur/colors'
 import stripAnsi from 'strip-ansi'
 
 import { ObjectEnumValue } from '../object-enums'
+import { isDate, isValidDate } from './date'
 import { deepSet } from './deep-set'
 import stringifyObject from './stringifyObject'
 
@@ -71,10 +72,13 @@ export function printJsonWithErrors({ ast, keyPaths, valuePaths, missingItems }:
           valueStr = dim(valueStr)
         }
 
-        const keyStr = keyError ? red(key) : key
+        let keyStr = ''
+        if (typeof key === 'string') {
+          keyStr = (keyError ? red(key) : key) + ': '
+        }
         valueStr = valueError ? red(valueStr) : valueStr
         // valueStr can be multiple lines if it's an object
-        let output = indent + keyStr + ': ' + valueStr + (isOnMissingItemPath ? eol : dim(eol))
+        let output = indent + keyStr + valueStr + (isOnMissingItemPath ? eol : dim(eol))
 
         // if there is an error, add the scribble lines
         // 3 options:
@@ -116,15 +120,26 @@ function getValueLength(indent: string, key: string, value: any, stringifiedValu
     return value.length + 2 // +2 for the quotes
   }
 
+  if (Array.isArray(value) && value.length == 0) {
+    return 2
+  }
+
   if (isRenderedAsObject(value)) {
     return Math.abs(getLongestLine(`${key}: ${stripAnsi(stringifiedValue)}`) - indent.length)
+  }
+
+  if (isDate(value)) {
+    if (isValidDate(value)) {
+      return `new Date('${value.toISOString()}')`.length
+    }
+    return `new Date('Invalid Date')`.length
   }
 
   return String(value).length
 }
 
 function isRenderedAsObject(value: any) {
-  return typeof value === 'object' && value !== null && !(value instanceof ObjectEnumValue)
+  return typeof value === 'object' && value !== null && !(value instanceof ObjectEnumValue) && !isDate(value)
 }
 
 function getLongestLine(str: string): number {

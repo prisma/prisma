@@ -25,11 +25,11 @@ describe('library', () => {
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-                        path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-                        path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
-                        path.join(__dirname, "schema.prisma");
-                        path.join(process.cwd(), "out/schema.prisma")
-                `)
+      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+      path.join(__dirname, "schema.prisma");
+      path.join(process.cwd(), "out/schema.prisma")
+    `)
   })
 
   it('generates annotations for a schema and multiple engines', () => {
@@ -51,17 +51,17 @@ describe('library', () => {
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-                        path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-                        path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
+      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
 
-                        path.join(__dirname, "libquery_engine-TEST_PLATFORM.dylib.node");
-                        path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.dylib.node")
+      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
 
-                        path.join(__dirname, "query_engine-TEST_PLATFORM.dll.node");
-                        path.join(process.cwd(), "out/query_engine-TEST_PLATFORM.dll.node")
-                        path.join(__dirname, "schema.prisma");
-                        path.join(process.cwd(), "out/schema.prisma")
-                `)
+      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+      path.join(__dirname, "schema.prisma");
+      path.join(process.cwd(), "out/schema.prisma")
+    `)
   })
 })
 
@@ -80,11 +80,11 @@ describe('binary', () => {
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-                        path.join(__dirname, "query-engine-TEST_PLATFORM");
-                        path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
-                        path.join(__dirname, "schema.prisma");
-                        path.join(process.cwd(), "out/schema.prisma")
-                `)
+                              path.join(__dirname, "query-engine-TEST_PLATFORM");
+                              path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
+                              path.join(__dirname, "schema.prisma");
+                              path.join(process.cwd(), "out/schema.prisma")
+                    `)
   })
 
   it('generates annotations for a schema and multiple engines', () => {
@@ -101,17 +101,17 @@ describe('binary', () => {
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-                  path.join(__dirname, "query-engine-TEST_PLATFORM");
-                  path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
+                        path.join(__dirname, "query-engine-TEST_PLATFORM");
+                        path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
 
-                  path.join(__dirname, "query-engine-TEST_PLATFORM");
-                  path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
+                        path.join(__dirname, "query-engine-TEST_PLATFORM");
+                        path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
 
-                  path.join(__dirname, "query-engine-TEST_PLATFORM");
-                  path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
-                  path.join(__dirname, "schema.prisma");
-                  path.join(process.cwd(), "out/schema.prisma")
-            `)
+                        path.join(__dirname, "query-engine-TEST_PLATFORM");
+                        path.join(process.cwd(), "out/query-engine-TEST_PLATFORM")
+                        path.join(__dirname, "schema.prisma");
+                        path.join(process.cwd(), "out/schema.prisma")
+                `)
   })
 })
 
@@ -156,11 +156,11 @@ describe('special cases', () => {
 
     expect(normalizePaths(annotations)).toMatchInlineSnapshot(`
 
-      path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
-      path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.so.node")
-      path.join(__dirname, "schema.prisma");
-      path.join(process.cwd(), "out/schema.prisma")
-    `)
+            path.join(__dirname, "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node");
+            path.join(process.cwd(), "out/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+            path.join(__dirname, "schema.prisma");
+            path.join(process.cwd(), "out/schema.prisma")
+        `)
 
     expect(annotations).toContain('rhel-openssl-1.0.x')
   })

@@ -1,6 +1,6 @@
 import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, pathToPosix } from '@prisma/internals'
 import path from 'path'
 
 import { TSClientOptions } from '../TSClient/TSClient'
@@ -74,10 +74,10 @@ function buildNFTAnnotation(esm: boolean, fileName: string, relativeOutdir: stri
 
   if (esm === true) {
     return `
-new URL(${JSON.stringify(path.join('.', fileName))}, import.meta.url)`
+new URL(${JSON.stringify(path.join('.', pathToPosix(fileName)))}, import.meta.url)`
   } else {
     return `
-path.join(__dirname, ${JSON.stringify(fileName)});
-path.join(process.cwd(), ${JSON.stringify(relativeFilePath)})`
+path.join(__dirname, ${JSON.stringify(pathToPosix(fileName))});
+path.join(process.cwd(), ${JSON.stringify(pathToPosix(relativeFilePath))})`
   }
 }

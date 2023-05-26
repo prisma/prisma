@@ -1,4 +1,4 @@
-import { fsFunctional, fsUtils } from '@prisma/internals'
+import { fsFunctional, pathToPosix } from '@prisma/internals'
 import * as E from 'fp-ts/lib/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as T from 'fp-ts/lib/Task'
@@ -29,7 +29,7 @@ type HandleViewsIOParams = {
  * In case of empty folders, these are deleted silently.
  */
 export async function handleViewsIO({ views, schemaPath }: HandleViewsIOParams): Promise<void> {
-  const prismaDir = path.dirname(fsUtils.normalizePossiblyWindowsDir(schemaPath))
+  const prismaDir = path.dirname(pathToPosix(schemaPath))
   const viewsDir = path.posix.join(prismaDir, 'views')
 
   if (views.length === 0) {

@@ -12,6 +12,9 @@ export class ArrayValue extends Value {
   }
 
   override getPrintWidth(): number {
+    if (this.items.length === 0) {
+      return 2
+    }
     const maxItemWidth = Math.max(...this.items.map((item) => item.getPrintWidth()))
     return maxItemWidth + INDENT_SIZE
   }

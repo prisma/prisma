@@ -1,6 +1,6 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths } from '@prisma/internals'
+import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import indent from 'indent-string'
 import { klona } from 'klona'
@@ -66,8 +66,8 @@ export class TSClient implements Generatable {
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
-      rootEnvPath: envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
-      schemaEnvPath: envPaths.schemaEnvPath && path.relative(outputDir, envPaths.schemaEnvPath),
+      rootEnvPath: envPaths.rootEnvPath && pathToPosix(path.relative(outputDir, envPaths.rootEnvPath)),
+      schemaEnvPath: envPaths.schemaEnvPath && pathToPosix(path.relative(outputDir, envPaths.schemaEnvPath)),
     }
 
     // This ensures that any engine override is propagated to the generated clients config
@@ -78,7 +78,7 @@ export class TSClient implements Generatable {
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
-      relativePath: path.relative(outputDir, path.dirname(schemaPath)),
+      relativePath: pathToPosix(path.relative(outputDir, path.dirname(schemaPath))),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
@@ -176,9 +176,6 @@ ${
  * Enums
  */
 
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-
 ${modelEnums.join('\n\n')}
 `
     : ''
@@ -216,9 +213,6 @@ ${modelAndTypes.map((model) => model.toTS()).join('\n')}
 /**
  * Enums
  */
-
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
 ${prismaEnums.join('\n\n')}
 ${

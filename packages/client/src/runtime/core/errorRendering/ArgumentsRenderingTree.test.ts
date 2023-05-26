@@ -162,7 +162,7 @@ test('AnyNull', () => {
 
 test('FieldRef', () => {
   const tree = buildArgumentsRenderingTree({
-    where: { field: new FieldRefImpl('User', 'someField', 'Int', false) },
+    where: { field: new FieldRefImpl('User', 'someField', 'Int', false, false) },
   })
 
   expect(printTree(tree)).toMatchInlineSnapshot(`
@@ -391,6 +391,25 @@ test('error in empty array', () => {
       where: {
         id: []
             ~~
+      }
+    }
+  `)
+})
+
+test('nested empty list', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { AND: [[]] },
+  })
+
+  tree.arguments.getDeepFieldValue(['where', 'AND'])?.markAsError()
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        AND: [
+          []
+        ]
+        ~~~~
       }
     }
   `)

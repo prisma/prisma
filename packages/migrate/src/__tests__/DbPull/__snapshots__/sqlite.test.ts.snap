@@ -1,0 +1,210 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`common/sqlite basic introspection 2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique(map: "Profile.userId")
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  email   String   @unique(map: "User.email")
+  id      Int      @id @default(autoincrement())
+  name    String?
+  posts   Post[]
+  profile Profile?
+}
+
+
+// introspectionSchemaVersion: Prisma2,
+`;
+
+exports[`common/sqlite basic introspection with --url 1`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique(map: "Profile.userId")
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  email   String   @unique(map: "User.email")
+  id      Int      @id @default(autoincrement())
+  name    String?
+  posts   Post[]
+  profile Profile?
+}
+
+
+// introspectionSchemaVersion: Prisma2,
+`;
+
+exports[`common/sqlite basic introspection with invalid --url - empty host 2`] = ``;
+
+exports[`common/sqlite basic introspection with invalid --url if schema is unspecified 2`] = ``;
+
+exports[`common/sqlite basic introspection with schema and --url missing file: prefix should fail 2`] = ``;
+
+exports[`common/sqlite basic introspection without schema and with --url missing "file:" prefix should fail 2`] = ``;
+
+exports[`common/sqlite introspection --force 2`] = `
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  User      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique(map: "Profile.userId")
+  User   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  email   String   @unique(map: "User.email")
+  id      Int      @id @default(autoincrement())
+  name    String?
+  Post    Post[]
+  Profile Profile?
+}
+
+
+// introspectionSchemaVersion: Prisma2,
+`;
+
+exports[`common/sqlite should succeed and keep changes to valid schema and output warnings when using --print 2`] = `
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model AwesomeUser {
+  email    String           @unique(map: "User.email")
+  id       Int              @id @default(autoincrement())
+  name     String?
+  newPosts AwesomeNewPost[]
+  profile  AwesomeProfile?
+
+  @@map("User")
+}
+
+model AwesomeNewPost {
+  authorId  Int
+  content   String?
+  createdAt DateTime    @default(now())
+  id        Int         @id @default(autoincrement())
+  published Boolean     @default(false)
+  title     String
+  author    AwesomeUser @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@map("Post")
+}
+
+model AwesomeProfile {
+  bio    String?
+  id     Int         @id @default(autoincrement())
+  userId Int         @unique(map: "Profile.userId")
+  user   AwesomeUser @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("Profile")
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`common/sqlite should succeed when schema is invalid and using --force 7`] = `
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:dev.db"
+}
+
+model Post {
+  authorId  Int
+  content   String?
+  createdAt DateTime @default(now())
+  id        Int      @id @default(autoincrement())
+  published Boolean  @default(false)
+  title     String
+  User      User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model Profile {
+  bio    String?
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique(map: "Profile.userId")
+  User   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  email   String   @unique(map: "User.email")
+  id      Int      @id @default(autoincrement())
+  name    String?
+  Post    Post[]
+  Profile Profile?
+}
+
+`;

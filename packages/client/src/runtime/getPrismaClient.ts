@@ -2,7 +2,7 @@ import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
 import type { DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import {
-  callOnce,
+  callOnceOnSuccess,
   ClientEngineType,
   ExtendedSpanOptions,
   getClientEngineType,
@@ -978,7 +978,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     }
 
-    _getDmmf = callOnce(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
+    _getDmmf = callOnceOnSuccess(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
       try {
         const dmmf = await this._tracingHelper.runInChildSpan({ name: 'getDmmf', internal: true }, () =>
           this._engine.getDmmf(),
@@ -992,7 +992,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     })
 
-    _getProtocolEncoder = callOnce(
+    _getProtocolEncoder = callOnceOnSuccess(
       async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>): Promise<ProtocolEncoder> => {
         if (this._engineConfig.engineProtocol === 'json') {
           return new JsonProtocolEncoder(this._runtimeDataModel, this._errorFormat)

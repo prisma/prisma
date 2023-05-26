@@ -369,6 +369,7 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
   if (libsslFilename) {
     debug(`Found libssl.so file using "ldconfig" or other generic paths: ${libsslFilename}`)
     const libsslVersion = parseLibSSLVersion(libsslFilename)
+    debug(`The parsed libssl version is: ${libsslVersion}`)
     if (libsslVersion) {
       return { libssl: libsslVersion, strategy: 'ldconfig' }
     }
@@ -428,35 +429,35 @@ async function findLibSSL(directory: string) {
  * Get the binary target for the current platform, e.g. `linux-musl-arm64-openssl-3.0.x` for Linux Alpine on arm64.
  */
 export async function getPlatform(): Promise<Platform> {
-  const { binaryTarget } = await getPlatformMemoized()
+  const { binaryTarget } = await getPlatformInfoMemoized()
   return binaryTarget
 }
 
-export type PlatformWithOSResult = GetOSResult & { binaryTarget: Platform }
+export type PlatformInfo = GetOSResult & { binaryTarget: Platform }
 
-function isPlatformWithOSResultDefined(args: Partial<PlatformWithOSResult>): args is PlatformWithOSResult {
+function isPlatformInfoDefined(args: Partial<PlatformInfo>): args is PlatformInfo {
   return args.binaryTarget !== undefined
 }
 
 /**
  * Get the binary target and other system information (e.g., the libssl version to look for) for the current platform.
  */
-export async function getPlatformWithOSResult(): Promise<PlatformWithOSResult> {
-  const { memoized: _, ...rest } = await getPlatformMemoized()
+export async function getPlatformInfo(): Promise<PlatformInfo> {
+  const { memoized: _, ...rest } = await getPlatformInfoMemoized()
   return rest
 }
 
-let memoizedPlatformWithInfo: Partial<PlatformWithOSResult> = {}
+let memoizedPlatformWithInfo: Partial<PlatformInfo> = {}
 
-export async function getPlatformMemoized(): Promise<PlatformWithOSResult & { memoized: boolean }> {
-  if (isPlatformWithOSResultDefined(memoizedPlatformWithInfo)) {
+export async function getPlatformInfoMemoized(): Promise<PlatformInfo & { memoized: boolean }> {
+  if (isPlatformInfoDefined(memoizedPlatformWithInfo)) {
     return Promise.resolve({ ...memoizedPlatformWithInfo, memoized: true })
   }
 
   const args = await getos()
   const binaryTarget = getPlatformInternal(args)
   memoizedPlatformWithInfo = { ...args, binaryTarget }
-  return { ...(memoizedPlatformWithInfo as PlatformWithOSResult), memoized: false }
+  return { ...(memoizedPlatformWithInfo as PlatformInfo), memoized: false }
 }
 
 /**

@@ -480,7 +480,7 @@ test('args - FieldRef', () => {
     serialize({
       modelName: 'User',
       action: 'findMany',
-      args: { where: { name: new FieldRefImpl('User', 'nickname', 'string', false) } },
+      args: { where: { name: new FieldRefImpl('User', 'nickname', 'string', false, false) } },
     }),
   ).toMatchInlineSnapshot(`
     {

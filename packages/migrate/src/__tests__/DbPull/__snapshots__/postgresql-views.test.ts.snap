@@ -1,0 +1,117 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`postgresql-views with preview feature and views defined introspection from custom/schema/dir/schema.prisma creates view definition files 3`] = `
+[
+  custom/schema/dir/views/public/simpleuser.sql,
+  custom/schema/dir/views/work/workers.sql,
+]
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from custom/schema/dir/schema.prisma creates view definition files 7`] = `
+Prisma schema loaded from custom/schema/dir/schema.prisma
+Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from custom/schema/dir/schema.prisma creates view definition files 9`] = `
+
+
+- Introspecting based on datasource defined in custom/schema/dir/schema.prisma
+
+✔ Introspected 2 models and wrote them into custom/schema/dir/schema.prisma in XXXms
+      
+*** WARNING ***
+
+The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+  - "simpleuser"
+  - "workers"
+
+Run prisma generate to generate Prisma Client.
+
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from non-standard-schema.prisma creates view definition files 3`] = `
+[
+  views/public/simpleuser.sql,
+  views/work/workers.sql,
+]
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from non-standard-schema.prisma creates view definition files 7`] = `
+Prisma schema loaded from non-standard-schema.prisma
+Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from non-standard-schema.prisma creates view definition files 9`] = `
+
+
+- Introspecting based on datasource defined in non-standard-schema.prisma
+
+✔ Introspected 2 models and wrote them into non-standard-schema.prisma in XXXms
+      
+*** WARNING ***
+
+The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+  - "simpleuser"
+  - "workers"
+
+Run prisma generate to generate Prisma Client.
+
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from prisma/schema.prisma creates view definition files 3`] = `
+[
+  prisma/views/public/simpleuser.sql,
+  prisma/views/work/workers.sql,
+]
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from prisma/schema.prisma creates view definition files 7`] = `
+Prisma schema loaded from prisma/schema.prisma
+Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from prisma/schema.prisma creates view definition files 9`] = `
+
+
+- Introspecting based on datasource defined in prisma/schema.prisma
+
+✔ Introspected 2 models and wrote them into prisma/schema.prisma in XXXms
+      
+*** WARNING ***
+
+The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+  - "simpleuser"
+  - "workers"
+
+Run prisma generate to generate Prisma Client.
+
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from schema.prisma creates view definition files 3`] = `
+[
+  views/public/simpleuser.sql,
+  views/work/workers.sql,
+]
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from schema.prisma creates view definition files 7`] = `
+Prisma schema loaded from schema.prisma
+Datasource "db": PostgreSQL database "tests-migrate-db-pull-postgresql-views", schemas "public, work" at "localhost:5432"
+`;
+
+exports[`postgresql-views with preview feature and views defined introspection from schema.prisma creates view definition files 9`] = `
+
+
+- Introspecting based on datasource defined in schema.prisma
+
+✔ Introspected 2 models and wrote them into schema.prisma in XXXms
+      
+*** WARNING ***
+
+The following views were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client. Please refer to the documentation on defining unique identifiers in views: https://pris.ly/d/view-identifiers
+  - "simpleuser"
+  - "workers"
+
+Run prisma generate to generate Prisma Client.
+
+`;

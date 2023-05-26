@@ -35,10 +35,12 @@ on:
         required: false
       BUILDPULSE_SECRET_ACCESS_KEY:
         required: false
+      # Docker Hub credentials must be passed to avoid rate limiting
+      # But they are not required, so forks can run the workflow without defining them
       DOCKERHUB_USERNAME:
-        required: true
+        required: false
       DOCKERHUB_TOKEN:
-        required: true
+        required: false
       BOT_TOKEN:
         required: false
 
@@ -108,7 +110,7 @@ jobs:
   #
   client:
     timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ${{ inputs.ubuntuRunner }}
+    runs-on: ubuntu-latest
 
     needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
@@ -116,6 +118,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
         queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
         engineProtocol: ['graphql', 'json']
         node: [16, 18]
@@ -185,11 +188,11 @@ jobs:
       - run: bash .github/workflows/scripts/setup.sh
 
       # Run the functional test suite
-      - run: pnpm run test:functional
+      - run: pnpm run test:functional --shard ${{ matrix.shard }}
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
-      - run: pnpm run test-notypes
+      - run: pnpm run test-notypes --shard ${{ matrix.shard }}
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
 
@@ -222,7 +225,7 @@ jobs:
   #
   client-dataproxy:
     timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ${{ inputs.ubuntuRunner }}
+    runs-on: ubuntu-latest
 
     needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
@@ -230,6 +233,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [14, 16, 18]
         engineProtocol: ['graphql', 'json']
         exclude: ${{ fromJson(needs.determineBuildMatrixParams.outputs.excludeDataProxy) }}
@@ -264,7 +268,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:functional --data-proxy
+      - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
@@ -281,7 +285,7 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
           PRISMA_ENGINE_PROTOCOL: '${{ matrix.engineProtocol }}'
 
-      - run: pnpm run test:functional --data-proxy --edge-client
+      - run: pnpm run test:functional --data-proxy --edge-client --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
@@ -1057,9 +1061,7 @@ jobs:
         os: [macos-latest, windows-latest]
         node: [14]
         queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
-        # Commented out as we still have limited capacity for macOS runners
-        # When we have more capacity we can shard again
-        # shard: ['1', '2']
+        shard: ['1/2', '2/2']
 
     needs: determineBuildMatrixParams
     if: |
@@ -1103,11 +1105,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Test packages/client
-        # Commented out as we still have limited capacity for macOS runners
-        # When we have more capacity we can shard again
-        # run: pnpm run test:functional:code --shard=${{matrix.shard}}/2
-        # No shard:
-        run: pnpm run test:functional:code
+        run: pnpm run test:functional:code --shard ${{matrix.shard}}
         working-directory: packages/client
         env:
           CI: true

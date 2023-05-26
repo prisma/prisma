@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import { getNodeAPIName, getos, getPlatform, isNodeAPISupported, Platform, platforms } from '@prisma/get-platform'
+import { assertNodeAPISupported, getNodeAPIName, getos, getPlatform, Platform, platforms } from '@prisma/get-platform'
 import execa from 'execa'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
@@ -82,7 +82,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       )} Precompiled engine files are not available for ${platform}. Read more about building your own engines at https://pris.ly/d/build-engines`,
     )
   } else if (BinaryType.QueryEngineLibrary in options.binaries) {
-    isNodeAPISupported()
+    assertNodeAPISupported()
   }
 
   // no need to do anything, if there are no binaries
@@ -315,7 +315,7 @@ async function binaryNeedsToBeDownloaded(
 export async function getVersion(enginePath: string, binaryName: string) {
   try {
     if (binaryName === BinaryType.QueryEngineLibrary) {
-      void isNodeAPISupported()
+      assertNodeAPISupported()
 
       const commitHash = require(enginePath).version().commit
       return `${BinaryType.QueryEngineLibrary} ${commitHash}`
@@ -463,6 +463,7 @@ function engineTypeToBinaryType(engineType: string, binaryTarget: string): strin
   if (BinaryType[engineType]) {
     return BinaryType[engineType]
   }
+
   if (engineType === 'native') {
     return binaryTarget
   }

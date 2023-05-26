@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
+import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
 import { EngineSpanEvent } from '@prisma/internals'
 import fs from 'fs'
 import { bold, green, red, yellow } from 'kleur/colors'
@@ -110,7 +110,7 @@ Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextj
       } else if (config.isBundled === true) {
         throw new PrismaClientInitializationError(
           `Prisma Client could not find its \`schema.prisma\`. This is likely caused by a bundling step, which leads to \`schema.prisma\` not being copied near the resulting bundle. We would appreciate if you could take the time to share some information with us.
-Please help us by answering a few questions: https://pris.ly/bundler-investigation`,
+Please help us by answering a few questions: https://pris.ly/bundler-investigation-error`,
           config.clientVersion!,
         )
       }
@@ -195,7 +195,7 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
       return this.libraryInstantiationPromise
     }
 
-    isNodeAPISupported()
+    assertNodeAPISupported()
     this.platform = await this.getPlatform()
     await this.loadEngine()
     this.version()
@@ -285,7 +285,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     if (!event) return
 
     if ('span' in event) {
-      this.config.tracingHelper.createEngineSpan(event as EngineSpanEvent)
+      void this.config.tracingHelper.createEngineSpan(event as EngineSpanEvent)
 
       return
     }
