@@ -39,7 +39,7 @@ export const commonCodeJS = ({
   warnEnvConflicts,
   defineDmmfProperty`
 }
-} ${esm === true ? 'from ' : '= require('}'${runtimeDir}/${runtimeName}${esm === true ? ".mjs'" : "')"}
+} ${esm ? 'from ' : '= require('}'${runtimeDir}/${runtimeName}${esm ? ".mjs'" : ".js')"}
 
 const Prisma = {}
 
