@@ -71,21 +71,21 @@ export class Version implements Command {
 
     const enginesRows = enginesMetaInfo.map((engineMetaInfo) => {
       return match(engineMetaInfo)
-        .with({ 'query-engine': P.select() }, (currEngineInfo) => {
+        .with({ 'query-engine': P.select(), 'migration-engine': P.select() }, (currEngineInfo) => {
           return [
-            `Query Engine${cliQueryEngineBinaryType === BinaryType.QueryEngineLibrary ? ' (Node-API)' : ' (Binary)'}`,
-            currEngineInfo,
+            [
+              `Query Engine${cliQueryEngineBinaryType === BinaryType.QueryEngineLibrary ? ' (Node-API)' : ' (Binary)'}`,
+              currEngineInfo,
+            ],
+            ['Migration Engine', currEngineInfo],
           ]
-        })
-        .with({ 'migration-engine': P.select() }, (currEngineInfo) => {
-          return ['Migration Engine', currEngineInfo]
         })
         .exhaustive()
     })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
-    const rows = [
+    const rows: string[][] = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],

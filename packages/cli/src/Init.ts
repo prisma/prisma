@@ -69,6 +69,7 @@ export const defaultPort = (provider: ConnectorType) => {
 
 export const defaultURL = (provider: ConnectorType, port = defaultPort(provider), schema = 'public') => {
   switch (provider) {
+    case 'postgres':
     case 'postgresql':
       return `postgresql://johndoe:randompassword@localhost:${port}/mydb?schema=${schema}`
     case 'cockroachdb':
