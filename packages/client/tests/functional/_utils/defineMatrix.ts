@@ -1,6 +1,6 @@
 import { U } from 'ts-toolbelt'
 
-import { NamedTestSuiteConfig, TestSuiteMatrix } from './getTestSuiteInfo'
+import { TestSuiteMatrix } from './getTestSuiteInfo'
 import { setupTestSuiteMatrix, TestCallbackSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, MatrixOptions } from './types'
 
@@ -20,7 +20,7 @@ type DefineMatrixOptions<MatrixT extends TestSuiteMatrix> = {
  * @param setupDatabase Manually setup the database of a test. Can only be called if `skipDb` is true.
  */
 type TestsFactoryFn<MatrixT extends TestSuiteMatrix> = (
-  suiteConfig: MergedMatrixParams<MatrixT> & { _config: NamedTestSuiteConfig },
+  suiteConfig: MergedMatrixParams<MatrixT>,
   suiteMeta: TestCallbackSuiteMeta,
   clientMeta: ClientMeta,
   setupDatabase: () => Promise<void>,
