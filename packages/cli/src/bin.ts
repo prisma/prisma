@@ -51,13 +51,6 @@ const commandArray = process.argv.slice(2)
 
 process.removeAllListeners('warning')
 
-const debug = Debug('prisma:cli')
-process.on('uncaughtException', (e) => {
-  debug(e)
-})
-process.on('unhandledRejection', (e) => {
-  debug(e)
-})
 // Listen to Ctr + C and exit
 process.once('SIGINT', () => {
   process.exit(130)
