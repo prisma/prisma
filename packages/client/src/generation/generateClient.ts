@@ -327,11 +327,13 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     await fs.promises.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
 
-  // we tell our vscode extension to reload the types by modifying this file
-  const prismaCache = paths('prisma').cache
-  const signalsPath = path.join(prismaCache, 'last-generate')
-  await fs.promises.mkdir(prismaCache, { recursive: true }).catch(() => {})
-  await fs.promises.writeFile(signalsPath, Date.now().toString()).catch(() => {})
+  try {
+    // we tell our vscode extension to reload the types by modifying this file
+    const prismaCache = paths('prisma').cache
+    const signalsPath = path.join(prismaCache, 'last-generate')
+    await fs.promises.mkdir(prismaCache, { recursive: true })
+    await fs.promises.writeFile(signalsPath, Date.now().toString())
+  } catch {}
 }
 
 function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Document): Error[] | null {
