@@ -30,5 +30,9 @@ testMatrix.setupTestSuite(
         instead of Prisma.PrismaClientInitializationError.
       `,
     },
+    optOut: {
+      from: ['mongodb'],
+      reason: 'First query does not fail even when database does not exist.',
+    },
   },
 )
