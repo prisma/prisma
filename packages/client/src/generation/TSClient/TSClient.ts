@@ -47,6 +47,7 @@ export interface TSClientOptions {
   browser: boolean
   edge: boolean
   esm: boolean
+  deno: boolean
 }
 
 export class TSClient implements Generatable {

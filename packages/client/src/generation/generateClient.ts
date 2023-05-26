@@ -100,6 +100,7 @@ export async function buildClient({
     runtimeDir: runtimeDirs.node,
     browser: false,
     edge: false,
+    deno: !!generator?.previewFeatures.includes('deno') && !!globalThis.Deno,
   }
 
   const edgeClientOptions = {
@@ -109,6 +110,7 @@ export async function buildClient({
     dataProxy: true,
     browser: false,
     edge: true,
+    deno: !!generator?.previewFeatures.includes('deno') && !!globalThis.Deno,
   }
 
   const fileMap = {} // we will store the generated contents here
@@ -148,7 +150,7 @@ export async function buildClient({
   }
 
   // we create a client that is fit for the deno deploy runtime
-  if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno && dataProxy === true) {
+  if (dataProxy === true && edgeClientOptions.deno === true) {
     fileMap['deno/edge.ts'] = `
 globalThis.global = globalThis
 globalThis.process = { env: Deno.env.toObject() }
