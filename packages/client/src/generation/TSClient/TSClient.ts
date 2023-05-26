@@ -196,9 +196,6 @@ ${
  * Enums
  */
 
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-
 ${modelEnums.join('\n\n')}
 `
     : ''
@@ -235,9 +232,6 @@ ${modelAndTypes.map((model) => model.toTS()).join('\n')}
 /**
  * Enums
  */
-
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
 ${prismaEnums.join('\n\n')}
 ${
