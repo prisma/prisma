@@ -395,3 +395,22 @@ test('error in empty array', () => {
     }
   `)
 })
+
+test('nested empty list', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { AND: [[]] },
+  })
+
+  tree.arguments.getDeepFieldValue(['where', 'AND'])?.markAsError()
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        AND: [
+          []
+        ]
+        ~~~~
+      }
+    }
+  `)
+})

@@ -15,7 +15,7 @@ const getOwnEnumPropSymbols = require('get-own-enumerable-property-symbols').def
 const stringifyObject = (input, options?: any, pad?: any) => {
   const seen: any[] = []
 
-  return (function stringifyObject(input, options = {}, pad = '', path = []) {
+  return (function stringifyObject(input, options = {}, pad = '', path: (string | number)[] = []) {
     options.indent = options.indent || '\t'
 
     let tokens
@@ -100,12 +100,25 @@ const stringifyObject = (input, options?: any, pad?: any) => {
           .map((el, i) => {
             const eol = input.length - 1 === i ? tokens.newLine : ',' + tokens.newLineOrSpace
 
-            let value = stringifyObject(el, options, pad + options.indent, [...path, i] as any)
+            let value = stringifyObject(el, options, pad + options.indent, [...path, i])
             if (options.transformValue) {
               value = options.transformValue(input, i, value)
             }
 
-            return tokens.indent + value + eol
+            let line = tokens.indent + value + eol
+            if (options.transformLine) {
+              line = options.transformLine({
+                obj: input,
+                indent: tokens.indent,
+                key: i,
+                stringifiedValue: value,
+                value: input[i],
+                eol,
+                originalLine: line,
+                path: path.concat(i),
+              })
+            }
+            return line
           })
           .join('') +
         tokens.pad +
