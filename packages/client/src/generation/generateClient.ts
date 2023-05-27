@@ -151,7 +151,7 @@ export async function buildClient({
 
   // we create a client that is fit for the deno deploy runtime
   if (dataProxy === true && edgeClientOptions.deno === true) {
-    fileMap[`./runtime/${getNodeRuntimeName(clientEngineType, dataProxy)}.d.ts`] = `export * from 'index.d.ts'`
+    fileMap[`./runtime/${getNodeRuntimeName(clientEngineType, dataProxy)}.d.ts`] = `export * from './index.d.ts'`
     fileMap['deno/edge.ts'] = `
 globalThis.global = globalThis
 globalThis.process = { env: Deno.env.toObject() }
