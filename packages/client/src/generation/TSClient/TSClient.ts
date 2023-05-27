@@ -132,7 +132,7 @@ ${buildExports(this.options)}
   public toTS(): string {
     const { edge, deno } = this.options
     // edge exports the same ts definitions as the index
-    if (edge === true) return `export * from './index${deno ? '.d.ts' : ''}`
+    if (edge === true) return `export * from './index${deno ? '.d.ts' : ''}'`
 
     const prismaClientClass = new PrismaClientClass(
       this.dmmf,

@@ -144,17 +144,18 @@ export async function buildClient({
     const edgeCjsClient = new TSClient({ ...edgeClientOptions, esm: false })
     const edgeEsmClient = new TSClient({ ...edgeClientOptions, esm: true })
 
-    fileMap['edge.d.ts'] = nodeCjsClient.toTS()
+    fileMap['edge.d.ts'] = edgeCjsClient.toTS()
     fileMap['edge.js'] = await edgeCjsClient.toJS()
     fileMap['edge.mjs'] = await edgeEsmClient.toJS()
   }
 
   // we create a client that is fit for the deno deploy runtime
   if (dataProxy === true && edgeClientOptions.deno === true) {
+    fileMap[`./runtime/${getNodeRuntimeName(clientEngineType, dataProxy)}.d.ts`] = `export * from 'index.d.ts'`
     fileMap['deno/edge.ts'] = `
 globalThis.global = globalThis
 globalThis.process = { env: Deno.env.toObject() }
-// @deno-types="../index.d.ts"
+// @deno-types="../edge.d.ts"
 export * from '../edge.mjs'`
   }
 
@@ -253,17 +254,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   // outputDir:       /home/millsp/Work/prisma/packages/client
   // finalOutputDir:  /home/millsp/Work/prisma/.prisma/client
 
-  await Promise.all(
-    Object.entries(fileMap).map(async ([fileName, file]) => {
-      const filePath = path.join(finalOutputDir, fileName)
-      // The deletion of the file is necessary, so VSCode
-      // picks up the changes.
-      if (await exists(filePath)) {
-        await fs.promises.unlink(filePath)
-      }
-      await fs.promises.writeFile(filePath, file)
-    }),
-  )
   const runtimeSourceDir = testMode
     ? eval(`require('path').join(__dirname, '../../runtime')`)
     : eval(`require('path').join(__dirname, '../runtime')`)
@@ -281,6 +271,21 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       })
     }
   }
+
+  console.log(getNodeRuntimeName(clientEngineType, dataProxy))
+
+  await Promise.all(
+    Object.entries(fileMap).map(async ([fileName, file]) => {
+      const filePath = path.join(finalOutputDir, fileName)
+      // The deletion of the file is necessary, so VSCode
+      // picks up the changes.
+      if (await exists(filePath)) {
+        await fs.promises.unlink(filePath)
+      }
+      await fs.promises.writeFile(filePath, file)
+    }),
+  )
+
   const enginePath =
     clientEngineType === ClientEngineType.Library ? binaryPaths.libqueryEngine : binaryPaths.queryEngine
 
