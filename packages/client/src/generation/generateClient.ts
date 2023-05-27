@@ -153,8 +153,8 @@ export async function buildClient({
   if (dataProxy === true && edgeClientOptions.deno === true) {
     fileMap[`./runtime/${getNodeRuntimeName(clientEngineType, dataProxy)}.d.ts`] = `export * from './index.d.ts'`
     fileMap['deno/edge.ts'] = `
-globalThis.global = globalThis
-globalThis.process = { env: Deno.env.toObject() }
+(globalThis as any).global = globalThis as any
+(globalThis as any).process = { env: Deno.env.toObject() }
 // @deno-types="../edge.d.ts"
 export * from '../edge.mjs'`
   }
