@@ -272,8 +272,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     }
   }
 
-  console.log(getNodeRuntimeName(clientEngineType, dataProxy))
-
   await Promise.all(
     Object.entries(fileMap).map(async ([fileName, file]) => {
       const filePath = path.join(finalOutputDir, fileName)
