@@ -33,7 +33,7 @@ export function buildDirname({ edge, esm }: TSClientOptions, relativeOutdir: str
 function buildDirnameFind(esm: boolean, relativeOutdir: string) {
   let dirname = ''
   if (esm === true) {
-    dirname = `new URL('.', import.meta.url).pathname`
+    dirname = `path.dirname(fileURLToPath(import.meta.url))`
   } else {
     dirname = `__dirname`
   }
