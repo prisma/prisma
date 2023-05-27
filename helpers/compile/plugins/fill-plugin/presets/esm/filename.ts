@@ -1,5 +1,5 @@
-import path from 'path';
-import { fileURLToPath } from 'url';
+import path from 'path'
+import url from 'url'
 
 // @ts-ignore
-export const __filename = path.dirname(fileURLToPath(import.meta.url))
+export const __filename = path.dirname(url.fileURLToPath(import.meta.url))

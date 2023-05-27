@@ -1,4 +1,4 @@
-import { fileURLToPath } from 'url';
+import url from 'url';
 
 // @ts-ignore
-export const __dirname = fileURLToPath(import.meta.url)
+export const __dirname = url.fileURLToPath(import.meta.url)
