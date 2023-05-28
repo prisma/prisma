@@ -76,7 +76,7 @@
     "replace-string": "3.1.0",
     "resolve": "1.22.2",
     "string-width": "4.2.3",
-    "strip-ansi": "6.0.1",
+    "strip-ansi": "7.1.0",
     "strip-indent": "3.0.0",
     "temp-dir": "2.0.0",
     "temp-write": "4.0.0",

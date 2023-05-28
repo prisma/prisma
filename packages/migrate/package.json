@@ -57,7 +57,7 @@
     "pg": "8.10.0",
     "pkg-up": "3.1.0",
     "prompts": "2.4.2",
-    "strip-ansi": "6.0.1",
+    "strip-ansi": "7.1.0",
     "strip-indent": "3.0.0",
     "ts-pattern": "4.3.0"
   },
