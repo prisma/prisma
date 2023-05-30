@@ -255,7 +255,7 @@ importers:
       env-paths: 2.2.1
       esbuild: 0.15.13
       execa: 5.1.1
-      expect-type: 0.15.0
+      expect-type: 0.16.0
       flat-map-polyfill: 0.3.8
       fs-extra: 11.1.0
       get-own-enumerable-property-symbols: 3.0.2
@@ -341,7 +341,7 @@ importers:
       env-paths: 2.2.1
       esbuild: 0.15.13
       execa: 5.1.1
-      expect-type: 0.15.0
+      expect-type: 0.16.0
       flat-map-polyfill: 0.3.8
       fs-extra: 11.1.0
       get-own-enumerable-property-symbols: 3.0.2
@@ -8249,8 +8249,9 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
-  /expect-type/0.15.0:
-    resolution: {integrity: sha512-yWnriYB4e8G54M5/fAFj7rCIBiKs1HAACaY13kCz6Ku0dezjS9aMcfcdVK2X8Tv2tEV1BPz/wKfQ7WA4S/d8aA==}
+  /expect-type/0.16.0:
+    resolution: {integrity: sha512-wCpFeVBiAPGiYkQZzaqvGuuBnNCHbtnowMOBpBGY8a27XbG8VAit3lklWph1r8VmgsH61mOZqI3NuGm8bZnUlw==}
+    engines: {node: '>=12.0.0'}
     dev: true
 
   /expect/29.4.3:
