@@ -102,7 +102,7 @@
     "env-paths": "2.2.1",
     "esbuild": "0.15.13",
     "execa": "5.1.1",
-    "expect-type": "0.15.0",
+    "expect-type": "0.16.0",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "11.1.0",
     "get-own-enumerable-property-symbols": "3.0.2",
