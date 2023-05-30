@@ -1,18 +1,37 @@
 import { assertNever } from '@prisma/internals'
 import Decimal from 'decimal.js'
+import { klona } from 'klona'
+import { Sql } from 'sql-template-tag'
 
 import { isFieldRef } from '../core/model/FieldRef'
+import { RawQueryArgs } from '../core/raw-query/RawQueryArgs'
 import { JsArgs, JsInputValue } from '../core/types/JsApi'
 import { ObjectEnumValue } from '../object-enums'
 import { isDate } from './date'
 import { isDecimalJsLike } from './decimalJsLike'
 
-export function deepCloneArgs(args: JsArgs): JsArgs {
+export function deepCloneArgs(args: JsArgs | RawQueryArgs): JsArgs | RawQueryArgs {
+  if (Array.isArray(args)) {
+    const clone: RawQueryArgs = [cloneRaw(args[0])]
+
+    for (let i = 1; i < args.length; i++) {
+      clone[i] = deepCloneValue(args[i] as JsInputValue)
+    }
+
+    return clone
+  }
   const clone: JsArgs = {}
   for (const k in args) {
     clone[k] = deepCloneValue(args[k])
   }
   return clone
+}
+
+function cloneRaw(rawParam: RawQueryArgs[0]): RawQueryArgs[0] {
+  if (rawParam instanceof Sql) {
+    return new Sql(rawParam.strings, rawParam.values)
+  }
+  return klona(rawParam)
 }
 
 // based on https://raw.githubusercontent.com/lukeed/klona/master/src/index.js
