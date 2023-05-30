@@ -155,7 +155,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-1.20e9482aa10ecccd153228a85b1327a79bff44f2"
+    "@prisma/engines-version": "4.16.0-3.integration-engineer-optimization-tests-ed188a18e0fafd8565c18baef3532f0d6822f2c7"
   },
   "sideEffects": false
 }
