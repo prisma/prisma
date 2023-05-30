@@ -4,6 +4,7 @@ import {
   applyModelsAndClientExtensions,
   unapplyModelsAndClientExtensions,
 } from '../model/applyModelsAndClientExtensions'
+import { JsArgs } from '../types/JsApi'
 import { OptionalFlat } from '../types/Utils'
 
 export type Args = OptionalFlat<RequiredArgs>
@@ -51,8 +52,8 @@ export type ClientArg = {
 type QueryOptionsCbArgs = {
   model?: string
   operation: string
-  args: object
-  query: (args: object) => Promise<unknown>
+  args: JsArgs
+  query: (args: JsArgs) => Promise<unknown>
 }
 
 export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>
