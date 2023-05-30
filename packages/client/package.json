@@ -87,18 +87,19 @@
     "@swc/core": "1.3.32",
     "@swc/jest": "0.2.26",
     "@timsuchanek/copy": "1.4.5",
-    "@types/debug": "4.1.7",
+    "@types/debug": "4.1.8",
     "@types/fs-extra": "9.0.13",
     "@types/jest": "29.5.1",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.2",
-    "@types/node": "18.16.12",
-    "@types/pg": "8.6.6",
+    "@types/node": "18.16.14",
+    "@types/pg": "8.10.1",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
     "ci-info": "3.8.0",
     "decimal.js": "10.4.3",
+    "env-paths": "2.2.1",
     "esbuild": "0.15.13",
     "execa": "5.1.1",
     "expect-type": "0.15.0",
@@ -141,7 +142,7 @@
     "tsd": "0.28.1",
     "typescript": "4.9.5",
     "undici": "5.22.0",
-    "yeoman-generator": "5.7.0",
+    "yeoman-generator": "5.9.0",
     "yo": "4.3.1",
     "zx": "7.2.2"
   },
@@ -154,7 +155,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.15.0-11.b33dce37d49a63966d05f78b538cea13994d7507"
+    "@prisma/engines-version": "4.15.0-29.88c73fb4b0dbbf8a7e6a7809c31006efeb081701"
   },
   "sideEffects": false
 }

@@ -361,7 +361,7 @@ describe('getGenerators', () => {
 
     expect(generator.binaryTargets).toHaveLength(1)
     expect(generator.binaryTargets[0].value).toEqual(platform)
-    expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
+    expect(generator.binaryTargets[0].fromEnvVar).toEqual(null)
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
       {
@@ -453,23 +453,23 @@ describe('getGenerators', () => {
       {
         "binaryTargets": [
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "darwin",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "darwin-arm64",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "windows",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "debian-openssl-1.1.x",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "debian-openssl-3.0.x",
           },
         ],
@@ -560,7 +560,7 @@ describe('getGenerators', () => {
       {
         "binaryTargets": [
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "linux-musl",
           },
         ],

@@ -2,7 +2,8 @@
 
 module.exports = () => {
   const configCommon = {
-    testMatch: ['**/tests/*.ts'],
+    rootDir: process.cwd(),
+    testMatch: ['<rootDir>/tests/*.ts'],
     transformIgnorePatterns: [],
     testTimeout: 60_000,
   }

@@ -41,26 +41,19 @@ test('missing-engine-native-binaryTarget: library', async () => {
       32 
       33 await expect(async () => {
     → 34   await prisma.user.findMany(
-    Query engine library for current platform "TEST_PLATFORM" could not be found.
-    You incorrectly pinned it to TEST_PLATFORM
+    Prisma Client could not locate the Query Engine for runtime "TEST_PLATFORM".
 
-    This probably happens, because you built Prisma Client on a different platform.
-    (Prisma Client looked in "/client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node")
+    This is likely caused by tooling that has not copied "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node" to the deployment folder.
+    Ensure that you ran \`prisma generate\` and that "libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node" has been copied to "src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client".
 
-    Searched Locations:
+    We would appreciate if you could take the time to share some information with us.
+    Please help us by answering a few questions: https://pris.ly/engine-not-found-tooling-investigation
 
+    The following locations have been searched:
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
       /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/@prisma/client/runtime
       /tmp/prisma-engines
-      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget/node_modules/.prisma/client
-
-    You already added the platform "native" to the "generator" block
-    in the "schema.prisma" file as described in https://pris.ly/d/client-generator,
-    but something went wrong. That's suboptimal.
-
-    Please create an issue at https://github.com/prisma/prisma/issues/new
+      /client/src/__tests__/integration/errors/missing-engine-native-binaryTarget
   `)
 })

@@ -2,7 +2,7 @@
 /* eslint-disable jest/no-identical-title */
 
 import { jestConsoleContext, jestContext, jestProcessContext } from '@prisma/get-platform'
-import { fsUtils, getSchema } from '@prisma/internals'
+import { getSchema, pathToPosix } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
@@ -370,7 +370,7 @@ describe('postgresql-views', () => {
           recursive: true,
           matching: `${viewsPath}/**/*`,
         })
-        const polishedTree = tree.map(fsUtils.normalizePossiblyWindowsDir)
+        const polishedTree = tree.map(pathToPosix)
         expect(polishedTree).toMatchSnapshot()
 
         const publicSimpleUserView = await ctx.fs.readAsync(`${viewsPath}/public/simpleuser.sql`)
