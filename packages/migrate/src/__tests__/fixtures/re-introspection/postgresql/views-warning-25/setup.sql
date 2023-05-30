@@ -1,1 +1,0 @@
-CREATE VIEW "B" AS SELECT 1 AS a, 2 AS b;

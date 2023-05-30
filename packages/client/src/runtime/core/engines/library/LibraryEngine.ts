@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getPlatform, isNodeAPISupported, platforms } from '@prisma/get-platform'
+import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
 import { EngineSpanEvent } from '@prisma/internals'
 import fs from 'fs'
 import { bold, green, red, yellow } from 'kleur/colors'
@@ -195,7 +195,7 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
       return this.libraryInstantiationPromise
     }
 
-    isNodeAPISupported()
+    assertNodeAPISupported()
     this.platform = await this.getPlatform()
     await this.loadEngine()
     this.version()
@@ -285,7 +285,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     if (!event) return
 
     if ('span' in event) {
-      this.config.tracingHelper.createEngineSpan(event as EngineSpanEvent)
+      void this.config.tracingHelper.createEngineSpan(event as EngineSpanEvent)
 
       return
     }

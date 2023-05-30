@@ -7,6 +7,7 @@ import { FieldRefImpl } from '../core/model/FieldRef'
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 import { objectEnumNames, ObjectEnumValue, objectEnumValues } from '../object-enums'
+import { isDate } from './date'
 import { isDecimalJsLike } from './decimalJsLike'
 
 export interface Dictionary<T> {
@@ -170,7 +171,7 @@ export function getGraphQLType(value: any, inputType?: DMMF.SchemaArgInputType):
       return 'Float'
     }
   }
-  if (Object.prototype.toString.call(value) === '[object Date]') {
+  if (isDate(value)) {
     return 'DateTime'
   }
   if (jsType === 'string') {

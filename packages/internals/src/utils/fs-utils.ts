@@ -2,6 +2,8 @@ import fs from 'fs/promises'
 import globby from 'globby'
 import path from 'path'
 
+import { pathToPosix } from './path'
+
 /**
  * Create a directory if it doesn't exist yet.
  * Note: { recursive: true } prevents EEEXIST error codes when the directory already exists.
@@ -20,37 +22,25 @@ export function writeFile({ path, content }: { path: string; content: string }):
 }
 
 /**
- * Removes all backslashes from a possibly Windows path string, which is necessary for globby to work on Windows.
- * Note: we can't use `dir.replaceAll(path.sep, '/')` because `String.prototype.replaceAll` requires at least Node.js 15.
- */
-export function normalizePossiblyWindowsDir(dir: string) {
-  if (process.platform === 'win32') {
-    return dir.replace(/\\/g, '/')
-  }
-
-  return dir
-}
-
-/**
  * Retrieve any foolder in the given directory, at the top-level of depth.
  */
 export async function getTopLevelFoldersInDir(dir: string): Promise<string[]> {
   const rawFolders = await fs.readdir(dir, { withFileTypes: true })
   return rawFolders
     .filter((fileOrFolder) => fileOrFolder.isDirectory())
-    .map((folder) => normalizePossiblyWindowsDir(path.join(dir, folder.name)))
+    .map((folder) => pathToPosix(path.join(dir, folder.name)))
 }
 
 /**
  * Retrieve any folder nested into the given directory, at any level of depth.
  */
 export function getNestedFoldersInDir(dir: string): Promise<string[]> {
-  const normalizedDir = normalizePossiblyWindowsDir(path.join(dir, '**'))
+  const normalizedDir = pathToPosix(path.join(dir, '**'))
   return globby(normalizedDir, { onlyFiles: false, onlyDirectories: true })
 }
 
 export function getFilesInDir(dir: string, pattern = '**'): Promise<string[]> {
-  const normalizedDir = normalizePossiblyWindowsDir(path.join(dir, pattern))
+  const normalizedDir = pathToPosix(path.join(dir, pattern))
   return globby(normalizedDir, { onlyFiles: true, onlyDirectories: false })
 }
 

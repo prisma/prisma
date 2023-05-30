@@ -579,9 +579,6 @@ export type E = {
  * Enums
  */
 
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-
 export const ABeautifulEnum: {
   A: 'A',
   B: 'B',
@@ -14614,9 +14611,6 @@ export namespace Prisma {
   /**
    * Enums
    */
-
-  // Based on
-  // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
   export const AScalarFieldEnum: {
     id: 'id',

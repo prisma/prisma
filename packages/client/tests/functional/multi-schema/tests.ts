@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(
     const newEmail = faker.internet.email()
     const newTitle = faker.name.jobTitle()
 
-    describe('multi-schema', () => {
+    describe('multischema', () => {
       test('create', async () => {
         const created = await prisma.user.create({
           data: {

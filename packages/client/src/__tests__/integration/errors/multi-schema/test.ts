@@ -14,9 +14,9 @@ const title = faker.name.jobTitle()
 const newEmail = faker.internet.email()
 const newTitle = faker.name.jobTitle()
 
-describe('multi-schema', () => {
+describe('multischema', () => {
   beforeAll(async () => {
-    process.env.TEST_POSTGRES_URI += '-multi-schema'
+    process.env.TEST_POSTGRES_URI += '-multischema'
 
     await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
     const SetupParams: SetupParams = {

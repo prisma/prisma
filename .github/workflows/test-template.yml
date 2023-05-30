@@ -35,10 +35,12 @@ on:
         required: false
       BUILDPULSE_SECRET_ACCESS_KEY:
         required: false
+      # Docker Hub credentials must be passed to avoid rate limiting
+      # But they are not required, so forks can run the workflow without defining them
       DOCKERHUB_USERNAME:
-        required: true
+        required: false
       DOCKERHUB_TOKEN:
-        required: true
+        required: false
       BOT_TOKEN:
         required: false
 
