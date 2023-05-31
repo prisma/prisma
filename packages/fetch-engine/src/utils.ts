@@ -57,10 +57,13 @@ export function getDownloadUrl(
   binaryName: string,
   extension = '.gz',
 ): string {
-  const baseUrl =
-    process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
-    process.env.PRISMA_ENGINES_MIRROR ||
-    'https://binaries.prisma.sh'
+  if (process.env.PRISMA_BINARIES_MIRROR) {
+    // PRISMA_ENGINES_MIRROR is available since Prisma 3
+    throw new Error(
+      `The environment variable "PRISMA_BINARIES_MIRROR" is not supported anymore. You can remove it or rename it to "PRISMA_ENGINES_MIRROR".`,
+    )
+  }
+  const baseUrl = process.env.PRISMA_ENGINES_MIRROR || 'https://binaries.prisma.sh'
   const finalExtension =
     platform === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
   if (binaryName === BinaryType.QueryEngineLibrary) {
