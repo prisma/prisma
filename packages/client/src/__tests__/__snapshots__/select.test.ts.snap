@@ -213,7 +213,7 @@ query {
 
 exports[`select validation missing arg object 1`] = `
 mutation {
-  createOnePost() {
+  createOnePost {
     id
     createdAt
     updatedAt
@@ -242,7 +242,7 @@ Note: Lines with + are required
 
 exports[`select validation missing arg object colorless 1`] = `
 mutation {
-  createOnePost() {
+  createOnePost {
     id
     createdAt
     updatedAt

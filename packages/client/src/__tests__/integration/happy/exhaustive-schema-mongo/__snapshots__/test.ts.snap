@@ -89,46 +89,31 @@ Prisma.NullTypes = {
  * Enums
  */
 
-exports.Prisma.AScalarFieldEnum = {
+exports.Prisma.PostScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  title: 'title',
+  content: 'content',
+  published: 'published',
+  authorId: 'authorId'
+};
+
+exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
-  name: 'name',
   int: 'int',
-  sInt: 'sInt',
-  bInt: 'bInt'
-};
-
-exports.Prisma.BScalarFieldEnum = {
-  id: 'id',
+  optionalInt: 'optionalInt',
   float: 'float',
-  dFloat: 'dFloat'
-};
-
-exports.Prisma.CScalarFieldEnum = {
-  id: 'id',
-  char: 'char',
-  vChar: 'vChar',
-  text: 'text',
-  bit: 'bit',
-  vBit: 'vBit',
-  uuid: 'uuid'
-};
-
-exports.Prisma.DScalarFieldEnum = {
-  id: 'id',
-  bool: 'bool',
-  byteA: 'byteA',
-  xml: 'xml',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
   json: 'json',
-  jsonb: 'jsonb',
-  list: 'list'
-};
-
-exports.Prisma.EScalarFieldEnum = {
-  id: 'id',
-  date: 'date',
-  time: 'time',
-  ts: 'ts'
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean',
+  embedHolderId: 'embedHolderId'
 };
 
 exports.Prisma.EmbedHolderScalarFieldEnum = {
@@ -141,23 +126,6 @@ exports.Prisma.EmbedHolderScalarFieldEnum = {
 exports.Prisma.MScalarFieldEnum = {
   id: 'id',
   n_ids: 'n_ids',
-  int: 'int',
-  optionalInt: 'optionalInt',
-  float: 'float',
-  optionalFloat: 'optionalFloat',
-  string: 'string',
-  optionalString: 'optionalString',
-  json: 'json',
-  optionalJson: 'optionalJson',
-  enum: 'enum',
-  optionalEnum: 'optionalEnum',
-  boolean: 'boolean',
-  optionalBoolean: 'optionalBoolean'
-};
-
-exports.Prisma.ManyRequiredScalarFieldEnum = {
-  id: 'id',
-  oneOptionalId: 'oneOptionalId',
   int: 'int',
   optionalInt: 'optionalInt',
   float: 'float',
@@ -205,6 +173,23 @@ exports.Prisma.OneOptionalScalarFieldEnum = {
   optionalBoolean: 'optionalBoolean'
 };
 
+exports.Prisma.ManyRequiredScalarFieldEnum = {
+  id: 'id',
+  oneOptionalId: 'oneOptionalId',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
+
 exports.Prisma.OptionalSide1ScalarFieldEnum = {
   id: 'id',
   optionalSide2Id: 'optionalSide2Id',
@@ -238,18 +223,46 @@ exports.Prisma.OptionalSide2ScalarFieldEnum = {
   optionalBoolean: 'optionalBoolean'
 };
 
-exports.Prisma.PostScalarFieldEnum = {
+exports.Prisma.AScalarFieldEnum = {
   id: 'id',
-  createdAt: 'createdAt',
-  title: 'title',
-  content: 'content',
-  published: 'published',
-  authorId: 'authorId'
+  email: 'email',
+  name: 'name',
+  int: 'int',
+  sInt: 'sInt',
+  bInt: 'bInt'
 };
 
-exports.Prisma.QueryMode = {
-  default: 'default',
-  insensitive: 'insensitive'
+exports.Prisma.BScalarFieldEnum = {
+  id: 'id',
+  float: 'float',
+  dFloat: 'dFloat'
+};
+
+exports.Prisma.CScalarFieldEnum = {
+  id: 'id',
+  char: 'char',
+  vChar: 'vChar',
+  text: 'text',
+  bit: 'bit',
+  vBit: 'vBit',
+  uuid: 'uuid'
+};
+
+exports.Prisma.DScalarFieldEnum = {
+  id: 'id',
+  bool: 'bool',
+  byteA: 'byteA',
+  xml: 'xml',
+  json: 'json',
+  jsonb: 'jsonb',
+  list: 'list'
+};
+
+exports.Prisma.EScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  time: 'time',
+  ts: 'ts'
 };
 
 exports.Prisma.SortOrder = {
@@ -257,22 +270,9 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
-exports.Prisma.UserScalarFieldEnum = {
-  id: 'id',
-  email: 'email',
-  int: 'int',
-  optionalInt: 'optionalInt',
-  float: 'float',
-  optionalFloat: 'optionalFloat',
-  string: 'string',
-  optionalString: 'optionalString',
-  json: 'json',
-  optionalJson: 'optionalJson',
-  enum: 'enum',
-  optionalEnum: 'optionalEnum',
-  boolean: 'boolean',
-  optionalBoolean: 'optionalBoolean',
-  embedHolderId: 'embedHolderId'
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
 };
 exports.ABeautifulEnum = {
   A: 'A',
@@ -2749,7 +2749,7 @@ export namespace Prisma {
     /**
      * The data needed to create a Post.
      */
-    data: XOR<PostCreateInput, PostUncheckedCreateInput>
+    data?: XOR<PostCreateInput, PostUncheckedCreateInput>
   }
 
 
@@ -3864,7 +3864,7 @@ export namespace Prisma {
     /**
      * The data needed to create a User.
      */
-    data: XOR<UserCreateInput, UserUncheckedCreateInput>
+    data?: XOR<UserCreateInput, UserUncheckedCreateInput>
   }
 
 
@@ -4880,7 +4880,7 @@ export namespace Prisma {
     /**
      * The data needed to create a EmbedHolder.
      */
-    data: XOR<EmbedHolderCreateInput, EmbedHolderUncheckedCreateInput>
+    data?: XOR<EmbedHolderCreateInput, EmbedHolderUncheckedCreateInput>
   }
 
 
@@ -5998,7 +5998,7 @@ export namespace Prisma {
     /**
      * The data needed to create a M.
      */
-    data: XOR<MCreateInput, MUncheckedCreateInput>
+    data?: XOR<MCreateInput, MUncheckedCreateInput>
   }
 
 
@@ -7116,7 +7116,7 @@ export namespace Prisma {
     /**
      * The data needed to create a N.
      */
-    data: XOR<NCreateInput, NUncheckedCreateInput>
+    data?: XOR<NCreateInput, NUncheckedCreateInput>
   }
 
 
@@ -8230,7 +8230,7 @@ export namespace Prisma {
     /**
      * The data needed to create a OneOptional.
      */
-    data: XOR<OneOptionalCreateInput, OneOptionalUncheckedCreateInput>
+    data?: XOR<OneOptionalCreateInput, OneOptionalUncheckedCreateInput>
   }
 
 
@@ -9348,7 +9348,7 @@ export namespace Prisma {
     /**
      * The data needed to create a ManyRequired.
      */
-    data: XOR<ManyRequiredCreateInput, ManyRequiredUncheckedCreateInput>
+    data?: XOR<ManyRequiredCreateInput, ManyRequiredUncheckedCreateInput>
   }
 
 
@@ -10445,7 +10445,7 @@ export namespace Prisma {
     /**
      * The data needed to create a OptionalSide1.
      */
-    data: XOR<OptionalSide1CreateInput, OptionalSide1UncheckedCreateInput>
+    data?: XOR<OptionalSide1CreateInput, OptionalSide1UncheckedCreateInput>
   }
 
 
@@ -11534,7 +11534,7 @@ export namespace Prisma {
     /**
      * The data needed to create a OptionalSide2.
      */
-    data: XOR<OptionalSide2CreateInput, OptionalSide2UncheckedCreateInput>
+    data?: XOR<OptionalSide2CreateInput, OptionalSide2UncheckedCreateInput>
   }
 
 
@@ -12538,7 +12538,7 @@ export namespace Prisma {
     /**
      * The data needed to create a A.
      */
-    data: XOR<ACreateInput, AUncheckedCreateInput>
+    data?: XOR<ACreateInput, AUncheckedCreateInput>
   }
 
 
@@ -13498,7 +13498,7 @@ export namespace Prisma {
     /**
      * The data needed to create a B.
      */
-    data: XOR<BCreateInput, BUncheckedCreateInput>
+    data?: XOR<BCreateInput, BUncheckedCreateInput>
   }
 
 
@@ -14452,7 +14452,7 @@ export namespace Prisma {
     /**
      * The data needed to create a C.
      */
-    data: XOR<CCreateInput, CUncheckedCreateInput>
+    data?: XOR<CCreateInput, CUncheckedCreateInput>
   }
 
 
@@ -15428,7 +15428,7 @@ export namespace Prisma {
     /**
      * The data needed to create a D.
      */
-    data: XOR<DCreateInput, DUncheckedCreateInput>
+    data?: XOR<DCreateInput, DUncheckedCreateInput>
   }
 
 
@@ -16358,7 +16358,7 @@ export namespace Prisma {
     /**
      * The data needed to create a E.
      */
-    data: XOR<ECreateInput, EUncheckedCreateInput>
+    data?: XOR<ECreateInput, EUncheckedCreateInput>
   }
 
 
@@ -16502,6 +16502,167 @@ export namespace Prisma {
    * Enums
    */
 
+  export const PostScalarFieldEnum: {
+    id: 'id',
+    createdAt: 'createdAt',
+    title: 'title',
+    content: 'content',
+    published: 'published',
+    authorId: 'authorId'
+  };
+
+  export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
+
+
+  export const UserScalarFieldEnum: {
+    id: 'id',
+    email: 'email',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean',
+    embedHolderId: 'embedHolderId'
+  };
+
+  export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+  export const EmbedHolderScalarFieldEnum: {
+    id: 'id',
+    time: 'time',
+    text: 'text',
+    boolean: 'boolean'
+  };
+
+  export type EmbedHolderScalarFieldEnum = (typeof EmbedHolderScalarFieldEnum)[keyof typeof EmbedHolderScalarFieldEnum]
+
+
+  export const MScalarFieldEnum: {
+    id: 'id',
+    n_ids: 'n_ids',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type MScalarFieldEnum = (typeof MScalarFieldEnum)[keyof typeof MScalarFieldEnum]
+
+
+  export const NScalarFieldEnum: {
+    id: 'id',
+    m_ids: 'm_ids',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type NScalarFieldEnum = (typeof NScalarFieldEnum)[keyof typeof NScalarFieldEnum]
+
+
+  export const OneOptionalScalarFieldEnum: {
+    id: 'id',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type OneOptionalScalarFieldEnum = (typeof OneOptionalScalarFieldEnum)[keyof typeof OneOptionalScalarFieldEnum]
+
+
+  export const ManyRequiredScalarFieldEnum: {
+    id: 'id',
+    oneOptionalId: 'oneOptionalId',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type ManyRequiredScalarFieldEnum = (typeof ManyRequiredScalarFieldEnum)[keyof typeof ManyRequiredScalarFieldEnum]
+
+
+  export const OptionalSide1ScalarFieldEnum: {
+    id: 'id',
+    optionalSide2Id: 'optionalSide2Id',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type OptionalSide1ScalarFieldEnum = (typeof OptionalSide1ScalarFieldEnum)[keyof typeof OptionalSide1ScalarFieldEnum]
+
+
+  export const OptionalSide2ScalarFieldEnum: {
+    id: 'id',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type OptionalSide2ScalarFieldEnum = (typeof OptionalSide2ScalarFieldEnum)[keyof typeof OptionalSide2ScalarFieldEnum]
+
+
   export const AScalarFieldEnum: {
     id: 'id',
     email: 'email',
@@ -16559,154 +16720,6 @@ export namespace Prisma {
   export type EScalarFieldEnum = (typeof EScalarFieldEnum)[keyof typeof EScalarFieldEnum]
 
 
-  export const EmbedHolderScalarFieldEnum: {
-    id: 'id',
-    time: 'time',
-    text: 'text',
-    boolean: 'boolean'
-  };
-
-  export type EmbedHolderScalarFieldEnum = (typeof EmbedHolderScalarFieldEnum)[keyof typeof EmbedHolderScalarFieldEnum]
-
-
-  export const MScalarFieldEnum: {
-    id: 'id',
-    n_ids: 'n_ids',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type MScalarFieldEnum = (typeof MScalarFieldEnum)[keyof typeof MScalarFieldEnum]
-
-
-  export const ManyRequiredScalarFieldEnum: {
-    id: 'id',
-    oneOptionalId: 'oneOptionalId',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type ManyRequiredScalarFieldEnum = (typeof ManyRequiredScalarFieldEnum)[keyof typeof ManyRequiredScalarFieldEnum]
-
-
-  export const NScalarFieldEnum: {
-    id: 'id',
-    m_ids: 'm_ids',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type NScalarFieldEnum = (typeof NScalarFieldEnum)[keyof typeof NScalarFieldEnum]
-
-
-  export const OneOptionalScalarFieldEnum: {
-    id: 'id',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type OneOptionalScalarFieldEnum = (typeof OneOptionalScalarFieldEnum)[keyof typeof OneOptionalScalarFieldEnum]
-
-
-  export const OptionalSide1ScalarFieldEnum: {
-    id: 'id',
-    optionalSide2Id: 'optionalSide2Id',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type OptionalSide1ScalarFieldEnum = (typeof OptionalSide1ScalarFieldEnum)[keyof typeof OptionalSide1ScalarFieldEnum]
-
-
-  export const OptionalSide2ScalarFieldEnum: {
-    id: 'id',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type OptionalSide2ScalarFieldEnum = (typeof OptionalSide2ScalarFieldEnum)[keyof typeof OptionalSide2ScalarFieldEnum]
-
-
-  export const PostScalarFieldEnum: {
-    id: 'id',
-    createdAt: 'createdAt',
-    title: 'title',
-    content: 'content',
-    published: 'published',
-    authorId: 'authorId'
-  };
-
-  export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
-
-
-  export const QueryMode: {
-    default: 'default',
-    insensitive: 'insensitive'
-  };
-
-  export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
-
-
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -16715,25 +16728,12 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
-  export const UserScalarFieldEnum: {
-    id: 'id',
-    email: 'email',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean',
-    embedHolderId: 'embedHolderId'
+  export const QueryMode: {
+    default: 'default',
+    insensitive: 'insensitive'
   };
 
-  export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+  export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
   /**
@@ -18935,8 +18935,8 @@ export namespace Prisma {
   }
 
   export type UserRelationFilter = {
-    is?: UserWhereInput
-    isNot?: UserWhereInput
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
   }
 
   export type PostCountOrderByAggregateInput = {
@@ -19122,8 +19122,8 @@ export namespace Prisma {
   }
 
   export type EmbedHolderRelationFilter = {
-    is?: EmbedHolderWhereInput
-    isNot?: EmbedHolderWhereInput
+    is?: EmbedHolderWhereInput | null
+    isNot?: EmbedHolderWhereInput | null
   }
 
   export type PostOrderByRelationAggregateInput = {
