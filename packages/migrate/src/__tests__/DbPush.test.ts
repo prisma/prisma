@@ -48,16 +48,6 @@ describe('push', () => {
           `)
   })
 
-  it('--force flag renamed', async () => {
-    ctx.fixture('reset')
-    const result = DbPush.new().parse(['--force'])
-    await expect(result).rejects.toMatchInlineSnapshot(
-      `The --force flag was renamed to --accept-data-loss in 2.17.0, use prisma db push --accept-data-loss`,
-    )
-    expect(removeRocketEmoji(ctx.mocked['console.info'].mock.calls.join('\n'))).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  })
-
   it('already in sync', async () => {
     ctx.fixture('reset')
     const result = DbPush.new().parse([])
