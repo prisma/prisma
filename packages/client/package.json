@@ -99,9 +99,10 @@
     "benchmark": "2.1.4",
     "ci-info": "3.8.0",
     "decimal.js": "10.4.3",
+    "env-paths": "2.2.1",
     "esbuild": "0.15.13",
     "execa": "5.1.1",
-    "expect-type": "0.15.0",
+    "expect-type": "0.16.0",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "11.1.0",
     "get-own-enumerable-property-symbols": "3.0.2",
@@ -154,7 +155,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.15.0-19.61023c35d2c8762f66f09bc4183d2f630b541d08"
+    "@prisma/engines-version": "4.16.0-1.20e9482aa10ecccd153228a85b1327a79bff44f2"
   },
   "sideEffects": false
 }

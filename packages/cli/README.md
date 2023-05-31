@@ -19,8 +19,6 @@
   <a href="https://slack.prisma.io/">Slack</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://twitter.com/prisma">Twitter</a>
-  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://github.com/prisma/prisma1">Prisma 1</a>
   <br />
   <hr />
 </div>
@@ -34,8 +32,6 @@ Prisma is a **next-generation ORM** that consists of these tools:
 - [**Prisma Studio**](https://github.com/prisma/studio): GUI to view and edit data in your database
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/graphql) a gRPC API, or anything else that needs a database.
-
-> **Are you looking for Prisma 1? The Prisma 1 repository has been renamed to [`prisma/prisma1`](https://github.com/prisma/prisma1)**.
 
 ## Getting started
 
