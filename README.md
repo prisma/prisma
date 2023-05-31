@@ -134,7 +134,7 @@ Refer to the documentation for more information about ["generating the Prisma cl
 
 #### Using Prisma Client to send queries to your database
 
-Once the Prisma Client is generated, you can import it into your code and send queries to your database. This is what the setup code looks like.
+Once the Prisma Client is generated, you can import it in your code and send queries to your database. This is what the setup code looks like.
 
 ##### Import and instantiate Prisma Client
 
