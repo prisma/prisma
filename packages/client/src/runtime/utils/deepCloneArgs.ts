@@ -34,7 +34,7 @@ function cloneRaw(rawParam: RawQueryArgs[0]): RawQueryArgs[0] {
   return klona(rawParam)
 }
 
-// based on https://raw.githubusercontent.com/lukeed/klona/master/src/index.js
+// based on https://github.com/lukeed/klona/blob/v2.0.6/src/index.js
 function deepCloneValue(x: JsInputValue): JsInputValue {
   if (typeof x !== 'object' || x === null || x instanceof ObjectEnumValue || isFieldRef(x)) {
     return x
