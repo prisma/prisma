@@ -41,3 +41,5 @@ export { warnOnce } from '@prisma/internals'
  * TODO: Maybe simply exporting all types in runtime will do the trick
  */
 export { type Payload }
+
+export type { ITXClientDenyList } from './itxClientDenyList'

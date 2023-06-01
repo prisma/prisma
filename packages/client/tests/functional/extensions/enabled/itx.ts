@@ -3,9 +3,10 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
+declare let Prisma: typeof PrismaNamespace
 
 const email = faker.internet.email()
 
@@ -208,5 +209,55 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
     expect(users).toHaveLength(1)
+  })
+
+  test('methods from itx client denylist are optional within client extensions', async () => {
+    expect.assertions(10)
+    const xprisma = prisma.$extends({
+      client: {
+        testContextMethods(isTransaction: boolean) {
+          const ctx = Prisma.getExtensionContext(this)
+
+          expectTypeOf(ctx.$connect).not.toMatchTypeOf<typeof prisma.$connect>()
+          expectTypeOf(ctx.$connect).toMatchTypeOf<typeof prisma.$connect | undefined>()
+          expectTypeOf(ctx.$disconnect).not.toMatchTypeOf<typeof prisma.$disconnect>()
+          expectTypeOf(ctx.$disconnect).toMatchTypeOf<typeof prisma.$disconnect | undefined>()
+          expectTypeOf(ctx.$transaction).not.toMatchTypeOf<typeof prisma.$transaction>()
+          expectTypeOf(ctx.$transaction).toMatchTypeOf<typeof prisma.$transaction | undefined>()
+          expectTypeOf(ctx.$on).not.toMatchTypeOf<typeof prisma.$on>()
+          expectTypeOf(ctx.$on).toMatchTypeOf<typeof prisma.$on | undefined>()
+          expectTypeOf(ctx.$extends).not.toMatchTypeOf<typeof prisma.$extends>()
+          expectTypeOf(ctx.$extends).toMatchTypeOf<typeof prisma.$extends | undefined>()
+          expectTypeOf(ctx).not.toHaveProperty('$use')
+
+          if (isTransaction) {
+            expect(ctx.$connect).toBeUndefined()
+            expect(ctx.$disconnect).toBeUndefined()
+            expect(ctx.$transaction).toBeUndefined()
+            expect(ctx.$on).toBeUndefined()
+            expect(ctx.$extends).toBeUndefined()
+          } else {
+            expect(ctx.$connect).toBeDefined()
+            expect(ctx.$disconnect).toBeDefined()
+            expect(ctx.$transaction).toBeDefined()
+            expect(ctx.$on).toBeDefined()
+            expect(ctx.$extends).toBeDefined()
+          }
+        },
+      },
+
+      model: {
+        user: {
+          helper() {},
+        },
+      },
+    })
+
+    xprisma.testContextMethods(false)
+
+    await xprisma.$transaction((tx) => {
+      tx.testContextMethods(true)
+      return Promise.resolve()
+    })
   })
 })
