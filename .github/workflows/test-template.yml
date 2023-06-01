@@ -157,7 +157,8 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        if: "${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
+        # Login to Docker Hub is only needed for buildjet runners
+        if: "${{ startsWith(inputs.ubuntuRunner, 'buildjet') && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
