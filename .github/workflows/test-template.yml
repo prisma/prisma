@@ -35,7 +35,7 @@ on:
         required: false
       BUILDPULSE_SECRET_ACCESS_KEY:
         required: false
-      # Docker Hub credentials must be passed to avoid rate limiting
+      # Docker Hub credentials must be passed to avoid rate limiting when using Buildjet runners
       # But they are not required, so forks can run the workflow without defining them
       DOCKERHUB_USERNAME:
         required: false
