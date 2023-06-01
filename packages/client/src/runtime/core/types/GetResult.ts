@@ -34,36 +34,31 @@ export type Operation =
 
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
-export type GetFindResult<P extends Payload, A> = A extends
-  | ({ select: infer S } & Record<string, unknown>)
-  | ({ include: infer S } & Record<string, unknown>)
+// prettier-ignore
+export type GetFindResult<P extends Payload, A> = 
+  A extends 
+  | { select: infer S } & Record<string, unknown>
+  | { include: infer S } & Record<string, unknown>
   ? {
-      [K in keyof S as S[K] extends false | undefined | null ? never : K]: S[K] extends true
+      [K in keyof S as S[K] extends false | undefined | null ? never : K]:
+        S[K] extends true
         ? P extends { objects: { [k in K]: (infer O)[] } }
-          ? O extends Payload
-            ? O['scalars'][]
-            : never
-          : P extends { objects: { [k in K]: infer O | null } }
-          ? O extends Payload
-            ? O['scalars'] | (P['objects'][K] & null)
-            : never
-          : P extends { scalars: { [k in K]: infer O } }
-          ? O
-          : K extends '_count'
-          ? Count<P['objects']>
-          : never
+          ? O extends Payload ? O['scalars'][] : never
+          : P extends { objects: { [k in K]: (infer O) | null } }
+            ? O extends Payload ? O['scalars'] | P['objects'][K] & null : never
+            : P extends { scalars: { [k in K]: infer O } }
+              ? O
+              : K extends '_count'
+                ? Count<P['objects']>
+                : never
         : P extends { objects: { [k in K]: (infer O)[] } }
-        ? O extends Payload
-          ? GetFindResult<O, S[K]>[]
-          : never
-        : P extends { objects: { [k in K]: infer O | null } }
-        ? O extends Payload
-          ? GetFindResult<O, S[K]> | (P['objects'][K] & null)
-          : never
-        : K extends '_count'
-        ? Count<GetFindResult<P, S[K]>>
-        : never
-    } & (A extends { include: any } & Record<string, unknown> ? P['scalars'] & P['composites'] : unknown)
+          ? O extends Payload ? GetFindResult<O, S[K]>[] : never
+          : P extends { objects: { [k in K]: (infer O) | null } }
+            ? O extends Payload ? GetFindResult<O, S[K]> | P['objects'][K] & null : never
+            : K extends '_count'
+              ? Count<GetFindResult<P, S[K]>>
+              : never
+  }& (A extends { include: any } & Record<string, unknown> ? P['scalars'] & P['composites'] : unknown)
   : P['scalars'] & P['composites']
 
 type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
