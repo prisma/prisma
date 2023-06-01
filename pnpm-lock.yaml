@@ -850,9 +850,9 @@ importers:
 
   packages/nextjs-monorepo-workaround-plugin:
     specifiers:
-      webpack: 5.84.0
+      webpack: 5.85.0
     devDependencies:
-      webpack: 5.84.0
+      webpack: 5.85.0
 
   packages/ni:
     specifiers:
@@ -14540,7 +14540,7 @@ packages:
       supports-hyperlinks: 2.3.0
     dev: true
 
-  /terser-webpack-plugin/5.3.8_webpack@5.84.0:
+  /terser-webpack-plugin/5.3.8_webpack@5.85.0:
     resolution: {integrity: sha512-WiHL3ElchZMsK27P8uIUh4604IgJyAW47LVXGbEoB21DbQcZ+OuMpGjVYnEUaqcWM6dO8uS2qUbA7LSCWqvsbg==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
@@ -14561,7 +14561,7 @@ packages:
       schema-utils: 3.1.2
       serialize-javascript: 6.0.1
       terser: 5.17.4
-      webpack: 5.84.0
+      webpack: 5.85.0
     dev: true
 
   /terser/5.17.4:
@@ -15471,8 +15471,8 @@ packages:
     engines: {node: '>=10.13.0'}
     dev: true
 
-  /webpack/5.84.0:
-    resolution: {integrity: sha512-XezNK3kwJq6IyeoZmZ1uEqQs+42nTqIi4jYM/YjLwaJedUC1N3bwnCC0+UcnHJPfqWX0kGrQnMIvZZyWYaIZrA==}
+  /webpack/5.85.0:
+    resolution: {integrity: sha512-7gazTiYqwo5OSqwH1tigLDL2r3qDeP2dOKYgd+LlXpsUMqDTklg6tOghexqky0/+6QY38kb/R/uRPUleuL43zg==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     peerDependencies:
@@ -15502,7 +15502,7 @@ packages:
       neo-async: 2.6.2
       schema-utils: 3.1.2
       tapable: 2.2.1
-      terser-webpack-plugin: 5.3.8_webpack@5.84.0
+      terser-webpack-plugin: 5.3.8_webpack@5.85.0
       watchpack: 2.4.0
       webpack-sources: 3.2.3
     transitivePeerDependencies:
