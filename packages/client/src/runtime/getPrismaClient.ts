@@ -57,6 +57,7 @@ import { UserArgs } from './core/request/UserArgs'
 import { dmmfToRuntimeDataModel, RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
+import { JsInputValue } from './core/types/JsApi'
 import { DMMFHelper } from './dmmf'
 import { getLogLevel } from './getLogLevel'
 import { mergeBy } from './mergeBy'
@@ -654,7 +655,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @param command
      * @returns
      */
-    $runCommandRaw(command: object) {
+    $runCommandRaw(command: Record<string, JsInputValue>) {
       if (config.activeProvider !== 'mongodb') {
         throw new PrismaClientValidationError(
           `The ${config.activeProvider} provider does not support $runCommandRaw. Use the mongodb provider.`,
@@ -943,7 +944,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           debug(`Prisma Client call:`)
           debug(
             `prisma.${clientMethod}(${printJsonWithErrors({
-              ast: args,
+              ast: args as object,
               keyPaths: [],
               valuePaths: [],
               missingItems: [],
