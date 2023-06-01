@@ -8,7 +8,7 @@ cd docker
 
 See [the Docker Compose configurations for our tests databases locally and also used by GitHub Actions in CI](./docker-compose.yml).
 
-## Using docker-compose for databases
+## Using `docker compose` for databases
 
 This is only intended to be run in a development environment where ports 3306 / default for MySQL - 5432 / default for PostgreSQL and 4306 custom port - MariaDB are free and not used.
 
@@ -34,29 +34,29 @@ Docker images can be overridden by creating a `docker-compose.override.yml`.
 In detached/background mode using `-d` (recommended)
 
 ```sh
-docker-compose up -d
+docker compose up -d
 # Or start only one service
-docker-compose up -d mysql
+docker compose up -d mysql
 # To see logs
-docker-compose logs -f mysql
+docker compose logs -f mysql
 ```
 
 In attached mode, the logs will be streamed in the terminal:
 
 ```sh
-docker-compose up
+docker compose up
 # Or start only one service
-docker-compose up mysql
+docker compose up mysql
 ```
 
 ### Stop
 
 ```sh
-docker-compose down
+docker compose down
 ```
 
 ### Delete all
 
 ```sh
-docker-compose down -v --rmi all --remove-orphans
+docker compose down -v --rmi all --remove-orphans
 ```
