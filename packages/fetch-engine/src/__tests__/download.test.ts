@@ -30,6 +30,25 @@ describe('download', () => {
     delete process.env.PRISMA_QUERY_ENGINE_BINARY
   })
 
+  test('should error if PRISMA_BINARIES_MIRROR env var is set', async () => {
+    // const baseDir = path.posix.join(dirname, 'all')
+    process.env.PRISMA_BINARIES_MIRROR = 'something'
+
+    await expect(
+      download({
+        binaries: {
+          [BinaryType.QueryEngineLibrary]: '',
+        },
+        binaryTargets: ['darwin'],
+        version: CURRENT_ENGINES_HASH,
+      }),
+    ).rejects.toThrowErrorMatchingInlineSnapshot(
+      `"The environment variable "PRISMA_BINARIES_MIRROR" is not supported anymore. You can remove it or rename it to "PRISMA_ENGINES_MIRROR"."`,
+    )
+
+    delete process.env.PRISMA_BINARIES_MIRROR
+  })
+
   test('download all current engines', async () => {
     const baseDir = path.posix.join(dirname, 'all')
 
