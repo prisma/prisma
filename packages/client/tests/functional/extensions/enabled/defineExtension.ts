@@ -209,6 +209,84 @@ function resultExtensionObjectViaDefault() {
   })
 }
 
+// extension that mirrors the types of all existing methods
+function allResultsGenericExtensionObjectViaDefault() {
+  return PrismaDefault.defineExtension({
+    client: {
+      _$executeRaw<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, '$executeRaw'>>) {
+        return {} as PrismaDefault.Result<T, A, '$executeRaw'>
+      },
+      _$executeRawUnsafe<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, '$executeRawUnsafe'>>) {
+        return {} as PrismaDefault.Result<T, A, '$executeRawUnsafe'>
+      },
+      _$queryRaw<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, '$queryRaw'>>) {
+        return {} as PrismaDefault.Result<T, A, '$queryRaw'>
+      },
+      _$queryRawUnsafe<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, '$queryRawUnsafe'>>) {
+        return {} as PrismaDefault.Result<T, A, '$queryRawUnsafe'>
+      },
+      _$runCommandRaw<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, '$runCommandRaw'>>) {
+        return {} as PrismaDefault.Result<T, A, '$runCommandRaw'>
+      },
+    },
+    model: {
+      $allModels: {
+        _aggregate<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'aggregate'>>) {
+          return {} as PrismaDefault.Result<T, A, 'aggregate'>
+        },
+        _aggregateRaw<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'aggregateRaw'>>) {
+          return {} as PrismaDefault.Result<T, A, 'aggregateRaw'>
+        },
+        _count<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'count'>>) {
+          return {} as PrismaDefault.Result<T, A, 'count'>
+        },
+        _create<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'create'>>) {
+          return {} as PrismaDefault.Result<T, A, 'create'>
+        },
+        _createMany<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'createMany'>>) {
+          return {} as PrismaDefault.Result<T, A, 'createMany'>
+        },
+        _delete<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'delete'>>) {
+          return {} as PrismaDefault.Result<T, A, 'delete'>
+        },
+        _deleteMany<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'deleteMany'>>) {
+          return {} as PrismaDefault.Result<T, A, 'deleteMany'>
+        },
+        _findFirst<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findFirst'>>) {
+          return {} as PrismaDefault.Result<T, A, 'findFirst'>
+        },
+        _findFirstOrThrow<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findFirstOrThrow'>>) {
+          return {} as PrismaDefault.Result<T, A, 'findFirstOrThrow'>
+        },
+        _findMany<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findMany'>>) {
+          return {} as PrismaDefault.Result<T, A, 'findMany'>
+        },
+        _findRaw<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findRaw'>>) {
+          return {} as PrismaDefault.Result<T, A, 'findRaw'>
+        },
+        _findUnique<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findUnique'>>) {
+          return {} as PrismaDefault.Result<T, A, 'findUnique'>
+        },
+        _findUniqueOrThrow<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'findUniqueOrThrow'>>) {
+          return {} as PrismaDefault.Result<T, A, 'findUniqueOrThrow'>
+        },
+        _groupBy<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'groupBy'>>) {
+          return {} as PrismaDefault.Result<T, A, 'groupBy'>
+        },
+        _update<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'update'>>) {
+          return {} as PrismaDefault.Result<T, A, 'update'>
+        },
+        _updateMany<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'updateMany'>>) {
+          return {} as PrismaDefault.Result<T, A, 'updateMany'>
+        },
+        _upsert<T, A>(this: T, _args: PrismaDefault.Exact<A, PrismaDefault.Args<T, 'upsert'>>) {
+          return {} as PrismaDefault.Result<T, A, 'upsert'>
+        },
+      },
+    },
+  })
+}
+
 testMatrix.setupTestSuite(() => {
   test('client - callback', () => {
     const xprisma = prisma.$extends(clientExtensionCallback())
@@ -364,7 +442,7 @@ testMatrix.setupTestSuite(() => {
     expectTypeOf<(typeof data)['args']>().toEqualTypeOf<{ select: { email: true } }>()
     expectTypeOf<(typeof data)['payload']>().toMatchTypeOf<object>()
     expectTypeOf<(typeof data)['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
-    expectTypeOf<(typeof data)['result']>().toHaveProperty('email').toEqualTypeOf<string>()
+    expectTypeOf<(typeof data)['result'] & {}>().toHaveProperty('email').toEqualTypeOf<string>()
   })
 
   // here we want to check that type utils also work via default
@@ -381,7 +459,7 @@ testMatrix.setupTestSuite(() => {
     expectTypeOf<(typeof data)['args']>().toEqualTypeOf<{ select: { email: true } }>()
     expectTypeOf<(typeof data)['payload']>().toMatchTypeOf<object>()
     expectTypeOf<(typeof data)['payload']['scalars']>().toHaveProperty('email').toEqualTypeOf<string>()
-    expectTypeOf<(typeof data)['result']>().toHaveProperty('email').toEqualTypeOf<string>()
+    expectTypeOf<(typeof data)['result'] & {}>().toHaveProperty('email').toEqualTypeOf<string>()
   })
 
   // here we want to check that type utils also work via default
@@ -389,12 +467,133 @@ testMatrix.setupTestSuite(() => {
     const xprisma = prisma.$extends(clientGenericExtensionObjectViaDefault())
     expectTypeOf(xprisma).toHaveProperty('myGenericMethodViaDefault')
 
+    // @ts-test-if: provider !== 'mongodb'
     const data = xprisma.myGenericMethodViaDefault`SELECT * FROM User WHERE id = ${1}`
 
     expectTypeOf<(typeof data)['args']>().toEqualTypeOf<[TemplateStringsArray, number]>()
     // @ts-test-if: provider !== 'mongodb'
     expectTypeOf<(typeof data)['payload']>().toEqualTypeOf<any>()
     // @ts-test-if: provider !== 'mongodb'
-    expectTypeOf<(typeof data)['result']>().toEqualTypeOf<any>()
+    expectTypeOf<(typeof data)['result']>().toEqualTypeOf<number>()
+  })
+
+  // here we want to check that type utils are equivalent to real results
+  test('generic client - generic type utilities', () => {
+    ;async () => {
+      const xprisma = prisma.$extends(allResultsGenericExtensionObjectViaDefault())
+
+      const _aggregate = xprisma.user._aggregate({ _min: { id: true } })
+      const aggregate = await xprisma.user.aggregate({ _min: { id: true } })
+      expectTypeOf<typeof _aggregate>().toEqualTypeOf<typeof aggregate>()
+
+      const _count = xprisma.user._count({})
+      const count = await xprisma.user.count({})
+      expectTypeOf<typeof _count>().toEqualTypeOf<typeof count>()
+
+      const _create = xprisma.user._create({ data: { email: '', firstName: '', lastName: '' } })
+      const create = await xprisma.user.create({ data: { email: '', firstName: '', lastName: '' } })
+      expectTypeOf<typeof _create>().toEqualTypeOf<typeof create>()
+
+      const _createMany = xprisma.user._createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
+      const createMany = await xprisma.user.createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
+      expectTypeOf<typeof _createMany>().toEqualTypeOf<typeof createMany>()
+
+      const _delete = xprisma.user._delete({ where: { id: '1' } })
+      const deleted = await xprisma.user.delete({ where: { id: '1' } })
+      expectTypeOf<typeof _delete>().toEqualTypeOf<typeof deleted>()
+
+      const _deleteMany = xprisma.user._deleteMany({ where: { id: '1' } })
+      const deleteMany = await xprisma.user.deleteMany({ where: { id: '1' } })
+      expectTypeOf<typeof _deleteMany>().toEqualTypeOf<typeof deleteMany>()
+
+      const _findFirst = xprisma.user._findFirst({})
+      const findFirst = await xprisma.user.findFirst({})
+      expectTypeOf<typeof _findFirst>().toEqualTypeOf<typeof findFirst>()
+
+      const _findFirstOrThrow = xprisma.user._findFirstOrThrow({})
+      const findFirstOrThrow = await xprisma.user.findFirstOrThrow({})
+      expectTypeOf<typeof _findFirstOrThrow>().toEqualTypeOf<typeof findFirstOrThrow>()
+
+      const _findMany = xprisma.user._findMany({ include: { posts: true } })
+      const findMany = await xprisma.user.findMany({ include: { posts: true } })
+      expectTypeOf<typeof _findMany>().toEqualTypeOf<typeof findMany>()
+
+      const _findUnique = xprisma.user._findUnique({ where: { id: '1' } })
+      const findUnique = await xprisma.user.findUnique({ where: { id: '1' } })
+      expectTypeOf<typeof _findUnique>().toEqualTypeOf<typeof findUnique>()
+
+      const _findUniqueOrThrow = xprisma.user._findUniqueOrThrow({ where: { id: '1' } })
+      const findUniqueOrThrow = await xprisma.user.findUniqueOrThrow({ where: { id: '1' } })
+      expectTypeOf<typeof _findUniqueOrThrow>().toEqualTypeOf<typeof findUniqueOrThrow>()
+
+      const _groupBy = xprisma.user._groupBy({ by: ['id'] })
+      const groupBy = await xprisma.user.groupBy({ by: ['id'] })
+      expectTypeOf<typeof _groupBy>().toEqualTypeOf<typeof groupBy>()
+
+      const _update = xprisma.user._update({ where: { id: '1' }, data: { email: '' } })
+      const update = await prisma.user.update({ where: { id: '1' }, data: { email: '' } })
+      expectTypeOf<typeof _update>().toEqualTypeOf<typeof update>()
+
+      const _updateMany = xprisma.user._updateMany({ where: { id: '1' }, data: { email: '' } })
+      const updateMany = await prisma.user.updateMany({ where: { id: '1' }, data: { email: '' } })
+      expectTypeOf<typeof _updateMany>().toEqualTypeOf<typeof updateMany>()
+
+      const _upsert = xprisma.user._upsert({
+        where: { id: '1' },
+        create: { email: '', firstName: '', lastName: '' },
+        update: { email: '' },
+      })
+      const upsert = await prisma.user.upsert({
+        where: { id: '1' },
+        create: { email: '', firstName: '', lastName: '' },
+        update: { email: '' },
+      })
+      expectTypeOf<typeof _upsert>().toEqualTypeOf<typeof upsert>()
+
+      // @ts-test-if: provider === 'mongodb'
+      const _findRaw = xprisma.user._findRaw({})
+      // @ts-test-if: provider === 'mongodb'
+      const findRaw = await prisma.user.findRaw({})
+      // @ts-test-if: provider === 'mongodb'
+      expectTypeOf<typeof _findRaw>().toEqualTypeOf<typeof findRaw>()
+
+      // @ts-test-if: provider === 'mongodb'
+      const _aggregateRaw = xprisma.user._aggregateRaw({})
+      // @ts-test-if: provider === 'mongodb'
+      const aggregateRaw = await prisma.user.aggregateRaw({})
+      // @ts-test-if: provider === 'mongodb'
+      expectTypeOf<typeof _aggregateRaw>().toEqualTypeOf<typeof aggregateRaw>()
+
+      // @ts-test-if: provider === 'mongodb'
+      const _runCommandRaw = xprisma._$runCommandRaw({})
+      // @ts-test-if: provider === 'mongodb'
+      const runCommandRaw = await prisma.$runCommandRaw({})
+      // @ts-test-if: provider === 'mongodb'
+      expectTypeOf<typeof _runCommandRaw>().toEqualTypeOf<typeof runCommandRaw>()
+
+      const _executeRaw = xprisma._$executeRaw([])
+      // @ts-test-if: provider !== 'mongodb'
+      const executeRaw = await prisma.$executeRaw([] as any as TemplateStringsArray)
+      // @ts-test-if: provider !== 'mongodb'
+      expectTypeOf<typeof _executeRaw>().toEqualTypeOf<typeof executeRaw>()
+
+      const _executeRawUnsafe = xprisma._$executeRawUnsafe('')
+      // @ts-test-if: provider !== 'mongodb'
+      const executeRawUnsafe = await prisma.$executeRawUnsafe('')
+      // @ts-test-if: provider !== 'mongodb'
+      expectTypeOf<typeof _executeRawUnsafe>().toEqualTypeOf<typeof executeRawUnsafe>()
+
+      const _queryRaw = xprisma._$queryRaw([])
+      // @ts-test-if: provider !== 'mongodb'
+      const queryRaw = await prisma.$queryRaw([] as any as TemplateStringsArray)
+      // @ts-test-if: provider !== 'mongodb'
+      expectTypeOf<typeof _queryRaw>().toEqualTypeOf<typeof queryRaw>()
+
+      const _queryRawUnsafe = xprisma._$queryRawUnsafe('')
+      // @ts-test-if: provider !== 'mongodb'
+      const queryRawUnsafe = await prisma.$queryRawUnsafe('')
+      // @ts-test-if: provider !== 'mongodb'
+      expectTypeOf<typeof _queryRawUnsafe>().toEqualTypeOf<typeof queryRawUnsafe>()
+    }
   })
 })

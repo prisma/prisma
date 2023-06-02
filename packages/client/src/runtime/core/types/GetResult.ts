@@ -1,6 +1,7 @@
 /* eslint-disable prettier/prettier */
 
 import { Payload } from "./Payload"
+import { JsonObject } from "./Utils"
 
 export type Operation =
 // finds
@@ -23,14 +24,15 @@ export type Operation =
 | 'aggregate'
 | 'count'
 | 'groupBy'
+// raw sql
 | '$queryRaw'
 | '$executeRaw'
 | '$queryRawUnsafe'
 | '$executeRawUnsafe'
-| '$runCommandRaw'
 // raw mongo
-// | 'findRaw'
-// | 'runCommandRaw'
+| 'findRaw'
+| 'aggregateRaw'
+| '$runCommandRaw'
 
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
@@ -57,7 +59,7 @@ export type GetFindResult<P extends Payload, A> =
             : K extends '_count'
               ? Count<GetFindResult<P, S[K]>>
               : never
-  }& (A extends { include: any } & Record<string, unknown> ? P['scalars'] : unknown)
+  } & (A extends { include: any } & Record<string, unknown> ? P['scalars'] : unknown)
   : P['scalars']
 
 type GetCountResult<A> =
@@ -68,13 +70,11 @@ type GetCountResult<A> =
   : number
 
 type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum' 
-type GetAggregateResult<A> = {
+type GetAggregateResult<P, A> = {
   [K in keyof A as K extends Aggregate ? K : never]:
     K extends '_count'
-    ? A[K] extends true
-      ? number
-      : Count<A[K]>
-    : Count<A[K]>
+    ? A[K] extends true ? number : Count<A[K]>
+    : P extends Payload ? { [J in keyof A[K] & string]: P['scalars'][J] | null } : never
 }
 
 type GetBatchResult = { count: number }
@@ -82,14 +82,14 @@ type GetBatchResult = { count: number }
 type GetGroupByResult<P, A> =
   P extends Payload
   ? A extends { by: string[] }
-    ? Array<GetAggregateResult<A> & { [K in A['by'][number]]: P['scalars'][K] }>
+    ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
     : never
   : never
 
 export type GetResult<P extends Payload, A, O extends Operation> = {
-  findUnique: GetFindResult<P, A>,
+  findUnique: GetFindResult<P, A> | null,
   findUniqueOrThrow: GetFindResult<P, A>,
-  findFirst: GetFindResult<P, A>,
+  findFirst: GetFindResult<P, A> | null,
   findFirstOrThrow: GetFindResult<P, A>,
   findMany: GetFindResult<P, A>[],
   create: GetFindResult<P, A>,
@@ -99,12 +99,14 @@ export type GetResult<P extends Payload, A, O extends Operation> = {
   upsert: GetFindResult<P, A>,
   delete: GetFindResult<P, A>,
   deleteMany: GetBatchResult,
-  aggregate: GetAggregateResult<A>,
+  aggregate: GetAggregateResult<P, A>,
   count: GetCountResult<A>,
   groupBy: GetGroupByResult<P, A>,
-  $queryRaw: any,
-  $executeRaw: any,
-  $queryRawUnsafe: any,
-  $executeRawUnsafe: any,
-  $runCommandRaw: object,
+  $queryRaw: unknown,
+  $executeRaw: number,
+  $queryRawUnsafe: unknown,
+  $executeRawUnsafe: number,
+  $runCommandRaw: JsonObject,
+  findRaw: JsonObject,
+  aggregateRaw: JsonObject,
 }[O]

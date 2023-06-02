@@ -79,9 +79,9 @@ export namespace Prisma {
   export type Extension = runtime.Types.Extensions.UserArgs
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export import getExtensionContext = runtime.Extensions.getExtensionContext
-  export type Args<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Args<T, F> & {}
-  export type Payload<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Payload<T, F> & {}
-  export type Result<T, A, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Result<T, A, F> & {}
-  export type Exact<T, W> = runtime.Types.Public.Exact<T, W> & {}
-  export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T> & {}
+  export type Args<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Args<T, F> & unknown
+  export type Payload<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Payload<T, F> & unknown
+  export type Result<T, A, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Result<T, A, F> & unknown
+  export type Exact<T, W> = runtime.Types.Public.Exact<T, W> & unknown
+  export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T> & unknown
 }
