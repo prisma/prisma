@@ -494,8 +494,11 @@ testMatrix.setupTestSuite(() => {
       const create = await xprisma.user.create({ data: { email: '', firstName: '', lastName: '' } })
       expectTypeOf<typeof _create>().toEqualTypeOf<typeof create>()
 
+      // @ts-test-if: provider !== 'sqlite'
       const _createMany = xprisma.user._createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
+      // @ts-test-if: provider !== 'sqlite'
       const createMany = await xprisma.user.createMany({ data: [{ email: '', firstName: '', lastName: '' }] })
+      // @ts-test-if: provider !== 'sqlite'
       expectTypeOf<typeof _createMany>().toEqualTypeOf<typeof createMany>()
 
       const _delete = xprisma.user._delete({ where: { id: '1' } })
