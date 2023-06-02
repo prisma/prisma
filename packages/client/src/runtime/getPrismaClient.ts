@@ -45,6 +45,7 @@ import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { ProtocolEncoder } from './core/protocol/common'
 import { GraphQLProtocolEncoder } from './core/protocol/graphql'
 import { JsonProtocolEncoder } from './core/protocol/json'
+import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
 import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import { rawQueryArgsMapper } from './core/raw-query/rawQueryArgsMapper'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
@@ -664,10 +665,11 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
       return createPrismaPromise((transaction) => {
         return this._request({
-          args: { command: command },
+          args: command,
           clientMethod: '$runCommandRaw',
           dataPath: [],
           action: 'runCommandRaw',
+          argsMapper: rawCommandArgsMapper,
           callsite: getCallSite(this._errorFormat),
           transaction: transaction,
         })
