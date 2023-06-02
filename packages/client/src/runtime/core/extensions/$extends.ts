@@ -11,11 +11,11 @@ import { OptionalFlat } from '../types/Utils'
 export type Args = OptionalFlat<RequiredArgs>
 export type RequiredArgs = NameArgs & ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
-type NameArgs = {
+export type NameArgs = {
   name?: string
 }
 
-type ResultArgs = {
+export type ResultArgs = {
   result: {
     [ModelName in string]: ResultArg
   }
@@ -32,7 +32,7 @@ export type ResultFieldDefinition = {
   compute: ResultArgsFieldCompute
 }
 
-type ModelArgs = {
+export type ModelArgs = {
   model: {
     [ModelName in string]: ModelArg
   }
@@ -42,7 +42,7 @@ export type ModelArg = {
   [MethodName in string]: Function
 }
 
-type ClientArgs = {
+export type ClientArgs = {
   client: ClientArg
 }
 
@@ -50,20 +50,28 @@ export type ClientArg = {
   [MethodName in string]: Function
 }
 
-type QueryOptionsCbArgs = {
+export type TopQueryOptionsCbArgs = {
   model?: string
   operation: string
   args: JsArgs | RawQueryArgs
   query: (args: JsArgs | RawQueryArgs) => Promise<unknown>
 }
 
-export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>
+export type ModelQueryOptionsCbArgs = {
+  model: string
+  operation: string
+  args: JsArgs
+  query: (args: JsArgs) => Promise<unknown>
+}
 
-type QueryOptions = {
+export type QueryOptionsCb = (args: TopQueryOptionsCbArgs) => Promise<any>
+export type ModelQueryOptionsCb = (args: ModelQueryOptionsCbArgs) => Promise<any>
+
+export type QueryOptions = {
   query: {
     [ModelName in string]:
       | {
-          [ModelAction in string]: QueryOptionsCb
+          [ModelAction in string]: ModelQueryOptionsCb
         }
       | QueryOptionsCb // for "other" queries (eg. raw queries)
   }
