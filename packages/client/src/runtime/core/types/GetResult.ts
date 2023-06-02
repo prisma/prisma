@@ -69,21 +69,19 @@ type GetCountResult<A> =
     : Count<S>
   : number
 
-type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum' 
-type GetAggregateResult<P, A> = {
+type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum'
+type GetAggregateResult<P extends Payload, A> = {
   [K in keyof A as K extends Aggregate ? K : never]:
     K extends '_count'
     ? A[K] extends true ? number : Count<A[K]>
-    : P extends Payload ? { [J in keyof A[K] & string]: P['scalars'][J] | null } : never
+    : { [J in keyof A[K] & string]: P['scalars'][J] | null }
 }
 
 type GetBatchResult = { count: number }
 
-type GetGroupByResult<P, A> =
-  P extends Payload
-  ? A extends { by: string[] }
-    ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
-    : never
+type GetGroupByResult<P extends Payload, A> =
+  A extends { by: string[] }
+  ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
   : never
 
 export type GetResult<P extends Payload, A, O extends Operation> = {
