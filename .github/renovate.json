@@ -150,8 +150,8 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
-      "groupName": "sqlite-async",
-      "packageNames": ["sqlite-async"],
+      "groupName": "npm-packlist",
+      "packageNames": ["npm-packlist"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
