@@ -795,7 +795,7 @@ importers:
       jest-junit: 16.0.0
       kleur: 4.1.5
       log-update: 4.0.0
-      mariadb: 3.1.1
+      mariadb: 3.1.2
       mock-stdin: 1.0.0
       mongoose: 6.11.1
       mssql: 9.1.1
@@ -819,7 +819,7 @@ importers:
       indent-string: 4.0.0
       kleur: 4.1.5
       log-update: 4.0.0
-      mariadb: 3.1.1
+      mariadb: 3.1.2
       mongoose: 6.11.1
       mssql: 9.1.1
       ora: 5.4.1
@@ -11274,8 +11274,8 @@ packages:
       moment-timezone: 0.5.38
     dev: true
 
-  /mariadb/3.1.1:
-    resolution: {integrity: sha512-Y5tu9pQr8uZs63FATr7ldODXn8N2aIFlAg/rp6kRTohgQiJfdl9DNGu9PXRTYdY4JgF5mT2ASD81Jdo5kfGYzg==}
+  /mariadb/3.1.2:
+    resolution: {integrity: sha512-ILlC54fkXkvizTJZC1uP7f/REBxuu1k+OWzpiIITIEdS+dGIjFe/Ob3EW9KrdtBa38l3z+odz6elva0RG/y5og==}
     engines: {node: '>= 12'}
     dependencies:
       '@types/geojson': 7946.0.10
