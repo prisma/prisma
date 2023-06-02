@@ -43,7 +43,7 @@
     "test:memory": "node -r esbuild-register helpers/memory-tests.ts",
     "test:functional:code": "node -r esbuild-register helpers/functional-test/run-tests.ts --no-types",
     "test:functional:types": "node -r esbuild-register helpers/functional-test/run-tests.ts --types-only",
-    "test-notypes": "jest --silent --testPathIgnorePatterns src/__tests__/types/types.test.ts",
+    "test-notypes": "jest --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "pnpm run build",
