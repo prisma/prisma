@@ -21,7 +21,13 @@ const { PrismaClient } = require('./prisma/client')
 
 requireSpan.end()
 
-const prisma = context.with(ctx, () => new PrismaClient())
+const prisma = context.with(ctx, () =>
+  tracer.startActiveSpan('benchmark:clientConstructor', (span) => {
+    const client = new PrismaClient()
+    span.end()
+    return client
+  }),
+)
 await context.with(ctx, () => prisma.$connect())
 
 export async function runMeasurement() {

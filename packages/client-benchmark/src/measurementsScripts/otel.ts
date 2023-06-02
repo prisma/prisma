@@ -36,7 +36,7 @@ export function setupOtel(exporter, instrumentation) {
     idGenerator: new AWSXRayIdGenerator(),
   })
 
-  provider.addSpanProcessor(new SimpleSpanProcessor(new OTLPTraceExporter()))
+  // provider.addSpanProcessor(new SimpleSpanProcessor(new OTLPTraceExporter()))
   provider.addSpanProcessor(new SimpleSpanProcessor(exporter))
 
   registerInstrumentations({
