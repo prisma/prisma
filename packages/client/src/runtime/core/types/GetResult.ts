@@ -36,6 +36,7 @@ export type Operation =
 
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
+// prettier-ignore
 export type GetFindResult<P extends Payload, A> = 
   A extends 
   | { select: infer S } & Record<string, unknown>
@@ -59,15 +60,10 @@ export type GetFindResult<P extends Payload, A> =
             : K extends '_count'
               ? Count<GetFindResult<P, S[K]>>
               : never
-  } & (A extends { include: any } & Record<string, unknown> ? P['scalars'] : unknown)
-  : P['scalars']
+    } & (A extends { include: any } & Record<string, unknown> ? P['scalars'] & P['composites'] : unknown)
+  : P['scalars'] & P['composites']
 
-type GetCountResult<A> =
-  A extends { select: infer S }
-  ? S extends true
-    ? number
-    : Count<S>
-  : number
+type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
 
 type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum'
 type GetAggregateResult<P extends Payload, A> = {
