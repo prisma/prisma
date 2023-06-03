@@ -1,11 +1,12 @@
 import { enginesVersion } from '@prisma/engines'
-import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile, getConfig, getDirectUrl } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { StudioServer } from '@prisma/studio-server'
 import getPort from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
 import path from 'path'
+import fs from 'fs'
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -90,6 +91,10 @@ ${bold('Examples')}
 
     const staticAssetDir = path.resolve(__dirname, '../build/public')
 
+    const schema = await fs.promises.readFile(schemaPath, 'utf-8')
+    const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+    const directUrl = getDirectUrl(config.datasources[0])
+
     const studio = new StudioServer({
       schemaPath,
       hostname,
@@ -99,6 +104,7 @@ ${bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
         },
+        directUrl: directUrl
       },
       versions: {
         prisma: packageJson.version,

@@ -58,6 +58,10 @@ export function getEffectiveUrl(ds: DataSource): EnvValue {
   return ds.url
 }
 
+export function getDirectUrl(ds: DataSource) {
+  return ds.directUrl
+}
+
 /**
  * Wasm'd version of `getConfig`.
  */
