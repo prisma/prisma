@@ -1,12 +1,9 @@
-import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
 import rimraf from 'rimraf'
 
 import { Studio } from '../../Studio'
-
-const originalEnv = { ...process.env }
 
 // const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
