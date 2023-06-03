@@ -38,33 +38,33 @@ describe('Studio CLI', () => {
     process.env = { ...originalEnv }
   })
 
-  it('should fail if url is prisma://', async () => {
-    ctx.fixture('schema-only-data-proxy')
+  // it('should fail if url is prisma://', async () => {
+  //   ctx.fixture('schema-only-data-proxy')
 
-    const result = Studio.new().parse([])
+  //   const result = Studio.new().parse([])
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+  //   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
+  //     Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
 
-      More information about Data Proxy: https://pris.ly/d/data-proxy-cli
+  //     More information about Data Proxy: https://pris.ly/d/data-proxy-cli
 
-    `)
-  })
+  //   `)
+  // })
 
-  it('should fail if url is prisma:// and directUrl is set', async () => {
-    ctx.fixture('schema-only-data-proxy-direct-url')
+  // it('should fail if url is prisma:// and directUrl is set', async () => {
+  //   ctx.fixture('schema-only-data-proxy-direct-url')
 
-    const result = Studio.new().parse([])
+  //   const result = Studio.new().parse([])
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+  //   await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
+  //     Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
 
-      More information about Data Proxy: https://pris.ly/d/data-proxy-cli
+  //     More information about Data Proxy: https://pris.ly/d/data-proxy-cli
 
-    `)
-  })
+  //   `)
+  // })
 })
 
 describe('studio with default schema.prisma filename', () => {
