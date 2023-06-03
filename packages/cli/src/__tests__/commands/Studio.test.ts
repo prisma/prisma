@@ -8,7 +8,7 @@ import { Studio } from '../../Studio'
 
 const originalEnv = { ...process.env }
 
-const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+// const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 const STUDIO_TEST_PORT = 5678
 
