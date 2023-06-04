@@ -272,7 +272,7 @@ importers:
       kleur: 4.1.5
       klona: 2.0.6
       lz-string: 1.5.0
-      mariadb: 3.0.2
+      mariadb: 3.1.2
       memfs: 3.5.1
       mssql: 9.1.1
       new-github-issue-url: 0.2.1
@@ -358,7 +358,7 @@ importers:
       kleur: 4.1.5
       klona: 2.0.6
       lz-string: 1.5.0
-      mariadb: 3.0.2
+      mariadb: 3.1.2
       memfs: 3.5.1
       mssql: 9.1.1
       new-github-issue-url: 0.2.1
@@ -615,7 +615,7 @@ importers:
       fs-jetpack: 5.1.0
       jest: 29.5.0
       jest-junit: 16.0.0
-      mariadb: 3.0.2
+      mariadb: 3.1.2
       mssql: 9.1.1
       pg: 8.9.0
       sqlite-async: 1.2.0
@@ -643,7 +643,7 @@ importers:
       fs-jetpack: 5.1.0
       jest: 29.5.0_daglcptrsglylliibnnp676h3i
       jest-junit: 16.0.0
-      mariadb: 3.0.2
+      mariadb: 3.1.2
       mssql: 9.1.1
       pg: 8.9.0
       sqlite-async: 1.2.0
@@ -11262,18 +11262,6 @@ packages:
     resolution: {integrity: sha512-CkYQrPYZfWnu/DAmVCpTSX/xHpKZ80eKh2lAkyA6AJTef6bW+6JpbQZN5rofum7da+SyN1bi5ctTm+lTfcCW3g==}
     dev: true
 
-  /mariadb/3.0.2:
-    resolution: {integrity: sha512-dVjiQZ6RW0IXFnX+T/ZEmnqs724DgkQsXqfCyInXn0XxVfO2Px6KbS4M3Ny6UiBg0zJ93SHHvfVBgYO4ZnFvvw==}
-    engines: {node: '>= 12'}
-    dependencies:
-      '@types/geojson': 7946.0.10
-      '@types/node': 17.0.45
-      denque: 2.1.0
-      iconv-lite: 0.6.3
-      lru-cache: 7.14.0
-      moment-timezone: 0.5.38
-    dev: true
-
   /mariadb/3.1.2:
     resolution: {integrity: sha512-ILlC54fkXkvizTJZC1uP7f/REBxuu1k+OWzpiIITIEdS+dGIjFe/Ob3EW9KrdtBa38l3z+odz6elva0RG/y5og==}
     engines: {node: '>= 12'}
@@ -11283,7 +11271,6 @@ packages:
       denque: 2.1.0
       iconv-lite: 0.6.3
       lru-cache: 7.14.0
-    dev: false
 
   /matcher/3.0.0:
     resolution: {integrity: sha512-OkeDaAZ/bQCxeFAozM55PKcKU0yJMPGifLwV4Qgjitu+5MoAfSQN4lsLJeXZ1b8w0x+/Emda6MZgXS1jvsapng==}
@@ -11709,16 +11696,6 @@ packages:
 
   /module-details-from-path/1.0.3:
     resolution: {integrity: sha512-ySViT69/76t8VhE1xXHK6Ch4NcDd26gx0MzKXLO+F7NOtnqH68d9zF94nT8ZWSxXh8ELOERsnJO/sWt1xZYw5A==}
-
-  /moment-timezone/0.5.38:
-    resolution: {integrity: sha512-nMIrzGah4+oYZPflDvLZUgoVUO4fvAqHstvG3xAUnMolWncuAiLDWNnJZj6EwJGMGfb1ZcuTFE6GI3hNOVWI/Q==}
-    dependencies:
-      moment: 2.29.4
-    dev: true
-
-  /moment/2.29.4:
-    resolution: {integrity: sha512-5LC9SOxjSc2HF6vO2CyuTDNivEdoz2IvyJJGj6X8DJ0eFyfszE0QiEd+iXmBvUP3WHxSjFH/vIsA0EN00cgr8w==}
-    dev: true
 
   /mongodb-connection-string-url/2.5.4:
     resolution: {integrity: sha512-SeAxuWs0ez3iI3vvmLk/j2y+zHwigTDKQhtdxTgt5ZCOQQS5+HW4g45/Xw5vzzbn7oQXCNQ24Z40AkJsizEy7w==}
