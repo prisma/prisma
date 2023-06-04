@@ -126,6 +126,7 @@ export interface EngineConfig {
   activeProvider?: string
   logEmitter: EventEmitter
   engineProtocol: EngineProtocol
+  transactionOptions: Transaction.Options
 
   /**
    * The contents of the schema encoded into a string

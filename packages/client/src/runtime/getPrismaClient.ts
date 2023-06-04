@@ -35,6 +35,7 @@ import {
   LibraryEngine,
   Options,
 } from './core/engines'
+import type * as Transaction from './core/engines/common/types/Transaction'
 import { $extends } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
@@ -113,6 +114,13 @@ export interface PrismaClientOptions {
    * @default "colorless"
    */
   errorFormat?: ErrorFormat
+
+  /**
+   * The default values for Transaction options
+   * maxWait ?= 2000
+   * timeout ?= 5000
+   */
+  transactionOptions?: Transaction.Options
 
   /**
    * @example
@@ -465,6 +473,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           logEmitter: logEmitter,
           engineProtocol,
           isBundled: config.isBundled,
+          transactionOptions: {
+            maxWait: options.transactionOptions?.maxWait ?? 2000,
+            timeout: options.transactionOptions?.timeout ?? 5000,
+            isolationLevel: options.transactionOptions?.isolationLevel,
+          },
         }
 
         debug('clientVersion', config.clientVersion)

@@ -39,6 +39,10 @@ function setupMockLibraryEngine() {
       env: {},
       cwd: process.cwd(),
       engineProtocol: 'graphql',
+      transactionOptions: {
+        maxWait: 2000,
+        timeout: 5000,
+      },
     },
     loader,
   )
@@ -110,6 +114,10 @@ test('responds to initialization error with PrismaClientInitializationError', as
       env: {},
       cwd: process.cwd(),
       engineProtocol: 'graphql',
+      transactionOptions: {
+        maxWait: 2000,
+        timeout: 5000,
+      },
     },
     loader,
   )
