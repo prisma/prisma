@@ -8,7 +8,7 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
   test('should create a record using upsert', async () => {
-    const name = faker.name.firstName()
+    const name = faker.person.firstName()
 
     await prisma.user.upsert({
       where: {
@@ -28,7 +28,7 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('should update a record using upsert', async () => {
-    const name = faker.name.firstName()
+    const name = faker.person.firstName()
 
     await prisma.user.create({
       data: {
