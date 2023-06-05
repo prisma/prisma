@@ -218,16 +218,11 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
         testContextMethods(isTransaction: boolean) {
           const ctx = Prisma.getExtensionContext(this)
 
-          expectTypeOf(ctx.$connect).not.toMatchTypeOf<typeof prisma.$connect>()
-          expectTypeOf(ctx.$connect).toMatchTypeOf<typeof prisma.$connect | undefined>()
-          expectTypeOf(ctx.$disconnect).not.toMatchTypeOf<typeof prisma.$disconnect>()
-          expectTypeOf(ctx.$disconnect).toMatchTypeOf<typeof prisma.$disconnect | undefined>()
-          expectTypeOf(ctx.$transaction).not.toMatchTypeOf<typeof prisma.$transaction>()
-          expectTypeOf(ctx.$transaction).toMatchTypeOf<typeof prisma.$transaction | undefined>()
-          expectTypeOf(ctx.$on).not.toMatchTypeOf<typeof prisma.$on>()
-          expectTypeOf(ctx.$on).toMatchTypeOf<typeof prisma.$on | undefined>()
-          expectTypeOf(ctx.$extends).not.toMatchTypeOf<typeof prisma.$extends>()
-          expectTypeOf(ctx.$extends).toMatchTypeOf<typeof prisma.$extends | undefined>()
+          expectTypeOf(ctx.$connect).toEqualTypeOf<typeof prisma.$connect | undefined>()
+          expectTypeOf(ctx.$disconnect).toEqualTypeOf<typeof prisma.$disconnect | undefined>()
+          expectTypeOf(ctx.$transaction).toEqualTypeOf<typeof prisma.$transaction | undefined>()
+          expectTypeOf(ctx.$on).toEqualTypeOf<typeof prisma.$on | undefined>()
+          expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
           expectTypeOf(ctx).not.toHaveProperty('$use')
 
           if (isTransaction) {
