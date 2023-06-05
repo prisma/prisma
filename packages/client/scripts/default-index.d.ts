@@ -44,7 +44,11 @@ export declare type PrismaClientExtends<
   >(
     args:
       | ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } })
-      | { name?: string; result?: R; model?: M; query?: Q; client?: C },
+      | { name?: string }
+      | { result?: R & runtime.Types.Extensions.UserArgs['result'] }
+      | { model?: M & runtime.Types.Extensions.UserArgs['model'] }
+      | { query?: Q & runtime.Types.Extensions.UserArgs['query'] }
+      | { client?: C & runtime.Types.Extensions.UserArgs['client'] },
   ) => PrismaClientExtends<Args & ExtArgs>)
 }
 
@@ -73,7 +77,11 @@ export namespace Prisma {
   >(
     args:
       | ((client: PrismaClientExtends) => { $extends: { extArgs: Args } })
-      | { name?: string; result?: R; model?: M; query?: Q; client?: C },
+      | { name?: string }
+      | { result?: R & runtime.Types.Extensions.UserArgs['result'] }
+      | { model?: M & runtime.Types.Extensions.UserArgs['model'] }
+      | { query?: Q & runtime.Types.Extensions.UserArgs['query'] }
+      | { client?: C & runtime.Types.Extensions.UserArgs['client'] },
   ): (client: any) => PrismaClientExtends<Args>
 
   export type Extension = runtime.Types.Extensions.UserArgs
