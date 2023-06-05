@@ -11,11 +11,11 @@ import { OptionalFlat } from '../types/Utils'
 export type Args = OptionalFlat<RequiredArgs>
 export type RequiredArgs = NameArgs & ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
-export type NameArgs = {
+type NameArgs = {
   name?: string
 }
 
-export type ResultArgs = {
+type ResultArgs = {
   result: {
     [ModelName in string]: ResultArg
   }
@@ -42,7 +42,7 @@ export type ModelArg = {
   [MethodName in string]: Function
 }
 
-export type ClientArgs = {
+type ClientArgs = {
   client: ClientArg
 }
 
@@ -50,30 +50,30 @@ export type ClientArg = {
   [MethodName in string]: Function
 }
 
-export type TopQueryOptionsCbArgs = {
+type QueryOptionsCbArgs = {
   model?: string
   operation: string
   args: JsArgs | RawQueryArgs
   query: (args: JsArgs | RawQueryArgs) => Promise<unknown>
 }
 
-export type ModelQueryOptionsCbArgs = {
+type ModelQueryOptionsCbArgs = {
   model: string
   operation: string
   args: JsArgs
   query: (args: JsArgs) => Promise<unknown>
 }
 
-export type QueryOptionsCb = (args: TopQueryOptionsCbArgs) => Promise<any>
+export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>
 export type ModelQueryOptionsCb = (args: ModelQueryOptionsCbArgs) => Promise<any>
 
-export type QueryOptions = {
+type QueryOptions = {
   query: {
     [ModelName in string]:
       | {
           [ModelAction in string]: ModelQueryOptionsCb
         }
-      | QueryOptionsCb // for "other" queries (eg. raw queries)
+      | QueryOptionsCb // for all queries (eg. raw queries)
   }
 }
 
