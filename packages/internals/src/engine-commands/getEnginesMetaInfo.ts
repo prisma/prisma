@@ -1,5 +1,5 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { BinaryType, getBinaryEnvVarPath } from '@prisma/fetch-engine'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as O from 'fp-ts/Option'
@@ -116,13 +116,13 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
  * An engine path read from the environment is valid only if it exists on disk.
  * @param pathFromEnv engine path read from process.env
  */
-function isPathFromEnvValid(pathFromEnv: string | undefined): pathFromEnv is string {
+function isPathFromEnvValid(pathFromEnv: string | null): pathFromEnv is string {
   return !!pathFromEnv && fs.existsSync(pathFromEnv)
 }
 
 export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo> {
   const envVar = engineEnvVarMap[binaryName]
-  const pathFromEnv = process.env[envVar]
+  const pathFromEnv = getBinaryEnvVarPath(binaryName)
 
   /**
    * Read the binary path, preferably from the environment, or resolving the canonical path

@@ -5,8 +5,9 @@ import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
+import { BinaryType } from '../BinaryType'
 import { cleanupCache } from '../cleanupCache'
-import { BinaryType, download, getBinaryName, getVersion } from '../download'
+import { download, getBinaryName, getVersion } from '../download'
 import { getFiles } from './__utils__/getFiles'
 
 const CURRENT_ENGINES_HASH = enginesVersion

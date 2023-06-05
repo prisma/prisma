@@ -3,15 +3,17 @@ import { assertNodeAPISupported, getNodeAPIName, getos, getPlatform, Platform, p
 import execa from 'execa'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
-import { bold, underline, yellow } from 'kleur/colors'
+import { bold, yellow } from 'kleur/colors'
 import pFilter from 'p-filter'
 import path from 'path'
 import tempDir from 'temp-dir'
 import { promisify } from 'util'
 
+import { BinaryType } from './BinaryType'
 import plusxSync from './chmod'
 import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
+import { getBinaryEnvVarPath } from './env'
 import { getHash } from './getHash'
 import { getBar } from './log'
 import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
@@ -22,17 +24,15 @@ const debug = Debug('prisma:download')
 const exists = promisify(fs.exists)
 
 const channel = 'master'
-export enum BinaryType {
-  QueryEngineBinary = 'query-engine',
-  QueryEngineLibrary = 'libquery-engine',
-  MigrationEngineBinary = 'migration-engine',
-}
+
 export type BinaryDownloadConfiguration = {
   [binary in BinaryType]?: string // that is a path to the binary download location
 }
+
 export type BinaryPaths = {
   [binary in BinaryType]?: { [binaryTarget in Platform]: string } // key: target, value: path
 }
+
 export interface DownloadOptions {
   binaries: BinaryDownloadConfiguration
   binaryTargets?: Platform[]
@@ -43,12 +43,6 @@ export interface DownloadOptions {
   failSilent?: boolean
   printVersion?: boolean
   skipCacheIntegrityCheck?: boolean
-}
-
-const BINARY_TO_ENV_VAR = {
-  [BinaryType.MigrationEngineBinary]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-  [BinaryType.QueryEngineBinary]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [BinaryType.QueryEngineLibrary]: 'PRISMA_QUERY_ENGINE_LIBRARY',
 }
 
 type BinaryDownloadJob = {
@@ -366,26 +360,6 @@ async function getCachedBinaryPath({
 
   if (await exists(cachedTargetPath)) {
     return cachedTargetPath
-  }
-
-  return null
-}
-
-export function getBinaryEnvVarPath(binaryName: string): string | null {
-  const envVar = BINARY_TO_ENV_VAR[binaryName]
-  if (envVar && process.env[envVar]) {
-    const envVarPath = path.resolve(process.cwd(), process.env[envVar] as string)
-    if (!fs.existsSync(envVarPath)) {
-      throw new Error(
-        `Env var ${bold(envVar)} is provided but provided path ${underline(process.env[envVar]!)} can't be resolved.`,
-      )
-    }
-    debug(
-      `Using env var ${bold(envVar)} for binary ${bold(binaryName)}, which points to ${underline(
-        process.env[envVar]!,
-      )}`,
-    )
-    return envVarPath
   }
 
   return null
