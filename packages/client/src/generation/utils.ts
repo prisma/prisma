@@ -140,7 +140,7 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
     case DMMF.ModelAction.deleteMany:
       return `${modelName}DeleteManyArgs`
     case DMMF.ModelAction.groupBy:
-      return `${modelName}GroupByArgs`
+      return getGroupByArgsName(modelName)
     case DMMF.ModelAction.aggregate:
       return getAggregateArgsName(modelName)
     case DMMF.ModelAction.count:
