@@ -24,7 +24,7 @@ describe('artificial-panic introspection', () => {
   it('migration-engine', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(6)
-    process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
+    process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
 
     const command = new DbPull()
     try {

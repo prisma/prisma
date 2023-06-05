@@ -453,7 +453,7 @@ export class MigrateEngine {
   }
 
   private async runCommand(request: RPCPayload): Promise<any> {
-    if (process.env.FORCE_PANIC_MIGRATION_ENGINE) {
+    if (process.env.FORCE_PANIC_SCHEMA_ENGINE) {
       request = this.getRPCPayload('debugPanic', undefined)
     }
 

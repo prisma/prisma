@@ -5,7 +5,7 @@ import { DbPull } from '../commands/DbPull'
 describe('introspection panic', () => {
   test('force panic', async () => {
     expect.assertions(1)
-    process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
+    process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
     process.chdir(path.join(__dirname, 'fixtures', 'introspection', 'sqlite'))
 
     const introspect = new DbPull()

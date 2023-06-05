@@ -72,7 +72,7 @@ describe('handlePanic migrate', () => {
   const command = 'something-test'
 
   it('test interactive engine panic', async () => {
-    process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
+    process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
     const captureStdout = new CaptureStdout()
     const files = {
       'schema.prisma': `
@@ -136,7 +136,7 @@ describe('handlePanic migrate', () => {
   })
 
   it('engine panic no interactive mode in CI', async () => {
-    process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
+    process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
 
     const files = {
       'schema.prisma': `
