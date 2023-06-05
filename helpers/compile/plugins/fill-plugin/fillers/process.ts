@@ -2,8 +2,6 @@ function noop<T = undefined>(v: T) {
   return () => v as T
 }
 
-const tickPromise = Promise.resolve()
-
 function getProcess() {
   return process
 }
@@ -94,13 +92,9 @@ export const process: NodeJS.Process = {
     rss: 0,
   }),
   nextTick: (fn: Function, ...args: unknown[]) => {
-    tickPromise
-      .then(() => fn(...args))
-      .catch((e) => {
-        setTimeout(() => {
-          throw e
-        }, 0)
-      })
+    setTimeout(() => {
+      fn(...args)
+    }, 0)
   },
   off: noop(getProcess()),
   on: noop(getProcess()),
