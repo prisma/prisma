@@ -42,8 +42,8 @@ export type GetFindResult<P extends Payload, A> =
   | { select: infer S } & Record<string, unknown>
   | { include: infer S } & Record<string, unknown>
   ? {
-      [K in keyof S as S[K] extends undefined | null ? never : K]:
-        S[K] extends false
+      [K in keyof S as S[K] extends false | undefined | null ? never : K]:
+        S[K] extends object
         ? P extends { objects: { [k in K]: (infer O)[] } }
           ? O extends Payload ? GetFindResult<O, S[K]>[] : never
           : P extends { objects: { [k in K]: (infer O) | null } }
