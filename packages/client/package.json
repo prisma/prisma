@@ -43,7 +43,7 @@
     "test:memory": "node -r esbuild-register helpers/memory-tests.ts",
     "test:functional:code": "node -r esbuild-register helpers/functional-test/run-tests.ts --no-types",
     "test:functional:types": "node -r esbuild-register helpers/functional-test/run-tests.ts --types-only",
-    "test-notypes": "jest --silent --testPathIgnorePatterns src/__tests__/types/types.test.ts",
+    "test-notypes": "jest --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "pnpm run build",
@@ -102,7 +102,7 @@
     "env-paths": "2.2.1",
     "esbuild": "0.15.13",
     "execa": "5.1.1",
-    "expect-type": "0.15.0",
+    "expect-type": "0.16.0",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "11.1.0",
     "get-own-enumerable-property-symbols": "3.0.2",
@@ -119,7 +119,7 @@
     "kleur": "4.1.5",
     "klona": "2.0.6",
     "lz-string": "1.5.0",
-    "mariadb": "3.0.2",
+    "mariadb": "3.1.2",
     "memfs": "3.5.1",
     "mssql": "9.1.1",
     "new-github-issue-url": "0.2.1",
@@ -155,7 +155,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.15.0-29.88c73fb4b0dbbf8a7e6a7809c31006efeb081701"
+    "@prisma/engines-version": "4.16.0-9.69332b98051bd3f8c816b98b83a82e1ede1dbc2b"
   },
   "sideEffects": false
 }
