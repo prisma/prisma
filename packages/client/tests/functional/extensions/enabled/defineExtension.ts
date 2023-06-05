@@ -181,6 +181,33 @@ function clientGenericExtensionObjectViaDefault() {
   })
 }
 
+// this is just actually used for testing that the type work correctly
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function queryGenericExtensionObjectViaDefault() {
+  return PrismaDefault.defineExtension({
+    query: {
+      // eslint-disable-next-line @typescript-eslint/require-await
+      async $queryRaw({ args, operation, query, model }) {
+        expectTypeOf(args).toMatchTypeOf<object>()
+        expectTypeOf(args['select']).toMatchTypeOf<object | undefined>()
+        expectTypeOf(operation).toEqualTypeOf<string>()
+        expectTypeOf(query).toMatchTypeOf<Function>()
+        expectTypeOf(model).toEqualTypeOf<string | undefined>()
+      },
+      $allModels: {
+        // eslint-disable-next-line @typescript-eslint/require-await
+        async findFirst({ args, operation, query, model }) {
+          expectTypeOf(args).toMatchTypeOf<object>()
+          expectTypeOf(args['select']).toMatchTypeOf<object | undefined>()
+          expectTypeOf(operation).toEqualTypeOf<string>()
+          expectTypeOf(query).toMatchTypeOf<Function>()
+          expectTypeOf(model).toEqualTypeOf<string>()
+        },
+      },
+    },
+  })
+}
+
 function resultExtensionCallbackViaDefault() {
   return PrismaDefault.defineExtension((client) => {
     return client.$extends({

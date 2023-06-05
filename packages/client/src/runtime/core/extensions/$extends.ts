@@ -32,7 +32,7 @@ export type ResultFieldDefinition = {
   compute: ResultArgsFieldCompute
 }
 
-type ModelArgs = {
+export type ModelArgs = {
   model: {
     [ModelName in string]: ModelArg
   }
@@ -57,15 +57,23 @@ type QueryOptionsCbArgs = {
   query: (args: JsArgs | RawQueryArgs) => Promise<unknown>
 }
 
+type ModelQueryOptionsCbArgs = {
+  model: string
+  operation: string
+  args: JsArgs
+  query: (args: JsArgs) => Promise<unknown>
+}
+
 export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>
+export type ModelQueryOptionsCb = (args: ModelQueryOptionsCbArgs) => Promise<any>
 
 type QueryOptions = {
   query: {
     [ModelName in string]:
       | {
-          [ModelAction in string]: QueryOptionsCb
+          [ModelAction in string]: ModelQueryOptionsCb
         }
-      | QueryOptionsCb // for "other" queries (eg. raw queries)
+      | QueryOptionsCb // for all queries (eg. raw queries)
   }
 }
 
