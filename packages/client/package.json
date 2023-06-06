@@ -59,7 +59,8 @@
     "edge.d.ts",
     "index.js",
     "index.d.ts",
-    "index-browser.js"
+    "index-browser.js",
+    "version.js"
   ],
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "1.1.0",
