@@ -2,10 +2,10 @@ import Debug from '@prisma/debug'
 import {
   BinaryType,
   ErrorArea,
-  MigrateEngineExitCode,
-  MigrateEngineLogLine,
   resolveBinary,
   RustPanic,
+  SchemaEngineExitCode,
+  SchemaEngineLogLine,
   setClassName,
 } from '@prisma/internals'
 import type { ChildProcess } from 'child_process'
@@ -51,7 +51,7 @@ export class SchemaEngine {
   private messages: string[] = []
   private lastRequest?: any
   /** The fields of the last engine log event with an `ERROR` level. */
-  private lastError: MigrateEngineLogLine['fields'] | null = null
+  private lastError: SchemaEngineLogLine['fields'] | null = null
   private initPromise?: Promise<void>
   private enabledPreviewFeatures?: string[]
 
@@ -402,12 +402,12 @@ export class SchemaEngine {
           }
 
           switch (code) {
-            case MigrateEngineExitCode.Success:
+            case SchemaEngineExitCode.Success:
               break
-            case MigrateEngineExitCode.Error:
+            case SchemaEngineExitCode.Error:
               exitWithErr(new Error(`Error in migration engine: ${engineMessage}`))
               break
-            case MigrateEngineExitCode.Panic:
+            case SchemaEngineExitCode.Panic:
               handlePanic()
               break
             // treat unknown error codes as panics
@@ -427,7 +427,7 @@ export class SchemaEngine {
           debugStderr(data)
 
           try {
-            const json: MigrateEngineLogLine = JSON.parse(data)
+            const json: SchemaEngineLogLine = JSON.parse(data)
 
             this.messages.push(json.fields.message)
 

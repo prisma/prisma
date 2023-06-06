@@ -2,7 +2,7 @@ import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSeria
 import tempy from 'tempy'
 
 import { credentialsToUri, uriToCredentials } from '../convertCredentials'
-import { canConnectToDatabase, createDatabase, dropDatabase, execaCommand } from '../migrateEngineCommands'
+import { canConnectToDatabase, createDatabase, dropDatabase, execaCommand } from '../schemaEngineCommands'
 
 if (process.env.CI) {
   // 5s is often not enough for the "postgresql - create database" test on macOS CI.
@@ -17,7 +17,7 @@ describe('execaCommand', () => {
       await execaCommand({
         connectionString: 'postgresql://user:mysecret@localhost',
         cwd: process.cwd(),
-        migrationEnginePath: undefined,
+        schemaEnginePath: undefined,
         engineCommandName: 'drop-database',
       })
     } catch (e) {
