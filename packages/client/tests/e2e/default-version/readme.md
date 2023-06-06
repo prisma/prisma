@@ -1,3 +1,3 @@
 # Readme
 
-This is an example of a readme file. Put a description of your test here.
+Tests that both the client version an the engine can be accessed via the default client.
