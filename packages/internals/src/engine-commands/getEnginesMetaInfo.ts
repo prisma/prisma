@@ -26,7 +26,7 @@ export type EngineInfo = {
 
 export type BinaryMatrix<T> = {
   'query-engine': T
-  'migration-engine': T
+  'schema-engine': T
 }
 
 export type BinaryInfoMatrix = BinaryMatrix<EngineInfo>
@@ -40,7 +40,7 @@ export async function getEnginesMetaInfo() {
       type: cliQueryEngineBinaryType,
     },
     {
-      name: 'migration-engine' as const,
+      name: 'schema-engine' as const,
       type: BinaryType.SchemaEngineBinary,
     },
   ] as const
@@ -62,7 +62,7 @@ export async function getEnginesMetaInfo() {
   // map each engine to its version
   const engineMetaInfo: {
     'query-engine': string
-    'migration-engine': string
+    'schema-engine': string
   }[] = engineDataAcc.map((arr) => arr[0])
 
   // keep track of any error that has occurred, if any
