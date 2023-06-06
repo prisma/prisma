@@ -3,7 +3,7 @@ import type { EngineType } from '@prisma/generator-helper'
 
 export function binaryTypeToEngineType(binaryType: string): EngineType {
   if (binaryType === BinaryType.SchemaEngineBinary) {
-    return 'migrationEngine'
+    return 'schemaEngine'
   }
   if (binaryType === BinaryType.QueryEngineLibrary) {
     return 'libqueryEngine'
