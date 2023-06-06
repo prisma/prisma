@@ -71,8 +71,8 @@ describe('createDatabase', () => {
       await createDatabase('file:./doesnotexist.db', tempy.file())
     } catch (e) {
       expect(serialize(e)).toMatchInlineSnapshot(`
-        "Migration engine exited. Error: Command failed with ENOENT: /engines/migration-engine-TEST_PLATFORM cli --datasource <REDACTED> can-connect-to-database
-        spawn /engines/migration-engine-TEST_PLATFORM ENOENT"
+        "Migration engine exited. Error: Command failed with ENOENT: /engines/schema-engine-TEST_PLATFORM cli --datasource <REDACTED> can-connect-to-database
+        spawn /engines/schema-engine-TEST_PLATFORM ENOENT"
       `)
     }
   })

@@ -1,5 +1,5 @@
 node_modules
-migration-engine*
+schema-engine*
 yarn-error.log
 dist
 build

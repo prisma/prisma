@@ -359,7 +359,7 @@ export class SchemaEngine {
         this.isRunning = true
 
         this.child.on('error', (err) => {
-          console.error('[migration-engine] error: %s', err)
+          console.error('[schema-engine] error: %s', err)
           this.rejectAll(err)
           reject(err)
         })

@@ -21,7 +21,7 @@ describe('artificial-panic introspection', () => {
     process.env = { ...OLD_ENV }
   })
 
-  it('migration-engine', async () => {
+  it('schema-engine', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(6)
     process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'

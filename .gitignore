@@ -9,7 +9,7 @@ sandbox
 .DS_Store
 
 query-engine*
-migration-engine*
+schema-engine*
 libquery_engine*
 libquery-engine*
 query_engine-windows.dll.node

@@ -208,7 +208,7 @@ describe('sqlite', () => {
   // [Error: Failed to create a new migration directory.
   //    0: migration_core::api::CreateMigration
   //            with migration_name="xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end" draft=false
-  //              at migration-engine\core\src\api.rs:94
+  //              at schema-engine\core\src\api.rs:94
   // ]
   //
   // Probably the file name is too long for Windows?
@@ -1188,7 +1188,7 @@ describe('postgresql', () => {
   // Failed with
   // Snapshot: db error: ERROR: relation "_prisma_migrations" already exists
   // 0: migration_core::state::ApplyMigrations
-  // at migration-engine/core/src/state.rs:199
+  // at schema-engine/core/src/state.rs:199
   // Probably needs to run on an isolated db (currently in a git stash)
   it.skip('need to reset prompt: (no) should succeed', async () => {
     ctx.fixture('schema-only-postgresql')
@@ -1216,7 +1216,7 @@ describe('postgresql', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
       db error: ERROR: relation "_prisma_migrations" already exists
          0: migration_core::state::ApplyMigrations
-                   at migration-engine/core/src/state.rs:199
+                   at schema-engine/core/src/state.rs:199
 
     `)
     expect(mockExit).toHaveBeenCalledWith(130)

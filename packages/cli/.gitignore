@@ -1,5 +1,5 @@
 node_modules
-migration-engine*
+schema-engine*
 query-engine*
 libquery*
 yarn-error.log
