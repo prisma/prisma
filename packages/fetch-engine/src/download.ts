@@ -89,13 +89,13 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
     ...options,
     binaryTargets: options.binaryTargets ?? [platform],
     version: options.version ?? 'latest',
-    binaries: mapKeys(options.binaries, (key) => engineTypeToBinaryType(key, platform)), // just necessary to support both camelCase and hyphen-case
+    binaries: options.binaries,
   }
 
   // creates a matrix of binaries x binary targets
-  const binaryJobs = Object.entries(opts.binaries).flatMap(([binaryName, targetFolder]: [string, string]) =>
+  const binaryJobs = Object.entries(opts.binaries).flatMap(([binaryName, targetFolder]) =>
     opts.binaryTargets.map((binaryTarget) => {
-      const fileName = getBinaryName(binaryName, binaryTarget)
+      const fileName = getBinaryName(binaryName as BinaryType, binaryTarget)
       const targetFilePath = path.join(targetFolder, fileName)
       return {
         binaryName,
@@ -103,7 +103,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         binaryTarget,
         fileName,
         targetFilePath,
-        envVarPath: getBinaryEnvVarPath(binaryName),
+        envVarPath: getBinaryEnvVarPath(binaryName as BinaryType),
         skipCacheIntegrityCheck: !!opts.skipCacheIntegrityCheck,
       }
     }),
@@ -323,7 +323,7 @@ export async function getVersion(enginePath: string, binaryName: string) {
   return undefined
 }
 
-export function getBinaryName(binaryName: string, platform: Platform): string {
+export function getBinaryName(binaryName: BinaryType, platform: Platform): string {
   if (binaryName === BinaryType.QueryEngineLibrary) {
     return `${getNodeAPIName(platform, 'fs')}`
   }
@@ -431,29 +431,6 @@ async function saveFileToCache(
     debug(e)
     // let this fail silently - the CI system may have reached the file size limit
   }
-}
-
-function engineTypeToBinaryType(engineType: string, binaryTarget: string): string {
-  if (BinaryType[engineType]) {
-    return BinaryType[engineType]
-  }
-
-  if (engineType === 'native') {
-    return binaryTarget
-  }
-
-  return engineType
-}
-
-function mapKeys<T extends object, K extends keyof T>(
-  obj: T,
-  mapper: (key: K) => string,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-) {
-  return Object.entries(obj).reduce((acc, [key, value]) => {
-    acc[mapper(key as K)] = value
-    return acc
-  }, {} as Record<string, any>)
 }
 
 export async function maybeCopyToTmp(file: string): Promise<string> {
