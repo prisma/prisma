@@ -51,7 +51,7 @@ type BinaryDownloadJob = {
   binaryTarget: Platform
   fileName: string
   targetFilePath: string
-  envVarPath: string | null
+  envVarPath: string | undefined
   skipCacheIntegrityCheck: boolean
 }
 
@@ -103,7 +103,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
         binaryTarget,
         fileName,
         targetFilePath,
-        envVarPath: getBinaryEnvVarPath(binaryName as BinaryType),
+        envVarPath: getBinaryEnvVarPath(binaryName as BinaryType)?.path,
         skipCacheIntegrityCheck: !!opts.skipCacheIntegrityCheck,
       }
     }),

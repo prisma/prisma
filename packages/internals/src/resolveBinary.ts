@@ -30,7 +30,7 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
   // If engine path was provided via env var, check and use that one
   const pathFromEnvVar = getBinaryEnvVarPath(name)
   if (pathFromEnvVar !== null) {
-    return pathFromEnvVar
+    return pathFromEnvVar.path
   }
 
   // If still here, try different paths

@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import fs from 'fs'
-import { bold, underline } from 'kleur/colors'
+import { bold, underline, yellow } from 'kleur/colors'
 import path from 'path'
 
 import { BinaryType } from './BinaryType'
@@ -13,10 +13,20 @@ export const engineEnvVarMap = {
   [BinaryType.SchemaEngineBinary]: 'PRISMA_SCHEMA_ENGINE_BINARY',
 }
 
-export function getBinaryEnvVarPath(binaryName: BinaryType): string | null {
-  const envVar = engineEnvVarMap[binaryName]
-  if (envVar && process.env[envVar]) {
-    const envVarPath = path.resolve(process.cwd(), process.env[envVar] as string)
+export const deprecatedEnvVarMap: Partial<typeof engineEnvVarMap> = {
+  [BinaryType.SchemaEngineBinary]: 'PRISMA_MIGRATION_ENGINE_BINARY',
+}
+
+type PathFromEnvValue = {
+  path: string
+  fromEnvVar: string
+}
+
+export function getBinaryEnvVarPath(binaryName: BinaryType): PathFromEnvValue | null {
+  const envVar = getEnvVarToUse(binaryName)
+
+  if (process.env[envVar]) {
+    const envVarPath = path.resolve(process.cwd(), process.env[envVar]!)
     if (!fs.existsSync(envVarPath)) {
       throw new Error(
         `Env var ${bold(envVar)} is provided but provided path ${underline(process.env[envVar]!)} can't be resolved.`,
@@ -27,8 +37,34 @@ export function getBinaryEnvVarPath(binaryName: BinaryType): string | null {
         process.env[envVar]!,
       )}`,
     )
-    return envVarPath
+    return {
+      path: envVarPath,
+      fromEnvVar: envVar,
+    }
   }
 
   return null
+}
+
+function getEnvVarToUse(binaryType: BinaryType): string {
+  const envVar = engineEnvVarMap[binaryType]
+  const deprecatedEnvVar = deprecatedEnvVarMap[binaryType]
+
+  if (deprecatedEnvVar && process.env[deprecatedEnvVar]) {
+    if (process.env[envVar]) {
+      console.warn(
+        `${yellow('prisma:warn')} Both ${bold(envVar)} and ${bold(deprecatedEnvVar)} are specified, ${bold(
+          envVar,
+        )} takes precedence. ${bold(deprecatedEnvVar)} is deprecated.`,
+      )
+      return envVar
+    } else {
+      console.warn(
+        `${yellow('prisma:warn')} ${bold(deprecatedEnvVar)} is deprecated, please use ${bold(envVar)} instead`,
+      )
+      return deprecatedEnvVar
+    }
+  }
+
+  return envVar
 }

@@ -116,13 +116,13 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
  * An engine path read from the environment is valid only if it exists on disk.
  * @param pathFromEnv engine path read from process.env
  */
-function isPathFromEnvValid(pathFromEnv: string | null): pathFromEnv is string {
+function isPathFromEnvValid(pathFromEnv: string | undefined): pathFromEnv is string {
   return !!pathFromEnv && fs.existsSync(pathFromEnv)
 }
 
 export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo> {
   const envVar = engineEnvVarMap[binaryName]
-  const pathFromEnv = getBinaryEnvVarPath(binaryName)
+  const pathFromEnv = getBinaryEnvVarPath(binaryName)?.path
 
   /**
    * Read the binary path, preferably from the environment, or resolving the canonical path
