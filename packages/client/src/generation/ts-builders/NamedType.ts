@@ -24,11 +24,3 @@ export class NamedType extends TypeBuilder {
 export function namedType(name: string): NamedType {
   return new NamedType(name)
 }
-
-export function promise(resultType: TypeBuilder): NamedType {
-  return new NamedType('Promise').addGenericArgument(resultType)
-}
-
-export function prismaPromise(resultType: TypeBuilder): NamedType {
-  return new NamedType('Prisma.PrismaPromise').addGenericArgument(resultType)
-}

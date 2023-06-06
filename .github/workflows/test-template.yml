@@ -35,7 +35,7 @@ on:
         required: false
       BUILDPULSE_SECRET_ACCESS_KEY:
         required: false
-      # Docker Hub credentials must be passed to avoid rate limiting
+      # Docker Hub credentials must be passed to avoid rate limiting when using Buildjet runners
       # But they are not required, so forks can run the workflow without defining them
       DOCKERHUB_USERNAME:
         required: false
@@ -157,7 +157,8 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        if: "${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
+        # Login to Docker Hub is only needed for buildjet runners
+        if: "${{ startsWith(inputs.ubuntuRunner, 'buildjet') && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -174,7 +175,7 @@ jobs:
         run: |
           echo "PRISMA_ENGINE_PROTOCOL=${{ matrix.engineProtocol }}" >> $GITHUB_ENV
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -188,11 +189,11 @@ jobs:
       - run: bash .github/workflows/scripts/setup.sh
 
       # Run the functional test suite
-      - run: pnpm run test:functional --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --silent --shard ${{ matrix.shard }}
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
       # And run  all the other tests (except the types tests)
-      - run: pnpm run test-notypes --shard ${{ matrix.shard }}
+      - run: pnpm run test-notypes --silent --shard ${{ matrix.shard }}
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
         working-directory: packages/client
 
@@ -251,7 +252,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -268,7 +269,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --silent --data-proxy --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
@@ -285,7 +286,7 @@ jobs:
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
           PRISMA_ENGINE_PROTOCOL: '${{ matrix.engineProtocol }}'
 
-      - run: pnpm run test:functional --data-proxy --edge-client --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --silent --data-proxy --edge-client --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
@@ -354,7 +355,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -461,7 +462,7 @@ jobs:
       - uses: actions/checkout@v3
 
       # Not currently needed, but we might need it in the future
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -534,7 +535,7 @@ jobs:
           echo "RELATION_MODE=${{ matrix.relationMode }}"
           if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -553,21 +554,21 @@ jobs:
 
       # shouldn't take more than 15 minutes
       - name: 1 to 1
-        run: pnpm run test:functional:code --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
+        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-1.ts
         working-directory: packages/client
 
       # shouldn't take more than 15 minutes
       - name: 1 to n
-        run: pnpm run test:functional:code --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-n.ts
+        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_1-to-n.ts
         working-directory: packages/client
 
       # shouldn't take more than 15 minutes
       - name: m to n (SQL databases)
-        run: pnpm run test:functional:code --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n.ts
+        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n.ts
         working-directory: packages/client
 
       - name: m to n (MongoDB)
-        run: pnpm run test:functional:code --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n-MongoDB.ts
+        run: pnpm run test:functional:code --silent --relation-mode-tests-only relationMode-in-separate-gh-action/tests_m-to-n-MongoDB.ts
         working-directory: packages/client
 
       - name: Upload test results to BuildPulse for flaky test detection
@@ -671,7 +672,7 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
 
       - uses: pnpm/action-setup@v2.2.4
         with:
@@ -738,7 +739,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql
 
       - name: Set CLI Engine Type
         run: |
@@ -810,7 +811,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker-compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
 
       - name: Set CLI Engine Type
         run: |
@@ -1105,7 +1106,7 @@ jobs:
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
       - name: Test packages/client
-        run: pnpm run test:functional:code --shard ${{matrix.shard}}
+        run: pnpm run test:functional:code --silent --shard ${{matrix.shard}}
         working-directory: packages/client
         env:
           CI: true
@@ -1216,7 +1217,7 @@ jobs:
 
       - name: Test packages/client (old suite)
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
-        run: pnpm run test-notypes --testTimeout=40000
+        run: pnpm run test-notypes --silent --testTimeout=40000
         working-directory: packages/client
         env:
           CI: true

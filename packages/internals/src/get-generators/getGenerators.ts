@@ -277,37 +277,7 @@ generator gen {
         const generatorBinaryTargets = g.options?.generator?.binaryTargets
 
         if (generatorBinaryTargets && generatorBinaryTargets.length > 0) {
-          const binaryTarget0 = generatorBinaryTargets[0]
-          // If set from env var, there is only one item
-          // and we need to read the env var
-          if (binaryTarget0.fromEnvVar !== null) {
-            const parsedBinaryTargetsEnvValue = parseBinaryTargetsEnvValue(binaryTarget0)
-
-            // remove item and replace with parsed values
-            // value is an array
-            // so we create one new item for each element in the array
-            generatorBinaryTargets.shift()
-
-            if (Array.isArray(parsedBinaryTargetsEnvValue)) {
-              for (const platformName of parsedBinaryTargetsEnvValue) {
-                generatorBinaryTargets.push({
-                  fromEnvVar: binaryTarget0.fromEnvVar,
-                  value: platformName,
-                })
-              }
-            } else {
-              generatorBinaryTargets.push({
-                fromEnvVar: binaryTarget0.fromEnvVar,
-                value: parsedBinaryTargetsEnvValue,
-              })
-            }
-          }
-
           for (const binaryTarget of generatorBinaryTargets) {
-            if (binaryTarget.value === 'native') {
-              binaryTarget.value = platform
-            }
-
             if (!neededVersions[neededVersion].binaryTargets.find((object) => object.value === binaryTarget.value)) {
               neededVersions[neededVersion].binaryTargets.push(binaryTarget)
             }
@@ -466,12 +436,11 @@ Possible binaryTargets: ${green(knownBinaryTargets.join(', '))}`,
       if (!resolvedBinaryTargets.includes(platform)) {
         const originalBinaryTargetsConfig = getOriginalBinaryTargetsValue(generator.binaryTargets)
 
-        if (generator) {
-          console.log(`${yellow('Warning:')} Your current platform \`${bold(
-            platform,
-          )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
-            originalBinaryTargetsConfig,
-          )}.
+        console.log(`${yellow('Warning:')} Your current platform \`${bold(
+          platform,
+        )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
+          originalBinaryTargetsConfig,
+        )}.
 To fix it, use this generator config in your ${bold('schema.prisma')}:
 ${green(
   printGeneratorConfig({
@@ -485,16 +454,6 @@ Read more about deploying Prisma Client: ${underline(
     'https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators',
   )}`,
 )}\n`)
-        } else {
-          console.log(
-            `${yellow('Warning')} The binaryTargets ${JSON.stringify(
-              originalBinaryTargetsConfig,
-            )} don't include your local platform ${platform}, which you can also point to with \`native\`.
-In case you want to fix this, you can provide ${green(
-              `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
-            )} in the schema.prisma file.`,
-          )
-        }
       }
     }
   }

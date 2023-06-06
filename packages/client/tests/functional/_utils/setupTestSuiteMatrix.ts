@@ -6,7 +6,7 @@ import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from '.
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { ProviderFlavors } from './relationMode/ProviderFlavor'
 import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
-import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, MatrixOptions } from './types'
 
@@ -45,7 +45,12 @@ export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: Record<string, string>, suiteMeta: TestCallbackSuiteMeta, clientMeta: ClientMeta) => void,
+  tests: (
+    suiteConfig: Record<string, string>,
+    suiteMeta: TestCallbackSuiteMeta,
+    clientMeta: ClientMeta,
+    setupDatabase: () => Promise<void>,
+  ) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
@@ -135,7 +140,17 @@ function setupTestSuiteMatrix(
         delete globalThis['newPrismaClient']
       }, 180_000)
 
-      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta)
+      const setupDatabase = async () => {
+        if (!options?.skipDb) {
+          throw new Error(
+            'Pass skipDb: true in the matrix options if you want to manually setup the database in your test.',
+          )
+        }
+
+        return setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback)
+      }
+
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, setupDatabase)
     })
   }
 }
