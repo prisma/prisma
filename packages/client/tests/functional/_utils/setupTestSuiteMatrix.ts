@@ -1,3 +1,4 @@
+import { test } from '@jest/globals'
 import fs from 'fs-extra'
 import path from 'path'
 
@@ -148,6 +149,13 @@ function setupTestSuiteMatrix(
         }
 
         return setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback)
+      }
+
+      if (originalEnv.TEST_GENERATE_ONLY === 'true') {
+        // because we have our own custom `test` global call defined that reacts
+        // to this env var already, we import the original jest `test` and call
+        // it because we need to run at least one test to generate the client
+        test('generate only', () => {})
       }
 
       tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, setupDatabase)

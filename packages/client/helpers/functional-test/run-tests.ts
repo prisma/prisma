@@ -18,6 +18,8 @@ const args = arg(
     '--no-types': Boolean,
     // Only typecheck, don't run the code tests
     '--types-only': Boolean,
+    // Generates all the clients but runs no tests
+    '--generate-only': Boolean,
     // Restrict the list of providers
     '--provider': [String],
     '-p': '--provider',
@@ -47,7 +49,6 @@ const args = arg(
     '--changedFilesWithAncestor': Boolean,
     // Passes the same flag to Jest to shard tests between multiple machines
     '--shard': String,
-
     // Passes the same flag to Jest to silence the output
     '--silent': Boolean,
   },
@@ -136,7 +137,12 @@ async function main(): Promise<number | void> {
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {
       if (!args['--types-only']) {
-        codeTestCli.withArgs(['--']).withArgs(args['_']).run()
+        codeTestCli
+          .withArgs(['--', args['_']])
+          .withEnv({
+            TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false',
+          })
+          .run()
       }
 
       if (!args['--no-types']) {

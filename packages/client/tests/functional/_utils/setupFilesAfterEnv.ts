@@ -59,7 +59,8 @@ function testRepeat(n: number) {
   return getRepeatProxy(test)
 }
 
-globalThis.testIf = (condition: boolean) => (condition ? test : test.skip)
+globalThis.testIf = (condition: boolean) => (condition && process.env.TEST_GENERATE_ONLY !== 'true' ? test : it.skip)
+globalThis.test = process.env.TEST_GENERATE_ONLY === 'true' ? it.skip : it
 globalThis.describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 globalThis.testRepeat = testRepeat
 
