@@ -17,9 +17,9 @@ import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from '
 import byline from './utils/byline'
 import { handleViewsIO } from './views/handleViewsIO'
 
-const debugRpc = Debug('prisma:migrateEngine:rpc')
-const debugStderr = Debug('prisma:migrateEngine:stderr')
-const debugStdin = Debug('prisma:migrateEngine:stdin')
+const debugRpc = Debug('prisma:schemaEngine:rpc')
+const debugStderr = Debug('prisma:schemaEngine:stderr')
+const debugStdin = Debug('prisma:schemaEngine:stdin')
 
 export interface SchemaEngineOptions {
   projectDir: string
@@ -65,7 +65,7 @@ export class SchemaEngine {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
     if (debug) {
-      Debug.enable('MigrateEngine*')
+      Debug.enable('SchemaEngine*')
     }
     this.debug = debug
     this.enabledPreviewFeatures = enabledPreviewFeatures
