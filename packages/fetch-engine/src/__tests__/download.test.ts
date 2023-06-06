@@ -36,13 +36,13 @@ describe('download', () => {
 
     const platform = await getPlatform()
     const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.QueryEngineBinary, platform))
-    const migrationEnginePath = path.join(baseDir, getBinaryName(BinaryType.MigrationEngineBinary, platform))
+    const migrationEnginePath = path.join(baseDir, getBinaryName(BinaryType.SchemaEngineBinary, platform))
 
     await download({
       binaries: {
         [BinaryType.QueryEngineLibrary]: baseDir,
         [BinaryType.QueryEngineBinary]: baseDir,
-        [BinaryType.MigrationEngineBinary]: baseDir,
+        [BinaryType.SchemaEngineBinary]: baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -122,7 +122,7 @@ describe('download', () => {
 
     // Check that all engines hashes are the same
     expect(await getVersion(queryEnginePath, BinaryType.QueryEngineBinary)).toContain(CURRENT_ENGINES_HASH)
-    expect(await getVersion(migrationEnginePath, BinaryType.MigrationEngineBinary)).toContain(CURRENT_ENGINES_HASH)
+    expect(await getVersion(migrationEnginePath, BinaryType.SchemaEngineBinary)).toContain(CURRENT_ENGINES_HASH)
   })
 
   test('download all binaries & cache them', async () => {
@@ -130,14 +130,14 @@ describe('download', () => {
 
     const platform = await getPlatform()
     const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.QueryEngineBinary, platform))
-    const migrationEnginePath = path.join(baseDir, getBinaryName(BinaryType.MigrationEngineBinary, platform))
+    const migrationEnginePath = path.join(baseDir, getBinaryName(BinaryType.SchemaEngineBinary, platform))
 
     const before0 = Date.now()
     await download({
       binaries: {
         [BinaryType.QueryEngineLibrary]: baseDir,
         [BinaryType.QueryEngineBinary]: baseDir,
-        [BinaryType.MigrationEngineBinary]: baseDir,
+        [BinaryType.SchemaEngineBinary]: baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -371,7 +371,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
     expect(await getVersion(queryEnginePath, BinaryType.QueryEngineBinary)).toMatchInlineSnapshot(
       `"query-engine eac182fd33c63959a61946df56831625a9a39627"`,
     )
-    expect(await getVersion(migrationEnginePath, BinaryType.MigrationEngineBinary)).toMatchInlineSnapshot(
+    expect(await getVersion(migrationEnginePath, BinaryType.SchemaEngineBinary)).toMatchInlineSnapshot(
       `"migration-engine-cli eac182fd33c63959a61946df56831625a9a39627"`,
     )
 

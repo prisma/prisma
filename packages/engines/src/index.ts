@@ -36,7 +36,7 @@ export async function ensureBinariesExist() {
 
   const binaries = {
     [cliQueryEngineBinaryType]: binaryDir,
-    [BinaryType.MigrationEngineBinary]: binaryDir,
+    [BinaryType.SchemaEngineBinary]: binaryDir,
   }
   debug(`binaries to download ${Object.keys(binaries).join(', ')}`)
   await download({

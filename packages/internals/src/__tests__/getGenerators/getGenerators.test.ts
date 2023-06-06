@@ -592,7 +592,7 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary(BinaryType.MigrationEngineBinary)
+    const migrationEngine = await resolveBinary(BinaryType.SchemaEngineBinary)
 
     const queryEngineBinaryType = getCliQueryEngineBinaryType()
     const queryEnginePath = await resolveBinary(queryEngineBinaryType)

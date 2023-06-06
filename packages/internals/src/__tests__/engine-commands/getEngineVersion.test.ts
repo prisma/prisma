@@ -7,7 +7,7 @@ const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibra
 
 describe('getEngineVersion', () => {
   test('Migration Engine', async () => {
-    const migrationEngineVersion = await getEngineVersion(undefined, BinaryType.MigrationEngineBinary)
+    const migrationEngineVersion = await getEngineVersion(undefined, BinaryType.SchemaEngineBinary)
     expect(migrationEngineVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 

@@ -41,7 +41,7 @@ export async function getEnginesMetaInfo() {
     },
     {
       name: 'migration-engine' as const,
-      type: BinaryType.MigrationEngineBinary,
+      type: BinaryType.SchemaEngineBinary,
     },
   ] as const
 

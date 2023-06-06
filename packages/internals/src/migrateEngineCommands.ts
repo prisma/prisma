@@ -178,7 +178,7 @@ export async function execaCommand({
   migrationEnginePath?: string
   engineCommandName: 'create-database' | 'drop-database' | 'can-connect-to-database'
 }) {
-  migrationEnginePath = migrationEnginePath || (await resolveBinary(BinaryType.MigrationEngineBinary))
+  migrationEnginePath = migrationEnginePath || (await resolveBinary(BinaryType.SchemaEngineBinary))
 
   try {
     return await execa(migrationEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {

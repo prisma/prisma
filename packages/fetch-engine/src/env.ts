@@ -10,7 +10,7 @@ const debug = Debug('prisma:fetch-engine:env')
 export const engineEnvVarMap = {
   [BinaryType.QueryEngineBinary]: 'PRISMA_QUERY_ENGINE_BINARY',
   [BinaryType.QueryEngineLibrary]: 'PRISMA_QUERY_ENGINE_LIBRARY',
-  [BinaryType.MigrationEngineBinary]: 'PRISMA_SCHEMA_ENGINE_BINARY',
+  [BinaryType.SchemaEngineBinary]: 'PRISMA_SCHEMA_ENGINE_BINARY',
 }
 
 export function getBinaryEnvVarPath(binaryName: BinaryType): string | null {
