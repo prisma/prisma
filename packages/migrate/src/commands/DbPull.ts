@@ -20,7 +20,7 @@ import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 import { match } from 'ts-pattern'
 
-import { MigrateEngine } from '../MigrateEngine'
+import { SchemaEngine } from '../SchemaEngine'
 import type { EngineArgs } from '../types'
 import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { NoSchemaFoundError } from '../utils/errors'
@@ -257,7 +257,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       }
     }
 
-    const engine = new MigrateEngine({
+    const engine = new SchemaEngine({
       projectDir: schemaPath ? path.dirname(schemaPath) : process.cwd(),
       schemaPath: schemaPath ?? undefined,
     })

@@ -21,7 +21,7 @@ const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
 const debugStdin = Debug('prisma:migrateEngine:stdin')
 
-export interface MigrateEngineOptions {
+export interface SchemaEngineOptions {
   projectDir: string
   schemaPath?: string
   debug?: boolean
@@ -41,7 +41,7 @@ setClassName(EngineError, 'EngineError')
 // Is incremented every time `getRPCPayload` is called
 let messageId = 1
 
-export class MigrateEngine {
+export class SchemaEngine {
   private projectDir: string
   private debug: boolean
   private child?: ChildProcess
@@ -61,7 +61,7 @@ export class MigrateEngine {
   // `isRunning` is set to true when the engine is initialized, and set to false when the engine is stopped
   public isRunning = false
 
-  constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: MigrateEngineOptions) {
+  constructor({ projectDir, debug = false, schemaPath, enabledPreviewFeatures }: SchemaEngineOptions) {
     this.projectDir = projectDir
     this.schemaPath = schemaPath
     if (debug) {
@@ -329,7 +329,7 @@ export class MigrateEngine {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...processEnv } = process.env
-        const binaryPath = await resolveBinary(BinaryType.MigrationEngineBinary)
+        const binaryPath = await resolveBinary(BinaryType.SchemaEngineBinary)
         debugRpc('starting migration engine with binary: ' + binaryPath)
         const args: string[] = []
 

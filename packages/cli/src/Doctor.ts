@@ -13,7 +13,7 @@ import {
   loadEnvFile,
   pick,
 } from '@prisma/internals'
-import { getSchemaPathAndPrint, MigrateEngine } from '@prisma/migrate'
+import { getSchemaPathAndPrint, SchemaEngine } from '@prisma/migrate'
 import equal from 'fast-deep-equal'
 import fs from 'fs'
 import { bold, dim, green, red, underline } from 'kleur/colors'
@@ -86,7 +86,7 @@ ${bold('Examples')}
       throw new Error(`${canConnect.code}: ${canConnect.message}`)
     }
 
-    const engine = new MigrateEngine({
+    const engine = new SchemaEngine({
       projectDir: path.dirname(schemaPath),
       schemaPath,
     })
