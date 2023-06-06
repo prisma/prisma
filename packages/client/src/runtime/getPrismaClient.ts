@@ -45,6 +45,7 @@ import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { ProtocolEncoder } from './core/protocol/common'
 import { GraphQLProtocolEncoder } from './core/protocol/graphql'
 import { JsonProtocolEncoder } from './core/protocol/json'
+import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
 import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import { rawQueryArgsMapper } from './core/raw-query/rawQueryArgsMapper'
 import { createPrismaPromise } from './core/request/createPrismaPromise'
@@ -57,8 +58,10 @@ import { UserArgs } from './core/request/UserArgs'
 import { dmmfToRuntimeDataModel, RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
+import { JsInputValue } from './core/types/JsApi'
 import { DMMFHelper } from './dmmf'
 import { getLogLevel } from './getLogLevel'
+import { itxClientDenyList } from './itxClientDenyList'
 import { mergeBy } from './mergeBy'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
@@ -654,7 +657,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      * @param command
      * @returns
      */
-    $runCommandRaw(command: object) {
+    $runCommandRaw(command: Record<string, JsInputValue>) {
       if (config.activeProvider !== 'mongodb') {
         throw new PrismaClientValidationError(
           `The ${config.activeProvider} provider does not support $runCommandRaw. Use the mongodb provider.`,
@@ -663,10 +666,11 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
       return createPrismaPromise((transaction) => {
         return this._request({
-          args: { command: command },
+          args: command,
           clientMethod: '$runCommandRaw',
           dataPath: [],
           action: 'runCommandRaw',
+          argsMapper: rawCommandArgsMapper,
           callsite: getCallSite(this._errorFormat),
           transaction: transaction,
         })
@@ -943,7 +947,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           debug(`Prisma Client call:`)
           debug(
             `prisma.${clientMethod}(${printJsonWithErrors({
-              ast: args,
+              ast: args as object,
               keyPaths: [],
               valuePaths: [],
               missingItems: [],
@@ -1031,8 +1035,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
   return PrismaClient
 }
 
-const forbidden: Array<string | symbol> = ['$connect', '$disconnect', '$on', '$transaction', '$use', '$extends']
-
 /**
  * Proxy that takes over the client promises to pass `txId`
  * @param thing to be proxied
@@ -1046,20 +1048,20 @@ function transactionProxy<T>(thing: T, transaction: PrismaPromiseInteractiveTran
   return new Proxy(thing as any as object, {
     get: (target, prop) => {
       // we don't want to allow any calls to our `forbidden` methods
-      if (forbidden.includes(prop as string)) return undefined
+      if (itxClientDenyList.includes(prop)) return undefined
 
       if (prop === TX_ID) return transaction?.id // secret accessor to the txId
 
       // we override and handle every function call within the proxy
       if (typeof target[prop] === 'function') {
-        return (...args: unknown[]) => {
+        return function (this: T, ...args: unknown[]) {
           // we hijack promise calls to pass txId to prisma promises
           if (prop === 'then') return target[prop](args[0], args[1], transaction)
           if (prop === 'catch') return target[prop](args[0], transaction)
           if (prop === 'finally') return target[prop](args[0], transaction)
 
           // if it's not the end promise, result is also tx-proxied
-          return transactionProxy(target[prop](...args), transaction)
+          return transactionProxy(target[prop].apply(this, args), transaction)
         }
       }
 
@@ -1068,7 +1070,7 @@ function transactionProxy<T>(thing: T, transaction: PrismaPromiseInteractiveTran
     },
 
     has(target, prop) {
-      if (forbidden.includes(prop)) {
+      if (itxClientDenyList.includes(prop)) {
         return false
       }
       return Reflect.has(target, prop)

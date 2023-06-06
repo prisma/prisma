@@ -119,6 +119,13 @@ export class RequestHandler {
 
         return request.protocolMessage.getBatchId()
       },
+
+      batchOrder(requestA, requestB) {
+        if (requestA.transaction?.kind === 'batch' && requestB.transaction?.kind === 'batch') {
+          return requestA.transaction.index - requestB.transaction.index
+        }
+        return 0
+      },
     })
   }
 

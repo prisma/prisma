@@ -36,8 +36,8 @@ testMatrix.setupTestSuite(
 
     test('should create a single record with a single nested create', async () => {
       const email = faker.internet.email()
-      const name = faker.name.firstName()
-      const title = faker.name.firstName()
+      const name = faker.person.firstName()
+      const title = faker.person.firstName()
 
       const res = await prisma.user.create({
         include: {
@@ -64,11 +64,11 @@ testMatrix.setupTestSuite(
 
     test('should create a single record with many nested create', async () => {
       const email = faker.internet.email()
-      const name = faker.name.firstName()
-      const title1 = faker.name.firstName()
-      const title2 = faker.name.firstName()
-      const title3 = faker.name.firstName()
-      const title4 = faker.name.firstName()
+      const name = faker.person.firstName()
+      const title1 = faker.person.firstName()
+      const title2 = faker.person.firstName()
+      const title3 = faker.person.firstName()
+      const title4 = faker.person.firstName()
 
       const res = await prisma.user.create({
         include: {

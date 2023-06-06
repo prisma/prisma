@@ -9,8 +9,8 @@ declare let prisma: PrismaClient
 // https://github.com/prisma/prisma/issues/15044
 testMatrix.setupTestSuite(() => {
   test('should not throw error when using connect inside transaction', async () => {
-    const userName = faker.name.firstName()
-    const walletName = faker.name.firstName()
+    const userName = faker.person.firstName()
+    const walletName = faker.person.firstName()
 
     const result = await prisma.$transaction(async (tx) => {
       const user = await tx.user.create({

@@ -1,6 +1,5 @@
-import { klona } from 'klona'
-
 import { Client, InternalRequestParams } from '../../getPrismaClient'
+import { deepCloneArgs } from '../../utils/deepCloneArgs'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import { QueryOptionsCb } from './$extends'
 
@@ -32,7 +31,7 @@ function iterateAndCallQueryCallbacks(
     return queryCbs[i]({
       model: params.model,
       operation: params.model ? params.action : params.clientMethod,
-      args: klona(params.args ?? {}),
+      args: deepCloneArgs(params.args ?? {}),
       // @ts-expect-error because not part of public API
       __internalParams: params,
       query: (args, __internalParams = params) => {
