@@ -380,7 +380,7 @@ export class SchemaEngine {
              * Starting migration engine RPC server
              * The migration was not applied because it triggered warnings and the force flag was not passed
              * 0: backtrace::capture::Backtrace::new
-             * 1: migration_engine::set_panic_hook::{{closure}}
+             * 1: schema_engine::set_panic_hook::{{closure}}
              * 2: std::panicking::rust_panic_with_hook
              * 3: std::panicking::begin_panic_handler::{{closure}}
              * ...
