@@ -27,7 +27,7 @@ describe('version', () => {
       await ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
-          'migration-engine': enginesDir,
+          'schema-engine': enginesDir,
           'libquery-engine': enginesDir,
         },
         version,
@@ -74,7 +74,7 @@ describe('version', () => {
       await ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
-          'migration-engine': enginesDir,
+          'schema-engine': enginesDir,
           'query-engine': enginesDir,
         },
         version,

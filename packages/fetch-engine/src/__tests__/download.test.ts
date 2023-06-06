@@ -390,7 +390,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
       binaries: {
         'libquery-engine': baseDir,
         'query-engine': baseDir,
-        'migration-engine': baseDir,
+        'schema-engine': baseDir,
       },
       binaryTargets: [
         'darwin',
@@ -429,7 +429,7 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
       binaries: {
         'libquery-engine': baseDir,
         'query-engine': baseDir,
-        'migration-engine': baseDir,
+        'schema-engine': baseDir,
       },
       binaryTargets: [
         'darwin',
