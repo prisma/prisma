@@ -47,8 +47,9 @@ export interface EnvValue {
 }
 
 export interface BinaryTargetsEnvValue {
-  fromEnvVar: null | string
+  fromEnvVar: string | null
   value: string
+  native?: boolean
 }
 
 export type ConnectorType =

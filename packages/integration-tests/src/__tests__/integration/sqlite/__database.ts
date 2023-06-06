@@ -1,4 +1,4 @@
-import Database from 'sqlite-async'
+import { Database } from 'sqlite-async'
 
 import type { Input } from '../../__helpers__/integrationTest'
 

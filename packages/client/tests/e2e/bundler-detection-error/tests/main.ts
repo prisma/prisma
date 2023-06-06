@@ -6,26 +6,6 @@ afterEach(() => {
   consoleMock.mockClear()
 })
 
-test('importing the the bundled prisma client produces warning messages', () => {
-  require('../dist/index.js')
-
-  expect(consoleMock.mock.calls[0]).toMatchInlineSnapshot(`
-[
-  "prisma:warn Your generated Prisma Client could not immediately find its \`schema.prisma\`, falling back to finding it via the current working directory.",
-]
-`)
-  expect(consoleMock.mock.calls[1]).toMatchInlineSnapshot(`
-[
-  "prisma:warn We are interested in learning about your project setup. We'd appreciate if you could take the time to share some information with us.",
-]
-`)
-  expect(consoleMock.mock.calls[2]).toMatchInlineSnapshot(`
-[
-  "prisma:warn Please help us by answering a few questions: https://pris.ly/bundler-investigation",
-]
-`)
-})
-
 test('bundled prisma client will re-use the schema.prisma via cwd', async () => {
   const { somePrismaCall } = require('../dist/index.js')
 

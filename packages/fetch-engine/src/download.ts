@@ -463,6 +463,7 @@ function engineTypeToBinaryType(engineType: string, binaryTarget: string): strin
   if (BinaryType[engineType]) {
     return BinaryType[engineType]
   }
+
   if (engineType === 'native') {
     return binaryTarget
   }

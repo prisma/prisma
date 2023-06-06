@@ -987,7 +987,7 @@ testMatrix.setupTestSuite(
         // @ts-test-if: provider === 'mongodb'
         await xprisma.$runCommandRaw({ aggregate: 'User', pipeline: [], explain: false })
         // await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(1)) // not working
-        // expect(fnUser).toHaveBeenNthCalledWith(1, { aggregate: 'User', pipeline: [], explain: false }) // broken
+        expect(fnUser).toHaveBeenNthCalledWith(1, { aggregate: 'User', pipeline: [], explain: false })
       }
     })
   },

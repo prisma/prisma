@@ -11,7 +11,7 @@ testMatrix.setupTestSuite(({ provider }) => {
   const getTime = (dt: Date): number => dt.getTime()
 
   test('should update both updatedAt fields on a model', async () => {
-    const id = provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.alpha(10)
+    const id = provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.alpha(10)
 
     const created = await prisma.testModel.create({
       data: {

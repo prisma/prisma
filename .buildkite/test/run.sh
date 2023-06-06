@@ -48,10 +48,10 @@ pnpm run setup
 
 echo "~~~ @prisma/client test:functional"
 echo "Start testing..."
-pnpm run --filter "@prisma/client" test:functional
+pnpm run --filter "@prisma/client" test:functional --silent
 
 echo "~~~ Test all packages"
-pnpm run test
+pnpm run test 
 
 echo "~~~ @prisma/client test:memory"
 # Client memory test suite Note: we run it last as DB is not isolated and will

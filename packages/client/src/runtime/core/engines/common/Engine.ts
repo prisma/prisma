@@ -108,7 +108,7 @@ export interface DatasourceOverwrite {
 
 export interface EngineConfig {
   cwd: string
-  dirname?: string
+  dirname: string
   datamodelPath: string
   enableDebugLogs?: boolean
   allowTriggerPanic?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
