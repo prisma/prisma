@@ -4,9 +4,6 @@ patchedDependencies:
   node-fetch@2.6.11:
     hash: oawau75ow7jz373yzwkw5fs4ry
     path: patches/node-fetch@2.6.11.patch
-  node-fetch@2.6.7:
-    hash: 3wcp6bao3dfksocwsfev5pt7km
-    path: patches/node-fetch@2.6.7.patch
 
 importers:
 
@@ -6502,7 +6499,7 @@ packages:
       fast-write-atomic: 0.2.1
       make-dir: 3.1.0
       ms: 2.1.3
-      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
+      node-fetch: 2.6.7
       uuid: 8.3.2
     transitivePeerDependencies:
       - encoding
@@ -11952,7 +11949,7 @@ packages:
       whatwg-url: 5.0.0
     patched: true
 
-  /node-fetch/2.6.7_3wcp6bao3dfksocwsfev5pt7km:
+  /node-fetch/2.6.7:
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
     engines: {node: 4.x || >=6.0.0}
     peerDependencies:
@@ -11962,7 +11959,6 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
-    patched: true
 
   /node-fetch/3.3.1:
     resolution: {integrity: sha512-cRVc/kyto/7E5shrWca1Wsea4y6tL9iYJE5FBCius3JQfb/4P4I295PfhgbJQBLTx6lATE4z+wK0rPM4VS2uow==}
