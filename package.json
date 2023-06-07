@@ -92,7 +92,7 @@
       }
     },
     "patchedDependencies": {
-      "node-fetch@2.6.7": "patches/node-fetch@2.6.7.patch"
+      "node-fetch@2.6.11": "patches/node-fetch@2.6.11.patch"
     }
   },
   "lint-staged": {
