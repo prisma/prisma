@@ -8,7 +8,7 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "4.16.0-12.e3e1da125cf9e3d0e865b9bdfdae91d5ffced535",
+    "@prisma/engines-version": "4.16.0-16.integration-rename-migration-engine-to-schema-engine-72a818438fbeb692961516daebf61ab86af03011",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@swc/core": "1.3.32",
