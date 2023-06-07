@@ -1,4 +1,4 @@
-import { test } from '@jest/globals'
+import { afterAll, beforeAll, test } from '@jest/globals'
 import fs from 'fs-extra'
 import path from 'path'
 
@@ -59,6 +59,12 @@ function setupTestSuiteMatrix(
   const clientMeta = getClientMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
   const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, clientMeta, options)
+
+  if (originalEnv.TEST_GENERATE_ONLY === 'true') {
+    options = options ?? {}
+    options.skipDefaultClientInstance = true
+    options.skipDb = true
+  }
 
   checkMissingProviders({
     suiteConfigs,
