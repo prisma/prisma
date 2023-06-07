@@ -24,15 +24,13 @@ testMatrix.setupTestSuite(
 
       const xprisma = prisma.$extends({
         query: {
-          $allModels: {
-            async $allOperations({ args, query }) {
-              const [, result] = await prisma.$transaction([
-                prisma.$queryRawUnsafe('SELECT 1'),
-                query(args),
-                prisma.$queryRawUnsafe('SELECT 3'),
-              ])
-              return result
-            },
+          async $queryRawUnsafe({ args, query }) {
+            const [, result] = await prisma.$transaction([
+              prisma.$queryRawUnsafe('SELECT 1'),
+              query(args),
+              prisma.$queryRawUnsafe('SELECT 3'),
+            ])
+            return result
           },
         },
       })
