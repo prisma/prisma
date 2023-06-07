@@ -43,7 +43,7 @@
     "terminal-link": "3.0.0",
     "typescript": "4.9.5",
     "unbuild": "1.2.0",
-    "vitest": "0.31.1",
+    "vitest": "0.32.0",
     "which": "3.0.0"
   },
   "eslintConfig": {
