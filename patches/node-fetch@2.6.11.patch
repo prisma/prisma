@@ -1,5 +1,5 @@
 diff --git a/lib/index.es.js b/lib/index.es.js
-index 4852f7cbac354d002a601212332187487deb3afa..b334d377a01bf38afcbb1d608a267cad1c58286e 100644
+index 79d717be9ae56d455f7f5c7890178bc4bb65da9c..2743edfd1347678bb4e27f986d4593466d9df68d 100644
 --- a/lib/index.es.js
 +++ b/lib/index.es.js
 @@ -3,7 +3,6 @@ process.emitWarning("The .es.js file is deprecated. Use .mjs instead.");
@@ -29,7 +29,7 @@ index 4852f7cbac354d002a601212332187487deb3afa..b334d377a01bf38afcbb1d608a267cad
  // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
  const PassThrough$1 = Stream.PassThrough;
 diff --git a/lib/index.js b/lib/index.js
-index e5b04f107f765db04265c7635d3ca1d86b146fb8..c444206f23a5ed50a3301378eb01eba80938c187 100644
+index 337d6e52e5fc62c26f1f46ac115505fa8e327b5c..fb6b624fa38ee57bc50d4fc5891cb98ff3439174 100644
 --- a/lib/index.js
 +++ b/lib/index.js
 @@ -7,7 +7,6 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
@@ -59,7 +59,7 @@ index e5b04f107f765db04265c7635d3ca1d86b146fb8..c444206f23a5ed50a3301378eb01eba8
  // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
  const PassThrough$1 = Stream.PassThrough;
 diff --git a/lib/index.mjs b/lib/index.mjs
-index 49ee05ecf06d31a5168795ced5d795c93a0226e3..b5131e05dd9ee23302d5a07cf9e2900a6e8770cc 100644
+index ace669fd0fee2f3a0e6ca0d34e46c60377da7c78..99c33037fff71127151906f87b004e379b4ffabf 100644
 --- a/lib/index.mjs
 +++ b/lib/index.mjs
 @@ -1,7 +1,6 @@
@@ -89,7 +89,7 @@ index 49ee05ecf06d31a5168795ced5d795c93a0226e3..b5131e05dd9ee23302d5a07cf9e2900a
  // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
  const PassThrough$1 = Stream.PassThrough;
 diff --git a/package.json b/package.json
-index 3c1bd8da725bc152ca655843769eaa1fb46369a3..71156daefc7d57130a27613aa584ec9b2610ea86 100644
+index fd4f67c33f867df64014fea96f9fa275cb793967..ec340331b92165b3901106c6181e8449d94c3f4d 100644
 --- a/package.json
 +++ b/package.json
 @@ -37,7 +37,6 @@
@@ -98,5 +98,5 @@ index 3c1bd8da725bc152ca655843769eaa1fb46369a3..71156daefc7d57130a27613aa584ec9b
      "dependencies": {
 -        "whatwg-url": "^5.0.0"
      },
-     "peerDependencies": { 
+     "peerDependencies": {
          "encoding": "^0.1.0"

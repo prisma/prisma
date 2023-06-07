@@ -1,9 +1,9 @@
 lockfileVersion: 5.4
 
 patchedDependencies:
-  node-fetch@2.6.7:
-    hash: 3wcp6bao3dfksocwsfev5pt7km
-    path: patches/node-fetch@2.6.7.patch
+  node-fetch@2.6.11:
+    hash: oawau75ow7jz373yzwkw5fs4ry
+    path: patches/node-fetch@2.6.11.patch
 
 importers:
 
@@ -101,7 +101,7 @@ importers:
       jest-junit: 16.0.0
       kleur: 4.1.5
       lint-staged: 13.2.2
-      node-fetch: 2.6.11
+      node-fetch: 2.6.11_oawau75ow7jz373yzwkw5fs4ry
       p-map: 4.0.0
       p-reduce: 2.1.0
       p-retry: 4.6.2
@@ -141,7 +141,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 29.5.1
       '@types/rimraf': 3.0.2
-      checkpoint-client: 1.1.23
+      checkpoint-client: 1.1.24
       debug: 4.3.4
       dotenv: 16.0.3
       esbuild: 0.15.13
@@ -185,7 +185,7 @@ importers:
       '@types/fs-extra': 9.0.13
       '@types/jest': 29.5.1
       '@types/rimraf': 3.0.2
-      checkpoint-client: 1.1.23
+      checkpoint-client: 1.1.24
       debug: 4.3.4
       dotenv: 16.0.3
       esbuild: 0.15.13
@@ -202,7 +202,7 @@ importers:
       kleur: 4.1.5
       line-replace: 2.0.1
       log-update: 4.0.0
-      node-fetch: 2.6.11
+      node-fetch: 2.6.11_oawau75ow7jz373yzwkw5fs4ry
       npm-packlist: 5.1.3
       open: 7.4.2
       pkg-up: 3.1.0
@@ -362,7 +362,7 @@ importers:
       memfs: 3.5.1
       mssql: 9.1.1
       new-github-issue-url: 0.2.1
-      node-fetch: 2.6.11
+      node-fetch: 2.6.11_oawau75ow7jz373yzwkw5fs4ry
       p-retry: 4.6.2
       pg: 8.9.0
       pkg-up: 3.1.0
@@ -474,7 +474,7 @@ importers:
       http-proxy-agent: 7.0.0
       https-proxy-agent: 7.0.0
       kleur: 4.1.5
-      node-fetch: 2.6.11
+      node-fetch: 2.6.11_oawau75ow7jz373yzwkw5fs4ry
       p-filter: 2.1.0
       p-map: 4.0.0
       p-retry: 4.6.2
@@ -738,7 +738,7 @@ importers:
       is-wsl: 2.2.0
       kleur: 4.1.5
       new-github-issue-url: 0.2.1
-      node-fetch: 2.6.11
+      node-fetch: 2.6.11_oawau75ow7jz373yzwkw5fs4ry
       npm-packlist: 5.1.3
       open: 7.4.2
       p-map: 4.0.0
@@ -3551,7 +3551,7 @@ packages:
       detect-libc: 2.0.1
       https-proxy-agent: 5.0.1
       make-dir: 3.1.0
-      node-fetch: 2.6.11
+      node-fetch: 2.6.11_oawau75ow7jz373yzwkw5fs4ry
       nopt: 5.0.0
       npmlog: 5.0.1
       rimraf: 3.0.2
@@ -3919,7 +3919,7 @@ packages:
       '@octokit/request-error': 2.1.0
       '@octokit/types': 6.41.0
       is-plain-object: 5.0.0
-      node-fetch: 2.6.11
+      node-fetch: 2.6.11_oawau75ow7jz373yzwkw5fs4ry
       universal-user-agent: 6.0.0
     transitivePeerDependencies:
       - encoding
@@ -6499,10 +6499,24 @@ packages:
       fast-write-atomic: 0.2.1
       make-dir: 3.1.0
       ms: 2.1.3
-      node-fetch: 2.6.7_3wcp6bao3dfksocwsfev5pt7km
+      node-fetch: 2.6.7
       uuid: 8.3.2
     transitivePeerDependencies:
       - encoding
+
+  /checkpoint-client/1.1.24:
+    resolution: {integrity: sha512-nIOlLhDS7MKs4tUzS3LCm+sE1NgTCVnVrXlD0RRxaoEkkLu8LIWSUNiNWai6a+LK5unLzTyZeTCYX1Smqy0YoA==}
+    dependencies:
+      ci-info: 3.8.0
+      env-paths: 2.2.1
+      fast-write-atomic: 0.2.1
+      make-dir: 3.1.0
+      ms: 2.1.3
+      node-fetch: 2.6.11_oawau75ow7jz373yzwkw5fs4ry
+      uuid: 9.0.0
+    transitivePeerDependencies:
+      - encoding
+    dev: true
 
   /chokidar/3.5.3:
     resolution: {integrity: sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw==}
@@ -11937,7 +11951,7 @@ packages:
     resolution: {integrity: sha512-nl5goFCig93JZ9FIV8GHT9xpNqXbxQUzkOmKIMKmncsBH9jhg7qKex8hirpymkBFmNQ114chEEG5lS4wgK2I+Q==}
     dev: true
 
-  /node-fetch/2.6.11:
+  /node-fetch/2.6.11_oawau75ow7jz373yzwkw5fs4ry:
     resolution: {integrity: sha512-4I6pdBY1EthSqDmJkiNk3JIT8cswwR9nfeW/cPdUagJYEQG7R95WRH74wpz7ma8Gh/9dI9FP+OU+0E4FvtA55w==}
     engines: {node: 4.x || >=6.0.0}
     peerDependencies:
@@ -11947,8 +11961,9 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
+    patched: true
 
-  /node-fetch/2.6.7_3wcp6bao3dfksocwsfev5pt7km:
+  /node-fetch/2.6.7:
     resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
     engines: {node: 4.x || >=6.0.0}
     peerDependencies:
@@ -11958,7 +11973,6 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
-    patched: true
 
   /node-fetch/3.3.1:
     resolution: {integrity: sha512-cRVc/kyto/7E5shrWca1Wsea4y6tL9iYJE5FBCius3JQfb/4P4I295PfhgbJQBLTx6lATE4z+wK0rPM4VS2uow==}
@@ -15300,6 +15314,11 @@ packages:
   /uuid/8.3.2:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
+
+  /uuid/9.0.0:
+    resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
+    hasBin: true
+    dev: true
 
   /v8-compile-cache-lib/3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
