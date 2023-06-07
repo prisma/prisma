@@ -60,7 +60,9 @@ function getEnvVarToUse(binaryType: BinaryType): string {
       return envVar
     } else {
       console.warn(
-        `${yellow('prisma:warn')} ${bold(deprecatedEnvVar)} is deprecated, please use ${bold(envVar)} instead`,
+        `${yellow('prisma:warn')} ${bold(deprecatedEnvVar)} environment variable is deprecated, please use ${bold(
+          envVar,
+        )} instead`,
       )
       return deprecatedEnvVar
     }
