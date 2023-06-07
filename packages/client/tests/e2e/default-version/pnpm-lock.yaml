@@ -1,0 +1,36 @@
+lockfileVersion: '6.1'
+
+settings:
+  autoInstallPeers: true
+  excludeLinksFromLockfile: false
+
+dependencies:
+  '@prisma/client':
+    specifier: ../prisma-client-0.0.0.tgz
+    version: file:../prisma-client-0.0.0.tgz
+
+devDependencies:
+  '@types/node':
+    specifier: 16.18.11
+    version: 16.18.11
+
+packages:
+
+  /@types/node@16.18.11:
+    resolution: {integrity: sha512-3oJbGBUWuS6ahSnEq1eN2XrCyf4YsWI8OyCvo7c64zQJNplk3mO84t53o8lfTk+2ji59g5ycfc6qQ3fdHliHuA==}
+    dev: true
+
+  file:../prisma-client-0.0.0.tgz:
+    resolution: {integrity: sha512-8p4k7ATSBVdUtgcw2mucWNOFe0xcDA2Btaui5h9nqAURo8OCH5Idfd+1KZzrL+Ip8jLqPHRzJjok3Juj6+dqgw==, tarball: file:../prisma-client-0.0.0.tgz}
+    name: '@prisma/client'
+    version: 0.0.0
+    engines: {node: '>=14.17'}
+    requiresBuild: true
+    peerDependencies:
+      prisma: '*'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+    dev: false
+    bundledDependencies:
+      - '@prisma/engines-version'
