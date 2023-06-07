@@ -59,7 +59,8 @@
     "edge.d.ts",
     "index.js",
     "index.d.ts",
-    "index-browser.js"
+    "index-browser.js",
+    "version.js"
   ],
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "1.1.0",
@@ -92,8 +93,8 @@
     "@types/jest": "29.5.1",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.2",
-    "@types/node": "18.16.14",
-    "@types/pg": "8.10.1",
+    "@types/node": "18.16.16",
+    "@types/pg": "8.10.2",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
@@ -119,7 +120,7 @@
     "kleur": "4.1.5",
     "klona": "2.0.6",
     "lz-string": "1.5.0",
-    "mariadb": "3.0.2",
+    "mariadb": "3.1.2",
     "memfs": "3.5.1",
     "mssql": "9.1.1",
     "new-github-issue-url": "0.2.1",
@@ -155,7 +156,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-9.69332b98051bd3f8c816b98b83a82e1ede1dbc2b"
+    "@prisma/engines-version": "4.16.0-12.e3e1da125cf9e3d0e865b9bdfdae91d5ffced535"
   },
   "sideEffects": false
 }
