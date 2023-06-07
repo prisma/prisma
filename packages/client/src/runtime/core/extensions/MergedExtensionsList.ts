@@ -47,7 +47,7 @@ class MergedExtensionsListNode {
     })
   }
 
-  getAllQueryCallbacks(jsModelName: string, operation: string) {
+  getAllQueryCallbacks(jsModelName: string | '$none', operation: string) {
     return this.queryCallbacksCache.getOrCreate(`${jsModelName}:${operation}`, () => {
       const prevCbs = this.previous?.getAllQueryCallbacks(jsModelName, operation) ?? []
       const newCbs: QueryOptionsCb[] = []
@@ -69,7 +69,8 @@ class MergedExtensionsListNode {
       }
 
       // when the extension isn't model-bound, apply it to all models
-      if (query['$allModels'] !== undefined) {
+      // '$none' is a special case for top-level operations without model
+      if (jsModelName !== '$none' && query['$allModels'] !== undefined) {
         if (query['$allModels'][operation] !== undefined) {
           newCbs.push(query['$allModels'][operation])
         }
