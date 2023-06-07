@@ -1,3 +1,4 @@
+import { ITXClientDenyList } from '../../itxClientDenyList'
 import { RequiredArgs as UserArgs } from '../extensions/$extends'
 import { ReadonlyDeep } from './Utils'
 
@@ -30,6 +31,13 @@ export type GetModel<Base extends Record<any, any>, M extends Args['model'][stri
 
 export type GetClient<Base extends Record<any, any>, C extends Args['client']> =
   Omit<Base, keyof C | '$use'> & { [K in keyof C]: ReturnType<C[K]> }
+
+export type GetMaybeITXClient<Base extends Record<any, any>, C extends Args['client']> = 
+  MakeITXPropsOptional<GetClient<Base, C>>
+
+type MakeITXPropsOptional<C> = Omit<C, ITXClientDenyList> & {
+  [K in Extract<keyof C, ITXClientDenyList>]?: C[K]
+}
 
 export type ReadonlySelector<T> = T extends unknown ? {
   readonly [K in keyof T as K extends 'include' | 'select' ? K : never]: ReadonlyDeep<T[K]>

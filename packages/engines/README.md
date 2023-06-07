@@ -5,7 +5,7 @@ Its release cycle does not follow SemVer, which means we might release breaking 
 
 The postinstall hook of this package downloads all Prisma engines available for the current platform, namely the Query Engine and the Migration Engine from the Prisma CDN.
 
-The engines version to be downloaded are directly determined by the version of its `@prisma/engines-version` dependency.
+The engines version to be downloaded is directly determined by the version of its `@prisma/engines-version` dependency.
 
 You should probably not use this package directly, but instead use one of these:
 

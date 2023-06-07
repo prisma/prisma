@@ -810,12 +810,12 @@ async function testPackages(packages: Packages, publishOrder: string[][]): Promi
       if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
         await run(
           path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="library" PRISMA_CLI_QUERY_ENGINE_TYPE="library" pnpm run test',
+          'PRISMA_CLIENT_ENGINE_TYPE="library" PRISMA_CLI_QUERY_ENGINE_TYPE="library" pnpm run test --silent',
         )
       } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
         await run(
           path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="binary" PRISMA_CLI_QUERY_ENGINE_TYPE="binary" pnpm run test',
+          'PRISMA_CLIENT_ENGINE_TYPE="binary" PRISMA_CLI_QUERY_ENGINE_TYPE="binary" pnpm run test --silent',
         )
       } else {
         await run(path.dirname(pkg.path), 'pnpm run test')

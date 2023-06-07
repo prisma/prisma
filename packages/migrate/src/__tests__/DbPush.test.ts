@@ -382,7 +382,7 @@ describe('postgresql', () => {
   })
 })
 
-describe('postgresql-multi-schema', () => {
+describe('postgresql-multischema', () => {
   const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace(
     'tests-migrate',
     'tests-migrate-db-push-multischema',
@@ -392,7 +392,7 @@ describe('postgresql-multi-schema', () => {
     connectionString,
     // Note: at this location there is a setup.sql file
     // which will be executed a SQL file so the database is not empty
-    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multi-schema'),
+    dirname: path.join(__dirname, '..', '__tests__', 'fixtures', 'introspection', 'postgresql-multischema'),
   }
 
   beforeAll(async () => {
@@ -420,7 +420,7 @@ describe('postgresql-multi-schema', () => {
   })
 
   it('multiSchema: --force-reset should succeed and display a log', async () => {
-    ctx.fixture('introspection/postgresql-multi-schema')
+    ctx.fixture('introspection/postgresql-multischema')
 
     prompt.inject(['y'])
 

@@ -27,7 +27,7 @@ npm i --silent -g pnpm@7 --unsafe-perm
 # --usafe-perm to allow install scripts
 
 echo "~~~ pnpm i"
-pnpm i --unsafe-perm
+pnpm i
 
 # JOB 0
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
@@ -48,10 +48,10 @@ pnpm run setup
 
 echo "~~~ @prisma/client test:functional"
 echo "Start testing..."
-pnpm run --filter "@prisma/client" test:functional
+pnpm run --filter "@prisma/client" test:functional --silent
 
 echo "~~~ Test all packages"
-pnpm run test
+pnpm run test 
 
 echo "~~~ @prisma/client test:memory"
 # Client memory test suite Note: we run it last as DB is not isolated and will

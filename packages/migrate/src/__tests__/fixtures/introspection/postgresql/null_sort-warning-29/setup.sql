@@ -1,8 +1,0 @@
-CREATE TABLE foo (
-    id INT PRIMARY KEY,
-    a INT NOT NULL,
-    b INT NOT NULL
-);
-
-CREATE INDEX idx_a ON foo(a NULLS FIRST);
-CREATE UNIQUE INDEX idx_b ON foo(b NULLS LAST);

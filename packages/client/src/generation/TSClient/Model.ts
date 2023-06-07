@@ -29,7 +29,6 @@ import {
   getSumAggregateName,
   Projection,
 } from '../utils'
-import { buildComment } from '../utils/types/buildComment'
 import { InputField } from './../TSClient'
 import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
@@ -38,12 +37,17 @@ import { TS } from './Generatable'
 import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelFieldRefs } from './ModelFieldRefs'
-import { ModelOutputField, OutputType } from './Output'
+import { buildModelOutputProperty, OutputType } from './Output'
 import { PayloadType } from './Payload'
 import { SchemaOutputType } from './SchemaOutput'
 import { buildIncludeType, buildScalarSelectType, buildSelectType } from './SelectInclude'
 import { getModelActions } from './utils/getModelActions'
 import { ifExtensions } from './utils/ifExtensions'
+
+const extArgsParam = ts
+  .genericParameter('ExtArgs')
+  .extends(ts.namedType('runtime.Types.Extensions.Args'))
+  .default(ts.namedType('runtime.Types.Extensions.DefaultArgs'))
 
 export class Model implements Generatable {
   protected outputType: OutputType
@@ -282,54 +286,67 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
 
     return ifExtensions(
       () => {
-        return `export type ${
-          model.name
-        }Payload<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = {
-${indent(
-  `objects: {
-${indent(
-  model.fields
-    .filter((f) => f.kind === 'object')
-    .map((field) => new ModelOutputField(this.dmmf, field, false).toTS())
-    .join('\n'),
-  TAB_SIZE,
-)}
-}`,
-  TAB_SIZE,
-)}
-${indent(
-  `scalars: runtime.Types.Extensions.GetResult<{
-${indent(
-  model.fields
-    .filter((f) => f.kind === 'scalar' || f.kind === 'enum')
-    .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
-    .join('\n'),
-  TAB_SIZE,
-)}
-}, ExtArgs['result']['${lowerCase(model.name)}']>`,
-  TAB_SIZE,
-)}
-}
+        const objects = ts.objectType()
+        const scalars = ts.objectType()
+        const composites = ts.objectType()
 
-${buildComment(docs)}export type ${model.name} = ${model.name}Payload['scalars']
-`
+        for (const field of model.fields) {
+          if (field.kind === 'object') {
+            if (this.dmmf.typeMap[field.type]) {
+              composites.add(buildModelOutputProperty(field, this.dmmf))
+            } else {
+              objects.add(buildModelOutputProperty(field, this.dmmf))
+            }
+          } else if (field.kind === 'enum' || field.kind === 'scalar') {
+            scalars.add(buildModelOutputProperty(field, this.dmmf, true))
+          }
+        }
+        const payloadType = ts
+          .objectType()
+          .add(ts.property('objects', objects))
+          .add(
+            ts.property(
+              'scalars',
+              ts
+                .namedType('runtime.Types.Extensions.GetResult')
+                .addGenericArgument(scalars)
+                .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name))),
+            ),
+          )
+          .add(ts.property('composites', composites))
+
+        const payloadExport = ts.moduleExport(
+          ts.typeDeclaration(`${model.name}Payload`, payloadType).addGenericParameter(extArgsParam),
+        )
+
+        const modelTypeExport = ts
+          .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`${model.name}Payload`).subKey('scalars')))
+          .setDocComment(ts.docComment(docs))
+
+        return `${ts.stringify(payloadExport)}\n\n${ts.stringify(modelTypeExport)}`
       },
       () => {
-        return `${buildComment(docs)}export type ${model.name} = {
-${indent(
-  model.fields
-    .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
-    .map((field) => new ModelOutputField(this.dmmf, field, !this.dmmf.typeMap[field.type]).toTS())
-    .join('\n'),
-  TAB_SIZE,
-)}
-}
-`
+        const modelTypeExport = ts
+          .moduleExport(
+            ts.typeDeclaration(
+              model.name,
+              ts
+                .objectType()
+                .addMultiple(
+                  model.fields
+                    .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
+                    .map((f) => buildModelOutputProperty(f, this.dmmf, !this.dmmf.typeMap[f.type])),
+                ),
+            ),
+          )
+          .setDocComment(ts.docComment(docs))
+        return ts.stringify(modelTypeExport, { newLine: 'trailing' })
       },
     )
   }
   public toTS(): string {
     const { model } = this
+    const isComposite = this.dmmf.typeMap[model.name]
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
@@ -364,7 +381,7 @@ ${ifExtensions(
   new PayloadType(this.outputType, this.dmmf).toTS(),
 )}
 
-${new ModelDelegate(this.outputType, this.dmmf, this.generator).toTS()}
+${isComposite ? '' : new ModelDelegate(this.outputType, this.dmmf, this.generator).toTS()}
 
 ${new ModelFieldRefs(this.generator, this.outputType).toTS()}
 
@@ -567,7 +584,10 @@ export class Prisma__${name}Client<T, Null = never${ifExtensions(
   constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 ${indent(
   fields
-    .filter((f) => f.outputType.location === 'outputObjectTypes' && f.name !== '_count')
+    .filter((f) => {
+      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
+      return f.outputType.location === 'outputObjectTypes' && !this.dmmf.typeMap[fieldTypeName] && f.name !== '_count'
+    })
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
