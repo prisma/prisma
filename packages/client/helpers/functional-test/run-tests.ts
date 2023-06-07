@@ -18,7 +18,7 @@ const args = arg(
     '--no-types': Boolean,
     // Only typecheck, don't run the code tests
     '--types-only': Boolean,
-    // Generates all the clients but runs no tests
+    // Generates all the clients to run the type tests
     '--generate-only': Boolean,
     // Restrict the list of providers
     '--provider': [String],
