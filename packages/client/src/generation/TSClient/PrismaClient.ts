@@ -18,7 +18,7 @@ function clientExtensionsResultDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const resultGenericParams = (modelName: string) => {
-    return `R_${modelName}_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.${modelName}SelectScalar, ExtArgs['result']['${lowerCase(
+    return `R_${modelName}_Needs extends _Record<string, runtime.Types.Extensions.GetSelect<Prisma.${modelName}SelectScalar, ExtArgs['result']['${lowerCase(
       modelName,
     )}']>>`
   }
@@ -38,7 +38,7 @@ function clientExtensionsResultDefinition(this: PrismaClientClass) {
   }
 
   const params = `{
-      $allModels?: Record<string, {
+      $allModels?: _Record<string, {
         compute: (data: unknown) => unknown
       }>
       ${modelNames.map(resultParam).join('\n      ')}
@@ -227,8 +227,8 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
       name === 'defineExtension'
         ? '(client: any) => PrismaClient<any, any, any, Args>'
         : `runtime.Types.Extensions.GetClient<PrismaClient<T, U, GlobalReject, {
-    result: ExtArgs['result'] & Record<string, Args['result']['$allModels'] & {}> & Args['result']
-    model: ExtArgs['model'] & Record<string, Args['model']['$allModels'] & {}> & Args['model']
+    result: ExtArgs['result'] & _Record<string, Args['result']['$allModels'] & {}> & Args['result']
+    model: ExtArgs['model'] & _Record<string, Args['model']['$allModels'] & {}> & Args['model']
     client: ExtArgs['client'] & Args['client'],
     query: {}
   }>, ExtArgs['client'] & Args['client']>`
