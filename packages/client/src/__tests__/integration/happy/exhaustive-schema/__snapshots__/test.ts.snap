@@ -349,6 +349,9 @@ exports[`exhaustive-schema: generatedTypeScript 1`] = `
 **/
 
 import * as runtime from '@prisma/client/runtime/{RUNTIME_FILE}';
+import $Utils = runtime.Types.Utils
+import $Extensions = runtime.Types.Extensions
+
 type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
 type UnwrapTuple<Tuple extends readonly unknown[]> = {
   [K in keyof Tuple]: K extends \`\${number}\` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
@@ -804,19 +807,19 @@ export class PrismaClient<
 
 
   $extends: { extArgs: ExtArgs } & (<
-    R_Post_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.PostSelectScalar, ExtArgs['result']['post']>>,
-    R_User_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.UserSelectScalar, ExtArgs['result']['user']>>,
-    R_M_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.MSelectScalar, ExtArgs['result']['m']>>,
-    R_N_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.NSelectScalar, ExtArgs['result']['n']>>,
-    R_OneOptional_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.OneOptionalSelectScalar, ExtArgs['result']['oneOptional']>>,
-    R_ManyRequired_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.ManyRequiredSelectScalar, ExtArgs['result']['manyRequired']>>,
-    R_OptionalSide1_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide1SelectScalar, ExtArgs['result']['optionalSide1']>>,
-    R_OptionalSide2_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide2SelectScalar, ExtArgs['result']['optionalSide2']>>,
-    R_A_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.ASelectScalar, ExtArgs['result']['a']>>,
-    R_B_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.BSelectScalar, ExtArgs['result']['b']>>,
-    R_C_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.CSelectScalar, ExtArgs['result']['c']>>,
-    R_D_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.DSelectScalar, ExtArgs['result']['d']>>,
-    R_E_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.ESelectScalar, ExtArgs['result']['e']>>,
+    R_Post_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.PostSelectScalar, ExtArgs['result']['post']>>,
+    R_User_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.UserSelectScalar, ExtArgs['result']['user']>>,
+    R_M_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.MSelectScalar, ExtArgs['result']['m']>>,
+    R_N_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.NSelectScalar, ExtArgs['result']['n']>>,
+    R_OneOptional_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.OneOptionalSelectScalar, ExtArgs['result']['oneOptional']>>,
+    R_ManyRequired_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.ManyRequiredSelectScalar, ExtArgs['result']['manyRequired']>>,
+    R_OptionalSide1_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide1SelectScalar, ExtArgs['result']['optionalSide1']>>,
+    R_OptionalSide2_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide2SelectScalar, ExtArgs['result']['optionalSide2']>>,
+    R_A_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.ASelectScalar, ExtArgs['result']['a']>>,
+    R_B_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.BSelectScalar, ExtArgs['result']['b']>>,
+    R_C_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.CSelectScalar, ExtArgs['result']['c']>>,
+    R_D_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.DSelectScalar, ExtArgs['result']['d']>>,
+    R_E_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.ESelectScalar, ExtArgs['result']['e']>>,
     R extends runtime.Types.Extensions.UserArgs['result'] = {},
     M extends runtime.Types.Extensions.UserArgs['model'] = {},
     Q extends runtime.Types.Extensions.UserArgs['query'] = {},
@@ -842,8 +845,8 @@ export class PrismaClient<
     Q,
     C
   >) => runtime.Types.Extensions.GetClient<PrismaClient<T, U, GlobalReject, {
-    result: ExtArgs['result'] & Record<string, Args['result']['$allModels'] & {}> & Args['result']
-    model: ExtArgs['model'] & Record<string, Args['model']['$allModels'] & {}> & Args['model']
+    result: ExtArgs['result'] & runtime.Types.Utils.Record<string, Args['result']['$allModels'] & {}> & Args['result']
+    model: ExtArgs['model'] & runtime.Types.Utils.Record<string, Args['model']['$allModels'] & {}> & Args['model']
     client: ExtArgs['client'] & Args['client'],
     query: {}
   }>, ExtArgs['client'] & Args['client']>);
@@ -1479,19 +1482,19 @@ export namespace Prisma {
   }
 
   export function defineExtension<
-      R_Post_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.PostSelectScalar, ExtArgs['result']['post']>>,
-      R_User_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.UserSelectScalar, ExtArgs['result']['user']>>,
-      R_M_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.MSelectScalar, ExtArgs['result']['m']>>,
-      R_N_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.NSelectScalar, ExtArgs['result']['n']>>,
-      R_OneOptional_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.OneOptionalSelectScalar, ExtArgs['result']['oneOptional']>>,
-      R_ManyRequired_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.ManyRequiredSelectScalar, ExtArgs['result']['manyRequired']>>,
-      R_OptionalSide1_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide1SelectScalar, ExtArgs['result']['optionalSide1']>>,
-      R_OptionalSide2_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide2SelectScalar, ExtArgs['result']['optionalSide2']>>,
-      R_A_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.ASelectScalar, ExtArgs['result']['a']>>,
-      R_B_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.BSelectScalar, ExtArgs['result']['b']>>,
-      R_C_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.CSelectScalar, ExtArgs['result']['c']>>,
-      R_D_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.DSelectScalar, ExtArgs['result']['d']>>,
-      R_E_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.ESelectScalar, ExtArgs['result']['e']>>,
+      R_Post_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.PostSelectScalar, ExtArgs['result']['post']>>,
+      R_User_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.UserSelectScalar, ExtArgs['result']['user']>>,
+      R_M_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.MSelectScalar, ExtArgs['result']['m']>>,
+      R_N_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.NSelectScalar, ExtArgs['result']['n']>>,
+      R_OneOptional_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.OneOptionalSelectScalar, ExtArgs['result']['oneOptional']>>,
+      R_ManyRequired_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.ManyRequiredSelectScalar, ExtArgs['result']['manyRequired']>>,
+      R_OptionalSide1_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide1SelectScalar, ExtArgs['result']['optionalSide1']>>,
+      R_OptionalSide2_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide2SelectScalar, ExtArgs['result']['optionalSide2']>>,
+      R_A_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.ASelectScalar, ExtArgs['result']['a']>>,
+      R_B_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.BSelectScalar, ExtArgs['result']['b']>>,
+      R_C_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.CSelectScalar, ExtArgs['result']['c']>>,
+      R_D_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.DSelectScalar, ExtArgs['result']['d']>>,
+      R_E_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.ESelectScalar, ExtArgs['result']['e']>>,
       R extends runtime.Types.Extensions.UserArgs['result'] = {},
       M extends runtime.Types.Extensions.UserArgs['model'] = {},
       Q extends runtime.Types.Extensions.UserArgs['query'] = {},
@@ -2551,19 +2554,19 @@ export namespace Prisma {
   }
   export type ExtensionArgs<
       ExtArgs extends runtime.Types.Extensions.Args,
-      R_Post_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.PostSelectScalar, ExtArgs['result']['post']>>,
-      R_User_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.UserSelectScalar, ExtArgs['result']['user']>>,
-      R_M_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.MSelectScalar, ExtArgs['result']['m']>>,
-      R_N_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.NSelectScalar, ExtArgs['result']['n']>>,
-      R_OneOptional_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.OneOptionalSelectScalar, ExtArgs['result']['oneOptional']>>,
-      R_ManyRequired_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.ManyRequiredSelectScalar, ExtArgs['result']['manyRequired']>>,
-      R_OptionalSide1_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide1SelectScalar, ExtArgs['result']['optionalSide1']>>,
-      R_OptionalSide2_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide2SelectScalar, ExtArgs['result']['optionalSide2']>>,
-      R_A_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.ASelectScalar, ExtArgs['result']['a']>>,
-      R_B_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.BSelectScalar, ExtArgs['result']['b']>>,
-      R_C_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.CSelectScalar, ExtArgs['result']['c']>>,
-      R_D_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.DSelectScalar, ExtArgs['result']['d']>>,
-      R_E_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.ESelectScalar, ExtArgs['result']['e']>>,
+      R_Post_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.PostSelectScalar, ExtArgs['result']['post']>>,
+      R_User_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.UserSelectScalar, ExtArgs['result']['user']>>,
+      R_M_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.MSelectScalar, ExtArgs['result']['m']>>,
+      R_N_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.NSelectScalar, ExtArgs['result']['n']>>,
+      R_OneOptional_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.OneOptionalSelectScalar, ExtArgs['result']['oneOptional']>>,
+      R_ManyRequired_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.ManyRequiredSelectScalar, ExtArgs['result']['manyRequired']>>,
+      R_OptionalSide1_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide1SelectScalar, ExtArgs['result']['optionalSide1']>>,
+      R_OptionalSide2_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.OptionalSide2SelectScalar, ExtArgs['result']['optionalSide2']>>,
+      R_A_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.ASelectScalar, ExtArgs['result']['a']>>,
+      R_B_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.BSelectScalar, ExtArgs['result']['b']>>,
+      R_C_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.CSelectScalar, ExtArgs['result']['c']>>,
+      R_D_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.DSelectScalar, ExtArgs['result']['d']>>,
+      R_E_Needs extends runtime.Types.Utils.Record<string, runtime.Types.Extensions.GetSelect<Prisma.ESelectScalar, ExtArgs['result']['e']>>,
       R extends runtime.Types.Extensions.UserArgs['result'] = {},
       M extends runtime.Types.Extensions.UserArgs['model'] = {},
       Q extends runtime.Types.Extensions.UserArgs['query'] = {},
@@ -2571,7 +2574,7 @@ export namespace Prisma {
   > = {
     name?: string,
     result?: R & {
-        $allModels?: Record<string, {
+        $allModels?: runtime.Types.Utils.Record<string, {
           compute: (data: unknown) => unknown
         }>
         post?: {
@@ -3489,7 +3492,7 @@ export namespace Prisma {
     count<T extends PostCountArgs>(
       args?: Subset<T, PostCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], PostCountAggregateOutputType>
@@ -4537,7 +4540,7 @@ export namespace Prisma {
     count<T extends UserCountArgs>(
       args?: Subset<T, UserCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], UserCountAggregateOutputType>
@@ -5597,7 +5600,7 @@ export namespace Prisma {
     count<T extends MCountArgs>(
       args?: Subset<T, MCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], MCountAggregateOutputType>
@@ -6657,7 +6660,7 @@ export namespace Prisma {
     count<T extends NCountArgs>(
       args?: Subset<T, NCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], NCountAggregateOutputType>
@@ -7717,7 +7720,7 @@ export namespace Prisma {
     count<T extends OneOptionalCountArgs>(
       args?: Subset<T, OneOptionalCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], OneOptionalCountAggregateOutputType>
@@ -8788,7 +8791,7 @@ export namespace Prisma {
     count<T extends ManyRequiredCountArgs>(
       args?: Subset<T, ManyRequiredCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], ManyRequiredCountAggregateOutputType>
@@ -9838,7 +9841,7 @@ export namespace Prisma {
     count<T extends OptionalSide1CountArgs>(
       args?: Subset<T, OptionalSide1CountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], OptionalSide1CountAggregateOutputType>
@@ -10875,7 +10878,7 @@ export namespace Prisma {
     count<T extends OptionalSide2CountArgs>(
       args?: Subset<T, OptionalSide2CountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], OptionalSide2CountAggregateOutputType>
@@ -11883,7 +11886,7 @@ export namespace Prisma {
     count<T extends ACountArgs>(
       args?: Subset<T, ACountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], ACountAggregateOutputType>
@@ -12806,7 +12809,7 @@ export namespace Prisma {
     count<T extends BCountArgs>(
       args?: Subset<T, BCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], BCountAggregateOutputType>
@@ -13701,7 +13704,7 @@ export namespace Prisma {
     count<T extends CCountArgs>(
       args?: Subset<T, CCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], CCountAggregateOutputType>
@@ -14618,7 +14621,7 @@ export namespace Prisma {
     count<T extends DCountArgs>(
       args?: Subset<T, DCountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], DCountAggregateOutputType>
@@ -15486,7 +15489,7 @@ export namespace Prisma {
     count<T extends ECountArgs>(
       args?: Subset<T, ECountArgs>,
     ): Prisma.PrismaPromise<
-      T extends _Record<'select', any>
+      T extends runtime.Types.Utils.Record<'select', any>
         ? T['select'] extends true
           ? number
           : GetScalarType<T['select'], ECountAggregateOutputType>

@@ -473,7 +473,7 @@ ${
   count<T extends ${countArgsName}>(
     args?: Subset<T, ${countArgsName}>,
   ): Prisma.PrismaPromise<
-    T extends _Record<'select', any>
+    T extends runtime.Types.Utils.Record<'select', any>
       ? T['select'] extends true
         ? number
         : GetScalarType<T['select'], ${getCountAggregateOutputName(name)}>
