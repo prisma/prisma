@@ -3,9 +3,10 @@ import https from 'https'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
-declare const prisma: PrismaClient
+declare let prisma: PrismaClient
+declare let Prisma: typeof PrismaNamespace
 
 /**
  * Tests for underlying query component features used by Prisma Accelerate
@@ -33,6 +34,26 @@ testMatrix.setupTestSuite(() => {
 
   afterEach(() => {
     https.request = originalRequest
+  })
+
+  test('_runtimeDataModel is available on the client instance and provides model info', () => {
+    const extension = Prisma.defineExtension((client) => {
+      return prisma.$extends({
+        model: {
+          $allModels: {
+            subscribe() {
+              expect(client).toHaveProperty('_runtimeDataModel')
+              expect((client as any)._runtimeDataModel).toHaveProperty('models')
+              expect((client as any)._runtimeDataModel.models).toHaveProperty('User')
+              expect((client as any)._runtimeDataModel.models.User).toHaveProperty('fields')
+            },
+          },
+        },
+      })
+    })
+
+    prisma.$extends(extension).user.subscribe()
+    expect.hasAssertions()
   })
 
   testIf(process.env.TEST_DATA_PROXY !== undefined)('changing http headers via custom fetch', async () => {
