@@ -263,34 +263,34 @@ export function getReturnType({
     const promiseClose = renderPromise ? '>' : ''
 
     return `${promiseOpen}${ifExtensions('', listOpen)}${getPayloadName(name)}<${ifExtensions(
-      `${name}Payload<ExtArgs>, T, '${actionName}'`,
+      `${name}Payload<ExtArgs>, T, '${actionName}', never`,
       'T',
     )}>${ifExtensions('', listClose)}${isChaining ? '| Null' : ''}${promiseClose}`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
     return `Prisma__${name}Client<${getType(
-      getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
+      `${getPayloadName(name)}<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}', never`, 'T')}>`,
       isList,
     )}${ifExtensions(', never, ExtArgs', '')}>`
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
       return `Prisma__${name}Client<${getType(
-        getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
+        `${getPayloadName(name)}<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}', never`, 'T')}>`,
         isList,
       )} | Null${ifExtensions(', never, ExtArgs', '')}>`
     }
     return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? Prisma__${name}Client<${getType(
-      getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
+      `${getPayloadName(name)}<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}', never`, 'T')}>`,
       isList,
     )}${ifExtensions(', never, ExtArgs', '')}> : Prisma__${name}Client<${getType(
-      getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
+      `${getPayloadName(name)}<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}', never`, 'T')}>`,
       isList,
     )} | null, null${ifExtensions(', ExtArgs', '')}>`
   }
   return `Prisma__${name}Client<${getType(
-    getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
+    `${getPayloadName(name)}<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}', never`, 'T')}>`,
     isList,
   )}${ifExtensions(', never, ExtArgs', '')}>`
 }

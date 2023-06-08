@@ -80,10 +80,11 @@ type GetGroupByResult<P extends Payload, A> =
   ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
   : never
 
-export type GetResult<P extends Payload, A, O extends Operation> = {
-  findUnique: GetFindResult<P, A> | null,
+// TODO Null can be removed once rejectOnNotFound is removed
+export type GetResult<P extends Payload, A, O extends Operation, Null = null> = {
+  findUnique: GetFindResult<P, A> | Null,
   findUniqueOrThrow: GetFindResult<P, A>,
-  findFirst: GetFindResult<P, A> | null,
+  findFirst: GetFindResult<P, A> | Null,
   findFirstOrThrow: GetFindResult<P, A>,
   findMany: GetFindResult<P, A>[],
   create: GetFindResult<P, A>,
