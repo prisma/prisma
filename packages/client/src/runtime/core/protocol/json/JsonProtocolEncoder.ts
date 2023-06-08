@@ -52,7 +52,7 @@ export class JsonProtocolMessage implements ProtocolMessage<JsonQuery> {
     return isWrite[this.query.action]
   }
   getBatchId(): string | undefined {
-    if (this.query.action !== 'findUnique') {
+    if (this.query.action !== 'findUnique' && this.query.action !== 'findUniqueOrThrow') {
       return undefined
     }
     const parts: string[] = []
