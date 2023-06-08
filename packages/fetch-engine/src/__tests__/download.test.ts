@@ -12,7 +12,7 @@ import { getFiles } from './__utils__/getFiles'
 
 const CURRENT_ENGINES_HASH = enginesVersion
 console.debug({ CURRENT_ENGINES_HASH })
-const FIXED_ENGINES_HASH = 'eac182fd33c63959a61946df56831625a9a39627'
+const FIXED_ENGINES_HASH = '72a818438fbeb692961516daebf61ab86af03011'
 const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
 
 // Network can be slow, especially for macOS in CI.
@@ -84,22 +84,6 @@ describe('download', () => {
         "libquery_engine-rhel-openssl-1.0.x.so.node",
         "libquery_engine-rhel-openssl-1.1.x.so.node",
         "libquery_engine-rhel-openssl-3.0.x.so.node",
-        "schema-engine-darwin",
-        "schema-engine-darwin-arm64",
-        "schema-engine-debian-openssl-1.0.x",
-        "schema-engine-debian-openssl-1.1.x",
-        "schema-engine-debian-openssl-3.0.x",
-        "schema-engine-linux-arm64-openssl-1.0.x",
-        "schema-engine-linux-arm64-openssl-1.1.x",
-        "schema-engine-linux-arm64-openssl-3.0.x",
-        "schema-engine-linux-musl",
-        "schema-engine-linux-musl-arm64-openssl-1.1.x",
-        "schema-engine-linux-musl-arm64-openssl-3.0.x",
-        "schema-engine-linux-musl-openssl-3.0.x",
-        "schema-engine-rhel-openssl-1.0.x",
-        "schema-engine-rhel-openssl-1.1.x",
-        "schema-engine-rhel-openssl-3.0.x",
-        "schema-engine-windows.exe",
         "query-engine-darwin",
         "query-engine-darwin-arm64",
         "query-engine-debian-openssl-1.0.x",
@@ -117,6 +101,22 @@ describe('download', () => {
         "query-engine-rhel-openssl-3.0.x",
         "query-engine-windows.exe",
         "query_engine-windows.dll.node",
+        "schema-engine-darwin",
+        "schema-engine-darwin-arm64",
+        "schema-engine-debian-openssl-1.0.x",
+        "schema-engine-debian-openssl-1.1.x",
+        "schema-engine-debian-openssl-3.0.x",
+        "schema-engine-linux-arm64-openssl-1.0.x",
+        "schema-engine-linux-arm64-openssl-1.1.x",
+        "schema-engine-linux-arm64-openssl-3.0.x",
+        "schema-engine-linux-musl",
+        "schema-engine-linux-musl-arm64-openssl-1.1.x",
+        "schema-engine-linux-musl-arm64-openssl-3.0.x",
+        "schema-engine-linux-musl-openssl-3.0.x",
+        "schema-engine-rhel-openssl-1.0.x",
+        "schema-engine-rhel-openssl-1.1.x",
+        "schema-engine-rhel-openssl-3.0.x",
+        "schema-engine-windows.exe",
       ]
     `)
 
@@ -175,204 +175,204 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         },
         {
           "name": "libquery_engine-darwin-arm64.dylib.node",
-          "size": 14628824,
+          "size": 14662008,
         },
         {
           "name": "libquery_engine-darwin.dylib.node",
-          "size": 15859568,
+          "size": 15843256,
         },
         {
           "name": "libquery_engine-debian-openssl-1.0.x.so.node",
-          "size": 17573416,
+          "size": 16998600,
         },
         {
           "name": "libquery_engine-debian-openssl-1.1.x.so.node",
-          "size": 15085488,
+          "size": 14523672,
         },
         {
           "name": "libquery_engine-debian-openssl-3.0.x.so.node",
-          "size": 15085488,
+          "size": 14523672,
         },
         {
           "name": "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
-          "size": 14626896,
+          "size": 14679872,
         },
         {
           "name": "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
-          "size": 15363048,
+          "size": 15411928,
         },
         {
           "name": "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
-          "size": 16701064,
+          "size": 16737656,
         },
         {
           "name": "libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node",
-          "size": 15637680,
+          "size": 15690640,
         },
         {
           "name": "libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node",
-          "size": 17053440,
+          "size": 17106400,
         },
         {
           "name": "libquery_engine-linux-musl-openssl-3.0.x.so.node",
-          "size": 14491240,
+          "size": 14564712,
         },
         {
           "name": "libquery_engine-linux-musl.so.node",
-          "size": 14253768,
+          "size": 14380456,
         },
         {
           "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
-          "size": 16966120,
+          "size": 16998600,
         },
         {
           "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
-          "size": 14491176,
+          "size": 14523672,
         },
         {
           "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
-          "size": 14491176,
-        },
-        {
-          "name": "schema-engine-darwin",
-          "size": 20612160,
-        },
-        {
-          "name": "schema-engine-darwin-arm64",
-          "size": 19343790,
-        },
-        {
-          "name": "schema-engine-debian-openssl-1.0.x",
-          "size": 23349992,
-        },
-        {
-          "name": "schema-engine-debian-openssl-1.1.x",
-          "size": 20624928,
-        },
-        {
-          "name": "schema-engine-debian-openssl-3.0.x",
-          "size": 20625584,
-        },
-        {
-          "name": "schema-engine-linux-arm64-openssl-1.0.x",
-          "size": 20646448,
-        },
-        {
-          "name": "schema-engine-linux-arm64-openssl-1.1.x",
-          "size": 21398992,
-        },
-        {
-          "name": "schema-engine-linux-arm64-openssl-3.0.x",
-          "size": 23066416,
-        },
-        {
-          "name": "schema-engine-linux-musl",
-          "size": 18296712,
-        },
-        {
-          "name": "schema-engine-linux-musl-arm64-openssl-1.1.x",
-          "size": 21728944,
-        },
-        {
-          "name": "schema-engine-linux-musl-arm64-openssl-3.0.x",
-          "size": 23458736,
-        },
-        {
-          "name": "schema-engine-linux-musl-openssl-3.0.x",
-          "size": 18473608,
-        },
-        {
-          "name": "schema-engine-rhel-openssl-1.0.x",
-          "size": 21289336,
-        },
-        {
-          "name": "schema-engine-rhel-openssl-1.1.x",
-          "size": 18580240,
-        },
-        {
-          "name": "schema-engine-rhel-openssl-3.0.x",
-          "size": 18589496,
-        },
-        {
-          "name": "schema-engine-windows.exe",
-          "size": 14989312,
+          "size": 14523672,
         },
         {
           "name": "query-engine-darwin",
-          "size": 17823816,
+          "size": 17824240,
         },
         {
           "name": "query-engine-darwin-arm64",
-          "size": 16556192,
+          "size": 16606336,
         },
         {
           "name": "query-engine-debian-openssl-1.0.x",
-          "size": 17525064,
+          "size": 19250304,
         },
         {
           "name": "query-engine-debian-openssl-1.1.x",
-          "size": 17512712,
+          "size": 16771256,
         },
         {
           "name": "query-engine-debian-openssl-3.0.x",
-          "size": 17512712,
+          "size": 16771256,
         },
         {
           "name": "query-engine-linux-arm64-openssl-1.0.x",
-          "size": 16518944,
+          "size": 16689880,
         },
         {
           "name": "query-engine-linux-arm64-openssl-1.1.x",
-          "size": 17360248,
+          "size": 17421944,
         },
         {
           "name": "query-engine-linux-arm64-openssl-3.0.x",
-          "size": 18694176,
+          "size": 18751776,
         },
         {
           "name": "query-engine-linux-musl",
-          "size": 16484312,
+          "size": 16623744,
         },
         {
           "name": "query-engine-linux-musl-arm64-openssl-1.1.x",
-          "size": 17622504,
+          "size": 17676008,
         },
         {
           "name": "query-engine-linux-musl-arm64-openssl-3.0.x",
-          "size": 19038264,
+          "size": 19095864,
         },
         {
           "name": "query-engine-linux-musl-openssl-3.0.x",
-          "size": 16689072,
+          "size": 16791728,
         },
         {
           "name": "query-engine-rhel-openssl-1.0.x",
-          "size": 16705464,
+          "size": 19250304,
         },
         {
           "name": "query-engine-rhel-openssl-1.1.x",
-          "size": 16705464,
+          "size": 16771256,
         },
         {
           "name": "query-engine-rhel-openssl-3.0.x",
-          "size": 16705464,
+          "size": 16771256,
         },
         {
           "name": "query-engine-windows.exe",
-          "size": 19318272,
+          "size": 19431936,
         },
         {
           "name": "query_engine-windows.dll.node",
-          "size": 16984064,
+          "size": 17075200,
+        },
+        {
+          "name": "schema-engine-darwin",
+          "size": 21353120,
+        },
+        {
+          "name": "schema-engine-darwin-arm64",
+          "size": 20099531,
+        },
+        {
+          "name": "schema-engine-debian-openssl-1.0.x",
+          "size": 22134072,
+        },
+        {
+          "name": "schema-engine-debian-openssl-1.1.x",
+          "size": 19429976,
+        },
+        {
+          "name": "schema-engine-debian-openssl-3.0.x",
+          "size": 19431056,
+        },
+        {
+          "name": "schema-engine-linux-arm64-openssl-1.0.x",
+          "size": 21452576,
+        },
+        {
+          "name": "schema-engine-linux-arm64-openssl-1.1.x",
+          "size": 22209360,
+        },
+        {
+          "name": "schema-engine-linux-arm64-openssl-3.0.x",
+          "size": 23881336,
+        },
+        {
+          "name": "schema-engine-linux-musl",
+          "size": 19048032,
+        },
+        {
+          "name": "schema-engine-linux-musl-arm64-openssl-1.1.x",
+          "size": 22547392,
+        },
+        {
+          "name": "schema-engine-linux-musl-arm64-openssl-3.0.x",
+          "size": 24277336,
+        },
+        {
+          "name": "schema-engine-linux-musl-openssl-3.0.x",
+          "size": 19325664,
+        },
+        {
+          "name": "schema-engine-rhel-openssl-1.0.x",
+          "size": 22134072,
+        },
+        {
+          "name": "schema-engine-rhel-openssl-1.1.x",
+          "size": 19429976,
+        },
+        {
+          "name": "schema-engine-rhel-openssl-3.0.x",
+          "size": 19431056,
+        },
+        {
+          "name": "schema-engine-windows.exe",
+          "size": 15719424,
         },
       ]
     `)
 
     expect(await getVersion(queryEnginePath, BinaryType.QueryEngineBinary)).toMatchInlineSnapshot(
-      `"query-engine eac182fd33c63959a61946df56831625a9a39627"`,
+      `"query-engine 72a818438fbeb692961516daebf61ab86af03011"`,
     )
     expect(await getVersion(schemaEnginePath, BinaryType.SchemaEngineBinary)).toMatchInlineSnapshot(
-      `"schema-engine-cli eac182fd33c63959a61946df56831625a9a39627"`,
+      `"schema-engine-cli 72a818438fbeb692961516daebf61ab86af03011"`,
     )
 
     //
