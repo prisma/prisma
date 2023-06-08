@@ -53,6 +53,7 @@ testMatrix.setupTestSuite(() => {
     })
 
     prisma.$extends(extension).user.subscribe()
+    expect.hasAssertions()
   })
 
   testIf(process.env.TEST_DATA_PROXY !== undefined)('changing http headers via custom fetch', async () => {
