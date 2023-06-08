@@ -28,7 +28,11 @@ async function fetchChecksum(url: string): Promise<string | null> {
       agent: getProxyAgent(url) as any,
     })
     if (!response.ok) {
-      throw new Error(`Failed to fetch sha256 checksum at ${checksumUrl}. ${response.status} ${response.statusText}`)
+      let errorMessage = `Failed to fetch sha256 checksum at ${checksumUrl}. ${response.status} ${response.statusText}`
+      if (!process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
+        errorMessage += `\n\nIf you need to ignore this error (e.g. in an offline environment), set the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable to a truthy value.\nExample: PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1`
+      }
+      throw new Error(errorMessage)
     }
     const body = await response.text()
     // We get a string like this:
@@ -41,8 +45,9 @@ async function fetchChecksum(url: string): Promise<string | null> {
     return checksum
   } catch (error) {
     if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
-      debug(`fetchChecksum() failed and was ignored as the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is truthy.\nError: ${error}`)
-
+      debug(
+        `fetchChecksum() failed and was ignored as the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is truthy.\nError: ${error}`,
+      )
       return null
     }
     throw error
@@ -106,7 +111,9 @@ export async function downloadZip(
           const zippedHash = await zippedHashPromise
 
           if (zippedSha256 !== null && zippedSha256 !== zippedHash) {
-            return reject(new Error(`sha256 checksum of ${url} (zipped) should be ${zippedSha256} but is ${zippedHash}`))
+            return reject(
+              new Error(`sha256 checksum of ${url} (zipped) should be ${zippedSha256} but is ${zippedHash}`),
+            )
           }
 
           if (sha256 !== null && sha256 !== hash) {
