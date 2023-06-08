@@ -14,8 +14,8 @@ type BuildIncludeTypeParams = {
 
 const extArgsParameter = ts
   .genericParameter('ExtArgs')
-  .extends(ts.namedType('runtime.Types.Extensions.Args'))
-  .default(ts.namedType('runtime.Types.Extensions.DefaultArgs'))
+  .extends(ts.namedType('$Extensions.Args'))
+  .default(ts.namedType('$Extensions.DefaultArgs'))
 
 export function buildIncludeType({ modelName, dmmf, fields }: BuildIncludeTypeParams) {
   const type = buildSelectOrIncludeObject(modelName, getIncludeFields(fields, dmmf))
@@ -32,7 +32,7 @@ export function buildSelectType({ modelName, fields }: BuildSelectTypeParams) {
   const selectType = ifExtensions<ts.TypeBuilder>(
     () =>
       ts
-        .namedType('runtime.Types.Extensions.GetSelect')
+        .namedType('$Extensions.GetSelect')
         .addGenericArgument(objectType)
         .addGenericArgument(extArgsParameter.toArgument().subKey('result').subKey(lowerCase(modelName))),
     () => objectType,

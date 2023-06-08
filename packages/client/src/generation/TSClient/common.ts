@@ -134,6 +134,8 @@ In case this error is unexpected for you, please report it in https://github.com
 
 export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
   tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
+import $Types = runtime.Types // general types
+import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
 import $Extensions = runtime.Types.Extensions
 
@@ -142,11 +144,11 @@ type UnwrapTuple<Tuple extends readonly unknown[]> = {
   [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
 };
 
-export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
+export type PrismaPromise<T> = $Public.PrismaPromise<T>
 `,
   ts: () => `export import DMMF = runtime.DMMF
 
-export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
+export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 /**
  * Prisma Errors
@@ -186,12 +188,12 @@ ${ifExtensions(
   `/**
 * Extensions
 */
-export type Extension = runtime.Types.Extensions.UserArgs
+export type Extension = $Extensions.UserArgs
 export import getExtensionContext = runtime.Extensions.getExtensionContext
-export type Args<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Args<T, F>
-export type Payload<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Payload<T, F>
-export type Result<T, A, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Result<T, A, F>
-export type Exact<T, W> = runtime.Types.Public.Exact<T, W>
+export type Args<T, F extends $Public.Operation> = $Public.Args<T, F>
+export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F>
+export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F>
+export type Exact<T, W> = $Public.Exact<T, W>
 
 `,
   '',
@@ -536,7 +538,7 @@ type Cast<A, B> = A extends B ? A : B;
 
 export const type: unique symbol;
 
-export function validator<V>(): <S>(select: runtime.Types.Utils.LegacyExact<S, V>) => S;
+export function validator<V>(): <S>(select: $Utils.LegacyExact<S, V>) => S;
 
 /**
  * Used by group by

@@ -46,8 +46,8 @@ import { ifExtensions } from './utils/ifExtensions'
 
 const extArgsParam = ts
   .genericParameter('ExtArgs')
-  .extends(ts.namedType('runtime.Types.Extensions.Args'))
-  .default(ts.namedType('runtime.Types.Extensions.DefaultArgs'))
+  .extends(ts.namedType('$Extensions.Args'))
+  .default(ts.namedType('$Extensions.DefaultArgs'))
 
 export class Model implements Generatable {
   protected outputType: OutputType
@@ -123,10 +123,7 @@ export class Model implements Generatable {
     return `
 
 
-export type ${groupByArgsName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
+export type ${groupByArgsName}${ifExtensions('<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>', '')} = {
 ${indent(
   groupByRootField.args
     .map((arg) => {
@@ -242,10 +239,7 @@ ${
     : ''
 }
 
-export type ${aggregateArgsName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
+export type ${aggregateArgsName}${ifExtensions('<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>', '')} = {
 ${indent(
   aggregateRootField.args
     .map((arg) => {
@@ -308,7 +302,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
             ts.property(
               'scalars',
               ts
-                .namedType('runtime.Types.Extensions.GetResult')
+                .namedType('$Extensions.GetResult')
                 .addGenericArgument(scalars)
                 .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name))),
             ),
@@ -375,9 +369,9 @@ ${ifExtensions(() => {
 }, '')}
 ${includeType}
 ${ifExtensions(
-  `type ${model.name}GetPayload<S extends boolean | null | undefined | ${getArgName(
-    model.name,
-  )}> = runtime.Types.GetFindResult<${model.name}Payload, S>`,
+  `type ${model.name}GetPayload<S extends boolean | null | undefined | ${getArgName(model.name)}> = $Types.GetResult<${
+    model.name
+  }Payload, S>`,
   new PayloadType(this.outputType, this.dmmf).toTS(),
 )}
 
@@ -433,10 +427,7 @@ export class ModelDelegate implements Generatable {
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
-    ? `type ${countArgsName}${ifExtensions(
-        '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-        '',
-      )} = 
+    ? `type ${countArgsName}${ifExtensions('<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>', '')} = 
   Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'> & {
     select?: ${getCountAggregateInputName(name)} | true
   }
@@ -444,7 +435,7 @@ ${
     : ''
 }
 export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined${ifExtensions(
-      ', ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs',
+      ', ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs',
       '',
     )}> {
 ${ifExtensions(
@@ -473,7 +464,7 @@ ${
   count<T extends ${countArgsName}>(
     args?: Subset<T, ${countArgsName}>,
   ): Prisma.PrismaPromise<
-    T extends runtime.Types.Utils.Record<'select', any>
+    T extends $Utils.Record<'select', any>
       ? T['select'] extends true
         ? number
         : GetScalarType<T['select'], ${getCountAggregateOutputName(name)}>
@@ -566,7 +557,7 @@ ${fieldsProxy}
  * https://github.com/prisma/prisma-client-js/issues/707
  */
 export class Prisma__${name}Client<T, Null = never${ifExtensions(
-      ', ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs',
+      ', ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs',
       '',
     )}> implements Prisma.PrismaPromise<T> {
   private readonly _dmmf;

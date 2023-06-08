@@ -92,10 +92,7 @@ export class ArgsType implements Generatable {
 /**
  * ${this.getGeneratedComment()}
  */
-export type ${generatedName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
+export type ${generatedName}${ifExtensions('<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>', '')} = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
@@ -118,10 +115,7 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInf
 /**
  * ${name} base type for ${action} actions
  */
-export type ${baseTypeName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
+export type ${baseTypeName}${ifExtensions('<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>', '')} = {
 ${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 
@@ -129,7 +123,7 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInf
  * ${this.getGeneratedComment()}
  */
 export interface ${modelArgName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
+      '<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>',
       '',
     )} extends ${baseTypeName}${ifExtensions('<ExtArgs>', '')} {
  /**
@@ -167,7 +161,7 @@ export class MinimalArgsType implements Generatable {
  * ${name} ${action ? action : 'without action'}
  */
 export type ${this.generatedTypeName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
+      '<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>',
       '',
     )} = {
 ${indent(

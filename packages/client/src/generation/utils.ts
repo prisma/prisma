@@ -16,7 +16,7 @@ export function getScalarsName(modelName: string): string {
 }
 
 export function getPayloadName(modelName: string): string {
-  return ifExtensions(`runtime.Types.GetResult`, `${modelName}GetPayload`)
+  return ifExtensions(`$Types.GetResult`, `${modelName}GetPayload`)
 }
 
 // export function getExtractName(modelName: string, projection: Projection) {
