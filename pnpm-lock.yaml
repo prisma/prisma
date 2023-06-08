@@ -671,7 +671,7 @@ importers:
       '@types/resolve': 1.20.2
       archiver: 5.3.1
       arg: 5.0.2
-      checkpoint-client: 1.1.23
+      checkpoint-client: 1.1.24
       cli-truncate: 2.1.0
       dotenv: 16.0.3
       esbuild: 0.15.13
@@ -722,7 +722,7 @@ importers:
       '@prisma/prisma-fmt-wasm': 4.16.0-12.e3e1da125cf9e3d0e865b9bdfdae91d5ffced535
       archiver: 5.3.1
       arg: 5.0.2
-      checkpoint-client: 1.1.23
+      checkpoint-client: 1.1.24
       cli-truncate: 2.1.0
       dotenv: 16.0.3
       escape-string-regexp: 4.0.0
@@ -784,6 +784,7 @@ importers:
       '@types/pg': 8.10.2
       '@types/prompts': 2.4.4
       '@types/sqlite3': 3.1.8
+      arg: 5.0.2
       esbuild: 0.15.13
       execa: 5.1.1
       fp-ts: 2.16.0
@@ -812,6 +813,7 @@ importers:
       '@prisma/debug': link:../debug
       '@prisma/get-platform': link:../get-platform
       '@sindresorhus/slugify': 1.1.2
+      arg: 5.0.2
       execa: 5.1.1
       fp-ts: 2.16.0
       get-stdin: 8.0.0
@@ -850,9 +852,9 @@ importers:
 
   packages/nextjs-monorepo-workaround-plugin:
     specifiers:
-      webpack: 5.85.0
+      webpack: 5.86.0
     devDependencies:
-      webpack: 5.85.0
+      webpack: 5.86.0
 
   packages/react-prisma:
     specifiers:
@@ -5873,6 +5875,7 @@ packages:
       uuid: 8.3.2
     transitivePeerDependencies:
       - encoding
+    dev: true
 
   /checkpoint-client/1.1.24:
     resolution: {integrity: sha512-nIOlLhDS7MKs4tUzS3LCm+sE1NgTCVnVrXlD0RRxaoEkkLu8LIWSUNiNWai6a+LK5unLzTyZeTCYX1Smqy0YoA==}
@@ -5886,7 +5889,6 @@ packages:
       uuid: 9.0.0
     transitivePeerDependencies:
       - encoding
-    dev: true
 
   /chokidar/3.5.3:
     resolution: {integrity: sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw==}
@@ -5919,11 +5921,11 @@ packages:
 
   /ci-info/3.3.0:
     resolution: {integrity: sha512-riT/3vI5YpVH6/qomlDnJow6TBee2PBKSEpx3O32EGPYbWGIRsIlGRms3Sm74wYE1JMo8RnO04Hb12+v1J5ICw==}
+    dev: true
 
   /ci-info/3.8.0:
     resolution: {integrity: sha512-eXTggHWSooYhq49F2opQhuHWgzucfF2YgODK4e1566GQs5BIfP30B0oenwBJHfWxAs2fyPB1s7Mg949zLf61Yw==}
     engines: {node: '>=8'}
-    dev: true
 
   /cjs-module-lexer/1.2.2:
     resolution: {integrity: sha512-cOU9usZw8/dXIXKtwa8pM0OTJQuJkxMN6w30csNRUerHfeQ5R6U3kkU/FtJeIf3M202OHfY2U8ccInBG7/xogA==}
@@ -10791,6 +10793,7 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
+    dev: true
 
   /node-fetch/3.3.1:
     resolution: {integrity: sha512-cRVc/kyto/7E5shrWca1Wsea4y6tL9iYJE5FBCius3JQfb/4P4I295PfhgbJQBLTx6lATE4z+wK0rPM4VS2uow==}
@@ -13288,7 +13291,7 @@ packages:
       supports-hyperlinks: 2.3.0
     dev: false
 
-  /terser-webpack-plugin/5.3.8_webpack@5.85.0:
+  /terser-webpack-plugin/5.3.8_webpack@5.86.0:
     resolution: {integrity: sha512-WiHL3ElchZMsK27P8uIUh4604IgJyAW47LVXGbEoB21DbQcZ+OuMpGjVYnEUaqcWM6dO8uS2qUbA7LSCWqvsbg==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
@@ -13309,7 +13312,7 @@ packages:
       schema-utils: 3.1.2
       serialize-javascript: 6.0.1
       terser: 5.17.4
-      webpack: 5.85.0
+      webpack: 5.86.0
     dev: true
 
   /terser/5.17.4:
@@ -13870,7 +13873,6 @@ packages:
   /uuid/9.0.0:
     resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
     hasBin: true
-    dev: true
 
   /v8-compile-cache-lib/3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
@@ -13993,8 +13995,8 @@ packages:
     engines: {node: '>=10.13.0'}
     dev: true
 
-  /webpack/5.85.0:
-    resolution: {integrity: sha512-7gazTiYqwo5OSqwH1tigLDL2r3qDeP2dOKYgd+LlXpsUMqDTklg6tOghexqky0/+6QY38kb/R/uRPUleuL43zg==}
+  /webpack/5.86.0:
+    resolution: {integrity: sha512-3BOvworZ8SO/D4GVP+GoRC3fVeg5MO4vzmq8TJJEkdmopxyazGDxN8ClqN12uzrZW9Tv8EED8v5VSb6Sqyi0pg==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     peerDependencies:
@@ -14024,7 +14026,7 @@ packages:
       neo-async: 2.6.2
       schema-utils: 3.1.2
       tapable: 2.2.1
-      terser-webpack-plugin: 5.3.8_webpack@5.85.0
+      terser-webpack-plugin: 5.3.8_webpack@5.86.0
       watchpack: 2.4.0
       webpack-sources: 3.2.3
     transitivePeerDependencies:

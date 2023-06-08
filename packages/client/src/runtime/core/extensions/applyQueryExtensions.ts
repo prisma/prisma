@@ -57,7 +57,7 @@ export function applyQueryExtensions(client: Client, params: InternalRequestPara
   }
 
   // get the cached query cbs for a given model and action
-  const cbs = client._extensions.getAllQueryCallbacks(jsModelName ?? '*', operation)
+  const cbs = client._extensions.getAllQueryCallbacks(jsModelName ?? '$none', operation)
 
   return iterateAndCallQueryCallbacks(client, params, cbs)
 }
