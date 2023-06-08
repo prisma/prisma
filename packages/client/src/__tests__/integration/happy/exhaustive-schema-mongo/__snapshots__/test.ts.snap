@@ -3591,7 +3591,7 @@ export namespace Prisma {
     **/
     findUnique<T extends PostFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, PostFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Post'> extends True ? Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Post'> extends True ? Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one Post that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -3607,7 +3607,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends PostFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, PostFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first Post that matches the filter.
@@ -3624,7 +3624,7 @@ export namespace Prisma {
     **/
     findFirst<T extends PostFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, PostFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first Post that matches the filter or
@@ -3642,7 +3642,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends PostFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, PostFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more Posts that matches the filter.
@@ -3662,7 +3662,7 @@ export namespace Prisma {
     **/
     findMany<T extends PostFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, PostFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a Post.
@@ -3678,7 +3678,7 @@ export namespace Prisma {
     **/
     create<T extends PostCreateArgs<ExtArgs>>(
       args: SelectSubset<T, PostCreateArgs<ExtArgs>>
-    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many Posts.
@@ -3710,7 +3710,7 @@ export namespace Prisma {
     **/
     delete<T extends PostDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, PostDeleteArgs<ExtArgs>>
-    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one Post.
@@ -3729,7 +3729,7 @@ export namespace Prisma {
     **/
     update<T extends PostUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, PostUpdateArgs<ExtArgs>>
-    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more Posts.
@@ -3787,7 +3787,7 @@ export namespace Prisma {
     **/
     upsert<T extends PostUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, PostUpsertArgs<ExtArgs>>
-    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__PostClient<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more Posts that matches the filter.
@@ -3965,7 +3965,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    author<T extends UserArgs<ExtArgs> = {}>(args?: Subset<T, UserArgs<ExtArgs>>): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findUnique'> | Null, never, ExtArgs>;
+    author<T extends UserArgs<ExtArgs> = {}>(args?: Subset<T, UserArgs<ExtArgs>>): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -4702,7 +4702,7 @@ export namespace Prisma {
     **/
     findUnique<T extends UserFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, UserFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'User'> extends True ? Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'User'> extends True ? Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one User that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -4718,7 +4718,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends UserFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, UserFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first User that matches the filter.
@@ -4735,7 +4735,7 @@ export namespace Prisma {
     **/
     findFirst<T extends UserFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, UserFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first User that matches the filter or
@@ -4753,7 +4753,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends UserFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, UserFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more Users that matches the filter.
@@ -4773,7 +4773,7 @@ export namespace Prisma {
     **/
     findMany<T extends UserFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, UserFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a User.
@@ -4789,7 +4789,7 @@ export namespace Prisma {
     **/
     create<T extends UserCreateArgs<ExtArgs>>(
       args: SelectSubset<T, UserCreateArgs<ExtArgs>>
-    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many Users.
@@ -4821,7 +4821,7 @@ export namespace Prisma {
     **/
     delete<T extends UserDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, UserDeleteArgs<ExtArgs>>
-    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one User.
@@ -4840,7 +4840,7 @@ export namespace Prisma {
     **/
     update<T extends UserUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, UserUpdateArgs<ExtArgs>>
-    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more Users.
@@ -4898,7 +4898,7 @@ export namespace Prisma {
     **/
     upsert<T extends UserUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, UserUpsertArgs<ExtArgs>>
-    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__UserClient<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more Users that matches the filter.
@@ -5076,9 +5076,9 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    posts<T extends User$postsArgs<ExtArgs> = {}>(args?: Subset<T, User$postsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findMany'>| Null>;
+    posts<T extends User$postsArgs<ExtArgs> = {}>(args?: Subset<T, User$postsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.GetResult<PostPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
-    embedHolder<T extends EmbedHolderArgs<ExtArgs> = {}>(args?: Subset<T, EmbedHolderArgs<ExtArgs>>): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findUnique'> | Null, never, ExtArgs>;
+    embedHolder<T extends EmbedHolderArgs<ExtArgs> = {}>(args?: Subset<T, EmbedHolderArgs<ExtArgs>>): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -5700,7 +5700,7 @@ export namespace Prisma {
     **/
     findUnique<T extends EmbedHolderFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, EmbedHolderFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'EmbedHolder'> extends True ? Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'EmbedHolder'> extends True ? Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one EmbedHolder that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -5716,7 +5716,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends EmbedHolderFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, EmbedHolderFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first EmbedHolder that matches the filter.
@@ -5733,7 +5733,7 @@ export namespace Prisma {
     **/
     findFirst<T extends EmbedHolderFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, EmbedHolderFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'EmbedHolder'> extends True ? Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'EmbedHolder'> extends True ? Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first EmbedHolder that matches the filter or
@@ -5751,7 +5751,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends EmbedHolderFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, EmbedHolderFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more EmbedHolders that matches the filter.
@@ -5771,7 +5771,7 @@ export namespace Prisma {
     **/
     findMany<T extends EmbedHolderFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, EmbedHolderFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a EmbedHolder.
@@ -5787,7 +5787,7 @@ export namespace Prisma {
     **/
     create<T extends EmbedHolderCreateArgs<ExtArgs>>(
       args: SelectSubset<T, EmbedHolderCreateArgs<ExtArgs>>
-    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many EmbedHolders.
@@ -5819,7 +5819,7 @@ export namespace Prisma {
     **/
     delete<T extends EmbedHolderDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, EmbedHolderDeleteArgs<ExtArgs>>
-    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one EmbedHolder.
@@ -5838,7 +5838,7 @@ export namespace Prisma {
     **/
     update<T extends EmbedHolderUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, EmbedHolderUpdateArgs<ExtArgs>>
-    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more EmbedHolders.
@@ -5896,7 +5896,7 @@ export namespace Prisma {
     **/
     upsert<T extends EmbedHolderUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, EmbedHolderUpsertArgs<ExtArgs>>
-    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__EmbedHolderClient<runtime.Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more EmbedHolders that matches the filter.
@@ -6074,7 +6074,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    User<T extends EmbedHolder$UserArgs<ExtArgs> = {}>(args?: Subset<T, EmbedHolder$UserArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findMany'>| Null>;
+    User<T extends EmbedHolder$UserArgs<ExtArgs> = {}>(args?: Subset<T, EmbedHolder$UserArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.GetResult<UserPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
     private get _document();
     /**
@@ -6817,7 +6817,7 @@ export namespace Prisma {
     **/
     findUnique<T extends MFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, MFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'M'> extends True ? Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'M'> extends True ? Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one M that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -6833,7 +6833,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends MFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, MFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first M that matches the filter.
@@ -6850,7 +6850,7 @@ export namespace Prisma {
     **/
     findFirst<T extends MFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, MFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first M that matches the filter or
@@ -6868,7 +6868,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends MFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, MFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more Ms that matches the filter.
@@ -6888,7 +6888,7 @@ export namespace Prisma {
     **/
     findMany<T extends MFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, MFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a M.
@@ -6904,7 +6904,7 @@ export namespace Prisma {
     **/
     create<T extends MCreateArgs<ExtArgs>>(
       args: SelectSubset<T, MCreateArgs<ExtArgs>>
-    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many Ms.
@@ -6936,7 +6936,7 @@ export namespace Prisma {
     **/
     delete<T extends MDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, MDeleteArgs<ExtArgs>>
-    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one M.
@@ -6955,7 +6955,7 @@ export namespace Prisma {
     **/
     update<T extends MUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, MUpdateArgs<ExtArgs>>
-    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more Ms.
@@ -7013,7 +7013,7 @@ export namespace Prisma {
     **/
     upsert<T extends MUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, MUpsertArgs<ExtArgs>>
-    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__MClient<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more Ms that matches the filter.
@@ -7191,7 +7191,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    n<T extends M$nArgs<ExtArgs> = {}>(args?: Subset<T, M$nArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findMany'>| Null>;
+    n<T extends M$nArgs<ExtArgs> = {}>(args?: Subset<T, M$nArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
     private get _document();
     /**
@@ -7934,7 +7934,7 @@ export namespace Prisma {
     **/
     findUnique<T extends NFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, NFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'N'> extends True ? Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'N'> extends True ? Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one N that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -7950,7 +7950,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends NFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, NFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first N that matches the filter.
@@ -7967,7 +7967,7 @@ export namespace Prisma {
     **/
     findFirst<T extends NFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, NFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first N that matches the filter or
@@ -7985,7 +7985,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends NFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, NFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more Ns that matches the filter.
@@ -8005,7 +8005,7 @@ export namespace Prisma {
     **/
     findMany<T extends NFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, NFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a N.
@@ -8021,7 +8021,7 @@ export namespace Prisma {
     **/
     create<T extends NCreateArgs<ExtArgs>>(
       args: SelectSubset<T, NCreateArgs<ExtArgs>>
-    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many Ns.
@@ -8053,7 +8053,7 @@ export namespace Prisma {
     **/
     delete<T extends NDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, NDeleteArgs<ExtArgs>>
-    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one N.
@@ -8072,7 +8072,7 @@ export namespace Prisma {
     **/
     update<T extends NUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, NUpdateArgs<ExtArgs>>
-    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more Ns.
@@ -8130,7 +8130,7 @@ export namespace Prisma {
     **/
     upsert<T extends NUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, NUpsertArgs<ExtArgs>>
-    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__NClient<runtime.Types.GetResult<NPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more Ns that matches the filter.
@@ -8308,7 +8308,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    m<T extends N$mArgs<ExtArgs> = {}>(args?: Subset<T, N$mArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findMany'>| Null>;
+    m<T extends N$mArgs<ExtArgs> = {}>(args?: Subset<T, N$mArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.GetResult<MPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
     private get _document();
     /**
@@ -9046,7 +9046,7 @@ export namespace Prisma {
     **/
     findUnique<T extends OneOptionalFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OneOptionalFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OneOptional'> extends True ? Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OneOptional'> extends True ? Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one OneOptional that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -9062,7 +9062,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends OneOptionalFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, OneOptionalFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first OneOptional that matches the filter.
@@ -9079,7 +9079,7 @@ export namespace Prisma {
     **/
     findFirst<T extends OneOptionalFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OneOptionalFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first OneOptional that matches the filter or
@@ -9097,7 +9097,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends OneOptionalFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, OneOptionalFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more OneOptionals that matches the filter.
@@ -9117,7 +9117,7 @@ export namespace Prisma {
     **/
     findMany<T extends OneOptionalFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, OneOptionalFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a OneOptional.
@@ -9133,7 +9133,7 @@ export namespace Prisma {
     **/
     create<T extends OneOptionalCreateArgs<ExtArgs>>(
       args: SelectSubset<T, OneOptionalCreateArgs<ExtArgs>>
-    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many OneOptionals.
@@ -9165,7 +9165,7 @@ export namespace Prisma {
     **/
     delete<T extends OneOptionalDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, OneOptionalDeleteArgs<ExtArgs>>
-    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one OneOptional.
@@ -9184,7 +9184,7 @@ export namespace Prisma {
     **/
     update<T extends OneOptionalUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, OneOptionalUpdateArgs<ExtArgs>>
-    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more OneOptionals.
@@ -9242,7 +9242,7 @@ export namespace Prisma {
     **/
     upsert<T extends OneOptionalUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, OneOptionalUpsertArgs<ExtArgs>>
-    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more OneOptionals that matches the filter.
@@ -9420,7 +9420,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    many<T extends OneOptional$manyArgs<ExtArgs> = {}>(args?: Subset<T, OneOptional$manyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findMany'>| Null>;
+    many<T extends OneOptional$manyArgs<ExtArgs> = {}>(args?: Subset<T, OneOptional$manyArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findMany', never>| Null>;
 
     private get _document();
     /**
@@ -10165,7 +10165,7 @@ export namespace Prisma {
     **/
     findUnique<T extends ManyRequiredFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, ManyRequiredFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'ManyRequired'> extends True ? Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'ManyRequired'> extends True ? Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one ManyRequired that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -10181,7 +10181,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends ManyRequiredFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, ManyRequiredFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first ManyRequired that matches the filter.
@@ -10198,7 +10198,7 @@ export namespace Prisma {
     **/
     findFirst<T extends ManyRequiredFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, ManyRequiredFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first ManyRequired that matches the filter or
@@ -10216,7 +10216,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends ManyRequiredFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, ManyRequiredFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more ManyRequireds that matches the filter.
@@ -10236,7 +10236,7 @@ export namespace Prisma {
     **/
     findMany<T extends ManyRequiredFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, ManyRequiredFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a ManyRequired.
@@ -10252,7 +10252,7 @@ export namespace Prisma {
     **/
     create<T extends ManyRequiredCreateArgs<ExtArgs>>(
       args: SelectSubset<T, ManyRequiredCreateArgs<ExtArgs>>
-    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many ManyRequireds.
@@ -10284,7 +10284,7 @@ export namespace Prisma {
     **/
     delete<T extends ManyRequiredDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, ManyRequiredDeleteArgs<ExtArgs>>
-    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one ManyRequired.
@@ -10303,7 +10303,7 @@ export namespace Prisma {
     **/
     update<T extends ManyRequiredUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, ManyRequiredUpdateArgs<ExtArgs>>
-    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more ManyRequireds.
@@ -10361,7 +10361,7 @@ export namespace Prisma {
     **/
     upsert<T extends ManyRequiredUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, ManyRequiredUpsertArgs<ExtArgs>>
-    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__ManyRequiredClient<runtime.Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more ManyRequireds that matches the filter.
@@ -10539,7 +10539,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    one<T extends OneOptionalArgs<ExtArgs> = {}>(args?: Subset<T, OneOptionalArgs<ExtArgs>>): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUnique'> | Null, never, ExtArgs>;
+    one<T extends OneOptionalArgs<ExtArgs> = {}>(args?: Subset<T, OneOptionalArgs<ExtArgs>>): Prisma__OneOptionalClient<runtime.Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -11263,7 +11263,7 @@ export namespace Prisma {
     **/
     findUnique<T extends OptionalSide1FindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide1FindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide1'> extends True ? Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide1'> extends True ? Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one OptionalSide1 that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -11279,7 +11279,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends OptionalSide1FindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, OptionalSide1FindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first OptionalSide1 that matches the filter.
@@ -11296,7 +11296,7 @@ export namespace Prisma {
     **/
     findFirst<T extends OptionalSide1FindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide1FindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first OptionalSide1 that matches the filter or
@@ -11314,7 +11314,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends OptionalSide1FindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, OptionalSide1FindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more OptionalSide1s that matches the filter.
@@ -11334,7 +11334,7 @@ export namespace Prisma {
     **/
     findMany<T extends OptionalSide1FindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, OptionalSide1FindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a OptionalSide1.
@@ -11350,7 +11350,7 @@ export namespace Prisma {
     **/
     create<T extends OptionalSide1CreateArgs<ExtArgs>>(
       args: SelectSubset<T, OptionalSide1CreateArgs<ExtArgs>>
-    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many OptionalSide1s.
@@ -11382,7 +11382,7 @@ export namespace Prisma {
     **/
     delete<T extends OptionalSide1DeleteArgs<ExtArgs>>(
       args: SelectSubset<T, OptionalSide1DeleteArgs<ExtArgs>>
-    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one OptionalSide1.
@@ -11401,7 +11401,7 @@ export namespace Prisma {
     **/
     update<T extends OptionalSide1UpdateArgs<ExtArgs>>(
       args: SelectSubset<T, OptionalSide1UpdateArgs<ExtArgs>>
-    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more OptionalSide1s.
@@ -11459,7 +11459,7 @@ export namespace Prisma {
     **/
     upsert<T extends OptionalSide1UpsertArgs<ExtArgs>>(
       args: SelectSubset<T, OptionalSide1UpsertArgs<ExtArgs>>
-    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more OptionalSide1s that matches the filter.
@@ -11637,7 +11637,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    opti<T extends OptionalSide2Args<ExtArgs> = {}>(args?: Subset<T, OptionalSide2Args<ExtArgs>>): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUnique'> | Null, never, ExtArgs>;
+    opti<T extends OptionalSide2Args<ExtArgs> = {}>(args?: Subset<T, OptionalSide2Args<ExtArgs>>): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -12352,7 +12352,7 @@ export namespace Prisma {
     **/
     findUnique<T extends OptionalSide2FindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide2FindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide2'> extends True ? Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide2'> extends True ? Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one OptionalSide2 that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -12368,7 +12368,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends OptionalSide2FindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, OptionalSide2FindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first OptionalSide2 that matches the filter.
@@ -12385,7 +12385,7 @@ export namespace Prisma {
     **/
     findFirst<T extends OptionalSide2FindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide2FindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first OptionalSide2 that matches the filter or
@@ -12403,7 +12403,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends OptionalSide2FindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, OptionalSide2FindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more OptionalSide2s that matches the filter.
@@ -12423,7 +12423,7 @@ export namespace Prisma {
     **/
     findMany<T extends OptionalSide2FindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, OptionalSide2FindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a OptionalSide2.
@@ -12439,7 +12439,7 @@ export namespace Prisma {
     **/
     create<T extends OptionalSide2CreateArgs<ExtArgs>>(
       args: SelectSubset<T, OptionalSide2CreateArgs<ExtArgs>>
-    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many OptionalSide2s.
@@ -12471,7 +12471,7 @@ export namespace Prisma {
     **/
     delete<T extends OptionalSide2DeleteArgs<ExtArgs>>(
       args: SelectSubset<T, OptionalSide2DeleteArgs<ExtArgs>>
-    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one OptionalSide2.
@@ -12490,7 +12490,7 @@ export namespace Prisma {
     **/
     update<T extends OptionalSide2UpdateArgs<ExtArgs>>(
       args: SelectSubset<T, OptionalSide2UpdateArgs<ExtArgs>>
-    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more OptionalSide2s.
@@ -12548,7 +12548,7 @@ export namespace Prisma {
     **/
     upsert<T extends OptionalSide2UpsertArgs<ExtArgs>>(
       args: SelectSubset<T, OptionalSide2UpsertArgs<ExtArgs>>
-    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__OptionalSide2Client<runtime.Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more OptionalSide2s that matches the filter.
@@ -12726,7 +12726,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    opti<T extends OptionalSide1Args<ExtArgs> = {}>(args?: Subset<T, OptionalSide1Args<ExtArgs>>): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUnique'> | Null, never, ExtArgs>;
+    opti<T extends OptionalSide1Args<ExtArgs> = {}>(args?: Subset<T, OptionalSide1Args<ExtArgs>>): Prisma__OptionalSide1Client<runtime.Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -13377,7 +13377,7 @@ export namespace Prisma {
     **/
     findUnique<T extends AFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, AFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'A'> extends True ? Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'A'> extends True ? Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one A that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -13393,7 +13393,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends AFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, AFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first A that matches the filter.
@@ -13410,7 +13410,7 @@ export namespace Prisma {
     **/
     findFirst<T extends AFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, AFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first A that matches the filter or
@@ -13428,7 +13428,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends AFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, AFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more As that matches the filter.
@@ -13448,7 +13448,7 @@ export namespace Prisma {
     **/
     findMany<T extends AFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, AFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<APayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a A.
@@ -13464,7 +13464,7 @@ export namespace Prisma {
     **/
     create<T extends ACreateArgs<ExtArgs>>(
       args: SelectSubset<T, ACreateArgs<ExtArgs>>
-    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many As.
@@ -13496,7 +13496,7 @@ export namespace Prisma {
     **/
     delete<T extends ADeleteArgs<ExtArgs>>(
       args: SelectSubset<T, ADeleteArgs<ExtArgs>>
-    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one A.
@@ -13515,7 +13515,7 @@ export namespace Prisma {
     **/
     update<T extends AUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, AUpdateArgs<ExtArgs>>
-    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more As.
@@ -13573,7 +13573,7 @@ export namespace Prisma {
     **/
     upsert<T extends AUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, AUpsertArgs<ExtArgs>>
-    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__AClient<runtime.Types.GetResult<APayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more As that matches the filter.
@@ -14330,7 +14330,7 @@ export namespace Prisma {
     **/
     findUnique<T extends BFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, BFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'B'> extends True ? Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'B'> extends True ? Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one B that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -14346,7 +14346,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends BFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, BFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first B that matches the filter.
@@ -14363,7 +14363,7 @@ export namespace Prisma {
     **/
     findFirst<T extends BFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, BFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first B that matches the filter or
@@ -14381,7 +14381,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends BFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, BFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more Bs that matches the filter.
@@ -14401,7 +14401,7 @@ export namespace Prisma {
     **/
     findMany<T extends BFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, BFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a B.
@@ -14417,7 +14417,7 @@ export namespace Prisma {
     **/
     create<T extends BCreateArgs<ExtArgs>>(
       args: SelectSubset<T, BCreateArgs<ExtArgs>>
-    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many Bs.
@@ -14449,7 +14449,7 @@ export namespace Prisma {
     **/
     delete<T extends BDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, BDeleteArgs<ExtArgs>>
-    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one B.
@@ -14468,7 +14468,7 @@ export namespace Prisma {
     **/
     update<T extends BUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, BUpdateArgs<ExtArgs>>
-    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more Bs.
@@ -14526,7 +14526,7 @@ export namespace Prisma {
     **/
     upsert<T extends BUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, BUpsertArgs<ExtArgs>>
-    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__BClient<runtime.Types.GetResult<BPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more Bs that matches the filter.
@@ -15281,7 +15281,7 @@ export namespace Prisma {
     **/
     findUnique<T extends CFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, CFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'C'> extends True ? Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'C'> extends True ? Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one C that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -15297,7 +15297,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends CFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, CFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first C that matches the filter.
@@ -15314,7 +15314,7 @@ export namespace Prisma {
     **/
     findFirst<T extends CFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, CFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first C that matches the filter or
@@ -15332,7 +15332,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends CFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, CFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more Cs that matches the filter.
@@ -15352,7 +15352,7 @@ export namespace Prisma {
     **/
     findMany<T extends CFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, CFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a C.
@@ -15368,7 +15368,7 @@ export namespace Prisma {
     **/
     create<T extends CCreateArgs<ExtArgs>>(
       args: SelectSubset<T, CCreateArgs<ExtArgs>>
-    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many Cs.
@@ -15400,7 +15400,7 @@ export namespace Prisma {
     **/
     delete<T extends CDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, CDeleteArgs<ExtArgs>>
-    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one C.
@@ -15419,7 +15419,7 @@ export namespace Prisma {
     **/
     update<T extends CUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, CUpdateArgs<ExtArgs>>
-    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more Cs.
@@ -15477,7 +15477,7 @@ export namespace Prisma {
     **/
     upsert<T extends CUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, CUpsertArgs<ExtArgs>>
-    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__CClient<runtime.Types.GetResult<CPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more Cs that matches the filter.
@@ -16254,7 +16254,7 @@ export namespace Prisma {
     **/
     findUnique<T extends DFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, DFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'D'> extends True ? Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'D'> extends True ? Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one D that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -16270,7 +16270,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends DFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, DFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first D that matches the filter.
@@ -16287,7 +16287,7 @@ export namespace Prisma {
     **/
     findFirst<T extends DFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, DFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first D that matches the filter or
@@ -16305,7 +16305,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends DFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, DFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more Ds that matches the filter.
@@ -16325,7 +16325,7 @@ export namespace Prisma {
     **/
     findMany<T extends DFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, DFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a D.
@@ -16341,7 +16341,7 @@ export namespace Prisma {
     **/
     create<T extends DCreateArgs<ExtArgs>>(
       args: SelectSubset<T, DCreateArgs<ExtArgs>>
-    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many Ds.
@@ -16373,7 +16373,7 @@ export namespace Prisma {
     **/
     delete<T extends DDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, DDeleteArgs<ExtArgs>>
-    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one D.
@@ -16392,7 +16392,7 @@ export namespace Prisma {
     **/
     update<T extends DUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, DUpdateArgs<ExtArgs>>
-    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more Ds.
@@ -16450,7 +16450,7 @@ export namespace Prisma {
     **/
     upsert<T extends DUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, DUpsertArgs<ExtArgs>>
-    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__DClient<runtime.Types.GetResult<DPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more Ds that matches the filter.
@@ -17178,7 +17178,7 @@ export namespace Prisma {
     **/
     findUnique<T extends EFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, EFindUniqueArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'E'> extends True ? Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findUnique'>, never, ExtArgs> : Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findUnique'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'E'> extends True ? Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
     /**
      * Find one E that matches the filter or throw an error  with \`error.code='P2025'\` 
@@ -17194,7 +17194,7 @@ export namespace Prisma {
     **/
     findUniqueOrThrow<T extends EFindUniqueOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, EFindUniqueOrThrowArgs<ExtArgs>>
-    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findUniqueOrThrow'>, never, ExtArgs>
+    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findUniqueOrThrow', never>, never, ExtArgs>
 
     /**
      * Find the first E that matches the filter.
@@ -17211,7 +17211,7 @@ export namespace Prisma {
     **/
     findFirst<T extends EFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, EFindFirstArgs<ExtArgs>>
-    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findFirst'>, never, ExtArgs> : Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findFirst'> | null, null, ExtArgs>
+    ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
     /**
      * Find the first E that matches the filter or
@@ -17229,7 +17229,7 @@ export namespace Prisma {
     **/
     findFirstOrThrow<T extends EFindFirstOrThrowArgs<ExtArgs>>(
       args?: SelectSubset<T, EFindFirstOrThrowArgs<ExtArgs>>
-    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findFirstOrThrow'>, never, ExtArgs>
+    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findFirstOrThrow', never>, never, ExtArgs>
 
     /**
      * Find zero or more Es that matches the filter.
@@ -17249,7 +17249,7 @@ export namespace Prisma {
     **/
     findMany<T extends EFindManyArgs<ExtArgs>>(
       args?: SelectSubset<T, EFindManyArgs<ExtArgs>>
-    ): Prisma.PrismaPromise<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findMany'>>
+    ): Prisma.PrismaPromise<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'findMany', never>>
 
     /**
      * Create a E.
@@ -17265,7 +17265,7 @@ export namespace Prisma {
     **/
     create<T extends ECreateArgs<ExtArgs>>(
       args: SelectSubset<T, ECreateArgs<ExtArgs>>
-    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'create'>, never, ExtArgs>
+    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'create', never>, never, ExtArgs>
 
     /**
      * Create many Es.
@@ -17297,7 +17297,7 @@ export namespace Prisma {
     **/
     delete<T extends EDeleteArgs<ExtArgs>>(
       args: SelectSubset<T, EDeleteArgs<ExtArgs>>
-    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'delete'>, never, ExtArgs>
+    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'delete', never>, never, ExtArgs>
 
     /**
      * Update one E.
@@ -17316,7 +17316,7 @@ export namespace Prisma {
     **/
     update<T extends EUpdateArgs<ExtArgs>>(
       args: SelectSubset<T, EUpdateArgs<ExtArgs>>
-    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'update'>, never, ExtArgs>
+    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'update', never>, never, ExtArgs>
 
     /**
      * Delete zero or more Es.
@@ -17374,7 +17374,7 @@ export namespace Prisma {
     **/
     upsert<T extends EUpsertArgs<ExtArgs>>(
       args: SelectSubset<T, EUpsertArgs<ExtArgs>>
-    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'upsert'>, never, ExtArgs>
+    ): Prisma__EClient<runtime.Types.GetResult<EPayload<ExtArgs>, T, 'upsert', never>, never, ExtArgs>
 
     /**
      * Find zero or more Es that matches the filter.
