@@ -21,19 +21,29 @@ export type Args = InternalArgs
 export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
 export type GetResult<Base extends Record<any, any>, R extends Args['result'][string]> =
-  { [K in keyof R | keyof Base]: K extends keyof R ? ReturnType<ReturnType<R[K]>['compute']> : Base[K] } & unknown
+  string extends keyof R // prevents unnecessary computation & string indexes to be passed (= default state)
+  ? Base
+  : { [K in keyof R | keyof Base]: K extends keyof R ? ReturnType<ReturnType<R[K]>['compute']> : Base[K] } & unknown
 
 export type GetSelect<Base extends Record<any, any>, R extends Args['result'][string]> =
-  { [K in keyof R | keyof Base]?: K extends keyof R ? boolean : Base[K] }
+  string extends keyof R // prevents unnecessary computation & string indexes to be passed (= default state)
+  ? Base
+  : { [K in keyof R | keyof Base]?: K extends keyof R ? boolean : Base[K] }
 
 export type GetModel<Base extends Record<any, any>, M extends Args['model'][string]> =
-  { [K in keyof M | keyof Base]: K extends keyof M ? ReturnType<M[K]> : Base[K] }
+  string extends keyof M // prevents unnecessary computation & string indexes to be passed (= default state)
+  ? Base
+  : { [K in keyof M | keyof Base]: K extends keyof M ? ReturnType<M[K]> : Base[K] }
 
 export type GetClient<Base extends Record<any, any>, C extends Args['client']> =
-  Omit<Base, keyof C | '$use'> & { [K in keyof C]: ReturnType<C[K]> }
+  string extends keyof C // prevents unnecessary computation & string indexes to be passed (= default state)
+  ? Base
+  : Omit<Base, keyof C | '$use'> & { [K in keyof C]: ReturnType<C[K]> }
 
-export type GetMaybeITXClient<Base extends Record<any, any>, C extends Args['client']> = 
-  MakeITXPropsOptional<GetClient<Base, C>>
+export type GetMaybeITXClient<Base extends Record<any, any>, C extends Args['client']> =
+  string extends keyof C // prevents unnecessary computation & string indexes to be passed (= default state)
+  ? Base
+  : MakeITXPropsOptional<GetClient<Base, C>>
 
 type MakeITXPropsOptional<C> = Omit<C, ITXClientDenyList> & {
   [K in Extract<keyof C, ITXClientDenyList>]?: C[K]
