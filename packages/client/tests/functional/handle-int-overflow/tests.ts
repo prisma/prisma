@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -5,7 +7,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(() => {
-  test('integer overflow', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('integer overflow', async () => {
     await expect(
       prisma.entry.create({
         data: {
@@ -24,8 +26,6 @@ testMatrix.setupTestSuite(() => {
           int: Number.MAX_VALUE,
         },
       }),
-    ).rejects.toThrow(
-      /Unable to fit float value \(or large JS integer serialized in exponent notation\) '\d+' into a 64 Bit signed integer for field 'int'. If you're trying to store large integers, consider using `BigInt`./,
-    )
+    ).rejects.toThrow(/Unable to fit value [\d\.e\+]+ into a 64-bit signed integer for field `int`/)
   })
 })

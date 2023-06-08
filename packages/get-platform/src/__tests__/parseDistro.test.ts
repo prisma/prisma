@@ -211,6 +211,18 @@ ID_LIKE=fedora
       },
     },
     {
+      name: 'opensuse tumbleweed',
+      content: `
+ID="opensuse-tumbleweed"
+ID_LIKE="opensuse suse"
+      `,
+      expect: {
+        targetDistro: 'rhel',
+        familyDistro: 'rhel',
+        originalDistro: 'opensuse-tumbleweed',
+      },
+    },
+    {
       name: 'unknown',
       content: `
 ID="whoknows"

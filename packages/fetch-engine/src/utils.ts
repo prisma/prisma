@@ -62,8 +62,8 @@ export function getDownloadUrl(
     process.env.PRISMA_ENGINES_MIRROR ||
     'https://binaries.prisma.sh'
   const finalExtension =
-    platform === 'windows' && BinaryType.libqueryEngine !== binaryName ? `.exe${extension}` : extension
-  if (binaryName === BinaryType.libqueryEngine) {
+    platform === 'windows' && BinaryType.QueryEngineLibrary !== binaryName ? `.exe${extension}` : extension
+  if (binaryName === BinaryType.QueryEngineLibrary) {
     binaryName = getNodeAPIName(platform, 'url')
   }
 

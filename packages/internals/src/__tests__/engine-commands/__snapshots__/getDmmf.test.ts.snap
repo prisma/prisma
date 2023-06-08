@@ -204,20 +204,6 @@ exports[`getDMMF success @@id model 1`] = `
     "enumTypes": {
       "prisma": [
         {
-          "name": "QueryMode",
-          "values": [
-            "default",
-            "insensitive",
-          ],
-        },
-        {
-          "name": "SortOrder",
-          "values": [
-            "asc",
-            "desc",
-          ],
-        },
-        {
           "name": "TransactionIsolationLevel",
           "values": [
             "ReadUncommitted",
@@ -242,6 +228,20 @@ exports[`getDMMF success @@id model 1`] = `
             "firstName",
             "lastName",
             "isAdmin",
+          ],
+        },
+        {
+          "name": "SortOrder",
+          "values": [
+            "asc",
+            "desc",
+          ],
+        },
+        {
+          "name": "QueryMode",
+          "values": [
+            "default",
+            "insensitive",
           ],
         },
       ],
@@ -465,6 +465,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "customName",
             },
           ],
+          "meta": {
+            "source": "User1",
+          },
           "name": "User1WhereUniqueInput",
         },
         {
@@ -944,6 +947,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "firstName_lastName_isAdmin",
             },
           ],
+          "meta": {
+            "source": "User2",
+          },
           "name": "User2WhereUniqueInput",
         },
         {
@@ -2222,6 +2228,11 @@ exports[`getDMMF success @@id model 1`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -2231,6 +2242,11 @@ exports[`getDMMF success @@id model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -2333,6 +2349,11 @@ exports[`getDMMF success @@id model 1`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -2342,6 +2363,11 @@ exports[`getDMMF success @@id model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -2792,6 +2818,11 @@ exports[`getDMMF success @@id model 1`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -2801,6 +2832,11 @@ exports[`getDMMF success @@id model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -2968,6 +3004,11 @@ exports[`getDMMF success @@id model 1`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -2977,6 +3018,11 @@ exports[`getDMMF success @@id model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -3628,6 +3674,11 @@ exports[`getDMMF success @@id model 1`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -3637,6 +3688,11 @@ exports[`getDMMF success @@id model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -3739,6 +3795,11 @@ exports[`getDMMF success @@id model 1`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -3748,6 +3809,11 @@ exports[`getDMMF success @@id model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -3925,6 +3991,11 @@ exports[`getDMMF success @@id model 1`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -3934,6 +4005,11 @@ exports[`getDMMF success @@id model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -4101,6 +4177,11 @@ exports[`getDMMF success @@id model 1`] = `
                   "location": "scalar",
                   "type": "Float",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -4110,6 +4191,11 @@ exports[`getDMMF success @@id model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Float",
                 },
@@ -4212,6 +4298,11 @@ exports[`getDMMF success @@id model 1`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -4221,6 +4312,11 @@ exports[`getDMMF success @@id model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -5679,6 +5775,12 @@ exports[`getDMMF success @@id model 1`] = `
                 {
                   "inputTypes": [
                     {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1CreateManyInput",
+                    },
+                    {
                       "isList": true,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
@@ -5947,6 +6049,12 @@ exports[`getDMMF success @@id model 1`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2CreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -7011,20 +7119,6 @@ exports[`getDMMF success @@map model 2`] = `
     "enumTypes": {
       "prisma": [
         {
-          "name": "QueryMode",
-          "values": [
-            "default",
-            "insensitive",
-          ],
-        },
-        {
-          "name": "SortOrder",
-          "values": [
-            "asc",
-            "desc",
-          ],
-        },
-        {
           "name": "TransactionIsolationLevel",
           "values": [
             "ReadUncommitted",
@@ -7038,6 +7132,20 @@ exports[`getDMMF success @@map model 2`] = `
           "values": [
             "id",
             "email",
+          ],
+        },
+        {
+          "name": "SortOrder",
+          "values": [
+            "asc",
+            "desc",
+          ],
+        },
+        {
+          "name": "QueryMode",
+          "values": [
+            "default",
+            "insensitive",
           ],
         },
       ],
@@ -7198,6 +7306,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "source": "User",
+          },
           "name": "UserWhereUniqueInput",
         },
         {
@@ -7703,6 +7814,11 @@ exports[`getDMMF success @@map model 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -7712,6 +7828,11 @@ exports[`getDMMF success @@map model 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -7814,6 +7935,11 @@ exports[`getDMMF success @@map model 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -7823,6 +7949,11 @@ exports[`getDMMF success @@map model 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -8123,6 +8254,11 @@ exports[`getDMMF success @@map model 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -8132,6 +8268,11 @@ exports[`getDMMF success @@map model 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -8299,6 +8440,11 @@ exports[`getDMMF success @@map model 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -8308,6 +8454,11 @@ exports[`getDMMF success @@map model 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -8588,6 +8739,11 @@ exports[`getDMMF success @@map model 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -8597,6 +8753,11 @@ exports[`getDMMF success @@map model 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -8699,6 +8860,11 @@ exports[`getDMMF success @@map model 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -8708,6 +8874,11 @@ exports[`getDMMF success @@map model 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -8846,6 +9017,11 @@ exports[`getDMMF success @@map model 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -8855,6 +9031,11 @@ exports[`getDMMF success @@map model 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -9022,6 +9203,11 @@ exports[`getDMMF success @@map model 2`] = `
                   "location": "scalar",
                   "type": "Float",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -9031,6 +9217,11 @@ exports[`getDMMF success @@map model 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Float",
                 },
@@ -9133,6 +9324,11 @@ exports[`getDMMF success @@map model 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -9142,6 +9338,11 @@ exports[`getDMMF success @@map model 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -9943,6 +10144,12 @@ exports[`getDMMF success @@map model 2`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -10872,6 +11079,15 @@ exports[`getDMMF success @@unique model 1`] = `
     "enumTypes": {
       "prisma": [
         {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+          ],
+        },
+        {
           "name": "PostScalarFieldEnum",
           "values": [
             "id",
@@ -10881,26 +11097,10 @@ exports[`getDMMF success @@unique model 1`] = `
           ],
         },
         {
-          "name": "QueryMode",
+          "name": "UserScalarFieldEnum",
           "values": [
-            "default",
-            "insensitive",
-          ],
-        },
-        {
-          "name": "SortOrder",
-          "values": [
-            "asc",
-            "desc",
-          ],
-        },
-        {
-          "name": "TransactionIsolationLevel",
-          "values": [
-            "ReadUncommitted",
-            "ReadCommitted",
-            "RepeatableRead",
-            "Serializable",
+            "id",
+            "email",
           ],
         },
         {
@@ -10922,10 +11122,17 @@ exports[`getDMMF success @@unique model 1`] = `
           ],
         },
         {
-          "name": "UserScalarFieldEnum",
+          "name": "SortOrder",
           "values": [
-            "id",
-            "email",
+            "asc",
+            "desc",
+          ],
+        },
+        {
+          "name": "QueryMode",
+          "values": [
+            "default",
+            "insensitive",
           ],
         },
       ],
@@ -11014,25 +11221,6 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "UserRelationFilter",
-                },
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserWhereInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "author",
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
                   "type": "IntFilter",
                 },
                 {
@@ -11081,6 +11269,25 @@ exports[`getDMMF success @@unique model 1`] = `
               "isRequired": false,
               "name": "published",
             },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserRelationFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author",
+            },
           ],
           "meta": {
             "source": "Post",
@@ -11105,19 +11312,6 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "id",
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserOrderByWithRelationInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "author",
             },
             {
               "inputTypes": [
@@ -11158,6 +11352,19 @@ exports[`getDMMF success @@unique model 1`] = `
               "isRequired": false,
               "name": "published",
             },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserOrderByWithRelationInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author",
+            },
           ],
           "name": "PostOrderByWithRelationInput",
         },
@@ -11181,6 +11388,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "authorId_title",
             },
           ],
+          "meta": {
+            "source": "Post",
+          },
           "name": "PostWhereUniqueInput",
         },
         {
@@ -11635,6 +11845,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "source": "User",
+          },
           "name": "UserWhereUniqueInput",
         },
         {
@@ -12052,6 +12265,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "firstName_lastName",
             },
           ],
+          "meta": {
+            "source": "User1",
+          },
           "name": "User1WhereUniqueInput",
         },
         {
@@ -12531,6 +12747,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "firstName_lastName_isAdmin",
             },
           ],
+          "meta": {
+            "source": "User2",
+          },
           "name": "User2WhereUniqueInput",
         },
         {
@@ -12816,19 +13035,6 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserCreateNestedOneWithoutPostsInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": true,
-              "name": "author",
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -12848,6 +13054,19 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "published",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserCreateNestedOneWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "author",
             },
           ],
           "name": "PostCreateInput",
@@ -12937,19 +13156,6 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserUpdateOneRequiredWithoutPostsNestedInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "author",
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -12981,6 +13187,19 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "published",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUpdateOneRequiredWithoutPostsNestedInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author",
             },
           ],
           "name": "PostUpdateInput",
@@ -14565,6 +14784,11 @@ exports[`getDMMF success @@unique model 1`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -14574,6 +14798,11 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -14661,41 +14890,6 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserWhereInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "is",
-            },
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "inputObjectTypes",
-                  "namespace": "prisma",
-                  "type": "UserWhereInput",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "isNot",
-            },
-          ],
-          "name": "UserRelationFilter",
-        },
-        {
-          "constraints": {
-            "maxNumFields": null,
-            "minNumFields": null,
-          },
-          "fields": [
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -14711,6 +14905,11 @@ exports[`getDMMF success @@unique model 1`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -14720,6 +14919,11 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -14884,6 +15088,51 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "name": "BoolFilter",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Null",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "is",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Null",
+                },
+              ],
+              "isNullable": true,
+              "isRequired": false,
+              "name": "isNot",
+            },
+          ],
+          "name": "UserRelationFilter",
         },
         {
           "constraints": {
@@ -15196,6 +15445,11 @@ exports[`getDMMF success @@unique model 1`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -15205,6 +15459,11 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -15372,6 +15631,11 @@ exports[`getDMMF success @@unique model 1`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -15381,6 +15645,11 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -16500,6 +16769,48 @@ exports[`getDMMF success @@unique model 1`] = `
         },
         {
           "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set",
+            },
+          ],
+          "name": "StringFieldUpdateOperationsInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": 1,
+            "minNumFields": 1,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "set",
+            },
+          ],
+          "name": "BoolFieldUpdateOperationsInput",
+        },
+        {
+          "constraints": {
             "maxNumFields": null,
             "minNumFields": null,
           },
@@ -16583,48 +16894,6 @@ exports[`getDMMF success @@unique model 1`] = `
             },
           ],
           "name": "UserUpdateOneRequiredWithoutPostsNestedInput",
-        },
-        {
-          "constraints": {
-            "maxNumFields": 1,
-            "minNumFields": 1,
-          },
-          "fields": [
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "String",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "set",
-            },
-          ],
-          "name": "StringFieldUpdateOperationsInput",
-        },
-        {
-          "constraints": {
-            "maxNumFields": 1,
-            "minNumFields": 1,
-          },
-          "fields": [
-            {
-              "inputTypes": [
-                {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Boolean",
-                },
-              ],
-              "isNullable": false,
-              "isRequired": false,
-              "name": "set",
-            },
-          ],
-          "name": "BoolFieldUpdateOperationsInput",
         },
         {
           "constraints": {
@@ -17281,6 +17550,11 @@ exports[`getDMMF success @@unique model 1`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -17290,6 +17564,11 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -17392,6 +17671,11 @@ exports[`getDMMF success @@unique model 1`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -17401,6 +17685,11 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -17578,6 +17867,11 @@ exports[`getDMMF success @@unique model 1`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -17587,6 +17881,11 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -17754,6 +18053,11 @@ exports[`getDMMF success @@unique model 1`] = `
                   "location": "scalar",
                   "type": "Float",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -17763,6 +18067,11 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Float",
                 },
@@ -17865,6 +18174,11 @@ exports[`getDMMF success @@unique model 1`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -17874,6 +18188,11 @@ exports[`getDMMF success @@unique model 1`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -18458,6 +18777,12 @@ exports[`getDMMF success @@unique model 1`] = `
             {
               "inputTypes": [
                 {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostCreateManyAuthorInput",
+                },
+                {
                   "isList": true,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
@@ -19013,17 +19338,6 @@ exports[`getDMMF success @@unique model 1`] = `
             {
               "args": [],
               "isNullable": false,
-              "name": "author",
-              "outputType": {
-                "isList": false,
-                "location": "outputObjectTypes",
-                "namespace": "model",
-                "type": "User",
-              },
-            },
-            {
-              "args": [],
-              "isNullable": false,
               "name": "authorId",
               "outputType": {
                 "isList": false,
@@ -19049,6 +19363,17 @@ exports[`getDMMF success @@unique model 1`] = `
                 "isList": false,
                 "location": "scalar",
                 "type": "Boolean",
+              },
+            },
+            {
+              "args": [],
+              "isNullable": false,
+              "name": "author",
+              "outputType": {
+                "isList": false,
+                "location": "outputObjectTypes",
+                "namespace": "model",
+                "type": "User",
               },
             },
           ],
@@ -21434,6 +21759,12 @@ exports[`getDMMF success @@unique model 1`] = `
                 {
                   "inputTypes": [
                     {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostCreateManyInput",
+                    },
+                    {
                       "isList": true,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
@@ -21702,6 +22033,12 @@ exports[`getDMMF success @@unique model 1`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "UserCreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -21972,6 +22309,12 @@ exports[`getDMMF success @@unique model 1`] = `
                 {
                   "inputTypes": [
                     {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User1CreateManyInput",
+                    },
+                    {
                       "isList": true,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
@@ -22240,6 +22583,12 @@ exports[`getDMMF success @@unique model 1`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "User2CreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -23800,9 +24149,9 @@ exports[`getDMMF success @@unique model 1`] = `
 }
 `;
 
-exports[`getDMMF success big schema read via datamodel path 1`] = `140496894`;
+exports[`getDMMF success big schema read via datamodel path 1`] = `141151322`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `903623`;
+exports[`getDMMF success chinook introspected schema 1`] = `909938`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -23921,7 +24270,7 @@ exports[`getDMMF success if a datamodel is provided, succeeds even when a non-ex
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `134276315`;
+exports[`getDMMF success odoo introspected schema 1`] = `134385034`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
@@ -24054,17 +24403,17 @@ exports[`getDMMF success simple model, mongodb 2`] = `
           ],
         },
         {
-          "name": "QueryMode",
-          "values": [
-            "default",
-            "insensitive",
-          ],
-        },
-        {
           "name": "SortOrder",
           "values": [
             "asc",
             "desc",
+          ],
+        },
+        {
+          "name": "QueryMode",
+          "values": [
+            "default",
+            "insensitive",
           ],
         },
       ],
@@ -24225,6 +24574,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -24658,6 +25010,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -24667,6 +25024,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -24769,6 +25131,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -24778,6 +25145,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -25078,6 +25450,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -25087,6 +25464,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -25254,6 +25636,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -25263,6 +25650,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -25474,6 +25866,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -25483,6 +25880,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -25585,6 +25987,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -25594,6 +26001,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -25732,6 +26144,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -25741,6 +26158,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -25908,6 +26330,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "location": "scalar",
                   "type": "Float",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -25917,6 +26344,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Float",
                 },
@@ -26019,6 +26451,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -26028,6 +26465,11 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -26900,6 +27342,12 @@ exports[`getDMMF success simple model, mongodb 2`] = `
                 {
                   "inputTypes": [
                     {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                    {
                       "isList": true,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
@@ -27481,6 +27929,15 @@ exports[`getDMMF success simple model, mysql 2`] = `
     "enumTypes": {
       "prisma": [
         {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+          ],
+        },
+        {
           "name": "AScalarFieldEnum",
           "values": [
             "id",
@@ -27492,15 +27949,6 @@ exports[`getDMMF success simple model, mysql 2`] = `
           "values": [
             "asc",
             "desc",
-          ],
-        },
-        {
-          "name": "TransactionIsolationLevel",
-          "values": [
-            "ReadUncommitted",
-            "ReadCommitted",
-            "RepeatableRead",
-            "Serializable",
           ],
         },
       ],
@@ -27661,6 +28109,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -28166,6 +28617,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -28175,6 +28631,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -28277,6 +28738,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -28286,6 +28752,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -28573,6 +29044,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -28582,6 +29058,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -28749,6 +29230,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -28758,6 +29244,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -29025,6 +29516,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -29034,6 +29530,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -29136,6 +29637,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -29145,6 +29651,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -29283,6 +29794,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -29292,6 +29808,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -29459,6 +29980,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "Float",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -29468,6 +29994,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Float",
                 },
@@ -29570,6 +30101,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -29579,6 +30115,11 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -30380,6 +30921,12 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -31188,6 +31735,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -31588,6 +32138,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -31597,6 +32152,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -31699,6 +32259,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -31708,6 +32273,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -31995,6 +32565,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -32004,6 +32579,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -32171,6 +32751,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -32180,6 +32765,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -32378,6 +32968,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -32387,6 +32982,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -32489,6 +33089,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -32498,6 +33103,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -32636,6 +33246,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -32645,6 +33260,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -32812,6 +33432,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "location": "scalar",
                   "type": "Float",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -32821,6 +33446,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Float",
                 },
@@ -32923,6 +33553,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -32932,6 +33567,11 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -34267,17 +34907,19 @@ exports[`getDMMF success simple model, postgresql 2`] = `
     "enumTypes": {
       "prisma": [
         {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+          ],
+        },
+        {
           "name": "AScalarFieldEnum",
           "values": [
             "id",
             "name",
-          ],
-        },
-        {
-          "name": "QueryMode",
-          "values": [
-            "default",
-            "insensitive",
           ],
         },
         {
@@ -34288,12 +34930,10 @@ exports[`getDMMF success simple model, postgresql 2`] = `
           ],
         },
         {
-          "name": "TransactionIsolationLevel",
+          "name": "QueryMode",
           "values": [
-            "ReadUncommitted",
-            "ReadCommitted",
-            "RepeatableRead",
-            "Serializable",
+            "default",
+            "insensitive",
           ],
         },
       ],
@@ -34454,6 +35094,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -34959,6 +35602,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -34968,6 +35616,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -35070,6 +35723,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -35079,6 +35737,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -35379,6 +36042,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -35388,6 +36056,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -35555,6 +36228,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -35564,6 +36242,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -35844,6 +36527,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -35853,6 +36541,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -35955,6 +36648,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -35964,6 +36662,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -36102,6 +36805,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -36111,6 +36819,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -36278,6 +36991,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "location": "scalar",
                   "type": "Float",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -36287,6 +37005,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Float",
                 },
@@ -36389,6 +37112,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -36398,6 +37126,11 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -37199,6 +37932,12 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "args": [
                 {
                   "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
                     {
                       "isList": true,
                       "location": "inputObjectTypes",
@@ -37840,6 +38579,16 @@ exports[`getDMMF success simple model, sql server 2`] = `
     "enumTypes": {
       "prisma": [
         {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+            "Snapshot",
+          ],
+        },
+        {
           "name": "AScalarFieldEnum",
           "values": [
             "id",
@@ -37851,16 +38600,6 @@ exports[`getDMMF success simple model, sql server 2`] = `
           "values": [
             "asc",
             "desc",
-          ],
-        },
-        {
-          "name": "TransactionIsolationLevel",
-          "values": [
-            "ReadUncommitted",
-            "ReadCommitted",
-            "RepeatableRead",
-            "Serializable",
-            "Snapshot",
           ],
         },
       ],
@@ -38021,6 +38760,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -38526,6 +39268,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -38535,6 +39282,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -38637,6 +39389,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -38646,6 +39403,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -38933,6 +39695,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -38942,6 +39709,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -39109,6 +39881,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -39118,6 +39895,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -39385,6 +40167,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -39394,6 +40181,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -39496,6 +40288,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -39505,6 +40302,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -39643,6 +40445,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -39652,6 +40459,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -39819,6 +40631,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "location": "scalar",
                   "type": "Float",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -39828,6 +40645,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Float",
                 },
@@ -39930,6 +40752,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -39939,6 +40766,11 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -40741,6 +41573,12 @@ exports[`getDMMF success simple model, sql server 2`] = `
                 {
                   "inputTypes": [
                     {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "ACreateManyInput",
+                    },
+                    {
                       "isList": true,
                       "location": "inputObjectTypes",
                       "namespace": "prisma",
@@ -41368,6 +42206,12 @@ exports[`getDMMF success simple model, sqlite 2`] = `
     "enumTypes": {
       "prisma": [
         {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "Serializable",
+          ],
+        },
+        {
           "name": "AScalarFieldEnum",
           "values": [
             "id",
@@ -41379,12 +42223,6 @@ exports[`getDMMF success simple model, sqlite 2`] = `
           "values": [
             "asc",
             "desc",
-          ],
-        },
-        {
-          "name": "TransactionIsolationLevel",
-          "values": [
-            "Serializable",
           ],
         },
       ],
@@ -41545,6 +42383,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -42017,6 +42858,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -42026,6 +42872,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -42128,6 +42979,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -42137,6 +42993,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -42424,6 +43285,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -42433,6 +43299,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -42600,6 +43471,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -42609,6 +43485,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -42876,6 +43757,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -42885,6 +43771,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -42987,6 +43878,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -42996,6 +43892,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },
@@ -43134,6 +44035,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "location": "scalar",
                   "type": "Int",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -43143,6 +44049,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Int",
                 },
@@ -43310,6 +44221,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "location": "scalar",
                   "type": "Float",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Float",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -43319,6 +44235,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "Float",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "Float",
                 },
@@ -43421,6 +44342,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
                   "location": "scalar",
                   "type": "String",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
               ],
               "isNullable": false,
               "isRequired": false,
@@ -43430,6 +44356,11 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "inputTypes": [
                 {
                   "isList": true,
+                  "location": "scalar",
+                  "type": "String",
+                },
+                {
+                  "isList": false,
                   "location": "scalar",
                   "type": "String",
                 },

@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`MongoDB basic introspection --url 2`] = `
+datasource db {
+  provider = "mongodb"
+  url      = "mongodb://root:prisma@localhost:27017/tests-migrate?authSource=admin"
+}
+
+type UsersHobbies {
+  name            String
+  /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+  numberOrString2 Json?
+  objects         UsersHobbiesObjects[]
+  tags            String[]
+}
+
+type UsersHobbiesObjects {
+  name            String
+  /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+  numberOrString3 Json
+  tags            String[]
+}
+
+model users {
+  id              String         @id @default(auto()) @map("_id") @db.ObjectId
+  admin           Boolean
+  email           String
+  hobbies         UsersHobbies[]
+  name            String
+  /// Multiple data types found: String: 50%, Int: 50% out of 2 sampled entries
+  numberOrString1 Json
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;

@@ -65,9 +65,9 @@ testMatrix.setupTestSuite(
     })
 
     test('should only use ON CONFLICT when update arguments do not have any nested queries', async () => {
-      const name = faker.name.firstName()
-      const title = faker.name.jobTitle()
-      const title2 = faker.name.jobTitle()
+      const name = faker.person.firstName()
+      const title = faker.person.jobTitle()
+      const title2 = faker.person.jobTitle()
 
       await client.user.create({
         data: {
@@ -188,7 +188,7 @@ testMatrix.setupTestSuite(
     })
 
     test('should only use ON CONFLICT when there is only 1 unique field in the where clause', async () => {
-      const name = faker.name.firstName()
+      const name = faker.person.firstName()
 
       await expect(() =>
         // This will fail
@@ -205,7 +205,7 @@ testMatrix.setupTestSuite(
             name,
           },
         }),
-      ).rejects.toThrow('Argument where of type UserWhereUniqueInput needs exactly one argument')
+      ).rejects.toThrow('needs exactly one argument')
 
       const checker = new UpsertChecker(client)
 
@@ -227,7 +227,7 @@ testMatrix.setupTestSuite(
     })
 
     test('should only use ON CONFLICT when the unique field defined in where clause has the same value as defined in the create arguments', async () => {
-      const name = faker.name.firstName()
+      const name = faker.person.firstName()
 
       const checker = new UpsertChecker(client)
 
@@ -265,7 +265,7 @@ testMatrix.setupTestSuite(
     })
 
     test('should perform an upsert using ON CONFLICT', async () => {
-      const name = faker.name.firstName()
+      const name = faker.person.firstName()
 
       const checker = new UpsertChecker(client)
 
@@ -302,7 +302,7 @@ testMatrix.setupTestSuite(
     })
 
     test('should perform an upsert using ON CONFLICT with id', async () => {
-      const name = faker.name.firstName()
+      const name = faker.person.firstName()
 
       const checker = new UpsertChecker(client)
 
@@ -440,10 +440,6 @@ testMatrix.setupTestSuite(
     optOut: {
       from: ['mongodb', 'mysql', 'sqlserver'],
       reason: 'Other providers do not support native INSERT ... ON CONFLICT SET .. WHERE',
-    },
-    skipDataProxy: {
-      runtimes: ['edge', 'node'],
-      reason: 'https://github.com/prisma/mini-proxy/pull/35',
     },
     skipDefaultClientInstance: true,
   },

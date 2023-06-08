@@ -1,11 +1,12 @@
 import Debug from '@prisma/debug'
 import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
-import chalk from 'chalk'
+import { getPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
+import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
-import { ErrorArea, isWasmPanic, RustPanic, WasmPanic } from '../panic'
+import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
@@ -37,7 +38,7 @@ ${errorCodeMessage}
 ${message}`
       })
       .with({ _tag: 'unparsed' }, ({ message, reason }) => {
-        const detailsHeader = chalk.red.bold('Details:')
+        const detailsHeader = red(bold('Details:'))
         return `${reason}
 ${detailsHeader} ${message}`
       })
@@ -47,6 +48,7 @@ ${detailsHeader} ${message}`
 [Context: getConfig]`
 
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
+    this.name = 'GetConfigError'
   }
 }
 
@@ -104,6 +106,11 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
   if (E.isRight(configEither)) {
     debug('config data retrieved without errors in getConfig Wasm')
     const { right: data } = configEither
+
+    for (const generator of data.generators) {
+      await resolveBinaryTargets(generator)
+    }
+
     return Promise.resolve(data)
   }
 
@@ -118,10 +125,11 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
        * Capture and propagate possible Wasm panics.
        */
       if (isWasmPanic(e.error)) {
-        const wasmError = e.error
+        const { message, stack } = getWasmError(e.error)
+
         const panic = new RustPanic(
-          /* message */ wasmError.message,
-          /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
+          /* message */ message,
+          /* rustStack */ stack,
           /* request */ '@prisma/prisma-fmt-wasm get_config',
           ErrorArea.FMT_CLI,
           /* schemaPath */ options.prismaPath,
@@ -139,4 +147,30 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     })
 
   throw error
+}
+
+async function resolveBinaryTargets(generator: GeneratorConfig) {
+  for (const binaryTarget of generator.binaryTargets) {
+    // load the binaryTargets from the env var
+    if (binaryTarget.fromEnvVar && process.env[binaryTarget.fromEnvVar]) {
+      const value = JSON.parse(process.env[binaryTarget.fromEnvVar]!)
+
+      if (Array.isArray(value)) {
+        generator.binaryTargets = value.map((v) => ({ fromEnvVar: null, value: v }))
+        await resolveBinaryTargets(generator) // resolve again if we have native
+      } else {
+        binaryTarget.value = value
+      }
+    }
+
+    // resolve native to the current platform
+    if (binaryTarget.value === 'native') {
+      binaryTarget.value = await getPlatform()
+      binaryTarget.native = true
+    }
+  }
+
+  if (generator.binaryTargets.length === 0) {
+    generator.binaryTargets = [{ fromEnvVar: null, value: await getPlatform(), native: true }]
+  }
 }

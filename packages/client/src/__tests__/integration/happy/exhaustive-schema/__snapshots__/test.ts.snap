@@ -88,68 +88,41 @@ Prisma.NullTypes = {
 /**
  * Enums
  */
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-function makeEnum(x) { return x; }
 
-exports.Prisma.AScalarFieldEnum = makeEnum({
+exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
+  ReadUncommitted: 'ReadUncommitted',
+  ReadCommitted: 'ReadCommitted',
+  RepeatableRead: 'RepeatableRead',
+  Serializable: 'Serializable'
+});
+
+exports.Prisma.PostScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  title: 'title',
+  content: 'content',
+  published: 'published',
+  authorId: 'authorId'
+};
+
+exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
-  name: 'name',
   int: 'int',
-  sInt: 'sInt',
-  bInt: 'bInt',
-  inc_int: 'inc_int',
-  inc_sInt: 'inc_sInt',
-  inc_bInt: 'inc_bInt'
-});
-
-exports.Prisma.BScalarFieldEnum = makeEnum({
-  id: 'id',
+  optionalInt: 'optionalInt',
   float: 'float',
-  dFloat: 'dFloat',
-  decFloat: 'decFloat',
-  numFloat: 'numFloat'
-});
-
-exports.Prisma.CScalarFieldEnum = makeEnum({
-  id: 'id',
-  char: 'char',
-  vChar: 'vChar',
-  text: 'text',
-  bit: 'bit',
-  vBit: 'vBit',
-  uuid: 'uuid'
-});
-
-exports.Prisma.DScalarFieldEnum = makeEnum({
-  id: 'id',
-  bool: 'bool',
-  byteA: 'byteA',
-  xml: 'xml',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
   json: 'json',
-  jsonb: 'jsonb',
-  list: 'list'
-});
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
 
-exports.Prisma.EScalarFieldEnum = makeEnum({
-  id: 'id',
-  date: 'date',
-  time: 'time',
-  ts: 'ts'
-});
-
-exports.Prisma.JsonNullValueFilter = makeEnum({
-  DbNull: Prisma.DbNull,
-  JsonNull: Prisma.JsonNull,
-  AnyNull: Prisma.AnyNull
-});
-
-exports.Prisma.JsonNullValueInput = makeEnum({
-  JsonNull: Prisma.JsonNull
-});
-
-exports.Prisma.MScalarFieldEnum = makeEnum({
+exports.Prisma.MScalarFieldEnum = {
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -163,9 +136,41 @@ exports.Prisma.MScalarFieldEnum = makeEnum({
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
-});
+};
 
-exports.Prisma.ManyRequiredScalarFieldEnum = makeEnum({
+exports.Prisma.NScalarFieldEnum = {
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
+
+exports.Prisma.OneOptionalScalarFieldEnum = {
+  id: 'id',
+  int: 'int',
+  optionalInt: 'optionalInt',
+  float: 'float',
+  optionalFloat: 'optionalFloat',
+  string: 'string',
+  optionalString: 'optionalString',
+  json: 'json',
+  optionalJson: 'optionalJson',
+  enum: 'enum',
+  optionalEnum: 'optionalEnum',
+  boolean: 'boolean',
+  optionalBoolean: 'optionalBoolean'
+};
+
+exports.Prisma.ManyRequiredScalarFieldEnum = {
   id: 'id',
   oneOptionalId: 'oneOptionalId',
   int: 'int',
@@ -180,46 +185,9 @@ exports.Prisma.ManyRequiredScalarFieldEnum = makeEnum({
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
-});
+};
 
-exports.Prisma.NScalarFieldEnum = makeEnum({
-  id: 'id',
-  int: 'int',
-  optionalInt: 'optionalInt',
-  float: 'float',
-  optionalFloat: 'optionalFloat',
-  string: 'string',
-  optionalString: 'optionalString',
-  json: 'json',
-  optionalJson: 'optionalJson',
-  enum: 'enum',
-  optionalEnum: 'optionalEnum',
-  boolean: 'boolean',
-  optionalBoolean: 'optionalBoolean'
-});
-
-exports.Prisma.NullableJsonNullValueInput = makeEnum({
-  DbNull: Prisma.DbNull,
-  JsonNull: Prisma.JsonNull
-});
-
-exports.Prisma.OneOptionalScalarFieldEnum = makeEnum({
-  id: 'id',
-  int: 'int',
-  optionalInt: 'optionalInt',
-  float: 'float',
-  optionalFloat: 'optionalFloat',
-  string: 'string',
-  optionalString: 'optionalString',
-  json: 'json',
-  optionalJson: 'optionalJson',
-  enum: 'enum',
-  optionalEnum: 'optionalEnum',
-  boolean: 'boolean',
-  optionalBoolean: 'optionalBoolean'
-});
-
-exports.Prisma.OptionalSide1ScalarFieldEnum = makeEnum({
+exports.Prisma.OptionalSide1ScalarFieldEnum = {
   id: 'id',
   optionalSide2Id: 'optionalSide2Id',
   int: 'int',
@@ -234,9 +202,9 @@ exports.Prisma.OptionalSide1ScalarFieldEnum = makeEnum({
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
-});
+};
 
-exports.Prisma.OptionalSide2ScalarFieldEnum = makeEnum({
+exports.Prisma.OptionalSide2ScalarFieldEnum = {
   id: 'id',
   int: 'int',
   optionalInt: 'optionalInt',
@@ -250,57 +218,86 @@ exports.Prisma.OptionalSide2ScalarFieldEnum = makeEnum({
   optionalEnum: 'optionalEnum',
   boolean: 'boolean',
   optionalBoolean: 'optionalBoolean'
-});
+};
 
-exports.Prisma.PostScalarFieldEnum = makeEnum({
-  id: 'id',
-  createdAt: 'createdAt',
-  title: 'title',
-  content: 'content',
-  published: 'published',
-  authorId: 'authorId'
-});
-
-exports.Prisma.QueryMode = makeEnum({
-  default: 'default',
-  insensitive: 'insensitive'
-});
-
-exports.Prisma.SortOrder = makeEnum({
-  asc: 'asc',
-  desc: 'desc'
-});
-
-exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
-  ReadUncommitted: 'ReadUncommitted',
-  ReadCommitted: 'ReadCommitted',
-  RepeatableRead: 'RepeatableRead',
-  Serializable: 'Serializable'
-});
-
-exports.Prisma.UserScalarFieldEnum = makeEnum({
+exports.Prisma.AScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  name: 'name',
   int: 'int',
-  optionalInt: 'optionalInt',
+  sInt: 'sInt',
+  bInt: 'bInt',
+  inc_int: 'inc_int',
+  inc_sInt: 'inc_sInt',
+  inc_bInt: 'inc_bInt'
+};
+
+exports.Prisma.BScalarFieldEnum = {
+  id: 'id',
   float: 'float',
-  optionalFloat: 'optionalFloat',
-  string: 'string',
-  optionalString: 'optionalString',
+  dFloat: 'dFloat',
+  decFloat: 'decFloat',
+  numFloat: 'numFloat'
+};
+
+exports.Prisma.CScalarFieldEnum = {
+  id: 'id',
+  char: 'char',
+  vChar: 'vChar',
+  text: 'text',
+  bit: 'bit',
+  vBit: 'vBit',
+  uuid: 'uuid'
+};
+
+exports.Prisma.DScalarFieldEnum = {
+  id: 'id',
+  bool: 'bool',
+  byteA: 'byteA',
+  xml: 'xml',
   json: 'json',
-  optionalJson: 'optionalJson',
-  enum: 'enum',
-  optionalEnum: 'optionalEnum',
-  boolean: 'boolean',
-  optionalBoolean: 'optionalBoolean'
-});
-exports.ABeautifulEnum = makeEnum({
+  jsonb: 'jsonb',
+  list: 'list'
+};
+
+exports.Prisma.EScalarFieldEnum = {
+  id: 'id',
+  date: 'date',
+  time: 'time',
+  ts: 'ts'
+};
+
+exports.Prisma.SortOrder = {
+  asc: 'asc',
+  desc: 'desc'
+};
+
+exports.Prisma.JsonNullValueInput = {
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
+exports.Prisma.QueryMode = {
+  default: 'default',
+  insensitive: 'insensitive'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+exports.ABeautifulEnum = {
   A: 'A',
   B: 'B',
   C: 'C'
-});
+};
 
-exports.Prisma.ModelName = makeEnum({
+exports.Prisma.ModelName = {
   Post: 'Post',
   User: 'User',
   M: 'M',
@@ -314,7 +311,7 @@ exports.Prisma.ModelName = makeEnum({
   C: 'C',
   D: 'D',
   E: 'E'
-});
+};
 
 /**
  * Create the Client
@@ -344,6 +341,8 @@ type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
 type UnwrapTuple<Tuple extends readonly unknown[]> = {
   [K in keyof Tuple]: K extends \`\${number}\` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
 };
+
+export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
 
 
 /**
@@ -580,9 +579,6 @@ export type E = {
  * Enums
  */
 
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-
 export const ABeautifulEnum: {
   A: 'A',
   B: 'B',
@@ -707,7 +703,7 @@ export class PrismaClient<
    */
   $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<UnwrapTuple<P>>
 
-  $transaction<R>(fn: (prisma: Omit<this, "$connect" | "$disconnect" | "$on" | "$transaction" | "$use">) => Promise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<R>
+  $transaction<R>(fn: (prisma: Omit<this, runtime.ITXClientDenyList>) => Promise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<R>
 
       /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
@@ -1469,7 +1465,7 @@ export namespace Prisma {
   /**
    * \`PrismaClient\` proxy available in interactive transactions.
    */
-  export type TransactionClient = Omit<Prisma.DefaultPrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>
+  export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClientDenyList>
 
   export type Datasource = {
     url?: string
@@ -1867,8 +1863,8 @@ export namespace Prisma {
     title?: boolean
     content?: boolean
     published?: boolean
-    author?: boolean | UserArgs
     authorId?: boolean
+    author?: boolean | UserArgs
   }
 
 
@@ -3963,7 +3959,6 @@ export namespace Prisma {
 
   export type MSelect = {
     id?: boolean
-    n?: boolean | M$nArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -3976,6 +3971,7 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    n?: boolean | M$nArgs
     _count?: boolean | MCountOutputTypeArgs
   }
 
@@ -5025,7 +5021,6 @@ export namespace Prisma {
 
   export type NSelect = {
     id?: boolean
-    m?: boolean | N$mArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -5038,6 +5033,7 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    m?: boolean | N$mArgs
     _count?: boolean | NCountOutputTypeArgs
   }
 
@@ -6087,7 +6083,6 @@ export namespace Prisma {
 
   export type OneOptionalSelect = {
     id?: boolean
-    many?: boolean | OneOptional$manyArgs
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -6100,6 +6095,7 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    many?: boolean | OneOptional$manyArgs
     _count?: boolean | OneOptionalCountOutputTypeArgs
   }
 
@@ -7160,7 +7156,6 @@ export namespace Prisma {
 
   export type ManyRequiredSelect = {
     id?: boolean
-    one?: boolean | OneOptionalArgs
     oneOptionalId?: boolean
     int?: boolean
     optionalInt?: boolean
@@ -7174,6 +7169,7 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    one?: boolean | OneOptionalArgs
   }
 
 
@@ -8210,7 +8206,6 @@ export namespace Prisma {
   export type OptionalSide1Select = {
     id?: boolean
     optionalSide2Id?: boolean
-    opti?: boolean | OptionalSide2Args
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -8223,6 +8218,7 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    opti?: boolean | OptionalSide2Args
   }
 
 
@@ -9247,7 +9243,6 @@ export namespace Prisma {
 
   export type OptionalSide2Select = {
     id?: boolean
-    opti?: boolean | OptionalSide1Args
     int?: boolean
     optionalInt?: boolean
     float?: boolean
@@ -9260,6 +9255,7 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
+    opti?: boolean | OptionalSide1Args
   }
 
 
@@ -14616,8 +14612,163 @@ export namespace Prisma {
    * Enums
    */
 
-  // Based on
-  // https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
+  export const TransactionIsolationLevel: {
+    ReadUncommitted: 'ReadUncommitted',
+    ReadCommitted: 'ReadCommitted',
+    RepeatableRead: 'RepeatableRead',
+    Serializable: 'Serializable'
+  };
+
+  export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
+
+
+  export const PostScalarFieldEnum: {
+    id: 'id',
+    createdAt: 'createdAt',
+    title: 'title',
+    content: 'content',
+    published: 'published',
+    authorId: 'authorId'
+  };
+
+  export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
+
+
+  export const UserScalarFieldEnum: {
+    id: 'id',
+    email: 'email',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+
+
+  export const MScalarFieldEnum: {
+    id: 'id',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type MScalarFieldEnum = (typeof MScalarFieldEnum)[keyof typeof MScalarFieldEnum]
+
+
+  export const NScalarFieldEnum: {
+    id: 'id',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type NScalarFieldEnum = (typeof NScalarFieldEnum)[keyof typeof NScalarFieldEnum]
+
+
+  export const OneOptionalScalarFieldEnum: {
+    id: 'id',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type OneOptionalScalarFieldEnum = (typeof OneOptionalScalarFieldEnum)[keyof typeof OneOptionalScalarFieldEnum]
+
+
+  export const ManyRequiredScalarFieldEnum: {
+    id: 'id',
+    oneOptionalId: 'oneOptionalId',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type ManyRequiredScalarFieldEnum = (typeof ManyRequiredScalarFieldEnum)[keyof typeof ManyRequiredScalarFieldEnum]
+
+
+  export const OptionalSide1ScalarFieldEnum: {
+    id: 'id',
+    optionalSide2Id: 'optionalSide2Id',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type OptionalSide1ScalarFieldEnum = (typeof OptionalSide1ScalarFieldEnum)[keyof typeof OptionalSide1ScalarFieldEnum]
+
+
+  export const OptionalSide2ScalarFieldEnum: {
+    id: 'id',
+    int: 'int',
+    optionalInt: 'optionalInt',
+    float: 'float',
+    optionalFloat: 'optionalFloat',
+    string: 'string',
+    optionalString: 'optionalString',
+    json: 'json',
+    optionalJson: 'optionalJson',
+    enum: 'enum',
+    optionalEnum: 'optionalEnum',
+    boolean: 'boolean',
+    optionalBoolean: 'optionalBoolean'
+  };
+
+  export type OptionalSide2ScalarFieldEnum = (typeof OptionalSide2ScalarFieldEnum)[keyof typeof OptionalSide2ScalarFieldEnum]
+
 
   export const AScalarFieldEnum: {
     id: 'id',
@@ -14681,13 +14832,12 @@ export namespace Prisma {
   export type EScalarFieldEnum = (typeof EScalarFieldEnum)[keyof typeof EScalarFieldEnum]
 
 
-  export const JsonNullValueFilter: {
-    DbNull: typeof DbNull,
-    JsonNull: typeof JsonNull,
-    AnyNull: typeof AnyNull
+  export const SortOrder: {
+    asc: 'asc',
+    desc: 'desc'
   };
 
-  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
+  export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
   export const JsonNullValueInput: {
@@ -14695,64 +14845,6 @@ export namespace Prisma {
   };
 
   export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
-
-
-  export const MScalarFieldEnum: {
-    id: 'id',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type MScalarFieldEnum = (typeof MScalarFieldEnum)[keyof typeof MScalarFieldEnum]
-
-
-  export const ManyRequiredScalarFieldEnum: {
-    id: 'id',
-    oneOptionalId: 'oneOptionalId',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type ManyRequiredScalarFieldEnum = (typeof ManyRequiredScalarFieldEnum)[keyof typeof ManyRequiredScalarFieldEnum]
-
-
-  export const NScalarFieldEnum: {
-    id: 'id',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type NScalarFieldEnum = (typeof NScalarFieldEnum)[keyof typeof NScalarFieldEnum]
 
 
   export const NullableJsonNullValueInput: {
@@ -14763,76 +14855,6 @@ export namespace Prisma {
   export type NullableJsonNullValueInput = (typeof NullableJsonNullValueInput)[keyof typeof NullableJsonNullValueInput]
 
 
-  export const OneOptionalScalarFieldEnum: {
-    id: 'id',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type OneOptionalScalarFieldEnum = (typeof OneOptionalScalarFieldEnum)[keyof typeof OneOptionalScalarFieldEnum]
-
-
-  export const OptionalSide1ScalarFieldEnum: {
-    id: 'id',
-    optionalSide2Id: 'optionalSide2Id',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type OptionalSide1ScalarFieldEnum = (typeof OptionalSide1ScalarFieldEnum)[keyof typeof OptionalSide1ScalarFieldEnum]
-
-
-  export const OptionalSide2ScalarFieldEnum: {
-    id: 'id',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type OptionalSide2ScalarFieldEnum = (typeof OptionalSide2ScalarFieldEnum)[keyof typeof OptionalSide2ScalarFieldEnum]
-
-
-  export const PostScalarFieldEnum: {
-    id: 'id',
-    createdAt: 'createdAt',
-    title: 'title',
-    content: 'content',
-    published: 'published',
-    authorId: 'authorId'
-  };
-
-  export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
-
-
   export const QueryMode: {
     default: 'default',
     insensitive: 'insensitive'
@@ -14841,42 +14863,13 @@ export namespace Prisma {
   export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
-  export const SortOrder: {
-    asc: 'asc',
-    desc: 'desc'
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
   };
 
-  export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
-
-
-  export const TransactionIsolationLevel: {
-    ReadUncommitted: 'ReadUncommitted',
-    ReadCommitted: 'ReadCommitted',
-    RepeatableRead: 'RepeatableRead',
-    Serializable: 'Serializable'
-  };
-
-  export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof typeof TransactionIsolationLevel]
-
-
-  export const UserScalarFieldEnum: {
-    id: 'id',
-    email: 'email',
-    int: 'int',
-    optionalInt: 'optionalInt',
-    float: 'float',
-    optionalFloat: 'optionalFloat',
-    string: 'string',
-    optionalString: 'optionalString',
-    json: 'json',
-    optionalJson: 'optionalJson',
-    enum: 'enum',
-    optionalEnum: 'optionalEnum',
-    boolean: 'boolean',
-    optionalBoolean: 'optionalBoolean'
-  };
-
-  export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -14893,8 +14886,8 @@ export namespace Prisma {
     title?: StringFilter | string
     content?: StringNullableFilter | string | null
     published?: BoolFilter | boolean
-    author?: XOR<UserRelationFilter, UserWhereInput>
     authorId?: IntFilter | number
+    author?: XOR<UserRelationFilter, UserWhereInput>
   }
 
   export type PostOrderByWithRelationInput = {
@@ -14903,8 +14896,8 @@ export namespace Prisma {
     title?: SortOrder
     content?: SortOrder
     published?: SortOrder
-    author?: UserOrderByWithRelationInput
     authorId?: SortOrder
+    author?: UserOrderByWithRelationInput
   }
 
   export type PostWhereUniqueInput = {
@@ -15028,7 +15021,6 @@ export namespace Prisma {
     OR?: Enumerable<MWhereInput>
     NOT?: Enumerable<MWhereInput>
     id?: IntFilter | number
-    n?: NListRelationFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -15041,11 +15033,11 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
+    n?: NListRelationFilter
   }
 
   export type MOrderByWithRelationInput = {
     id?: SortOrder
-    n?: NOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -15058,6 +15050,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    n?: NOrderByRelationAggregateInput
   }
 
   export type MWhereUniqueInput = {
@@ -15109,7 +15102,6 @@ export namespace Prisma {
     OR?: Enumerable<NWhereInput>
     NOT?: Enumerable<NWhereInput>
     id?: IntFilter | number
-    m?: MListRelationFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -15122,11 +15114,11 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
+    m?: MListRelationFilter
   }
 
   export type NOrderByWithRelationInput = {
     id?: SortOrder
-    m?: MOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -15139,6 +15131,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    m?: MOrderByRelationAggregateInput
   }
 
   export type NWhereUniqueInput = {
@@ -15190,7 +15183,6 @@ export namespace Prisma {
     OR?: Enumerable<OneOptionalWhereInput>
     NOT?: Enumerable<OneOptionalWhereInput>
     id?: IntFilter | number
-    many?: ManyRequiredListRelationFilter
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -15203,11 +15195,11 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
+    many?: ManyRequiredListRelationFilter
   }
 
   export type OneOptionalOrderByWithRelationInput = {
     id?: SortOrder
-    many?: ManyRequiredOrderByRelationAggregateInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -15220,6 +15212,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    many?: ManyRequiredOrderByRelationAggregateInput
   }
 
   export type OneOptionalWhereUniqueInput = {
@@ -15271,7 +15264,6 @@ export namespace Prisma {
     OR?: Enumerable<ManyRequiredWhereInput>
     NOT?: Enumerable<ManyRequiredWhereInput>
     id?: IntFilter | number
-    one?: XOR<OneOptionalRelationFilter, OneOptionalWhereInput> | null
     oneOptionalId?: IntNullableFilter | number | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -15285,11 +15277,11 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
+    one?: XOR<OneOptionalRelationFilter, OneOptionalWhereInput> | null
   }
 
   export type ManyRequiredOrderByWithRelationInput = {
     id?: SortOrder
-    one?: OneOptionalOrderByWithRelationInput
     oneOptionalId?: SortOrder
     int?: SortOrder
     optionalInt?: SortOrder
@@ -15303,6 +15295,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    one?: OneOptionalOrderByWithRelationInput
   }
 
   export type ManyRequiredWhereUniqueInput = {
@@ -15357,7 +15350,6 @@ export namespace Prisma {
     NOT?: Enumerable<OptionalSide1WhereInput>
     id?: IntFilter | number
     optionalSide2Id?: IntNullableFilter | number | null
-    opti?: XOR<OptionalSide2RelationFilter, OptionalSide2WhereInput> | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -15370,12 +15362,12 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
+    opti?: XOR<OptionalSide2RelationFilter, OptionalSide2WhereInput> | null
   }
 
   export type OptionalSide1OrderByWithRelationInput = {
     id?: SortOrder
     optionalSide2Id?: SortOrder
-    opti?: OptionalSide2OrderByWithRelationInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -15388,6 +15380,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    opti?: OptionalSide2OrderByWithRelationInput
   }
 
   export type OptionalSide1WhereUniqueInput = {
@@ -15442,7 +15435,6 @@ export namespace Prisma {
     OR?: Enumerable<OptionalSide2WhereInput>
     NOT?: Enumerable<OptionalSide2WhereInput>
     id?: IntFilter | number
-    opti?: XOR<OptionalSide1RelationFilter, OptionalSide1WhereInput> | null
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
     float?: FloatFilter | number
@@ -15455,11 +15447,11 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
+    opti?: XOR<OptionalSide1RelationFilter, OptionalSide1WhereInput> | null
   }
 
   export type OptionalSide2OrderByWithRelationInput = {
     id?: SortOrder
-    opti?: OptionalSide1OrderByWithRelationInput
     int?: SortOrder
     optionalInt?: SortOrder
     float?: SortOrder
@@ -15472,6 +15464,7 @@ export namespace Prisma {
     optionalEnum?: SortOrder
     boolean?: SortOrder
     optionalBoolean?: SortOrder
+    opti?: OptionalSide1OrderByWithRelationInput
   }
 
   export type OptionalSide2WhereUniqueInput = {
@@ -15958,7 +15951,6 @@ export namespace Prisma {
   }
 
   export type MCreateInput = {
-    n?: NCreateNestedManyWithoutMInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15971,11 +15963,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    n?: NCreateNestedManyWithoutMInput
   }
 
   export type MUncheckedCreateInput = {
     id?: number
-    n?: NUncheckedCreateNestedManyWithoutMInput
     int: number
     optionalInt?: number | null
     float: number
@@ -15988,10 +15980,10 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    n?: NUncheckedCreateNestedManyWithoutMInput
   }
 
   export type MUpdateInput = {
-    n?: NUpdateManyWithoutMNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16004,11 +15996,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    n?: NUpdateManyWithoutMNestedInput
   }
 
   export type MUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
-    n?: NUncheckedUpdateManyWithoutMNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16021,6 +16013,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    n?: NUncheckedUpdateManyWithoutMNestedInput
   }
 
   export type MCreateManyInput = {
@@ -16071,7 +16064,6 @@ export namespace Prisma {
   }
 
   export type NCreateInput = {
-    m?: MCreateNestedManyWithoutNInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16084,11 +16076,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    m?: MCreateNestedManyWithoutNInput
   }
 
   export type NUncheckedCreateInput = {
     id?: number
-    m?: MUncheckedCreateNestedManyWithoutNInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16101,10 +16093,10 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    m?: MUncheckedCreateNestedManyWithoutNInput
   }
 
   export type NUpdateInput = {
-    m?: MUpdateManyWithoutNNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16117,11 +16109,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    m?: MUpdateManyWithoutNNestedInput
   }
 
   export type NUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
-    m?: MUncheckedUpdateManyWithoutNNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16134,6 +16126,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    m?: MUncheckedUpdateManyWithoutNNestedInput
   }
 
   export type NCreateManyInput = {
@@ -16184,7 +16177,6 @@ export namespace Prisma {
   }
 
   export type OneOptionalCreateInput = {
-    many?: ManyRequiredCreateNestedManyWithoutOneInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16197,11 +16189,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    many?: ManyRequiredCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUncheckedCreateInput = {
     id?: number
-    many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16214,10 +16206,10 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
   }
 
   export type OneOptionalUpdateInput = {
-    many?: ManyRequiredUpdateManyWithoutOneNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16230,11 +16222,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    many?: ManyRequiredUpdateManyWithoutOneNestedInput
   }
 
   export type OneOptionalUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
-    many?: ManyRequiredUncheckedUpdateManyWithoutOneNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16247,6 +16239,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    many?: ManyRequiredUncheckedUpdateManyWithoutOneNestedInput
   }
 
   export type OneOptionalCreateManyInput = {
@@ -16297,7 +16290,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateInput = {
-    one?: OneOptionalCreateNestedOneWithoutManyInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16310,6 +16302,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    one?: OneOptionalCreateNestedOneWithoutManyInput
   }
 
   export type ManyRequiredUncheckedCreateInput = {
@@ -16330,7 +16323,6 @@ export namespace Prisma {
   }
 
   export type ManyRequiredUpdateInput = {
-    one?: OneOptionalUpdateOneWithoutManyNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16343,6 +16335,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    one?: OneOptionalUpdateOneWithoutManyNestedInput
   }
 
   export type ManyRequiredUncheckedUpdateInput = {
@@ -16412,7 +16405,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1CreateInput = {
-    opti?: OptionalSide2CreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16425,6 +16417,7 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    opti?: OptionalSide2CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide1UncheckedCreateInput = {
@@ -16445,7 +16438,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide1UpdateInput = {
-    opti?: OptionalSide2UpdateOneWithoutOptiNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16458,6 +16450,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    opti?: OptionalSide2UpdateOneWithoutOptiNestedInput
   }
 
   export type OptionalSide1UncheckedUpdateInput = {
@@ -16527,7 +16520,6 @@ export namespace Prisma {
   }
 
   export type OptionalSide2CreateInput = {
-    opti?: OptionalSide1CreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16540,11 +16532,11 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    opti?: OptionalSide1CreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UncheckedCreateInput = {
     id?: number
-    opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
     int: number
     optionalInt?: number | null
     float: number
@@ -16557,10 +16549,10 @@ export namespace Prisma {
     optionalEnum?: ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
+    opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
   }
 
   export type OptionalSide2UpdateInput = {
-    opti?: OptionalSide1UpdateOneWithoutOptiNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16573,11 +16565,11 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    opti?: OptionalSide1UpdateOneWithoutOptiNestedInput
   }
 
   export type OptionalSide2UncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
-    opti?: OptionalSide1UncheckedUpdateOneWithoutOptiNestedInput
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
     float?: FloatFieldUpdateOperationsInput | number
@@ -16590,6 +16582,7 @@ export namespace Prisma {
     optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
+    opti?: OptionalSide1UncheckedUpdateOneWithoutOptiNestedInput
   }
 
   export type OptionalSide2CreateManyInput = {
@@ -16970,8 +16963,8 @@ export namespace Prisma {
 
   export type IntFilter = {
     equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
+    in?: Enumerable<number> | number
+    notIn?: Enumerable<number> | number
     lt?: number
     lte?: number
     gt?: number
@@ -16981,8 +16974,8 @@ export namespace Prisma {
 
   export type DateTimeFilter = {
     equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string>
-    notIn?: Enumerable<Date> | Enumerable<string>
+    in?: Enumerable<Date> | Enumerable<string> | Date | string
+    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -16992,8 +16985,8 @@ export namespace Prisma {
 
   export type StringFilter = {
     equals?: string
-    in?: Enumerable<string>
-    notIn?: Enumerable<string>
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
     lt?: string
     lte?: string
     gt?: string
@@ -17007,8 +17000,8 @@ export namespace Prisma {
 
   export type StringNullableFilter = {
     equals?: string | null
-    in?: Enumerable<string> | null
-    notIn?: Enumerable<string> | null
+    in?: Enumerable<string> | string | null
+    notIn?: Enumerable<string> | string | null
     lt?: string
     lte?: string
     gt?: string
@@ -17026,8 +17019,8 @@ export namespace Prisma {
   }
 
   export type UserRelationFilter = {
-    is?: UserWhereInput
-    isNot?: UserWhereInput
+    is?: UserWhereInput | null
+    isNot?: UserWhereInput | null
   }
 
   export type PostCountOrderByAggregateInput = {
@@ -17069,8 +17062,8 @@ export namespace Prisma {
 
   export type IntWithAggregatesFilter = {
     equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
+    in?: Enumerable<number> | number
+    notIn?: Enumerable<number> | number
     lt?: number
     lte?: number
     gt?: number
@@ -17085,8 +17078,8 @@ export namespace Prisma {
 
   export type DateTimeWithAggregatesFilter = {
     equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string>
-    notIn?: Enumerable<Date> | Enumerable<string>
+    in?: Enumerable<Date> | Enumerable<string> | Date | string
+    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -17099,8 +17092,8 @@ export namespace Prisma {
 
   export type StringWithAggregatesFilter = {
     equals?: string
-    in?: Enumerable<string>
-    notIn?: Enumerable<string>
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
     lt?: string
     lte?: string
     gt?: string
@@ -17117,8 +17110,8 @@ export namespace Prisma {
 
   export type StringNullableWithAggregatesFilter = {
     equals?: string | null
-    in?: Enumerable<string> | null
-    notIn?: Enumerable<string> | null
+    in?: Enumerable<string> | string | null
+    notIn?: Enumerable<string> | string | null
     lt?: string
     lte?: string
     gt?: string
@@ -17143,8 +17136,8 @@ export namespace Prisma {
 
   export type IntNullableFilter = {
     equals?: number | null
-    in?: Enumerable<number> | null
-    notIn?: Enumerable<number> | null
+    in?: Enumerable<number> | number | null
+    notIn?: Enumerable<number> | number | null
     lt?: number
     lte?: number
     gt?: number
@@ -17154,8 +17147,8 @@ export namespace Prisma {
 
   export type FloatFilter = {
     equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
+    in?: Enumerable<number> | number
+    notIn?: Enumerable<number> | number
     lt?: number
     lte?: number
     gt?: number
@@ -17165,8 +17158,8 @@ export namespace Prisma {
 
   export type FloatNullableFilter = {
     equals?: number | null
-    in?: Enumerable<number> | null
-    notIn?: Enumerable<number> | null
+    in?: Enumerable<number> | number | null
+    notIn?: Enumerable<number> | number | null
     lt?: number
     lte?: number
     gt?: number
@@ -17312,8 +17305,8 @@ export namespace Prisma {
 
   export type IntNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: Enumerable<number> | null
-    notIn?: Enumerable<number> | null
+    in?: Enumerable<number> | number | null
+    notIn?: Enumerable<number> | number | null
     lt?: number
     lte?: number
     gt?: number
@@ -17328,8 +17321,8 @@ export namespace Prisma {
 
   export type FloatWithAggregatesFilter = {
     equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
+    in?: Enumerable<number> | number
+    notIn?: Enumerable<number> | number
     lt?: number
     lte?: number
     gt?: number
@@ -17344,8 +17337,8 @@ export namespace Prisma {
 
   export type FloatNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: Enumerable<number> | null
-    notIn?: Enumerable<number> | null
+    in?: Enumerable<number> | number | null
+    notIn?: Enumerable<number> | number | null
     lt?: number
     lte?: number
     gt?: number
@@ -17853,8 +17846,8 @@ export namespace Prisma {
 
   export type BigIntFilter = {
     equals?: bigint | number
-    in?: Enumerable<bigint> | Enumerable<number>
-    notIn?: Enumerable<bigint> | Enumerable<number>
+    in?: Enumerable<bigint> | Enumerable<number> | bigint | number
+    notIn?: Enumerable<bigint> | Enumerable<number> | bigint | number
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -17918,8 +17911,8 @@ export namespace Prisma {
 
   export type BigIntWithAggregatesFilter = {
     equals?: bigint | number
-    in?: Enumerable<bigint> | Enumerable<number>
-    notIn?: Enumerable<bigint> | Enumerable<number>
+    in?: Enumerable<bigint> | Enumerable<number> | bigint | number
+    notIn?: Enumerable<bigint> | Enumerable<number> | bigint | number
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -17934,8 +17927,8 @@ export namespace Prisma {
 
   export type DecimalFilter = {
     equals?: Decimal | DecimalJsLike | number | string
-    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
+    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
     lt?: Decimal | DecimalJsLike | number | string
     lte?: Decimal | DecimalJsLike | number | string
     gt?: Decimal | DecimalJsLike | number | string
@@ -17983,8 +17976,8 @@ export namespace Prisma {
 
   export type DecimalWithAggregatesFilter = {
     equals?: Decimal | DecimalJsLike | number | string
-    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
+    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
     lt?: Decimal | DecimalJsLike | number | string
     lte?: Decimal | DecimalJsLike | number | string
     gt?: Decimal | DecimalJsLike | number | string
@@ -17999,8 +17992,8 @@ export namespace Prisma {
 
   export type UuidFilter = {
     equals?: string
-    in?: Enumerable<string>
-    notIn?: Enumerable<string>
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
     lt?: string
     lte?: string
     gt?: string
@@ -18041,8 +18034,8 @@ export namespace Prisma {
 
   export type UuidWithAggregatesFilter = {
     equals?: string
-    in?: Enumerable<string>
-    notIn?: Enumerable<string>
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
     lt?: string
     lte?: string
     gt?: string
@@ -18056,8 +18049,8 @@ export namespace Prisma {
 
   export type BytesFilter = {
     equals?: Buffer
-    in?: Enumerable<Buffer>
-    notIn?: Enumerable<Buffer>
+    in?: Enumerable<Buffer> | Buffer
+    notIn?: Enumerable<Buffer> | Buffer
     not?: NestedBytesFilter | Buffer
   }
 
@@ -18103,8 +18096,8 @@ export namespace Prisma {
 
   export type BytesWithAggregatesFilter = {
     equals?: Buffer
-    in?: Enumerable<Buffer>
-    notIn?: Enumerable<Buffer>
+    in?: Enumerable<Buffer> | Buffer
+    notIn?: Enumerable<Buffer> | Buffer
     not?: NestedBytesWithAggregatesFilter | Buffer
     _count?: NestedIntFilter
     _min?: NestedBytesFilter
@@ -18461,8 +18454,8 @@ export namespace Prisma {
 
   export type NestedIntFilter = {
     equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
+    in?: Enumerable<number> | number
+    notIn?: Enumerable<number> | number
     lt?: number
     lte?: number
     gt?: number
@@ -18472,8 +18465,8 @@ export namespace Prisma {
 
   export type NestedDateTimeFilter = {
     equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string>
-    notIn?: Enumerable<Date> | Enumerable<string>
+    in?: Enumerable<Date> | Enumerable<string> | Date | string
+    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -18483,8 +18476,8 @@ export namespace Prisma {
 
   export type NestedStringFilter = {
     equals?: string
-    in?: Enumerable<string>
-    notIn?: Enumerable<string>
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
     lt?: string
     lte?: string
     gt?: string
@@ -18497,8 +18490,8 @@ export namespace Prisma {
 
   export type NestedStringNullableFilter = {
     equals?: string | null
-    in?: Enumerable<string> | null
-    notIn?: Enumerable<string> | null
+    in?: Enumerable<string> | string | null
+    notIn?: Enumerable<string> | string | null
     lt?: string
     lte?: string
     gt?: string
@@ -18516,8 +18509,8 @@ export namespace Prisma {
 
   export type NestedIntWithAggregatesFilter = {
     equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
+    in?: Enumerable<number> | number
+    notIn?: Enumerable<number> | number
     lt?: number
     lte?: number
     gt?: number
@@ -18532,8 +18525,8 @@ export namespace Prisma {
 
   export type NestedFloatFilter = {
     equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
+    in?: Enumerable<number> | number
+    notIn?: Enumerable<number> | number
     lt?: number
     lte?: number
     gt?: number
@@ -18543,8 +18536,8 @@ export namespace Prisma {
 
   export type NestedDateTimeWithAggregatesFilter = {
     equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string>
-    notIn?: Enumerable<Date> | Enumerable<string>
+    in?: Enumerable<Date> | Enumerable<string> | Date | string
+    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -18557,8 +18550,8 @@ export namespace Prisma {
 
   export type NestedStringWithAggregatesFilter = {
     equals?: string
-    in?: Enumerable<string>
-    notIn?: Enumerable<string>
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
     lt?: string
     lte?: string
     gt?: string
@@ -18574,8 +18567,8 @@ export namespace Prisma {
 
   export type NestedStringNullableWithAggregatesFilter = {
     equals?: string | null
-    in?: Enumerable<string> | null
-    notIn?: Enumerable<string> | null
+    in?: Enumerable<string> | string | null
+    notIn?: Enumerable<string> | string | null
     lt?: string
     lte?: string
     gt?: string
@@ -18591,8 +18584,8 @@ export namespace Prisma {
 
   export type NestedIntNullableFilter = {
     equals?: number | null
-    in?: Enumerable<number> | null
-    notIn?: Enumerable<number> | null
+    in?: Enumerable<number> | number | null
+    notIn?: Enumerable<number> | number | null
     lt?: number
     lte?: number
     gt?: number
@@ -18610,8 +18603,8 @@ export namespace Prisma {
 
   export type NestedFloatNullableFilter = {
     equals?: number | null
-    in?: Enumerable<number> | null
-    notIn?: Enumerable<number> | null
+    in?: Enumerable<number> | number | null
+    notIn?: Enumerable<number> | number | null
     lt?: number
     lte?: number
     gt?: number
@@ -18640,8 +18633,8 @@ export namespace Prisma {
 
   export type NestedIntNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: Enumerable<number> | null
-    notIn?: Enumerable<number> | null
+    in?: Enumerable<number> | number | null
+    notIn?: Enumerable<number> | number | null
     lt?: number
     lte?: number
     gt?: number
@@ -18656,8 +18649,8 @@ export namespace Prisma {
 
   export type NestedFloatWithAggregatesFilter = {
     equals?: number
-    in?: Enumerable<number>
-    notIn?: Enumerable<number>
+    in?: Enumerable<number> | number
+    notIn?: Enumerable<number> | number
     lt?: number
     lte?: number
     gt?: number
@@ -18672,8 +18665,8 @@ export namespace Prisma {
 
   export type NestedFloatNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: Enumerable<number> | null
-    notIn?: Enumerable<number> | null
+    in?: Enumerable<number> | number | null
+    notIn?: Enumerable<number> | number | null
     lt?: number
     lte?: number
     gt?: number
@@ -18760,8 +18753,8 @@ export namespace Prisma {
 
   export type NestedBigIntFilter = {
     equals?: bigint | number
-    in?: Enumerable<bigint> | Enumerable<number>
-    notIn?: Enumerable<bigint> | Enumerable<number>
+    in?: Enumerable<bigint> | Enumerable<number> | bigint | number
+    notIn?: Enumerable<bigint> | Enumerable<number> | bigint | number
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -18771,8 +18764,8 @@ export namespace Prisma {
 
   export type NestedBigIntWithAggregatesFilter = {
     equals?: bigint | number
-    in?: Enumerable<bigint> | Enumerable<number>
-    notIn?: Enumerable<bigint> | Enumerable<number>
+    in?: Enumerable<bigint> | Enumerable<number> | bigint | number
+    notIn?: Enumerable<bigint> | Enumerable<number> | bigint | number
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -18787,8 +18780,8 @@ export namespace Prisma {
 
   export type NestedDecimalFilter = {
     equals?: Decimal | DecimalJsLike | number | string
-    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
+    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
     lt?: Decimal | DecimalJsLike | number | string
     lte?: Decimal | DecimalJsLike | number | string
     gt?: Decimal | DecimalJsLike | number | string
@@ -18798,8 +18791,8 @@ export namespace Prisma {
 
   export type NestedDecimalWithAggregatesFilter = {
     equals?: Decimal | DecimalJsLike | number | string
-    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
-    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string>
+    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
+    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
     lt?: Decimal | DecimalJsLike | number | string
     lte?: Decimal | DecimalJsLike | number | string
     gt?: Decimal | DecimalJsLike | number | string
@@ -18814,8 +18807,8 @@ export namespace Prisma {
 
   export type NestedUuidFilter = {
     equals?: string
-    in?: Enumerable<string>
-    notIn?: Enumerable<string>
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
     lt?: string
     lte?: string
     gt?: string
@@ -18825,8 +18818,8 @@ export namespace Prisma {
 
   export type NestedUuidWithAggregatesFilter = {
     equals?: string
-    in?: Enumerable<string>
-    notIn?: Enumerable<string>
+    in?: Enumerable<string> | string
+    notIn?: Enumerable<string> | string
     lt?: string
     lte?: string
     gt?: string
@@ -18839,15 +18832,15 @@ export namespace Prisma {
 
   export type NestedBytesFilter = {
     equals?: Buffer
-    in?: Enumerable<Buffer>
-    notIn?: Enumerable<Buffer>
+    in?: Enumerable<Buffer> | Buffer
+    notIn?: Enumerable<Buffer> | Buffer
     not?: NestedBytesFilter | Buffer
   }
 
   export type NestedBytesWithAggregatesFilter = {
     equals?: Buffer
-    in?: Enumerable<Buffer>
-    notIn?: Enumerable<Buffer>
+    in?: Enumerable<Buffer> | Buffer
+    notIn?: Enumerable<Buffer> | Buffer
     not?: NestedBytesWithAggregatesFilter | Buffer
     _count?: NestedIntFilter
     _min?: NestedBytesFilter

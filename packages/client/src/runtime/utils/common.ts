@@ -1,12 +1,13 @@
-import chalk from 'chalk'
 import Decimal from 'decimal.js'
 import indent from 'indent-string'
 import leven from 'js-levenshtein'
+import { bold, dim, green, white } from 'kleur/colors'
 
 import { FieldRefImpl } from '../core/model/FieldRef'
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 import { objectEnumNames, ObjectEnumValue, objectEnumValues } from '../object-enums'
+import { isDate } from './date'
 import { isDecimalJsLike } from './decimalJsLike'
 
 export interface Dictionary<T> {
@@ -170,7 +171,7 @@ export function getGraphQLType(value: any, inputType?: DMMF.SchemaArgInputType):
       return 'Float'
     }
   }
-  if (Object.prototype.toString.call(value) === '[object Date]') {
+  if (isDate(value)) {
     return 'DateTime'
   }
   if (jsType === 'string') {
@@ -247,7 +248,7 @@ export function stringifyInputType(input: string | DMMF.InputType | DMMF.SchemaE
       (input as DMMF.InputType).fields // TS doesn't discriminate based on existence of fields properly
         .map((arg) => {
           const key = `${arg.name}`
-          const str = `${greenKeys ? chalk.green(key) : key}${arg.isRequired ? '' : '?'}: ${chalk.white(
+          const str = `${greenKeys ? green(key) : key}${arg.isRequired ? '' : '?'}: ${white(
             arg.inputTypes
               .map((argType) => {
                 return wrapWithList(
@@ -258,7 +259,7 @@ export function stringifyInputType(input: string | DMMF.InputType | DMMF.SchemaE
               .join(' | '),
           )}`
           if (!arg.isRequired) {
-            return chalk.dim(str)
+            return dim(str)
           }
 
           return str
@@ -266,7 +267,7 @@ export function stringifyInputType(input: string | DMMF.InputType | DMMF.SchemaE
         .join('\n'),
       2,
     )
-    return `${chalk.dim('type')} ${chalk.bold.dim(input.name)} ${chalk.dim('{')}\n${body}\n${chalk.dim('}')}`
+    return `${dim('type')} ${bold(dim(input.name))} ${dim('{')}\n${body}\n${dim('}')}`
   }
 }
 

@@ -59,7 +59,7 @@ function removePlatforms(str) {
 // Note that on Windows the file name doesn't start with "lib".
 function normalizeNodeApiLibFilePath(str) {
   return str.replace(
-    /((lib)?query_engine-TEST_PLATFORM.)(.*)(.node)/,
+    /((lib)?query_engine-TEST_PLATFORM\.)(.*)(\.node)/g,
     'libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node',
   )
 }
@@ -79,6 +79,11 @@ function normalizeDbUrl(str) {
 
 function normalizeRustError(str) {
   return str.replace(/\/rustc\/(.+)\//g, '/rustc/hash/').replace(/(\[.*)(:\d*:\d*)(\])/g, '[/some/rust/path:0:0$3')
+}
+
+function normalizeRustCodeLocation(str) {
+  // replaces strings like 'prisma-fmt/src/get_dmmf.rs:17:13' to 'prisma-fmt/src/get_dmmf.rs:0:0'
+  return str.replace(/(\w+\.rs):(\d+):(\d+)/g, '$1:0:0')
 }
 
 function normalizeArtificialPanic(str) {
@@ -145,6 +150,7 @@ module.exports = {
       // From Migrate/CLI package
       normalizeDbUrl,
       normalizeRustError,
+      normalizeRustCodeLocation,
       normalizeMigrateTimestamps,
       // artificial panic
       normalizeArtificialPanic,

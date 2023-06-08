@@ -1,15 +1,4 @@
-import { Providers } from '../../_utils/providers'
-import { ReferentialActionLineOutput } from '../../_utils/relationMode/computeReferentialActionLine'
-
-export function schema_mixed_action({
-  id,
-  provider,
-  referentialActionLineOutput,
-}: {
-  id: string
-  provider: Providers
-  referentialActionLineOutput: ReferentialActionLineOutput
-}) {
+export function schema_mixed_action(id: string) {
   return /* Prisma */ `
 model Main {
   id ${id}

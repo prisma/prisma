@@ -130,7 +130,7 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrow(
               isSchemaUsingMap
-                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
                   `Foreign key constraint failed on the field`
                 : conditionalError.snapshot({
@@ -348,7 +348,7 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrow(
               isSchemaUsingMap
-                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can ignore the error message here
                   undefined
                 : conditionalError.snapshot({
@@ -528,7 +528,7 @@ testMatrix.setupTestSuite(
           () => {
             const expectedError =
               isSchemaUsingMap && isRelationMode_foreignKeys
-                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
                   ` constraint `
                 : conditionalError.snapshot({
@@ -622,7 +622,7 @@ testMatrix.setupTestSuite(
 
         describeIf(['NoAction'].includes(onDelete))(`onDelete: NoAction`, () => {
           const expectedError = isSchemaUsingMap
-            ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+            ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
               // So we can ignore the error message
               undefined
             : conditionalError.snapshot({
@@ -749,7 +749,7 @@ testMatrix.setupTestSuite(
 
               await prisma.$transaction([
                 // Deleting order does not matter anymore
-                // NoAction allows the check to be deffered until the transaction is committed
+                // NoAction allows the check to be deferred until the transaction is committed
                 // (only when the FK set constraint is DEFERRABLE)
                 prisma[postModel].delete({
                   where: { id: '1-post-a' },

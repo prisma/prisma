@@ -1,13 +1,12 @@
-import { klona } from 'klona'
-
 import { Client, InternalRequestParams } from '../../getPrismaClient'
+import { deepCloneArgs } from '../../utils/deepCloneArgs'
 import { createPrismaPromise } from '../request/createPrismaPromise'
-import { RequiredArgs } from './$extends'
+import { QueryOptionsCb } from './$extends'
 
 function iterateAndCallQueryCallbacks(
   client: Client,
   params: InternalRequestParams,
-  queryCbs: RequiredArgs['query'][string][string][],
+  queryCbs: QueryOptionsCb[],
   i = 0,
 ) {
   return createPrismaPromise((transaction) => {
@@ -31,8 +30,8 @@ function iterateAndCallQueryCallbacks(
     // if not, call the next query cb and recurse query
     return queryCbs[i]({
       model: params.model,
-      operation: params.action,
-      args: klona(params.args ?? {}),
+      operation: params.model ? params.action : params.clientMethod,
+      args: deepCloneArgs(params.args ?? {}),
       // @ts-expect-error because not part of public API
       __internalParams: params,
       query: (args, __internalParams = params) => {
@@ -49,12 +48,16 @@ function iterateAndCallQueryCallbacks(
 }
 
 export function applyQueryExtensions(client: Client, params: InternalRequestParams): Promise<any> {
-  const { jsModelName, action } = params
+  const { jsModelName, action, clientMethod } = params
+  const operation = jsModelName ? action : clientMethod
 
-  // query extensions only apply to model-bound operations (for now)
-  if (jsModelName === undefined || client._extensions.isEmpty()) {
+  // query extensions only apply to model-bound operations
+  if (client._extensions.isEmpty()) {
     return client._executeRequest(params)
   }
 
-  return iterateAndCallQueryCallbacks(client, params, client._extensions.getAllQueryCallbacks(jsModelName, action))
+  // get the cached query cbs for a given model and action
+  const cbs = client._extensions.getAllQueryCallbacks(jsModelName ?? '$none', operation)
+
+  return iterateAndCallQueryCallbacks(client, params, cbs)
 }

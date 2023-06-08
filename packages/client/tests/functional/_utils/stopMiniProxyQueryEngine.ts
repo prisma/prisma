@@ -1,6 +1,7 @@
 import Debug from '@prisma/debug'
-import { DataProxyEngine } from '@prisma/engine-core'
 import nodeFetch from 'node-fetch'
+
+import type { DataProxyEngine } from '../../../src/runtime/core/engines'
 
 const debug = Debug('prisma:test:stop-engine')
 

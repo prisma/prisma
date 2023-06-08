@@ -32,6 +32,7 @@ interface LogFields {
   // Only for ERROR level messages
   is_panic?: boolean
   error_code?: string
+  backtrace?: string
   [key: string]: any
 }
 
@@ -177,7 +178,7 @@ export async function execaCommand({
   migrationEnginePath?: string
   engineCommandName: 'create-database' | 'drop-database' | 'can-connect-to-database'
 }) {
-  migrationEnginePath = migrationEnginePath || (await resolveBinary(BinaryType.migrationEngine))
+  migrationEnginePath = migrationEnginePath || (await resolveBinary(BinaryType.MigrationEngineBinary))
 
   try {
     return await execa(migrationEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {

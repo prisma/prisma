@@ -2,3 +2,4 @@ node_modules
 query-engine*
 libquery_engine*
 migration-engine*
+download-lock

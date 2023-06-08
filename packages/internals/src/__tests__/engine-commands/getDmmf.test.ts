@@ -1,3 +1,4 @@
+import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
 import fs from 'fs'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
@@ -15,10 +16,9 @@ if (process.env.CI) {
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 describe('getDMMF', () => {
-  /*
   // Note: to run these tests locally, prepend the env vars `FORCE_COLOR=0` and `CI=1` to your test command,
   // as `chalk` follows different conventions than the Rust `colored` crate (and uses `FORCE_COLOR=0` to disable colors rather than `NO_COLOR=1`).
-  describe('colors', () => {
+  describe.skip('colors', () => {
     // backup env vars
     const OLD_ENV = { ...process.env }
     const { NO_COLOR: _, ...OLD_ENV_WITHOUT_NO_COLOR } = OLD_ENV
@@ -93,7 +93,6 @@ describe('getDMMF', () => {
       }
     })
   })
-  */
 
   describe('errors', () => {
     test('model with autoincrement should fail if sqlite', async () => {
@@ -199,7 +198,9 @@ describe('getDMMF', () => {
         await getDMMF({ datamodel: true })
       } catch (e) {
         expect(isRustPanic(e)).toBe(true)
-        expect(e.message).toMatchInlineSnapshot(`"unreachable"`)
+        expect(serialize(e.message)).toMatchInlineSnapshot(
+          `"RuntimeError: panicked at 'Failed to deserialize GetDmmfParams: invalid type: boolean \`true\`, expected a string at line 1 column 20', prisma-fmt/src/get_dmmf.rs:0:0"`,
+        )
         expect(e.rustStack).toBeTruthy()
       }
     })

@@ -47,8 +47,9 @@ export interface EnvValue {
 }
 
 export interface BinaryTargetsEnvValue {
-  fromEnvVar: null | string
+  fromEnvVar: string | null
   value: string
+  native?: boolean
 }
 
 export type ConnectorType =
@@ -93,6 +94,7 @@ export type GeneratorOptions = {
   version: string // version hash
   binaryPaths?: BinaryPaths
   dataProxy: boolean
+  postinstall?: boolean
 }
 
 export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine'

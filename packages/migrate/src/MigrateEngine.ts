@@ -1,12 +1,21 @@
 import Debug from '@prisma/debug'
-import type { MigrateEngineLogLine } from '@prisma/internals'
-import { BinaryType, ErrorArea, MigrateEngineExitCode, resolveBinary, RustPanic } from '@prisma/internals'
-import chalk from 'chalk'
+import {
+  BinaryType,
+  ErrorArea,
+  MigrateEngineExitCode,
+  MigrateEngineLogLine,
+  resolveBinary,
+  RustPanic,
+  setClassName,
+} from '@prisma/internals'
 import type { ChildProcess } from 'child_process'
 import { spawn } from 'child_process'
+import { bold, red } from 'kleur/colors'
+import path from 'path'
 
 import type { EngineArgs, EngineResults, RPCPayload, RpcSuccessResponse } from './types'
 import byline from './utils/byline'
+import { handleViewsIO } from './views/handleViewsIO'
 
 const debugRpc = Debug('prisma:migrateEngine:rpc')
 const debugStderr = Debug('prisma:migrateEngine:stderr')
@@ -26,6 +35,8 @@ export class EngineError extends Error {
     this.code = code
   }
 }
+
+setClassName(EngineError, 'EngineError')
 
 // Is incremented every time `getRPCPayload` is called
 let messageId = 1
@@ -153,7 +164,7 @@ export class MigrateEngine {
    *   which if more flexible and fundamental for the error reporting use case. We should add that here too.
    * - TODO: re-expose publicly once https://github.com/prisma/prisma-private/issues/203 is closed.
    */
-  private getDatabaseVersion({ schema }: EngineArgs.GetDatabaseVersionParams): Promise<string> {
+  private getDatabaseVersion(): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema: this.schemaPath }))
   }
 
@@ -170,9 +181,16 @@ export class MigrateEngine {
     this.latestSchema = schema
 
     try {
-      const introspectResult = await this.runCommand(
+      const introspectResult: EngineArgs.IntrospectResult = await this.runCommand(
         this.getRPCPayload('introspect', { schema, force, compositeTypeDepth, schemas }),
       )
+      const { views } = introspectResult
+
+      if (views) {
+        const schemaPath = this.schemaPath ?? path.join(process.cwd(), 'prisma')
+        await handleViewsIO({ views, schemaPath })
+      }
+
       return introspectResult
     } finally {
       // stop the engine after either a successful or failed introspection, to emulate how the
@@ -225,7 +243,7 @@ export class MigrateEngine {
    * Try to make the database empty: no data and no schema.
    * On most connectors, this is implemented by dropping and recreating the database.
    * If that fails (most likely because of insufficient permissions),
-   * the engine attemps a “best effort reset” by inspecting the contents of the database and dropping them individually.
+   * the engine attempts a “best effort reset” by inspecting the contents of the database and dropping them individually.
    * Drop and recreate the database. The migrations will not be applied, as it would overlap with applyMigrations.
    */
   public reset(): Promise<void> {
@@ -311,7 +329,7 @@ export class MigrateEngine {
       try {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...processEnv } = process.env
-        const binaryPath = await resolveBinary(BinaryType.migrationEngine)
+        const binaryPath = await resolveBinary(BinaryType.MigrationEngineBinary)
         debugRpc('starting migration engine with binary: ' + binaryPath)
         const args: string[] = []
 
@@ -351,9 +369,26 @@ export class MigrateEngine {
             this.rejectAll(err)
             reject(err)
           }
-          const engineMessage = this.lastError?.message || this.messages.join('\n')
+          const processMessages = this.messages.join('\n')
+          const engineMessage = this.lastError?.message || processMessages
           const handlePanic = () => {
-            const stackTrace = this.messages.join('\n')
+            /**
+             * Example:
+             *
+             * ```
+             * [EXIT_PANIC]
+             * Starting migration engine RPC server
+             * The migration was not applied because it triggered warnings and the force flag was not passed
+             * 0: backtrace::capture::Backtrace::new
+             * 1: migration_engine::set_panic_hook::{{closure}}
+             * 2: std::panicking::rust_panic_with_hook
+             * 3: std::panicking::begin_panic_handler::{{closure}}
+             * ...
+             * 18: __pthread_deallocate
+             * ```
+             */
+            const stackTrace = `[EXIT_PANIC]\n${processMessages}\n${this.lastError?.backtrace ?? ''}`
+
             exitWithErr(
               new RustPanic(
                 serializePanic(engineMessage),
@@ -433,6 +468,7 @@ export class MigrateEngine {
         if (err) {
           return reject(err)
         }
+
         // can be null, for reset RPC for example
         if (response.result !== undefined) {
           resolve(response.result)
@@ -440,13 +476,19 @@ export class MigrateEngine {
           if (response.error) {
             debugRpc(response)
             if (response.error.data?.is_panic) {
-              // if (response.error.data && response.error.data.message) {
+              // TODO(jkomyno): I suspect no panic is ever thrown here
+
               const message = response.error.data?.error?.message ?? response.error.message
+
+              // explicitly mark the error as a "response error panic" to distinguish it from the other one.
+              // This will allow us to track the frequency of this particular panic in the error reporting system.
+              const stackTrace = `[RESPONSE_ERROR_PANIC]\n${response.error.data?.message ?? ''}`
+
               reject(
                 // Handle error and displays the interactive dialog to send panic error
                 new RustPanic(
                   message,
-                  response.error.data.message,
+                  stackTrace,
                   this.lastRequest,
                   ErrorArea.LIFT_CLI,
                   /* schemaPath */ this.schemaPath,
@@ -456,9 +498,9 @@ export class MigrateEngine {
             } else if (response.error.data?.message) {
               // Print known error code & message from engine
               // See known errors at https://github.com/prisma/specs/tree/master/errors#prisma-sdk
-              let message = `${chalk.redBright(response.error.data.message)}\n`
+              let message = `${red(response.error.data.message)}\n`
               if (response.error.data?.error_code) {
-                message = chalk.redBright(`${response.error.data.error_code}\n\n`) + message
+                message = red(`${response.error.data.error_code}\n\n`) + message
                 reject(new EngineError(message, response.error.data.error_code))
               } else {
                 reject(new Error(message))
@@ -466,11 +508,11 @@ export class MigrateEngine {
             } else {
               reject(
                 new Error(
-                  `${chalk.redBright('Error in RPC')}\n Request: ${JSON.stringify(
-                    request,
+                  `${red('Error in RPC')}\n Request: ${JSON.stringify(request, null, 2)}\nResponse: ${JSON.stringify(
+                    response,
                     null,
                     2,
-                  )}\nResponse: ${JSON.stringify(response, null, 2)}\n${response.error.message}\n`,
+                  )}\n${response.error.message}\n`,
                 ),
               )
             }
@@ -504,9 +546,5 @@ export class MigrateEngine {
 
 /** The full message with context we return to the user in case of engine panic. */
 function serializePanic(log: string): string {
-  // TODO: https://github.com/prisma/prisma/issues/17268
-  return `${chalk.red.bold('Error in migration engine.\nReason: ')}${log}
-
-Please create an issue with your \`schema.prisma\` at
-${chalk.underline('https://github.com/prisma/prisma/issues/new')}\n`
+  return `${red(bold('Error in migration engine.\nReason: '))}${log}\n`
 }

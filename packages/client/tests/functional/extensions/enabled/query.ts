@@ -6,7 +6,7 @@ import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
@@ -110,7 +110,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser1(++i)
                 return query(args)
               },
@@ -120,7 +120,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser2(++i)
                 return query(args)
               },
@@ -150,7 +150,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 args.where = { id: randomId2 }
 
                 return query(args)
@@ -161,7 +161,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 args.where = { id: randomId3 }
 
                 return query(args)
@@ -172,7 +172,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser(args)
 
                 return query(args)
@@ -209,7 +209,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 args.where = { id: randomId1, ...args.where }
 
                 return query(args)
@@ -220,7 +220,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 args.where = { email: 'john@doe.io', ...args.where }
 
                 return query(args)
@@ -231,7 +231,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser(args)
 
                 return query(args)
@@ -289,7 +289,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser(args)
 
                 return query(args)
@@ -315,7 +315,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query }) {
                 fnUser(args)
 
                 return query(args)
@@ -349,7 +349,7 @@ testMatrix.setupTestSuite(
       const xprisma = prisma.$extends({
         query: {
           user: {
-            async findFirst({ args, query, operation, model }) {
+            async findFirst({ args, query }) {
               const data = await query(args)
 
               data.id = '<redacted>'
@@ -382,7 +382,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              async findFirst({ args, query, operation, model }) {
+              async findFirst({ args, query }) {
                 const data = await query(args)
 
                 data.id = '<redacted>'
@@ -395,7 +395,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
-              async findFirst({ args, query, operation, model }) {
+              async findFirst({ args, query }) {
                 const data = await query(args)
 
                 data.email = '<redacted>'
@@ -430,7 +430,7 @@ testMatrix.setupTestSuite(
           .$extends({
             query: {
               user: {
-                async findFirst({ args, query, operation, model }) {
+                async findFirst({ args, query }) {
                   const data = await query(args)
 
                   data.id = '<redacted>'
@@ -443,7 +443,7 @@ testMatrix.setupTestSuite(
           .$extends({
             query: {
               user: {
-                async findFirst({ args, query, operation, model }) {
+                async findFirst({ args, query }) {
                   const data = await query(args)
 
                   data.email = '<redacted>'
@@ -489,7 +489,7 @@ testMatrix.setupTestSuite(
         const xprisma = prisma.$extends({
           query: {
             user: {
-              async findFirst({ args, query, operation, model }) {
+              async findFirst({ args, query }) {
                 // @ts-test-if: provider !== 'mongodb'
                 return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
               },
@@ -530,7 +530,7 @@ testMatrix.setupTestSuite(
         const xprisma = prisma.$extends({
           query: {
             user: {
-              async findFirst({ args, query, operation, model }) {
+              async findFirst({ args, query }) {
                 // @ts-test-if: provider !== 'mongodb'
                 return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
               },
@@ -588,7 +588,7 @@ testMatrix.setupTestSuite(
           .$extends({
             query: {
               user: {
-                async findFirst({ args, query, operation, model }) {
+                async findFirst({ args, query }) {
                   const data = await query(args)
 
                   data.firstName = '<redacted>'
@@ -601,7 +601,7 @@ testMatrix.setupTestSuite(
           .$extends({
             query: {
               user: {
-                async findFirst({ args, query, operation, model }) {
+                async findFirst({ args, query }) {
                   // @ts-test-if: provider !== 'mongodb'
                   return (await prisma.$transaction([prisma.$queryRaw`SELECT 1`, query(args)]))[1]
                 },
@@ -611,7 +611,7 @@ testMatrix.setupTestSuite(
           .$extends({
             query: {
               user: {
-                async findFirst({ args, query, operation, model }) {
+                async findFirst({ args, query }) {
                   const data = await query(args)
 
                   data.lastName = '<redacted>'
@@ -875,7 +875,7 @@ testMatrix.setupTestSuite(
       const xprisma = prisma.$extends({
         query: {
           user: {
-            findFirst({ args, query, operation, model }) {
+            findFirst({ args, query }) {
               fnUser1(args)
               return query(args)
             },
@@ -897,7 +897,7 @@ testMatrix.setupTestSuite(
       prisma.$extends({
         query: {
           user: {
-            async findFirst({ args, query, operation, model }) {
+            async findFirst({ args, query }) {
               const user = await query(args)
 
               expectTypeOf(user).toHaveProperty('id').toEqualTypeOf<string | undefined>()
@@ -909,12 +909,182 @@ testMatrix.setupTestSuite(
         },
       })
     })
+
+    testIf(provider !== 'sqlite')('top-level raw queries interception', async () => {
+      const fnEmitter = jest.fn()
+      const fnUser = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          // @ts-test-if: provider !== 'mongodb'
+          $queryRaw({ args, query, operation }) {
+            expect(operation).toEqual('$queryRaw')
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(args).toEqualTypeOf<[query: TemplateStringsArray | PrismaNamespace.Sql, ...values: any[]]>()
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(operation).toEqualTypeOf<'$queryRaw'>()
+            fnUser(args)
+            return query(args)
+          },
+          $executeRaw({ args, query, operation }) {
+            expect(operation).toEqual('$executeRaw')
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(args).toEqualTypeOf<[query: TemplateStringsArray | PrismaNamespace.Sql, ...values: any[]]>()
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(operation).toEqualTypeOf<'$executeRaw'>()
+            fnUser(args)
+            return query(args)
+          },
+          $queryRawUnsafe({ args, query, operation }) {
+            expect(operation).toEqual('$queryRawUnsafe')
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(args).toEqualTypeOf<[query: string, ...values: any[]]>()
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(operation).toEqualTypeOf<'$queryRawUnsafe'>()
+            fnUser(args)
+            return query(args)
+          },
+          $executeRawUnsafe({ args, query, operation }) {
+            expect(operation).toEqual('$executeRawUnsafe')
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(args).toEqualTypeOf<[query: string, ...values: any[]]>()
+            // @ts-test-if: provider !== 'mongodb'
+            expectTypeOf(operation).toEqualTypeOf<'$executeRawUnsafe'>()
+            fnUser(args)
+            return query(args)
+          },
+          // @ts-test-if: provider === 'mongodb'
+          $runCommandRaw({ args, query, operation }) {
+            expect(operation).toEqual('$runCommandRaw')
+            // @ts-test-if: provider === 'mongodb'
+            expectTypeOf(args).toEqualTypeOf<PrismaNamespace.InputJsonObject>()
+            // @ts-test-if: provider === 'mongodb'
+            expectTypeOf(operation).toEqualTypeOf<'$runCommandRaw'>()
+            fnUser(args)
+            return query(args)
+          },
+        },
+      })
+
+      if (provider !== 'mongodb') {
+        // @ts-test-if: provider !== 'mongodb'
+        await xprisma.$executeRaw`SELECT 1`
+        // @ts-test-if: provider !== 'mongodb'
+        await xprisma.$queryRaw`SELECT 2`
+        // @ts-test-if: provider !== 'mongodb'
+        await xprisma.$executeRawUnsafe(`SELECT 3`)
+        // @ts-test-if: provider !== 'mongodb'
+        await xprisma.$queryRawUnsafe(`SELECT 4`)
+
+        await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(4))
+        expect(fnUser).toHaveBeenNthCalledWith(1, [[`SELECT 1`]])
+        expect(fnUser).toHaveBeenNthCalledWith(2, [[`SELECT 2`]])
+        expect(fnUser).toHaveBeenNthCalledWith(3, [`SELECT 3`])
+        expect(fnUser).toHaveBeenNthCalledWith(4, [`SELECT 4`])
+      } else {
+        // @ts-test-if: provider === 'mongodb'
+        await xprisma.$runCommandRaw({ aggregate: 'User', pipeline: [], explain: false })
+        // await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(1)) // not working
+        expect(fnUser).toHaveBeenNthCalledWith(1, { aggregate: 'User', pipeline: [], explain: false })
+      }
+    })
+
+    testIf(provider !== 'mongodb')('extending with $allModels.$allOperations and a top-level query', async () => {
+      const fnOperation = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          // @ts-test-if: provider !== 'mongodb'
+          $queryRawUnsafe({ args, query, operation, model }: any) {
+            fnOperation({ args, operation, model })
+
+            return query(args)
+          },
+          $allModels: {
+            $allOperations({ args, query, operation, model }) {
+              fnOperation({ args, operation, model })
+
+              return query(args)
+            },
+          },
+        },
+      })
+
+      const rawQueryArgs = `SELECT 1`
+      const modelQueryArgs = { where: { id: randomId1 } }
+
+      const cbArgsRaw = { args: [rawQueryArgs], operation: '$queryRawUnsafe', model: undefined }
+      const cbArgsUser = { args: modelQueryArgs, operation: 'findFirst', model: 'User' }
+      const cbArgsPost = { args: modelQueryArgs, operation: 'findFirst', model: 'Post' }
+
+      // @ts-test-if: provider !== 'mongodb'
+      const dataRaw = await xprisma.$queryRawUnsafe(rawQueryArgs)
+      const dataUser = await xprisma.user.findFirst(modelQueryArgs)
+      const dataPost = await xprisma.post.findFirst(modelQueryArgs)
+
+      expect(dataRaw).toBeTruthy()
+      expect(dataUser).toMatchInlineSnapshot(`null`)
+      expect(dataPost).toMatchInlineSnapshot(`null`)
+      expect(fnOperation).toHaveBeenCalledTimes(3)
+      expect(fnOperation).toHaveBeenNthCalledWith(1, cbArgsRaw)
+      expect(fnOperation).toHaveBeenNthCalledWith(2, cbArgsUser)
+      expect(fnOperation).toHaveBeenNthCalledWith(3, cbArgsPost)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(3))
+    })
+
+    test('extending with $allModels and another $allModels', async () => {
+      const fnModel = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma
+        .$extends({
+          query: {
+            $allModels: {
+              findFirst({ args, query, operation, model }) {
+                fnModel({ args, operation, model })
+
+                return query(args)
+              },
+            },
+          },
+        })
+        .$extends({
+          query: {
+            $allModels: {
+              findFirst({ args, query, operation, model }) {
+                fnModel({ args, operation, model })
+
+                return query(args)
+              },
+            },
+          },
+        })
+
+      const args = { where: { id: randomId1 } }
+      const cbArgsUser = { args: args, operation: 'findFirst', model: 'User' }
+
+      const dataUser = await xprisma.user.findFirst(args)
+
+      expect(dataUser).toMatchInlineSnapshot(`null`)
+      expect(fnModel).toHaveBeenCalledTimes(2)
+      expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
+      expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsUser)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
+    })
   },
   {
     skipDefaultClientInstance: true,
     skipDataProxy: {
-      reason: "no idea (query logs aren't the same)",
-      runtimes: ['edge', 'node'],
+      // TODO: investigate this
+      reason: 'some tests fail with edge client and take a lot of time to run',
+      runtimes: ['edge'],
     },
   },
 )

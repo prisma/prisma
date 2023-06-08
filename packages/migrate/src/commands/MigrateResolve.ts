@@ -9,7 +9,7 @@ import {
   link,
   loadEnvFile,
 } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, dim, green, red } from 'kleur/colors'
 
 import { Migrate } from '../Migrate'
 import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
@@ -33,27 +33,27 @@ Run "prisma migrate status" to identify if you need to use resolve.
 
 Read more about resolving migration history issues: ${link('https://pris.ly/d/migrate-resolve')}
  
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate resolve [options]
+  ${dim('$')} prisma migrate resolve [options]
   
-${chalk.bold('Options')}
+${bold('Options')}
 
     -h, --help   Display this help message
       --schema   Custom path to your Prisma schema
      --applied   Record a specific migration as applied
  --rolled-back   Record a specific migration as rolled back
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   Update migrations table, recording a specific migration as applied 
-  ${chalk.dim('$')} prisma migrate resolve --applied 20201231000000_add_users_table
+  ${dim('$')} prisma migrate resolve --applied 20201231000000_add_users_table
 
   Update migrations table, recording a specific migration as rolled back
-  ${chalk.dim('$')} prisma migrate resolve --rolled-back 20201231000000_add_users_table
+  ${dim('$')} prisma migrate resolve --rolled-back 20201231000000_add_users_table
 
   Specify a schema
-  ${chalk.dim('$')} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma
+  ${dim('$')} prisma migrate resolve --rolled-back 20201231000000_add_users_table --schema=./schema.prisma
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -102,8 +102,8 @@ ${chalk.bold('Examples')}
     if (!args['--applied'] && !args['--rolled-back']) {
       throw new Error(
         `--applied or --rolled-back must be part of the command like:
-${chalk.bold.green(getCommandWithExecutor('prisma migrate resolve --applied 20201231000000_example'))}
-${chalk.bold.green(getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example'))}`,
+${bold(green(getCommandWithExecutor('prisma migrate resolve --applied 20201231000000_example')))}
+${bold(green(getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example')))}`,
       )
     }
     // if both are defined
@@ -114,8 +114,8 @@ ${chalk.bold.green(getCommandWithExecutor('prisma migrate resolve --rolled-back 
     if (args['--applied']) {
       if (typeof args['--applied'] !== 'string' || args['--applied'].length === 0) {
         throw new Error(
-          `--applied value must be a string like ${chalk.bold.green(
-            getCommandWithExecutor('prisma migrate resolve --applied 20201231000000_example'),
+          `--applied value must be a string like ${bold(
+            green(getCommandWithExecutor('prisma migrate resolve --applied 20201231000000_example')),
           )}`,
         )
       }
@@ -135,8 +135,8 @@ ${chalk.bold.green(getCommandWithExecutor('prisma migrate resolve --rolled-back 
     } else {
       if (typeof args['--rolled-back'] !== 'string' || args['--rolled-back'].length === 0) {
         throw new Error(
-          `--rolled-back value must be a string like ${chalk.bold.green(
-            getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example'),
+          `--rolled-back value must be a string like ${bold(
+            green(getCommandWithExecutor('prisma migrate resolve --rolled-back 20201231000000_example')),
           )}`,
         )
       }
@@ -158,7 +158,7 @@ ${chalk.bold.green(getCommandWithExecutor('prisma migrate resolve --rolled-back 
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateResolve.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateResolve.help}`)
     }
     return MigrateResolve.help
   }

@@ -4,7 +4,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
+testMatrix.setupTestSuite(() => {
   test('attempt to use $extend causes compile and runtime error', () => {
     expect(() => {
       // @ts-expect-error

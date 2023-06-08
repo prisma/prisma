@@ -130,28 +130,22 @@ type Settings = {
    */
   timeout?: number
   /**
-   * The version of Prisma Engine to use.
-   *
-   * @dynamicDefault The result of `@prisma/fetch-engine#getLatestTag`
-   */
-  engineVersion?: MaybePromise<string>
-  /**
    * After a test scenario is done, should its temporary directory be removed from disk?
    */
   cleanupTempDirs?: boolean
 }
 
 /**
- * A list of available preview features on the Prisma client.
+ * A list of available preview features on Prisma Client.
  */
 type PreviewFeature = ''
 
 /**
- * Settings to add properties on the Prisma client.
+ * Settings to add properties on Prisma Client.
  */
 type PrismaClientSettings = {
   /**
-   *  Supply the enabled preview features for the Prisma client.
+   *  Supply the enabled preview features for Prisma Client.
    */
   previewFeatures?: PreviewFeature[]
 }

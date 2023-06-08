@@ -4,6 +4,8 @@ import {
   applyModelsAndClientExtensions,
   unapplyModelsAndClientExtensions,
 } from '../model/applyModelsAndClientExtensions'
+import { RawQueryArgs } from '../raw-query/RawQueryArgs'
+import { JsArgs } from '../types/JsApi'
 import { OptionalFlat } from '../types/Utils'
 
 export type Args = OptionalFlat<RequiredArgs>
@@ -30,7 +32,7 @@ export type ResultFieldDefinition = {
   compute: ResultArgsFieldCompute
 }
 
-type ModelArgs = {
+export type ModelArgs = {
   model: {
     [ModelName in string]: ModelArg
   }
@@ -51,26 +53,27 @@ export type ClientArg = {
 type QueryOptionsCbArgs = {
   model?: string
   operation: string
-  args: object
-  query: (args: object) => Promise<unknown>
+  args: JsArgs | RawQueryArgs
+  query: (args: JsArgs | RawQueryArgs) => Promise<unknown>
+}
+
+type ModelQueryOptionsCbArgs = {
+  model: string
+  operation: string
+  args: JsArgs
+  query: (args: JsArgs) => Promise<unknown>
 }
 
 export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>
-
-type QueryOptionsCbArgsNested = QueryOptionsCbArgs & {
-  path: string
-}
+export type ModelQueryOptionsCb = (args: ModelQueryOptionsCbArgs) => Promise<any>
 
 type QueryOptions = {
   query: {
     [ModelName in string]:
       | {
-          [ModelAction in string]: QueryOptionsCb
-        } & {
-          // $nestedOperations?: {
-          //   [K in string]: (args: QueryOptionsCbArgsNested) => unknown
-          // }
+          [ModelAction in string]: ModelQueryOptionsCb
         }
+      | QueryOptionsCb // for all queries (eg. raw queries)
   }
 }
 

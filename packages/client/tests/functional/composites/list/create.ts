@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import { setupTestSuite } from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -81,7 +83,7 @@ setupTestSuite(() => {
     )
   })
 
-  test('set null', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('set null', async () => {
     const comment = prisma.commentRequiredList.create({
       data: {
         country: 'France',
@@ -99,7 +101,7 @@ setupTestSuite(() => {
     )
   })
 
-  test('set null shorthand', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('set null shorthand', async () => {
     const comment = prisma.commentRequiredList.create({
       data: {
         country: 'France',

@@ -1,14 +1,14 @@
 import stripAnsi from 'strip-ansi'
 
-import { getPlatformInternal, getPlatformMemoized } from '../getPlatform'
+import { getPlatformInfoMemoized, getPlatformInternal } from '../getPlatform'
 import { jestConsoleContext, jestContext } from '../test-utils'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('getPlatformMemoized', () => {
   it('repeated invocations are idempotent and memoized', async () => {
-    const platformFirst = await getPlatformMemoized()
-    const platformSecond = await getPlatformMemoized()
+    const platformFirst = await getPlatformInfoMemoized()
+    const platformSecond = await getPlatformInfoMemoized()
     expect(platformFirst.binaryTarget).toBe(platformSecond.binaryTarget)
     expect(platformFirst.memoized).toBeFalsy()
     expect(platformSecond.memoized).toBeTruthy()
@@ -36,6 +36,23 @@ describe('getPlatformInternal', () => {
           targetDistro: 'debian',
         }),
       ).toBe('debian-openssl-1.1.x')
+      expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+      expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    })
+
+    it('opensuse (suse), amd64 (x86_64), openssl-1.1.x', () => {
+      expect(
+        getPlatformInternal({
+          platform,
+          libssl: '1.1.x',
+          arch: 'x64',
+          archFromUname: 'x86_64',
+          familyDistro: 'rhel',
+          originalDistro: 'opensuse-tumbleweed',
+          targetDistro: 'rhel',
+        }),
+      ).toBe('rhel-openssl-1.1.x')
       expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)

@@ -1,9 +1,10 @@
-import { BinaryType, overwriteFile } from '@prisma/fetch-engine'
+import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import { assertNever, ClientEngineType, getClientEngineType, getEngineVersion, Platform } from '@prisma/internals'
-import chalk from 'chalk'
+import { assertNever, ClientEngineType, getClientEngineType, Platform, setClassName } from '@prisma/internals'
+import paths from 'env-paths'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
+import { bold, dim, green, red } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
@@ -15,11 +16,7 @@ import type { Dictionary } from '../runtime/utils/common'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
 
-const remove = promisify(fs.unlink)
-const writeFile = promisify(fs.writeFile)
 const exists = promisify(fs.exists)
-const copyFile = promisify(fs.copyFile)
-const stat = promisify(fs.stat)
 
 const GENERATED_PACKAGE_NAME = '.prisma/client'
 
@@ -31,10 +28,10 @@ type OutputDeclaration = {
 export class DenylistError extends Error {
   constructor(message: string) {
     super(message)
-    this.name = 'DenylistError'
     this.stack = undefined
   }
 }
+setClassName(DenylistError, 'DenylistError')
 
 export interface GenerateClientOptions {
   projectRoot?: string
@@ -54,6 +51,7 @@ export interface GenerateClientOptions {
   clientVersion: string
   activeProvider: string
   dataProxy: boolean
+  postinstall?: boolean
 }
 
 export interface BuildClientResult {
@@ -75,6 +73,7 @@ export async function buildClient({
   projectRoot,
   activeProvider,
   dataProxy,
+  postinstall,
 }: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
@@ -94,6 +93,7 @@ export async function buildClient({
     projectRoot: projectRoot!,
     activeProvider,
     dataProxy,
+    postinstall,
   }
 
   // we create a regular client that is fit for Node.js
@@ -123,6 +123,7 @@ export async function buildClient({
       main: 'index.js',
       types: 'index.d.ts',
       browser: 'index-browser.js',
+      sideEffects: false,
     },
     null,
     2,
@@ -203,6 +204,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     activeProvider,
     dataProxy,
+    postinstall,
   } = options
 
   const clientEngineType = getClientEngineType(generator!)
@@ -223,13 +225,14 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     projectRoot,
     activeProvider,
     dataProxy,
+    postinstall,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
 
   if (denylistsErrors) {
-    let message = `${chalk.redBright.bold(
-      'Error: ',
+    let message = `${bold(
+      red('Error: '),
     )}The schema at "${schemaPath}" contains reserved keywords.\n       Rename the following items:`
 
     for (const error of denylistsErrors) {
@@ -256,9 +259,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
       if (await exists(filePath)) {
-        await remove(filePath)
+        await fs.promises.unlink(filePath)
       }
-      await writeFile(filePath, file)
+      await fs.promises.writeFile(filePath, file)
     }),
   )
   const runtimeSourceDir = testMode
@@ -267,7 +270,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   // if users use a custom output dir
   if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
-    // TODO: Windows, / is not working here...
     const copyTarget = path.join(outputDir, 'runtime')
     await ensureDir(copyTarget)
     if (runtimeSourceDir !== copyTarget) {
@@ -301,67 +303,37 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
         process.env.NETLIFY && binaryTarget !== 'rhel-openssl-1.0.x'
           ? path.join('/tmp/prisma-engines', fileName)
           : path.join(finalOutputDir, fileName)
-      const [sourceFileSize, targetFileSize] = await Promise.all([fileSize(filePath), fileSize(target)])
-
-      // If the target doesn't exist yet, copy it
-      if (!targetFileSize) {
-        if (fs.existsSync(filePath)) {
-          await overwriteFile(filePath, target)
-          continue
-        } else {
-          throw new Error(`File at ${filePath} is required but was not present`)
-        }
-      }
-
-      // If target !== source size, they're definitely different, copy it
-      if (targetFileSize && sourceFileSize && targetFileSize !== sourceFileSize) {
-        await overwriteFile(filePath, target)
-        continue
-      }
-      const binaryName =
-        clientEngineType === ClientEngineType.Binary ? BinaryType.queryEngine : BinaryType.libqueryEngine
-      // They must have an equal size now, let's check for the hash
-      const [sourceVersion, targetVersion] = await Promise.all([
-        getEngineVersion(filePath, binaryName).catch(() => null),
-        getEngineVersion(target, binaryName).catch(() => null),
-      ])
-
-      if (sourceVersion && targetVersion && sourceVersion === targetVersion) {
-        // skip
-      } else {
-        await overwriteFile(filePath, target)
-      }
+      await overwriteFile(filePath, target)
     }
   }
 
   const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
-    await copyFile(schemaPath, schemaTargetPath)
+    await fs.promises.copyFile(schemaPath, schemaTargetPath)
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
   if (!fs.existsSync(proxyIndexJsPath)) {
-    await copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
+    await fs.promises.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
   }
 
   if (!fs.existsSync(proxyIndexDTSPath)) {
-    await copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
+    await fs.promises.copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
   }
 
   if (!fs.existsSync(proxyIndexBrowserJsPath)) {
-    await copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
+    await fs.promises.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
-}
 
-async function fileSize(name: string): Promise<number | null> {
   try {
-    const statResult = await stat(name)
-    return statResult.size
-  } catch (e) {
-    return null
-  }
+    // we tell our vscode extension to reload the types by modifying this file
+    const prismaCache = paths('prisma').cache
+    const signalsPath = path.join(prismaCache, 'last-generate')
+    await fs.promises.mkdir(prismaCache, { recursive: true })
+    await fs.promises.writeFile(signalsPath, Date.now().toString())
+  } catch {}
 }
 
 function validateDmmfAgainstDenylists(prismaClientDmmf: PrismaClientDMMF.Document): Error[] | null {
@@ -494,7 +466,7 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
   }
   const { name } = JSON.parse(content)
   if (name === clientPackageName) {
-    const message = [`Generating client into ${chalk.bold(directory)} is not allowed.`]
+    const message = [`Generating client into ${bold(directory)} is not allowed.`]
     message.push('This package is used by `prisma generate` and overwriting its content is dangerous.')
     message.push('')
     message.push('Suggestion:')
@@ -502,20 +474,14 @@ async function verifyOutputDirectory(directory: string, datamodel: string, schem
 
     if (outputDeclaration && outputDeclaration.content.includes(clientPackageName)) {
       const outputLine = outputDeclaration.content
-      message.push(`In ${chalk.bold(schemaPath)} replace:`)
+      message.push(`In ${bold(schemaPath)} replace:`)
       message.push('')
-      message.push(
-        `${chalk.dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, chalk.red(clientPackageName))}`,
-      )
+      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, red(clientPackageName))}`)
       message.push('with')
 
-      message.push(
-        `${chalk.dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, chalk.green('.prisma/client'))}`,
-      )
+      message.push(`${dim(outputDeclaration.lineNumber)} ${replacePackageName(outputLine, green('.prisma/client'))}`)
     } else {
-      message.push(
-        `Generate client into ${chalk.bold(replacePackageName(directory, chalk.green('.prisma/client')))} instead`,
-      )
+      message.push(`Generate client into ${bold(replacePackageName(directory, green('.prisma/client')))} instead`)
     }
 
     message.push('')
@@ -575,5 +541,5 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))
   }
 
-  await Promise.all(files.map((file) => copyFile(path.join(from, file), path.join(to, file))))
+  await Promise.all(files.map((file) => fs.promises.copyFile(path.join(from, file), path.join(to, file))))
 }

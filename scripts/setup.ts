@@ -1,5 +1,5 @@
-import chalk from 'chalk'
 import execa from 'execa'
+import { bold, dim, red, underline } from 'kleur/colors'
 import fetch from 'node-fetch'
 import path from 'path'
 
@@ -65,9 +65,9 @@ if (!module.parent) {
 
 // TODO: export this into a utility folder
 export async function run(cwd: string, cmd: string, dry = false): Promise<execa.ExecaReturnValue<string> | undefined> {
-  const args = [chalk.underline('./' + cwd).padEnd(20), chalk.bold(cmd)]
+  const args = [underline('./' + cwd).padEnd(20), bold(cmd)]
   if (dry) {
-    args.push(chalk.dim('(dry)'))
+    args.push(dim('(dry)'))
   }
   console.debug(args.join(' '))
   if (dry) {
@@ -80,9 +80,7 @@ export async function run(cwd: string, cmd: string, dry = false): Promise<execa.
     })
   } catch (_e) {
     const e = _e as execa.ExecaError
-    throw new Error(
-      chalk.bold.red(`Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`) + (e.stack || e.message),
-    )
+    throw new Error(bold(red(`Error running ${bold(cmd)} in ${underline(cwd)}:`)) + (e.stack || e.message))
   }
 }
 
@@ -101,9 +99,7 @@ async function runResult(cwd: string, cmd: string): Promise<string> {
     return result.stdout
   } catch (_e) {
     const e = _e as execa.ExecaError
-    throw new Error(
-      chalk.red(`Error running ${chalk.bold(cmd)} in ${chalk.underline(cwd)}:`) + (e.stderr || e.stack || e.message),
-    )
+    throw new Error(red(`Error running ${bold(cmd)} in ${underline(cwd)}:`) + (e.stderr || e.stack || e.message))
   }
 }
 

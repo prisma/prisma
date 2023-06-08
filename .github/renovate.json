@@ -5,14 +5,8 @@
   "semanticCommits": "enabled",
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
-  "ignoreDeps": [
-    "sqlite3",
-    "@prisma/engines",
-    "@prisma/engines-version",
-    "@prisma/fetch-engine",
-    "@prisma/get-platform",
-    "@prisma/prisma-fmt-wasm"
-  ],
+  "rangeStrategy": "pin",
+  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-fmt-wasm", "redis", "@types/redis"],
   "constraints": {
     "pnpm": "7"
   },
@@ -31,18 +25,58 @@
       "schedule": ["at any time"]
     },
     {
-      "groupName": "devDependencies (non-major)",
+      "groupName": "devDependencies patch (non-major)",
       "automerge": "true",
       "depTypeList": ["devDependencies"],
-      "updateTypes": ["patch", "minor"],
+      "updateTypes": ["patch"],
       "excludePackageNames": ["@prisma/studio", "@prisma/studio-server", "checkpoint-client"],
       "schedule": ["before 7am on Wednesday"]
     },
     {
-      "groupName": "dependencies (non-major)",
+      "groupName": "dependencies patch (non-major)",
       "depTypeList": ["dependencies"],
-      "updateTypes": ["patch", "minor"],
+      "updateTypes": ["patch"],
       "excludePackageNames": ["checkpoint-client"],
+      "schedule": ["before 7am on Wednesday"]
+    },
+    {
+      "groupName": "ESM devDependencies & dependencies (patch & minor)",
+      "depTypeList": ["dependencies", "devDependencies"],
+      "updateTypes": ["patch", "minor"],
+      "matchPackageNames": [
+        "get-port",
+        "is-obj",
+        "is-regexp",
+        "mongo",
+        "p-reduce",
+        "postgres",
+        "sort-keys",
+        "node.js",
+        "@sindresorhus/slugify",
+        "cli-truncate",
+        "escape-string-regexp",
+        "execa",
+        "find-up",
+        "get-stdin",
+        "globby",
+        "has-yarn",
+        "indent-string",
+        "log-update",
+        "new-github-issue-url",
+        "node-fetch",
+        "ora",
+        "p-map",
+        "p-retry",
+        "pkg-up",
+        "read-pkg-up",
+        "replace-string",
+        "string-width",
+        "strip-ansi",
+        "strip-indent",
+        "temp-write",
+        "tempy",
+        "terminal-link"
+      ],
       "schedule": ["before 7am on Wednesday"]
     },
     {
@@ -59,7 +93,6 @@
         "sort-keys",
         "node.js",
         "@sindresorhus/slugify",
-        "chalk",
         "cli-truncate",
         "escape-string-regexp",
         "execa",
@@ -117,8 +150,8 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
-      "groupName": "sqlite-async",
-      "packageNames": ["sqlite-async"],
+      "groupName": "npm-packlist",
+      "packageNames": ["npm-packlist"],
       "schedule": ["before 7am on Wednesday"]
     },
     {

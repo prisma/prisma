@@ -1,8 +1,8 @@
-import { EngineQuery } from '@prisma/engine-core'
-
+import { EngineBatchQuery, GraphQLQuery } from '../../core/engines'
 import { DMMFHelper } from '../../dmmf'
 import { ErrorFormat } from '../../getPrismaClient'
-import { Args, Document, makeDocument, unpack } from '../../query'
+import { Args, Document, makeDocument, PrismaClientValidationError, unpack } from '../../query'
+import { createErrorMessageWithContext } from '../../utils/createErrorMessageWithContext'
 import { Action } from '../types/JsApi'
 import { CreateMessageOptions, ProtocolEncoder, ProtocolMessage } from './common'
 
@@ -29,17 +29,10 @@ const actionOperationMap: Record<Action, 'query' | 'mutation'> = {
   aggregateRaw: 'query',
 }
 
-export class GraphQLProtocolEncoder implements ProtocolEncoder {
+export class GraphQLProtocolEncoder implements ProtocolEncoder<GraphQLQuery> {
   constructor(private dmmf: DMMFHelper, private errorFormat: ErrorFormat) {}
 
-  createMessage({
-    action,
-    modelName,
-    args,
-    extensions,
-    clientMethod,
-    callsite,
-  }: CreateMessageOptions): ProtocolMessage {
+  createMessage({ action, modelName, args, extensions, clientMethod, callsite }: CreateMessageOptions): GraphQLMessage {
     let rootField: string | undefined
     const operation = actionOperationMap[action]
 
@@ -55,6 +48,14 @@ export class GraphQLProtocolEncoder implements ProtocolEncoder {
       }
 
       rootField = mapping[action === 'count' ? 'aggregate' : action]
+      if (!rootField) {
+        const message = createErrorMessageWithContext({
+          message: `Model \`${modelName}\` does not support \`${action}\` action.`,
+          originalMethod: clientMethod,
+          callsite: callsite,
+        })
+        throw new PrismaClientValidationError(message)
+      }
     }
 
     if (operation !== 'query' && operation !== 'mutation') {
@@ -81,9 +82,13 @@ export class GraphQLProtocolEncoder implements ProtocolEncoder {
     document.validate(args, false, clientMethod, this.errorFormat, callsite)
     return new GraphQLMessage(document)
   }
+
+  createBatch(messages: GraphQLMessage[]): EngineBatchQuery {
+    return messages.map((message) => message.toEngineQuery())
+  }
 }
 
-export class GraphQLMessage implements ProtocolMessage {
+export class GraphQLMessage implements ProtocolMessage<GraphQLQuery> {
   constructor(private document: Document) {}
 
   isWrite(): boolean {
@@ -116,8 +121,8 @@ export class GraphQLMessage implements ProtocolMessage {
     return String(this.document)
   }
 
-  toEngineQuery(): EngineQuery {
-    return { query: String(this.document) }
+  toEngineQuery(): GraphQLQuery {
+    return { query: String(this.document), variables: {} }
   }
 
   deserializeResponse(data: unknown, dataPath: string[]): unknown {

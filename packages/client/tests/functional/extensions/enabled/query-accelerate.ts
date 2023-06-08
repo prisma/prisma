@@ -35,7 +35,7 @@ testMatrix.setupTestSuite(() => {
     https.request = originalRequest
   })
 
-  testIf(process.env.DATA_PROXY !== undefined)('changing http headers via custom fetch', async () => {
+  testIf(process.env.TEST_DATA_PROXY !== undefined)('changing http headers via custom fetch', async () => {
     const xprisma = prisma.$extends({
       query: {
         $allModels: {
@@ -75,71 +75,74 @@ testMatrix.setupTestSuite(() => {
     expect(mockedRequest.mock.calls[0][1].headers).toHaveProperty('x-custom-header', 'hello')
   })
 
-  testIf(process.env.DATA_PROXY !== undefined)('confirm that custom fetch cascades like a middleware', async () => {
-    const xprisma = prisma
-      .$extends({
-        query: {
-          $allModels: {
-            findUnique(operation) {
-              const { __internalParams, query, args } = operation as any as {
-                query: (...args: any[]) => Promise<any>
-                __internalParams: any
-                args: any
-              }
-
-              __internalParams.customDataProxyFetch = (fetch) => {
-                return (url, args) => fetch(url, { ...args, order: [1] })
-              }
-
-              return query(args, __internalParams)
-            },
-          },
-        },
-      })
-      .$extends({
-        query: {
-          $allModels: {
-            findUnique(operation) {
-              const { __internalParams, query, args } = operation as any as {
-                query: (...args: any[]) => Promise<any>
-                __internalParams: any
-                args: any
-              }
-
-              __internalParams.customDataProxyFetch = (fetch) => {
-                return (url, args) => fetch(url, { ...args, order: [...args.order, 2] })
-              }
-
-              return query(args, __internalParams)
-            },
-          },
-        },
-      })
-      .$extends({
-        query: {
-          $allModels: {
-            findUnique(operation) {
-              const { __internalParams, query, args } = operation as any as {
-                query: (...args: any[]) => Promise<any>
-                __internalParams: any
-                args: any
-              }
-
-              __internalParams.customDataProxyFetch = (fetch) => {
-                return (url, args) => {
-                  expect(args.order).toEqual([1, 2])
-                  return fetch(url, args)
+  testIf(process.env.TEST_DATA_PROXY !== undefined)(
+    'confirm that custom fetch cascades like a middleware',
+    async () => {
+      const xprisma = prisma
+        .$extends({
+          query: {
+            $allModels: {
+              findUnique(operation) {
+                const { __internalParams, query, args } = operation as any as {
+                  query: (...args: any[]) => Promise<any>
+                  __internalParams: any
+                  args: any
                 }
-              }
 
-              return query(args, __internalParams)
+                __internalParams.customDataProxyFetch = (fetch) => {
+                  return (url, args) => fetch(url, { ...args, order: [1] })
+                }
+
+                return query(args, __internalParams)
+              },
             },
           },
-        },
-      })
+        })
+        .$extends({
+          query: {
+            $allModels: {
+              findUnique(operation) {
+                const { __internalParams, query, args } = operation as any as {
+                  query: (...args: any[]) => Promise<any>
+                  __internalParams: any
+                  args: any
+                }
 
-    const data = await xprisma.user.findUnique({ where: { id: randomId } }).catch()
+                __internalParams.customDataProxyFetch = (fetch) => {
+                  return (url, args) => fetch(url, { ...args, order: [...args.order, 2] })
+                }
 
-    expect(data).toHaveProperty('id', randomId)
-  })
+                return query(args, __internalParams)
+              },
+            },
+          },
+        })
+        .$extends({
+          query: {
+            $allModels: {
+              findUnique(operation) {
+                const { __internalParams, query, args } = operation as any as {
+                  query: (...args: any[]) => Promise<any>
+                  __internalParams: any
+                  args: any
+                }
+
+                __internalParams.customDataProxyFetch = (fetch) => {
+                  return (url, args) => {
+                    expect(args.order).toEqual([1, 2])
+                    return fetch(url, args)
+                  }
+                }
+
+                return query(args, __internalParams)
+              },
+            },
+          },
+        })
+
+      const data = await xprisma.user.findUnique({ where: { id: randomId } }).catch()
+
+      expect(data).toHaveProperty('id', randomId)
+    },
+  )
 })

@@ -2,10 +2,6 @@ import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs/promises'
 
 import testMatrix from './_matrix'
-// @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
-
-declare let prisma: PrismaClient
 
 const libraryRuntime = 'runtime/library'
 const binaryRuntime = 'runtime/binary'

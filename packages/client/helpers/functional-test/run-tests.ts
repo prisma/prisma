@@ -47,13 +47,16 @@ const args = arg(
     '--changedFilesWithAncestor': Boolean,
     // Passes the same flag to Jest to shard tests between multiple machines
     '--shard': String,
+
+    // Passes the same flag to Jest to silence the output
+    '--silent': Boolean,
   },
   true,
   true,
 )
 
 async function main(): Promise<number | void> {
-  let jestCli = new JestCli(['--verbose', '--config', 'tests/functional/jest.config.js'])
+  let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
 
   if (args['--provider']) {
@@ -72,7 +75,7 @@ async function main(): Promise<number | void> {
     }
 
     jestCli = jestCli.withEnv({
-      DATA_PROXY: 'true',
+      TEST_DATA_PROXY: 'true',
     })
 
     if (args['--edge-client']) {
@@ -121,6 +124,9 @@ async function main(): Promise<number | void> {
   if (args['--shard']) {
     jestArgs.push('--shard', args['--shard'])
   }
+  if (args['--silent']) {
+    jestArgs.push('--silent')
+  }
   const codeTestCli = jestCli.withArgs(jestArgs)
 
   try {
@@ -160,7 +166,7 @@ async function getBinaryForMiniProxy(): Promise<string> {
 
   const paths = await setupQueryEngine()
   const platform = await getPlatform()
-  const qePath = paths[BinaryType.queryEngine]?.[platform]
+  const qePath = paths[BinaryType.QueryEngineBinary]?.[platform]
 
   if (!qePath) {
     throw new Error('Query Engine binary missing')

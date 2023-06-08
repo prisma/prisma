@@ -12,11 +12,11 @@ import {
 } from '../compositeProxy'
 import { createPrismaPromise } from '../request/createPrismaPromise'
 import type { PrismaPromise } from '../request/PrismaPromise'
+import type { UserArgs } from '../request/UserArgs'
 import { applyAggregates } from './applyAggregates'
 import { applyFieldsProxy } from './applyFieldsProxy'
 import { applyFluent } from './applyFluent'
 import { adaptErrors } from './applyOrThrowErrorAdapter'
-import type { UserArgs } from './UserArgs'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 
 export type ModelAction = (
@@ -69,7 +69,7 @@ function modelMetaLayer(dmmfModelName: string): CompositeProxyLayer {
 function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProxyLayer<string> {
   // we use the javascript model name for display purposes
   const jsModelName = dmmfToJSModelName(dmmfModelName)
-  const ownKeys = getOwnKeys(client, dmmfModelName)
+  const ownKeys = Object.keys(DMMF.ModelAction).concat('count')
 
   return {
     getKeys() {
@@ -127,24 +127,15 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
   }
 }
 
-function getOwnKeys(client: Client, dmmfModelName: string) {
-  const actionKeys = Object.keys(client._baseDmmf.mappingsMap[dmmfModelName]).filter(
-    (key) => key !== 'model' && key !== 'plural',
-  )
-  actionKeys.push('count')
-
-  return actionKeys
-}
-
-function isValidAggregateName(action: string): action is typeof aggregateProps[number] {
+function isValidAggregateName(action: string): action is (typeof aggregateProps)[number] {
   return (aggregateProps as readonly string[]).includes(action)
 }
 
 function fieldsPropertyLayer(client: Client, dmmfModelName: string) {
   return cacheProperties(
     addProperty('fields', () => {
-      const model = client._baseDmmf.modelMap[dmmfModelName]
-      return applyFieldsProxy(model)
+      const model = client._runtimeDataModel.models[dmmfModelName]
+      return applyFieldsProxy(dmmfModelName, model)
     }),
   )
 }

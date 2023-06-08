@@ -120,7 +120,6 @@ testMatrix.setupTestSuite(() => {
   test('allows to call builtin methods from extensions', async () => {
     const xprisma = prisma.$extends({
       client: {
-        // TODO: remove any once types are generated
         $myTransaction(this: any, ...args: any[]) {
           return this.$transaction(args)
         },
@@ -234,5 +233,21 @@ testMatrix.setupTestSuite(() => {
     })
 
     expect(() => xprisma.$fail()).toThrowErrorMatchingInlineSnapshot(`What a terrible failure`)
+  })
+
+  test('custom method re-using input to augment', () => {
+    const xprisma = prisma.$extends({
+      client: {
+        $executeRawCustom<T, A extends any[]>(
+          this: T,
+          ..._args: PrismaNamespace.Exact<A, [...PrismaNamespace.Args<T, '$executeRaw'>, { extra: boolean }]>
+        ): PrismaNamespace.Result<T, A, '$executeRaw'> {
+          return {} as any
+        },
+      },
+    })
+
+    // @ts-test-if: provider !== 'mongodb'
+    xprisma.$executeRawCustom(Prisma.sql`SELECT * FROM User`, { extra: true })
   })
 })

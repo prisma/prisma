@@ -34,7 +34,7 @@ import {
   objectEnumValues,
   makeStrictEnum,
   Extensions,
-  findSync
+  defineDmmfProperty
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
@@ -63,7 +63,8 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Extensions,
-  findSync
+  warnOnce,
+  defineDmmfProperty,
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -137,6 +138,8 @@ type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
 type UnwrapTuple<Tuple extends readonly unknown[]> = {
   [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
 };
+
+export type PrismaPromise<T> = runtime.Types.Public.PrismaPromise<T>
 `,
   ts: () => `export import DMMF = runtime.DMMF
 

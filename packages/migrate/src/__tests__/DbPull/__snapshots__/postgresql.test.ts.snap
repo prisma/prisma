@@ -1,0 +1,71 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`postgresql basic introspection --url 2`] = `
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://prisma:prisma@localhost:5432/tests-migrate-db-pull-postgresql"
+}
+
+model Post {
+  id        String    @id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+  published Boolean   @default(false)
+  title     String
+  content   String?
+  authorId  String?
+  jsonData  Json?
+  coinflips Boolean[]
+  User      User?     @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email")
+  name  String?
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;
+
+exports[`postgresql basic introspection 2`] = `
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+}
+
+model Post {
+  id        String    @id
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @default(dbgenerated("'1970-01-01 00:00:00'::timestamp without time zone"))
+  published Boolean   @default(false)
+  title     String
+  content   String?
+  authorId  String?
+  jsonData  Json?
+  coinflips Boolean[]
+  User      User?     @relation(fields: [authorId], references: [id])
+}
+
+model User {
+  id    String  @id
+  email String  @unique(map: "User.email")
+  name  String?
+  Post  Post[]
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+
+// introspectionSchemaVersion: NonPrisma,
+`;

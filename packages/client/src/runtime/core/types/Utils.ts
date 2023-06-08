@@ -72,11 +72,6 @@ export type LegacyExact<A, W = unknown> =
   {[K in keyof W]: K extends keyof A ? LegacyExact<A[K], W[K]> : W[K]}>
   : never;
 
-export type WrapPropsInFnDeep<T> = {
-  [K in keyof T]:
-    T[K] extends Function
-    ? T[K]
-    : T[K] extends object
-      ? WrapPropsInFnDeep<T[K]>
-      : () => T[K]
-} & {}
+export type JsonObject = { [Key in string]?: JsonValue }
+export interface JsonArray extends Array<JsonValue> {}
+export type JsonValue = string | number | boolean | JsonObject | JsonArray | null

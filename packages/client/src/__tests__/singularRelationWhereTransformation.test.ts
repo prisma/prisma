@@ -1,11 +1,8 @@
 import { getDMMF } from '@prisma/internals'
-import chalk from 'chalk'
 
 import { singularRelation } from '../fixtures/singularRelation'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
-
-chalk.level = 0
 
 let dmmf
 describe('minimal where transformation', () => {

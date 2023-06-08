@@ -1,0 +1,34 @@
+name: Daily Test
+
+on:
+  workflow_dispatch:
+  schedule:
+    # 4am daily Mon-Fri
+    - cron: '0 4 * * 1-5'
+
+jobs:
+  run_tests:
+    uses: ./.github/workflows/test-template.yml
+    with:
+      reason: daily-test
+      jobTimeout: 70
+      ubuntuRunner: ubuntu-latest
+      testAll: true
+    secrets: inherit
+  failure:
+    needs:
+      - run_tests
+    if: ${{ failure() }}
+    name: Communicate failure
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set current job url in SLACK_FOOTER env var
+        run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
+
+      - name: Slack Notification on Failure
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_TITLE: 'prisma/prisma daily build failed :x:'
+          SLACK_COLOR: '#FF0000'
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: feed-prisma-daily-build-failures

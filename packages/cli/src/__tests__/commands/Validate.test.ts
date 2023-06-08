@@ -39,9 +39,9 @@ describe('validate', () => {
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                              Prisma schema warning:
-                              - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
-                  `)
+      Prisma schema warning:
+      - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
+    `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -54,9 +54,9 @@ describe('validate', () => {
     // stderr
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                              Prisma schema warning:
-                              - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
-                  `)
+                                          Prisma schema warning:
+                                          - Preview feature "nativeTypes" is deprecated. The functionality can be used without specifying it as a preview feature.
+                          `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
@@ -84,7 +84,7 @@ describe('validate', () => {
         await Validate.new().parse(['--schema', './prisma/postgres.prisma'])
       } catch (e) {
         expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
-          Prisma schema validation - (get-dmmf wasm)
+          Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
             -->  schema.prisma:21
@@ -100,7 +100,7 @@ describe('validate', () => {
              | 
 
           Validation Error Count: 2
-          [Context: getDmmf]
+          [Context: validate]
 
           Prisma CLI Version : 0.0.0
         `)
@@ -114,7 +114,7 @@ describe('validate', () => {
         await Validate.new().parse(['--schema', './prisma/postgres.prisma'])
       } catch (e) {
         expect(serializeQueryEngineName(e.message)).toMatchInlineSnapshot(`
-          Prisma schema validation - (get-dmmf wasm)
+          Prisma schema validation - (validate wasm)
           Error code: P1012
           error: Error validating: Invalid referential action: \`NoAction\`. Allowed values: (\`Cascade\`, \`Restrict\`, \`SetNull\`). \`NoAction\` is not implemented for Postgres when using \`relationMode = "prisma"\`, you could try using \`Restrict\` instead. Learn more at https://pris.ly/d/relation-mode
             -->  schema.prisma:21
@@ -130,7 +130,7 @@ describe('validate', () => {
              | 
 
           Validation Error Count: 2
-          [Context: getDmmf]
+          [Context: validate]
 
           Prisma CLI Version : 0.0.0
         `)

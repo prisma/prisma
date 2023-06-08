@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { getQueryEngineProtocol } from '@prisma/internals'
 
 import { setupTestSuite } from './_matrix'
 // @ts-ignore
@@ -100,7 +101,7 @@ setupTestSuite(() => {
   /**
    * Set null
    */
-  test('set null', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('set null', async () => {
     const comment = prisma.commentRequiredList.upsert({
       where: { id },
       update: {},
@@ -123,7 +124,7 @@ setupTestSuite(() => {
   /**
    * Set null shorthand
    */
-  test('set null shorthand', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('set null shorthand', async () => {
     const comment = prisma.commentRequiredList.upsert({
       where: { id },
       update: {},

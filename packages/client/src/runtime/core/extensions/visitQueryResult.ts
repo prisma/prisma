@@ -1,15 +1,13 @@
-import { DMMF } from '@prisma/generator-helper'
-
-import { BaseDMMFHelper } from '../../dmmf'
+import { RuntimeDataModel } from '../runtimeDataModel'
 import { JsArgs, Selection } from '../types/JsApi'
 
-type ModelVisitor = (value: object, model: DMMF.Model, queryArgs: JsArgs) => object | undefined
+type ModelVisitor = (value: object, modelName: string, queryArgs: JsArgs) => object | undefined
 
 type VisitParams = {
   result: object
   args: JsArgs
-  model: DMMF.Model
-  dmmf: BaseDMMFHelper
+  modelName: string
+  runtimeDataModel: RuntimeDataModel
   visitor: ModelVisitor
 }
 
@@ -23,25 +21,37 @@ type VisitParams = {
  * @param params
  * @returns
  */
-export function visitQueryResult({ visitor, result, args, dmmf, model }: VisitParams) {
+export function visitQueryResult({ visitor, result, args, runtimeDataModel, modelName }: VisitParams) {
   if (Array.isArray(result)) {
     for (let i = 0; i < result.length; i++) {
       result[i] = visitQueryResult({
         result: result[i],
         args,
-        model,
-        dmmf,
+        modelName,
+        runtimeDataModel,
         visitor,
       })
     }
     return result
   }
-  const visitResult = visitor(result, model, args) ?? result
+  const visitResult = visitor(result, modelName, args) ?? result
   if (args.include) {
-    visitNested({ includeOrSelect: args.include, result: visitResult, parentModel: model, dmmf, visitor })
+    visitNested({
+      includeOrSelect: args.include,
+      result: visitResult,
+      parentModelName: modelName,
+      runtimeDataModel,
+      visitor,
+    })
   }
   if (args.select) {
-    visitNested({ includeOrSelect: args.select, result: visitResult, parentModel: model, dmmf, visitor })
+    visitNested({
+      includeOrSelect: args.select,
+      result: visitResult,
+      parentModelName: modelName,
+      runtimeDataModel,
+      visitor,
+    })
   }
   return visitResult
 }
@@ -49,16 +59,17 @@ export function visitQueryResult({ visitor, result, args, dmmf, model }: VisitPa
 type VisitNestedParams = {
   includeOrSelect: Selection
   result: object
-  parentModel: DMMF.Model
-  dmmf: BaseDMMFHelper
+  parentModelName: string
+  runtimeDataModel: RuntimeDataModel
   visitor: ModelVisitor
 }
 
-function visitNested({ includeOrSelect, result, parentModel, dmmf, visitor }: VisitNestedParams) {
+function visitNested({ includeOrSelect, result, parentModelName, runtimeDataModel, visitor }: VisitNestedParams) {
   for (const [fieldName, subConfig] of Object.entries(includeOrSelect)) {
     if (!subConfig || result[fieldName] == null) {
       continue
     }
+    const parentModel = runtimeDataModel.models[parentModelName]
     const field = parentModel.fields.find((field) => field.name === fieldName)
     if (!field || field.kind !== 'object' || !field.relationName) {
       continue
@@ -68,8 +79,8 @@ function visitNested({ includeOrSelect, result, parentModel, dmmf, visitor }: Vi
       visitor,
       result: result[fieldName],
       args,
-      model: dmmf.getModelMap()[field.type],
-      dmmf,
+      modelName: field.type,
+      runtimeDataModel,
     })
   }
 }

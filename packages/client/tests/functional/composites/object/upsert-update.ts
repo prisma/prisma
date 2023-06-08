@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { getQueryEngineProtocol } from '@prisma/internals'
 
 import { setupTestSuite } from './_matrix'
 // @ts-ignore
@@ -137,7 +138,7 @@ setupTestSuite(({ contentProperty }) => {
         }
       `,
       )
-    } else {
+    } else if (getQueryEngineProtocol() === 'graphql') {
       await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining('Argument set for update.content.set must not be null'),
@@ -172,7 +173,7 @@ setupTestSuite(({ contentProperty }) => {
         }
       `,
       )
-    } else {
+    } else if (getQueryEngineProtocol() === 'graphql') {
       await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining('Argument content for update.content must not be null'),
@@ -521,7 +522,7 @@ setupTestSuite(({ contentProperty }) => {
         }
       `,
       )
-    } else {
+    } else if (getQueryEngineProtocol() === 'graphql') {
       await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining(
@@ -575,7 +576,7 @@ setupTestSuite(({ contentProperty }) => {
         }
       `,
       )
-    } else {
+    } else if (getQueryEngineProtocol() === 'graphql') {
       await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining(
@@ -636,7 +637,7 @@ setupTestSuite(({ contentProperty }) => {
         }
       `,
       )
-    } else {
+    } else if (getQueryEngineProtocol() === 'graphql') {
       await expect(comment).rejects.toThrow(
         expect.objectContaining({
           message: expect.stringContaining(

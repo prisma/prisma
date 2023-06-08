@@ -1,6 +1,6 @@
 # `react-prisma`
 
-This package allows using the Prisma Client in a React Server Component.
+This package allows using Prisma Client in a React Server Component.
 It is a thin wrapper around `@prisma/client`.
 
 ⚠️ **Warning**: **This is highly experimental. Don't use this in any real application**

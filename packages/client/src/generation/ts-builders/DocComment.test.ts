@@ -1,5 +1,4 @@
 import { docComment } from './DocComment'
-import { namedType } from './NamedType'
 import { stringify } from './stringify'
 
 test('empty', () => {

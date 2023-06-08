@@ -114,7 +114,7 @@ testMatrix.setupTestSuite(
               }),
             ).rejects.toThrow(
               isSchemaUsingMap && isRelationMode_foreignKeys
-                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
                   `Foreign key constraint failed on the field:`
                 : conditionalError.snapshot({
@@ -499,7 +499,7 @@ testMatrix.setupTestSuite(
           describeIf(['Restrict', 'NoAction'].includes(onUpdate))('onUpdate: Restrict, NoAction', () => {
             const expectedErrorUpdateWithNonExistingId =
               isSchemaUsingMap && isRelationMode_foreignKeys
-                ? // The snaphsot changes when using @map/@@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @map/@@map, though only the name of the table/field is different
                   // So we can be less specific here
                   `Foreign key constraint failed on the field:`
                 : conditionalError.snapshot({
@@ -574,7 +574,7 @@ testMatrix.setupTestSuite(
           describeIf(['DEFAULT', 'Restrict', 'NoAction', 'SetNull'].includes(onUpdate))(
             'onUpdate: DEFAULT, Restrict, NoAction, SetNull',
             () => {
-              const expectedErrorUpdateWithExistingId = isSchemaUsingMap // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+              const expectedErrorUpdateWithExistingId = isSchemaUsingMap // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                 ? // So we can ignore the error message
                   undefined
                 : conditionalError.snapshot({
@@ -674,7 +674,7 @@ testMatrix.setupTestSuite(
                   }),
                 ).rejects.toThrow(
                   isSchemaUsingMap
-                    ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                    ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                       // So we can be less specific here
                       `Unique constraint failed on the`
                     : conditionalError.snapshot({
@@ -870,7 +870,7 @@ testMatrix.setupTestSuite(
           () => {
             const expectedError =
               isSchemaUsingMap && isRelationMode_foreignKeys
-                ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                   // So we can be less specific here
                   `Foreign key constraint failed on the field:`
                 : conditionalError.snapshot({
