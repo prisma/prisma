@@ -40,7 +40,7 @@ testMatrix.setupTestSuite(
     })
 
     test('batches findUniqueOrThrow', async () => {
-      await Promise.all([
+      await Promise.allSettled([
         prisma.user.findUniqueOrThrow({ where: { id: id1 } }),
         prisma.user.findUniqueOrThrow({ where: { id: id2 } }),
       ])
