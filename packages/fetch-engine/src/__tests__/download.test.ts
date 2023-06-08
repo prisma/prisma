@@ -578,25 +578,25 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     test('if checksum downloads and matches, does not throw', async () => {
       const baseDir = path.posix.join(dirname, 'all')
       const platform = await getPlatform()
-      const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.queryEngine, platform))
+      const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.QueryEngineLibrary, platform))
 
       await expect(
         download({
           binaries: {
-            [BinaryType.queryEngine]: baseDir,
+            [BinaryType.QueryEngineLibrary]: baseDir,
           },
           binaryTargets: [platform],
           version: CURRENT_ENGINES_HASH,
         }),
       ).resolves.toStrictEqual({
-        'query-engine': {
+        'libquery-engine': {
           [platform]: queryEnginePath,
         },
       })
 
       const files = getFiles(baseDir).map((f) => f.name)
       expect(files.filter((name) => !name.startsWith('.'))).toEqual([path.basename(queryEnginePath)])
-      expect(await getVersion(queryEnginePath, BinaryType.queryEngine)).toContain(CURRENT_ENGINES_HASH)
+      expect(await getVersion(queryEnginePath, BinaryType.QueryEngineLibrary)).toContain(CURRENT_ENGINES_HASH)
     })
 
     test("if checksum downloads but doesn't match, throws", async () => {
@@ -619,7 +619,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       await expect(
         download({
           binaries: {
-            [BinaryType.queryEngine]: baseDir,
+            [BinaryType.QueryEngineLibrary]: baseDir,
           },
           binaryTargets: [platform],
           version: CURRENT_ENGINES_HASH,
@@ -641,25 +641,25 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
 
       const baseDir = path.posix.join(dirname, 'all')
       const platform = await getPlatform()
-      const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.queryEngine, platform))
+      const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.QueryEngineLibrary, platform))
 
       await expect(
         download({
           binaries: {
-            [BinaryType.queryEngine]: baseDir,
+            [BinaryType.QueryEngineLibrary]: baseDir,
           },
           binaryTargets: [platform],
           version: CURRENT_ENGINES_HASH,
         }),
       ).resolves.toStrictEqual({
-        'query-engine': {
+        'libquery-engine': {
           [platform]: queryEnginePath,
         },
       })
 
       const files = getFiles(baseDir).map((f) => f.name)
       expect(files.filter((name) => !name.startsWith('.'))).toEqual([path.basename(queryEnginePath)])
-      expect(await getVersion(queryEnginePath, BinaryType.queryEngine)).toContain(CURRENT_ENGINES_HASH)
+      expect(await getVersion(queryEnginePath, BinaryType.QueryEngineLibrary)).toContain(CURRENT_ENGINES_HASH)
     })
   })
 })
