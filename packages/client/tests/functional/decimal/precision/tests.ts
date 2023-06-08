@@ -40,7 +40,7 @@ const decimalArbitrary = (precision: number, scale: number) => {
 
 testMatrix.setupTestSuite(
   ({ precision, scale }) => {
-    beforeAll(() => {
+    describe('decimal precision', () => {
       testProp(
         'decimals should not lose precision when written to db',
         [decimalArbitrary(Number(precision), Number(scale))],
