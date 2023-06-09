@@ -40,7 +40,7 @@ const decimalArbitrary = (precision: number, scale: number) => {
 
 testMatrix.setupTestSuite(
   ({ precision, scale }) => {
-    describe('decimal precision', () => {
+    if (typeof prisma !== 'undefined') {
       testProp(
         'decimals should not lose precision when written to db',
         [decimalArbitrary(Number(precision), Number(scale))],
@@ -53,7 +53,7 @@ testMatrix.setupTestSuite(
           return result.decimal.toFixed() === decimalString
         },
       )
-    })
+    }
   },
   {
     optOut: {

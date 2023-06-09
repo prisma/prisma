@@ -12,7 +12,6 @@ import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
-import { ifExtensions } from './utils/ifExtensions'
 
 function clientExtensionsResultDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
@@ -252,17 +251,10 @@ function clientExtensionsDefinitions(this: PrismaClientClass) {
   const extend = clientExtensionsHookDefinition.bind(this)('$extends')
 
   return {
-    prismaNamespaceDefinitions: ifExtensions(
-      `
+    prismaNamespaceDefinitions: `
 export function ${define.signature}
 ${extend.prismaNamespaceDefinitions}`,
-      '',
-    ),
-    prismaClientDefinitions: ifExtensions(
-      `  ${extend.signature}
-`,
-      '',
-    ),
+    prismaClientDefinitions: `  ${extend.signature}\n`,
   }
 }
 
@@ -313,14 +305,10 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
 
   const returnType = ts.promise(ts.namedType('R'))
 
-  const thisType = ifExtensions<ts.TypeBuilder>(
-    () =>
-      ts
-        .namedType('$Extensions.GetClient')
-        .addGenericArgument(ts.thisType)
-        .addGenericArgument(ts.namedType('ExtArgs').subKey('client')),
-    () => ts.thisType,
-  )
+  const thisType = ts
+    .namedType('$Extensions.GetClient')
+    .addGenericArgument(ts.thisType)
+    .addGenericArgument(ts.namedType('ExtArgs').subKey('client'))
 
   const callbackType = ts
     .functionType()
@@ -498,18 +486,11 @@ export class PrismaClient<
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
   GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined = 'rejectOnNotFound' extends keyof T
     ? T['rejectOnNotFound']
-    : false${ifExtensions(
-      `,
-  ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs`,
-      '',
-    )}
-      > {${ifExtensions(
-        `
-
+    : false,
+  ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs
+> {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
-`,
-        '',
-      )}
+
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
@@ -556,12 +537,9 @@ ${[
   * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
   * \`\`\`
   */
-get ${methodName}(): ${ifExtensions(
-            `$Extensions.GetModel<Prisma.${m.model}Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['${lowerCase(
-              m.model,
-            )}']>`,
-            `Prisma.${m.model}Delegate<GlobalReject>`,
-          )};`
+get ${methodName}(): $Extensions.GetModel<Prisma.${
+            m.model
+          }Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['${lowerCase(m.model)}']>;`
         })
         .join('\n\n'),
       2,

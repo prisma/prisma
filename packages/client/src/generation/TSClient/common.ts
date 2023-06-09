@@ -2,7 +2,6 @@ import indent from 'indent-string'
 
 import { TAB_SIZE } from './constants'
 import type { TSClientOptions } from './TSClient'
-import { ifExtensions } from './utils/ifExtensions'
 
 export const commonCodeJS = ({
   runtimeDir,
@@ -99,16 +98,12 @@ Prisma.join = ${notSupportOnBrowser('join', browser)}
 Prisma.raw = ${notSupportOnBrowser('raw', browser)}
 Prisma.validator = () => (val) => val
 
-${ifExtensions(
-  `/**
+/**
 * Extensions
 */
 Prisma.getExtensionContext = ${notSupportOnBrowser('Extensions.getExtensionContext', browser)}
 Prisma.defineExtension = ${notSupportOnBrowser('Extensions.defineExtension', browser)}
 
-`,
-  '',
-)}
 /**
  * Shorthand utilities for JSON filtering
  */
@@ -184,8 +179,7 @@ export type Metric<T> = runtime.Metric<T>
 export type MetricHistogram = runtime.MetricHistogram
 export type MetricHistogramBucket = runtime.MetricHistogramBucket
 
-${ifExtensions(
-  `/**
+/**
 * Extensions
 */
 export type Extension = $Extensions.UserArgs
@@ -195,9 +189,6 @@ export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F>
 export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F>
 export type Exact<T, W> = $Public.Exact<T, W>
 
-`,
-  '',
-)}
 /**
  * Prisma Client JS version: ${clientVersion}
  * Query Engine version: ${engineVersion}

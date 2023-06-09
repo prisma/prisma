@@ -83,7 +83,6 @@ Prisma.defineExtension = () => {
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 
-
 /**
  * Shorthand utilities for JSON filtering
  */
@@ -745,8 +744,7 @@ export class PrismaClient<
     ? T['rejectOnNotFound']
     : false,
   ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs
-      > {
-
+> {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
 
     /**
@@ -1050,7 +1048,6 @@ export namespace Prisma {
   export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F>
   export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F>
   export type Exact<T, W> = $Public.Exact<T, W>
-
 
   /**
    * Prisma Client JS version: local
@@ -3151,10 +3148,6 @@ export namespace Prisma {
     posts?: boolean
   }
 
-
-
-
-
   // Custom InputTypes
 
   /**
@@ -3181,10 +3174,6 @@ export namespace Prisma {
   export type EmbedHolderCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     User?: boolean
   }
-
-
-
-
 
   // Custom InputTypes
 
@@ -3213,10 +3202,6 @@ export namespace Prisma {
     n?: boolean
   }
 
-
-
-
-
   // Custom InputTypes
 
   /**
@@ -3244,10 +3229,6 @@ export namespace Prisma {
     m?: boolean
   }
 
-
-
-
-
   // Custom InputTypes
 
   /**
@@ -3274,10 +3255,6 @@ export namespace Prisma {
   export type OneOptionalCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     many?: boolean
   }
-
-
-
-
 
   // Custom InputTypes
 
@@ -3322,6 +3299,7 @@ export namespace Prisma {
 
   export type EmbedInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {}
 
+
   type EmbedGetPayload<S extends boolean | null | undefined | EmbedArgs> = $Types.GetResult<EmbedPayload, S>
 
 
@@ -3363,6 +3341,7 @@ export namespace Prisma {
     text?: boolean
     boolean?: boolean
   }
+
 
   type EmbedEmbedGetPayload<S extends boolean | null | undefined | EmbedEmbedArgs> = $Types.GetResult<EmbedEmbedPayload, S>
 
@@ -3574,6 +3553,7 @@ export namespace Prisma {
     author?: boolean | UserArgs<ExtArgs>
   }
 
+
   type PostGetPayload<S extends boolean | null | undefined | PostArgs> = $Types.GetResult<PostPayload, S>
 
   type PostCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -3594,7 +3574,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends PostFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends PostFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, PostFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'Post'> extends True ? Prisma__PostClient<$Types.GetResult<PostPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__PostClient<$Types.GetResult<PostPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -3627,7 +3607,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends PostFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends PostFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, PostFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'Post'> extends True ? Prisma__PostClient<$Types.GetResult<PostPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__PostClient<$Types.GetResult<PostPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -4685,6 +4665,7 @@ export namespace Prisma {
     _count?: boolean | UserCountOutputTypeArgs<ExtArgs>
   }
 
+
   type UserGetPayload<S extends boolean | null | undefined | UserArgs> = $Types.GetResult<UserPayload, S>
 
   type UserCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -4705,7 +4686,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends UserFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends UserFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, UserFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'User'> extends True ? Prisma__UserClient<$Types.GetResult<UserPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__UserClient<$Types.GetResult<UserPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -4738,7 +4719,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends UserFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends UserFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, UserFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'User'> extends True ? Prisma__UserClient<$Types.GetResult<UserPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__UserClient<$Types.GetResult<UserPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -5683,6 +5664,7 @@ export namespace Prisma {
     _count?: boolean | EmbedHolderCountOutputTypeArgs<ExtArgs>
   }
 
+
   type EmbedHolderGetPayload<S extends boolean | null | undefined | EmbedHolderArgs> = $Types.GetResult<EmbedHolderPayload, S>
 
   type EmbedHolderCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -5703,7 +5685,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends EmbedHolderFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends EmbedHolderFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, EmbedHolderFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'EmbedHolder'> extends True ? Prisma__EmbedHolderClient<$Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__EmbedHolderClient<$Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -5736,7 +5718,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends EmbedHolderFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends EmbedHolderFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, EmbedHolderFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'EmbedHolder'> extends True ? Prisma__EmbedHolderClient<$Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__EmbedHolderClient<$Types.GetResult<EmbedHolderPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -6800,6 +6782,7 @@ export namespace Prisma {
     _count?: boolean | MCountOutputTypeArgs<ExtArgs>
   }
 
+
   type MGetPayload<S extends boolean | null | undefined | MArgs> = $Types.GetResult<MPayload, S>
 
   type MCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -6820,7 +6803,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends MFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends MFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, MFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'M'> extends True ? Prisma__MClient<$Types.GetResult<MPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__MClient<$Types.GetResult<MPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -6853,7 +6836,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends MFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends MFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, MFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'M'> extends True ? Prisma__MClient<$Types.GetResult<MPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__MClient<$Types.GetResult<MPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -7917,6 +7900,7 @@ export namespace Prisma {
     _count?: boolean | NCountOutputTypeArgs<ExtArgs>
   }
 
+
   type NGetPayload<S extends boolean | null | undefined | NArgs> = $Types.GetResult<NPayload, S>
 
   type NCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -7937,7 +7921,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends NFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends NFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, NFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'N'> extends True ? Prisma__NClient<$Types.GetResult<NPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__NClient<$Types.GetResult<NPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -7970,7 +7954,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends NFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends NFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, NFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'N'> extends True ? Prisma__NClient<$Types.GetResult<NPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__NClient<$Types.GetResult<NPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -9029,6 +9013,7 @@ export namespace Prisma {
     _count?: boolean | OneOptionalCountOutputTypeArgs<ExtArgs>
   }
 
+
   type OneOptionalGetPayload<S extends boolean | null | undefined | OneOptionalArgs> = $Types.GetResult<OneOptionalPayload, S>
 
   type OneOptionalCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -9049,7 +9034,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends OneOptionalFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends OneOptionalFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OneOptionalFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OneOptional'> extends True ? Prisma__OneOptionalClient<$Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__OneOptionalClient<$Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -9082,7 +9067,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends OneOptionalFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends OneOptionalFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OneOptionalFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OneOptional'> extends True ? Prisma__OneOptionalClient<$Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__OneOptionalClient<$Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -10148,6 +10133,7 @@ export namespace Prisma {
     one?: boolean | OneOptionalArgs<ExtArgs>
   }
 
+
   type ManyRequiredGetPayload<S extends boolean | null | undefined | ManyRequiredArgs> = $Types.GetResult<ManyRequiredPayload, S>
 
   type ManyRequiredCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -10168,7 +10154,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends ManyRequiredFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends ManyRequiredFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, ManyRequiredFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'ManyRequired'> extends True ? Prisma__ManyRequiredClient<$Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__ManyRequiredClient<$Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -10201,7 +10187,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends ManyRequiredFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends ManyRequiredFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, ManyRequiredFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'ManyRequired'> extends True ? Prisma__ManyRequiredClient<$Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__ManyRequiredClient<$Types.GetResult<ManyRequiredPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -11246,6 +11232,7 @@ export namespace Prisma {
     opti?: boolean | OptionalSide2Args<ExtArgs>
   }
 
+
   type OptionalSide1GetPayload<S extends boolean | null | undefined | OptionalSide1Args> = $Types.GetResult<OptionalSide1Payload, S>
 
   type OptionalSide1CountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -11266,7 +11253,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends OptionalSide1FindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends OptionalSide1FindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide1FindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide1'> extends True ? Prisma__OptionalSide1Client<$Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__OptionalSide1Client<$Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -11299,7 +11286,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends OptionalSide1FindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends OptionalSide1FindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide1FindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide1'> extends True ? Prisma__OptionalSide1Client<$Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__OptionalSide1Client<$Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -12335,6 +12322,7 @@ export namespace Prisma {
     opti?: boolean | OptionalSide1Args<ExtArgs>
   }
 
+
   type OptionalSide2GetPayload<S extends boolean | null | undefined | OptionalSide2Args> = $Types.GetResult<OptionalSide2Payload, S>
 
   type OptionalSide2CountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -12355,7 +12343,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends OptionalSide2FindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends OptionalSide2FindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, OptionalSide2FindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'OptionalSide2'> extends True ? Prisma__OptionalSide2Client<$Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__OptionalSide2Client<$Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -12388,7 +12376,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends OptionalSide2FindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends OptionalSide2FindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, OptionalSide2FindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'OptionalSide2'> extends True ? Prisma__OptionalSide2Client<$Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__OptionalSide2Client<$Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -13360,6 +13348,7 @@ export namespace Prisma {
     bInt?: boolean
   }
 
+
   type AGetPayload<S extends boolean | null | undefined | AArgs> = $Types.GetResult<APayload, S>
 
   type ACountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -13380,7 +13369,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends AFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends AFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, AFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'A'> extends True ? Prisma__AClient<$Types.GetResult<APayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__AClient<$Types.GetResult<APayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -13413,7 +13402,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends AFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends AFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, AFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'A'> extends True ? Prisma__AClient<$Types.GetResult<APayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__AClient<$Types.GetResult<APayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -14313,6 +14302,7 @@ export namespace Prisma {
     dFloat?: boolean
   }
 
+
   type BGetPayload<S extends boolean | null | undefined | BArgs> = $Types.GetResult<BPayload, S>
 
   type BCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -14333,7 +14323,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends BFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends BFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, BFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'B'> extends True ? Prisma__BClient<$Types.GetResult<BPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__BClient<$Types.GetResult<BPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -14366,7 +14356,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends BFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends BFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, BFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'B'> extends True ? Prisma__BClient<$Types.GetResult<BPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__BClient<$Types.GetResult<BPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -15264,6 +15254,7 @@ export namespace Prisma {
     uuid?: boolean
   }
 
+
   type CGetPayload<S extends boolean | null | undefined | CArgs> = $Types.GetResult<CPayload, S>
 
   type CCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -15284,7 +15275,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends CFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends CFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, CFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'C'> extends True ? Prisma__CClient<$Types.GetResult<CPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__CClient<$Types.GetResult<CPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -15317,7 +15308,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends CFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends CFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, CFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'C'> extends True ? Prisma__CClient<$Types.GetResult<CPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__CClient<$Types.GetResult<CPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -16237,6 +16228,7 @@ export namespace Prisma {
     list?: boolean
   }
 
+
   type DGetPayload<S extends boolean | null | undefined | DArgs> = $Types.GetResult<DPayload, S>
 
   type DCountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -16257,7 +16249,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends DFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends DFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, DFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'D'> extends True ? Prisma__DClient<$Types.GetResult<DPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__DClient<$Types.GetResult<DPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -16290,7 +16282,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends DFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends DFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, DFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'D'> extends True ? Prisma__DClient<$Types.GetResult<DPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__DClient<$Types.GetResult<DPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
@@ -17161,6 +17153,7 @@ export namespace Prisma {
     ts?: boolean
   }
 
+
   type EGetPayload<S extends boolean | null | undefined | EArgs> = $Types.GetResult<EPayload, S>
 
   type ECountArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
@@ -17181,7 +17174,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findUnique<T extends EFindUniqueArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findUnique<T extends EFindUniqueArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args: SelectSubset<T, EFindUniqueArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findUnique', 'E'> extends True ? Prisma__EClient<$Types.GetResult<EPayload<ExtArgs>, T, 'findUnique', never>, never, ExtArgs> : Prisma__EClient<$Types.GetResult<EPayload<ExtArgs>, T, 'findUnique', never> | null, null, ExtArgs>
 
@@ -17214,7 +17207,7 @@ export namespace Prisma {
      *   }
      * })
     **/
-    findFirst<T extends EFindFirstArgs<ExtArgs>,  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
+    findFirst<T extends EFindFirstArgs<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>(
       args?: SelectSubset<T, EFindFirstArgs<ExtArgs>>
     ): HasReject<GlobalRejectSettings, LocalRejectSettings, 'findFirst', 'E'> extends True ? Prisma__EClient<$Types.GetResult<EPayload<ExtArgs>, T, 'findFirst', never>, never, ExtArgs> : Prisma__EClient<$Types.GetResult<EPayload<ExtArgs>, T, 'findFirst', never> | null, null, ExtArgs>
 
