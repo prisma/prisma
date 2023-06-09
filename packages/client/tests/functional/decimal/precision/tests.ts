@@ -40,20 +40,20 @@ const decimalArbitrary = (precision: number, scale: number) => {
 
 testMatrix.setupTestSuite(
   ({ precision, scale }) => {
-    if (typeof prisma !== 'undefined') {
-      testProp(
-        'decimals should not lose precision when written to db',
-        [decimalArbitrary(Number(precision), Number(scale))],
-        async (decimalString) => {
-          const result = await prisma.testModel.create({
-            data: {
-              decimal: new Prisma.Decimal(decimalString),
-            },
-          })
-          return result.decimal.toFixed() === decimalString
-        },
-      )
-    }
+    testProp(
+      'decimals should not lose precision when written to db',
+      [decimalArbitrary(Number(precision), Number(scale))],
+      async (decimalString) => {
+        if (process.env.TEST_GENERATE_ONLY === 'true') return
+
+        const result = await prisma.testModel.create({
+          data: {
+            decimal: new Prisma.Decimal(decimalString),
+          },
+        })
+        return result.decimal.toFixed() === decimalString
+      },
+    )
   },
   {
     optOut: {
