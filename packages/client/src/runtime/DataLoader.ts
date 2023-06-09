@@ -8,6 +8,9 @@ export type DataLoaderOptions<T> = {
   singleLoader: (request: T) => Promise<any>
   batchLoader: (request: T[]) => Promise<any[]>
   batchBy: (request: T) => string | undefined
+  // Specifies the order in which requests in a batch would
+  // be sorted. See Array.prototype.sort callback
+  batchOrder: (requestA: T, requestB: T) => number
 }
 
 export class DataLoader<T = unknown> {
@@ -65,6 +68,7 @@ export class DataLoader<T = unknown> {
             batch[0].reject(e)
           })
       } else {
+        batch.sort((a, b) => this.options.batchOrder(a.request, b.request))
         this.options
           .batchLoader(batch.map((j) => j.request))
           .then((results) => {

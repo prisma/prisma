@@ -204,20 +204,6 @@ exports[`getDMMF success @@id model 1`] = `
     "enumTypes": {
       "prisma": [
         {
-          "name": "QueryMode",
-          "values": [
-            "default",
-            "insensitive",
-          ],
-        },
-        {
-          "name": "SortOrder",
-          "values": [
-            "asc",
-            "desc",
-          ],
-        },
-        {
           "name": "TransactionIsolationLevel",
           "values": [
             "ReadUncommitted",
@@ -242,6 +228,20 @@ exports[`getDMMF success @@id model 1`] = `
             "firstName",
             "lastName",
             "isAdmin",
+          ],
+        },
+        {
+          "name": "SortOrder",
+          "values": [
+            "asc",
+            "desc",
+          ],
+        },
+        {
+          "name": "QueryMode",
+          "values": [
+            "default",
+            "insensitive",
           ],
         },
       ],
@@ -465,6 +465,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "customName",
             },
           ],
+          "meta": {
+            "source": "User1",
+          },
           "name": "User1WhereUniqueInput",
         },
         {
@@ -944,6 +947,9 @@ exports[`getDMMF success @@id model 1`] = `
               "name": "firstName_lastName_isAdmin",
             },
           ],
+          "meta": {
+            "source": "User2",
+          },
           "name": "User2WhereUniqueInput",
         },
         {
@@ -7113,20 +7119,6 @@ exports[`getDMMF success @@map model 2`] = `
     "enumTypes": {
       "prisma": [
         {
-          "name": "QueryMode",
-          "values": [
-            "default",
-            "insensitive",
-          ],
-        },
-        {
-          "name": "SortOrder",
-          "values": [
-            "asc",
-            "desc",
-          ],
-        },
-        {
           "name": "TransactionIsolationLevel",
           "values": [
             "ReadUncommitted",
@@ -7140,6 +7132,20 @@ exports[`getDMMF success @@map model 2`] = `
           "values": [
             "id",
             "email",
+          ],
+        },
+        {
+          "name": "SortOrder",
+          "values": [
+            "asc",
+            "desc",
+          ],
+        },
+        {
+          "name": "QueryMode",
+          "values": [
+            "default",
+            "insensitive",
           ],
         },
       ],
@@ -7300,6 +7306,9 @@ exports[`getDMMF success @@map model 2`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "source": "User",
+          },
           "name": "UserWhereUniqueInput",
         },
         {
@@ -11070,6 +11079,15 @@ exports[`getDMMF success @@unique model 1`] = `
     "enumTypes": {
       "prisma": [
         {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+          ],
+        },
+        {
           "name": "PostScalarFieldEnum",
           "values": [
             "id",
@@ -11079,26 +11097,10 @@ exports[`getDMMF success @@unique model 1`] = `
           ],
         },
         {
-          "name": "QueryMode",
+          "name": "UserScalarFieldEnum",
           "values": [
-            "default",
-            "insensitive",
-          ],
-        },
-        {
-          "name": "SortOrder",
-          "values": [
-            "asc",
-            "desc",
-          ],
-        },
-        {
-          "name": "TransactionIsolationLevel",
-          "values": [
-            "ReadUncommitted",
-            "ReadCommitted",
-            "RepeatableRead",
-            "Serializable",
+            "id",
+            "email",
           ],
         },
         {
@@ -11120,10 +11122,17 @@ exports[`getDMMF success @@unique model 1`] = `
           ],
         },
         {
-          "name": "UserScalarFieldEnum",
+          "name": "SortOrder",
           "values": [
-            "id",
-            "email",
+            "asc",
+            "desc",
+          ],
+        },
+        {
+          "name": "QueryMode",
+          "values": [
+            "default",
+            "insensitive",
           ],
         },
       ],
@@ -11379,6 +11388,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "authorId_title",
             },
           ],
+          "meta": {
+            "source": "Post",
+          },
           "name": "PostWhereUniqueInput",
         },
         {
@@ -11833,6 +11845,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "email",
             },
           ],
+          "meta": {
+            "source": "User",
+          },
           "name": "UserWhereUniqueInput",
         },
         {
@@ -12250,6 +12265,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "firstName_lastName",
             },
           ],
+          "meta": {
+            "source": "User1",
+          },
           "name": "User1WhereUniqueInput",
         },
         {
@@ -12729,6 +12747,9 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "firstName_lastName_isAdmin",
             },
           ],
+          "meta": {
+            "source": "User2",
+          },
           "name": "User2WhereUniqueInput",
         },
         {
@@ -15082,8 +15103,13 @@ exports[`getDMMF success @@unique model 1`] = `
                   "namespace": "prisma",
                   "type": "UserWhereInput",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Null",
+                },
               ],
-              "isNullable": false,
+              "isNullable": true,
               "isRequired": false,
               "name": "is",
             },
@@ -15095,8 +15121,13 @@ exports[`getDMMF success @@unique model 1`] = `
                   "namespace": "prisma",
                   "type": "UserWhereInput",
                 },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Null",
+                },
               ],
-              "isNullable": false,
+              "isNullable": true,
               "isRequired": false,
               "name": "isNot",
             },
@@ -24118,9 +24149,9 @@ exports[`getDMMF success @@unique model 1`] = `
 }
 `;
 
-exports[`getDMMF success big schema read via datamodel path 1`] = `141006156`;
+exports[`getDMMF success big schema read via datamodel path 1`] = `141151322`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `909005`;
+exports[`getDMMF success chinook introspected schema 1`] = `909938`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -24239,7 +24270,7 @@ exports[`getDMMF success if a datamodel is provided, succeeds even when a non-ex
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `134375423`;
+exports[`getDMMF success odoo introspected schema 1`] = `134385034`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
@@ -24372,17 +24403,17 @@ exports[`getDMMF success simple model, mongodb 2`] = `
           ],
         },
         {
-          "name": "QueryMode",
-          "values": [
-            "default",
-            "insensitive",
-          ],
-        },
-        {
           "name": "SortOrder",
           "values": [
             "asc",
             "desc",
+          ],
+        },
+        {
+          "name": "QueryMode",
+          "values": [
+            "default",
+            "insensitive",
           ],
         },
       ],
@@ -24543,6 +24574,9 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -27895,6 +27929,15 @@ exports[`getDMMF success simple model, mysql 2`] = `
     "enumTypes": {
       "prisma": [
         {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+          ],
+        },
+        {
           "name": "AScalarFieldEnum",
           "values": [
             "id",
@@ -27906,15 +27949,6 @@ exports[`getDMMF success simple model, mysql 2`] = `
           "values": [
             "asc",
             "desc",
-          ],
-        },
-        {
-          "name": "TransactionIsolationLevel",
-          "values": [
-            "ReadUncommitted",
-            "ReadCommitted",
-            "RepeatableRead",
-            "Serializable",
           ],
         },
       ],
@@ -28075,6 +28109,9 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -31698,6 +31735,9 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -34867,17 +34907,19 @@ exports[`getDMMF success simple model, postgresql 2`] = `
     "enumTypes": {
       "prisma": [
         {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+          ],
+        },
+        {
           "name": "AScalarFieldEnum",
           "values": [
             "id",
             "name",
-          ],
-        },
-        {
-          "name": "QueryMode",
-          "values": [
-            "default",
-            "insensitive",
           ],
         },
         {
@@ -34888,12 +34930,10 @@ exports[`getDMMF success simple model, postgresql 2`] = `
           ],
         },
         {
-          "name": "TransactionIsolationLevel",
+          "name": "QueryMode",
           "values": [
-            "ReadUncommitted",
-            "ReadCommitted",
-            "RepeatableRead",
-            "Serializable",
+            "default",
+            "insensitive",
           ],
         },
       ],
@@ -35054,6 +35094,9 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -38536,6 +38579,16 @@ exports[`getDMMF success simple model, sql server 2`] = `
     "enumTypes": {
       "prisma": [
         {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "ReadUncommitted",
+            "ReadCommitted",
+            "RepeatableRead",
+            "Serializable",
+            "Snapshot",
+          ],
+        },
+        {
           "name": "AScalarFieldEnum",
           "values": [
             "id",
@@ -38547,16 +38600,6 @@ exports[`getDMMF success simple model, sql server 2`] = `
           "values": [
             "asc",
             "desc",
-          ],
-        },
-        {
-          "name": "TransactionIsolationLevel",
-          "values": [
-            "ReadUncommitted",
-            "ReadCommitted",
-            "RepeatableRead",
-            "Serializable",
-            "Snapshot",
           ],
         },
       ],
@@ -38717,6 +38760,9 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {
@@ -42160,6 +42206,12 @@ exports[`getDMMF success simple model, sqlite 2`] = `
     "enumTypes": {
       "prisma": [
         {
+          "name": "TransactionIsolationLevel",
+          "values": [
+            "Serializable",
+          ],
+        },
+        {
           "name": "AScalarFieldEnum",
           "values": [
             "id",
@@ -42171,12 +42223,6 @@ exports[`getDMMF success simple model, sqlite 2`] = `
           "values": [
             "asc",
             "desc",
-          ],
-        },
-        {
-          "name": "TransactionIsolationLevel",
-          "values": [
-            "Serializable",
           ],
         },
       ],
@@ -42337,6 +42383,9 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "name": "id",
             },
           ],
+          "meta": {
+            "source": "A",
+          },
           "name": "AWhereUniqueInput",
         },
         {

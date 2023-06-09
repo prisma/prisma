@@ -120,7 +120,6 @@ testMatrix.setupTestSuite(() => {
   test('allows to call builtin methods from extensions', async () => {
     const xprisma = prisma.$extends({
       client: {
-        // TODO: remove any once types are generated
         $myTransaction(this: any, ...args: any[]) {
           return this.$transaction(args)
         },

@@ -21,4 +21,6 @@ export default defineMatrix(() => [
       provider: 'sqlserver',
     },
   ],
+
+  [{ previewFeatures: '' }, { previewFeatures: '"clientExtensions"' }],
 ])

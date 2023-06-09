@@ -987,8 +987,96 @@ testMatrix.setupTestSuite(
         // @ts-test-if: provider === 'mongodb'
         await xprisma.$runCommandRaw({ aggregate: 'User', pipeline: [], explain: false })
         // await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(1)) // not working
-        // expect(fnUser).toHaveBeenNthCalledWith(1, { aggregate: 'User', pipeline: [], explain: false }) // broken
+        expect(fnUser).toHaveBeenNthCalledWith(1, { aggregate: 'User', pipeline: [], explain: false })
       }
+    })
+
+    testIf(provider !== 'mongodb')('extending with $allModels.$allOperations and a top-level query', async () => {
+      const fnOperation = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          // @ts-test-if: provider !== 'mongodb'
+          $queryRawUnsafe({ args, query, operation, model }: any) {
+            fnOperation({ args, operation, model })
+
+            return query(args)
+          },
+          $allModels: {
+            $allOperations({ args, query, operation, model }) {
+              fnOperation({ args, operation, model })
+
+              return query(args)
+            },
+          },
+        },
+      })
+
+      const rawQueryArgs = `SELECT 1`
+      const modelQueryArgs = { where: { id: randomId1 } }
+
+      const cbArgsRaw = { args: [rawQueryArgs], operation: '$queryRawUnsafe', model: undefined }
+      const cbArgsUser = { args: modelQueryArgs, operation: 'findFirst', model: 'User' }
+      const cbArgsPost = { args: modelQueryArgs, operation: 'findFirst', model: 'Post' }
+
+      // @ts-test-if: provider !== 'mongodb'
+      const dataRaw = await xprisma.$queryRawUnsafe(rawQueryArgs)
+      const dataUser = await xprisma.user.findFirst(modelQueryArgs)
+      const dataPost = await xprisma.post.findFirst(modelQueryArgs)
+
+      expect(dataRaw).toBeTruthy()
+      expect(dataUser).toMatchInlineSnapshot(`null`)
+      expect(dataPost).toMatchInlineSnapshot(`null`)
+      expect(fnOperation).toHaveBeenCalledTimes(3)
+      expect(fnOperation).toHaveBeenNthCalledWith(1, cbArgsRaw)
+      expect(fnOperation).toHaveBeenNthCalledWith(2, cbArgsUser)
+      expect(fnOperation).toHaveBeenNthCalledWith(3, cbArgsPost)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(3))
+    })
+
+    test('extending with $allModels and another $allModels', async () => {
+      const fnModel = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma
+        .$extends({
+          query: {
+            $allModels: {
+              findFirst({ args, query, operation, model }) {
+                fnModel({ args, operation, model })
+
+                return query(args)
+              },
+            },
+          },
+        })
+        .$extends({
+          query: {
+            $allModels: {
+              findFirst({ args, query, operation, model }) {
+                fnModel({ args, operation, model })
+
+                return query(args)
+              },
+            },
+          },
+        })
+
+      const args = { where: { id: randomId1 } }
+      const cbArgsUser = { args: args, operation: 'findFirst', model: 'User' }
+
+      const dataUser = await xprisma.user.findFirst(args)
+
+      expect(dataUser).toMatchInlineSnapshot(`null`)
+      expect(fnModel).toHaveBeenCalledTimes(2)
+      expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
+      expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsUser)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
   },
   {

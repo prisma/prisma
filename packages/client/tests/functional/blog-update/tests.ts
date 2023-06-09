@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(() => {
   test('should create a user and update that field on that user', async () => {
     const email = faker.internet.email()
-    const name = faker.name.firstName()
+    const name = faker.person.firstName()
     const newEmail = faker.internet.email()
 
     await prisma.user.create({
@@ -42,7 +42,7 @@ testMatrix.setupTestSuite(() => {
 
   test('should create a user and post and connect them together', async () => {
     const email = faker.internet.email()
-    const name = faker.name.firstName()
+    const name = faker.person.firstName()
     const title = faker.lorem.slug()
     const published = true
 
@@ -103,7 +103,7 @@ testMatrix.setupTestSuite(() => {
 
   test('should create a user and post and disconnect them', async () => {
     const email = faker.internet.email()
-    const name = faker.name.firstName()
+    const name = faker.person.firstName()
     const title = faker.lorem.slug()
     const published = true
 
@@ -168,7 +168,7 @@ testMatrix.setupTestSuite(() => {
   test('should create a user with posts and a profile and update itself and nested connections setting fields to null', async () => {
     const someDate = new Date('2020-01-01T00:00:00.348Z')
     const email = faker.internet.email()
-    const name = faker.name.firstName()
+    const name = faker.person.firstName()
     const newEmail = faker.internet.email()
     const title = faker.lorem.slug()
     const content = faker.lorem.sentence()
