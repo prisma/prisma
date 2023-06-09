@@ -60,7 +60,8 @@
     "index.js",
     "index.d.ts",
     "index-browser.js",
-    "version.js"
+    "extension.js",
+    "extension.d.ts"
   ],
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "1.1.0",

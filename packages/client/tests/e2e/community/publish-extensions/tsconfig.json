@@ -1,4 +1,4 @@
 {
   "extends": "../../tsconfig.base.json",
-  "include": ["src/*"]
+  "exclude": ["_steps.ts"]
 }

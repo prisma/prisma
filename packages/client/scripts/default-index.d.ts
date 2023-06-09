@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import * as runtime from '@prisma/client/runtime'
 
 /**
@@ -85,16 +87,15 @@ export namespace Prisma {
   ): (client: any) => PrismaClientExtends<Args>
 
   export type Extension = runtime.Types.Extensions.UserArgs
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export import getExtensionContext = runtime.Extensions.getExtensionContext
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export import Args = runtime.Types.Public.Args
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export import Payload = runtime.Types.Public.Payload
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export import Result = runtime.Types.Public.Result
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export import Exact = runtime.Types.Public.Exact
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   export import PrismaPromise = runtime.Types.Public.PrismaPromise
+
+  export const prismaVersion: {
+    client: string
+    engine: string
+  }
 }
