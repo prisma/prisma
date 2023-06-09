@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`extensions.enabled.tx (provider=cockroachdb) extended client in tx can rollback via custom call 1`] = `
+exports[`extensions.tx (provider=cockroachdb) extended client in tx can rollback via custom call 1`] = `
 
 Invalid \`prisma.user.create()\` invocation:
 
@@ -8,10 +8,10 @@ Invalid \`prisma.user.create()\` invocation:
 Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`extensions.enabled.tx (provider=cockroachdb) extended client in tx can rollback via normal call 1`] = `
+exports[`extensions.tx (provider=cockroachdb) extended client in tx can rollback via normal call 1`] = `
 
 Invalid \`xprisma.user.create()\` invocation in
-/client/tests/functional/extensions/enabled/tx.ts:0:0
+/client/tests/functional/extensions/tx.ts:0:0
 
   XX     lastName: 'Smith',
   XX   },
@@ -20,7 +20,7 @@ Invalid \`xprisma.user.create()\` invocation in
 Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`extensions.enabled.tx (provider=mongodb) extended client in tx can rollback via custom call 1`] = `
+exports[`extensions.tx (provider=mongodb) extended client in tx can rollback via custom call 1`] = `
 
 Invalid \`prisma.user.create()\` invocation:
 
@@ -28,30 +28,10 @@ Invalid \`prisma.user.create()\` invocation:
 Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
-exports[`extensions.enabled.tx (provider=mongodb) extended client in tx can rollback via normal call 1`] = `
+exports[`extensions.tx (provider=mongodb) extended client in tx can rollback via normal call 1`] = `
 
 Invalid \`xprisma.user.create()\` invocation in
-/client/tests/functional/extensions/enabled/tx.ts:0:0
-
-  XX     lastName: 'Smith',
-  XX   },
-  XX }),
-→ XX xprisma.user.create(
-Unique constraint failed on the constraint: \`User_email_key\`
-`;
-
-exports[`extensions.enabled.tx (provider=mysql) extended client in tx can rollback via custom call 1`] = `
-
-Invalid \`prisma.user.create()\` invocation:
-
-
-Unique constraint failed on the constraint: \`User_email_key\`
-`;
-
-exports[`extensions.enabled.tx (provider=mysql) extended client in tx can rollback via normal call 1`] = `
-
-Invalid \`xprisma.user.create()\` invocation in
-/client/tests/functional/extensions/enabled/tx.ts:0:0
+/client/tests/functional/extensions/tx.ts:0:0
 
   XX     lastName: 'Smith',
   XX   },
@@ -60,7 +40,27 @@ Invalid \`xprisma.user.create()\` invocation in
 Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
-exports[`extensions.enabled.tx (provider=postgresql) extended client in tx can rollback via custom call 1`] = `
+exports[`extensions.tx (provider=mysql) extended client in tx can rollback via custom call 1`] = `
+
+Invalid \`prisma.user.create()\` invocation:
+
+
+Unique constraint failed on the constraint: \`User_email_key\`
+`;
+
+exports[`extensions.tx (provider=mysql) extended client in tx can rollback via normal call 1`] = `
+
+Invalid \`xprisma.user.create()\` invocation in
+/client/tests/functional/extensions/tx.ts:0:0
+
+  XX     lastName: 'Smith',
+  XX   },
+  XX }),
+→ XX xprisma.user.create(
+Unique constraint failed on the constraint: \`User_email_key\`
+`;
+
+exports[`extensions.tx (provider=postgresql) extended client in tx can rollback via custom call 1`] = `
 
 Invalid \`prisma.user.create()\` invocation:
 
@@ -68,10 +68,10 @@ Invalid \`prisma.user.create()\` invocation:
 Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`extensions.enabled.tx (provider=postgresql) extended client in tx can rollback via normal call 1`] = `
+exports[`extensions.tx (provider=postgresql) extended client in tx can rollback via normal call 1`] = `
 
 Invalid \`xprisma.user.create()\` invocation in
-/client/tests/functional/extensions/enabled/tx.ts:0:0
+/client/tests/functional/extensions/tx.ts:0:0
 
   XX     lastName: 'Smith',
   XX   },
@@ -80,7 +80,7 @@ Invalid \`xprisma.user.create()\` invocation in
 Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`extensions.enabled.tx (provider=sqlite) extended client in tx can rollback via custom call 1`] = `
+exports[`extensions.tx (provider=sqlite) extended client in tx can rollback via custom call 1`] = `
 
 Invalid \`prisma.user.create()\` invocation:
 
@@ -88,10 +88,10 @@ Invalid \`prisma.user.create()\` invocation:
 Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`extensions.enabled.tx (provider=sqlite) extended client in tx can rollback via normal call 1`] = `
+exports[`extensions.tx (provider=sqlite) extended client in tx can rollback via normal call 1`] = `
 
 Invalid \`xprisma.user.create()\` invocation in
-/client/tests/functional/extensions/enabled/tx.ts:0:0
+/client/tests/functional/extensions/tx.ts:0:0
 
   XX     lastName: 'Smith',
   XX   },
@@ -100,7 +100,7 @@ Invalid \`xprisma.user.create()\` invocation in
 Unique constraint failed on the fields: (\`email\`)
 `;
 
-exports[`extensions.enabled.tx (provider=sqlserver) extended client in tx can rollback via custom call 1`] = `
+exports[`extensions.tx (provider=sqlserver) extended client in tx can rollback via custom call 1`] = `
 
 Invalid \`prisma.user.create()\` invocation:
 
@@ -108,10 +108,10 @@ Invalid \`prisma.user.create()\` invocation:
 Unique constraint failed on the constraint: \`dbo.User\`
 `;
 
-exports[`extensions.enabled.tx (provider=sqlserver) extended client in tx can rollback via normal call 1`] = `
+exports[`extensions.tx (provider=sqlserver) extended client in tx can rollback via normal call 1`] = `
 
 Invalid \`xprisma.user.create()\` invocation in
-/client/tests/functional/extensions/enabled/tx.ts:0:0
+/client/tests/functional/extensions/tx.ts:0:0
 
   XX     lastName: 'Smith',
   XX   },

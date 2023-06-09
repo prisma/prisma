@@ -1,6 +1,6 @@
 import { expectTypeOf } from 'expect-type'
 
-import { Prisma as PrismaDefault } from '../../../../scripts/default-index'
+import { Prisma as PrismaDefault } from '../../../scripts/default-index'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
