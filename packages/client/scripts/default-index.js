@@ -25,11 +25,11 @@ module.exports = {
     defineExtension,
     getExtensionContext,
     get prismaVersion() {
-      const pkg = require('@prisma/client/package.json')
+      const { version, dependencies } = require('@prisma/client/package.json')
 
       return {
-        client: pkg.version,
-        engine: pkg.dependencies['@prisma/engines-version'].split('.')[3],
+        client: version,
+        engine: dependencies['@prisma/engines-version'].split('.')[3],
       }
     },
   },
