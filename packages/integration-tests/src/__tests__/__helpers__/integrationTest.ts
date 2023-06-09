@@ -136,16 +136,16 @@ type Settings = {
 }
 
 /**
- * A list of available preview features on the Prisma client.
+ * A list of available preview features on Prisma Client.
  */
 type PreviewFeature = ''
 
 /**
- * Settings to add properties on the Prisma client.
+ * Settings to add properties on Prisma Client.
  */
 type PrismaClientSettings = {
   /**
-   *  Supply the enabled preview features for the Prisma client.
+   *  Supply the enabled preview features for Prisma Client.
    */
   previewFeatures?: PreviewFeature[]
 }

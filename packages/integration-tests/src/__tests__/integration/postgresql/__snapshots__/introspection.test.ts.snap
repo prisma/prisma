@@ -246,7 +246,7 @@ model invalid_enum_value_name {
   here_be_enum invalid_enum?
 }
 
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by the Prisma Client.
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model no_unique_identifier {
   field1 Int?
   field2 Int?
@@ -278,10 +278,10 @@ These enum values were commented out because their names are currently not suppo
   - Enum: "invalid_enum", value: "123"
   - Enum: "invalid_enum", value: "$§!"
 
-The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by the Prisma Client:
+The following models were ignored as they do not have a valid unique identifier or id. This is currently not supported by Prisma Client:
   - "no_unique_identifier"
 
-These fields are not supported by the Prisma Client, because Prisma currently does not support their types:
+These fields are not supported by Prisma Client, because Prisma currently does not support their types:
   - Model: "unsupported_type", field: "unsupported", original data type: "polygon"
 
 `;

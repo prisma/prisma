@@ -5,6 +5,7 @@ export const strictEnumNames = ['TransactionIsolationLevel']
  */
 const allowList = new Set([
   'toJSON', // used by JSON.stringify
+  '$$typeof', // used by old React tooling
   'asymmetricMatch', // used by Jest
   Symbol.iterator, // used by various JS constructs/methods
   Symbol.toStringTag, // Used by .toString()

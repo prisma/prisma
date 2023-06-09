@@ -10,13 +10,13 @@ let prisma: PrismaClient
 const baseUri = process.env.TEST_POSTGRES_URI
 
 const email = faker.internet.email()
-const title = faker.name.jobTitle()
+const title = faker.person.jobTitle()
 const newEmail = faker.internet.email()
-const newTitle = faker.name.jobTitle()
+const newTitle = faker.person.jobTitle()
 
-describe('multi-schema', () => {
+describe('multischema', () => {
   beforeAll(async () => {
-    process.env.TEST_POSTGRES_URI += '-multi-schema'
+    process.env.TEST_POSTGRES_URI += '-multischema'
 
     await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
     const SetupParams: SetupParams = {

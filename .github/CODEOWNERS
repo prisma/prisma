@@ -1,14 +1,3 @@
 # See https://docs.github.com/en/github/creating-cloning-and-archiving-repositories/about-code-owners
 
-# These owners will be the default owners for everything in
-# the repo. Unless a later match takes precedence,
-*                                @Jolg42 @jkomyno @prisma/client-team-ts
-
-# Schema Team
-/packages/migrate/           @Jolg42 @jkomyno
-
-# Client Team
-/packages/client/            @prisma/client-team-ts
-/packages/generator-helper/  @prisma/client-team-ts
-/packages/integration-tests/ @prisma/client-team-ts
-/packages/react-prisma/      @prisma/client-team-ts
+* @prisma/team-orm-ts

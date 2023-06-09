@@ -197,7 +197,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
 function clientExtensionsClientDefinition(this: PrismaClientClass) {
   return {
     genericParams: `C extends runtime.Types.Extensions.UserArgs['client'] = {}`,
-    params: `{ [K: symbol]: { ctx: runtime.Types.Extensions.GetClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client']> } }`,
+    params: `{ [K: symbol]: { ctx: runtime.Types.Extensions.GetMaybeITXClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client']> } }`,
   }
 }
 
@@ -312,22 +312,23 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
   }
 
   const returnType = ts.promise(ts.namedType('R'))
+
+  const thisType = ifExtensions<ts.TypeBuilder>(
+    () =>
+      ts
+        .namedType('runtime.Types.Extensions.GetClient')
+        .addGenericArgument(ts.thisType)
+        .addGenericArgument(ts.namedType('ExtArgs').subKey('client')),
+    () => ts.thisType,
+  )
+
   const callbackType = ts
     .functionType()
     .addParameter(
       ts.parameter(
         'prisma',
-        ts
-          .namedType('Omit')
-          .addGenericArgument(ts.namedType('this'))
-          .addGenericArgument(
-            ts
-              .unionType(ts.stringLiteral('$connect'))
-              .addVariant(ts.stringLiteral('$disconnect'))
-              .addVariant(ts.stringLiteral('$on'))
-              .addVariant(ts.stringLiteral('$transaction'))
-              .addVariant(ts.stringLiteral('$use')),
-          ),
+
+        ts.omit(thisType, ts.namedType('runtime.ITXClientDenyList')),
       ),
     )
     .setReturnType(returnType)
@@ -710,7 +711,7 @@ export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | un
 /**
  * \`PrismaClient\` proxy available in interactive transactions.
  */
-export type TransactionClient = Omit<Prisma.DefaultPrismaClient, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use'>
+export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClientDenyList>
 `
   }
 }

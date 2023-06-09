@@ -20,7 +20,7 @@ export function applyFieldsProxy(modelName: string, model: RuntimeModel): FieldP
         }
         const dmmfField = scalarFields[prop]
         if (dmmfField) {
-          return new FieldRefImpl(modelName, prop, dmmfField.type, dmmfField.isList)
+          return new FieldRefImpl(modelName, prop, dmmfField.type, dmmfField.isList, dmmfField.kind === 'enum')
         }
 
         return undefined
