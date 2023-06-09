@@ -613,7 +613,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         return actualFetch(url, opts)
       })
 
-      const baseDir = path.posix.join(dirname, 'all')
+      const baseDir = path.posix.join(dirname, 'checksum')
       const platform = await getPlatform()
 
       await expect(
@@ -639,7 +639,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         return actualFetch(url, opts)
       })
 
-      const baseDir = path.posix.join(dirname, 'all')
+      const baseDir = path.posix.join(dirname, 'checksum')
       const platform = await getPlatform()
       const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.QueryEngineLibrary, platform))
 
