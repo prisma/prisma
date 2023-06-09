@@ -233,6 +233,27 @@ testMatrix.setupTestSuite(
         `)
       })
 
+      test('invalid field ref', async () => {
+        const result = prisma.user.findFirst({
+          where: {
+            // @ts-expect-error
+            name: { gt: prisma.pet.fields.name },
+          },
+        })
+
+        await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+                    Invalid \`prisma.user.findFirst()\` invocation in
+                    /client/tests/functional/query-validation/tests.ts:0:0
+
+                      XX })
+                      XX 
+                      XX test('invalid field ref', async () => {
+                    → XX   const result = prisma.user.findFirst(
+                    Input error. Expected a referenced scalar field of model User, but found a field of model Pet.
+                `)
+      })
+
       test('union error', async () => {
         const result = prisma.user.findMany({
           where: {
@@ -270,23 +291,23 @@ testMatrix.setupTestSuite(
 
         await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-          Invalid \`prisma.user.findMany()\` invocation in
-          /client/tests/functional/query-validation/tests.ts:0:0
+                    Invalid \`prisma.user.findMany()\` invocation in
+                    /client/tests/functional/query-validation/tests.ts:0:0
 
-            XX })
-            XX 
-            XX test('union error: different paths', async () => {
-          → XX   const result = prisma.user.findMany({
-                    where: {
-                      email: {
-                        gt: 123
-                            ~~~
-                      }
-                    }
-                  })
+                      XX })
+                      XX 
+                      XX test('union error: different paths', async () => {
+                    → XX   const result = prisma.user.findMany({
+                              where: {
+                                email: {
+                                  gt: 123
+                                      ~~~
+                                }
+                              }
+                            })
 
-          Argument \`gt\`: Invalid value provided. Expected String, provided Int.
-        `)
+                    Argument \`gt\`: Invalid value provided. Expected String or StringFieldRefInput, provided Int.
+                `)
       })
 
       test('invalid argument value', async () => {
