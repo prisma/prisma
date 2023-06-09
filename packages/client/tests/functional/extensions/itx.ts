@@ -221,21 +221,19 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
           expectTypeOf(ctx.$connect).toEqualTypeOf<typeof prisma.$connect | undefined>()
           expectTypeOf(ctx.$disconnect).toEqualTypeOf<typeof prisma.$disconnect | undefined>()
           expectTypeOf(ctx.$transaction).toEqualTypeOf<typeof prisma.$transaction | undefined>()
-          expectTypeOf(ctx.$on).toEqualTypeOf<typeof prisma.$on | undefined>()
           expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
           expectTypeOf(ctx).not.toHaveProperty('$use')
+          expectTypeOf(ctx).not.toHaveProperty('$on')
 
           if (isTransaction) {
             expect(ctx.$connect).toBeUndefined()
             expect(ctx.$disconnect).toBeUndefined()
             expect(ctx.$transaction).toBeUndefined()
-            expect(ctx.$on).toBeUndefined()
             expect(ctx.$extends).toBeUndefined()
           } else {
             expect(ctx.$connect).toBeDefined()
             expect(ctx.$disconnect).toBeDefined()
             expect(ctx.$transaction).toBeDefined()
-            expect(ctx.$on).toBeDefined()
             expect(ctx.$extends).toBeDefined()
           }
         },

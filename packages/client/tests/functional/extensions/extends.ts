@@ -12,6 +12,11 @@ testMatrix.setupTestSuite(() => {
     expect(xprisma).not.toBe(prisma)
 
     expectTypeOf(xprisma).not.toHaveProperty('$use')
+    expectTypeOf(xprisma).not.toHaveProperty('$on')
+
+    expect(xprisma).not.toHaveProperty('$use')
+    expect(xprisma).not.toHaveProperty('$on')
+
     expect(await xprisma.user.findMany()).toEqual([])
   })
 
