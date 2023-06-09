@@ -1052,6 +1052,9 @@ function transactionProxy<T>(thing: T, transaction: PrismaPromiseInteractiveTran
 
       if (prop === TX_ID) return transaction?.id // secret accessor to the txId
 
+      // when the extensions are accessed, we return the merged extensions list
+      if (target[prop] instanceof MergedExtensionsList) return target[prop]
+
       // we override and handle every function call within the proxy
       if (typeof target[prop] === 'function') {
         return function (this: T, ...args: unknown[]) {
