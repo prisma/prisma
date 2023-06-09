@@ -1,8 +1,8 @@
 import { getQueryEngineProtocol } from '@prisma/internals'
 import { expectTypeOf } from 'expect-type'
 
-import { waitFor } from '../../_utils/tests/waitFor'
-import { NewPrismaClient } from '../../_utils/types'
+import { waitFor } from '../_utils/tests/waitFor'
+import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'

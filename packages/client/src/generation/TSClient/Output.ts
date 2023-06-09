@@ -7,7 +7,6 @@ import * as ts from '../ts-builders'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { wrapComment } from './helpers'
-import { ifExtensions } from './utils/ifExtensions'
 
 export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper, useNamespace = false) {
   let fieldTypeName = GraphQLScalarToJSTypeTable[field.type] || field.type
@@ -17,16 +16,13 @@ export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper, us
   if (useNamespace && needsNamespace(field.type, dmmf)) {
     fieldTypeName = `Prisma.${fieldTypeName}`
   }
-  let fieldType: ts.TypeBuilder = ifExtensions(
-    () => {
-      // object and not a composite
-      if (field.kind === 'object' && !dmmf.typeMap[field.type]) {
-        return ts.namedType(`${fieldTypeName}Payload`).addGenericArgument(ts.namedType('ExtArgs'))
-      }
-      return ts.namedType(fieldTypeName)
-    },
-    () => ts.namedType(fieldTypeName),
-  )
+  let fieldType: ts.TypeBuilder
+  // object and not a composite
+  if (field.kind === 'object' && !dmmf.typeMap[field.type]) {
+    fieldType = ts.namedType(`${fieldTypeName}Payload`).addGenericArgument(ts.namedType('ExtArgs'))
+  } else {
+    fieldType = ts.namedType(fieldTypeName)
+  }
 
   if (field.isList) {
     fieldType = ts.array(fieldType)
