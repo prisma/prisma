@@ -156,7 +156,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-12.e3e1da125cf9e3d0e865b9bdfdae91d5ffced535"
+    "@prisma/engines-version": "4.16.0-23.integration-node-drivers-typed-45573408cca611fc19c003755e5348a127d9f147"
   },
   "sideEffects": false
 }
