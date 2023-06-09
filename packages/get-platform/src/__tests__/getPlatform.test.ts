@@ -1,14 +1,14 @@
 import stripAnsi from 'strip-ansi'
 
-import { getPlatformInternal, getPlatformMemoized } from '../getPlatform'
+import { getPlatformInfoMemoized, getPlatformInternal } from '../getPlatform'
 import { jestConsoleContext, jestContext } from '../test-utils'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('getPlatformMemoized', () => {
   it('repeated invocations are idempotent and memoized', async () => {
-    const platformFirst = await getPlatformMemoized()
-    const platformSecond = await getPlatformMemoized()
+    const platformFirst = await getPlatformInfoMemoized()
+    const platformSecond = await getPlatformInfoMemoized()
     expect(platformFirst.binaryTarget).toBe(platformSecond.binaryTarget)
     expect(platformFirst.memoized).toBeFalsy()
     expect(platformSecond.memoized).toBeTruthy()

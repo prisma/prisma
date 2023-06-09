@@ -16,6 +16,13 @@ export class ObjectType extends TypeBuilder {
     return this
   }
 
+  addMultiple(items: ObjectTypeItem[]): this {
+    for (const item of items) {
+      this.add(item)
+    }
+    return this
+  }
+
   formatInline() {
     this.inline = true
     return this

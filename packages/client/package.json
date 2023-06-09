@@ -43,7 +43,7 @@
     "test:memory": "node -r esbuild-register helpers/memory-tests.ts",
     "test:functional:code": "node -r esbuild-register helpers/functional-test/run-tests.ts --no-types",
     "test:functional:types": "node -r esbuild-register helpers/functional-test/run-tests.ts --types-only",
-    "test-notypes": "jest --silent --testPathIgnorePatterns src/__tests__/types/types.test.ts",
+    "test-notypes": "jest --testPathIgnorePatterns src/__tests__/types/types.test.ts",
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "pnpm run build",
@@ -59,7 +59,8 @@
     "edge.d.ts",
     "index.js",
     "index.d.ts",
-    "index-browser.js"
+    "index-browser.js",
+    "version.js"
   ],
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "1.1.0",
@@ -87,21 +88,22 @@
     "@swc/core": "1.3.32",
     "@swc/jest": "0.2.26",
     "@timsuchanek/copy": "1.4.5",
-    "@types/debug": "4.1.7",
+    "@types/debug": "4.1.8",
     "@types/fs-extra": "9.0.13",
     "@types/jest": "29.5.1",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.2",
-    "@types/node": "18.16.12",
-    "@types/pg": "8.6.6",
+    "@types/node": "18.16.16",
+    "@types/pg": "8.10.2",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
     "benchmark": "2.1.4",
     "ci-info": "3.8.0",
     "decimal.js": "10.4.3",
+    "env-paths": "2.2.1",
     "esbuild": "0.15.13",
     "execa": "5.1.1",
-    "expect-type": "0.15.0",
+    "expect-type": "0.16.0",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "11.1.0",
     "get-own-enumerable-property-symbols": "3.0.2",
@@ -118,7 +120,7 @@
     "kleur": "4.1.5",
     "klona": "2.0.6",
     "lz-string": "1.5.0",
-    "mariadb": "3.0.2",
+    "mariadb": "3.1.2",
     "memfs": "3.5.1",
     "mssql": "9.1.1",
     "new-github-issue-url": "0.2.1",
@@ -154,7 +156,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.15.0-15.a336b8b8b93d6661f14bbeeeca1aebe7794c418f"
+    "@prisma/engines-version": "4.16.0-12.e3e1da125cf9e3d0e865b9bdfdae91d5ffced535"
   },
   "sideEffects": false
 }

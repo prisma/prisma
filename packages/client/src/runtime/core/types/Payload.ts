@@ -7,4 +7,7 @@ export type Payload = {
     // but if we do that TypeScript will attempt to compare types recursively
     [ObjectName in string]: unknown
   }
+  composites: {
+    [CompositeName in string]: unknown
+  }
 }
