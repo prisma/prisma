@@ -1,5 +1,3 @@
-const pkg = require('@prisma/client/package.json')
-
 class PrismaClient {
   constructor() {
     throw new Error(
@@ -26,9 +24,13 @@ module.exports = {
   Prisma: {
     defineExtension,
     getExtensionContext,
-    prismaVersion: {
-      client: pkg.version,
-      engine: pkg.dependencies['@prisma/engines-version'].split('.')[3],
+    get prismaVersion() {
+      const pkg = require('@prisma/client/package.json')
+
+      return {
+        client: pkg.version,
+        engine: pkg.dependencies['@prisma/engines-version'].split('.')[3],
+      }
     },
   },
 }
