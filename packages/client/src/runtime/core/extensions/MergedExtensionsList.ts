@@ -1,7 +1,7 @@
 import { Cache } from '../../../generation/Cache'
 import { lazyProperty } from '../../../generation/lazyProperty'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
-import { Args, ClientArg, ModelArg, QueryOptionsCb } from './$extends'
+import { Args, BatchQueryOptionsCb, ClientArg, ModelArg, QueryOptionsCb, QueryOptionsPrivate } from './$extends'
 import { ComputedFieldsMap, getComputedFields } from './resultUtils'
 
 class MergedExtensionsListNode {
@@ -18,6 +18,15 @@ class MergedExtensionsListNode {
       ...this.previous?.getAllClientExtensions(),
       ...this.extension.client,
     }
+  })
+
+  private batchCallbacks = lazyProperty(() => {
+    const previous: BatchQueryOptionsCb[] = this.previous?.getAllBatchQueryCallbacks() ?? []
+    const newCb = (this.extension as QueryOptionsPrivate).query?.$__internalBatch
+    if (!newCb) {
+      return previous
+    }
+    return previous.concat(newCb)
   })
 
   constructor(public extension: Args, public previous?: MergedExtensionsListNode) {}
@@ -89,6 +98,10 @@ class MergedExtensionsListNode {
       return prevCbs.concat(newCbs)
     })
   }
+
+  getAllBatchQueryCallbacks() {
+    return this.batchCallbacks.get()
+  }
 }
 
 /**
@@ -134,5 +147,9 @@ export class MergedExtensionsList {
 
   getAllQueryCallbacks(jsModelName: string, operation: string) {
     return this.head?.getAllQueryCallbacks(jsModelName, operation) ?? []
+  }
+
+  getAllBatchQueryCallbacks() {
+    return this.head?.getAllBatchQueryCallbacks() ?? []
   }
 }

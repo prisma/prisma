@@ -16,15 +16,17 @@ import {
   PrismaClientRustPanicError,
   PrismaClientUnknownRequestError,
 } from '.'
+import { QueryEngineResult } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
+import { applyQueryBatchExtensions } from './core/extensions/applyQueryExtensions'
 import { applyResultExtensions } from './core/extensions/applyResultExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { visitQueryResult } from './core/extensions/visitQueryResult'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { ProtocolEncoder, ProtocolMessage } from './core/protocol/common'
 import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
-import { JsArgs } from './core/types/JsApi'
+import { Action, JsArgs } from './core/types/JsApi'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
@@ -35,6 +37,7 @@ const debug = Debug('prisma:client:request_handler')
 
 export type RequestParams = {
   modelName?: string
+  action: Action
   protocolMessage: ProtocolMessage
   protocolEncoder: ProtocolEncoder
   dataPath: string[]
@@ -59,15 +62,6 @@ export type HandleErrorParams = {
   transaction?: PrismaPromiseTransaction
 }
 
-export type Request = {
-  protocolMessage: ProtocolMessage
-  protocolEncoder: ProtocolEncoder
-  transaction?: PrismaPromiseTransaction
-  otelParentCtx?: Context
-  otelChildCtx?: Context
-  customDataProxyFetch?: (fetch: Fetch) => Fetch
-}
-
 type ApplyExtensionsParams = {
   result: object
   modelName: string
@@ -77,7 +71,7 @@ type ApplyExtensionsParams = {
 
 export class RequestHandler {
   client: Client
-  dataloader: DataLoader<Request>
+  dataloader: DataLoader<RequestParams>
   private logEmitter?: EventEmitter
 
   constructor(client: Client, logEmitter?: EventEmitter) {
@@ -85,33 +79,54 @@ export class RequestHandler {
     this.client = client
     this.dataloader = new DataLoader({
       batchLoader: (requests) => {
-        const { transaction, protocolEncoder, otelParentCtx } = requests[0]
-        const queries = protocolEncoder.createBatch(requests.map((r) => r.protocolMessage))
-        const traceparent = this.client._tracingHelper.getTraceParent(otelParentCtx)
+        return applyQueryBatchExtensions(
+          {
+            requests,
+          },
+          async ({ requests, customDataProxyFetch }) => {
+            const { transaction, protocolEncoder, otelParentCtx } = requests[0]
+            const queries = protocolEncoder.createBatch(requests.map((r) => r.protocolMessage))
+            const traceparent = this.client._tracingHelper.getTraceParent(otelParentCtx)
 
-        // TODO: pass the child information to QE for it to issue links to queries
-        // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
+            // TODO: pass the child information to QE for it to issue links to queries
+            // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        const containsWrite = requests.some((r) => r.protocolMessage.isWrite())
+            const containsWrite = requests.some((r) => r.protocolMessage.isWrite())
 
-        return this.client._engine.requestBatch(queries, {
-          traceparent,
-          transaction: getTransactionOptions(transaction),
-          containsWrite,
-          customDataProxyFetch: requests[0].customDataProxyFetch,
-        })
+            const results = await this.client._engine.requestBatch(queries, {
+              traceparent,
+              transaction: getTransactionOptions(transaction),
+              containsWrite,
+              customDataProxyFetch,
+            })
+
+            return results.map((result, i) => {
+              if (result instanceof Error) {
+                return result
+              }
+
+              try {
+                return this.processResponse(requests[i], result)
+              } catch (error) {
+                return error
+              }
+            })
+          },
+        )
       },
-      singleLoader: (request) => {
+      singleLoader: async (request) => {
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
-        return this.client._engine.request(request.protocolMessage.toEngineQuery(), {
+        const response = await this.client._engine.request(request.protocolMessage.toEngineQuery(), {
           traceparent: this.client._tracingHelper.getTraceParent(),
           interactiveTransaction,
           isWrite: request.protocolMessage.isWrite(),
           customDataProxyFetch: request.customDataProxyFetch,
         })
+        return this.processResponse(request, response)
       },
+
       batchBy: (request) => {
         if (request.transaction?.id) {
           return `transaction-${request.transaction.id}`
@@ -129,31 +144,31 @@ export class RequestHandler {
     })
   }
 
-  async request({
-    protocolMessage,
-    protocolEncoder,
-    dataPath = [],
-    callsite,
-    modelName,
-    rejectOnNotFound,
-    clientMethod,
-    args,
-    transaction,
-    unpacker,
-    extensions,
-    otelParentCtx,
-    otelChildCtx,
-    customDataProxyFetch,
-  }: RequestParams) {
+  async request(params: RequestParams) {
     try {
-      const response = await this.dataloader.request({
-        protocolMessage,
-        protocolEncoder,
-        transaction,
-        otelParentCtx,
-        otelChildCtx,
-        customDataProxyFetch,
-      })
+      return await this.dataloader.request(params)
+    } catch (error) {
+      const { clientMethod, callsite, transaction, args } = params
+      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
+    }
+  }
+
+  processResponse(
+    {
+      protocolMessage,
+      dataPath,
+      unpacker,
+      clientMethod,
+      modelName,
+      args,
+      extensions,
+      rejectOnNotFound,
+      callsite,
+      transaction,
+    }: RequestParams,
+    response: QueryEngineResult<any>,
+  ) {
+    try {
       const data = response?.data
       const elapsed = response?.elapsed
 
