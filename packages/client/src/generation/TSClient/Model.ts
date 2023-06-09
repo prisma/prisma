@@ -38,16 +38,14 @@ import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapCommen
 import { InputType } from './Input'
 import { ModelFieldRefs } from './ModelFieldRefs'
 import { buildModelOutputProperty, OutputType } from './Output'
-import { PayloadType } from './Payload'
 import { SchemaOutputType } from './SchemaOutput'
 import { buildIncludeType, buildScalarSelectType, buildSelectType } from './SelectInclude'
 import { getModelActions } from './utils/getModelActions'
-import { ifExtensions } from './utils/ifExtensions'
 
 const extArgsParam = ts
   .genericParameter('ExtArgs')
-  .extends(ts.namedType('runtime.Types.Extensions.Args'))
-  .default(ts.namedType('runtime.Types.Extensions.DefaultArgs'))
+  .extends(ts.namedType('$Extensions.Args'))
+  .default(ts.namedType('$Extensions.DefaultArgs'))
 
 export class Model implements Generatable {
   protected outputType: OutputType
@@ -123,10 +121,7 @@ export class Model implements Generatable {
     return `
 
 
-export type ${groupByArgsName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
+export type ${groupByArgsName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
 ${indent(
   groupByRootField.args
     .map((arg) => {
@@ -242,10 +237,7 @@ ${
     : ''
 }
 
-export type ${aggregateArgsName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
+export type ${aggregateArgsName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
 ${indent(
   aggregateRootField.args
     .map((arg) => {
@@ -284,65 +276,44 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     const modelLine = `Model ${model.name}\n`
     const docs = `${modelLine}${docLines}`
 
-    return ifExtensions(
-      () => {
-        const objects = ts.objectType()
-        const scalars = ts.objectType()
-        const composites = ts.objectType()
+    const objects = ts.objectType()
+    const scalars = ts.objectType()
+    const composites = ts.objectType()
 
-        for (const field of model.fields) {
-          if (field.kind === 'object') {
-            if (this.dmmf.typeMap[field.type]) {
-              composites.add(buildModelOutputProperty(field, this.dmmf))
-            } else {
-              objects.add(buildModelOutputProperty(field, this.dmmf))
-            }
-          } else if (field.kind === 'enum' || field.kind === 'scalar') {
-            scalars.add(buildModelOutputProperty(field, this.dmmf, true))
-          }
+    for (const field of model.fields) {
+      if (field.kind === 'object') {
+        if (this.dmmf.typeMap[field.type]) {
+          composites.add(buildModelOutputProperty(field, this.dmmf))
+        } else {
+          objects.add(buildModelOutputProperty(field, this.dmmf))
         }
-        const payloadType = ts
-          .objectType()
-          .add(ts.property('objects', objects))
-          .add(
-            ts.property(
-              'scalars',
-              ts
-                .namedType('runtime.Types.Extensions.GetResult')
-                .addGenericArgument(scalars)
-                .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name))),
-            ),
-          )
-          .add(ts.property('composites', composites))
+      } else if (field.kind === 'enum' || field.kind === 'scalar') {
+        scalars.add(buildModelOutputProperty(field, this.dmmf, true))
+      }
+    }
+    const payloadType = ts
+      .objectType()
+      .add(ts.property('objects', objects))
+      .add(
+        ts.property(
+          'scalars',
+          ts
+            .namedType('$Extensions.GetResult')
+            .addGenericArgument(scalars)
+            .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name))),
+        ),
+      )
+      .add(ts.property('composites', composites))
 
-        const payloadExport = ts.moduleExport(
-          ts.typeDeclaration(`${model.name}Payload`, payloadType).addGenericParameter(extArgsParam),
-        )
-
-        const modelTypeExport = ts
-          .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`${model.name}Payload`).subKey('scalars')))
-          .setDocComment(ts.docComment(docs))
-
-        return `${ts.stringify(payloadExport)}\n\n${ts.stringify(modelTypeExport)}`
-      },
-      () => {
-        const modelTypeExport = ts
-          .moduleExport(
-            ts.typeDeclaration(
-              model.name,
-              ts
-                .objectType()
-                .addMultiple(
-                  model.fields
-                    .filter((f) => (f.kind !== 'object' && f.kind !== 'unsupported') || this.dmmf.typeMap[f.type])
-                    .map((f) => buildModelOutputProperty(f, this.dmmf, !this.dmmf.typeMap[f.type])),
-                ),
-            ),
-          )
-          .setDocComment(ts.docComment(docs))
-        return ts.stringify(modelTypeExport, { newLine: 'trailing' })
-      },
+    const payloadExport = ts.moduleExport(
+      ts.typeDeclaration(`${model.name}Payload`, payloadType).addGenericParameter(extArgsParam),
     )
+
+    const modelTypeExport = ts
+      .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`${model.name}Payload`).subKey('scalars')))
+      .setDocComment(ts.docComment(docs))
+
+    return `${ts.stringify(payloadExport)}\n\n${ts.stringify(modelTypeExport)}`
   }
   public toTS(): string {
     const { model } = this
@@ -368,18 +339,14 @@ ${!this.dmmf.typeMap[model.name] ? this.getAggregationTypes() : ''}
 ${!this.dmmf.typeMap[model.name] ? this.getGroupByTypes() : ''}
 
 ${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.outputType.fields }))}
-${ifExtensions(() => {
-  return ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.outputType.fields }), {
-    newLine: 'leading',
-  })
-}, '')}
+${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.outputType.fields }), {
+  newLine: 'leading',
+})}
 ${includeType}
-${ifExtensions(
-  `type ${model.name}GetPayload<S extends boolean | null | undefined | ${getArgName(
-    model.name,
-  )}> = runtime.Types.GetFindResult<${model.name}Payload, S>`,
-  new PayloadType(this.outputType, this.dmmf).toTS(),
-)}
+
+type ${model.name}GetPayload<S extends boolean | null | undefined | ${getArgName(model.name)}> = $Types.GetResult<${
+      model.name
+    }Payload, S>
 
 ${isComposite ? '' : new ModelDelegate(this.outputType, this.dmmf, this.generator).toTS()}
 
@@ -433,27 +400,15 @@ export class ModelDelegate implements Generatable {
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
-    ? `type ${countArgsName}${ifExtensions(
-        '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-        '',
-      )} = 
+    ? `type ${countArgsName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = 
   Omit<${getModelArgName(name, DMMF.ModelAction.findMany)}, 'select' | 'include'> & {
     select?: ${getCountAggregateInputName(name)} | true
   }
 `
     : ''
 }
-export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined${ifExtensions(
-      ', ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs',
-      '',
-    )}> {
-${ifExtensions(
-  `${indent(
-    `[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`,
-    TAB_SIZE,
-  )}`,
-  '',
-)}
+export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
+${indent(`[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`, TAB_SIZE)}
 ${indent(
   nonAggregateActions
     .map(
@@ -473,7 +428,7 @@ ${
   count<T extends ${countArgsName}>(
     args?: Subset<T, ${countArgsName}>,
   ): Prisma.PrismaPromise<
-    T extends _Record<'select', any>
+    T extends $Utils.Record<'select', any>
       ? T['select'] extends true
         ? number
         : GetScalarType<T['select'], ${getCountAggregateOutputName(name)}>
@@ -565,10 +520,7 @@ ${fieldsProxy}
  * Because we want to prevent naming conflicts as mentioned in
  * https://github.com/prisma/prisma-client-js/issues/707
  */
-export class Prisma__${name}Client<T, Null = never${ifExtensions(
-      ', ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs',
-      '',
-    )}> implements Prisma.PrismaPromise<T> {
+export class Prisma__${name}Client<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> implements Prisma.PrismaPromise<T> {
   private readonly _dmmf;
   private readonly _queryType;
   private readonly _rootField;
@@ -591,10 +543,10 @@ ${indent(
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
-${f.name}<T extends ${getFieldArgName(f, name)}${ifExtensions(
-        '<ExtArgs> = {}',
-        '= {}',
-      )}>(args?: Subset<T, ${getFieldArgName(f, name)}${ifExtensions('<ExtArgs>', '')}>): ${getReturnType({
+${f.name}<T extends ${getFieldArgName(f, name)}<ExtArgs> = {}>(args?: Subset<T, ${getFieldArgName(
+        f,
+        name,
+      )}<ExtArgs>>): ${getReturnType({
         name: fieldTypeName,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
         hideCondition: false,

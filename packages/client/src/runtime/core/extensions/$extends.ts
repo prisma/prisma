@@ -1,5 +1,4 @@
 import { Client } from '../../getPrismaClient'
-import { PrismaClientValidationError } from '../../query'
 import {
   applyModelsAndClientExtensions,
   unapplyModelsAndClientExtensions,
@@ -82,12 +81,6 @@ type QueryOptions = {
  * @param this
  */
 export function $extends(this: Client, extension: Args | ((client: Client) => Client)): Client {
-  if (!this._hasPreviewFlag('clientExtensions')) {
-    throw new PrismaClientValidationError(
-      'Extensions are not yet generally available, please add `clientExtensions` to the `previewFeatures` field in the `generator` block in the `schema.prisma` file.',
-    )
-  }
-
   if (typeof extension === 'function') {
     return extension(this)
   }
@@ -99,7 +92,7 @@ export function $extends(this: Client, extension: Args | ((client: Client) => Cl
     _extensions: {
       value: this._extensions.append(extension),
     },
-  })
+  }) as Client
 
   return applyModelsAndClientExtensions(newClient)
 }

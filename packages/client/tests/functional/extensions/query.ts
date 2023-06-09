@@ -1,9 +1,9 @@
 import { randomBytes } from 'crypto'
 import { expectTypeOf } from 'expect-type'
 
-import { wait } from '../../_utils/tests/wait'
-import { waitFor } from '../../_utils/tests/waitFor'
-import { NewPrismaClient } from '../../_utils/types'
+import { wait } from '../_utils/tests/wait'
+import { waitFor } from '../_utils/tests/waitFor'
+import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'

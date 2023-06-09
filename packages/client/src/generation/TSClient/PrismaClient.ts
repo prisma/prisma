@@ -12,33 +12,32 @@ import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
-import { ifExtensions } from './utils/ifExtensions'
 
 function clientExtensionsResultDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   const resultGenericParams = (modelName: string) => {
-    return `R_${modelName}_Needs extends Record<string, runtime.Types.Extensions.GetSelect<Prisma.${modelName}SelectScalar, ExtArgs['result']['${lowerCase(
+    return `R_${modelName}_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.${modelName}SelectScalar, ExtArgs['result']['${lowerCase(
       modelName,
     )}']>>`
   }
 
   const genericParams = [
     ...modelNames.flatMap(resultGenericParams),
-    `R extends runtime.Types.Extensions.UserArgs['result'] = {}`,
+    `R extends $Extensions.UserArgs['result'] = {}`,
   ].join(',\n    ')
 
   const resultParam = (modelName: string) => {
     return `${lowerCase(modelName)}?: {
         [K in keyof R_${modelName}_Needs]: {
           needs: R_${modelName}_Needs[K]
-          compute: (data: runtime.Types.GetResult<${modelName}Payload<ExtArgs>, { select: R_${modelName}_Needs[K] }, 'findUniqueOrThrow'>) => unknown
+          compute: (data: $Types.GetResult<${modelName}Payload<ExtArgs>, { select: R_${modelName}_Needs[K] }, 'findUniqueOrThrow'>) => unknown
         }
       }`
   }
 
   const params = `{
-      $allModels?: Record<string, {
+      $allModels?: $Utils.Record<string, {
         compute: (data: unknown) => unknown
       }>
       ${modelNames.map(resultParam).join('\n      ')}
@@ -56,7 +55,7 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
   const modelParam = (modelName: string) => {
     return `${lowerCase(
       modelName,
-    )}?: { [K: symbol]: { ctx: runtime.Types.Extensions.GetModel<Prisma.${modelName}Delegate<false, ExtArgs>, ExtArgs['model']['${lowerCase(
+    )}?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.${modelName}Delegate<false, ExtArgs>, ExtArgs['model']['${lowerCase(
       modelName,
     )}']> } }`
   }
@@ -67,7 +66,7 @@ function clientExtensionsModelDefinition(this: PrismaClientClass) {
     }`
 
   return {
-    genericParams: `M extends runtime.Types.Extensions.UserArgs['model'] = {}`,
+    genericParams: `M extends $Extensions.UserArgs['model'] = {}`,
     params,
   }
 }
@@ -87,7 +86,7 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
         return `${acc}
       ${action}: {
         args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
-        result: runtime.Types.Utils.OptionalFlat<${modelName}>
+        result: $Utils.OptionalFlat<${modelName}>
         payload: ${modelName}Payload<ExtArgs>
       }`
       }, '')}
@@ -130,7 +129,7 @@ function clientTypeMapOthersDefinition(this: PrismaClientClass) {
 function clientTypeMapDefinition(this: PrismaClientClass) {
   const typeMap = `${clientTypeMapModelsDefinition.bind(this)()} & ${clientTypeMapOthersDefinition.bind(this)()}`
 
-  return `export type TypeMap<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs> = ${typeMap}`
+  return `export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = ${typeMap}`
 }
 
 function clientExtensionsQueryDefinition(this: PrismaClientClass) {
@@ -138,7 +137,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
   const prismaNamespaceDefinitions = clientTypeMapDefinition.bind(this)()
 
   const queryCbDefinitionModel = (modelName: string, operationName: string) => {
-    const queryArgs = `runtime.Types.Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model'][${modelName}][${operationName}]['args']>`
+    const queryArgs = `$Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model'][${modelName}][${operationName}]['args']>`
     const queryResult = `Prisma.TypeMap<ExtArgs>['model'][${modelName}][${operationName}]['result']`
     const inputQueryBase = `model: ${modelName}, operation: ${operationName}, args: ${queryArgs}`
     const inputQueryCbBase = `query: (args: ${queryArgs}) => Prisma.PrismaPromise<${queryResult}>`
@@ -188,7 +187,7 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
     }`
 
   return {
-    genericParams: `Q extends runtime.Types.Extensions.UserArgs['query'] = {}`,
+    genericParams: `Q extends $Extensions.UserArgs['query'] = {}`,
     params: `${allModelsParam} & ${concreteModelParams} & ${concreteOtherParams}`,
     prismaNamespaceDefinitions,
   }
@@ -196,8 +195,8 @@ function clientExtensionsQueryDefinition(this: PrismaClientClass) {
 
 function clientExtensionsClientDefinition(this: PrismaClientClass) {
   return {
-    genericParams: `C extends runtime.Types.Extensions.UserArgs['client'] = {}`,
-    params: `{ [K: symbol]: { ctx: runtime.Types.Extensions.GetMaybeITXClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client']> } }`,
+    genericParams: `C extends $Extensions.UserArgs['client'] = {}`,
+    params: `{ [K: symbol]: { ctx: $Extensions.GetMaybeITXClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client']> } }`,
   }
 }
 
@@ -212,10 +211,10 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
   return {
     signature: `${name === 'defineExtension' ? name : `${name}: { extArgs: ExtArgs } & (`}<
     ${genericParams.join(',\n    ')},
-    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, Q, C>, ${
+    Args extends $Extensions.Args = $Extensions.InternalArgs<R, M, Q, C>, ${
       name === 'defineExtension'
         ? `
-    ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs,`
+    ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs,`
         : ''
     }
   >(extension: ((client: ${
@@ -226,16 +225,16 @@ function clientExtensionsHookDefinition(this: PrismaClientClass, name: '$extends
   >) ${name === 'defineExtension' ? ':' : '=>'} ${
       name === 'defineExtension'
         ? '(client: any) => PrismaClient<any, any, any, Args>'
-        : `runtime.Types.Extensions.GetClient<PrismaClient<T, U, GlobalReject, {
-    result: ExtArgs['result'] & Record<string, Args['result']['$allModels'] & {}> & Args['result']
-    model: ExtArgs['model'] & Record<string, Args['model']['$allModels'] & {}> & Args['model']
+        : `$Extensions.GetClient<PrismaClient<T, U, GlobalReject, {
+    result: ExtArgs['result'] & $Utils.Record<string, Args['result']['$allModels'] & {}> & Args['result']
+    model: ExtArgs['model'] & $Utils.Record<string, Args['model']['$allModels'] & {}> & Args['model']
     client: ExtArgs['client'] & Args['client'],
     query: {}
   }>, ExtArgs['client'] & Args['client']>`
     }${name === 'defineExtension' ? '' : ')'};`,
     prismaNamespaceDefinitions: `${query.prismaNamespaceDefinitions}
 export type ExtensionArgs<
-    ExtArgs extends runtime.Types.Extensions.Args,
+    ExtArgs extends $Extensions.Args,
     ${genericParams.join(',\n    ')}
 > = {
   name?: string,
@@ -252,17 +251,10 @@ function clientExtensionsDefinitions(this: PrismaClientClass) {
   const extend = clientExtensionsHookDefinition.bind(this)('$extends')
 
   return {
-    prismaNamespaceDefinitions: ifExtensions(
-      `
+    prismaNamespaceDefinitions: `
 export function ${define.signature}
 ${extend.prismaNamespaceDefinitions}`,
-      '',
-    ),
-    prismaClientDefinitions: ifExtensions(
-      `  ${extend.signature}
-`,
-      '',
-    ),
+    prismaClientDefinitions: `  ${extend.signature}\n`,
   }
 }
 
@@ -313,14 +305,10 @@ function interactiveTransactionDefinition(this: PrismaClientClass) {
 
   const returnType = ts.promise(ts.namedType('R'))
 
-  const thisType = ifExtensions<ts.TypeBuilder>(
-    () =>
-      ts
-        .namedType('runtime.Types.Extensions.GetClient')
-        .addGenericArgument(ts.thisType)
-        .addGenericArgument(ts.namedType('ExtArgs').subKey('client')),
-    () => ts.thisType,
-  )
+  const thisType = ts
+    .namedType('$Extensions.GetClient')
+    .addGenericArgument(ts.thisType)
+    .addGenericArgument(ts.namedType('ExtArgs').subKey('client'))
 
   const callbackType = ts
     .functionType()
@@ -498,18 +486,11 @@ export class PrismaClient<
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
   GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined = 'rejectOnNotFound' extends keyof T
     ? T['rejectOnNotFound']
-    : false${ifExtensions(
-      `,
-  ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs`,
-      '',
-    )}
-      > {${ifExtensions(
-        `
-
+    : false,
+  ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs
+> {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
-`,
-        '',
-      )}
+
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
@@ -556,12 +537,9 @@ ${[
   * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
   * \`\`\`
   */
-get ${methodName}(): ${ifExtensions(
-            `runtime.Types.Extensions.GetModel<Prisma.${
-              m.model
-            }Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['${lowerCase(m.model)}']>`,
-            `Prisma.${m.model}Delegate<GlobalReject>`,
-          )};`
+get ${methodName}(): $Extensions.GetModel<Prisma.${
+            m.model
+          }Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['${lowerCase(m.model)}']>;`
         })
         .join('\n\n'),
       2,
