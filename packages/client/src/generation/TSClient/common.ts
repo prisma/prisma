@@ -529,7 +529,14 @@ type Cast<A, B> = A extends B ? A : B;
 
 export const type: unique symbol;
 
-export function validator<V>(): <S>(select: $Utils.LegacyExact<S, V>) => S;
+export function validator<V>():
+<S>(select: $Utils.LegacyExact<S, V>) => S;
+export function validator<T>(client: T):
+<S>(select: $Utils.Exact<S, $Public.Args<T, 'findFirstOrThrow'>['select']>) => S;
+export function validator<T, O extends $Public.Operation & keyof T, P extends string>(client: T, operation: O):
+<S>(select: $Utils.Exact<S, $Public.Args<T, O>>) => S;
+export function validator<T, O extends $Public.Operation & keyof T, P extends keyof $Public.Args<T, O>>(client: T, operation: O, prop: P):
+<S>(select: $Utils.Exact<S, $Public.Args<T, O>[P]>) => S;
 
 /**
  * Used by group by
