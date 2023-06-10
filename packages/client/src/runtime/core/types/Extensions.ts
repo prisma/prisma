@@ -20,29 +20,17 @@ export type Args = InternalArgs
 
 export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
-export type GetResult<Base extends Record<any, any>, R extends Args['result'][string]> =
-  {
-    [K in keyof R | keyof Base as string extends keyof R ? never : K]:
-      K extends keyof R ? ReturnType<ReturnType<R[K]>['compute']> : Base[K]
-  } & unknown
+export type GetResult<Base extends Record<any, any>, R extends Args['result'][string], _R extends Args['result'][string] = Record<string, any> extends R ? {} : R> =
+  { [K in keyof _R | keyof Base]: K extends keyof _R ? ReturnType<ReturnType<_R[K]>['compute']> : Base[K] } & unknown
 
-export type GetSelect<Base extends Record<any, any>, R extends Args['result'][string]> =
-  {
-    [K in keyof R | keyof Base as string extends keyof R ? never : K]?:
-      K extends keyof R ? boolean : Base[K]
-  }
+export type GetSelect<Base extends Record<any, any>, R extends Args['result'][string], _R extends Args['result'][string] = Record<string, any> extends R ? {} : R> =
+  { [K in keyof _R | keyof Base]?: K extends keyof _R ? boolean : Base[K] }
 
-export type GetModel<Base extends Record<any, any>, M extends Args['model'][string]> =
-  {
-    [K in keyof M | keyof Base as string extends keyof M ? never : K]:
-      K extends keyof M ? ReturnType<M[K]> : Base[K]
-  }
+export type GetModel<Base extends Record<any, any>, M extends Args['model'][string], _M extends Args['model'][string] = Record<string, any> extends M ? {} : M> =
+  { [K in keyof _M | keyof Base]: K extends keyof _M ? ReturnType<_M[K]> : Base[K] }
 
-export type GetClient<Base extends Record<any, any>, C extends Args['client']> =
-  {
-    [K in keyof C | Exclude<keyof Base, '$use' | '$on'> as string extends keyof C ? never : K]:
-      K extends keyof C ? ReturnType<C[K]> : Base[K]
-  }
+export type GetClient<Base extends Record<any, any>, C extends Args['client'], _C extends Args['model'][string] = Record<string, any> extends C ? {} : C> =
+  { [K in keyof _C | Exclude<keyof Base, '$use' | '$on'>]: K extends keyof _C ? ReturnType<_C[K]> : Base[K] }
 
 export type GetMaybeITXClient<Base extends Record<any, any>, C extends Args['client']> =
   MakeITXPropsOptional<GetClient<Base, C>>
