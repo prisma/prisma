@@ -575,8 +575,9 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       delete process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING
     })
 
+    const baseDir = path.posix.join(dirname, 'checksum')
+
     test('if checksum downloads and matches, does not throw', async () => {
-      const baseDir = path.posix.join(dirname, 'all')
       const platform = await getPlatform()
       const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.QueryEngineLibrary, platform))
 
@@ -613,7 +614,6 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         return actualFetch(url, opts)
       })
 
-      const baseDir = path.posix.join(dirname, 'checksum')
       const platform = await getPlatform()
 
       await expect(
@@ -639,7 +639,6 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         return actualFetch(url, opts)
       })
 
-      const baseDir = path.posix.join(dirname, 'checksum')
       const platform = await getPlatform()
       const queryEnginePath = path.join(baseDir, getBinaryName(BinaryType.QueryEngineLibrary, platform))
 
