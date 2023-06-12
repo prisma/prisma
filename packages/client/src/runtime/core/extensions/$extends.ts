@@ -91,7 +91,6 @@ export function $extends(this: Client, extension: Args | ((client: Client) => Cl
   const newClient = Object.create(oldClient, {
     _extensions: {
       value: this._extensions.append(extension),
-      configurable: true,
     },
   }) as Client
 
