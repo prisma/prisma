@@ -92,7 +92,6 @@ export function $extends(this: Client, extension: Args | ((client: Client) => Cl
     _extensions: {
       value: this._extensions.append(extension),
       configurable: true,
-      enumerable: true,
     },
   }) as Client
 
