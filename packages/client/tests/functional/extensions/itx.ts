@@ -222,6 +222,40 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
     ).resolves.not.toThrow()
   })
 
+  test('middleware exclude from transaction also works with extended client', async () => {
+    const xprisma = prisma.$extends({})
+
+    prisma.$use((params, next) => {
+      return next({ ...params, runInTransaction: false })
+    })
+
+    const usersBefore = await xprisma.user.findMany()
+
+    await xprisma
+      .$transaction(async (prisma) => {
+        await prisma.user.create({
+          data: {
+            email: 'jane@smith.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
+        })
+
+        await prisma.user.create({
+          data: {
+            email: 'jane@smith.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
+        })
+      })
+      .catch(() => {})
+
+    const usersAfter = await xprisma.user.findMany()
+
+    expect(usersAfter).toHaveLength(usersBefore.length + 1)
+  })
+
   test('client component is available within itx callback', async () => {
     const helper = jest.fn()
     const xprisma = prisma.$extends({
