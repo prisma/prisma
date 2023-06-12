@@ -274,6 +274,7 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
 
   test('methods from itx client denylist are optional within client extensions', async () => {
     expect.assertions(12)
+
     const xprisma = prisma.$extends({
       client: {
         testContextMethods(isTransaction: boolean) {
@@ -286,8 +287,8 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
           expectTypeOf(ctx).not.toHaveProperty('$use')
           expectTypeOf(ctx).not.toHaveProperty('$on')
 
-          expect(ctx).toHaveProperty('$use', undefined)
-          expect(ctx).toHaveProperty('$on', undefined)
+          expect(ctx['$use']).toBeUndefined()
+          expect(ctx['$on']).toBeUndefined()
 
           if (isTransaction) {
             expect(ctx.$connect).toBeUndefined()
