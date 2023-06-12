@@ -1,15 +1,5 @@
 import * as runtime from '@prisma/client/runtime'
 
-type UnwrapPromise<P> = P extends Promise<infer R> ? R : P
-
-type UnwrapTuple<Tuple extends readonly unknown[]> = {
-  [K in keyof Tuple]: K extends `${number}`
-    ? Tuple[K] extends Prisma.PrismaPromise<infer X>
-      ? X
-      : UnwrapPromise<Tuple[K]>
-    : UnwrapPromise<Tuple[K]>
-}
-
 /**
  * ##  Prisma Client ʲˢ
  *
@@ -70,7 +60,7 @@ export declare class PrismaClientExtends<
   $transaction<P extends Prisma.PrismaPromise<any>[]>(
     arg: [...P],
     options?: { isolationLevel?: string },
-  ): Promise<UnwrapTuple<P>>
+  ): Promise<runtime.Types.Utils.UnwrapTuple<P>>
 }
 
 export declare const dmmf: any
