@@ -14,6 +14,7 @@ import { getFiles } from './__utils__/getFiles'
 jest.mock('node-fetch', () => jest.fn())
 
 const actualFetch: typeof import('node-fetch').default = jest.requireActual('node-fetch')
+const mockFetch = _mockFetch as any as jest.Mock<ReturnType<typeof actualFetch>, Parameters<typeof actualFetch>>
 
 const CURRENT_ENGINES_HASH = enginesVersion
 console.debug({ CURRENT_ENGINES_HASH })
@@ -31,6 +32,7 @@ describe('download', () => {
   let platform: Platform
 
   beforeEach(async () => {
+    mockFetch.mockReset().mockImplementation(actualFetch)
     // completely clean up the cache and keep nothing
     await cleanupCache(0)
     platform = await getPlatform()
@@ -573,8 +575,6 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
   })
 
   describe('env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1', () => {
-    const mockFetch = _mockFetch as any as jest.Mock<ReturnType<typeof actualFetch>, Parameters<typeof actualFetch>>
-
     beforeAll(() => {
       process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = '1'
     })
@@ -587,8 +587,6 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       // Make sure to not mix forward and backward slashes in the path
       // or del glob pattern would not work on Windows
       await del(path.posix.join(baseDirChecksum, '*engine*'))
-
-      mockFetch.mockReset().mockImplementation(actualFetch)
     })
 
     test('if checksum downloads and matches, does not throw', async () => {
