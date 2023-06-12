@@ -97,14 +97,9 @@ function setupTestSuiteMatrix(
         globalThis['newPrismaClient'] = (...args) => {
           const client = new global['loaded']['PrismaClient'](...args)
           clients.push(client)
-          return new Proxy(client.$extends({}), {
-            get(target, prop) {
-              if (prop === '$use' || prop === '$on') {
-                return client[prop]
-              }
-
-              return client[prop]
-            },
+          return Object.assign(client.$extends({}), {
+            $use: (...args) => client['$use'](...args),
+            $on: (...args) => client['$on'](...args),
           })
         }
         if (!options?.skipDefaultClientInstance) {
