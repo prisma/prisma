@@ -29,6 +29,7 @@ describe('download', () => {
   const baseDirAll = path.posix.join(dirname, 'all')
   const baseDirCorruption = path.posix.join(dirname, 'corruption')
   const baseDirChecksum = path.posix.join(dirname, 'checksum')
+  const baseDirBinaryTarget = path.posix.join(dirname, 'binaryTarget')
   let platform: Platform
 
   beforeEach(async () => {
