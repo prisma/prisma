@@ -222,6 +222,22 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
     ).resolves.not.toThrow()
   })
 
+  test('client component is available within itx callback', async () => {
+    const helper = jest.fn()
+    const xprisma = prisma.$extends({
+      client: {
+        helper,
+      },
+    })
+
+    await xprisma.$transaction((tx) => {
+      tx.helper()
+      return Promise.resolve()
+    })
+
+    expect(helper).toHaveBeenCalled()
+  })
+
   test('methods from itx client denylist are optional within client extensions', async () => {
     expect.assertions(10)
     const xprisma = prisma.$extends({
