@@ -225,10 +225,8 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
           expectTypeOf(ctx).not.toHaveProperty('$use')
           expectTypeOf(ctx).not.toHaveProperty('$on')
 
-          // @ts-ignore
-          expect(ctx.$use).toBeUndefined()
-          // @ts-ignore
-          expect(ctx.$one).toBeUndefined()
+          expect((ctx as any).$use).toBeUndefined()
+          expect((ctx as any).$on).toBeUndefined()
 
           if (isTransaction) {
             expect(ctx.$connect).toBeUndefined()
