@@ -880,11 +880,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           ...changedRequestParams,
         }
 
-        // if middleware switched off `runInTransaction`, unset
-        // `transaction` property on request as well so it will be executed outside
-        // of transaction
-        if (!runInTransaction) {
-          requestParams.transaction = undefined
+        // if middleware switched off `runInTransaction`, unset `transaction`
+        // property on request as well so it will be executed outside of the tx
+        if (internalParams.transaction !== undefined && runInTransaction === false) {
+          delete requestParams.transaction // client extensions check for this
         }
 
         return applyQueryExtensions(this, requestParams) // also executes the query
@@ -1051,6 +1050,9 @@ function transactionProxy<T>(thing: T, transaction: PrismaPromiseInteractiveTran
       if (itxClientDenyList.includes(prop)) return undefined
 
       if (prop === TX_ID) return transaction?.id // secret accessor to the txId
+
+      // when the extensions are accessed, we return the merged extensions list
+      if (target[prop] instanceof MergedExtensionsList) return target[prop]
 
       // we override and handle every function call within the proxy
       if (typeof target[prop] === 'function') {
