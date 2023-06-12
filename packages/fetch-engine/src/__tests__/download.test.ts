@@ -592,7 +592,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     beforeEach(async () => {
       // Make sure to not mix forward and backward slashes in the path
       // or del glob pattern would not work on Windows
-      await del(path.posix.join(baseDirChecksum, '*engine*'))
+      // await del(path.posix.join(baseDirChecksum, '*engine*'))
     })
 
     test('if checksum downloads and matches, does not throw', async () => {
