@@ -156,7 +156,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-12.e3e1da125cf9e3d0e865b9bdfdae91d5ffced535"
+    "@prisma/engines-version": "4.16.0-28.integration-improve-field-ref-validation-2357b35a6b2132dc3ae7d43c05aac5d415bbb319"
   },
   "sideEffects": false
 }
