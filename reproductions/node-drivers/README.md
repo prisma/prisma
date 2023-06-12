@@ -6,13 +6,19 @@ In particular, focusing on the MySQL database, this playground makes it easy to 
 
 ## Preliminaries
 
-- Run `pnpm i`
-- Edit the Prisma Client script (located at [`index.ts`](./index.ts)) as you please before running the playground examples
-- Export the `DATABASE_URL="mysql://root:root@localhost:3306/tests"` env var, ideally via `direnv allow .`
-- In a separate terminal open at the root of this repository, run a MySQL instance via
+In a terminal open at the root of this repository:
+
+- Run `pnpm i && pnpm build` to build Prisma locally
+- Run a MySQL instance via
   ```sh
   docker-compose -f docker/docker-compose.yml up mysql
   ```
+
+In another terminal open at the current ([./reproductions/node-drivers](./)) location:
+
+- Run `pnpm i`
+- Edit the Prisma Client script (located at [`index.ts`](./index.ts)) as you please before running the playground examples
+- Export the `DATABASE_URL="mysql://root:root@localhost:3306/tests"` env var, ideally via `direnv allow .`
 
 ## How to run experimental `nodeDrivers`
 
@@ -33,6 +39,6 @@ In particular, focusing on the MySQL database, this playground makes it easy to 
 ## Current limitations
 
 - The database URL can only be `env("DATABASE_URL")`
-- The `PRISMA_USE_NODE_DRIVERS` env var is currently used to regulate when a Node.js driver is effectively instantiated
+- The `PRISMA_USE_NODE_DRIVERS` env var is currently used to regulate when a Node.js driver is effectively instantiated.
 - Only parameterless queries that don't use transactions can currently be tested
 - Prisma Client scripts must be explicitly closed via `process.exit(0)` (otherwise, the process hangs when using `nodeDrivers`)
