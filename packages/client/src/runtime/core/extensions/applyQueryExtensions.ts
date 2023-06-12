@@ -15,7 +15,7 @@ function iterateAndCallQueryCallbacks(
 
     // allow query extensions to re-wrap in transactions
     // this will automatically discard the prev batch tx
-    if (transaction !== undefined) {
+    if ('transaction' in params && transaction !== undefined) {
       if (params.transaction?.kind === 'batch') {
         void params.transaction.lock.then() // discard
       }
