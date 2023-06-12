@@ -511,6 +511,12 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
   })
 
   describe('binaryTarget', () => {
+    beforeEach(async () => {
+      // Make sure to not mix forward and backward slashes in the path
+      // or del glob pattern would not work on Windows
+      await del(path.posix.join(baseDirBinaryTarget, '*engine*'))
+    })
+
     afterEach(() => {
       delete process.env.PRISMA_QUERY_ENGINE_BINARY
     })
@@ -519,7 +525,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       await expect(
         download({
           binaries: {
-            'query-engine': __dirname,
+            'query-engine': baseDirBinaryTarget,
           },
           version: FIXED_ENGINES_HASH,
           binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -535,7 +541,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       try {
         await download({
           binaries: {
-            'query-engine': __dirname,
+            'query-engine': baseDirBinaryTarget,
           },
           version: FIXED_ENGINES_HASH,
           binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
@@ -550,13 +556,13 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     test('handle nonexistent "binaryTarget" with custom engine binary', async () => {
       const e = await download({
         binaries: {
-          'query-engine': __dirname,
+          'query-engine': baseDirBinaryTarget,
         },
         version: FIXED_ENGINES_HASH,
       })
       const dummyPath = e['query-engine']![Object.keys(e['query-engine']!)[0]]!
       const targetPath = path.join(
-        __dirname,
+        baseDirBinaryTarget,
         // @ts-ignore
         getBinaryName('query-engine', 'marvin'),
       )
@@ -565,7 +571,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
 
       const testResult = await download({
         binaries: {
-          'query-engine': path.join(__dirname, 'all'),
+          'query-engine': baseDirBinaryTarget,
         },
         version: FIXED_ENGINES_HASH,
         binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
