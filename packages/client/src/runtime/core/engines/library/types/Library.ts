@@ -16,8 +16,24 @@ export type QueryEngineInstance = {
   metrics(options: string): Promise<string>
 }
 
+export type ResultSet = {
+  columns: string[]
+  rows: string[][] // Note: we're currently stringifying any result values
+}
+
+export type Driver = {
+  queryRaw: (sql: string) => Promise<ResultSet>
+  executeRaw: (sql: string) => Promise<number>
+  version: () => Promise<string | undefined>
+  isHealthy: () => boolean
+}
+
+export type Closeable = {
+  close: () => Promise<void>
+}
+
 export interface QueryEngineConstructor {
-  new (config: QueryEngineConfig, logger: (log: string) => void): QueryEngineInstance
+  new (config: QueryEngineConfig, logger: (log: string) => void, driver?: Driver): QueryEngineInstance
 }
 
 export interface LibraryLoader {

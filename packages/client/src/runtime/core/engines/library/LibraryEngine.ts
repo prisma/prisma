@@ -39,6 +39,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
+import { createMySQLDriver } from './driver/mysql'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
@@ -246,6 +247,15 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         this.library = await this.libraryLoader.loadLibrary()
         this.QueryEngineConstructor = this.library.QueryEngine
       }
+
+      const usePrismaNodeDrivers = process.env.PRISMA_USE_NODE_DRIVERS === '1'
+
+      // Note: Node.js drivers currently require knowing the connection string upfront,
+      // which would need JS to access Rust's `psl_core::configuration::datasource::Datasource::load_url`.
+      // For rapid testing purposes, we just pass `process.env.DATABASE_URL` here, assuming that's
+      // the connection string of the active provider `@prisma/mysql`.
+      const driver = usePrismaNodeDrivers ? createMySQLDriver(process.env.DATABASE_URL as string) : undefined
+
       try {
         // Using strong reference to `this` inside of log callback will prevent
         // this instance from being GCed while native engine is alive. At the same time,
@@ -266,9 +276,17 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           (log) => {
             weakThis.deref()?.logger(log)
           },
+
+          // Note: custom drivers should only be allowed when the active provider is `@prisma/mysql` and `previewFeatures` contains `nodeDrivers`.
+          // This is currently not checked, and could need access to something like `this.engine.getConfig()`.
+          driver,
         )
         engineInstanceCount++
       } catch (_e) {
+        if (driver) {
+          await driver.close().catch((_) => {})
+        }
+
         const e = _e as Error
         const error = this.parseInitError(e.message)
         if (typeof error === 'string') {

@@ -1,0 +1,25 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../node_modules/.prisma/client"
+  previewFeatures = ["nodeDrivers"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model company {
+  id        Int         @id
+  name      String      @db.VarChar(10)
+  some_user some_user[]
+}
+
+model some_user {
+  id         Int     @id
+  firstname  String  @db.VarChar(30)
+  lastname   String  @db.VarChar(30)
+  company_id Int
+  company    company @relation(fields: [company_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "some_user_ibfk_1")
+  @@index([company_id], map: "company_id")
+}

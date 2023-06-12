@@ -1,0 +1,20 @@
+[nodejs] initialized PrismaClient
+[nodejs] initializing mysql connection pool: mysql://root:root@localhost:3306/tests
+JSQueryable::query()
+JSQueryable::query_raw(SELECT `tests`.`some_user`.`id`, `tests`.`some_user`.`firstname`, `tests`.`some_user`.`lastname`, `tests`.`some_user`.`company_id` FROM `tests`.`some_user` WHERE 1=1, [])
+[rs] calling query_raw: SELECT `tests`.`some_user`.`id`, `tests`.`some_user`.`firstname`, `tests`.`some_user`.`lastname`, `tests`.`some_user`.`company_id` FROM `tests`.`some_user` WHERE 1=1
+[nodejs] calling queryRaw SELECT `tests`.`some_user`.`id`, `tests`.`some_user`.`firstname`, `tests`.`some_user`.`lastname`, `tests`.`some_user`.`company_id` FROM `tests`.`some_user` WHERE 1=1
+[rs] awaiting promise
+[nodejs] after query
+[nodejs] resultSet {
+  columns: [ 'id', 'firstname', 'lastname', 'company_id' ],
+  rows: [ [ '1', 'Alberto', 'S', '1' ], [ '2', 'Tom', 'H', '1' ] ]
+}
+[rs] awaited: ResultSet { columns: ["id", "firstname", "lastname", "company_id"], rows: [["1", "Alberto", "S", "1"], ["2", "Tom", "H", "1"]] }
+[nodejs] manyUsers [
+  { id: 1, firstname: 'Alberto', lastname: 'S', company_id: 1 },
+  { id: 2, firstname: 'Tom', lastname: 'H', company_id: 1 }
+]
+[nodejs] disconnecting PrismaClient
+[nodejs] disconnected PrismaClient
+[nodejs] exiting...
