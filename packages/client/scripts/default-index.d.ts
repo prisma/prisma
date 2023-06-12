@@ -34,9 +34,9 @@ export declare const PrismaClient: any
  */
 export declare type PrismaClient = any
 
-export declare type PrismaClientExtends<
+export declare class PrismaClientExtends<
   ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs,
-> = {
+> {
   $extends: { extArgs: ExtArgs } & (<
     R extends runtime.Types.Extensions.UserArgs['result'] = {},
     M extends runtime.Types.Extensions.UserArgs['model'] = {},
@@ -51,7 +51,18 @@ export declare type PrismaClientExtends<
       | { model?: M & runtime.Types.Extensions.UserArgs['model'] }
       | { query?: Q & runtime.Types.Extensions.UserArgs['query'] }
       | { client?: C & runtime.Types.Extensions.UserArgs['client'] },
-  ) => PrismaClientExtends<Args & ExtArgs>)
+  ) => runtime.Types.Extensions.GetClient<PrismaClientExtends<Args & ExtArgs>, Args['client']>)
+
+  $transaction<R>(
+    fn: (
+      prisma: Omit<runtime.Types.Extensions.GetClient<this, ExtArgs['client']>, runtime.ITXClientDenyList>,
+    ) => Promise<R>,
+    options?: { maxWait?: number; timeout?: number; isolationLevel?: string },
+  ): Promise<R>
+  $transaction<P extends Prisma.PrismaPromise<any>[]>(
+    arg: [...P],
+    options?: { isolationLevel?: string },
+  ): Promise<runtime.Types.Utils.UnwrapTuple<P>>
 }
 
 export declare const dmmf: any

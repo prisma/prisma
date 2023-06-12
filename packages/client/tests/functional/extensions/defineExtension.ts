@@ -208,6 +208,27 @@ function queryGenericExtensionObjectViaDefault() {
   })
 }
 
+// this is just actually used for testing that the type work correctly
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function itxWithinGenericExtension() {
+  return PrismaDefault.defineExtension((client) => {
+    const xclient = client.$extends({
+      client: {
+        helperMethod() {},
+      },
+    })
+
+    void xclient.$transaction((tx) => {
+      expectTypeOf(tx).toHaveProperty('helperMethod')
+      expectTypeOf(tx).not.toHaveProperty('$transaction')
+      expectTypeOf(tx).not.toHaveProperty('$extends')
+      return Promise.resolve()
+    })
+
+    return xclient
+  })
+}
+
 function resultExtensionCallbackViaDefault() {
   return PrismaDefault.defineExtension((client) => {
     return client.$extends({
