@@ -273,7 +273,8 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
   })
 
   test('methods from itx client denylist are optional within client extensions', async () => {
-    expect.assertions(10)
+    expect.assertions(12)
+
     const xprisma = prisma.$extends({
       client: {
         testContextMethods(isTransaction: boolean) {
@@ -282,26 +283,26 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
           expectTypeOf(ctx.$connect).toEqualTypeOf<typeof prisma.$connect | undefined>()
           expectTypeOf(ctx.$disconnect).toEqualTypeOf<typeof prisma.$disconnect | undefined>()
           expectTypeOf(ctx.$transaction).toEqualTypeOf<typeof prisma.$transaction | undefined>()
-          expectTypeOf(ctx.$on).toEqualTypeOf<typeof prisma.$on | undefined>()
           expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
           expectTypeOf(ctx).not.toHaveProperty('$use')
+          expectTypeOf(ctx).not.toHaveProperty('$on')
+
+          expect(ctx['$use']).toBeUndefined()
+          expect(ctx['$on']).toBeUndefined()
 
           if (isTransaction) {
             expect(ctx.$connect).toBeUndefined()
             expect(ctx.$disconnect).toBeUndefined()
             expect(ctx.$transaction).toBeUndefined()
-            expect(ctx.$on).toBeUndefined()
             expect(ctx.$extends).toBeUndefined()
           } else {
             expect(ctx.$connect).toBeDefined()
             expect(ctx.$disconnect).toBeDefined()
             expect(ctx.$transaction).toBeDefined()
-            expect(ctx.$on).toBeDefined()
             expect(ctx.$extends).toBeDefined()
           }
         },
       },
-
       model: {
         user: {
           helper() {},
