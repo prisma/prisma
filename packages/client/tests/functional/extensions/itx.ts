@@ -10,7 +10,7 @@ declare let Prisma: typeof PrismaNamespace
 
 const email = faker.internet.email()
 
-testMatrix.setupTestSuite((_0, _1, clientMeta) => {
+testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
   beforeEach(async () => {
     await prisma.post.deleteMany()
     await prisma.user.deleteMany()
@@ -209,6 +209,17 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
     expect(users).toHaveLength(1)
+  })
+
+  testIf(provider !== 'mongodb')('itx works with extended client + queryRawUnsafe', async () => {
+    const xprisma = prisma.$extends({})
+
+    await expect(
+      xprisma.$transaction((tx) => {
+        // @ts-test-if: provider !== 'mongodb'
+        return tx.$queryRawUnsafe('SELECT 1')
+      }),
+    ).resolves.not.toThrow()
   })
 
   test('methods from itx client denylist are optional within client extensions', async () => {
