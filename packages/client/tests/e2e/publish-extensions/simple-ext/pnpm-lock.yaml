@@ -1,0 +1,48 @@
+lockfileVersion: 5.4
+
+specifiers:
+  '@prisma/client': ../../prisma-client-0.0.0.tgz
+  prisma: ../../prisma-0.0.0.tgz
+  typescript: 4.9.4
+
+devDependencies:
+  '@prisma/client': file:../../prisma-client-0.0.0.tgz_prisma@0.0.0
+  prisma: file:../../prisma-0.0.0.tgz
+  typescript: 4.9.4
+
+packages:
+
+  /typescript/4.9.4:
+    resolution: {integrity: sha512-Uz+dTXYzxXXbsFpM86Wh3dKCxrQqUcVMxwU54orwlJjOpO3ao8L7j5lH+dWfTwgCwIuM9GQ2kvVotzYJMXTBZg==}
+    engines: {node: '>=4.2.0'}
+    hasBin: true
+    dev: true
+
+  file:../../prisma-0.0.0.tgz:
+    resolution: {integrity: sha512-rccAkx2WA0zv2oBeSomRmYdT5oGkE9rA2NvczAeFxUqfMENeP/ZFiHtccwaTcCcxSF+q8O+sX8Q9ksXCIcH5Vg==, tarball: file:../../prisma-0.0.0.tgz}
+    name: prisma
+    version: 0.0.0
+    engines: {node: '>=14.17'}
+    hasBin: true
+    requiresBuild: true
+    dev: true
+    bundledDependencies:
+      - '@prisma/engines'
+
+  file:../../prisma-client-0.0.0.tgz_prisma@0.0.0:
+    resolution: {integrity: sha512-dEGflcYN9i1kSeDykFQL/hptz2yPkbE1gZ3RdB+zEs05ILRHiMQr6BMXQS6ZQxCF9cfrznEdic+wxtTDkqMF+w==, tarball: file:../../prisma-client-0.0.0.tgz}
+    id: file:../../prisma-client-0.0.0.tgz
+    name: '@prisma/client'
+    version: 0.0.0
+    engines: {node: '>=14.17'}
+    requiresBuild: true
+    peerDependencies:
+      prisma: '*'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+    dependencies:
+      prisma: file:../../prisma-0.0.0.tgz
+    dev: true
+    bundledDependencies:
+      - '@prisma/engines-version'
