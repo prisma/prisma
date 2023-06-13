@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client/scripts/default-index'
+import { Prisma } from '@prisma/client/extension'
 
 export const simpleExtension = Prisma.defineExtension({
   model: {
