@@ -6,10 +6,8 @@ import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknow
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type {
   BatchQueryEngineResult,
-  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
-  EngineQuery,
   InlineDatasource,
   InteractiveTransactionOptions,
   RequestBatchOptions,
@@ -17,6 +15,7 @@ import type {
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { EventEmitter } from '../common/types/Events'
+import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
@@ -286,7 +285,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   request<T>(
-    query: EngineQuery,
+    query: JsonQuery,
     { traceparent, interactiveTransaction, customDataProxyFetch }: RequestOptions<DataProxyTxInfoPayload>,
   ) {
     // TODO: `elapsed`?
@@ -299,7 +298,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   async requestBatch<T>(
-    queries: EngineBatchQueries,
+    queries: JsonQuery[],
     { traceparent, transaction, customDataProxyFetch }: RequestBatchOptions<DataProxyTxInfoPayload>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     const interactiveTransaction = transaction?.kind === 'itx' ? transaction.options : undefined

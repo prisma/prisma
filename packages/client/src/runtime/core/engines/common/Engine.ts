@@ -39,9 +39,6 @@ export type GraphQLQuery = {
 }
 
 export type EngineProtocol = 'graphql' | 'json'
-export type EngineQuery = GraphQLQuery | JsonQuery
-
-export type EngineBatchQueries = GraphQLQuery[] | JsonQuery[]
 
 export type RequestOptions<InteractiveTransactionPayload> = {
   traceparent?: string
@@ -71,11 +68,11 @@ export abstract class Engine<InteractiveTransactionPayload = unknown> {
   abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
   abstract request<T>(
-    query: EngineQuery,
+    query: JsonQuery,
     options: RequestOptions<InteractiveTransactionPayload>,
   ): Promise<QueryEngineResult<T>>
   abstract requestBatch<T>(
-    queries: EngineBatchQueries,
+    queries: JsonQuery[],
     options: RequestBatchOptions<InteractiveTransactionPayload>,
   ): Promise<BatchQueryEngineResult<T>[]>
   abstract transaction(
@@ -125,7 +122,6 @@ export interface EngineConfig {
   engineEndpoint?: string
   activeProvider?: string
   logEmitter: EventEmitter
-  engineProtocol: EngineProtocol
 
   /**
    * The contents of the schema encoded into a string

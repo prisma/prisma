@@ -1,6 +1,6 @@
 import { ErrorFormat } from '../../../getPrismaClient'
 import { deepGet } from '../../../utils/deep-set'
-import { EngineBatchQuery, JsonQuery, JsonQueryAction } from '../../engines'
+import { JsonQuery, JsonQueryAction } from '../../engines'
 import { RuntimeDataModel } from '../../runtimeDataModel'
 import { CreateMessageOptions, ProtocolEncoder, ProtocolMessage } from '../common'
 import { deserializeJsonResponse } from './deserialize'
@@ -18,7 +18,7 @@ export class JsonProtocolEncoder implements ProtocolEncoder<JsonQuery> {
     return new JsonProtocolMessage(query)
   }
 
-  createBatch(messages: JsonProtocolMessage[]): EngineBatchQuery {
+  createBatch(messages: JsonProtocolMessage[]): JsonQuery[] {
     return messages.map((message) => message.toEngineQuery())
   }
 }

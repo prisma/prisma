@@ -14,16 +14,14 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
-  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
-  EngineProtocol,
-  EngineQuery,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { EventEmitter } from '../common/types/Events'
+import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
@@ -71,7 +69,6 @@ export class LibraryEngine extends Engine<undefined> {
   private libraryLoader: LibraryLoader
   private library?: Library
   private logEmitter: EventEmitter
-  private engineProtocol: EngineProtocol
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
@@ -124,7 +121,6 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     this.logLevel = config.logLevel ?? 'error'
     this.libraryLoader = loader
     this.logEmitter = config.logEmitter
-    this.engineProtocol = config.engineProtocol
     this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -261,7 +257,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             datasourceOverrides: this.datasourceOverrides,
             logLevel: this.logLevel,
             configDir: this.config.cwd,
-            engineProtocol: this.engineProtocol,
+            engineProtocol: 'json',
           },
           (log) => {
             weakThis.deref()?.logger(log)
@@ -457,7 +453,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async request<T>(
-    query: EngineQuery,
+    query: JsonQuery,
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
@@ -503,7 +499,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async requestBatch<T>(
-    queries: EngineBatchQueries,
+    queries: JsonQuery[],
     { transaction, traceparent }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     debug('requestBatch')

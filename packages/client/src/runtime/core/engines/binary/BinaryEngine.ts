@@ -20,16 +20,15 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
-  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
-  EngineQuery,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
 import { EventEmitter } from '../common/types/Events'
+import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
@@ -687,7 +686,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async request<T>(
-    query: EngineQuery,
+    query: JsonQuery,
     { traceparent, numTry = 1, isWrite, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<QueryEngineResult<T>> {
     await this.start()
@@ -740,7 +739,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async requestBatch<T>(
-    queries: EngineBatchQueries,
+    queries: JsonQuery[],
     { traceparent, transaction, numTry = 1, containsWrite }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     await this.start()

@@ -8,6 +8,7 @@ export { PrismaClientInitializationError } from './core/errors/PrismaClientIniti
 export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
 export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'
 export { PrismaClientUnknownRequestError } from './core/errors/PrismaClientUnknownRequestError'
+export { PrismaClientValidationError } from './core/errors/PrismaClientValidationError'
 export {
   type Metric,
   type MetricHistogram,
@@ -22,7 +23,6 @@ export { type BaseDMMF, DMMF } from './dmmf-types'
 export type { PrismaClientOptions } from './getPrismaClient'
 export { getPrismaClient } from './getPrismaClient'
 export { objectEnumValues } from './object-enums'
-export { makeDocument, PrismaClientValidationError, transformDocument, unpack } from './query'
 export { makeStrictEnum } from './strictEnum'
 export type { DecimalJsLike } from './utils/decimalJsLike'
 export { decompressFromBase64 } from './utils/decompressFromBase64'

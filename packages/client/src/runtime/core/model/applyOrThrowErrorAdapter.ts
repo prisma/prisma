@@ -1,10 +1,10 @@
 import { DMMF } from '@prisma/generator-helper'
 
 import { InternalRequestParams } from '../../getPrismaClient'
-import { PrismaClientValidationError } from '../../query'
 import { createErrorMessageWithContext } from '../../utils/createErrorMessageWithContext'
 import { NotFoundError } from '../../utils/rejectOnNotFound'
 import { PrismaClientKnownRequestError } from '../errors/PrismaClientKnownRequestError'
+import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 
 type RequestCallback = (requestParams: InternalRequestParams) => Promise<unknown>
 
