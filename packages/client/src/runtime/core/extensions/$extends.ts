@@ -1,7 +1,7 @@
 import { Client } from '../../getPrismaClient'
 import {
   applyModelsAndClientExtensions,
-  unapplyModelsAndClientExtensions,
+  unApplyModelsAndClientExtensions,
 } from '../model/applyModelsAndClientExtensions'
 import { RawQueryArgs } from '../raw-query/RawQueryArgs'
 import { JsArgs } from '../types/JsApi'
@@ -87,11 +87,13 @@ export function $extends(this: Client, extension: Args | ((client: Client) => Cl
 
   // re-apply models to the extend client: they always capture specific instance
   // of the client and without re-application they would not see new extensions
-  const oldClient = unapplyModelsAndClientExtensions(this)
+  const oldClient = unApplyModelsAndClientExtensions(this)
   const newClient = Object.create(oldClient, {
     _extensions: {
       value: this._extensions.append(extension),
     },
+    $use: { value: undefined },
+    $on: { value: undefined },
   }) as Client
 
   return applyModelsAndClientExtensions(newClient)

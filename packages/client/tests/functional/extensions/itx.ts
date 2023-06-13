@@ -10,7 +10,7 @@ declare let Prisma: typeof PrismaNamespace
 
 const email = faker.internet.email()
 
-testMatrix.setupTestSuite((_0, _1, clientMeta) => {
+testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
   beforeEach(async () => {
     await prisma.post.deleteMany()
     await prisma.user.deleteMany()
@@ -211,8 +211,70 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     expect(users).toHaveLength(1)
   })
 
+  testIf(provider !== 'mongodb')('itx works with extended client + queryRawUnsafe', async () => {
+    const xprisma = prisma.$extends({})
+
+    await expect(
+      xprisma.$transaction((tx) => {
+        // @ts-test-if: provider !== 'mongodb'
+        return tx.$queryRawUnsafe('SELECT 1')
+      }),
+    ).resolves.not.toThrow()
+  })
+
+  test('middleware exclude from transaction also works with extended client', async () => {
+    const xprisma = prisma.$extends({})
+
+    prisma.$use((params, next) => {
+      return next({ ...params, runInTransaction: false })
+    })
+
+    const usersBefore = await xprisma.user.findMany()
+
+    await xprisma
+      .$transaction(async (prisma) => {
+        await prisma.user.create({
+          data: {
+            email: 'jane@smith.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
+        })
+
+        await prisma.user.create({
+          data: {
+            email: 'jane@smith.com',
+            firstName: 'Jane',
+            lastName: 'Smith',
+          },
+        })
+      })
+      .catch(() => {})
+
+    const usersAfter = await xprisma.user.findMany()
+
+    expect(usersAfter).toHaveLength(usersBefore.length + 1)
+  })
+
+  test('client component is available within itx callback', async () => {
+    const helper = jest.fn()
+    const xprisma = prisma.$extends({
+      client: {
+        helper,
+      },
+    })
+
+    await xprisma.$transaction((tx) => {
+      tx.helper()
+      return Promise.resolve()
+    })
+
+    expect(helper).toHaveBeenCalled()
+  })
+
   test('methods from itx client denylist are optional within client extensions', async () => {
-    expect.assertions(10)
+    expect.assertions(12)
+
     const xprisma = prisma.$extends({
       client: {
         testContextMethods(isTransaction: boolean) {
@@ -221,26 +283,26 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
           expectTypeOf(ctx.$connect).toEqualTypeOf<typeof prisma.$connect | undefined>()
           expectTypeOf(ctx.$disconnect).toEqualTypeOf<typeof prisma.$disconnect | undefined>()
           expectTypeOf(ctx.$transaction).toEqualTypeOf<typeof prisma.$transaction | undefined>()
-          expectTypeOf(ctx.$on).toEqualTypeOf<typeof prisma.$on | undefined>()
           expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
           expectTypeOf(ctx).not.toHaveProperty('$use')
+          expectTypeOf(ctx).not.toHaveProperty('$on')
+
+          expect(ctx['$use']).toBeUndefined()
+          expect(ctx['$on']).toBeUndefined()
 
           if (isTransaction) {
             expect(ctx.$connect).toBeUndefined()
             expect(ctx.$disconnect).toBeUndefined()
             expect(ctx.$transaction).toBeUndefined()
-            expect(ctx.$on).toBeUndefined()
             expect(ctx.$extends).toBeUndefined()
           } else {
             expect(ctx.$connect).toBeDefined()
             expect(ctx.$disconnect).toBeDefined()
             expect(ctx.$transaction).toBeDefined()
-            expect(ctx.$on).toBeDefined()
             expect(ctx.$extends).toBeDefined()
           }
         },
       },
-
       model: {
         user: {
           helper() {},

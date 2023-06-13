@@ -278,7 +278,7 @@ function batchingTransactionDefinition(this: PrismaClientClass) {
     )
     .addGenericParameter(ts.genericParameter('P').extends(ts.array(ts.prismaPromise(ts.anyType))))
     .addParameter(ts.parameter('arg', ts.arraySpread(ts.namedType('P'))))
-    .setReturnType(ts.promise(ts.namedType('UnwrapTuple').addGenericArgument(ts.namedType('P'))))
+    .setReturnType(ts.promise(ts.namedType('runtime.Types.Utils.UnwrapTuple').addGenericArgument(ts.namedType('P'))))
 
   if (this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')) {
     const options = ts
@@ -508,6 +508,8 @@ export class PrismaClient<
 
   /**
    * Add a middleware
+   * @deprecated since 4.16.0. For new code, prefer client extensions instead.
+   * @see https://pris.ly/d/extensions
    */
   $use(cb: Prisma.Middleware): void
 

@@ -134,11 +134,6 @@ import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
 import $Extensions = runtime.Types.Extensions
 
-type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
-type UnwrapTuple<Tuple extends readonly unknown[]> = {
-  [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
-};
-
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 `,
   ts: () => `export import DMMF = runtime.DMMF
