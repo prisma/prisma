@@ -10,30 +10,13 @@ declare let Prisma: typeof PrismaNamespace
 testMatrix.setupTestSuite(
   () => {
     test('validation via non-extended client', () => {
-      const data0 = Prisma.validator<PrismaNamespace.UserSelect>()({
+      const data1 = Prisma.validator<PrismaNamespace.UserSelect>()({
         id: true,
       })
-      expectTypeOf(data0).toMatchTypeOf<{ id: true }>()
-      expect(data0).toEqual({ id: true })
-
-      Prisma.validator<PrismaNamespace.UserSelect>()({
-        // @ts-expect-error
-        wrong: {},
-      })
-
-      const data1 = Prisma.validator(
-        prisma,
-        'user',
-      )({
-        id: true,
-      })
-      expectTypeOf(data1).toEqualTypeOf<{ id: true }>()
+      expectTypeOf(data1).toMatchTypeOf<{ id: true }>()
       expect(data1).toEqual({ id: true })
 
-      Prisma.validator(
-        prisma,
-        'user',
-      )({
+      Prisma.validator<PrismaNamespace.UserSelect>()({
         // @ts-expect-error
         wrong: {},
       })
@@ -114,30 +97,13 @@ testMatrix.setupTestSuite(
         },
       })
 
-      const data0 = Prisma.validator<PrismaNamespace.UserSelect>()({
+      const data1 = Prisma.validator<PrismaNamespace.UserSelect>()({
         id: true,
       })
-      expectTypeOf(data0).toMatchTypeOf<{ id: true }>()
-      expect(data0).toEqual({ id: true })
-
-      Prisma.validator<PrismaNamespace.UserSelect>()({
-        // @ts-expect-error
-        wrong: {},
-      })
-
-      const data1 = Prisma.validator(
-        xprisma,
-        'user',
-      )({
-        id: true,
-      })
-      expectTypeOf(data1).toEqualTypeOf<{ id: true }>()
+      expectTypeOf(data1).toMatchTypeOf<{ id: true }>()
       expect(data1).toEqual({ id: true })
 
-      Prisma.validator(
-        xprisma,
-        'user',
-      )({
+      Prisma.validator<PrismaNamespace.UserSelect>()({
         // @ts-expect-error
         wrong: {},
       })

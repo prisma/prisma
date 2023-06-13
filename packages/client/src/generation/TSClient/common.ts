@@ -529,12 +529,6 @@ export function validator<V>():
 
 export function validator<
   C,
-  M extends Exclude<keyof C, \`$\${string}\`>
->(client: C, model: M):
-  <S>(select: $Utils.Exact<S, $Public.Args<C[M], 'findFirstOrThrow'>['select']>) => S;
-
-export function validator<
-  C,
   M extends Exclude<keyof C, \`$\${string}\`>,
   O extends keyof C[M] & $Public.Operation,
 >(client: C, model: M, operation: O):
