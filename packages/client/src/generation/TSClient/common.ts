@@ -525,13 +525,28 @@ type Cast<A, B> = A extends B ? A : B;
 export const type: unique symbol;
 
 export function validator<V>():
-<S>(select: $Utils.LegacyExact<S, V>) => S;
-export function validator<T>(client: T):
-<S>(select: $Utils.Exact<S, $Public.Args<T, 'findFirstOrThrow'>['select']>) => S;
-export function validator<T, O extends $Public.Operation & keyof T, P extends string>(client: T, operation: O):
-<S>(select: $Utils.Exact<S, $Public.Args<T, O>>) => S;
-export function validator<T, O extends $Public.Operation & keyof T, P extends keyof $Public.Args<T, O>>(client: T, operation: O, prop: P):
-<S>(select: $Utils.Exact<S, $Public.Args<T, O>[P]>) => S;
+  <S>(select: $Utils.Exact<S, V>) => S;
+
+export function validator<
+  C,
+  M extends Exclude<keyof C, \`$\${string}\`>
+>(client: C, model: M):
+  <S>(select: $Utils.Exact<S, $Public.Args<C[M], 'findFirstOrThrow'>['select']>) => S;
+
+export function validator<
+  C,
+  M extends Exclude<keyof C, \`$\${string}\`>,
+  O extends keyof C[M] & $Public.Operation,
+>(client: C, model: M, operation: O):
+  <S>(select: $Utils.Exact<S, $Public.Args<C[M], O>>) => S;
+
+export function validator<
+C,
+M extends Exclude<keyof C, \`$\${string}\`>,
+O extends keyof C[M] & $Public.Operation,
+P extends keyof $Public.Args<C[M], O>
+>(client: C, model: M, operation: O, prop: P):
+  <S>(select: $Utils.Exact<S, $Public.Args<C[M], O>[P]>) => S;
 
 /**
  * Used by group by
