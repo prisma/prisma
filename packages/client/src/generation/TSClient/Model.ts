@@ -270,7 +270,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     : GetScalarType<T[P], ${aggregateName}[P]>
 }`
   }
-  public toTSWithoutNamespace(): string {
+  public toTSInModelNamespace(): string {
     const { model } = this
     const docLines = model.documentation ?? ''
     const modelLine = `Model ${model.name}\n`
@@ -315,6 +315,16 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
 
     return `${ts.stringify(payloadExport)}\n\n${ts.stringify(modelTypeExport)}`
   }
+
+  toTSWithoutNamespace() {
+    return ts.stringify(
+      ts.moduleExport(ts.typeDeclaration(this.model.name, ts.namedType(`$Model.${this.model.name}`))),
+      {
+        indentLevel: 1,
+      },
+    )
+  }
+
   public toTS(): string {
     const { model } = this
     const isComposite = this.dmmf.typeMap[model.name]
@@ -344,9 +354,9 @@ ${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.
 })}
 ${includeType}
 
-type ${model.name}GetPayload<S extends boolean | null | undefined | ${getArgName(model.name)}> = $Types.GetResult<${
-      model.name
-    }Payload, S>
+type ${model.name}GetPayload<S extends boolean | null | undefined | ${getArgName(
+      model.name,
+    )}> = $Types.GetResult<$Model.${model.name}Payload, S>
 
 ${isComposite ? '' : new ModelDelegate(this.outputType, this.dmmf, this.generator).toTS()}
 

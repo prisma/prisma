@@ -188,6 +188,10 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 
 ${commonCode.tsWithoutNamespace()}
 
+declare namespace $Model {
+  ${modelAndTypes.map((m) => m.toTSInModelNamespace()).join('\n')}
+}
+
 ${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
 ${
   modelEnums && modelEnums.length > 0

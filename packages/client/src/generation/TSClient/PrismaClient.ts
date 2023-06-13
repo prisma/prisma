@@ -31,7 +31,7 @@ function clientExtensionsResultDefinition(this: PrismaClientClass) {
     return `${lowerCase(modelName)}?: {
         [K in keyof R_${modelName}_Needs]: {
           needs: R_${modelName}_Needs[K]
-          compute: (data: $Types.GetResult<${modelName}Payload<ExtArgs>, { select: R_${modelName}_Needs[K] }, 'findUniqueOrThrow'>) => unknown
+          compute: (data: $Types.GetResult<$Model.${modelName}Payload<ExtArgs>, { select: R_${modelName}_Needs[K] }, 'findUniqueOrThrow'>) => unknown
         }
       }`
   }
@@ -86,8 +86,8 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
         return `${acc}
       ${action}: {
         args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
-        result: $Utils.OptionalFlat<${modelName}>
-        payload: ${modelName}Payload<ExtArgs>
+        result: $Utils.OptionalFlat<$Model.${modelName}>
+        payload: $Model.${modelName}Payload<ExtArgs>
       }`
       }, '')}
     }`

@@ -247,34 +247,34 @@ export function getReturnType({
     const promiseOpen = renderPromise ? 'Prisma.PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `${promiseOpen}$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>${
+    return `${promiseOpen}$Types.GetResult<$Model.${name}Payload<ExtArgs>, T, '${actionName}', never>${
       isChaining ? '| Null' : ''
     }${promiseClose}`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
     return `Prisma__${name}Client<${getType(
-      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
+      `$Types.GetResult<$Model.${name}Payload<ExtArgs>, T, '${actionName}', never>`,
       isList,
     )}, never, ExtArgs>`
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
       return `Prisma__${name}Client<${getType(
-        `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
+        `$Types.GetResult<$Model.${name}Payload<ExtArgs>, T, '${actionName}', never>`,
         isList,
       )} | Null, never, ExtArgs>`
     }
     return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? Prisma__${name}Client<${getType(
-      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
+      `$Types.GetResult<$Model.${name}Payload<ExtArgs>, T, '${actionName}', never>`,
       isList,
     )}, never, ExtArgs> : Prisma__${name}Client<${getType(
-      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
+      `$Types.GetResult<$Model.${name}Payload<ExtArgs>, T, '${actionName}', never>`,
       isList,
     )} | null, null, ExtArgs>`
   }
   return `Prisma__${name}Client<${getType(
-    `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
+    `$Types.GetResult<$Model.${name}Payload<ExtArgs>, T, '${actionName}', never>`,
     isList,
   )}, never, ExtArgs>`
 }

@@ -3,6 +3,7 @@ export interface Generatable {
   toTS(edge?: boolean): string | Promise<string>
   toBrowserJS?(): string | Promise<string>
   toTSWithoutNamespace?(): string | Promise<string>
+  toTSInModelNamespace?(): string | Promise<string>
 }
 
 export function JS(gen: Generatable, edge = false): string | Promise<string> {
