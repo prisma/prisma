@@ -1,4 +1,4 @@
-/* eslint-disable prettier/prettier */
+import { PrismaPromise } from '../request/PrismaPromise'
 
 export type EmptyToUnknown<T> = T
 
@@ -6,6 +6,7 @@ export type NeverToUnknown<T> = [T] extends [never] ? unknown : T
 
 export type PatchFlat<O1, O2> = O1 & Omit<O2, keyof O1>
 
+// prettier-ignore
 export type PatchDeep<O1, O2, O = O1 & O2> = {
   [K in keyof O]:
     K extends keyof O1
@@ -55,23 +56,40 @@ export type ReadonlyDeep<T> = {
 
 type Narrowable = string | number | bigint | boolean | []
 
+// prettier-ignore
 export type Narrow<A> = {
   [K in keyof A]: A[K] extends Function ? A[K] : Narrow<A[K]>
 } | (A extends Narrowable ? A : never)
 
+// prettier-ignore
 export type Exact<A, W> = (W extends A ? {
   [K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : never
 } : W) | (A extends Narrowable ? A : never)
 
 export type Cast<A, W> = A extends W ? A : W
 
-type LegacyNarrowable = string | number | boolean | bigint;
+type LegacyNarrowable = string | number | boolean | bigint
+// prettier-ignore
 export type LegacyExact<A, W = unknown> = 
   W extends unknown ? A extends LegacyNarrowable ? Cast<A, W> : Cast<
-  {[K in keyof A]: K extends keyof W ? LegacyExact<A[K], W[K]> : never},
-  {[K in keyof W]: K extends keyof A ? LegacyExact<A[K], W[K]> : W[K]}>
+  { [K in keyof A]: K extends keyof W ? LegacyExact<A[K], W[K]> : never },
+  { [K in keyof W]: K extends keyof A ? LegacyExact<A[K], W[K]> : W[K] }>
   : never;
 
 export type JsonObject = { [Key in string]?: JsonValue }
 export interface JsonArray extends Array<JsonValue> {}
 export type JsonValue = string | number | boolean | JsonObject | JsonArray | null
+
+export type Record<T extends string | number | symbol, U> = {
+  [P in T]: U
+}
+
+type UnwrapPromise<P> = P extends Promise<infer R> ? R : P
+
+export type UnwrapTuple<Tuple extends readonly unknown[]> = {
+  [K in keyof Tuple]: K extends `${number}`
+    ? Tuple[K] extends PrismaPromise<infer X>
+      ? X
+      : UnwrapPromise<Tuple[K]>
+    : UnwrapPromise<Tuple[K]>
+}

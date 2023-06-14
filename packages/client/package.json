@@ -60,11 +60,12 @@
     "index.js",
     "index.d.ts",
     "index-browser.js",
-    "version.js"
+    "extension.js",
+    "extension.d.ts"
   ],
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "1.1.0",
-    "@faker-js/faker": "8.0.1",
+    "@faker-js/faker": "8.0.2",
     "@fast-check/jest": "1.6.2",
     "@jest/create-cache-key-function": "29.5.0",
     "@jest/globals": "29.5.0",
@@ -85,12 +86,12 @@
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.7.0",
     "@swc-node/register": "1.6.5",
-    "@swc/core": "1.3.32",
+    "@swc/core": "1.3.64",
     "@swc/jest": "0.2.26",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.8",
     "@types/fs-extra": "9.0.13",
-    "@types/jest": "29.5.1",
+    "@types/jest": "29.5.2",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.2",
     "@types/node": "18.16.16",
@@ -105,7 +106,7 @@
     "execa": "5.1.1",
     "expect-type": "0.16.0",
     "flat-map-polyfill": "0.3.8",
-    "fs-extra": "11.1.0",
+    "fs-extra": "11.1.1",
     "get-own-enumerable-property-symbols": "3.0.2",
     "get-stream": "6.0.1",
     "globby": "11.1.0",
@@ -121,7 +122,7 @@
     "klona": "2.0.6",
     "lz-string": "1.5.0",
     "mariadb": "3.1.2",
-    "memfs": "3.5.1",
+    "memfs": "3.5.3",
     "mssql": "9.1.1",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.6.11",
@@ -129,9 +130,9 @@
     "pg": "8.9.0",
     "pkg-up": "3.1.0",
     "pluralize": "8.0.0",
-    "resolve": "1.22.1",
+    "resolve": "1.22.2",
     "rimraf": "3.0.2",
-    "simple-statistics": "7.8.2",
+    "simple-statistics": "7.8.3",
     "sort-keys": "4.2.0",
     "source-map-support": "0.5.21",
     "sql-template-tag": "5.0.3",
@@ -142,7 +143,7 @@
     "ts-pattern": "4.3.0",
     "tsd": "0.28.1",
     "typescript": "4.9.5",
-    "undici": "5.22.0",
+    "undici": "5.22.1",
     "yeoman-generator": "5.9.0",
     "yo": "4.3.1",
     "zx": "7.2.2"
@@ -156,7 +157,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-12.e3e1da125cf9e3d0e865b9bdfdae91d5ffced535"
+    "@prisma/engines-version": "4.16.0-42.ffceeccf256b1d7b039c6ceed46fa24d804943e4"
   },
   "sideEffects": false
 }

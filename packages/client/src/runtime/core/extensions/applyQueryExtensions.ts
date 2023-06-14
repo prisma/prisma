@@ -1,6 +1,5 @@
 import { Client, InternalRequestParams } from '../../getPrismaClient'
 import { deepCloneArgs } from '../../utils/deepCloneArgs'
-import { createPrismaPromise } from '../request/createPrismaPromise'
 import { QueryOptionsCb } from './$extends'
 
 function iterateAndCallQueryCallbacks(
@@ -9,13 +8,13 @@ function iterateAndCallQueryCallbacks(
   queryCbs: QueryOptionsCb[],
   i = 0,
 ) {
-  return createPrismaPromise((transaction) => {
+  return client._createPrismaPromise((transaction) => {
     // we need to keep track of the previous customDataProxyFetch
     const prevCustomFetch = params.customDataProxyFetch ?? ((f) => f)
 
     // allow query extensions to re-wrap in transactions
     // this will automatically discard the prev batch tx
-    if (transaction !== undefined) {
+    if ('transaction' in params && transaction !== undefined) {
       if (params.transaction?.kind === 'batch') {
         void params.transaction.lock.then() // discard
       }

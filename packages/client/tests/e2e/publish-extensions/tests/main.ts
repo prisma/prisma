@@ -1,7 +1,13 @@
 import { PrismaClient } from '@prisma/client'
+import { Prisma } from '@prisma/client/extension'
 import { simpleExtension } from 'simple-ext'
 
-function main() {
+test('prisma versions', () => {
+  expect(Prisma.prismaVersion.client).toMatch(/^\d+\.\d+\.\d+/)
+  expect(Prisma.prismaVersion.engine).toMatch(/^[a-f0-9]{40}/)
+})
+
+test('simple extension', () => {
   const prisma = new PrismaClient().$extends(simpleExtension)
 
   prisma.user.simpleCall({
@@ -11,6 +17,4 @@ function main() {
       nonExistentField: 2,
     },
   })
-}
-
-void main()
+})

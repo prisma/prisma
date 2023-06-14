@@ -37,7 +37,7 @@ export type Operation =
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
-export type GetFindResult<P extends Payload, A> = 
+type GetFindResult<P extends Payload, A> = 
   A extends 
   | { select: infer S } & Record<string, unknown>
   | { include: infer S } & Record<string, unknown>
@@ -80,10 +80,11 @@ type GetGroupByResult<P extends Payload, A> =
   ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
   : never
 
-export type GetResult<P extends Payload, A, O extends Operation> = {
-  findUnique: GetFindResult<P, A> | null,
+// TODO Null can be removed once rejectOnNotFound is removed
+export type GetResult<P extends Payload, A, O extends Operation = 'findUniqueOrThrow', Null = null> = {
+  findUnique: GetFindResult<P, A> | Null,
   findUniqueOrThrow: GetFindResult<P, A>,
-  findFirst: GetFindResult<P, A> | null,
+  findFirst: GetFindResult<P, A> | Null,
   findFirstOrThrow: GetFindResult<P, A>,
   findMany: GetFindResult<P, A>[],
   create: GetFindResult<P, A>,
