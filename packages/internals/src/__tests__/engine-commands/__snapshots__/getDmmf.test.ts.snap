@@ -23666,7 +23666,21 @@ exports[`getDMMF success @@unique model 1`] = `
         {
           "fields": [
             {
-              "args": [],
+              "args": [
+                {
+                  "inputTypes": [
+                    {
+                      "isList": false,
+                      "location": "inputObjectTypes",
+                      "namespace": "prisma",
+                      "type": "PostWhereInput",
+                    },
+                  ],
+                  "isNullable": false,
+                  "isRequired": false,
+                  "name": "where",
+                },
+              ],
               "isNullable": false,
               "name": "posts",
               "outputType": {
@@ -24151,7 +24165,7 @@ exports[`getDMMF success @@unique model 1`] = `
 
 exports[`getDMMF success big schema read via datamodel path 1`] = `141151322`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `909938`;
+exports[`getDMMF success chinook introspected schema 1`] = `918465`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -24270,7 +24284,7 @@ exports[`getDMMF success if a datamodel is provided, succeeds even when a non-ex
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `134385034`;
+exports[`getDMMF success odoo introspected schema 1`] = `134705642`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
