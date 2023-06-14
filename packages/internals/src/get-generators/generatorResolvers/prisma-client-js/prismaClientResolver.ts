@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import fs from 'fs'
-import { bold, green } from 'kleur/colors'
+import { bold, green, yellow } from 'kleur/colors'
 import path from 'path'
 
 import { findPrismaClientDir } from './auto-installation/findPrismaClientDir'
@@ -30,27 +30,14 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
   await checkTypeScriptVersion()
 
   if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
-    // TODO: should this be relative to `baseDir` rather than `process.cwd()`?
-    if (
-      !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
-      !fs.existsSync(path.join(process.cwd(), '../package.json'))
-    ) {
-      // Create default package.json
-      const defaultPackageJson = `{
-"name": "my-prisma-project",
-"version": "1.0.0",
-"description": "",
-"main": "index.js",
-"scripts": {
-  "test": "echo \\"Error: no test specified\\" && exit 1"
-},
-"keywords": [],
-"author": "",
-"license": "ISC"
-}
-`
-      fs.writeFileSync(path.join(process.cwd(), 'package.json'), defaultPackageJson)
-      console.info(`✔ Created ${bold(green('./package.json'))}`)
+    if (!fs.existsSync(path.join(process.cwd(), 'package.json'))) {
+      console.warn(
+        yellow(
+          `${bold('Warning:')} could not find the ${bold(
+            'package.json',
+          )} file in the current working directory, it will be created by your package manager if necessary.`,
+        ),
+      )
     }
 
     const prismaCliDir = await resolvePkg('prisma', { basedir: baseDir })
