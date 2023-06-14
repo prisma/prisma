@@ -464,32 +464,11 @@ export async function getPlatformInfoMemoized(): Promise<PlatformInfo & { memoiz
  * This function is only exported for testing purposes.
  */
 export function getPlatformInternal(args: GetOSResult): Platform {
-  const { platform, arch, archFromUname, libssl, targetDistro, familyDistro, originalDistro } = args
+  const { platform, arch, archFromUname, libssl, targetDistro, originalDistro } = args
 
   if (platform === 'linux' && !['x64', 'arm64'].includes(arch)) {
     warn(
       `Prisma only officially supports Linux on amd64 (x86_64) and arm64 (aarch64) system architectures. If you are using your own custom Prisma engines, you can ignore this warning, as long as you've compiled the engines for your system architecture "${archFromUname}".`,
-    )
-  }
-
-  // sometimes we fail to detect the libssl version to use, so we default to 1.1.x
-  const defaultLibssl = '1.1.x' as const
-  if (platform === 'linux' && libssl === undefined) {
-    /**
-     * Ask the user to install libssl manually, and provide some additional instructions based on the detected Linux distro family.
-     * TODO: we should also provide a pris.ly link to a documentation page with more details on how to install libssl.
-     */
-    const additionalMessage = match({ familyDistro })
-      .with({ familyDistro: 'debian' }, () => {
-        return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with `node:lts-slim`, which already ships with OpenSSL installed."
-      })
-      .otherwise(() => {
-        return 'Please manually install OpenSSL and try installing Prisma again.'
-      })
-
-    warn(
-      `Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-${defaultLibssl}".
-${additionalMessage}`,
     )
   }
 
@@ -536,12 +515,12 @@ Please report your experience by creating an issue at ${link(
   if (platform === 'linux' && arch === 'arm64') {
     // 64 bit ARM (musl or glibc)
     const baseName = targetDistro === 'musl' ? 'linux-musl-arm64' : 'linux-arm64'
-    return `${baseName}-openssl-${libssl || defaultLibssl}` as Platform
+    return `${baseName}-openssl-${libssl}` as Platform
   }
 
   if (platform === 'linux' && arch === 'arm') {
     // 32 bit ARM
-    return `linux-arm-openssl-${libssl || defaultLibssl}` as Platform
+    return `linux-arm-openssl-${libssl}` as Platform
   }
 
   if (platform === 'linux' && targetDistro === 'musl') {
@@ -568,19 +547,19 @@ Please report your experience by creating an issue at ${link(
     warn(`Prisma detected unknown OS "${platform}" and may not work as expected. Defaulting to "linux".`)
   }
 
-  // if just OpenSSL is known, fallback to debian with a specific libssl version
-  if (libssl) {
-    return `${defaultDistro}-openssl-${libssl}`
+  if (targetDistro === undefined && libssl === undefined) {
+    throw new Error(`Prisma failed to detect the Linux distro and OpenSSL version`)
   }
 
-  // if just the targetDistro is known, fallback to latest OpenSSL 1.1
-  if (targetDistro) {
-    return `${targetDistro}-openssl-${defaultLibssl}` as Platform
+  if (targetDistro === undefined) {
+    throw new Error(`Prisma failed to detect the Linux distro`)
   }
 
-  // use the debian build with OpenSSL 1.1 as a last resort
-  // TODO: perhaps we should default to 'debian-openssl-3.0.x'
-  return `${defaultDistro}-openssl-${defaultLibssl}`
+  if (libssl === undefined) {
+    throw new Error(`Prisma failed to detect the OpenSSL version`)
+  }
+
+  throw new Error(`Unexpected detection error`)
 }
 
 /**
