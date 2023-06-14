@@ -16,14 +16,39 @@ export type QueryEngineInstance = {
   metrics(options: string): Promise<string>
 }
 
-export type ResultSet = {
-  columns: string[]
-  rows: string[][] // Note: we're currently stringifying any result values
+export interface ResultSet {
+  columnTypes: Array<ColumnType>
+  columnNames: Array<string>
+  rows: Array<Array<any>>
+}
+
+export interface Query {
+  sql: string
+  args: Array<any>
+}
+
+// Same order as in rust js-drivers' `ColumnType`
+export const enum ColumnType {
+  Int32 = 0,
+  Int64 = 1,
+  Float = 2,
+  Double = 3,
+  Text = 4,
+  Enum = 5,
+  Bytes = 6,
+  Boolean = 7,
+  Char = 8,
+  Array = 9,
+  Numeric = 10,
+  Json = 11,
+  DateTime = 12,
+  Date = 13,
+  Time = 14,
 }
 
 export type Driver = {
-  queryRaw: (sql: string) => Promise<ResultSet>
-  executeRaw: (sql: string) => Promise<number>
+  queryRaw: (query: Query) => Promise<ResultSet>
+  executeRaw: (query: Query) => Promise<number>
   version: () => Promise<string | undefined>
   isHealthy: () => boolean
 }

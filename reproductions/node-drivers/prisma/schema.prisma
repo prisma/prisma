@@ -5,7 +5,7 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
+  provider = "@prisma/mysql"
   url      = env("DATABASE_URL")
 }
 

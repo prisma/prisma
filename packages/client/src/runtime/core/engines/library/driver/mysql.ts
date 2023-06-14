@@ -1,7 +1,98 @@
 /* eslint-disable */
 
 import * as mysql from 'mysql2/promise'
-import type { Driver, Closeable, ResultSet } from '../types/Library'
+import type { Driver, Closeable, ResultSet, Query } from '../types/Library'
+import { ColumnType } from '../types/Library'
+
+// See: https://github.com/mysql/mysql-server/blob/ea7087d885006918ad54458e7aad215b1650312c/include/field_types.h#L52-L87
+enum MySQLColumnType {
+  Decimal,
+  Tiny,
+  Short,
+  Long,
+  Float,
+  Double,
+  Null,
+  Timestamp,
+  LongLong,
+  Int24,
+  Date,
+  Time,
+  Datetime,
+  Year,
+  Newdate, /**< Internal to MySQL. Not used in protocol */
+  Varchar,
+  Bit,
+  Timestamp2,
+  Datetime2,   /**< Internal to MySQL. Not used in protocol */
+  Time2,       /**< Internal to MySQL. Not used in protocol */
+  TypedArray, /**< Used for replication only */
+  Invalid = 243,
+  Bool = 244, /**< Currently just a placeholder */
+  Json = 245,
+  Newdecimal = 246,
+  Enum = 247,
+  Set = 248,
+  TinyBlob = 249,
+  MediumBlob = 250,
+  LongBlob = 251,
+  Blob = 252,
+  VarString = 253,
+  String = 254,
+  Geometry = 255
+}
+
+/**
+ * This is a simplification of quaint's value inference logic. Take a look at quaint's conversion.rs
+ * module to see how other attributes of the field packet such as the field length are used to infer
+ * the correct quaint::Value variant.
+ */
+function fieldToColumnType(field: mysql.FieldPacket): ColumnType {
+  const columnTypeMapping: Readonly<Record<MySQLColumnType, ColumnType | undefined>> = {
+    [MySQLColumnType.Decimal]: undefined,
+    [MySQLColumnType.Tiny]: undefined,
+    [MySQLColumnType.Short]: undefined,
+    [MySQLColumnType.Long]: ColumnType.Int64,
+    [MySQLColumnType.Float]: undefined,
+    [MySQLColumnType.Double]: undefined,
+    [MySQLColumnType.Null]: undefined,
+    [MySQLColumnType.Timestamp]: undefined,
+    [MySQLColumnType.LongLong]: undefined,
+    [MySQLColumnType.Int24]: undefined,
+    [MySQLColumnType.Date]: undefined,
+    [MySQLColumnType.Time]: undefined,
+    [MySQLColumnType.Datetime]: undefined,
+    [MySQLColumnType.Year]: undefined,
+    [MySQLColumnType.Newdate]: undefined,
+    [MySQLColumnType.Varchar]: undefined,
+    [MySQLColumnType.Bit]: undefined,
+    [MySQLColumnType.Timestamp2]: undefined,
+    [MySQLColumnType.Datetime2]: undefined,
+    [MySQLColumnType.Time2]: undefined,
+    [MySQLColumnType.TypedArray]: undefined,
+    [MySQLColumnType.Invalid]: undefined,
+    [MySQLColumnType.Bool]: undefined,
+    [MySQLColumnType.Json]: undefined,
+    [MySQLColumnType.Newdecimal]: undefined,
+    [MySQLColumnType.Enum]: undefined,
+    [MySQLColumnType.Set]: undefined,
+    [MySQLColumnType.TinyBlob]: undefined,
+    [MySQLColumnType.MediumBlob]: undefined,
+    [MySQLColumnType.LongBlob]: undefined,
+    [MySQLColumnType.Blob]: undefined,
+    [MySQLColumnType.VarString]: ColumnType.Text,
+    [MySQLColumnType.String]: undefined,
+    [MySQLColumnType.Geometry]: undefined
+  };
+
+  let colType = columnTypeMapping[field.type]
+
+  if (colType === undefined) {
+    throw new Error(`Unsupported mysql type: ${field.type}`)
+  }
+  
+  return colType
+}
 
 class PrismaMySQL implements Driver, Closeable {
   private pool: mysql.Pool
@@ -42,24 +133,22 @@ class PrismaMySQL implements Driver, Closeable {
   /**
    * Execute a query given as SQL, interpolating the given parameters.
    */
-  async queryRaw(query: string): Promise<ResultSet> {
+  async queryRaw(query: Query): Promise<ResultSet> {
     console.log('[nodejs] calling queryRaw', query)
+    const { sql, args: values } = query
     const [results, fields] = await this.pool.query<mysql.RowDataPacket[]>({
-      sql: query,
+      sql,
+      values,
       rowsAsArray: false,
     })
     console.log('[nodejs] after query')
 
     const columns = fields.map(field => field.name)
     const resultSet: ResultSet = {
-      columns: columns,
-
-      // TODO: what if I remove the `toString()`?
-      // Currently, it would fail with something like:
-      // [Error: Failed to convert JavaScript value `Number 1 ` into rust type `String`],
-      // because the `id` column is a number, but the `ResultSet` expects a Vec<Vec<Str>>.
-      rows: results.map(result => columns.map(column => result[column].toString()))
-    };
+      columnNames: columns,
+      columnTypes: fields.map(field => fieldToColumnType(field)),
+      rows: results.map(result => columns.map(column => result[column])),
+    }
     console.log('[nodejs] resultSet', resultSet)
 
     /*
@@ -77,10 +166,12 @@ class PrismaMySQL implements Driver, Closeable {
    * returning the number of affected rows.
    * Note: Queryable expects a u64, but napi.rs only supports u32.
    */
-  async executeRaw(query: string): Promise<number> {
+  async executeRaw(query: Query): Promise<number> {
     console.log('[nodejs] calling executeRaw', query)
+    const { sql, args: values } = query
     const [{ affectedRows }, _] = await this.pool.execute<mysql.ResultSetHeader>({
-      sql: query,
+      sql,
+      values,
     })
     return affectedRows
   }
