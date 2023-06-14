@@ -121,7 +121,7 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
@@ -506,7 +506,7 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
@@ -610,7 +610,7 @@ testMatrix.setupTestSuite(
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the MISSING',
                         },
                   })
 
@@ -691,7 +691,7 @@ testMatrix.setupTestSuite(
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the MISSING',
                         },
                       }),
                 )
@@ -879,7 +879,7 @@ testMatrix.setupTestSuite(
                         "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
@@ -944,7 +944,7 @@ testMatrix.setupTestSuite(
                   foreignKeys: {
                     [Providers.POSTGRESQL]:
                       'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                    [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                     [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
                     [Providers.SQLSERVER]:
                       'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',

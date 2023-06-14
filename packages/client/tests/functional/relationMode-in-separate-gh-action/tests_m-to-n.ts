@@ -207,7 +207,7 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
@@ -367,7 +367,7 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
@@ -458,7 +458,7 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
@@ -652,7 +652,7 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                       [Providers.SQLSERVER]:
                         onUpdate === 'Restrict'
@@ -699,7 +699,7 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                       [Providers.SQLSERVER]:
                         onUpdate === 'Restrict'
@@ -900,7 +900,7 @@ testMatrix.setupTestSuite(
                       foreignKeys: {
                         [Providers.POSTGRESQL]:
                           'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                        [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                        [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                         [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                         [Providers.SQLSERVER]:
                           'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
@@ -938,7 +938,7 @@ testMatrix.setupTestSuite(
                       foreignKeys: {
                         [Providers.POSTGRESQL]:
                           'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                        [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                        [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                         [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                         [Providers.SQLSERVER]:
                           'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
@@ -986,7 +986,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToPostManyToMany' between the `CategoriesOnPostsManyToMany` and `PostManyToMany` models.",
@@ -1024,7 +1024,7 @@ testMatrix.setupTestSuite(
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                       [Providers.SQLSERVER]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
+                      [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `MISSING`',
                     },
                     prisma:
                       "The change you are trying to make would violate the required relation 'CategoriesOnPostsManyToManyToCategoryManyToMany' between the `CategoriesOnPostsManyToMany` and `CategoryManyToMany` models.",
