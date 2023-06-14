@@ -6,7 +6,7 @@ export interface CompositeProxyLayer<KeyType extends string | symbol = string | 
   /**
    * Returns a list of keys, defined by a layer
    */
-  getKeys(): KeyType[]
+  getKeys(): ReadonlyArray<KeyType>
 
   /**
    * Returns a value for a property for a given key (one of the keys, returned
@@ -90,6 +90,12 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
     },
 
     getOwnPropertyDescriptor(target, prop) {
+      const original = Reflect.getOwnPropertyDescriptor(target, prop)
+      if (original && !original.configurable) {
+        // non-configurable properties can not change descriptors
+        return original
+      }
+
       const layer = keysToLayerMap.get(prop)
       if (layer) {
         if (layer.getPropertyDescriptor) {
@@ -101,7 +107,7 @@ export function createCompositeProxy<T extends object>(target: T, layers: Compos
         return defaultPropertyDescriptor
       }
 
-      return Reflect.getOwnPropertyDescriptor(target, prop)
+      return original
     },
 
     defineProperty(target, property, attributes) {
