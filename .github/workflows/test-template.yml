@@ -120,7 +120,6 @@ jobs:
       matrix:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
         queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
-        engineProtocol: ['graphql', 'json']
         node: [16, 18]
         exclude: ${{ fromJson(needs.determineBuildMatrixParams.outputs.excludeClient) }}
 
@@ -146,7 +145,7 @@ jobs:
       TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
       TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
       NODE_OPTIONS: '--max-old-space-size=8096'
-      JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ matrix.engineProtocol }}'
+      JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
     steps:
@@ -170,10 +169,6 @@ jobs:
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
-
-      - name: Set Engine Protocol
-        run: |
-          echo "PRISMA_ENGINE_PROTOCOL=${{ matrix.engineProtocol }}" >> $GITHUB_ENV
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
@@ -236,7 +231,6 @@ jobs:
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
         node: [14, 16, 18]
-        engineProtocol: ['graphql', 'json']
         exclude: ${{ fromJson(needs.determineBuildMatrixParams.outputs.excludeDataProxy) }}
 
     steps:
@@ -284,7 +278,6 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-          PRISMA_ENGINE_PROTOCOL: '${{ matrix.engineProtocol }}'
 
       - run: pnpm run test:functional --silent --data-proxy --edge-client --shard ${{ matrix.shard }}
         working-directory: packages/client
@@ -301,7 +294,6 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-          PRISMA_ENGINE_PROTOCOL: '${{ matrix.engineProtocol }}'
 
       - uses: codecov/codecov-action@v3
         with:
