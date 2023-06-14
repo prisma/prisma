@@ -536,12 +536,12 @@ Please report your experience by creating an issue at ${link(
   if (platform === 'linux' && arch === 'arm64') {
     // 64 bit ARM (musl or glibc)
     const baseName = targetDistro === 'musl' ? 'linux-musl-arm64' : 'linux-arm64'
-    return `${baseName}-openssl-${libssl || defaultLibssl}` as Platform
+    return `${baseName}-openssl-${libssl}` as Platform
   }
 
   if (platform === 'linux' && arch === 'arm') {
     // 32 bit ARM
-    return `linux-arm-openssl-${libssl || defaultLibssl}` as Platform
+    return `linux-arm-openssl-${libssl}` as Platform
   }
 
   if (platform === 'linux' && targetDistro === 'musl') {
@@ -575,12 +575,14 @@ Please report your experience by creating an issue at ${link(
 
   // if just the targetDistro is known, fallback to latest OpenSSL 1.1
   if (targetDistro) {
-    return `${targetDistro}-openssl-${defaultLibssl}` as Platform
+    // return `${targetDistro}-openssl-${defaultLibssl}` as Platform
+    return 'windows'
   }
 
   // use the debian build with OpenSSL 1.1 as a last resort
   // TODO: perhaps we should default to 'debian-openssl-3.0.x'
-  return `${defaultDistro}-openssl-${defaultLibssl}`
+  // return `${defaultDistro}-openssl-${defaultLibssl}`
+  return 'windows'
 }
 
 /**
