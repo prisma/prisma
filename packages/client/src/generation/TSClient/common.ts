@@ -141,6 +141,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 /**
+ * Validator
+ */
+export import validator = runtime.validator
+
+/**
  * Prisma Errors
  */
 export import PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
@@ -524,23 +529,7 @@ type Cast<A, B> = A extends B ? A : B;
 
 export const type: unique symbol;
 
-export function validator<V>():
-  <S>(select: $Utils.Exact<S, V>) => S;
 
-export function validator<
-  C,
-  M extends Exclude<keyof C, \`$\${string}\`>,
-  O extends keyof C[M] & $Public.Operation,
->(client: C, model: M, operation: O):
-  <S>(select: $Utils.Exact<S, $Public.Args<C[M], O>>) => S;
-
-export function validator<
-C,
-M extends Exclude<keyof C, \`$\${string}\`>,
-O extends keyof C[M] & $Public.Operation,
-P extends keyof $Public.Args<C[M], O>
->(client: C, model: M, operation: O, prop: P):
-  <S>(select: $Utils.Exact<S, $Public.Args<C[M], O>[P]>) => S;
 
 /**
  * Used by group by
