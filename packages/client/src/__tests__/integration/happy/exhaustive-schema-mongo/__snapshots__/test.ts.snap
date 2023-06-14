@@ -1005,7 +1005,7 @@ export namespace Prisma {
   /**
    * Validator
    */
-  export import validator = runtime.validator
+  export import validator = runtime.Public.validator
 
   /**
    * Prisma Errors

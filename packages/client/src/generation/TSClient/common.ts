@@ -145,7 +145,7 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
 /**
  * Validator
  */
-export import validator = runtime.validator
+export import validator = runtime.Public.validator
 
 /**
  * Prisma Errors
