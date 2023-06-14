@@ -798,7 +798,7 @@ importers:
       log-update: 4.0.0
       mariadb: 3.1.2
       mock-stdin: 1.0.0
-      mongoose: 6.11.1
+      mongoose: 6.11.2
       mssql: 9.1.1
       ora: 5.4.1
       pg: 8.10.0
@@ -822,7 +822,7 @@ importers:
       kleur: 4.1.5
       log-update: 4.0.0
       mariadb: 3.1.2
-      mongoose: 6.11.1
+      mongoose: 6.11.2
       mssql: 9.1.1
       ora: 5.4.1
       pg: 8.10.0
@@ -10665,8 +10665,8 @@ packages:
       - aws-crt
     dev: false
 
-  /mongoose/6.11.1:
-    resolution: {integrity: sha512-AvQ8C5ZGF6GcsQhoRg/i7pbNZpb96qLGU5ICBllckp7qMOxcfUF1nA6JstZw841BqRcE6myZ/mx9CluEESaw5Q==}
+  /mongoose/6.11.2:
+    resolution: {integrity: sha512-BJHQerozE+qIVdH8Hn9niMVMUzRNcjmwU7hFEzER1+aYtGmVJgGsXBd9wJ9GnrHrbCsYmKlRy8aTuxEdlEtfow==}
     engines: {node: '>=12.0.0'}
     dependencies:
       bson: 4.7.2

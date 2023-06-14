@@ -52,7 +52,7 @@
     "kleur": "4.1.5",
     "log-update": "4.0.0",
     "mariadb": "3.1.2",
-    "mongoose": "6.11.1",
+    "mongoose": "6.11.2",
     "mssql": "9.1.1",
     "ora": "5.4.1",
     "pg": "8.10.0",
