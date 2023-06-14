@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.16.0-42.ffceeccf256b1d7b039c6ceed46fa24d804943e4",
+    "@prisma/engines-version": "4.16.0-50.integration-node-drivers-typed-ba4ec9e7ca19c51b567950aa6280a254618fec3c",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.64",
