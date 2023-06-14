@@ -2334,7 +2334,7 @@ describe('Union', () => {
         `)
   })
 
-  test('longest path: InvalidArgumentType vs RequiredArgumentMissing', () => {
+  test('same length path, different error types', () => {
     expect(
       renderError(
         {
