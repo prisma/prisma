@@ -91,7 +91,7 @@
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.8",
     "@types/fs-extra": "9.0.13",
-    "@types/jest": "29.5.1",
+    "@types/jest": "29.5.2",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.2",
     "@types/node": "18.16.16",
