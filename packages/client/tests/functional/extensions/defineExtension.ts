@@ -1,6 +1,6 @@
 import { expectTypeOf } from 'expect-type'
 
-import { Prisma as PrismaDefault } from '../../../scripts/default-index'
+import { Prisma as PrismaDefault } from '../../../extension'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -205,6 +205,27 @@ function queryGenericExtensionObjectViaDefault() {
         },
       },
     },
+  })
+}
+
+// this is just actually used for testing that the type work correctly
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function itxWithinGenericExtension() {
+  return PrismaDefault.defineExtension((client) => {
+    const xclient = client.$extends({
+      client: {
+        helperMethod() {},
+      },
+    })
+
+    void xclient.$transaction((tx) => {
+      expectTypeOf(tx).toHaveProperty('helperMethod')
+      expectTypeOf(tx).not.toHaveProperty('$transaction')
+      expectTypeOf(tx).not.toHaveProperty('$extends')
+      return Promise.resolve()
+    })
+
+    return xclient
   })
 }
 

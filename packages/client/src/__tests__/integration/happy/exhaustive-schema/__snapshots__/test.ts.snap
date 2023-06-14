@@ -297,6 +297,11 @@ exports.Prisma.QueryMode = {
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
 exports.Prisma.JsonNullValueFilter = {
   DbNull: Prisma.DbNull,
   JsonNull: Prisma.JsonNull,
@@ -352,11 +357,6 @@ import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
 import $Extensions = runtime.Types.Extensions
-
-type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
-type UnwrapTuple<Tuple extends readonly unknown[]> = {
-  [K in keyof Tuple]: K extends \`\${number}\` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
-};
 
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
@@ -739,6 +739,8 @@ export class PrismaClient<
 
   /**
    * Add a middleware
+   * @deprecated since 4.16.0. For new code, prefer client extensions instead.
+   * @see https://pris.ly/d/extensions
    */
   $use(cb: Prisma.Middleware): void
 
@@ -801,7 +803,7 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<UnwrapTuple<P>>
+  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<runtime.Types.Utils.UnwrapTuple<P>>
 
   $transaction<R>(fn: (prisma: Omit<$Extensions.GetClient<this, ExtArgs["client"]>, runtime.ITXClientDenyList>) => Promise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<R>
 
@@ -2909,7 +2911,7 @@ export namespace Prisma {
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    posts?: boolean
+    posts?: boolean | UserCountOutputTypeCountPostsArgs
   }
 
   // Custom InputTypes
@@ -2925,6 +2927,14 @@ export namespace Prisma {
   }
 
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPostsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: PostWhereInput
+  }
+
+
 
   /**
    * Count Type MCountOutputType
@@ -2936,7 +2946,7 @@ export namespace Prisma {
   }
 
   export type MCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    n?: boolean
+    n?: boolean | MCountOutputTypeCountNArgs
   }
 
   // Custom InputTypes
@@ -2952,6 +2962,14 @@ export namespace Prisma {
   }
 
 
+  /**
+   * MCountOutputType without action
+   */
+  export type MCountOutputTypeCountNArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: NWhereInput
+  }
+
+
 
   /**
    * Count Type NCountOutputType
@@ -2963,7 +2981,7 @@ export namespace Prisma {
   }
 
   export type NCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    m?: boolean
+    m?: boolean | NCountOutputTypeCountMArgs
   }
 
   // Custom InputTypes
@@ -2979,6 +2997,14 @@ export namespace Prisma {
   }
 
 
+  /**
+   * NCountOutputType without action
+   */
+  export type NCountOutputTypeCountMArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: MWhereInput
+  }
+
+
 
   /**
    * Count Type OneOptionalCountOutputType
@@ -2990,7 +3016,7 @@ export namespace Prisma {
   }
 
   export type OneOptionalCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    many?: boolean
+    many?: boolean | OneOptionalCountOutputTypeCountManyArgs
   }
 
   // Custom InputTypes
@@ -3003,6 +3029,14 @@ export namespace Prisma {
      * Select specific fields to fetch from the OneOptionalCountOutputType
      */
     select?: OneOptionalCountOutputTypeSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * OneOptionalCountOutputType without action
+   */
+  export type OneOptionalCountOutputTypeCountManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: ManyRequiredWhereInput
   }
 
 
@@ -16205,6 +16239,14 @@ export namespace Prisma {
   export type QueryMode = (typeof QueryMode)[keyof typeof QueryMode]
 
 
+  export const NullsOrder: {
+    first: 'first',
+    last: 'last'
+  };
+
+  export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
   export const JsonNullValueFilter: {
     DbNull: typeof DbNull,
     JsonNull: typeof JsonNull,
@@ -16236,7 +16278,7 @@ export namespace Prisma {
     id?: SortOrder
     createdAt?: SortOrder
     title?: SortOrder
-    content?: SortOrder
+    content?: SortOrderInput | SortOrder
     published?: SortOrder
     authorId?: SortOrder
     author?: UserOrderByWithRelationInput
@@ -16250,7 +16292,7 @@ export namespace Prisma {
     id?: SortOrder
     createdAt?: SortOrder
     title?: SortOrder
-    content?: SortOrder
+    content?: SortOrderInput | SortOrder
     published?: SortOrder
     authorId?: SortOrder
     _count?: PostCountOrderByAggregateInput
@@ -16297,17 +16339,17 @@ export namespace Prisma {
     id?: SortOrder
     email?: SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     posts?: PostOrderByRelationAggregateInput
   }
 
@@ -16320,17 +16362,17 @@ export namespace Prisma {
     id?: SortOrder
     email?: SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     _count?: UserCountOrderByAggregateInput
     _avg?: UserAvgOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -16381,17 +16423,17 @@ export namespace Prisma {
   export type MOrderByWithRelationInput = {
     id?: SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     n?: NOrderByRelationAggregateInput
   }
 
@@ -16402,17 +16444,17 @@ export namespace Prisma {
   export type MOrderByWithAggregationInput = {
     id?: SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     _count?: MCountOrderByAggregateInput
     _avg?: MAvgOrderByAggregateInput
     _max?: MMaxOrderByAggregateInput
@@ -16462,17 +16504,17 @@ export namespace Prisma {
   export type NOrderByWithRelationInput = {
     id?: SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     m?: MOrderByRelationAggregateInput
   }
 
@@ -16483,17 +16525,17 @@ export namespace Prisma {
   export type NOrderByWithAggregationInput = {
     id?: SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     _count?: NCountOrderByAggregateInput
     _avg?: NAvgOrderByAggregateInput
     _max?: NMaxOrderByAggregateInput
@@ -16543,17 +16585,17 @@ export namespace Prisma {
   export type OneOptionalOrderByWithRelationInput = {
     id?: SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     many?: ManyRequiredOrderByRelationAggregateInput
   }
 
@@ -16564,17 +16606,17 @@ export namespace Prisma {
   export type OneOptionalOrderByWithAggregationInput = {
     id?: SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     _count?: OneOptionalCountOrderByAggregateInput
     _avg?: OneOptionalAvgOrderByAggregateInput
     _max?: OneOptionalMaxOrderByAggregateInput
@@ -16624,19 +16666,19 @@ export namespace Prisma {
 
   export type ManyRequiredOrderByWithRelationInput = {
     id?: SortOrder
-    oneOptionalId?: SortOrder
+    oneOptionalId?: SortOrderInput | SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     one?: OneOptionalOrderByWithRelationInput
   }
 
@@ -16646,19 +16688,19 @@ export namespace Prisma {
 
   export type ManyRequiredOrderByWithAggregationInput = {
     id?: SortOrder
-    oneOptionalId?: SortOrder
+    oneOptionalId?: SortOrderInput | SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     _count?: ManyRequiredCountOrderByAggregateInput
     _avg?: ManyRequiredAvgOrderByAggregateInput
     _max?: ManyRequiredMaxOrderByAggregateInput
@@ -16709,19 +16751,19 @@ export namespace Prisma {
 
   export type OptionalSide1OrderByWithRelationInput = {
     id?: SortOrder
-    optionalSide2Id?: SortOrder
+    optionalSide2Id?: SortOrderInput | SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     opti?: OptionalSide2OrderByWithRelationInput
   }
 
@@ -16732,19 +16774,19 @@ export namespace Prisma {
 
   export type OptionalSide1OrderByWithAggregationInput = {
     id?: SortOrder
-    optionalSide2Id?: SortOrder
+    optionalSide2Id?: SortOrderInput | SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     _count?: OptionalSide1CountOrderByAggregateInput
     _avg?: OptionalSide1AvgOrderByAggregateInput
     _max?: OptionalSide1MaxOrderByAggregateInput
@@ -16795,17 +16837,17 @@ export namespace Prisma {
   export type OptionalSide2OrderByWithRelationInput = {
     id?: SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     opti?: OptionalSide1OrderByWithRelationInput
   }
 
@@ -16816,17 +16858,17 @@ export namespace Prisma {
   export type OptionalSide2OrderByWithAggregationInput = {
     id?: SortOrder
     int?: SortOrder
-    optionalInt?: SortOrder
+    optionalInt?: SortOrderInput | SortOrder
     float?: SortOrder
-    optionalFloat?: SortOrder
+    optionalFloat?: SortOrderInput | SortOrder
     string?: SortOrder
-    optionalString?: SortOrder
+    optionalString?: SortOrderInput | SortOrder
     json?: SortOrder
-    optionalJson?: SortOrder
+    optionalJson?: SortOrderInput | SortOrder
     enum?: SortOrder
-    optionalEnum?: SortOrder
+    optionalEnum?: SortOrderInput | SortOrder
     boolean?: SortOrder
-    optionalBoolean?: SortOrder
+    optionalBoolean?: SortOrderInput | SortOrder
     _count?: OptionalSide2CountOrderByAggregateInput
     _avg?: OptionalSide2AvgOrderByAggregateInput
     _max?: OptionalSide2MaxOrderByAggregateInput
@@ -16871,7 +16913,7 @@ export namespace Prisma {
   export type AOrderByWithRelationInput = {
     id?: SortOrder
     email?: SortOrder
-    name?: SortOrder
+    name?: SortOrderInput | SortOrder
     int?: SortOrder
     sInt?: SortOrder
     bInt?: SortOrder
@@ -16888,7 +16930,7 @@ export namespace Prisma {
   export type AOrderByWithAggregationInput = {
     id?: SortOrder
     email?: SortOrder
-    name?: SortOrder
+    name?: SortOrderInput | SortOrder
     int?: SortOrder
     sInt?: SortOrder
     bInt?: SortOrder
@@ -18363,6 +18405,11 @@ export namespace Prisma {
   export type UserRelationFilter = {
     is?: UserWhereInput | null
     isNot?: UserWhereInput | null
+  }
+
+  export type SortOrderInput = {
+    sort: SortOrder
+    nulls?: NullsOrder
   }
 
   export type PostCountOrderByAggregateInput = {

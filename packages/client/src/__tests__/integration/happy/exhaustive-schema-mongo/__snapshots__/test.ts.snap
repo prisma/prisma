@@ -337,11 +337,6 @@ import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
 import $Extensions = runtime.Types.Extensions
 
-type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
-type UnwrapTuple<Tuple extends readonly unknown[]> = {
-  [K in keyof Tuple]: K extends \`\${number}\` ? Tuple[K] extends Prisma.PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
-};
-
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 
@@ -777,6 +772,8 @@ export class PrismaClient<
 
   /**
    * Add a middleware
+   * @deprecated since 4.16.0. For new code, prefer client extensions instead.
+   * @see https://pris.ly/d/extensions
    */
   $use(cb: Prisma.Middleware): void
 
@@ -793,7 +790,7 @@ export class PrismaClient<
    * 
    * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client/transactions).
    */
-  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P]): Promise<UnwrapTuple<P>>
+  $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P]): Promise<runtime.Types.Utils.UnwrapTuple<P>>
 
   $transaction<R>(fn: (prisma: Omit<$Extensions.GetClient<this, ExtArgs["client"]>, runtime.ITXClientDenyList>) => Promise<R>, options?: { maxWait?: number, timeout?: number }): Promise<R>
 
@@ -3145,7 +3142,7 @@ export namespace Prisma {
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    posts?: boolean
+    posts?: boolean | UserCountOutputTypeCountPostsArgs
   }
 
   // Custom InputTypes
@@ -3161,6 +3158,14 @@ export namespace Prisma {
   }
 
 
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountPostsArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: PostWhereInput
+  }
+
+
 
   /**
    * Count Type EmbedHolderCountOutputType
@@ -3172,7 +3177,7 @@ export namespace Prisma {
   }
 
   export type EmbedHolderCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    User?: boolean
+    User?: boolean | EmbedHolderCountOutputTypeCountUserArgs
   }
 
   // Custom InputTypes
@@ -3188,6 +3193,14 @@ export namespace Prisma {
   }
 
 
+  /**
+   * EmbedHolderCountOutputType without action
+   */
+  export type EmbedHolderCountOutputTypeCountUserArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: UserWhereInput
+  }
+
+
 
   /**
    * Count Type MCountOutputType
@@ -3199,7 +3212,7 @@ export namespace Prisma {
   }
 
   export type MCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    n?: boolean
+    n?: boolean | MCountOutputTypeCountNArgs
   }
 
   // Custom InputTypes
@@ -3215,6 +3228,14 @@ export namespace Prisma {
   }
 
 
+  /**
+   * MCountOutputType without action
+   */
+  export type MCountOutputTypeCountNArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: NWhereInput
+  }
+
+
 
   /**
    * Count Type NCountOutputType
@@ -3226,7 +3247,7 @@ export namespace Prisma {
   }
 
   export type NCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    m?: boolean
+    m?: boolean | NCountOutputTypeCountMArgs
   }
 
   // Custom InputTypes
@@ -3242,6 +3263,14 @@ export namespace Prisma {
   }
 
 
+  /**
+   * NCountOutputType without action
+   */
+  export type NCountOutputTypeCountMArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: MWhereInput
+  }
+
+
 
   /**
    * Count Type OneOptionalCountOutputType
@@ -3253,7 +3282,7 @@ export namespace Prisma {
   }
 
   export type OneOptionalCountOutputTypeSelect<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    many?: boolean
+    many?: boolean | OneOptionalCountOutputTypeCountManyArgs
   }
 
   // Custom InputTypes
@@ -3266,6 +3295,14 @@ export namespace Prisma {
      * Select specific fields to fetch from the OneOptionalCountOutputType
      */
     select?: OneOptionalCountOutputTypeSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * OneOptionalCountOutputType without action
+   */
+  export type OneOptionalCountOutputTypeCountManyArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    where?: ManyRequiredWhereInput
   }
 
 
