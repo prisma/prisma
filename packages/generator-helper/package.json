@@ -28,7 +28,7 @@
   },
   "devDependencies": {
     "@swc-node/register": "1.6.5",
-    "@swc/core": "1.3.32",
+    "@swc/core": "1.3.64",
     "@swc/jest": "0.2.26",
     "@types/jest": "29.5.2",
     "@types/node": "18.16.16",
