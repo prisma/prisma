@@ -33,7 +33,8 @@ import {
   objectEnumValues,
   makeStrictEnum,
   Extensions,
-  defineDmmfProperty
+  defineDmmfProperty,
+  Public,
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
@@ -64,6 +65,7 @@ const {
   Extensions,
   warnOnce,
   defineDmmfProperty,
+  Public,
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -96,7 +98,7 @@ Prisma.sql = ${notSupportOnBrowser('sqltag', browser)}
 Prisma.empty = ${notSupportOnBrowser('empty', browser)}
 Prisma.join = ${notSupportOnBrowser('join', browser)}
 Prisma.raw = ${notSupportOnBrowser('raw', browser)}
-Prisma.validator = () => (val) => val
+Prisma.validator = Public.validator
 
 /**
 * Extensions
