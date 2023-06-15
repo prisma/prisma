@@ -982,6 +982,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           protocolMessage: message,
           protocolEncoder,
           modelName: model,
+          action,
           clientMethod,
           dataPath,
           rejectOnNotFound,
