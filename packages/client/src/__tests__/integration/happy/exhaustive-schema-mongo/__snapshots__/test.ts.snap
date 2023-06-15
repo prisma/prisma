@@ -7,7 +7,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const {
   Decimal,
   objectEnumValues,
-  makeStrictEnum
+  makeStrictEnum,
+  Public,
 } = require('@prisma/client/runtime/index-browser')
 
 
@@ -69,7 +70,7 @@ Prisma.raw = () => {
   throw new Error(\`raw is unable to be run in the browser.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
-Prisma.validator = () => (val) => val
+Prisma.validator = Public.validator
 
 /**
 * Extensions
@@ -1003,6 +1004,11 @@ export namespace Prisma {
   export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
   /**
+   * Validator
+   */
+  export import validator = runtime.Public.validator
+
+  /**
    * Prisma Errors
    */
   export import PrismaClientKnownRequestError = runtime.PrismaClientKnownRequestError
@@ -1416,7 +1422,7 @@ export namespace Prisma {
 
   export const type: unique symbol;
 
-  export function validator<V>(): <S>(select: $Utils.LegacyExact<S, V>) => S;
+
 
   /**
    * Used by group by

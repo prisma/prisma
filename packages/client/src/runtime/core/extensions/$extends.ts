@@ -1,4 +1,6 @@
 import { Client } from '../../getPrismaClient'
+import { RequestParams } from '../../RequestHandler'
+import type { Fetch, IsolationLevel } from '../engines'
 import {
   applyModelsAndClientExtensions,
   unApplyModelsAndClientExtensions,
@@ -63,8 +65,34 @@ type ModelQueryOptionsCbArgs = {
   query: (args: JsArgs) => Promise<unknown>
 }
 
+type BatchQuery = {
+  model: string | undefined
+  operation: string
+  args: JsArgs | RawQueryArgs
+}
+
+type BatchArgs = {
+  queries: BatchQuery[]
+  transaction?: { isolationLevel?: IsolationLevel }
+}
+
+export type BatchInternalParams = {
+  requests: RequestParams[]
+  customDataProxyFetch?: CustomDataProxyFetch
+}
+
+export type CustomDataProxyFetch = (fetch: Fetch) => Fetch
+
+type BatchQueryOptionsCbArgs = {
+  args: BatchArgs
+  // TODO: hide internalParams before making batch api public
+  query: (args: BatchArgs, __internalParams?: BatchInternalParams) => Promise<unknown[]>
+  __internalParams: BatchInternalParams
+}
+
 export type QueryOptionsCb = (args: QueryOptionsCbArgs) => Promise<any>
 export type ModelQueryOptionsCb = (args: ModelQueryOptionsCbArgs) => Promise<any>
+export type BatchQueryOptionsCb = (args: BatchQueryOptionsCbArgs) => Promise<any>
 
 type QueryOptions = {
   query: {
@@ -73,6 +101,12 @@ type QueryOptions = {
           [ModelAction in string]: ModelQueryOptionsCb
         }
       | QueryOptionsCb // for all queries (eg. raw queries)
+  }
+}
+
+export type QueryOptionsPrivate = QueryOptions & {
+  query?: {
+    $__internalBatch?: BatchQueryOptionsCb
   }
 }
 
