@@ -593,6 +593,12 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
       delete process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING
     })
 
+    beforeEach(async () => {
+      // Make sure to not mix forward and backward slashes in the path
+      // or del glob pattern would not work on Windows
+      await del(path.posix.join(baseDirChecksum, '*engine*'))
+    })
+
     test('if checksum downloads and matches, does not throw', async () => {
       const queryEnginePath = path.join(baseDirChecksum, getBinaryName(BinaryType.QueryEngineLibrary, platform))
 
