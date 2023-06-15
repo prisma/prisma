@@ -60,8 +60,8 @@ setupTestSuite(() => {
       where: { id },
       data: {
         country: 'France',
-        // @ts-expect-error
         contents: {
+          // @ts-expect-error
           set: null,
         },
       },
