@@ -39,7 +39,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
-import { createMySQLDriver } from './driver/mysql'
+import { createMySQLDriver, createPlanetscaleDriver } from './driver/mysql'
 import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
@@ -249,12 +249,21 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
 
       const usePrismaNodeDrivers = process.env.PRISMA_USE_NODE_DRIVERS === '1'
+      const usePlanetscale = process.env.PRISMA_FORCE_PLANETSCALE === '1'
 
       // Note: Node.js drivers currently require knowing the connection string upfront,
       // which would need JS to access Rust's `psl_core::configuration::datasource::Datasource::load_url`.
       // For rapid testing purposes, we just pass `process.env.DATABASE_URL` here, assuming that's
       // the connection string of the active provider `@prisma/mysql`.
-      const driver = usePrismaNodeDrivers ? createMySQLDriver(process.env.DATABASE_URL as string) : undefined
+      const driver = usePrismaNodeDrivers
+        ? usePlanetscale
+          ? createPlanetscaleDriver({
+              host: process.env.PLANETSCALE_HOST!,
+              username: process.env.PLANETSCALE_USERNAME!,
+              password: process.env.PLANETSCALE_PASSWORD!,
+            })
+          : createMySQLDriver(process.env.DATABASE_URL!)
+        : undefined
 
       try {
         // Using strong reference to `this` inside of log callback will prevent
