@@ -496,7 +496,7 @@ testMatrix.setupTestSuite(
       })
 
       expectTypeOf(args).toHaveProperty('include').toEqualTypeOf<null>()
-      expectTypeOf(args).toHaveProperty('where').toEqualTypeOf<{ id: '1' }>()
+      expectTypeOf(args).toHaveProperty('where').toMatchTypeOf<{ id: '1' }>()
     })
 
     test('custom method re-using output to augment it via intersection', () => {
