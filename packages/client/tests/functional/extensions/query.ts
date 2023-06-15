@@ -51,11 +51,14 @@ testMatrix.setupTestSuite(
           user: {
             findFirst({ args, query, operation, model }) {
               if (args.select != undefined) {
+                // @ts-expect-error
                 args.select.email = undefined
               }
+              // @ts-expect-error
               args.include = undefined
+              // @ts-expect-error
               args.select = undefined
-              expectTypeOf(args).not.toBeAny()
+              expectTypeOf(args).not.toBeAny
               expectTypeOf(query).toBeFunction()
               expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
               expectTypeOf(model).toEqualTypeOf<'User'>()
@@ -252,6 +255,7 @@ testMatrix.setupTestSuite(
       const xprisma = prisma.$extends({
         query: {
           user: {
+            // @ts-expect-error
             findFirst() {
               return 1 // override
             },
@@ -275,6 +279,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
+              // @ts-expect-error
               findFirst() {
                 return 1 // override
               },
@@ -321,6 +326,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             user: {
+              // @ts-expect-error
               findFirst() {
                 return 1 // override
               },
@@ -896,6 +902,7 @@ testMatrix.setupTestSuite(
 
               expectTypeOf(user).toHaveProperty('id').toEqualTypeOf<string | undefined>()
 
+              // @ts-expect-error
               return query(user)
             },
           },

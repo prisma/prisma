@@ -10,6 +10,7 @@ testMatrix.setupTestSuite(
   ({ previewFeatures }) => {
     describeIf(getQueryEngineProtocol() === 'json')('json', () => {
       test('include and select are used at the same time', async () => {
+        // @ts-expect-error
         const result = prisma.user.findMany({
           select: {},
           include: {},
@@ -22,6 +23,7 @@ testMatrix.setupTestSuite(
 
             XX describeIf(getQueryEngineProtocol() === 'json')('json', () => {
             XX   test('include and select are used at the same time', async () => {
+            XX     // @ts-expect-error
           → XX     const result = prisma.user.findMany({
                      select: {},
                      ~~~~~~
@@ -29,13 +31,13 @@ testMatrix.setupTestSuite(
                      ~~~~~~~
                    })
 
-
           Please either use \`include\` or \`select\`, but not both at the same time.
         `)
       })
 
       test('include used on scalar field', async () => {
         const result = prisma.user.findMany({
+          // @ts-expect-error
           include: { id: true },
         })
 
@@ -63,6 +65,7 @@ testMatrix.setupTestSuite(
       test('unknown selection field', async () => {
         const result = prisma.user.findMany({
           select: {
+            // @ts-expect-error
             notThere: true,
           },
         })
@@ -124,6 +127,7 @@ testMatrix.setupTestSuite(
 
       test('unknown argument', async () => {
         const result = prisma.user.findMany({
+          // @ts-expect-error
           notAnArgument: 123,
         })
 
@@ -153,6 +157,7 @@ testMatrix.setupTestSuite(
       test('unknown object field', async () => {
         const result = prisma.user.findMany({
           where: {
+            // @ts-expect-error
             notAValidField: 123,
           },
         })
@@ -187,6 +192,7 @@ testMatrix.setupTestSuite(
       })
 
       test('missing required argument: nested', async () => {
+        // @ts-expect-error
         const result = prisma.user.create({ data: {} })
 
         await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
@@ -196,6 +202,7 @@ testMatrix.setupTestSuite(
 
             XX 
             XX test('missing required argument: nested', async () => {
+            XX   // @ts-expect-error
           → XX   const result = prisma.user.create({
                     data: {
                   +   email: String
@@ -209,6 +216,7 @@ testMatrix.setupTestSuite(
       test('invalid argument type', async () => {
         const result = prisma.user.findUnique({
           where: {
+            // @ts-expect-error
             email: 123,
           },
         })
@@ -235,6 +243,7 @@ testMatrix.setupTestSuite(
       test('invalid field ref', async () => {
         const result = prisma.user.findFirst({
           where: {
+            // @ts-expect-error
             name: { gt: prisma.pet.fields.name },
           },
         })
@@ -255,6 +264,7 @@ testMatrix.setupTestSuite(
       test('union error', async () => {
         const result = prisma.user.findMany({
           where: {
+            // @ts-expect-error
             email: 123,
           },
         })
@@ -281,6 +291,7 @@ testMatrix.setupTestSuite(
       test('union error: different paths', async () => {
         const result = prisma.user.findMany({
           where: {
+            // @ts-expect-error
             email: { gt: 123 },
           },
         })
@@ -311,6 +322,7 @@ testMatrix.setupTestSuite(
         const result = prisma.user.create({
           data: {
             name: 'Horsey McHorseface',
+            // @ts-expect-error
             email: 123,
             organizationId: 'a123456789012456789',
           },

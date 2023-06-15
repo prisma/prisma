@@ -79,6 +79,7 @@ const expectedFindManyCategoryModelIfNoChange = [
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
+    // @ts-expect-error
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 

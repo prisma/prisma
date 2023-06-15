@@ -191,6 +191,7 @@ testMatrix.setupTestSuite(() => {
   test('only accepts methods', () => {
     prisma.$extends({
       client: {
+        // @ts-expect-error
         badInput: 1,
       },
     })

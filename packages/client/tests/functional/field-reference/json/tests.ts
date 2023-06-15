@@ -128,6 +128,7 @@ testMatrix.setupTestSuite(
       const products = prisma.product.findMany({
         where: {
           properties1: {
+            // @ts-expect-error
             equals: prisma.product.fields.title,
           },
         },

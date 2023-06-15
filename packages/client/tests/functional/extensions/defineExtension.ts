@@ -402,11 +402,13 @@ testMatrix.setupTestSuite(() => {
 
   test('invalid', () => {
     Prisma.defineExtension({
+      // @ts-expect-error
       notAComponent: {},
     })
 
     Prisma.defineExtension({
       model: {
+        // @ts-expect-error
         notAModel: {
           myMethod() {},
         },
@@ -430,6 +432,7 @@ testMatrix.setupTestSuite(() => {
         user: {
           field: {
             needs: {
+              // @ts-expect-error
               notUserField: true,
             },
             compute: () => {},
@@ -446,6 +449,7 @@ testMatrix.setupTestSuite(() => {
               id: true,
             },
             compute: (user) => {
+              // @ts-expect-error
               return user.bad
             },
           },
@@ -455,6 +459,7 @@ testMatrix.setupTestSuite(() => {
 
     Prisma.defineExtension({
       query: {
+        // @ts-expect-error
         notAModel: {
           findFirst() {},
         },
@@ -464,6 +469,7 @@ testMatrix.setupTestSuite(() => {
     Prisma.defineExtension({
       query: {
         user: {
+          // @ts-expect-error
           notAnOperation() {},
         },
       },

@@ -44,6 +44,7 @@ testMatrix.setupTestSuite(
         await expect(
           prisma.requiredJsonField.create({
             data: {
+              // @ts-expect-error
               json: Prisma.DbNull,
             },
           }),
@@ -84,6 +85,7 @@ testMatrix.setupTestSuite(
           await expect(
             prisma.requiredJsonField.create({
               data: {
+                // @ts-expect-error
                 json: new Prisma.NullTypes.JsonNull(),
               },
             }),

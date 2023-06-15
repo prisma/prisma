@@ -107,6 +107,7 @@ setupTestSuite(() => {
       update: {},
       create: {
         country: 'France',
+        // @ts-expect-error
         contents: {
           set: null,
         },
@@ -129,6 +130,7 @@ setupTestSuite(() => {
       update: {},
       create: {
         country: 'France',
+        // @ts-expect-error
         contents: null,
       },
     })

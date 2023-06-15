@@ -55,6 +55,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     const products = prisma.product.findMany({
       where: {
         string: {
+          // @ts-expect-error
           equals: prisma.product.fields.notString,
         },
       },
@@ -88,6 +89,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     const products = prisma.product.findMany({
       where: {
         string: {
+          // @ts-expect-error
           equals: prisma.otherModel.fields.string,
         },
       },
@@ -121,6 +123,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     const products = prisma.product.findMany({
       where: {
         string: {
+          // @ts-expect-error
           equals: prisma.identicalToProduct.fields.string,
         },
       },

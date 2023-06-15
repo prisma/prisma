@@ -58,6 +58,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   test('reports correct method name in case of validation error', async () => {
     const record = prisma.user.findUniqueOrThrow({
       where: {
+        // @ts-expect-error triggering validation error on purpose
         notAUserField: true,
       },
     })
@@ -70,6 +71,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   testIf(clientMeta.runtime !== 'edge')('does not accept rejectOnNotFound option', async () => {
     const record = prisma.user.findUniqueOrThrow({
       where: { email: existingEmail },
+      // @ts-expect-error passing not supported option on purpose
       rejectOnNotFound: false,
     })
 

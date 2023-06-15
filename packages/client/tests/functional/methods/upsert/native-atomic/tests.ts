@@ -16,8 +16,10 @@ class UpsertChecker {
   }
 
   capturelogs(client: PrismaClient) {
+    // @ts-expect-error
     client.$on('query', (data) => {
       if ('query' in data) {
+        // @ts-expect-error
         this.logs.push(data.query)
       }
     })

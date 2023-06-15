@@ -101,6 +101,7 @@ setupTestSuite(() => {
       create: {},
       update: {
         country: 'France',
+        // @ts-expect-error
         contents: {
           set: null,
         },
@@ -120,6 +121,7 @@ setupTestSuite(() => {
       create: {},
       update: {
         country: 'France',
+        // @ts-expect-error
         contents: null,
       },
     })
@@ -341,6 +343,7 @@ setupTestSuite(() => {
       create: {},
       update: {
         contents: {
+          // @ts-expect-error
           unset: true,
         },
       },
@@ -361,6 +364,7 @@ setupTestSuite(() => {
       create: {},
       update: {
         contents: {
+          // @ts-expect-error
           upsert: {
             update: {},
             set: {
@@ -386,6 +390,7 @@ setupTestSuite(() => {
       create: {},
       update: {
         contents: {
+          // @ts-expect-error
           upsert: {
             update: {
               text: 'Hello World',

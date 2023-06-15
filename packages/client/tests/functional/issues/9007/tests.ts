@@ -15,6 +15,7 @@ testMatrix.setupTestSuite(
       await expect(() =>
         prisma.user.findMany({
           where: {
+            // @ts-expect-error
             uuid: { contains: 'foo-bar' },
           },
         }),

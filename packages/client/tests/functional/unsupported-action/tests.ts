@@ -9,6 +9,7 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite(
   () => {
     testIf(getQueryEngineProtocol() === 'graphql')('unsupported method (graphql)', async () => {
+      // @ts-expect-error
       const result = prisma.user.aggregateRaw()
       await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
@@ -17,12 +18,14 @@ testMatrix.setupTestSuite(
 
           XX () => {
           XX   testIf(getQueryEngineProtocol() === 'graphql')('unsupported method (graphql)', async () => {
+          XX     // @ts-expect-error
         → XX     const result = prisma.user.aggregateRaw(
         Model \`User\` does not support \`aggregateRaw\` action.
       `)
     })
 
     testIf(getQueryEngineProtocol() === 'json')('unsupported method (json)', async () => {
+      // @ts-expect-error
       const result = prisma.user.aggregateRaw()
       await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
 
@@ -31,6 +34,7 @@ testMatrix.setupTestSuite(
 
                   XX 
                   XX testIf(getQueryEngineProtocol() === 'json')('unsupported method (json)', async () => {
+                  XX   // @ts-expect-error
                 → XX   const result = prisma.user.aggregateRaw(
                 Operation 'aggregateRaw' for model 'User' does not match any query.
             `)

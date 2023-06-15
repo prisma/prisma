@@ -73,6 +73,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
 
   test('select all false', async () => {
     const value = await prisma.user.count({
+      // @ts-expect-error - TODO There is a bug here
       select: false, // count with no selection
     })
 
@@ -106,6 +107,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
         email: true,
         age: true,
         name: true,
+        // @ts-expect-error
         posts: true,
       },
     })
