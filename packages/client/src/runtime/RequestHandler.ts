@@ -106,7 +106,7 @@ export class RequestHandler {
               }
 
               try {
-                return this.processResponse(requests[i], result)
+                return this.mapQueryEngineResult(requests[i], result)
               } catch (error) {
                 return error
               }
@@ -124,7 +124,7 @@ export class RequestHandler {
           isWrite: request.protocolMessage.isWrite(),
           customDataProxyFetch: request.customDataProxyFetch,
         })
-        return this.processResponse(request, response)
+        return this.mapQueryEngineResult(request, response)
       },
 
       batchBy: (request) => {
@@ -146,47 +146,33 @@ export class RequestHandler {
 
   async request(params: RequestParams) {
     try {
-      return await this.dataloader.request(params)
+      const result = await this.dataloader.request(params)
+      throwIfNotFound(result, params.clientMethod, params.modelName, params.rejectOnNotFound)
+      return result
     } catch (error) {
       const { clientMethod, callsite, transaction, args } = params
       this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
     }
   }
 
-  processResponse(
-    {
-      protocolMessage,
-      dataPath,
-      unpacker,
-      clientMethod,
-      modelName,
-      args,
-      extensions,
-      rejectOnNotFound,
-      callsite,
-      transaction,
-    }: RequestParams,
+  mapQueryEngineResult(
+    { protocolMessage, dataPath, unpacker, modelName, args, extensions }: RequestParams,
     response: QueryEngineResult<any>,
   ) {
-    try {
-      const data = response?.data
-      const elapsed = response?.elapsed
+    const data = response?.data
+    const elapsed = response?.elapsed
 
-      /**
-       * Unpack
-       */
-      let result = this.unpack(protocolMessage, data, dataPath, unpacker)
-      throwIfNotFound(result, clientMethod, modelName, rejectOnNotFound)
-      if (modelName) {
-        result = this.applyResultExtensions({ result, modelName, args, extensions })
-      }
-      if (process.env.PRISMA_CLIENT_GET_TIME) {
-        return { data: result, elapsed }
-      }
-      return result
-    } catch (error) {
-      this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
+    /**
+     * Unpack
+     */
+    let result = this.unpack(protocolMessage, data, dataPath, unpacker)
+    if (modelName) {
+      result = this.applyResultExtensions({ result, modelName, args, extensions })
     }
+    if (process.env.PRISMA_CLIENT_GET_TIME) {
+      return { data: result, elapsed }
+    }
+    return result
   }
 
   /**
