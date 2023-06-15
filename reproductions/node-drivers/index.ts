@@ -4,7 +4,7 @@ async function main() {
   const prisma = new PrismaClient()
   console.log('[nodejs] initialized PrismaClient')
 
-  const manyUsers = await prisma.some_user.findMany()
+  const manyUsers = await prisma.some_user_200.findMany()
   console.log('[nodejs] manyUsers', manyUsers)
 
   // Note: findFirst() would fail because Node Drivers doesn't yet support prepared "?" parameters.

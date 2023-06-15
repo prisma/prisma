@@ -6,8 +6,7 @@
   "scripts": {
     "migrate": "prisma migrate dev",
     "generate": "prisma generate",
-    "prepare": "prisma generate && prisma migrate dev",
-    "test:node": "cross-env PRISMA_USE_NODE_DRIVERS=1 ts-node index.ts",
+    "test:node": "cross-env PRISMA_USE_NODE_DRIVERS=1 PRISMA_FORCE_PLANETSCALE=1 ts-node index.ts",
     "test:rust": "cross-env PRISMA_USE_NODE_DRIVERS=0 ts-node index.ts",
     "test": "ts-node index.ts",
     "debug": "node -r ts-node/register --inspect-brk index.ts"
