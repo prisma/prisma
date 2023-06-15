@@ -1,4 +1,5 @@
 import { Client, InternalRequestParams } from '../../getPrismaClient'
+import { RequestParams } from '../../RequestHandler'
 import { deepCloneArgs } from '../../utils/deepCloneArgs'
 import { BatchInternalParams, BatchQueryOptionsCb, CustomDataProxyFetch, QueryOptionsCb } from './$extends'
 
@@ -63,16 +64,16 @@ export function applyQueryExtensions(client: Client, params: InternalRequestPara
 
 type BatchExecuteCallback = (params: BatchInternalParams) => Promise<unknown[]>
 
-export function applyQueryBatchExtensions(
-  params: BatchInternalParams,
-  executeBatch: BatchExecuteCallback,
-): Promise<any> {
-  const callbacks = params.requests[0].extensions.getAllBatchQueryCallbacks()
-  if (!callbacks.length) {
-    return executeBatch(params)
-  }
+export function createApplyBatchExtensionsFunction(executeBatch: BatchExecuteCallback) {
+  return (requests: RequestParams[]) => {
+    const params = { requests }
+    const callbacks = requests[0].extensions.getAllBatchQueryCallbacks()
+    if (!callbacks.length) {
+      return executeBatch(params)
+    }
 
-  return iterateAndCallBatchCallbacks(params, callbacks, 0, executeBatch)
+    return iterateAndCallBatchCallbacks(params, callbacks, 0, executeBatch)
+  }
 }
 
 export function iterateAndCallBatchCallbacks(

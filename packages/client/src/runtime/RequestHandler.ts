@@ -19,7 +19,7 @@ import {
 import { QueryEngineResult } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
-import { applyQueryBatchExtensions } from './core/extensions/applyQueryExtensions'
+import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
 import { applyResultExtensions } from './core/extensions/applyResultExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { visitQueryResult } from './core/extensions/visitQueryResult'
@@ -77,43 +77,38 @@ export class RequestHandler {
   constructor(client: Client, logEmitter?: EventEmitter) {
     this.logEmitter = logEmitter
     this.client = client
+
     this.dataloader = new DataLoader({
-      batchLoader: (requests) => {
-        return applyQueryBatchExtensions(
-          {
-            requests,
-          },
-          async ({ requests, customDataProxyFetch }) => {
-            const { transaction, protocolEncoder, otelParentCtx } = requests[0]
-            const queries = protocolEncoder.createBatch(requests.map((r) => r.protocolMessage))
-            const traceparent = this.client._tracingHelper.getTraceParent(otelParentCtx)
+      batchLoader: createApplyBatchExtensionsFunction(async ({ requests, customDataProxyFetch }) => {
+        const { transaction, protocolEncoder, otelParentCtx } = requests[0]
+        const queries = protocolEncoder.createBatch(requests.map((r) => r.protocolMessage))
+        const traceparent = this.client._tracingHelper.getTraceParent(otelParentCtx)
 
-            // TODO: pass the child information to QE for it to issue links to queries
-            // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
+        // TODO: pass the child information to QE for it to issue links to queries
+        // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-            const containsWrite = requests.some((r) => r.protocolMessage.isWrite())
+        const containsWrite = requests.some((r) => r.protocolMessage.isWrite())
 
-            const results = await this.client._engine.requestBatch(queries, {
-              traceparent,
-              transaction: getTransactionOptions(transaction),
-              containsWrite,
-              customDataProxyFetch,
-            })
+        const results = await this.client._engine.requestBatch(queries, {
+          traceparent,
+          transaction: getTransactionOptions(transaction),
+          containsWrite,
+          customDataProxyFetch,
+        })
 
-            return results.map((result, i) => {
-              if (result instanceof Error) {
-                return result
-              }
+        return results.map((result, i) => {
+          if (result instanceof Error) {
+            return result
+          }
 
-              try {
-                return this.mapQueryEngineResult(requests[i], result)
-              } catch (error) {
-                return error
-              }
-            })
-          },
-        )
-      },
+          try {
+            return this.mapQueryEngineResult(requests[i], result)
+          } catch (error) {
+            return error
+          }
+        })
+      }),
+
       singleLoader: async (request) => {
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
