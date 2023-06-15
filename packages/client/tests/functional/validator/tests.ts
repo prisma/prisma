@@ -17,7 +17,6 @@ testMatrix.setupTestSuite(
       expect(data1).toEqual({ id: true })
 
       Prisma.validator<PrismaNamespace.UserSelect>()({
-        // @ts-expect-error
         wrong: {},
       })
 
@@ -36,7 +35,6 @@ testMatrix.setupTestSuite(
         'user',
         'findFirst',
       )({
-        // @ts-expect-error
         select: { wrong: {} },
       })
 
@@ -57,7 +55,6 @@ testMatrix.setupTestSuite(
         'create',
         'data',
       )({
-        // @ts-expect-error
         wrong: {},
       })
 
@@ -78,7 +75,6 @@ testMatrix.setupTestSuite(
         'create',
         'select',
       )({
-        // @ts-expect-error
         wrong: {},
       })
     })
@@ -104,7 +100,6 @@ testMatrix.setupTestSuite(
       expect(data1).toEqual({ id: true })
 
       Prisma.validator<PrismaNamespace.UserSelect>()({
-        // @ts-expect-error
         wrong: {},
       })
 
@@ -123,7 +118,6 @@ testMatrix.setupTestSuite(
         'user',
         'findFirst',
       )({
-        // @ts-expect-error
         select: { wrong: {} },
       })
 
@@ -144,7 +138,6 @@ testMatrix.setupTestSuite(
         'create',
         'data',
       )({
-        // @ts-expect-error
         wrong: {},
       })
 
@@ -166,7 +159,6 @@ testMatrix.setupTestSuite(
         'create',
         'select',
       )({
-        // @ts-expect-error
         wrong: {},
       })
     })

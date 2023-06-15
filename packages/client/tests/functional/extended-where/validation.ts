@@ -11,7 +11,6 @@ declare let prisma: PrismaClient
 testMatrix.setupTestSuite((_0, _1, { runtime }) => {
   testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('where and no keys provided', async () => {
     const result = prisma.user.delete({
-      // @ts-expect-error
       where: {},
     })
 
@@ -46,7 +45,6 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
 
   testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('where and missing unique keys', async () => {
     const result = prisma.user.delete({
-      // @ts-expect-error
       where: {
         profile: {},
       },

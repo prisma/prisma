@@ -58,7 +58,6 @@ testMatrix.setupTestSuite(
 
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
-    // @ts-expect-error
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isPostgreSQL = suiteConfig.provider === Providers.POSTGRESQL
     const isSQLite = suiteConfig.provider === Providers.SQLITE

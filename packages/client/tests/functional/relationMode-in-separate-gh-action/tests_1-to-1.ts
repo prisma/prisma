@@ -46,7 +46,6 @@ testMatrix.setupTestSuite(
 
     const onUpdate = suiteConfig.onUpdate
     const onDelete = suiteConfig.onDelete
-    // @ts-expect-error
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
     const isRelationMode_prisma = isMongoDB || suiteConfig.relationMode === 'prisma'
     const isRelationMode_foreignKeys = !isRelationMode_prisma
@@ -143,7 +142,6 @@ testMatrix.setupTestSuite(
             prisma[profileModel].create({
               data: {
                 id: '1',
-                // @ts-expect-error
                 userId: undefined, // this would actually be a type-error, but we don't have access to types here
               },
             }),

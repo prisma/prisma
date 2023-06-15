@@ -92,7 +92,6 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     const products = prisma.product.findMany({
       where: {
         quantity: {
-          // @ts-expect-error
           gt: prisma.product.fields.wrongType,
         },
       },

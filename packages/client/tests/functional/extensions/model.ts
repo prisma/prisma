@@ -256,7 +256,6 @@ testMatrix.setupTestSuite(
     test('only accepts methods', () => {
       prisma.$extends({
         model: {
-          // @ts-expect-error
           badInput: 1,
         },
       })
@@ -301,7 +300,6 @@ testMatrix.setupTestSuite(
               fail() {
                 const ctx = Prisma.getExtensionContext(this)
                 return ctx.findUnique({
-                  // @ts-expect-error
                   badInput: true,
                 })
               },
@@ -337,7 +335,6 @@ testMatrix.setupTestSuite(
       async () => {
         const fnEmitter = jest.fn()
 
-        // @ts-expect-error
         prisma.$on('query', fnEmitter)
 
         const xprisma = prisma.$extends({
@@ -378,7 +375,6 @@ testMatrix.setupTestSuite(
       async () => {
         const fnEmitter = jest.fn()
 
-        // @ts-expect-error
         prisma.$on('query', fnEmitter)
 
         const xprisma = prisma
@@ -586,13 +582,9 @@ testMatrix.setupTestSuite(
       }>()
 
       void xprisma.user.findFirstOrCreate({
-        // @ts-expect-error
         allergies: 'invalid',
-        // @ts-expect-error
         foodChoice: ['starters', 'invalid'],
-        // @ts-expect-error
         guestName: null,
-        // @ts-expect-error
         vegan: 'invalid',
       })
     })
@@ -623,7 +615,6 @@ testMatrix.setupTestSuite(
       const data = xprisma.user.findFirstOrCreate({
         where: {
           email: 'test',
-          // @ts-expect-error
           posts: {
             none: {
               id: '1',

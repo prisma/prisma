@@ -74,7 +74,6 @@ testMatrix.setupTestSuite(
 
     // TODO: skipped on edge client because of error snapshot
     testIf(clientMeta.runtime !== 'edge')('invalid level generates run- and compile- time error', async () => {
-      // @ts-expect-error
       const result = prisma.$transaction([prisma.user.findFirst({}), prisma.user.findFirst({})], {
         isolationLevel: 'yes',
       })
@@ -86,7 +85,6 @@ testMatrix.setupTestSuite(
 
           XX // TODO: skipped on edge client because of error snapshot
           XX testIf(clientMeta.runtime !== 'edge')('invalid level generates run- and compile- time error', async () => {
-          XX   // @ts-expect-error
         → XX   const result = prisma.$transaction([prisma.user.findFirst(
         Inconsistent column data: Conversion failed: Invalid isolation level \`yes\`
       `)
