@@ -158,7 +158,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-47.integration-node-drivers-with-types-and-no-missing-symbols-0c1cc1c08f0434bd4e8d7a611764c704f1d3d036"
+    "@prisma/engines-version": "4.16.0-53.c15399e487c3f4e849e50cc4bbefe81c217a0450"
   },
   "sideEffects": false
 }
