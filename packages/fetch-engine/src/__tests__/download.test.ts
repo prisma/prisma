@@ -582,11 +582,8 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
   })
 
   describe('env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1', () => {
-    beforeAll(async () => {
+    beforeAll(() => {
       process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = '1'
-      // Make sure to not mix forward and backward slashes in the path
-      // or del glob pattern would not work on Windows
-      await del(path.posix.join(baseDirChecksum, '*engine*'))
     })
 
     afterAll(() => {
@@ -622,6 +619,8 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
 
     test("if checksum downloads but doesn't match, throws", async () => {
+      expect.assertions(1)
+
       mockFetch.mockImplementation((url, opts) => {
         if (String(url).endsWith('.sha256')) {
           return Promise.resolve({
@@ -635,15 +634,17 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         return actualFetch(url, opts)
       })
 
-      await expect(
-        download({
+      try {
+        await download({
           binaries: {
             [BinaryType.QueryEngineLibrary]: baseDirChecksum,
           },
           binaryTargets: [platform],
           version: CURRENT_ENGINES_HASH,
-        }),
-      ).rejects.toThrow(/^sha256 checksum of .+ \(zipped\) should be .+ but is .+$/)
+        })
+      } catch (e) {
+        expect(e.message).toMatch(/^sha256 checksum of .+ \(zipped\) should be .+ but is .+$/)
+      }
     })
 
     test('if checksum download fails, logs warning but does not throw', async () => {
