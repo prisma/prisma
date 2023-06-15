@@ -2537,7 +2537,7 @@ export namespace Prisma {
         payload: any
       }
       $executeRaw: {
-        args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
+        args: Prisma.Sql,
         result: any
         payload: any
       }
@@ -2547,7 +2547,7 @@ export namespace Prisma {
         payload: any
       }
       $queryRaw: {
-        args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
+        args: Prisma.Sql,
         result: any
         payload: any
       }
