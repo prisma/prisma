@@ -36,7 +36,7 @@ export function longestCommonPathPrefix(pathA: string, pathB: string): string | 
     return process.platform === 'win32' ? undefined : '/'
   }
 
-  if (process.platform === 'win32' && ['\\\\', '\\\\?', '\\\\.'].includes(commonPrefix)) {
+  if (process.platform === 'win32' && ['\\', '\\\\?', '\\\\.'].includes(commonPrefix)) {
     return undefined
   }
 
