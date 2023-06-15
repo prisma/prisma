@@ -41,7 +41,8 @@ import {
 const {
   Decimal,
   objectEnumValues,
-  makeStrictEnum
+  makeStrictEnum,
+  Public,
 } = require('${runtimeDir}/${runtimeName}')
 `
     : `
