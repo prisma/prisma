@@ -1,4 +1,3 @@
-import { maxBy } from '@prisma/internals'
 import levenshtein from 'js-levenshtein'
 
 import {
@@ -11,13 +10,13 @@ import {
   RequiredArgumentMissingError,
   SomeFieldsMissingError,
   TooManyFieldsGivenError,
-  UnionError,
   UnknownArgumentError,
   UnknownInputFieldError,
   UnknownSelectionFieldError,
   ValueTooLargeError,
 } from '../engines'
 import { IncludeAndSelectError, IncludeOnScalarError, ValidationError } from '../types/ValidationError'
+import { applyUnionError } from './applyUnionError'
 import { ArgumentsRenderingTree } from './ArgumentsRenderingTree'
 import { Colors } from './base'
 import { ObjectField } from './ObjectField'
@@ -426,73 +425,6 @@ function applyTooManyFieldsGivenError(error: TooManyFieldsGivenError, args: Argu
     }
 
     return parts.join(' ')
-  })
-}
-
-function applyUnionError(error: UnionError, args: ArgumentsRenderingTree) {
-  const bestError = getBestUnionError(error)
-  if (bestError) {
-    applyValidationError(bestError, args)
-  } else {
-    args.addErrorMessage(() => 'Unknown error')
-  }
-}
-
-function getBestUnionError(error: UnionError) {
-  return tryMergingUnionError(error) ?? getLongestPathError(error)
-}
-
-function tryMergingUnionError({ errors }: UnionError): InvalidArgumentTypeError | undefined {
-  if (errors.length === 0 || errors[0].kind !== 'InvalidArgumentType') {
-    return undefined
-  }
-  const result = { ...errors[0], argument: { ...errors[0].argument } }
-  for (let i = 1; i < errors.length; i++) {
-    const nextError = errors[i]
-    if (nextError.kind !== 'InvalidArgumentType') {
-      return undefined
-    }
-
-    if (!isSamePath(nextError.selectionPath, result.selectionPath)) {
-      return undefined
-    }
-
-    if (!isSamePath(nextError.argumentPath, result.argumentPath)) {
-      return undefined
-    }
-
-    result.argument.typeNames = result.argument.typeNames.concat(nextError.argument.typeNames)
-  }
-
-  return result
-}
-
-function isSamePath(pathA: string[], pathB: string[]): boolean {
-  if (pathA.length !== pathB.length) {
-    return false
-  }
-  for (let i = 0; i < pathA.length; i++) {
-    if (pathA[i] !== pathB[i]) {
-      return false
-    }
-  }
-  return true
-}
-
-function getLongestPathError(error: UnionError) {
-  return maxBy(error.errors, (error) => {
-    if (error.kind === 'Union') {
-      error = getBestUnionError(error) ?? error
-    }
-    let score = 0
-    if (Array.isArray(error['selectionPath'])) {
-      score += error['selectionPath'].length
-    }
-
-    if (Array.isArray(error['argumentPath'])) {
-      score += error['argumentPath'].length
-    }
-    return score
   })
 }
 

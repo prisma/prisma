@@ -14,16 +14,27 @@ declare let Prisma: typeof PrismaNamespace
 testMatrix.setupTestSuite(() => {
   let mockedRequest: jest.SpyInstance<any>
   const originalRequest = https.request
-  const randomId = randomBytes(12).toString('hex')
+  const randomId1 = randomBytes(12).toString('hex')
+  const randomId2 = randomBytes(12).toString('hex')
 
   beforeAll(async () => {
     // this also warms up the dataproxy (schema upload)
     await prisma.user.create({
       data: {
-        id: randomId,
+        id: randomId1,
         email: 'john@doe.io',
         firstName: 'John',
         lastName: 'Doe',
+      },
+    })
+
+    // this also warms up the dataproxy (schema upload)
+    await prisma.user.create({
+      data: {
+        id: randomId2,
+        email: 'max@mustermann.io',
+        firstName: 'Max',
+        lastName: 'Mustermann',
       },
     })
   })
@@ -89,9 +100,9 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    const data = await xprisma.user.findUnique({ where: { id: randomId } })
+    const data = await xprisma.user.findUnique({ where: { id: randomId1 } })
 
-    expect(data).toHaveProperty('id', randomId)
+    expect(data).toHaveProperty('id', randomId1)
 
     expect(mockedRequest.mock.calls[0][1].headers).toHaveProperty('x-custom-header', 'hello')
   })
@@ -161,9 +172,91 @@ testMatrix.setupTestSuite(() => {
           },
         })
 
-      const data = await xprisma.user.findUnique({ where: { id: randomId } }).catch()
+      const data = await xprisma.user.findUnique({ where: { id: randomId1 } }).catch()
 
-      expect(data).toHaveProperty('id', randomId)
+      expect(data).toHaveProperty('id', randomId1)
     },
   )
+
+  testIf(process.env.TEST_DATA_PROXY !== undefined)(
+    'allows to override customDataProxyFetch for the whole batch',
+    async () => {
+      const xprisma = prisma.$extends({
+        query: {
+          // @ts-expect-error
+          async $__internalBatch({ query, args, __internalParams }) {
+            let cacheInfo: null | string = null
+            __internalParams.customDataProxyFetch = (fetch) => (url, args) => {
+              cacheInfo = 'hit!'
+              return fetch(url, args)
+            }
+
+            const result = await query(args, __internalParams)
+            for (const item of result) {
+              if (item) {
+                item.cacheInfo = cacheInfo
+              }
+            }
+            return result
+          },
+        },
+      })
+
+      const [user1, user2] = await Promise.all([
+        xprisma.user.findUnique({ where: { id: randomId1 } }),
+        xprisma.user.findUnique({ where: { id: randomId2 } }),
+      ])
+
+      expect(user1).toHaveProperty('cacheInfo', 'hit!')
+      expect(user2).toHaveProperty('cacheInfo', 'hit!')
+    },
+  )
+
+  testIf(process.env.TEST_DATA_PROXY !== undefined)('customDataProxyFetch for batches stacks', async () => {
+    expect.assertions(2)
+    const xprisma = prisma
+      .$extends({
+        query: {
+          // @ts-expect-error
+          $__internalBatch({ query, args, __internalParams }) {
+            __internalParams.customDataProxyFetch = (fetch) => (url, args) => {
+              return fetch(url, { ...args, order: [1] })
+            }
+
+            return query(args, __internalParams)
+          },
+        },
+      })
+      .$extends({
+        query: {
+          // @ts-expect-error
+          $__internalBatch({ query, args, __internalParams }) {
+            __internalParams.customDataProxyFetch = (fetch) => (url, args) => {
+              expect(args.order).toEqual([1])
+              return fetch(url, { ...args, order: [...args.order, 2] })
+            }
+
+            return query(args, __internalParams)
+          },
+        },
+      })
+      .$extends({
+        query: {
+          // @ts-expect-error
+          $__internalBatch({ query, args, __internalParams }) {
+            __internalParams.customDataProxyFetch = (fetch) => (url, args) => {
+              expect(args.order).toEqual([1, 2])
+              return fetch(url, args)
+            }
+
+            return query(args, __internalParams)
+          },
+        },
+      })
+
+    await Promise.all([
+      xprisma.user.findUnique({ where: { id: randomId1 } }),
+      xprisma.user.findUnique({ where: { id: randomId2 } }),
+    ])
+  })
 })
