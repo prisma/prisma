@@ -3,6 +3,7 @@ import fs from 'fs'
 import { bold, green, yellow } from 'kleur/colors'
 import path from 'path'
 
+import { longestCommonPathPrefix } from '../../../utils/path'
 import { findPrismaClientDir } from './auto-installation/findPrismaClientDir'
 import { getPackageCmd } from './auto-installation/getPackageCmd'
 import { runPackageCmd } from './auto-installation/runPackageCmd'
@@ -30,12 +31,26 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
   await checkTypeScriptVersion()
 
   if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
-    if (!fs.existsSync(path.join(process.cwd(), 'package.json'))) {
+    let projectRoot = longestCommonPathPrefix(baseDir, process.cwd())
+    debug('projectRoot', projectRoot)
+
+    if (projectRoot === undefined) {
+      console.warn(
+        yellow(
+          `${bold('Warning:')} schema directory ${bold(baseDir)} and current working directory ${bold(
+            process.cwd(),
+          )} have no common ancestor, using the schema path as the project root.`,
+        ),
+      )
+      projectRoot = baseDir
+    }
+
+    if (!fs.existsSync(path.join(projectRoot, 'package.json'))) {
       console.warn(
         yellow(
           `${bold('Warning:')} could not find the ${bold(
             'package.json',
-          )} file in the current working directory, it will be created by your package manager on the appropriate level if necessary.`,
+          )} file in the inferred project root, it will be created by your package manager on the appropriate level if necessary.`,
         ),
       )
     }
@@ -61,10 +76,10 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     }
 
     if (!prismaCliDir) {
-      await runPackageCmd(baseDir, 'add', `prisma@${version ?? 'latest'}`, '-D')
+      await runPackageCmd(projectRoot, 'add', `prisma@${version ?? 'latest'}`, '-D')
     }
 
-    await runPackageCmd(baseDir, 'add', `@prisma/client@${version ?? 'latest'}`)
+    await runPackageCmd(projectRoot, 'add', `@prisma/client@${version ?? 'latest'}`)
 
     // resolvePkg has caching, so we trick it not to do it 👇
     prismaClientDir = await findPrismaClientDir(path.join('.', baseDir))
