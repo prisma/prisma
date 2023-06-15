@@ -736,9 +736,5 @@ testMatrix.setupTestSuite(
   },
   {
     skipDefaultClientInstance: true,
-    optOut: {
-      from: ['sqlserver', 'mongodb', 'sqlite', 'postgresql', 'cockroachdb'],
-      reason: 'Not supported',
-    },
   },
 )
