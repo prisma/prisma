@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { deserializeJsonResponse } from './deserialize'
+import { deserializeJsonResponse } from './deserializeJsonResponse'
 
 test('primitives', () => {
   expect(deserializeJsonResponse(1)).toBe(1)

@@ -38,13 +38,13 @@ import { $extends } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
+import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
   applyModelsAndClientExtensions,
   unApplyModelsAndClientExtensions,
 } from './core/model/applyModelsAndClientExtensions'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
-import { JsonProtocolEncoder } from './core/protocol/json'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
 import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import {
@@ -930,8 +930,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       customDataProxyFetch,
     }: InternalRequestParams) {
       try {
-        const protocolEncoder = new JsonProtocolEncoder(this._runtimeDataModel, this._errorFormat)
-
         // execute argument transformation before execution
         args = argsMapper ? argsMapper(args) : args
 
@@ -946,13 +944,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         }
 
         const message = this._tracingHelper.runInChildSpan(spanOptions, () =>
-          protocolEncoder.createMessage({
+          serializeJsonQuery({
             modelName: model,
+            runtimeDataModel: this._runtimeDataModel,
             action,
             args,
             clientMethod,
             callsite,
             extensions: this._extensions,
+            errorFormat: this._errorFormat,
           }),
         )
 
@@ -962,7 +962,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           debug(`Prisma Client call:`)
           debug(`prisma.${clientMethod}(${prettyPrintArguments(args)})`)
           debug(`Generated request:`)
-          debug(message.toDebugString() + '\n')
+          debug(JSON.stringify(message, null, 2) + '\n')
         }
 
         if (transaction?.kind === 'batch') {
@@ -971,8 +971,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         }
 
         return this._fetcher.request({
-          protocolMessage: message,
-          protocolEncoder,
+          protocolQuery: message,
           modelName: model,
           action,
           clientMethod,

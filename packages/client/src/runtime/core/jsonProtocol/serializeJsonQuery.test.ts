@@ -1,10 +1,10 @@
 import Decimal from 'decimal.js'
 
-import { field, model, runtimeDataModel } from '../../../../testUtils/dataModelBuilder'
-import { objectEnumValues } from '../../../object-enums'
-import { MergedExtensionsList } from '../../extensions/MergedExtensionsList'
-import { FieldRefImpl } from '../../model/FieldRef'
-import { serializeJsonQuery, SerializeParams } from './serialize'
+import { field, model, runtimeDataModel } from '../../../testUtils/dataModelBuilder'
+import { objectEnumValues } from '../../object-enums'
+import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
+import { FieldRefImpl } from '../model/FieldRef'
+import { serializeJsonQuery, SerializeParams } from './serializeJsonQuery'
 
 const User = model('User', [
   field('scalar', 'name', 'String'),

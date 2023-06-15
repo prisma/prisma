@@ -1,10 +1,10 @@
 import { assertNever } from '@prisma/internals'
 
-import { ErrorFormat } from '../../../getPrismaClient'
-import { ObjectEnumValue, objectEnumValues } from '../../../object-enums'
-import { CallSite } from '../../../utils/CallSite'
-import { isDate, isValidDate } from '../../../utils/date'
-import { isDecimalJsLike } from '../../../utils/decimalJsLike'
+import { ErrorFormat } from '../../getPrismaClient'
+import { ObjectEnumValue, objectEnumValues } from '../../object-enums'
+import { CallSite } from '../../utils/CallSite'
+import { isDate, isValidDate } from '../../utils/date'
+import { isDecimalJsLike } from '../../utils/decimalJsLike'
 import {
   JsonArgumentValue,
   JsonFieldSelection,
@@ -12,14 +12,14 @@ import {
   JsonQueryAction,
   JsonSelectionSet,
   OutputTypeDescription,
-} from '../../engines'
-import { throwValidationException } from '../../errorRendering/throwValidationException'
-import { MergedExtensionsList } from '../../extensions/MergedExtensionsList'
-import { applyComputedFieldsToSelection } from '../../extensions/resultUtils'
-import { isFieldRef } from '../../model/FieldRef'
-import { RuntimeDataModel, RuntimeModel } from '../../runtimeDataModel'
-import { Action, JsArgs, JsInputValue, RawParameters, Selection } from '../../types/JsApi'
-import { ValidationError } from '../../types/ValidationError'
+} from '../engines'
+import { throwValidationException } from '../errorRendering/throwValidationException'
+import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
+import { applyComputedFieldsToSelection } from '../extensions/resultUtils'
+import { isFieldRef } from '../model/FieldRef'
+import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
+import { Action, JsArgs, JsInputValue, RawParameters, Selection } from '../types/JsApi'
+import { ValidationError } from '../types/ValidationError'
 
 const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
   findUnique: 'findUnique',
