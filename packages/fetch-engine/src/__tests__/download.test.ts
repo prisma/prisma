@@ -11,8 +11,9 @@ import { cleanupCache } from '../cleanupCache'
 import { BinaryType, download, getBinaryName, getVersion } from '../download'
 import { getFiles } from './__utils__/getFiles'
 
-jest.mock('node-fetch', () => jest.fn())
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 
+jest.mock('node-fetch', () => jest.fn())
 const actualFetch: typeof import('node-fetch').default = jest.requireActual('node-fetch')
 const mockFetch = _mockFetch as any as jest.Mock<ReturnType<typeof actualFetch>, Parameters<typeof actualFetch>>
 
