@@ -35,7 +35,7 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
         yellow(
           `${bold('Warning:')} could not find the ${bold(
             'package.json',
-          )} file in the current working directory, it will be created by your package manager if necessary.`,
+          )} file in the current working directory, it will be created by your package manager on the appropriate level if necessary.`,
         ),
       )
     }
