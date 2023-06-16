@@ -69,7 +69,7 @@ function mergeInvalidArgumentTypeErrors(errorList: NonUnionError[]) {
         ...error,
         argument: {
           ...error.argument,
-          typeNames: prevError.argument.typeNames.concat(error.argument.typeNames),
+          typeNames: uniqueConcat(prevError.argument.typeNames, error.argument.typeNames),
         },
       })
     }
@@ -77,6 +77,10 @@ function mergeInvalidArgumentTypeErrors(errorList: NonUnionError[]) {
 
   result.push(...invalidArgsError.values())
   return result
+}
+
+function uniqueConcat<T>(head: T[], tail: T[]): T[] {
+  return [...new Set(head.concat(tail))]
 }
 
 /**
