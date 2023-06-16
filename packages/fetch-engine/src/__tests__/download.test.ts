@@ -191,7 +191,7 @@ describe('download', () => {
           [BinaryType.MigrationEngineBinary]: baseDirAll,
         },
         binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
-        version: CURRENT_ENGINES_HASH,
+        version: FIXED_ENGINES_HASH,
       })
 
       const after0 = Date.now()
@@ -470,7 +470,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
           [BinaryType.MigrationEngineBinary]: baseDirAll,
         },
         binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
-        version: CURRENT_ENGINES_HASH,
+        version: FIXED_ENGINES_HASH,
       })
 
       const after = Date.now()
@@ -519,7 +519,7 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
           [BinaryType.MigrationEngineBinary]: baseDirAll,
         },
         binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
-        version: CURRENT_ENGINES_HASH,
+        version: FIXED_ENGINES_HASH,
       })
 
       const after2 = Date.now()
