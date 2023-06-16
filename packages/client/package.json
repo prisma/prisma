@@ -157,7 +157,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-66.b20ead4d3ab9e78ac112966e242ded703f4a052c"
+    "@prisma/engines-version": "4.16.0-68.integration-tracing-runtime-js-12b7801a1233c86e4a4ba00f600a19193dbe0255"
   },
   "sideEffects": false
 }
