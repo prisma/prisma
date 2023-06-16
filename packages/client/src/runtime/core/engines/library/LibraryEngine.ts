@@ -1,5 +1,4 @@
 import Debug from '@prisma/debug'
-import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
 import { EngineSpanEvent } from '@prisma/internals'
@@ -430,15 +429,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     this.libraryStoppingPromise = this.config.tracingHelper.runInChildSpan('disconnect', stopFn)
 
     return this.libraryStoppingPromise
-  }
-
-  async getDmmf(): Promise<DMMF.Document> {
-    await this.start()
-
-    const traceparent = this.config.tracingHelper.getTraceParent()
-    const response = await this.engine!.dmmf(JSON.stringify({ traceparent }))
-
-    return this.config.tracingHelper.runInChildSpan({ name: 'parseDmmf', internal: true }, () => JSON.parse(response))
   }
 
   version(): string {

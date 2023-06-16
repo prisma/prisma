@@ -1,4 +1,4 @@
-import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { TracingHelper } from '@prisma/internals'
 
 import { Fetch } from '../data-proxy/utils/request'
@@ -65,7 +65,6 @@ export abstract class Engine<InteractiveTransactionPayload = unknown> {
   abstract on(event: EngineEventType, listener: (args?: any) => any): void
   abstract start(): Promise<void>
   abstract stop(): Promise<void>
-  abstract getDmmf(): Promise<DMMF.Document>
   abstract version(forceRun?: boolean): Promise<string> | string
   abstract request<T>(
     query: JsonQuery,

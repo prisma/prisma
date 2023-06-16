@@ -1,5 +1,4 @@
 import Debug from '@prisma/debug'
-import { DMMF } from '@prisma/generator-helper'
 import { EngineSpan, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
@@ -244,13 +243,6 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
   private async url(s: string) {
     return `https://${this.host}/${await this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
-  }
-
-  getDmmf(): Promise<DMMF.Document> {
-    // This code path should not be reachable, as it is handled upstream in `getPrismaClient`.
-    throw new NotImplementedYetError('getDmmf is not yet supported', {
-      clientVersion: this.clientVersion,
-    })
   }
 
   private async uploadSchema() {
