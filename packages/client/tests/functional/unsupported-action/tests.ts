@@ -1,5 +1,3 @@
-import { getQueryEngineProtocol } from '@prisma/internals'
-
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -8,7 +6,7 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
-    testIf(getQueryEngineProtocol() === 'graphql')('unsupported method (graphql)', async () => {
+    test('unsupported method', async () => {
       // @ts-expect-error
       const result = prisma.user.aggregateRaw()
       await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
@@ -16,28 +14,12 @@ testMatrix.setupTestSuite(
         Invalid \`prisma.user.aggregateRaw()\` invocation in
         /client/tests/functional/unsupported-action/tests.ts:0:0
 
-          XX () => {
-          XX   testIf(getQueryEngineProtocol() === 'graphql')('unsupported method (graphql)', async () => {
+           XX () => {
+           XX   test('unsupported method', async () => {
           XX     // @ts-expect-error
         → XX     const result = prisma.user.aggregateRaw(
-        Model \`User\` does not support \`aggregateRaw\` action.
+        Operation 'aggregateRaw' for model 'User' does not match any query.
       `)
-    })
-
-    testIf(getQueryEngineProtocol() === 'json')('unsupported method (json)', async () => {
-      // @ts-expect-error
-      const result = prisma.user.aggregateRaw()
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-                Invalid \`prisma.user.aggregateRaw()\` invocation in
-                /client/tests/functional/unsupported-action/tests.ts:0:0
-
-                  XX 
-                  XX testIf(getQueryEngineProtocol() === 'json')('unsupported method (json)', async () => {
-                  XX   // @ts-expect-error
-                → XX   const result = prisma.user.aggregateRaw(
-                Operation 'aggregateRaw' for model 'User' does not match any query.
-            `)
     })
   },
   {

@@ -1,4 +1,3 @@
-import { getQueryEngineProtocol } from '@prisma/internals'
 import { expectTypeOf } from 'expect-type'
 
 import { waitFor } from '../_utils/tests/waitFor'
@@ -300,7 +299,7 @@ testMatrix.setupTestSuite(
       await expect(xprisma.user.fail()).rejects.toThrowErrorMatchingInlineSnapshot(`Fail!`)
     })
 
-    testIf(getQueryEngineProtocol() !== 'json')('error in async PrismaPromise methods', async () => {
+    test('error in async PrismaPromise methods', async () => {
       const xprisma = prisma.$extends((client) => {
         return client.$extends({
           name: 'Faulty model',
@@ -325,17 +324,10 @@ testMatrix.setupTestSuite(
         {
           badInput: true,
           ~~~~~~~~
-        + where: {
-        +   id?: String,
-        +   email?: String
-        + }
+        ? where?: UserWhereUniqueInput
         }
 
-        Unknown arg \`badInput\` in badInput for type User. Did you mean \`select\`?
-        Argument where is missing.
-
-        Note: Lines with + are required
-
+        Unknown argument \`badInput\`. Available options are listed in green.
       `)
     })
 
