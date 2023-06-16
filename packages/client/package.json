@@ -157,7 +157,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-59.51d4d989d63f71c4e681a08ee47ad43f62aed49f"
+    "@prisma/engines-version": "4.16.0-61.integration-default-protocol-05dbc451f077f23c3a09370aeb37d65841e18c45"
   },
   "sideEffects": false
 }
