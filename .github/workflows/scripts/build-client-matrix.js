@@ -13,8 +13,8 @@ const queryEngine = ['library']
 if (testAll) {
   queryEngine.push('binary')
 } else {
-  excludeClient.push({ node: 18, engineProtocol: 'json' })
-  excludeDataProxy.push({ node: 16, engineProtocol: 'json' }, { node: 18, engineProtocol: 'json' })
+  excludeClient.push({ node: 18, engineProtocol: 'json' }, { node: 20, engineProtocol: 'json' })
+  excludeDataProxy.push({ node: 18, engineProtocol: 'json' }, { node: 20, engineProtocol: 'json' })
 }
 
 const outputRaw = { queryEngine, excludeClient, excludeDataProxy }

@@ -81,7 +81,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -121,7 +121,7 @@ jobs:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
         queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
         engineProtocol: ['graphql', 'json']
-        node: [16, 18]
+        node: [16, 18, 20]
         exclude: ${{ fromJson(needs.determineBuildMatrixParams.outputs.excludeClient) }}
 
     env:
@@ -179,7 +179,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -235,7 +235,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [14, 16, 18]
+        node: [16, 18, 20]
         engineProtocol: ['graphql', 'json']
         exclude: ${{ fromJson(needs.determineBuildMatrixParams.outputs.excludeDataProxy) }}
 
@@ -256,7 +256,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -341,7 +341,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        node: [14, 16, 18]
+        node: [16, 18, 20]
     steps:
       - uses: actions/checkout@v3
 
@@ -359,7 +359,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -466,7 +466,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -539,7 +539,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -609,7 +609,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -676,7 +676,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -751,7 +751,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -823,7 +823,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -897,7 +897,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -944,7 +944,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -1060,7 +1060,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        node: [14]
+        node: [16]
         queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
         shard: ['1/2', '2/2']
 
@@ -1092,7 +1092,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -1160,7 +1160,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        node: [14]
+        node: [16]
         queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
 
     steps:
@@ -1184,7 +1184,7 @@ jobs:
 
       - uses: pnpm/action-setup@v2.2.4
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:

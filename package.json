@@ -4,8 +4,8 @@
   "triggerEmptyDevReleaseByIncrementingThisNumber": 0,
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=14.17",
-    "pnpm": ">=7.3.0 <8"
+    "node": ">=16",
+    "pnpm": ">=8"
   },
   "scripts": {
     "setup": "ts-node scripts/setup.ts",
