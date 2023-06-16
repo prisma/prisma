@@ -231,7 +231,6 @@ export type GetPrismaClientConfig = {
   // client (with json protocol): only runtime datamodel is provided,
   // full DMMF document is not
   runtimeDataModel: RuntimeDataModel
-  document?: undefined
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
