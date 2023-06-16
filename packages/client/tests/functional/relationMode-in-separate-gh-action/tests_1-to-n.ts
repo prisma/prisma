@@ -162,7 +162,7 @@ testMatrix.setupTestSuite(
                 authorId: undefined, // this would actually be a type-error, but we don't have access to types here
               },
             }),
-          ).rejects.toThrow('Argument author for data.author is missing.')
+          ).rejects.toThrow('Argument `author` is missing.')
         })
 
         test('[create] nested child [create] should succeed', async () => {
