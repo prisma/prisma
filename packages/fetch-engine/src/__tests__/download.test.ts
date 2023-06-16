@@ -552,7 +552,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaries: {
           'query-engine': baseDirCorruption,
         },
-        version: FIXED_ENGINES_HASH,
+        version: CURRENT_ENGINES_HASH,
       })
 
       fs.writeFileSync(targetPath, 'incorrect-binary')
@@ -562,7 +562,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaries: {
           'query-engine': baseDirCorruption,
         },
-        version: FIXED_ENGINES_HASH,
+        version: CURRENT_ENGINES_HASH,
       })
 
       expect(fs.existsSync(targetPath)).toBe(true)
@@ -588,7 +588,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaries: {
             'query-engine': baseDirBinaryTarget,
           },
-          version: FIXED_ENGINES_HASH,
+          version: CURRENT_ENGINES_HASH,
           binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         }),
       ).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -604,7 +604,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaries: {
             'query-engine': baseDirBinaryTarget,
           },
-          version: FIXED_ENGINES_HASH,
+          version: CURRENT_ENGINES_HASH,
           binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         })
       } catch (err: any) {
@@ -619,7 +619,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaries: {
           'query-engine': baseDirBinaryTarget,
         },
-        version: FIXED_ENGINES_HASH,
+        version: CURRENT_ENGINES_HASH,
       })
       const dummyPath = e['query-engine']![Object.keys(e['query-engine']!)[0]]!
       const targetPath = path.join(
@@ -634,7 +634,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaries: {
           'query-engine': baseDirBinaryTarget,
         },
-        version: FIXED_ENGINES_HASH,
+        version: CURRENT_ENGINES_HASH,
         binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       })
       expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
