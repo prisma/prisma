@@ -1,6 +1,6 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths, getQueryEngineProtocol, pathToPosix } from '@prisma/internals'
+import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import indent from 'indent-string'
 import { klona } from 'klona'
@@ -13,7 +13,7 @@ import type { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
-import { buildFullDMMF, buildRuntimeDataModel } from '../utils/buildDMMF'
+import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildEdgeClientProtocol } from '../utils/buildEdgeClientProtocol'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasource } from '../utils/buildInlineDatasources'
@@ -76,7 +76,6 @@ export class TSClient implements Generatable {
       dataProxy,
       deno,
     } = this.options
-    const engineProtocol = getQueryEngineProtocol(generator)
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -108,8 +107,6 @@ export class TSClient implements Generatable {
     // being moved around as long as we keep the same project dir structure.
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
-    const needsFullDMMF = dataProxy && engineProtocol === 'graphql'
-
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(edge)}
 
@@ -132,7 +129,7 @@ ${new Enum(
  */
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
-${needsFullDMMF ? buildFullDMMF(this.options.document) : buildRuntimeDataModel(this.dmmf.datamodel)}
+${buildRuntimeDataModel(this.dmmf.datamodel)}
 
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
