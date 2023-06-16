@@ -30,13 +30,11 @@ export const ScalarTypeTable = {
   BigInt: true,
 }
 
-// TODO: move to /generation
 export const needNamespace = {
   Json: 'JsonValue',
   Decimal: 'Decimal',
 }
 
-// TODO: move to /generation
 export function needsNamespace(fieldType: DMMF.SchemaField['outputType']['type'], dmmf: DMMFHelper): boolean {
   if (typeof fieldType === 'string') {
     if (dmmf.datamodelEnumMap[fieldType]) {
@@ -50,7 +48,6 @@ export function needsNamespace(fieldType: DMMF.SchemaField['outputType']['type']
   return true
 }
 
-// TODO: move to /generation
 export const GraphQLScalarToJSTypeTable = {
   String: 'string',
   Int: 'number',
@@ -66,12 +63,10 @@ export const GraphQLScalarToJSTypeTable = {
   BigInt: ['bigint', 'number'],
 }
 
-// TODO: move to /generation
 export const JSOutputTypeToInputType = {
   JsonValue: 'InputJsonValue',
 }
 
-// TODO: move to /generation
 export const JSTypeToGraphQLType = {
   string: 'String',
   boolean: 'Boolean',
@@ -79,7 +74,6 @@ export const JSTypeToGraphQLType = {
   symbol: 'Symbol',
 }
 
-// TODO: move to generation
 export function argIsInputType(arg: DMMF.ArgType): arg is DMMF.InputType {
   if (typeof arg === 'string') {
     return false
@@ -100,7 +94,6 @@ export function lowerCase(name: string): string {
   return name.substring(0, 1).toLowerCase() + name.substring(1)
 }
 
-// TODO: move to /generation
 export function isSchemaEnum(type: any): type is DMMF.SchemaEnum {
   return typeof type === 'object' && type !== null && typeof type.name === 'string' && Array.isArray(type.values)
 }

@@ -2,8 +2,8 @@ import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 import path from 'path'
 
-import type { DMMFHelper } from '../runtime/dmmf'
-import { DMMF } from '../runtime/dmmf-types'
+import type { DMMFHelper } from './dmmf'
+import { DMMF } from './dmmf-types'
 
 export enum Projection {
   select = 'select',

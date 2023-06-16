@@ -1,6 +1,6 @@
 import type { DMMF } from '@prisma/generator-helper'
 
-import { applyMixins } from './utils/applyMixins'
+import { applyMixins } from '../runtime/utils/applyMixins'
 import type { Dictionary } from './utils/common'
 import { keyBy, ScalarTypeTable } from './utils/common'
 

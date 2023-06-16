@@ -1,1 +1,1 @@
-export { DMMF } from './runtime/dmmf-types'
+export { DMMF } from './generation/dmmf-types'

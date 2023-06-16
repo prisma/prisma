@@ -36,7 +36,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { RustLog } from '../common/utils/log'
 import { convertLog, getMessage, isRustErrorLog } from '../common/utils/log'
-import { Connection } from './Connection'
+import { Connection, Result } from './Connection'
 
 const debug = Debug('prisma:engine')
 

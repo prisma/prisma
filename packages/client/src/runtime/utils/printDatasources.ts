@@ -1,4 +1,4 @@
-import type { Dictionary } from './common'
+import type { Dictionary } from '../../generation/utils/common'
 
 export type ConnectorType =
   | 'mysql'
