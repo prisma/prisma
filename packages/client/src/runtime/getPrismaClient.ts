@@ -6,7 +6,6 @@ import {
   ExtendedSpanOptions,
   getClientEngineType,
   logger,
-  QueryEngineProtocol,
   TracingHelper,
   tryLoadEnvs,
   warnOnce,
@@ -265,13 +264,6 @@ export type GetPrismaClientConfig = {
    * @remarks only used for the purpose of data proxy
    */
   injectableEdgeEnv?: LoadedEnv
-
-  /**
-   * Engine protocol to use within edge runtime. Passed
-   * through config because edge client can not read env variables
-   * @remarks only used for the purpose of data proxy
-   */
-  edgeClientProtocol?: QueryEngineProtocol
 
   /**
    * The contents of the datasource url saved in a string.
