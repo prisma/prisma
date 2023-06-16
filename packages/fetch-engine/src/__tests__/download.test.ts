@@ -19,7 +19,7 @@ const mockFetch = _mockFetch as any as jest.Mock<ReturnType<typeof actualFetch>,
 
 const CURRENT_ENGINES_HASH = enginesVersion
 console.debug({ CURRENT_ENGINES_HASH })
-const FIXED_ENGINES_HASH = 'eac182fd33c63959a61946df56831625a9a39627'
+const FIXED_ENGINES_HASH = 'b20ead4d3ab9e78ac112966e242ded703f4a052c'
 const dirname = process.platform === 'win32' ? __dirname.split(path.sep).join('/') : __dirname
 
 // Network can be slow, especially for macOS in CI.
@@ -80,60 +80,73 @@ describe('download', () => {
         version: CURRENT_ENGINES_HASH,
       })
 
+      await download({
+        binaries: {
+          [BinaryType.QueryEngineBinary]: baseDirAll,
+          [BinaryType.MigrationEngineBinary]: baseDirAll,
+        },
+        binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
+        version: CURRENT_ENGINES_HASH,
+      })
+
       const files = getFiles(baseDirAll).map((f) => f.name)
       expect(files).toMatchInlineSnapshot(`
-      [
-        ".gitkeep",
-        "libquery_engine-darwin-arm64.dylib.node",
-        "libquery_engine-darwin.dylib.node",
-        "libquery_engine-debian-openssl-1.0.x.so.node",
-        "libquery_engine-debian-openssl-1.1.x.so.node",
-        "libquery_engine-debian-openssl-3.0.x.so.node",
-        "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
-        "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
-        "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
-        "libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node",
-        "libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node",
-        "libquery_engine-linux-musl-openssl-3.0.x.so.node",
-        "libquery_engine-linux-musl.so.node",
-        "libquery_engine-rhel-openssl-1.0.x.so.node",
-        "libquery_engine-rhel-openssl-1.1.x.so.node",
-        "libquery_engine-rhel-openssl-3.0.x.so.node",
-        "migration-engine-darwin",
-        "migration-engine-darwin-arm64",
-        "migration-engine-debian-openssl-1.0.x",
-        "migration-engine-debian-openssl-1.1.x",
-        "migration-engine-debian-openssl-3.0.x",
-        "migration-engine-linux-arm64-openssl-1.0.x",
-        "migration-engine-linux-arm64-openssl-1.1.x",
-        "migration-engine-linux-arm64-openssl-3.0.x",
-        "migration-engine-linux-musl",
-        "migration-engine-linux-musl-arm64-openssl-1.1.x",
-        "migration-engine-linux-musl-arm64-openssl-3.0.x",
-        "migration-engine-linux-musl-openssl-3.0.x",
-        "migration-engine-rhel-openssl-1.0.x",
-        "migration-engine-rhel-openssl-1.1.x",
-        "migration-engine-rhel-openssl-3.0.x",
-        "migration-engine-windows.exe",
-        "query-engine-darwin",
-        "query-engine-darwin-arm64",
-        "query-engine-debian-openssl-1.0.x",
-        "query-engine-debian-openssl-1.1.x",
-        "query-engine-debian-openssl-3.0.x",
-        "query-engine-linux-arm64-openssl-1.0.x",
-        "query-engine-linux-arm64-openssl-1.1.x",
-        "query-engine-linux-arm64-openssl-3.0.x",
-        "query-engine-linux-musl",
-        "query-engine-linux-musl-arm64-openssl-1.1.x",
-        "query-engine-linux-musl-arm64-openssl-3.0.x",
-        "query-engine-linux-musl-openssl-3.0.x",
-        "query-engine-rhel-openssl-1.0.x",
-        "query-engine-rhel-openssl-1.1.x",
-        "query-engine-rhel-openssl-3.0.x",
-        "query-engine-windows.exe",
-        "query_engine-windows.dll.node",
-      ]
-    `)
+        [
+          ".gitkeep",
+          "libquery_engine-darwin-arm64.dylib.node",
+          "libquery_engine-darwin.dylib.node",
+          "libquery_engine-debian-openssl-1.0.x.so.node",
+          "libquery_engine-debian-openssl-1.1.x.so.node",
+          "libquery_engine-debian-openssl-3.0.x.so.node",
+          "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
+          "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
+          "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
+          "libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node",
+          "libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node",
+          "libquery_engine-linux-musl-openssl-3.0.x.so.node",
+          "libquery_engine-linux-musl.so.node",
+          "libquery_engine-rhel-openssl-1.0.x.so.node",
+          "libquery_engine-rhel-openssl-1.1.x.so.node",
+          "libquery_engine-rhel-openssl-3.0.x.so.node",
+          "migration-engine-darwin",
+          "migration-engine-darwin-arm64",
+          "migration-engine-debian-openssl-1.0.x",
+          "migration-engine-debian-openssl-1.1.x",
+          "migration-engine-debian-openssl-3.0.x",
+          "migration-engine-linux-arm64-openssl-1.0.x",
+          "migration-engine-linux-arm64-openssl-1.1.x",
+          "migration-engine-linux-arm64-openssl-3.0.x",
+          "migration-engine-linux-musl",
+          "migration-engine-linux-musl-arm64-openssl-1.1.x",
+          "migration-engine-linux-musl-arm64-openssl-3.0.x",
+          "migration-engine-linux-musl-openssl-3.0.x",
+          "migration-engine-linux-static-arm64",
+          "migration-engine-linux-static-x64",
+          "migration-engine-rhel-openssl-1.0.x",
+          "migration-engine-rhel-openssl-1.1.x",
+          "migration-engine-rhel-openssl-3.0.x",
+          "migration-engine-windows.exe",
+          "query-engine-darwin",
+          "query-engine-darwin-arm64",
+          "query-engine-debian-openssl-1.0.x",
+          "query-engine-debian-openssl-1.1.x",
+          "query-engine-debian-openssl-3.0.x",
+          "query-engine-linux-arm64-openssl-1.0.x",
+          "query-engine-linux-arm64-openssl-1.1.x",
+          "query-engine-linux-arm64-openssl-3.0.x",
+          "query-engine-linux-musl",
+          "query-engine-linux-musl-arm64-openssl-1.1.x",
+          "query-engine-linux-musl-arm64-openssl-3.0.x",
+          "query-engine-linux-musl-openssl-3.0.x",
+          "query-engine-linux-static-arm64",
+          "query-engine-linux-static-x64",
+          "query-engine-rhel-openssl-1.0.x",
+          "query-engine-rhel-openssl-1.1.x",
+          "query-engine-rhel-openssl-3.0.x",
+          "query-engine-windows.exe",
+          "query_engine-windows.dll.node",
+        ]
+      `)
 
       // Check that all engines hashes are the same
       expect(await getVersion(queryEnginePath, BinaryType.QueryEngineBinary)).toContain(CURRENT_ENGINES_HASH)
@@ -171,6 +184,16 @@ describe('download', () => {
         ],
         version: FIXED_ENGINES_HASH,
       })
+
+      await download({
+        binaries: {
+          [BinaryType.QueryEngineBinary]: baseDirAll,
+          [BinaryType.MigrationEngineBinary]: baseDirAll,
+        },
+        binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
+        version: FIXED_ENGINES_HASH,
+      })
+
       const after0 = Date.now()
       const timeInMsToDownloadAll = after0 - before0
       console.debug(
@@ -180,211 +203,227 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
 
       const files = getFiles(baseDirAll)
       expect(files).toMatchInlineSnapshot(`
-      [
-        {
-          "name": ".gitkeep",
-          "size": 0,
-        },
-        {
-          "name": "libquery_engine-darwin-arm64.dylib.node",
-          "size": 14628824,
-        },
-        {
-          "name": "libquery_engine-darwin.dylib.node",
-          "size": 15859568,
-        },
-        {
-          "name": "libquery_engine-debian-openssl-1.0.x.so.node",
-          "size": 17573416,
-        },
-        {
-          "name": "libquery_engine-debian-openssl-1.1.x.so.node",
-          "size": 15085488,
-        },
-        {
-          "name": "libquery_engine-debian-openssl-3.0.x.so.node",
-          "size": 15085488,
-        },
-        {
-          "name": "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
-          "size": 14626896,
-        },
-        {
-          "name": "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
-          "size": 15363048,
-        },
-        {
-          "name": "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
-          "size": 16701064,
-        },
-        {
-          "name": "libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node",
-          "size": 15637680,
-        },
-        {
-          "name": "libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node",
-          "size": 17053440,
-        },
-        {
-          "name": "libquery_engine-linux-musl-openssl-3.0.x.so.node",
-          "size": 14491240,
-        },
-        {
-          "name": "libquery_engine-linux-musl.so.node",
-          "size": 14253768,
-        },
-        {
-          "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
-          "size": 16966120,
-        },
-        {
-          "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
-          "size": 14491176,
-        },
-        {
-          "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
-          "size": 14491176,
-        },
-        {
-          "name": "migration-engine-darwin",
-          "size": 20612160,
-        },
-        {
-          "name": "migration-engine-darwin-arm64",
-          "size": 19343790,
-        },
-        {
-          "name": "migration-engine-debian-openssl-1.0.x",
-          "size": 23349992,
-        },
-        {
-          "name": "migration-engine-debian-openssl-1.1.x",
-          "size": 20624928,
-        },
-        {
-          "name": "migration-engine-debian-openssl-3.0.x",
-          "size": 20625584,
-        },
-        {
-          "name": "migration-engine-linux-arm64-openssl-1.0.x",
-          "size": 20646448,
-        },
-        {
-          "name": "migration-engine-linux-arm64-openssl-1.1.x",
-          "size": 21398992,
-        },
-        {
-          "name": "migration-engine-linux-arm64-openssl-3.0.x",
-          "size": 23066416,
-        },
-        {
-          "name": "migration-engine-linux-musl",
-          "size": 18296712,
-        },
-        {
-          "name": "migration-engine-linux-musl-arm64-openssl-1.1.x",
-          "size": 21728944,
-        },
-        {
-          "name": "migration-engine-linux-musl-arm64-openssl-3.0.x",
-          "size": 23458736,
-        },
-        {
-          "name": "migration-engine-linux-musl-openssl-3.0.x",
-          "size": 18473608,
-        },
-        {
-          "name": "migration-engine-rhel-openssl-1.0.x",
-          "size": 21289336,
-        },
-        {
-          "name": "migration-engine-rhel-openssl-1.1.x",
-          "size": 18580240,
-        },
-        {
-          "name": "migration-engine-rhel-openssl-3.0.x",
-          "size": 18589496,
-        },
-        {
-          "name": "migration-engine-windows.exe",
-          "size": 14989312,
-        },
-        {
-          "name": "query-engine-darwin",
-          "size": 17823816,
-        },
-        {
-          "name": "query-engine-darwin-arm64",
-          "size": 16556192,
-        },
-        {
-          "name": "query-engine-debian-openssl-1.0.x",
-          "size": 17525064,
-        },
-        {
-          "name": "query-engine-debian-openssl-1.1.x",
-          "size": 17512712,
-        },
-        {
-          "name": "query-engine-debian-openssl-3.0.x",
-          "size": 17512712,
-        },
-        {
-          "name": "query-engine-linux-arm64-openssl-1.0.x",
-          "size": 16518944,
-        },
-        {
-          "name": "query-engine-linux-arm64-openssl-1.1.x",
-          "size": 17360248,
-        },
-        {
-          "name": "query-engine-linux-arm64-openssl-3.0.x",
-          "size": 18694176,
-        },
-        {
-          "name": "query-engine-linux-musl",
-          "size": 16484312,
-        },
-        {
-          "name": "query-engine-linux-musl-arm64-openssl-1.1.x",
-          "size": 17622504,
-        },
-        {
-          "name": "query-engine-linux-musl-arm64-openssl-3.0.x",
-          "size": 19038264,
-        },
-        {
-          "name": "query-engine-linux-musl-openssl-3.0.x",
-          "size": 16689072,
-        },
-        {
-          "name": "query-engine-rhel-openssl-1.0.x",
-          "size": 16705464,
-        },
-        {
-          "name": "query-engine-rhel-openssl-1.1.x",
-          "size": 16705464,
-        },
-        {
-          "name": "query-engine-rhel-openssl-3.0.x",
-          "size": 16705464,
-        },
-        {
-          "name": "query-engine-windows.exe",
-          "size": 19318272,
-        },
-        {
-          "name": "query_engine-windows.dll.node",
-          "size": 16984064,
-        },
-      ]
-    `)
+        [
+          {
+            "name": ".gitkeep",
+            "size": 0,
+          },
+          {
+            "name": "libquery_engine-darwin-arm64.dylib.node",
+            "size": 14779048,
+          },
+          {
+            "name": "libquery_engine-darwin.dylib.node",
+            "size": 15943376,
+          },
+          {
+            "name": "libquery_engine-debian-openssl-1.0.x.so.node",
+            "size": 17137832,
+          },
+          {
+            "name": "libquery_engine-debian-openssl-1.1.x.so.node",
+            "size": 14662888,
+          },
+          {
+            "name": "libquery_engine-debian-openssl-3.0.x.so.node",
+            "size": 14662888,
+          },
+          {
+            "name": "libquery_engine-linux-arm64-openssl-1.0.x.so.node",
+            "size": 14798608,
+          },
+          {
+            "name": "libquery_engine-linux-arm64-openssl-1.1.x.so.node",
+            "size": 15522472,
+          },
+          {
+            "name": "libquery_engine-linux-arm64-openssl-3.0.x.so.node",
+            "size": 16860488,
+          },
+          {
+            "name": "libquery_engine-linux-musl-arm64-openssl-1.1.x.so.node",
+            "size": 15809376,
+          },
+          {
+            "name": "libquery_engine-linux-musl-arm64-openssl-3.0.x.so.node",
+            "size": 17229232,
+          },
+          {
+            "name": "libquery_engine-linux-musl-openssl-3.0.x.so.node",
+            "size": 14654760,
+          },
+          {
+            "name": "libquery_engine-linux-musl.so.node",
+            "size": 14511464,
+          },
+          {
+            "name": "libquery_engine-rhel-openssl-1.0.x.so.node",
+            "size": 17137832,
+          },
+          {
+            "name": "libquery_engine-rhel-openssl-1.1.x.so.node",
+            "size": 14662888,
+          },
+          {
+            "name": "libquery_engine-rhel-openssl-3.0.x.so.node",
+            "size": 14662888,
+          },
+          {
+            "name": "migration-engine-darwin",
+            "size": 21373456,
+          },
+          {
+            "name": "migration-engine-darwin-arm64",
+            "size": 20102638,
+          },
+          {
+            "name": "migration-engine-debian-openssl-1.0.x",
+            "size": 22144168,
+          },
+          {
+            "name": "migration-engine-debian-openssl-1.1.x",
+            "size": 19440080,
+          },
+          {
+            "name": "migration-engine-debian-openssl-3.0.x",
+            "size": 19441160,
+          },
+          {
+            "name": "migration-engine-linux-arm64-openssl-1.0.x",
+            "size": 21458768,
+          },
+          {
+            "name": "migration-engine-linux-arm64-openssl-1.1.x",
+            "size": 22211472,
+          },
+          {
+            "name": "migration-engine-linux-arm64-openssl-3.0.x",
+            "size": 23883344,
+          },
+          {
+            "name": "migration-engine-linux-musl",
+            "size": 19058352,
+          },
+          {
+            "name": "migration-engine-linux-musl-arm64-openssl-1.1.x",
+            "size": 22553584,
+          },
+          {
+            "name": "migration-engine-linux-musl-arm64-openssl-3.0.x",
+            "size": 24279432,
+          },
+          {
+            "name": "migration-engine-linux-musl-openssl-3.0.x",
+            "size": 19348096,
+          },
+          {
+            "name": "migration-engine-linux-static-arm64",
+            "size": 21218896,
+          },
+          {
+            "name": "migration-engine-linux-static-x64",
+            "size": 22324992,
+          },
+          {
+            "name": "migration-engine-rhel-openssl-1.0.x",
+            "size": 22144168,
+          },
+          {
+            "name": "migration-engine-rhel-openssl-1.1.x",
+            "size": 19440080,
+          },
+          {
+            "name": "migration-engine-rhel-openssl-3.0.x",
+            "size": 19441160,
+          },
+          {
+            "name": "migration-engine-windows.exe",
+            "size": 15780864,
+          },
+          {
+            "name": "query-engine-darwin",
+            "size": 17840936,
+          },
+          {
+            "name": "query-engine-darwin-arm64",
+            "size": 16655984,
+          },
+          {
+            "name": "query-engine-debian-openssl-1.0.x",
+            "size": 19287104,
+          },
+          {
+            "name": "query-engine-debian-openssl-1.1.x",
+            "size": 16808072,
+          },
+          {
+            "name": "query-engine-debian-openssl-3.0.x",
+            "size": 16808072,
+          },
+          {
+            "name": "query-engine-linux-arm64-openssl-1.0.x",
+            "size": 16722600,
+          },
+          {
+            "name": "query-engine-linux-arm64-openssl-1.1.x",
+            "size": 17462856,
+          },
+          {
+            "name": "query-engine-linux-arm64-openssl-3.0.x",
+            "size": 18788592,
+          },
+          {
+            "name": "query-engine-linux-musl",
+            "size": 16664640,
+          },
+          {
+            "name": "query-engine-linux-musl-arm64-openssl-1.1.x",
+            "size": 17708728,
+          },
+          {
+            "name": "query-engine-linux-musl-arm64-openssl-3.0.x",
+            "size": 19120392,
+          },
+          {
+            "name": "query-engine-linux-musl-openssl-3.0.x",
+            "size": 16775312,
+          },
+          {
+            "name": "query-engine-linux-static-arm64",
+            "size": 15984368,
+          },
+          {
+            "name": "query-engine-linux-static-x64",
+            "size": 19274912,
+          },
+          {
+            "name": "query-engine-rhel-openssl-1.0.x",
+            "size": 19287104,
+          },
+          {
+            "name": "query-engine-rhel-openssl-1.1.x",
+            "size": 16808072,
+          },
+          {
+            "name": "query-engine-rhel-openssl-3.0.x",
+            "size": 16808072,
+          },
+          {
+            "name": "query-engine-windows.exe",
+            "size": 19483648,
+          },
+          {
+            "name": "query_engine-windows.dll.node",
+            "size": 17259520,
+          },
+        ]
+      `)
 
       expect(await getVersion(queryEnginePath, BinaryType.QueryEngineBinary)).toMatchInlineSnapshot(
-        `"query-engine eac182fd33c63959a61946df56831625a9a39627"`,
+        `"query-engine b20ead4d3ab9e78ac112966e242ded703f4a052c"`,
       )
       expect(await getVersion(migrationEnginePath, BinaryType.MigrationEngineBinary)).toMatchInlineSnapshot(
-        `"migration-engine-cli eac182fd33c63959a61946df56831625a9a39627"`,
+        `"schema-engine-cli b20ead4d3ab9e78ac112966e242ded703f4a052c"`,
       )
 
       //
@@ -424,6 +463,16 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         ],
         version: FIXED_ENGINES_HASH,
       })
+
+      await download({
+        binaries: {
+          [BinaryType.QueryEngineBinary]: baseDirAll,
+          [BinaryType.MigrationEngineBinary]: baseDirAll,
+        },
+        binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
+        version: FIXED_ENGINES_HASH,
+      })
+
       const after = Date.now()
       const timeInMsToDownloadAllFromCache1 = after - before
       console.debug(
@@ -463,6 +512,16 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
         ],
         version: FIXED_ENGINES_HASH,
       })
+
+      await download({
+        binaries: {
+          [BinaryType.QueryEngineBinary]: baseDirAll,
+          [BinaryType.MigrationEngineBinary]: baseDirAll,
+        },
+        binaryTargets: ['linux-static-x64', 'linux-static-arm64'],
+        version: FIXED_ENGINES_HASH,
+      })
+
       const after2 = Date.now()
       const timeInMsToDownloadAllFromCache2 = after2 - before2
       console.debug(
@@ -493,7 +552,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaries: {
           'query-engine': baseDirCorruption,
         },
-        version: FIXED_ENGINES_HASH,
+        version: CURRENT_ENGINES_HASH,
       })
 
       fs.writeFileSync(targetPath, 'incorrect-binary')
@@ -503,7 +562,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaries: {
           'query-engine': baseDirCorruption,
         },
-        version: FIXED_ENGINES_HASH,
+        version: CURRENT_ENGINES_HASH,
       })
 
       expect(fs.existsSync(targetPath)).toBe(true)
@@ -529,7 +588,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaries: {
             'query-engine': baseDirBinaryTarget,
           },
-          version: FIXED_ENGINES_HASH,
+          version: CURRENT_ENGINES_HASH,
           binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         }),
       ).rejects.toThrowErrorMatchingInlineSnapshot(
@@ -545,7 +604,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           binaries: {
             'query-engine': baseDirBinaryTarget,
           },
-          version: FIXED_ENGINES_HASH,
+          version: CURRENT_ENGINES_HASH,
           binaryTargets: ['darwin', 'marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
         })
       } catch (err: any) {
@@ -560,7 +619,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaries: {
           'query-engine': baseDirBinaryTarget,
         },
-        version: FIXED_ENGINES_HASH,
+        version: CURRENT_ENGINES_HASH,
       })
       const dummyPath = e['query-engine']![Object.keys(e['query-engine']!)[0]]!
       const targetPath = path.join(
@@ -575,7 +634,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaries: {
           'query-engine': baseDirBinaryTarget,
         },
-        version: FIXED_ENGINES_HASH,
+        version: CURRENT_ENGINES_HASH,
         binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       })
       expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
