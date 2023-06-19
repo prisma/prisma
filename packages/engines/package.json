@@ -8,7 +8,7 @@
   "author": "Tim Suchanek <suchanek@prisma.io>",
   "devDependencies": {
     "@prisma/debug": "workspace:*",
-    "@prisma/engines-version": "4.16.0-66.b20ead4d3ab9e78ac112966e242ded703f4a052c",
+    "@prisma/engines-version": "4.16.0-70.integration-tracing-runtime-js-b967cfe0b3471cb83685e28c9bbccd0a25180ce6",
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/get-platform": "workspace:*",
     "@swc/core": "1.3.64",
