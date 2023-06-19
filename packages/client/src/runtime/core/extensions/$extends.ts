@@ -61,8 +61,8 @@ type QueryOptionsCbArgs = {
 type ModelQueryOptionsCbArgs = {
   model: string
   operation: string
-  args: unknown
-  query: (args: unknown) => Promise<unknown>
+  args: JsArgs
+  query: (args: JsArgs) => Promise<unknown>
 }
 
 type BatchQuery = {
