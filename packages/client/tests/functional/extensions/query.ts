@@ -44,6 +44,7 @@ testMatrix.setupTestSuite(
       const fnPost = jest.fn()
       const fnEmitter = jest.fn()
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       prisma.$on('query', fnEmitter)
 
       const xprisma = prisma.$extends({
@@ -51,12 +52,9 @@ testMatrix.setupTestSuite(
           user: {
             findFirst({ args, query, operation, model }) {
               if (args.select != undefined) {
-                // @ts-expect-error
                 args.select.email = undefined
               }
-              // @ts-expect-error
               args.include = undefined
-              // @ts-expect-error
               args.select = undefined
               expectTypeOf(args).not.toBeAny
               expectTypeOf(query).toBeFunction()

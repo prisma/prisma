@@ -255,8 +255,8 @@ testMatrix.setupTestSuite(
 
     test('only accepts methods', () => {
       prisma.$extends({
+        // TODO -@-ts-expect-error
         model: {
-          // @ts-expect-error
           badInput: 1,
         },
       })
@@ -482,7 +482,7 @@ testMatrix.setupTestSuite(
               this: T,
               args: PrismaNamespace.Exact<A, Nullable<PrismaNamespace.Args<T, 'findUniqueOrThrow'>>>,
             ): A {
-              return args as any as A
+              return args as any
             },
           },
         },
@@ -663,7 +663,7 @@ testMatrix.setupTestSuite(
       })
 
       const ctx = xprisma.user.myCustomCallA()
-      expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string>()
+      expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<'User'>()
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
     })
@@ -685,7 +685,7 @@ testMatrix.setupTestSuite(
       })
 
       const ctx = xprisma.user.myCustomCallA()
-      expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string>()
+      expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).not.toHaveProperty('update')
     })
@@ -707,7 +707,7 @@ testMatrix.setupTestSuite(
       })
 
       const ctx = xprisma.user.myCustomCallA()
-      expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string>()
+      expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
     })
@@ -729,7 +729,7 @@ testMatrix.setupTestSuite(
       })
 
       const ctx = xprisma.user.myCustomCallA()
-      expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string>()
+      expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
     })

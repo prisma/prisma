@@ -188,13 +188,16 @@ testMatrix.setupTestSuite(() => {
     expect(results).toEqual([])
   })
 
-  test('only accepts methods', () => {
-    prisma.$extends({
+  test('accepts property definition', () => {
+    const xprisma = prisma.$extends({
       client: {
-        // @ts-expect-error
-        badInput: 1,
+        property: 1,
       },
     })
+
+    xprisma.property
+    expect(xprisma).toHaveProperty('property', 1)
+    expectTypeOf(xprisma).toHaveProperty('property').toEqualTypeOf<number>()
   })
 
   test('error in extension method', () => {

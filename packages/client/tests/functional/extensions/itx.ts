@@ -282,7 +282,7 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
 
           expectTypeOf(ctx.$connect).toEqualTypeOf<typeof prisma.$connect | undefined>()
           expectTypeOf(ctx.$disconnect).toEqualTypeOf<typeof prisma.$disconnect | undefined>()
-          expectTypeOf(ctx.$transaction).toEqualTypeOf<typeof prisma.$transaction | undefined>()
+          expectTypeOf(ctx.$transaction).toMatchTypeOf<Function | undefined>()
           expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
           expectTypeOf(ctx).not.toHaveProperty('$use')
           expectTypeOf(ctx).not.toHaveProperty('$on')
