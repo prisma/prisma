@@ -68,11 +68,11 @@ type SelectablePayloadFields<K extends PropertyKey, O> = { objects: { [k in K]: 
 
 // prettier-ignore
 type SelectField<P extends SelectablePayloadFields<any, any>, K extends PropertyKey> = 
-    P extends { objects: Record<K, any> } 
-    ? P['objects'][K]
-    : P extends { composites: Record<K, any> }
-      ? P['composites'][K]
-      : never
+  P extends { objects: Record<K, any> } 
+  ? P['objects'][K]
+  : P extends { composites: Record<K, any> }
+    ? P['composites'][K]
+    : never
 
 // prettier-ignore
 export type DefaultSelection<P> = P extends Payload 
