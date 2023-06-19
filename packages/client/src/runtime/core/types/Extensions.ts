@@ -59,11 +59,11 @@ export type DynamicQueryExtensionArgs<Q_, TypeMap extends Record<string, any>> =
         : never
 }
 
-type DynamicQueryExtensionCb<TypeMap extends Record<string, any>, TypeMapPath extends (keyof any)[]> =
+type DynamicQueryExtensionCb<TypeMap extends Record<string, any>, TypeMapPath extends (PropertyKey)[]> =
   <A extends DynamicQueryExtensionCbArgs<TypeMap, TypeMapPath>>(args: A) =>
     Promise<DynamicQueryExtensionCbResult<TypeMap, TypeMapPath>>
 
-type DynamicQueryExtensionCbArgs<TypeMap extends Record<string, any>, TypeMapPath extends (keyof any)[]> = {
+type DynamicQueryExtensionCbArgs<TypeMap extends Record<string, any>, TypeMapPath extends (PropertyKey)[]> = {
   model: TypeMapPath[0] extends 'model' ? TypeMapPath[1] : undefined,
   operation: TypeMapPath[0] extends 'model' ? TypeMapPath[2] :TypeMapPath[1],
   args: DynamicQueryExtensionCbArgsArgs<TypeMap, TypeMapPath>,
@@ -71,12 +71,12 @@ type DynamicQueryExtensionCbArgs<TypeMap extends Record<string, any>, TypeMapPat
     PrismaPromise<DynamicQueryExtensionCbResult<TypeMap, TypeMapPath>>
 }
 
-type DynamicQueryExtensionCbArgsArgs<TypeMap extends Record<string, any>, TypeMapPath extends (keyof any)[]> =
+type DynamicQueryExtensionCbArgsArgs<TypeMap extends Record<string, any>, TypeMapPath extends (PropertyKey)[]> =
   TypeMapPath[1] extends '$queryRaw' | '$executeRaw'
   ? Sql // Override args type for raw queries
   : Path<TypeMap, [...TypeMapPath, 'args']>
 
-type DynamicQueryExtensionCbResult<TypeMap extends Record<string, any>, TypeMapPath extends (keyof any)[]> =
+type DynamicQueryExtensionCbResult<TypeMap extends Record<string, any>, TypeMapPath extends (PropertyKey)[]> =
   Path<TypeMap, [...TypeMapPath, 'result']>
 
 /** Result */
@@ -90,13 +90,13 @@ export type DynamicResultExtensionArgs<R_, TypeMap extends Record<string, any>> 
   }
 }
 
-type DynamicResultExtensionNeeds<TypeMap extends Record<string, any>, M extends keyof any, S> = {
+type DynamicResultExtensionNeeds<TypeMap extends Record<string, any>, M extends PropertyKey, S> = {
   [K in keyof S]: K extends keyof TypeMap['model'][M]['findFirstOrThrow']['payload']['scalars'] ? S[K] : never
 } & {
   [N in keyof TypeMap['model'][M]['findFirstOrThrow']['payload']['scalars']]?: boolean
 }
 
-type DynamicResultExtensionData<TypeMap extends Record<string, any>, M extends keyof any, S> =
+type DynamicResultExtensionData<TypeMap extends Record<string, any>, M extends PropertyKey, S> =
   GetFindResult<TypeMap['model'][M]['findFirstOrThrow']['payload'], { select: S }>
 
 /** Model */
@@ -112,7 +112,7 @@ export type DynamicModelExtensionArgs<M_, TypeMap extends Record<string, any>, E
       : never
 }
 
-type DynamicModelExtensionThis<TypeMap extends Record<string, any>, M extends keyof any, ExtArgs extends Record<string, any>> = {
+type DynamicModelExtensionThis<TypeMap extends Record<string, any>, M extends PropertyKey, ExtArgs extends Record<string, any>> = {
   [P in keyof TypeMap['model'][M] | keyof ExtArgs['model'][Uncapitalize<M & string>]]:
     P extends Operation
     ? HasAllOptionalKeys<TypeMap['model'][M][P]['args']> extends 1
@@ -185,7 +185,7 @@ type MergeExtArgs<TypeMap extends Record<string,  any>, ExtArgs extends Record<a
     & AllModelsToStringIndex<TypeMap, Args, 'model'>
   >
 
-type AllModelsToStringIndex<TypeMap extends Record<string,  any>, Args extends Record<string, any>, K extends keyof any> =
+type AllModelsToStringIndex<TypeMap extends Record<string,  any>, Args extends Record<string, any>, K extends PropertyKey> =
   Args extends { [P in K]: { $allModels: infer AllModels} }
   ? { [P in K]: Record<TypeMap['meta']['modelProps'], AllModels> }
   : {}
@@ -194,7 +194,7 @@ type AllModelsToStringIndex<TypeMap extends Record<string,  any>, Args extends R
 
 type TypeMapCbDef = Fn<{ extArgs: Args }, Record<string, any>>
 
-type ModelKey<TypeMap extends Record<string, any>, M extends keyof any> =
+type ModelKey<TypeMap extends Record<string, any>, M extends PropertyKey> =
   M extends keyof TypeMap['model']
   ? M & string
   : Capitalize<M & string>
