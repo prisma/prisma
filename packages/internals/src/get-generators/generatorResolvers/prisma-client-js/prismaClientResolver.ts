@@ -37,9 +37,9 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     if (projectRoot === undefined) {
       console.warn(
         yellow(
-          `${bold('Warning:')} schema directory ${bold(baseDir)} and current working directory ${bold(
+          `${bold('Warning:')} [Prisma auto-install on generate] The Prisma schema directory ${bold(baseDir)} and the current working directory ${bold(
             process.cwd(),
-          )} have no common ancestor, using the schema path as the project root.`,
+          )} have no common ancestor. The Prisma schema direcory will be used as the project root.`,
         ),
       )
       projectRoot = baseDir
@@ -48,9 +48,9 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     if (!fs.existsSync(path.join(projectRoot, 'package.json'))) {
       console.warn(
         yellow(
-          `${bold('Warning:')} could not find the ${bold(
+          `${bold('Warning:')} [Prisma auto-install on generate] Prisma could not find a ${bold(
             'package.json',
-          )} file in the inferred project root, it will be created by your package manager on the appropriate level if necessary.`,
+          )} file in the inferred project root. During the next step, when an auto-install of Prisma package(s) will be attempted, it will then be created by your package manager on the appropriate level if necessary.`,
         ),
       )
     }
