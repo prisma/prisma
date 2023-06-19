@@ -37,7 +37,9 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     if (projectRoot === undefined) {
       console.warn(
         yellow(
-          `${bold('Warning:')} [Prisma auto-install on generate] The Prisma schema directory ${bold(baseDir)} and the current working directory ${bold(
+          `${bold('Warning:')} [Prisma auto-install on generate] The Prisma schema directory ${bold(
+            baseDir,
+          )} and the current working directory ${bold(
             process.cwd(),
           )} have no common ancestor. The Prisma schema direcory will be used as the project root.`,
         ),
