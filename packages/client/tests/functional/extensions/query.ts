@@ -1052,7 +1052,22 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             $allModels: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query, model, operation }) {
+                ;() => {
+                  if (model === 'User') {
+                    args.select?.firstName
+                    return query(args)
+                  }
+
+                  if (model === 'Post') {
+                    // @ts-expect-error
+                    args.select?.firstName
+                    return query(args)
+                  }
+
+                  return undefined
+                }
+
                 fnModel({ args, operation, model })
 
                 return query(args)
@@ -1109,6 +1124,51 @@ testMatrix.setupTestSuite(
       expect(fnModel).toHaveBeenCalledTimes(1)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
+    })
+
+    test('unions can be properly discriminated', () => {
+      prisma.$extends({
+        query: {
+          $allModels: {
+            findFirst({ args, query, model }) {
+              ;() => {
+                if (model === 'User') {
+                  args.select?.firstName
+                  return query(args)
+                }
+
+                if (model === 'Post') {
+                  // @ts-expect-error
+                  args.select?.firstName
+                  return query(args)
+                }
+
+                return undefined
+              }
+
+              return query(args)
+            },
+            $allOperations({ args, query, operation }) {
+              ;() => {
+                if (operation === 'findFirst') {
+                  args.select?.id
+                  return query(args)
+                }
+
+                if (operation === 'groupBy') {
+                  // @ts-expect-error
+                  args.select?.id
+                  return query(args)
+                }
+
+                return undefined
+              }
+
+              return query(args)
+            },
+          },
+        },
+      })
     })
   },
   {

@@ -26,7 +26,7 @@ export type Args = InternalArgs
 export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
 export type GetResult<Base extends Record<any, any>, R extends Args['result'][string], _R extends Args['result'][string] = Record<string, any> extends R ? {} : R> =
-  { [K in keyof _R | keyof Base]: K extends keyof _R ? Return<Path<Return<_R[K]>, ['compute']>> : Base[K] }
+  { [K in keyof _R | keyof Base]: K extends keyof _R ? _R[K] extends (() => { compute: (...args: any) => infer C }) ? C : never : Base[K] }
 
 export type GetSelect<Base extends Record<any, any>, R extends Args['result'][string], _R extends Args['result'][string] = Record<string, any> extends R ? {} : R> =
   { [K in keyof _R | keyof Base]?: K extends keyof _R ? boolean : Base[K] }
@@ -41,44 +41,45 @@ export type DynamicQueryExtensionArgs<Q_, TypeMap extends TypeMapDef> = {
       ? {
           [P in keyof Q_[K] | keyof TypeMap['model'][keyof TypeMap['model']] | '$allOperations']?:
             P extends '$allOperations'
-            ? DynamicQueryExtensionCb<TypeMap, [T: 'model', M: keyof TypeMap['model'], F: keyof TypeMap['model'][keyof TypeMap['model']]]>
+            ? DynamicQueryExtensionCb<TypeMap, 'model', keyof TypeMap['model'], keyof TypeMap['model'][keyof TypeMap['model']]>
             : P extends keyof TypeMap['model'][keyof TypeMap['model']]
-              ? DynamicQueryExtensionCb<TypeMap, [T: 'model', M: keyof TypeMap['model'], F: P]>
+              ? DynamicQueryExtensionCb<TypeMap, 'model', keyof TypeMap['model'], P>
               : never
         }
       : K extends TypeMap['meta']['modelProps']
         ? {
             [P in keyof Q_[K] | keyof TypeMap['model'][ModelKey<TypeMap, K>] | '$allOperations']?:
               P extends '$allOperations'
-              ? DynamicQueryExtensionCb<TypeMap, [T: 'model', M: ModelKey<TypeMap, K>, F: keyof TypeMap['model'][ModelKey<TypeMap, K>]]>
+              ? DynamicQueryExtensionCb<TypeMap, 'model', ModelKey<TypeMap, K>, keyof TypeMap['model'][ModelKey<TypeMap, K>]>
               : P extends keyof TypeMap['model'][ModelKey<TypeMap, K>]
-                ? DynamicQueryExtensionCb<TypeMap, [T: 'model', M: ModelKey<TypeMap, K>, F: P]>
+                ? DynamicQueryExtensionCb<TypeMap, 'model', ModelKey<TypeMap, K>, P>
                 : never
           }
       : K extends keyof TypeMap['other']
-        ? DynamicQueryExtensionCb<TypeMap, [T: 'other', F: K]>
+        ? DynamicQueryExtensionCb<[TypeMap], 0 /* hack to maintain type arity */, 'other', K>
         : never
 }
 
-type DynamicQueryExtensionCb<TypeMap extends TypeMapDef, TypeMapPath extends (PropertyKey)[]> =
-  <A extends DynamicQueryExtensionCbArgs<TypeMap, TypeMapPath>>(args: A) =>
-    Promise<DynamicQueryExtensionCbResult<TypeMap, TypeMapPath>>
+type DynamicQueryExtensionCb<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
+  <A extends DynamicQueryExtensionCbArgs<TypeMap, _0, _1, _2>>(args: A) =>
+    Promise<TypeMap[_0][_1][_2]['result']>
 
-type DynamicQueryExtensionCbArgs<TypeMap extends TypeMapDef, TypeMapPath extends (PropertyKey)[]> = {
-  model: TypeMapPath[0] extends 'model' ? TypeMapPath[1] : undefined,
-  operation: TypeMapPath[0] extends 'model' ? TypeMapPath[2] :TypeMapPath[1],
-  args: DynamicQueryExtensionCbArgsArgs<TypeMap, TypeMapPath>,
-  query: (args: DynamicQueryExtensionCbArgsArgs<TypeMap, TypeMapPath>) =>
-    PrismaPromise<DynamicQueryExtensionCbResult<TypeMap, TypeMapPath>>
-}
+type DynamicQueryExtensionCbArgs<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
+  ( // we distribute over the union of models and operations to allow narrowing
+    _1 extends unknown ? _2 extends unknown ? {
+      args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>,
+      model: _0 extends 0 ? undefined : _1,
+      operation: _2,
+    } : never : never
+  ) & { // but we don't distribute for query so that the input types stay union
+    query: (args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>) =>
+      PrismaPromise<TypeMap[_0][_1][_2]['result']>
+  }
 
-type DynamicQueryExtensionCbArgsArgs<TypeMap extends TypeMapDef, TypeMapPath extends (PropertyKey)[]> =
-  TypeMapPath[1] extends '$queryRaw' | '$executeRaw'
+type DynamicQueryExtensionCbArgsArgs<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
+  _2 extends '$queryRaw' | '$executeRaw'
   ? Sql // Override args type for raw queries
-  : Path<TypeMap, [...TypeMapPath, 'args']>
-
-type DynamicQueryExtensionCbResult<TypeMap extends TypeMapDef, TypeMapPath extends (PropertyKey)[]> =
-  Path<TypeMap, [...TypeMapPath, 'result']>
+  : TypeMap[_0][_1][_2]['args']
 
 /** Result */
 
@@ -166,12 +167,12 @@ export interface ExtendsHook<Variant extends 'extends' | 'define', TypeMapCb ext
   >(extension:
     | ((client: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>) => { $extends: { extArgs: Args } })
     | {
-      name?: string
-      query?: DynamicQueryExtensionArgs<Q_, TypeMap>
-      result?: DynamicResultExtensionArgs<R_, TypeMap> & R
-      model?: DynamicModelExtensionArgs<M_, TypeMap, ExtArgs> & M
-      client?: DynamicClientExtensionArgs<C_, TypeMap, TypeMapCb, ExtArgs> & C
-    }
+        name?: string
+        query?: DynamicQueryExtensionArgs<Q_, TypeMap>
+        result?: DynamicResultExtensionArgs<R_, TypeMap> & R
+        model?: DynamicModelExtensionArgs<M_, TypeMap, ExtArgs> & M
+        client?: DynamicClientExtensionArgs<C_, TypeMap, TypeMapCb, ExtArgs> & C
+      }
   ): {
     'extends': DynamicClientExtensionThis<Call<TypeMapCb, { extArgs: MergedArgs }>, TypeMapCb, MergedArgs>
     'define': (client: any) => { $extends: { extArgs: Args } }
@@ -202,7 +203,7 @@ type DevTypeMapDef = {
   },
   model: {
     [Model in PropertyKey]: {
-      [Operation in string]: DevTypeMapFnDef
+      [Operation in PropertyKey]: DevTypeMapFnDef
     }
   },
   other: {
@@ -215,7 +216,6 @@ type DevTypeMapFnDef = {
   result: any
   payload: Payload
 }
-
 
 type TypeMapCbDef = Fn<{ extArgs: Args }, TypeMapDef>
 
