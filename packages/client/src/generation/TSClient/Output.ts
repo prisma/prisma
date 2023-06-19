@@ -17,9 +17,13 @@ export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper, us
     fieldTypeName = `Prisma.${fieldTypeName}`
   }
   let fieldType: ts.TypeBuilder
-  // object and not a composite
-  if (field.kind === 'object' && !dmmf.typeMap[field.type]) {
-    fieldType = ts.namedType(`${fieldTypeName}Payload`).addGenericArgument(ts.namedType('ExtArgs'))
+  if (field.kind === 'object') {
+    const payloadType = ts.namedType(`${fieldTypeName}Payload`)
+    if (!dmmf.typeMap[field.type]) {
+      // not a composite
+      payloadType.addGenericArgument(ts.namedType('ExtArgs'))
+    }
+    fieldType = payloadType
   } else {
     fieldType = ts.namedType(fieldTypeName)
   }
