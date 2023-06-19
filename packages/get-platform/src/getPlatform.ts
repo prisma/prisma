@@ -481,7 +481,7 @@ export function getPlatformInternal(args: GetOSResult): Platform {
      */
     const additionalMessage = match({ familyDistro })
       .with({ familyDistro: 'debian' }, () => {
-        return 'Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again.'
+        return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you could also switch to an image that has OpenSSL already installed, such as `node:lts-bullseye-slim`."
       })
       .otherwise(() => {
         return 'Please manually install OpenSSL and try installing Prisma again.'
