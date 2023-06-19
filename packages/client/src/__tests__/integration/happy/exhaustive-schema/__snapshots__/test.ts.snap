@@ -381,7 +381,7 @@ export type PostPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultAr
  * Model Post
  * 
  */
-export type Post = PostPayload["scalars"]
+export type Post = runtime.Types.DefaultSelection<PostPayload>
 export type UserPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     posts: PostPayload<ExtArgs>[]
@@ -409,7 +409,7 @@ export type UserPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultAr
  * Model User
  * 
  */
-export type User = UserPayload["scalars"]
+export type User = runtime.Types.DefaultSelection<UserPayload>
 export type MPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     n: NPayload<ExtArgs>[]
@@ -436,7 +436,7 @@ export type MPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model M
  * 
  */
-export type M = MPayload["scalars"]
+export type M = runtime.Types.DefaultSelection<MPayload>
 export type NPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     m: MPayload<ExtArgs>[]
@@ -463,7 +463,7 @@ export type NPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model N
  * 
  */
-export type N = NPayload["scalars"]
+export type N = runtime.Types.DefaultSelection<NPayload>
 export type OneOptionalPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     many: ManyRequiredPayload<ExtArgs>[]
@@ -490,7 +490,7 @@ export type OneOptionalPayload<ExtArgs extends $Extensions.Args = $Extensions.De
  * Model OneOptional
  * 
  */
-export type OneOptional = OneOptionalPayload["scalars"]
+export type OneOptional = runtime.Types.DefaultSelection<OneOptionalPayload>
 export type ManyRequiredPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     one: OneOptionalPayload<ExtArgs> | null
@@ -518,7 +518,7 @@ export type ManyRequiredPayload<ExtArgs extends $Extensions.Args = $Extensions.D
  * Model ManyRequired
  * 
  */
-export type ManyRequired = ManyRequiredPayload["scalars"]
+export type ManyRequired = runtime.Types.DefaultSelection<ManyRequiredPayload>
 export type OptionalSide1Payload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     opti: OptionalSide2Payload<ExtArgs> | null
@@ -546,7 +546,7 @@ export type OptionalSide1Payload<ExtArgs extends $Extensions.Args = $Extensions.
  * Model OptionalSide1
  * 
  */
-export type OptionalSide1 = OptionalSide1Payload["scalars"]
+export type OptionalSide1 = runtime.Types.DefaultSelection<OptionalSide1Payload>
 export type OptionalSide2Payload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     opti: OptionalSide1Payload<ExtArgs> | null
@@ -573,7 +573,7 @@ export type OptionalSide2Payload<ExtArgs extends $Extensions.Args = $Extensions.
  * Model OptionalSide2
  * 
  */
-export type OptionalSide2 = OptionalSide2Payload["scalars"]
+export type OptionalSide2 = runtime.Types.DefaultSelection<OptionalSide2Payload>
 export type APayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {}
   scalars: $Extensions.GetResult<{
@@ -600,7 +600,7 @@ export type APayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model A
  * model comment
  */
-export type A = APayload["scalars"]
+export type A = runtime.Types.DefaultSelection<APayload>
 export type BPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {}
   scalars: $Extensions.GetResult<{
@@ -617,7 +617,7 @@ export type BPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model B
  * 
  */
-export type B = BPayload["scalars"]
+export type B = runtime.Types.DefaultSelection<BPayload>
 export type CPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {}
   scalars: $Extensions.GetResult<{
@@ -636,7 +636,7 @@ export type CPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model C
  * 
  */
-export type C = CPayload["scalars"]
+export type C = runtime.Types.DefaultSelection<CPayload>
 export type DPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {}
   scalars: $Extensions.GetResult<{
@@ -655,7 +655,7 @@ export type DPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model D
  * 
  */
-export type D = DPayload["scalars"]
+export type D = runtime.Types.DefaultSelection<DPayload>
 export type EPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {}
   scalars: $Extensions.GetResult<{
@@ -671,7 +671,7 @@ export type EPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model E
  * 
  */
-export type E = EPayload["scalars"]
+export type E = runtime.Types.DefaultSelection<EPayload>
 
 /**
  * Enums
