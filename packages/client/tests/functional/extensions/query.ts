@@ -1080,6 +1080,36 @@ testMatrix.setupTestSuite(
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsUser)
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
+
+    test('extending with top-level $allOperations', async () => {
+      const fnModel = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          $allOperations({ args, query, operation, model }) {
+            fnModel({ args, operation, model })
+
+            return query(args)
+          },
+        },
+      })
+
+      const args = { where: { id: randomId1 } }
+      const cbArgsUser = { args: args, operation: 'findFirst', model: 'User' }
+
+      const dataUser1 = await xprisma.user.findFirst(args)
+      const dataUser2 = await xprisma.user.findFirst(args)
+
+      expect(dataUser1).toMatchInlineSnapshot(`null`)
+      expect(dataUser2).toMatchInlineSnapshot(`null`)
+      expect(fnModel).toHaveBeenCalledTimes(2)
+      expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
+      expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsUser)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
+    })
   },
   {
     skipDefaultClientInstance: true,

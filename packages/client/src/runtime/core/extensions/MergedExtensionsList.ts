@@ -91,7 +91,7 @@ class MergedExtensionsListNode {
       }
 
       // when the extension is not bound to a model & is a top-level operation
-      if (query[operation] !== undefined) {
+      if (query[operation] !== undefined || query['$allOperations'] !== undefined) {
         newCbs.push(query[operation] as QueryOptionsCb)
       }
 
