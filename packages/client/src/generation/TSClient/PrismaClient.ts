@@ -72,7 +72,7 @@ function clientTypeMapDefinition(this: PrismaClientClass) {
   const typeMap = `${clientTypeMapModelsDefinition.bind(this)()} & ${clientTypeMapOthersDefinition.bind(this)()}`
 
   return `
-interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.Args}, Record<string, any>> {
+interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.Args}, $Utils.Record<string, any>> {
   returns: Prisma.TypeMap<this['params']['extArgs']>
 }
 
