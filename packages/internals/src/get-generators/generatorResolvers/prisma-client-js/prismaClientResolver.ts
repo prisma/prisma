@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import fs from 'fs'
-import { bold, green, yellow } from 'kleur/colors'
+import { bold, dim, green, yellow } from 'kleur/colors'
 import path from 'path'
 
 import { longestCommonPathPrefix } from '../../../utils/path'
@@ -34,12 +34,12 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     let projectRoot = longestCommonPathPrefix(baseDir, process.cwd())
     debug('projectRoot', projectRoot)
 
+    const warningTag = `${bold('Warning:')} ${dim('[Prisma auto-install on generate]')}`
+
     if (projectRoot === undefined) {
       console.warn(
         yellow(
-          `${bold('Warning:')} [Prisma auto-install on generate] The Prisma schema directory ${bold(
-            baseDir,
-          )} and the current working directory ${bold(
+          `${warningTag} The Prisma schema directory ${bold(baseDir)} and the current working directory ${bold(
             process.cwd(),
           )} have no common ancestor. The Prisma schema directory will be used as the project root.`,
         ),
@@ -50,7 +50,7 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     if (!fs.existsSync(path.join(projectRoot, 'package.json'))) {
       console.warn(
         yellow(
-          `${bold('Warning:')} [Prisma auto-install on generate] Prisma could not find a ${bold(
+          `${warningTag} Prisma could not find a ${bold(
             'package.json',
           )} file in the inferred project root. During the next step, when an auto-install of Prisma package(s) will be attempted, it will then be created by your package manager on the appropriate level if necessary.`,
         ),
