@@ -50,9 +50,9 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     if (!fs.existsSync(path.join(projectRoot, 'package.json'))) {
       console.warn(
         yellow(
-          `${warningTag} Prisma could not find a ${bold(
-            'package.json',
-          )} file in the inferred project root. During the next step, when an auto-install of Prisma package(s) will be attempted, it will then be created by your package manager on the appropriate level if necessary.`,
+          `${warningTag} Prisma could not find a ${bold('package.json')} file in the inferred project root ${bold(
+            projectRoot,
+          )}. During the next step, when an auto-install of Prisma package(s) will be attempted, it will then be created by your package manager on the appropriate level if necessary.`,
         ),
       )
     }
