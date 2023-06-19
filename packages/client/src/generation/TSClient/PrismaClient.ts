@@ -48,8 +48,8 @@ function clientTypeMapOthersDefinition(this: PrismaClientClass) {
   })
 
   const argsResultMap = {
-    $executeRaw: { args: '[query: TemplateStringsArray | Prisma.Sql, ...values: any[]]', result: 'any' },
-    $queryRaw: { args: '[query: TemplateStringsArray | Prisma.Sql, ...values: any[]]', result: 'any' },
+    $executeRaw: { args: 'Prisma.Sql', result: 'any' },
+    $queryRaw: { args: 'Prisma.Sql', result: 'any' },
     $executeRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $queryRawUnsafe: { args: '[query: string, ...values: any[]]', result: 'any' },
     $runCommandRaw: { args: 'Prisma.InputJsonObject', result: 'Prisma.JsonObject' },

@@ -33,14 +33,16 @@ import {
   objectEnumValues,
   makeStrictEnum,
   Extensions,
-  defineDmmfProperty
+  defineDmmfProperty,
+  Public,
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
 const {
   Decimal,
   objectEnumValues,
-  makeStrictEnum
+  makeStrictEnum,
+  Public,
 } = require('${runtimeDir}/${runtimeName}')
 `
     : `
@@ -64,6 +66,7 @@ const {
   Extensions,
   warnOnce,
   defineDmmfProperty,
+  Public,
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -96,7 +99,7 @@ Prisma.sql = ${notSupportOnBrowser('sqltag', browser)}
 Prisma.empty = ${notSupportOnBrowser('empty', browser)}
 Prisma.join = ${notSupportOnBrowser('join', browser)}
 Prisma.raw = ${notSupportOnBrowser('raw', browser)}
-Prisma.validator = () => (val) => val
+Prisma.validator = Public.validator
 
 /**
 * Extensions
@@ -139,6 +142,11 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
   ts: () => `export import DMMF = runtime.DMMF
 
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
+
+/**
+ * Validator
+ */
+export import validator = runtime.Public.validator
 
 /**
  * Prisma Errors
@@ -524,7 +532,7 @@ type Cast<A, B> = A extends B ? A : B;
 
 export const type: unique symbol;
 
-export function validator<V>(): <S>(select: $Utils.LegacyExact<S, V>) => S;
+
 
 /**
  * Used by group by

@@ -9,6 +9,8 @@ import testMatrix from './_matrix'
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+declare let Prisma: typeof PrismaNamespace
+
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const randomId1 = randomBytes(12).toString('hex')
@@ -919,8 +921,9 @@ testMatrix.setupTestSuite(
           // @ts-test-if: provider !== 'mongodb'
           $queryRaw({ args, query, operation }) {
             expect(operation).toEqual('$queryRaw')
+            expect(args).toEqual(Prisma.sql`SELECT 2`)
             // @ts-test-if: provider !== 'mongodb'
-            expectTypeOf(args).toEqualTypeOf<[query: TemplateStringsArray | PrismaNamespace.Sql, ...values: any[]]>()
+            expectTypeOf(args).toEqualTypeOf<PrismaNamespace.Sql>()
             // @ts-test-if: provider !== 'mongodb'
             expectTypeOf(operation).toEqualTypeOf<'$queryRaw'>()
             fnUser(args)
@@ -928,8 +931,9 @@ testMatrix.setupTestSuite(
           },
           $executeRaw({ args, query, operation }) {
             expect(operation).toEqual('$executeRaw')
+            expect(args).toEqual(Prisma.sql`SELECT 1`)
             // @ts-test-if: provider !== 'mongodb'
-            expectTypeOf(args).toEqualTypeOf<[query: TemplateStringsArray | PrismaNamespace.Sql, ...values: any[]]>()
+            expectTypeOf(args).toEqualTypeOf<PrismaNamespace.Sql>()
             // @ts-test-if: provider !== 'mongodb'
             expectTypeOf(operation).toEqualTypeOf<'$executeRaw'>()
             fnUser(args)
@@ -977,8 +981,8 @@ testMatrix.setupTestSuite(
         await xprisma.$queryRawUnsafe(`SELECT 4`)
 
         await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(4))
-        expect(fnUser).toHaveBeenNthCalledWith(1, [[`SELECT 1`]])
-        expect(fnUser).toHaveBeenNthCalledWith(2, [[`SELECT 2`]])
+        expect(fnUser).toHaveBeenNthCalledWith(1, Prisma.sql`SELECT 1`)
+        expect(fnUser).toHaveBeenNthCalledWith(2, Prisma.sql`SELECT 2`)
         expect(fnUser).toHaveBeenNthCalledWith(3, [`SELECT 3`])
         expect(fnUser).toHaveBeenNthCalledWith(4, [`SELECT 4`])
       } else {
