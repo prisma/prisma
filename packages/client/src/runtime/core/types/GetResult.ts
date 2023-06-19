@@ -64,7 +64,9 @@ type GetFindResult<P extends Payload, A> =
     } & (A extends { include: any } & Record<string, unknown> ? DefaultSelection<P> : unknown)
   : DefaultSelection<P>
 
-type SelectablePayloadFields<K extends PropertyKey, O> = { objects: { [k in K]: O } } | { composites: { [k in K]: O } }
+type SelectablePayloadFields<K extends PropertyKey, O> =
+  | { objects: { [k in K]: O } }
+  | { composites: { [k in K]: O } }
 
 // prettier-ignore
 type SelectField<P extends SelectablePayloadFields<any, any>, K extends PropertyKey> = 
