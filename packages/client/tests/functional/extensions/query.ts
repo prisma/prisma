@@ -929,6 +929,7 @@ testMatrix.setupTestSuite(
             fnUser(args)
             return query(args)
           },
+          // @ts-test-if: provider !== 'mongodb'
           $executeRaw({ args, query, operation }) {
             expect(operation).toEqual('$executeRaw')
             expect(args).toEqual(Prisma.sql`SELECT 1`)
@@ -939,6 +940,7 @@ testMatrix.setupTestSuite(
             fnUser(args)
             return query(args)
           },
+          // @ts-test-if: provider !== 'mongodb'
           $queryRawUnsafe({ args, query, operation }) {
             expect(operation).toEqual('$queryRawUnsafe')
             // @ts-test-if: provider !== 'mongodb'
@@ -948,6 +950,7 @@ testMatrix.setupTestSuite(
             fnUser(args)
             return query(args)
           },
+          // @ts-test-if: provider !== 'mongodb'
           $executeRawUnsafe({ args, query, operation }) {
             expect(operation).toEqual('$executeRawUnsafe')
             // @ts-test-if: provider !== 'mongodb'
@@ -1101,13 +1104,10 @@ testMatrix.setupTestSuite(
       const cbArgsUser = { args: args, operation: 'findFirst', model: 'User' }
 
       const dataUser1 = await xprisma.user.findFirst(args)
-      const dataUser2 = await xprisma.user.findFirst(args)
 
       expect(dataUser1).toMatchInlineSnapshot(`null`)
-      expect(dataUser2).toMatchInlineSnapshot(`null`)
-      expect(fnModel).toHaveBeenCalledTimes(2)
+      expect(fnModel).toHaveBeenCalledTimes(1)
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
-      expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsUser)
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
     })
   },

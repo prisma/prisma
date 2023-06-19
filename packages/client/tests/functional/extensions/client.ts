@@ -250,7 +250,6 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    // @ts-test-if: provider !== 'mongodb'
     xprisma.$executeRawCustom(Prisma.sql`SELECT * FROM User`, { extra: true })
   })
 })

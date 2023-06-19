@@ -536,13 +536,10 @@ testMatrix.setupTestSuite(() => {
     const xprisma = prisma.$extends(clientGenericExtensionObjectViaDefault())
     expectTypeOf(xprisma).toHaveProperty('myGenericMethodViaDefault')
 
-    // @ts-test-if: provider !== 'mongodb'
     const data = xprisma.myGenericMethodViaDefault`SELECT * FROM User WHERE id = ${1}`
 
     expectTypeOf<(typeof data)['args']>().toEqualTypeOf<[TemplateStringsArray, number]>()
-    // @ts-test-if: provider !== 'mongodb'
     expectTypeOf<(typeof data)['payload']>().toEqualTypeOf<unknown>()
-    // @ts-test-if: provider !== 'mongodb'
     expectTypeOf<(typeof data)['result']>().toEqualTypeOf<number>()
   })
 

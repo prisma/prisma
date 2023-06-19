@@ -136,7 +136,7 @@ export type DynamicClientExtensionArgs<C_, TypeMap extends Record<string, any>, 
 export type DynamicClientExtensionThis<TypeMap extends Record<any, any>, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
   [P in keyof TypeMap['other'] | keyof TypeMap['model'] | keyof ExtArgs['client'] as Uncapitalize<P & string>]:
     P extends Operation
-    ? <A extends TypeMap['other'][P]['args']>(...args: A) =>
+    ? <A extends TypeMap['other'][P]['args']>(...args: A extends any[] ? A : [A]) =>
       PrismaPromise<GetOperationResult<TypeMap['other'][P]['payload'], A, P>>
     : P extends keyof TypeMap['model']
       ? DynamicModelExtensionThis<TypeMap, P, ExtArgs>
