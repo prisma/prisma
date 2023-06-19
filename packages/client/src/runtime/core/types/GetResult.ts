@@ -76,10 +76,12 @@ type SelectField<P extends SelectablePayloadFields<any, any>, K extends Property
 
 // prettier-ignore
 type DefaultSelection<P> = P extends Payload 
-  ? P['scalars'] & DefaultSelection<P['composites']>
-  : P extends Record<string, Payload> 
-    ? { [K in keyof P]: DefaultSelection<P[K]> }
-    : P
+  ? P['scalars'] & UnwrapPayload<P['composites']>
+  : P
+
+type UnwrapPayload<P> = {
+  [K in keyof P]: P[K] extends Payload ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> : P[K]
+} & unknown
 
 type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
 
