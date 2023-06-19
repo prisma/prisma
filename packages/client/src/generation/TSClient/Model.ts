@@ -272,6 +272,8 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
   }
   public toTSWithoutNamespace(): string {
     const { model } = this
+
+    const isComposite = Boolean(this.dmmf.typeMap[model.name])
     const docLines = model.documentation ?? ''
     const modelLine = `Model ${model.name}\n`
     const docs = `${modelLine}${docLines}`
@@ -291,23 +293,27 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
         scalars.add(buildModelOutputProperty(field, this.dmmf, true))
       }
     }
-    const payloadType = ts
-      .objectType()
-      .add(ts.property('objects', objects))
-      .add(
-        ts.property(
-          'scalars',
-          ts
-            .namedType('$Extensions.GetResult')
-            .addGenericArgument(scalars)
-            .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name))),
-        ),
-      )
-      .add(ts.property('composites', composites))
 
-    const payloadExport = ts.moduleExport(
-      ts.typeDeclaration(`${model.name}Payload`, payloadType).addGenericParameter(extArgsParam),
+    const scalarsType = isComposite
+      ? scalars
+      : ts
+          .namedType('$Extensions.GetResult')
+          .addGenericArgument(scalars)
+          .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name)))
+
+    const payloadTypeDeclaration = ts.typeDeclaration(
+      `${model.name}Payload`,
+      ts
+        .objectType()
+        .add(ts.property('objects', objects))
+        .add(ts.property('scalars', scalarsType))
+        .add(ts.property('composites', composites)),
     )
+
+    if (!isComposite) {
+      payloadTypeDeclaration.addGenericParameter(extArgsParam)
+    }
+    const payloadExport = ts.moduleExport(payloadTypeDeclaration)
 
     const modelTypeExport = ts
       .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`${model.name}Payload`).subKey('scalars')))
