@@ -41,7 +41,7 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
             baseDir,
           )} and the current working directory ${bold(
             process.cwd(),
-          )} have no common ancestor. The Prisma schema direcory will be used as the project root.`,
+          )} have no common ancestor. The Prisma schema directory will be used as the project root.`,
         ),
       )
       projectRoot = baseDir
