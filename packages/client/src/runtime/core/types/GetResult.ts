@@ -75,7 +75,7 @@ type SelectField<P extends SelectablePayloadFields<any, any>, K extends Property
       : never
 
 // prettier-ignore
-type DefaultSelection<P> = P extends Payload 
+export type DefaultSelection<P> = P extends Payload 
   ? P['scalars'] & UnwrapPayload<P['composites']>
   : P
 

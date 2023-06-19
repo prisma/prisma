@@ -2,7 +2,7 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import { PrismaClient, Profile, User } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -73,6 +73,11 @@ testMatrix.setupTestSuite(
       expectTypeOf(user.profile).toHaveProperty('name')
       expectTypeOf(user.profile.name).toHaveProperty('firstName')
       expectTypeOf(user.profile.name).not.toHaveProperty('lastName')
+    })
+
+    test('composites are included on default types', () => {
+      expectTypeOf<User>().toHaveProperty('profile')
+      expectTypeOf<Profile>().toHaveProperty('name')
     })
   },
   {

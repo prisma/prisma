@@ -301,6 +301,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
           .addGenericArgument(scalars)
           .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name)))
 
+    const payloadName = `${model.name}Payload`
     const payloadTypeDeclaration = ts.typeDeclaration(
       `${model.name}Payload`,
       ts
@@ -316,7 +317,12 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
     const payloadExport = ts.moduleExport(payloadTypeDeclaration)
 
     const modelTypeExport = ts
-      .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`${model.name}Payload`).subKey('scalars')))
+      .moduleExport(
+        ts.typeDeclaration(
+          model.name,
+          ts.namedType(`runtime.Types.DefaultSelection`).addGenericArgument(ts.namedType(payloadName)),
+        ),
+      )
       .setDocComment(ts.docComment(docs))
 
     return `${ts.stringify(payloadExport)}\n\n${ts.stringify(modelTypeExport)}`
