@@ -1,3 +1,5 @@
+import { Sql } from 'sql-template-tag'
+
 import { ITXClientDenyList } from '../../itxClientDenyList'
 import { RequiredArgs as UserArgs } from '../extensions/$extends'
 import { GetFindResult, GetResult as GetOperationResult, Operation } from './GetResult'
@@ -64,10 +66,15 @@ type DynamicQueryExtensionCb<TypeMap extends Record<string, any>, TypeMapPath ex
 type DynamicQueryExtensionCbArgs<TypeMap extends Record<string, any>, TypeMapPath extends (keyof any)[]> = {
   model: TypeMapPath[0] extends 'model' ? TypeMapPath[1] : undefined,
   operation: TypeMapPath[0] extends 'model' ? TypeMapPath[2] :TypeMapPath[1],
-  args: Path<TypeMap, [...TypeMapPath, 'args']>,
-  query: (args: Path<TypeMap, [...TypeMapPath, 'args']>) =>
+  args: DynamicQueryExtensionCbArgsArgs<TypeMap, TypeMapPath>,
+  query: (args: DynamicQueryExtensionCbArgsArgs<TypeMap, TypeMapPath>) =>
     PrismaPromise<DynamicQueryExtensionCbResult<TypeMap, TypeMapPath>>
 }
+
+type DynamicQueryExtensionCbArgsArgs<TypeMap extends Record<string, any>, TypeMapPath extends (keyof any)[]> =
+  TypeMapPath[1] extends '$queryRaw' | '$executeRaw'
+  ? Sql // Override args type for raw queries
+  : Path<TypeMap, [...TypeMapPath, 'args']>
 
 type DynamicQueryExtensionCbResult<TypeMap extends Record<string, any>, TypeMapPath extends (keyof any)[]> =
   Path<TypeMap, [...TypeMapPath, 'result']>
