@@ -18,12 +18,12 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
 
   return `{
     meta: {
-      modelProps: ${modelNames.map((mn) => `'${lowerCase(mn)}'`).join(' | ')};
+      modelProps: ${modelNames.map((mn) => `'${lowerCase(mn)}'`).join(' | ')}
       txIsolationLevel: ${
         this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')
           ? 'Prisma.TransactionIsolationLevel'
           : 'never'
-      };
+      }
     },
     model: {${modelNames.reduce((acc, modelName) => {
       const actions = getModelActions(this.dmmf, modelName)

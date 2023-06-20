@@ -1465,6 +1465,7 @@ export namespace Prisma {
   export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
       meta: {
         modelProps: 'post' | 'user' | 'embedHolder' | 'm' | 'n' | 'oneOptional' | 'manyRequired' | 'optionalSide1' | 'optionalSide2' | 'a' | 'b' | 'c' | 'd' | 'e'
+        txIsolationLevel: never
       },
       model: {
       Post: {

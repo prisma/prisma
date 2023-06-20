@@ -1453,6 +1453,7 @@ export namespace Prisma {
   export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
       meta: {
         modelProps: 'post' | 'user' | 'm' | 'n' | 'oneOptional' | 'manyRequired' | 'optionalSide1' | 'optionalSide2' | 'a' | 'b' | 'c' | 'd' | 'e'
+        txIsolationLevel: Prisma.TransactionIsolationLevel
       },
       model: {
       Post: {
