@@ -70,7 +70,7 @@ test('uncheckedScalarInputs validation', async () => {
               }
             })
 
-      Argument \`activityType\` is missing.
+      Unknown argument \`tripId\`. Available options are listed in green.
     `)
   }
 
