@@ -381,7 +381,7 @@ export type PostPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultAr
  * Model Post
  * 
  */
-export type Post = PostPayload["scalars"]
+export type Post = runtime.Types.DefaultSelection<PostPayload>
 export type UserPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     posts: PostPayload<ExtArgs>[]
@@ -409,7 +409,7 @@ export type UserPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultAr
  * Model User
  * 
  */
-export type User = UserPayload["scalars"]
+export type User = runtime.Types.DefaultSelection<UserPayload>
 export type MPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     n: NPayload<ExtArgs>[]
@@ -436,7 +436,7 @@ export type MPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model M
  * 
  */
-export type M = MPayload["scalars"]
+export type M = runtime.Types.DefaultSelection<MPayload>
 export type NPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     m: MPayload<ExtArgs>[]
@@ -463,7 +463,7 @@ export type NPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model N
  * 
  */
-export type N = NPayload["scalars"]
+export type N = runtime.Types.DefaultSelection<NPayload>
 export type OneOptionalPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     many: ManyRequiredPayload<ExtArgs>[]
@@ -490,7 +490,7 @@ export type OneOptionalPayload<ExtArgs extends $Extensions.Args = $Extensions.De
  * Model OneOptional
  * 
  */
-export type OneOptional = OneOptionalPayload["scalars"]
+export type OneOptional = runtime.Types.DefaultSelection<OneOptionalPayload>
 export type ManyRequiredPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     one: OneOptionalPayload<ExtArgs> | null
@@ -518,7 +518,7 @@ export type ManyRequiredPayload<ExtArgs extends $Extensions.Args = $Extensions.D
  * Model ManyRequired
  * 
  */
-export type ManyRequired = ManyRequiredPayload["scalars"]
+export type ManyRequired = runtime.Types.DefaultSelection<ManyRequiredPayload>
 export type OptionalSide1Payload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     opti: OptionalSide2Payload<ExtArgs> | null
@@ -546,7 +546,7 @@ export type OptionalSide1Payload<ExtArgs extends $Extensions.Args = $Extensions.
  * Model OptionalSide1
  * 
  */
-export type OptionalSide1 = OptionalSide1Payload["scalars"]
+export type OptionalSide1 = runtime.Types.DefaultSelection<OptionalSide1Payload>
 export type OptionalSide2Payload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {
     opti: OptionalSide1Payload<ExtArgs> | null
@@ -573,7 +573,7 @@ export type OptionalSide2Payload<ExtArgs extends $Extensions.Args = $Extensions.
  * Model OptionalSide2
  * 
  */
-export type OptionalSide2 = OptionalSide2Payload["scalars"]
+export type OptionalSide2 = runtime.Types.DefaultSelection<OptionalSide2Payload>
 export type APayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {}
   scalars: $Extensions.GetResult<{
@@ -600,7 +600,7 @@ export type APayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model A
  * model comment
  */
-export type A = APayload["scalars"]
+export type A = runtime.Types.DefaultSelection<APayload>
 export type BPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {}
   scalars: $Extensions.GetResult<{
@@ -617,7 +617,7 @@ export type BPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model B
  * 
  */
-export type B = BPayload["scalars"]
+export type B = runtime.Types.DefaultSelection<BPayload>
 export type CPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {}
   scalars: $Extensions.GetResult<{
@@ -636,7 +636,7 @@ export type CPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model C
  * 
  */
-export type C = CPayload["scalars"]
+export type C = runtime.Types.DefaultSelection<CPayload>
 export type DPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {}
   scalars: $Extensions.GetResult<{
@@ -655,7 +655,7 @@ export type DPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model D
  * 
  */
-export type D = DPayload["scalars"]
+export type D = runtime.Types.DefaultSelection<DPayload>
 export type EPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
   objects: {}
   scalars: $Extensions.GetResult<{
@@ -671,7 +671,7 @@ export type EPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  * Model E
  * 
  */
-export type E = EPayload["scalars"]
+export type E = runtime.Types.DefaultSelection<EPayload>
 
 /**
  * Enums
@@ -806,53 +806,10 @@ export class PrismaClient<
    */
   $transaction<P extends Prisma.PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<runtime.Types.Utils.UnwrapTuple<P>>
 
-  $transaction<R>(fn: (prisma: Omit<$Extensions.GetClient<this, ExtArgs["client"]>, runtime.ITXClientDenyList>) => Promise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<R>
+  $transaction<R>(fn: (prisma: Omit<PrismaClient, runtime.ITXClientDenyList>) => Promise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }): Promise<R>
 
 
-  $extends: { extArgs: ExtArgs } & (<
-    R_Post_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.PostSelectScalar, ExtArgs['result']['post']>>,
-    R_User_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.UserSelectScalar, ExtArgs['result']['user']>>,
-    R_M_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.MSelectScalar, ExtArgs['result']['m']>>,
-    R_N_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.NSelectScalar, ExtArgs['result']['n']>>,
-    R_OneOptional_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.OneOptionalSelectScalar, ExtArgs['result']['oneOptional']>>,
-    R_ManyRequired_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.ManyRequiredSelectScalar, ExtArgs['result']['manyRequired']>>,
-    R_OptionalSide1_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.OptionalSide1SelectScalar, ExtArgs['result']['optionalSide1']>>,
-    R_OptionalSide2_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.OptionalSide2SelectScalar, ExtArgs['result']['optionalSide2']>>,
-    R_A_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.ASelectScalar, ExtArgs['result']['a']>>,
-    R_B_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.BSelectScalar, ExtArgs['result']['b']>>,
-    R_C_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.CSelectScalar, ExtArgs['result']['c']>>,
-    R_D_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.DSelectScalar, ExtArgs['result']['d']>>,
-    R_E_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.ESelectScalar, ExtArgs['result']['e']>>,
-    R extends $Extensions.UserArgs['result'] = {},
-    M extends $Extensions.UserArgs['model'] = {},
-    Q extends $Extensions.UserArgs['query'] = {},
-    C extends $Extensions.UserArgs['client'] = {},
-    Args extends $Extensions.Args = $Extensions.InternalArgs<R, M, Q, C>, 
-  >(extension: ((client: this) => { $extends: { extArgs: Args } }) | Prisma.ExtensionArgs<
-    ExtArgs,
-    R_Post_Needs,
-    R_User_Needs,
-    R_M_Needs,
-    R_N_Needs,
-    R_OneOptional_Needs,
-    R_ManyRequired_Needs,
-    R_OptionalSide1_Needs,
-    R_OptionalSide2_Needs,
-    R_A_Needs,
-    R_B_Needs,
-    R_C_Needs,
-    R_D_Needs,
-    R_E_Needs,
-    R,
-    M,
-    Q,
-    C
-  >) => $Extensions.GetClient<PrismaClient<T, U, GlobalReject, {
-    result: ExtArgs['result'] & $Utils.Record<string, Args['result']['$allModels'] & {}> & Args['result']
-    model: ExtArgs['model'] & $Utils.Record<string, Args['model']['$allModels'] & {}> & Args['model']
-    client: ExtArgs['client'] & Args['client'],
-    query: {}
-  }>, ExtArgs['client'] & Args['client']>);
+  $extends: $Extensions.ExtendsHook<'extends', Prisma.TypeMapCb, ExtArgs>
 
       /**
    * \`prisma.post\`: Exposes CRUD operations for the **Post** model.
@@ -862,7 +819,7 @@ export class PrismaClient<
     * const posts = await prisma.post.findMany()
     * \`\`\`
     */
-  get post(): $Extensions.GetModel<Prisma.PostDelegate<GlobalReject, ExtArgs>, ExtArgs['model']['post']>;
+  get post(): Prisma.PostDelegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.user\`: Exposes CRUD operations for the **User** model.
@@ -872,7 +829,7 @@ export class PrismaClient<
     * const users = await prisma.user.findMany()
     * \`\`\`
     */
-  get user(): $Extensions.GetModel<Prisma.UserDelegate<GlobalReject, ExtArgs>, ExtArgs['model']['user']>;
+  get user(): Prisma.UserDelegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.m\`: Exposes CRUD operations for the **M** model.
@@ -882,7 +839,7 @@ export class PrismaClient<
     * const ms = await prisma.m.findMany()
     * \`\`\`
     */
-  get m(): $Extensions.GetModel<Prisma.MDelegate<GlobalReject, ExtArgs>, ExtArgs['model']['m']>;
+  get m(): Prisma.MDelegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.n\`: Exposes CRUD operations for the **N** model.
@@ -892,7 +849,7 @@ export class PrismaClient<
     * const ns = await prisma.n.findMany()
     * \`\`\`
     */
-  get n(): $Extensions.GetModel<Prisma.NDelegate<GlobalReject, ExtArgs>, ExtArgs['model']['n']>;
+  get n(): Prisma.NDelegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.oneOptional\`: Exposes CRUD operations for the **OneOptional** model.
@@ -902,7 +859,7 @@ export class PrismaClient<
     * const oneOptionals = await prisma.oneOptional.findMany()
     * \`\`\`
     */
-  get oneOptional(): $Extensions.GetModel<Prisma.OneOptionalDelegate<GlobalReject, ExtArgs>, ExtArgs['model']['oneOptional']>;
+  get oneOptional(): Prisma.OneOptionalDelegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.manyRequired\`: Exposes CRUD operations for the **ManyRequired** model.
@@ -912,7 +869,7 @@ export class PrismaClient<
     * const manyRequireds = await prisma.manyRequired.findMany()
     * \`\`\`
     */
-  get manyRequired(): $Extensions.GetModel<Prisma.ManyRequiredDelegate<GlobalReject, ExtArgs>, ExtArgs['model']['manyRequired']>;
+  get manyRequired(): Prisma.ManyRequiredDelegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.optionalSide1\`: Exposes CRUD operations for the **OptionalSide1** model.
@@ -922,7 +879,7 @@ export class PrismaClient<
     * const optionalSide1s = await prisma.optionalSide1.findMany()
     * \`\`\`
     */
-  get optionalSide1(): $Extensions.GetModel<Prisma.OptionalSide1Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['optionalSide1']>;
+  get optionalSide1(): Prisma.OptionalSide1Delegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.optionalSide2\`: Exposes CRUD operations for the **OptionalSide2** model.
@@ -932,7 +889,7 @@ export class PrismaClient<
     * const optionalSide2s = await prisma.optionalSide2.findMany()
     * \`\`\`
     */
-  get optionalSide2(): $Extensions.GetModel<Prisma.OptionalSide2Delegate<GlobalReject, ExtArgs>, ExtArgs['model']['optionalSide2']>;
+  get optionalSide2(): Prisma.OptionalSide2Delegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.a\`: Exposes CRUD operations for the **A** model.
@@ -942,7 +899,7 @@ export class PrismaClient<
     * const as = await prisma.a.findMany()
     * \`\`\`
     */
-  get a(): $Extensions.GetModel<Prisma.ADelegate<GlobalReject, ExtArgs>, ExtArgs['model']['a']>;
+  get a(): Prisma.ADelegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.b\`: Exposes CRUD operations for the **B** model.
@@ -952,7 +909,7 @@ export class PrismaClient<
     * const bs = await prisma.b.findMany()
     * \`\`\`
     */
-  get b(): $Extensions.GetModel<Prisma.BDelegate<GlobalReject, ExtArgs>, ExtArgs['model']['b']>;
+  get b(): Prisma.BDelegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.c\`: Exposes CRUD operations for the **C** model.
@@ -962,7 +919,7 @@ export class PrismaClient<
     * const cs = await prisma.c.findMany()
     * \`\`\`
     */
-  get c(): $Extensions.GetModel<Prisma.CDelegate<GlobalReject, ExtArgs>, ExtArgs['model']['c']>;
+  get c(): Prisma.CDelegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.d\`: Exposes CRUD operations for the **D** model.
@@ -972,7 +929,7 @@ export class PrismaClient<
     * const ds = await prisma.d.findMany()
     * \`\`\`
     */
-  get d(): $Extensions.GetModel<Prisma.DDelegate<GlobalReject, ExtArgs>, ExtArgs['model']['d']>;
+  get d(): Prisma.DDelegate<GlobalReject, ExtArgs>;
 
   /**
    * \`prisma.e\`: Exposes CRUD operations for the **E** model.
@@ -982,7 +939,7 @@ export class PrismaClient<
     * const es = await prisma.e.findMany()
     * \`\`\`
     */
-  get e(): $Extensions.GetModel<Prisma.EDelegate<GlobalReject, ExtArgs>, ExtArgs['model']['e']>;
+  get e(): Prisma.EDelegate<GlobalReject, ExtArgs>;
 }
 
 export namespace Prisma {
@@ -1488,49 +1445,15 @@ export namespace Prisma {
     db?: Datasource
   }
 
-  export function defineExtension<
-      R_Post_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.PostSelectScalar, ExtArgs['result']['post']>>,
-      R_User_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.UserSelectScalar, ExtArgs['result']['user']>>,
-      R_M_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.MSelectScalar, ExtArgs['result']['m']>>,
-      R_N_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.NSelectScalar, ExtArgs['result']['n']>>,
-      R_OneOptional_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.OneOptionalSelectScalar, ExtArgs['result']['oneOptional']>>,
-      R_ManyRequired_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.ManyRequiredSelectScalar, ExtArgs['result']['manyRequired']>>,
-      R_OptionalSide1_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.OptionalSide1SelectScalar, ExtArgs['result']['optionalSide1']>>,
-      R_OptionalSide2_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.OptionalSide2SelectScalar, ExtArgs['result']['optionalSide2']>>,
-      R_A_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.ASelectScalar, ExtArgs['result']['a']>>,
-      R_B_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.BSelectScalar, ExtArgs['result']['b']>>,
-      R_C_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.CSelectScalar, ExtArgs['result']['c']>>,
-      R_D_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.DSelectScalar, ExtArgs['result']['d']>>,
-      R_E_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.ESelectScalar, ExtArgs['result']['e']>>,
-      R extends $Extensions.UserArgs['result'] = {},
-      M extends $Extensions.UserArgs['model'] = {},
-      Q extends $Extensions.UserArgs['query'] = {},
-      C extends $Extensions.UserArgs['client'] = {},
-      Args extends $Extensions.Args = $Extensions.InternalArgs<R, M, Q, C>, 
-      ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs,
-    >(extension: ((client: Prisma.DefaultPrismaClient) => { $extends: { extArgs: Args } }) | Prisma.ExtensionArgs<
-      ExtArgs,
-      R_Post_Needs,
-      R_User_Needs,
-      R_M_Needs,
-      R_N_Needs,
-      R_OneOptional_Needs,
-      R_ManyRequired_Needs,
-      R_OptionalSide1_Needs,
-      R_OptionalSide2_Needs,
-      R_A_Needs,
-      R_B_Needs,
-      R_C_Needs,
-      R_D_Needs,
-      R_E_Needs,
-      R,
-      M,
-      Q,
-      C
-    >) : (client: any) => PrismaClient<any, any, any, Args>;
+
+  interface TypeMapCb extends $Utils.Fn<{extArgs: $Extensions.Args}, $Utils.Record<string, any>> {
+    returns: Prisma.TypeMap<this['params']['extArgs']>
+  }
+
   export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
       meta: {
         modelProps: 'post' | 'user' | 'm' | 'n' | 'oneOptional' | 'manyRequired' | 'optionalSide1' | 'optionalSide2' | 'a' | 'b' | 'c' | 'd' | 'e'
+        txIsolationLevel: Prisma.TransactionIsolationLevel
       },
       model: {
       Post: {
@@ -2559,203 +2482,7 @@ export namespace Prisma {
       }
     }
   }
-  export type ExtensionArgs<
-      ExtArgs extends $Extensions.Args,
-      R_Post_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.PostSelectScalar, ExtArgs['result']['post']>>,
-      R_User_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.UserSelectScalar, ExtArgs['result']['user']>>,
-      R_M_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.MSelectScalar, ExtArgs['result']['m']>>,
-      R_N_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.NSelectScalar, ExtArgs['result']['n']>>,
-      R_OneOptional_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.OneOptionalSelectScalar, ExtArgs['result']['oneOptional']>>,
-      R_ManyRequired_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.ManyRequiredSelectScalar, ExtArgs['result']['manyRequired']>>,
-      R_OptionalSide1_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.OptionalSide1SelectScalar, ExtArgs['result']['optionalSide1']>>,
-      R_OptionalSide2_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.OptionalSide2SelectScalar, ExtArgs['result']['optionalSide2']>>,
-      R_A_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.ASelectScalar, ExtArgs['result']['a']>>,
-      R_B_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.BSelectScalar, ExtArgs['result']['b']>>,
-      R_C_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.CSelectScalar, ExtArgs['result']['c']>>,
-      R_D_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.DSelectScalar, ExtArgs['result']['d']>>,
-      R_E_Needs extends $Utils.Record<string, $Extensions.GetSelect<Prisma.ESelectScalar, ExtArgs['result']['e']>>,
-      R extends $Extensions.UserArgs['result'] = {},
-      M extends $Extensions.UserArgs['model'] = {},
-      Q extends $Extensions.UserArgs['query'] = {},
-      C extends $Extensions.UserArgs['client'] = {}
-  > = {
-    name?: string,
-    result?: R & {
-        $allModels?: $Utils.Record<string, {
-          compute: (data: unknown) => unknown
-        }>
-        post?: {
-          [K in keyof R_Post_Needs]: {
-            needs: R_Post_Needs[K]
-            compute: (data: $Types.GetResult<PostPayload<ExtArgs>, { select: R_Post_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        user?: {
-          [K in keyof R_User_Needs]: {
-            needs: R_User_Needs[K]
-            compute: (data: $Types.GetResult<UserPayload<ExtArgs>, { select: R_User_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        m?: {
-          [K in keyof R_M_Needs]: {
-            needs: R_M_Needs[K]
-            compute: (data: $Types.GetResult<MPayload<ExtArgs>, { select: R_M_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        n?: {
-          [K in keyof R_N_Needs]: {
-            needs: R_N_Needs[K]
-            compute: (data: $Types.GetResult<NPayload<ExtArgs>, { select: R_N_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        oneOptional?: {
-          [K in keyof R_OneOptional_Needs]: {
-            needs: R_OneOptional_Needs[K]
-            compute: (data: $Types.GetResult<OneOptionalPayload<ExtArgs>, { select: R_OneOptional_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        manyRequired?: {
-          [K in keyof R_ManyRequired_Needs]: {
-            needs: R_ManyRequired_Needs[K]
-            compute: (data: $Types.GetResult<ManyRequiredPayload<ExtArgs>, { select: R_ManyRequired_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        optionalSide1?: {
-          [K in keyof R_OptionalSide1_Needs]: {
-            needs: R_OptionalSide1_Needs[K]
-            compute: (data: $Types.GetResult<OptionalSide1Payload<ExtArgs>, { select: R_OptionalSide1_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        optionalSide2?: {
-          [K in keyof R_OptionalSide2_Needs]: {
-            needs: R_OptionalSide2_Needs[K]
-            compute: (data: $Types.GetResult<OptionalSide2Payload<ExtArgs>, { select: R_OptionalSide2_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        a?: {
-          [K in keyof R_A_Needs]: {
-            needs: R_A_Needs[K]
-            compute: (data: $Types.GetResult<APayload<ExtArgs>, { select: R_A_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        b?: {
-          [K in keyof R_B_Needs]: {
-            needs: R_B_Needs[K]
-            compute: (data: $Types.GetResult<BPayload<ExtArgs>, { select: R_B_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        c?: {
-          [K in keyof R_C_Needs]: {
-            needs: R_C_Needs[K]
-            compute: (data: $Types.GetResult<CPayload<ExtArgs>, { select: R_C_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        d?: {
-          [K in keyof R_D_Needs]: {
-            needs: R_D_Needs[K]
-            compute: (data: $Types.GetResult<DPayload<ExtArgs>, { select: R_D_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-        e?: {
-          [K in keyof R_E_Needs]: {
-            needs: R_E_Needs[K]
-            compute: (data: $Types.GetResult<EPayload<ExtArgs>, { select: R_E_Needs[K] }, 'findUniqueOrThrow'>) => unknown
-          }
-        }
-      }
-    model?: M & {
-        $allModels?: {}
-        post?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.PostDelegate<false, ExtArgs>, ExtArgs['model']['post']> } }
-        user?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.UserDelegate<false, ExtArgs>, ExtArgs['model']['user']> } }
-        m?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.MDelegate<false, ExtArgs>, ExtArgs['model']['m']> } }
-        n?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.NDelegate<false, ExtArgs>, ExtArgs['model']['n']> } }
-        oneOptional?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.OneOptionalDelegate<false, ExtArgs>, ExtArgs['model']['oneOptional']> } }
-        manyRequired?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.ManyRequiredDelegate<false, ExtArgs>, ExtArgs['model']['manyRequired']> } }
-        optionalSide1?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.OptionalSide1Delegate<false, ExtArgs>, ExtArgs['model']['optionalSide1']> } }
-        optionalSide2?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.OptionalSide2Delegate<false, ExtArgs>, ExtArgs['model']['optionalSide2']> } }
-        a?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.ADelegate<false, ExtArgs>, ExtArgs['model']['a']> } }
-        b?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.BDelegate<false, ExtArgs>, ExtArgs['model']['b']> } }
-        c?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.CDelegate<false, ExtArgs>, ExtArgs['model']['c']> } }
-        d?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.DDelegate<false, ExtArgs>, ExtArgs['model']['d']> } }
-        e?: { [K: symbol]: { ctx: $Extensions.GetModel<Prisma.EDelegate<false, ExtArgs>, ExtArgs['model']['e']> } }
-      }
-    query?: {
-        $allModels?: {
-          [K in keyof Prisma.TypeMap['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E']]?: (args: { model: 'Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E', operation: keyof Prisma.TypeMap['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E'][keyof Prisma.TypeMap['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E'][keyof Prisma.TypeMap['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E'][keyof Prisma.TypeMap['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E'][keyof Prisma.TypeMap['model']['Post' | 'User' | 'M' | 'N' | 'OneOptional' | 'ManyRequired' | 'OptionalSide1' | 'OptionalSide2' | 'A' | 'B' | 'C' | 'D' | 'E']]['result']>
-        }
-      } & {
-        post?: {
-          [K in keyof Prisma.TypeMap['model']['Post']]?: (args: { model: 'Post', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['Post'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['Post'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['Post'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['Post'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'Post', operation: keyof Prisma.TypeMap['model']['Post'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['Post'][keyof Prisma.TypeMap['model']['Post']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['Post'][keyof Prisma.TypeMap['model']['Post']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['Post'][keyof Prisma.TypeMap['model']['Post']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['Post'][keyof Prisma.TypeMap['model']['Post']]['result']>
-        }
-        user?: {
-          [K in keyof Prisma.TypeMap['model']['User']]?: (args: { model: 'User', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['User'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['User'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['User'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['User'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'User', operation: keyof Prisma.TypeMap['model']['User'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['User'][keyof Prisma.TypeMap['model']['User']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['User'][keyof Prisma.TypeMap['model']['User']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['User'][keyof Prisma.TypeMap['model']['User']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['User'][keyof Prisma.TypeMap['model']['User']]['result']>
-        }
-        m?: {
-          [K in keyof Prisma.TypeMap['model']['M']]?: (args: { model: 'M', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['M'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['M'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['M'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['M'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'M', operation: keyof Prisma.TypeMap['model']['M'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['M'][keyof Prisma.TypeMap['model']['M']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['M'][keyof Prisma.TypeMap['model']['M']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['M'][keyof Prisma.TypeMap['model']['M']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['M'][keyof Prisma.TypeMap['model']['M']]['result']>
-        }
-        n?: {
-          [K in keyof Prisma.TypeMap['model']['N']]?: (args: { model: 'N', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['N'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['N'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['N'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['N'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'N', operation: keyof Prisma.TypeMap['model']['N'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['N'][keyof Prisma.TypeMap['model']['N']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['N'][keyof Prisma.TypeMap['model']['N']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['N'][keyof Prisma.TypeMap['model']['N']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['N'][keyof Prisma.TypeMap['model']['N']]['result']>
-        }
-        oneOptional?: {
-          [K in keyof Prisma.TypeMap['model']['OneOptional']]?: (args: { model: 'OneOptional', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OneOptional'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OneOptional'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['OneOptional'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['OneOptional'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'OneOptional', operation: keyof Prisma.TypeMap['model']['OneOptional'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OneOptional'][keyof Prisma.TypeMap['model']['OneOptional']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OneOptional'][keyof Prisma.TypeMap['model']['OneOptional']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['OneOptional'][keyof Prisma.TypeMap['model']['OneOptional']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['OneOptional'][keyof Prisma.TypeMap['model']['OneOptional']]['result']>
-        }
-        manyRequired?: {
-          [K in keyof Prisma.TypeMap['model']['ManyRequired']]?: (args: { model: 'ManyRequired', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['ManyRequired'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['ManyRequired'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['ManyRequired'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['ManyRequired'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'ManyRequired', operation: keyof Prisma.TypeMap['model']['ManyRequired'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['ManyRequired'][keyof Prisma.TypeMap['model']['ManyRequired']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['ManyRequired'][keyof Prisma.TypeMap['model']['ManyRequired']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['ManyRequired'][keyof Prisma.TypeMap['model']['ManyRequired']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['ManyRequired'][keyof Prisma.TypeMap['model']['ManyRequired']]['result']>
-        }
-        optionalSide1?: {
-          [K in keyof Prisma.TypeMap['model']['OptionalSide1']]?: (args: { model: 'OptionalSide1', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OptionalSide1'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OptionalSide1'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['OptionalSide1'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['OptionalSide1'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'OptionalSide1', operation: keyof Prisma.TypeMap['model']['OptionalSide1'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OptionalSide1'][keyof Prisma.TypeMap['model']['OptionalSide1']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OptionalSide1'][keyof Prisma.TypeMap['model']['OptionalSide1']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['OptionalSide1'][keyof Prisma.TypeMap['model']['OptionalSide1']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['OptionalSide1'][keyof Prisma.TypeMap['model']['OptionalSide1']]['result']>
-        }
-        optionalSide2?: {
-          [K in keyof Prisma.TypeMap['model']['OptionalSide2']]?: (args: { model: 'OptionalSide2', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OptionalSide2'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OptionalSide2'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['OptionalSide2'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['OptionalSide2'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'OptionalSide2', operation: keyof Prisma.TypeMap['model']['OptionalSide2'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OptionalSide2'][keyof Prisma.TypeMap['model']['OptionalSide2']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['OptionalSide2'][keyof Prisma.TypeMap['model']['OptionalSide2']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['OptionalSide2'][keyof Prisma.TypeMap['model']['OptionalSide2']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['OptionalSide2'][keyof Prisma.TypeMap['model']['OptionalSide2']]['result']>
-        }
-        a?: {
-          [K in keyof Prisma.TypeMap['model']['A']]?: (args: { model: 'A', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['A'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['A'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['A'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['A'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'A', operation: keyof Prisma.TypeMap['model']['A'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['A'][keyof Prisma.TypeMap['model']['A']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['A'][keyof Prisma.TypeMap['model']['A']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['A'][keyof Prisma.TypeMap['model']['A']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['A'][keyof Prisma.TypeMap['model']['A']]['result']>
-        }
-        b?: {
-          [K in keyof Prisma.TypeMap['model']['B']]?: (args: { model: 'B', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['B'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['B'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['B'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['B'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'B', operation: keyof Prisma.TypeMap['model']['B'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['B'][keyof Prisma.TypeMap['model']['B']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['B'][keyof Prisma.TypeMap['model']['B']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['B'][keyof Prisma.TypeMap['model']['B']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['B'][keyof Prisma.TypeMap['model']['B']]['result']>
-        }
-        c?: {
-          [K in keyof Prisma.TypeMap['model']['C']]?: (args: { model: 'C', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['C'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['C'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['C'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['C'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'C', operation: keyof Prisma.TypeMap['model']['C'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['C'][keyof Prisma.TypeMap['model']['C']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['C'][keyof Prisma.TypeMap['model']['C']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['C'][keyof Prisma.TypeMap['model']['C']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['C'][keyof Prisma.TypeMap['model']['C']]['result']>
-        }
-        d?: {
-          [K in keyof Prisma.TypeMap['model']['D']]?: (args: { model: 'D', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['D'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['D'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['D'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['D'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'D', operation: keyof Prisma.TypeMap['model']['D'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['D'][keyof Prisma.TypeMap['model']['D']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['D'][keyof Prisma.TypeMap['model']['D']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['D'][keyof Prisma.TypeMap['model']['D']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['D'][keyof Prisma.TypeMap['model']['D']]['result']>
-        }
-        e?: {
-          [K in keyof Prisma.TypeMap['model']['E']]?: (args: { model: 'E', operation: K, args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['E'][K]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['E'][K]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['E'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['E'][K]['result']>
-        } & {
-          $allOperations?: (args: { model: 'E', operation: keyof Prisma.TypeMap['model']['E'], args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['E'][keyof Prisma.TypeMap['model']['E']]['args']>, query: (args: $Extensions.ReadonlySelector<Prisma.TypeMap<ExtArgs>['model']['E'][keyof Prisma.TypeMap['model']['E']]['args']>) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['model']['E'][keyof Prisma.TypeMap['model']['E']]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['model']['E'][keyof Prisma.TypeMap['model']['E']]['result']>
-        }
-      } & {
-        [K in keyof Prisma.TypeMap['other']]?: (args: { operation: K, args: Prisma.TypeMap<ExtArgs>['other'][K]['args'], query: (args: Prisma.TypeMap<ExtArgs>['other'][K]['args']) => Prisma.PrismaPromise<Prisma.TypeMap<ExtArgs>['other'][K]['result']> }) => Promise<Prisma.TypeMap<ExtArgs>['other'][K]['result']>
-      }
-    client?: C & { [K: symbol]: { ctx: $Extensions.GetMaybeITXClient<PrismaClient<never, never, false, ExtArgs>, ExtArgs['client']> } }
-  }
+    export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>
   export type DefaultPrismaClient = PrismaClient
   export type RejectOnNotFound = boolean | ((error: Error) => Error)
   export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }

@@ -21,7 +21,7 @@ export async function getSchemaPathAndPrint(schemaPathProvided?: string, postins
   if (!schemaPath) {
     // Special case for Generate command
     if (postinstallCwd) {
-      logger.warn(`The postinstall script automatically ran \`prisma generate\` and did not find your \`prisma/schema.prisma\`.
+      logger.warn(`We could not find your Prisma schema at \`prisma/schema.prisma\`.
 If you have a Prisma schema file in a custom path, you will need to run
 \`prisma generate --schema=./path/to/your/schema.prisma\` to generate Prisma Client.
 If you do not have a Prisma schema file yet, you can ignore this message.`)

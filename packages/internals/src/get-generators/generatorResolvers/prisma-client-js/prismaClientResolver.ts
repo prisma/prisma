@@ -66,8 +66,8 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
         `Could not resolve ${missingCli(`${bold('prisma')} and `)}${bold(
           '@prisma/client',
         )} in the current project. Please install ${hasCli('it')}${missingCli('them')} with ${missingCli(
-          `${bold(green(`${getPackageCmd(baseDir, 'add', 'prisma', '-D')}`))} and `,
-        )}${bold(green(`${getPackageCmd(baseDir, 'add', '@prisma/client')}`))}, and rerun ${bold(
+          `${bold(green(`${await getPackageCmd(baseDir, 'add', 'prisma', '-D')}`))} and `,
+        )}${bold(green(`${await getPackageCmd(baseDir, 'add', '@prisma/client')}`))}, and rerun ${bold(
           await getPackageCmd(baseDir, 'execute', 'prisma generate'),
         )} 🙏.`,
       )
@@ -86,7 +86,7 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
       throw new Error(
         `Could not resolve @prisma/client despite the installation that we just tried.
 Please try to install it by hand with ${bold(
-          green(`${getPackageCmd(baseDir, 'add', '@prisma/client')}`),
+          green(`${await getPackageCmd(baseDir, 'add', '@prisma/client')}`),
         )} and rerun ${bold(await getPackageCmd(baseDir, 'execute', 'prisma generate'))} 🙏.`,
       )
     }

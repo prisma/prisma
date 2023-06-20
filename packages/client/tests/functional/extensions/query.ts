@@ -9,6 +9,8 @@ import testMatrix from './_matrix'
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 let prisma: PrismaClient<{ log: [{ emit: 'event'; level: 'query' }] }>
+declare let Prisma: typeof PrismaNamespace
+
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const randomId1 = randomBytes(12).toString('hex')
@@ -44,6 +46,7 @@ testMatrix.setupTestSuite(
       const fnPost = jest.fn()
       const fnEmitter = jest.fn()
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       prisma.$on('query', fnEmitter)
 
       const xprisma = prisma.$extends({
@@ -51,12 +54,9 @@ testMatrix.setupTestSuite(
           user: {
             findFirst({ args, query, operation, model }) {
               if (args.select != undefined) {
-                // @ts-expect-error
                 args.select.email = undefined
               }
-              // @ts-expect-error
               args.include = undefined
-              // @ts-expect-error
               args.select = undefined
               expectTypeOf(args).not.toBeAny
               expectTypeOf(query).toBeFunction()
@@ -921,22 +921,26 @@ testMatrix.setupTestSuite(
           // @ts-test-if: provider !== 'mongodb'
           $queryRaw({ args, query, operation }) {
             expect(operation).toEqual('$queryRaw')
+            expect(args).toEqual(Prisma.sql`SELECT 2`)
             // @ts-test-if: provider !== 'mongodb'
-            expectTypeOf(args).toEqualTypeOf<[query: TemplateStringsArray | PrismaNamespace.Sql, ...values: any[]]>()
+            expectTypeOf(args).toEqualTypeOf<PrismaNamespace.Sql>()
             // @ts-test-if: provider !== 'mongodb'
             expectTypeOf(operation).toEqualTypeOf<'$queryRaw'>()
             fnUser(args)
             return query(args)
           },
+          // @ts-test-if: provider !== 'mongodb'
           $executeRaw({ args, query, operation }) {
             expect(operation).toEqual('$executeRaw')
+            expect(args).toEqual(Prisma.sql`SELECT 1`)
             // @ts-test-if: provider !== 'mongodb'
-            expectTypeOf(args).toEqualTypeOf<[query: TemplateStringsArray | PrismaNamespace.Sql, ...values: any[]]>()
+            expectTypeOf(args).toEqualTypeOf<PrismaNamespace.Sql>()
             // @ts-test-if: provider !== 'mongodb'
             expectTypeOf(operation).toEqualTypeOf<'$executeRaw'>()
             fnUser(args)
             return query(args)
           },
+          // @ts-test-if: provider !== 'mongodb'
           $queryRawUnsafe({ args, query, operation }) {
             expect(operation).toEqual('$queryRawUnsafe')
             // @ts-test-if: provider !== 'mongodb'
@@ -946,6 +950,7 @@ testMatrix.setupTestSuite(
             fnUser(args)
             return query(args)
           },
+          // @ts-test-if: provider !== 'mongodb'
           $executeRawUnsafe({ args, query, operation }) {
             expect(operation).toEqual('$executeRawUnsafe')
             // @ts-test-if: provider !== 'mongodb'
@@ -979,8 +984,8 @@ testMatrix.setupTestSuite(
         await xprisma.$queryRawUnsafe(`SELECT 4`)
 
         await wait(() => expect(fnEmitter).toHaveBeenCalledTimes(4))
-        expect(fnUser).toHaveBeenNthCalledWith(1, [[`SELECT 1`]])
-        expect(fnUser).toHaveBeenNthCalledWith(2, [[`SELECT 2`]])
+        expect(fnUser).toHaveBeenNthCalledWith(1, Prisma.sql`SELECT 1`)
+        expect(fnUser).toHaveBeenNthCalledWith(2, Prisma.sql`SELECT 2`)
         expect(fnUser).toHaveBeenNthCalledWith(3, [`SELECT 3`])
         expect(fnUser).toHaveBeenNthCalledWith(4, [`SELECT 4`])
       } else {
@@ -1047,7 +1052,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             $allModels: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query, model, operation }) {
                 fnModel({ args, operation, model })
 
                 return query(args)
@@ -1077,6 +1082,78 @@ testMatrix.setupTestSuite(
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsUser)
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
+    })
+
+    test('extending with top-level $allOperations', async () => {
+      const fnModel = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          $allOperations({ args, query, operation, model }) {
+            fnModel({ args, operation, model })
+
+            return query(args)
+          },
+        },
+      })
+
+      const args = { where: { id: randomId1 } }
+      const cbArgsUser = { args: args, operation: 'findFirst', model: 'User' }
+
+      const dataUser1 = await xprisma.user.findFirst(args)
+
+      expect(dataUser1).toMatchInlineSnapshot(`null`)
+      expect(fnModel).toHaveBeenCalledTimes(1)
+      expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
+    })
+
+    test('unions can be properly discriminated', () => {
+      prisma.$extends({
+        query: {
+          $allModels: {
+            findFirst({ args, query, model }) {
+              ;() => {
+                if (model === 'User') {
+                  args.select?.firstName
+                  return query(args)
+                }
+
+                if (model === 'Post') {
+                  // @ts-expect-error
+                  args.select?.firstName
+                  return query(args)
+                }
+
+                return undefined
+              }
+
+              return query(args)
+            },
+            $allOperations({ args, query, operation }) {
+              ;() => {
+                if (operation === 'findFirst') {
+                  args.select?.id
+                  return query(args)
+                }
+
+                if (operation === 'groupBy') {
+                  // @ts-expect-error
+                  args.select?.id
+                  return query(args)
+                }
+
+                return undefined
+              }
+
+              return query(args)
+            },
+          },
+        },
+      })
     })
   },
   {

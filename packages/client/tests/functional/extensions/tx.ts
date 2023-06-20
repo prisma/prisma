@@ -1,4 +1,5 @@
 import { faker } from '@faker-js/faker'
+import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -179,5 +180,18 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
     expect(users).toHaveLength(1)
+  })
+
+  test('isolation level is properly reflected in extended client', () => {
+    ;async () => {
+      const xprisma = prisma.$extends({})
+
+      // @ts-test-if: provider !== 'mongodb'
+      const data = await xprisma.$transaction([xprisma.user.findFirst({ select: { id: true } })], {
+        isolationLevel: 'Serializable',
+      })
+
+      expectTypeOf(data).toEqualTypeOf<({ id: string } | null)[]>()
+    }
   })
 })

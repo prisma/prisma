@@ -51,7 +51,12 @@ import { GraphQLProtocolEncoder } from './core/protocol/graphql'
 import { JsonProtocolEncoder } from './core/protocol/json'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
 import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
-import { rawQueryArgsMapper } from './core/raw-query/rawQueryArgsMapper'
+import {
+  checkAlter,
+  rawQueryArgsMapper,
+  sqlMiddlewareArgsMapper,
+  templateStringMiddlewareArgsMapper,
+} from './core/raw-query/rawQueryArgsMapper'
 import { createPrismaPromiseFactory } from './core/request/createPrismaPromise'
 import {
   PrismaPromise,
@@ -173,9 +178,22 @@ export type InternalRequestParams = {
   otelParentCtx?: Context
   /** Used to "desugar" a user input into an "expanded" one */
   argsMapper?: (args?: UserArgs) => UserArgs
+
+  /** Used to convert args for middleware and back */
+  middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>
   /** Used for Accelerate client extension via Data Proxy */
   customDataProxyFetch?: (fetch: Fetch) => Fetch
 } & Omit<QueryMiddlewareParams, 'runInTransaction'>
+
+export type MiddlewareArgsMapper<RequestArgs, MiddlewareArgs> = {
+  requestArgsToMiddlewareArgs(requestArgs: RequestArgs): MiddlewareArgs
+  middlewareArgsToRequestArgs(middlewareArgs: MiddlewareArgs): RequestArgs
+}
+
+const noopMiddlewareArgsMapper: MiddlewareArgsMapper<unknown, unknown> = {
+  requestArgsToMiddlewareArgs: (param) => param,
+  middlewareArgsToRequestArgs: (param) => param,
+}
 
 /* Types for Logging */
 export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -606,15 +624,17 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       transaction: PrismaPromiseTransaction | undefined,
       clientMethod: string,
       args: RawQueryArgs,
+      middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
       return this._request({
         action: 'executeRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this, clientMethod),
+        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
+        middlewareArgsMapper,
       })
     }
 
@@ -629,7 +649,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     $executeRaw(query: TemplateStringsArray | Sql, ...values: any[]) {
       return this._createPrismaPromise((transaction) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as Sql).sql !== undefined) {
-          return this.$executeRawInternal(transaction, '$executeRaw', [query, ...values])
+          const [sql, argsMapper] = toSql(query, values)
+          checkAlter(
+            this._activeProvider,
+            sql.text,
+            sql.values,
+            Array.isArray(query) ? 'prisma.$executeRaw`<SQL>`' : 'prisma.$executeRaw(sql`<SQL>`)',
+          )
+          return this.$executeRawInternal(transaction, '$executeRaw', sql, argsMapper)
         }
 
         throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
@@ -652,6 +679,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
      */
     $executeRawUnsafe(query: string, ...values: RawValue[]) {
       return this._createPrismaPromise((transaction) => {
+        checkAlter(this._activeProvider, query, values, 'prisma.$executeRawUnsafe(<SQL>, [...values])')
         return this.$executeRawInternal(transaction, '$executeRawUnsafe', [query, ...values])
       })
     }
@@ -689,15 +717,17 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       transaction: PrismaPromiseTransaction | undefined,
       clientMethod: string,
       args: RawQueryArgs,
+      middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
       return this._request({
         action: 'queryRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this, clientMethod),
+        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
+        middlewareArgsMapper,
       }).then(deserializeRawResults)
     }
 
@@ -712,7 +742,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     $queryRaw(query: TemplateStringsArray | Sql, ...values: any[]) {
       return this._createPrismaPromise((transaction) => {
         if ((query as TemplateStringsArray).raw !== undefined || (query as Sql).sql !== undefined) {
-          return this.$queryRawInternal(transaction, '$queryRaw', [query, ...values])
+          return this.$queryRawInternal(transaction, '$queryRaw', ...toSql(query, values))
         }
 
         throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
@@ -846,10 +876,11 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
     _request(internalParams: InternalRequestParams): Promise<any> {
       // this is the otel context that is active at the callsite
       internalParams.otelParentCtx = this._tracingHelper.getActiveContext()
+      const middlewareArgsMapper = internalParams.middlewareArgsMapper ?? noopMiddlewareArgsMapper
 
       // make sure that we don't leak extra properties to users
       const params: QueryMiddlewareParams = {
-        args: internalParams.args,
+        args: middlewareArgsMapper.requestArgsToMiddlewareArgs(internalParams.args),
         dataPath: internalParams.dataPath,
         runInTransaction: Boolean(internalParams.transaction),
         action: internalParams.action,
@@ -891,10 +922,14 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
         // no middleware? then we just proceed with request execution
         // before we send the execution request, we use the changed params
-        const { runInTransaction, ...changedRequestParams } = changedMiddlewareParams
+        const { runInTransaction, args, ...changedRequestParams } = changedMiddlewareParams
         const requestParams = {
           ...internalParams,
           ...changedRequestParams,
+        }
+
+        if (args) {
+          requestParams.args = middlewareArgsMapper.middlewareArgsToRequestArgs(args)
         }
 
         // if middleware switched off `runInTransaction`, unset `transaction`
@@ -1074,4 +1109,16 @@ function warnAboutRejectOnNotFound(
       `\`rejectOnNotFound\` option is deprecated and will be removed in Prisma 5. Please use \`${replacementCall}\` method instead`,
     )
   }
+}
+
+function toSql(query: TemplateStringsArray | Sql, values: unknown[]): [Sql, MiddlewareArgsMapper<unknown, unknown>] {
+  if (isTemplateStringArray(query)) {
+    return [new Sql(query, values), templateStringMiddlewareArgsMapper]
+  }
+
+  return [query, sqlMiddlewareArgsMapper]
+}
+
+function isTemplateStringArray(value: unknown): value is TemplateStringsArray {
+  return Array.isArray(value) && Array.isArray(value['raw'])
 }
