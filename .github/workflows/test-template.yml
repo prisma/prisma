@@ -121,7 +121,7 @@ jobs:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
         queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
         engineProtocol: ['graphql', 'json']
-        node: [16, 18, 20]
+        node: [18, 20]
         exclude: ${{ fromJson(needs.determineBuildMatrixParams.outputs.excludeClient) }}
 
     env:
