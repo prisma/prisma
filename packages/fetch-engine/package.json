@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.16.0-67.integration-tracing-runtime-js-7aa3bfc9131f8e5f9bfa0b2aeed94806dd65cbfc",
+    "@prisma/engines-version": "4.16.0-70.integration-tracing-runtime-js-b967cfe0b3471cb83685e28c9bbccd0a25180ce6",
     "@swc/core": "1.3.64",
     "@swc/jest": "0.2.26",
     "@types/jest": "29.5.2",

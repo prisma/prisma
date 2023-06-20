@@ -125,7 +125,7 @@
     "mariadb": "3.1.2",
     "memfs": "3.5.3",
     "mssql": "9.1.1",
-    "mysql2": "^3.3.4",
+    "mysql2": "^3.4.0",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.6.11",
     "p-retry": "4.6.2",
@@ -159,7 +159,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-67.integration-tracing-runtime-js-7aa3bfc9131f8e5f9bfa0b2aeed94806dd65cbfc"
+    "@prisma/engines-version": "4.16.0-70.integration-tracing-runtime-js-b967cfe0b3471cb83685e28c9bbccd0a25180ce6"
   },
   "sideEffects": false
 }
