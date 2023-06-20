@@ -1053,21 +1053,6 @@ testMatrix.setupTestSuite(
           query: {
             $allModels: {
               findFirst({ args, query, model, operation }) {
-                ;() => {
-                  if (model === 'User') {
-                    args.select?.firstName
-                    return query(args)
-                  }
-
-                  if (model === 'Post') {
-                    // @ts-expect-error
-                    args.select?.firstName
-                    return query(args)
-                  }
-
-                  return undefined
-                }
-
                 fnModel({ args, operation, model })
 
                 return query(args)

@@ -143,7 +143,7 @@ testMatrix.setupTestSuite(
 
       const findFirstData = xprisma.user.findFirst()
       // @ts-expect-error
-      void xprisma.user.findFirst(2)
+      void xprisma.user.findFirst({})
 
       expect(findFirstData).toBeUndefined()
       expectTypeOf(findFirstData).toEqualTypeOf<undefined>()
