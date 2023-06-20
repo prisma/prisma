@@ -157,7 +157,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-66.b20ead4d3ab9e78ac112966e242ded703f4a052c"
+    "@prisma/engines-version": "4.16.0-72.integration-support-arrays-generator-config-d181c89134a5f9e48a42e6d90be0b3da518c6236"
   },
   "sideEffects": false
 }
