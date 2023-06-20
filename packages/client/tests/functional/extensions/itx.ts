@@ -332,6 +332,7 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
         },
       )
 
+      // @ts-test-if: provider !== 'mongodb'
       expectTypeOf(data).toEqualTypeOf<number>()
     }
   })
