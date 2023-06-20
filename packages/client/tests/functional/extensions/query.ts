@@ -46,6 +46,7 @@ testMatrix.setupTestSuite(
       const fnPost = jest.fn()
       const fnEmitter = jest.fn()
 
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       prisma.$on('query', fnEmitter)
 
       const xprisma = prisma.$extends({
@@ -53,12 +54,9 @@ testMatrix.setupTestSuite(
           user: {
             findFirst({ args, query, operation, model }) {
               if (args.select != undefined) {
-                // @ts-expect-error
                 args.select.email = undefined
               }
-              // @ts-expect-error
               args.include = undefined
-              // @ts-expect-error
               args.select = undefined
               expectTypeOf(args).not.toBeAny
               expectTypeOf(query).toBeFunction()
@@ -931,6 +929,7 @@ testMatrix.setupTestSuite(
             fnUser(args)
             return query(args)
           },
+          // @ts-test-if: provider !== 'mongodb'
           $executeRaw({ args, query, operation }) {
             expect(operation).toEqual('$executeRaw')
             expect(args).toEqual(Prisma.sql`SELECT 1`)
@@ -941,6 +940,7 @@ testMatrix.setupTestSuite(
             fnUser(args)
             return query(args)
           },
+          // @ts-test-if: provider !== 'mongodb'
           $queryRawUnsafe({ args, query, operation }) {
             expect(operation).toEqual('$queryRawUnsafe')
             // @ts-test-if: provider !== 'mongodb'
@@ -950,6 +950,7 @@ testMatrix.setupTestSuite(
             fnUser(args)
             return query(args)
           },
+          // @ts-test-if: provider !== 'mongodb'
           $executeRawUnsafe({ args, query, operation }) {
             expect(operation).toEqual('$executeRawUnsafe')
             // @ts-test-if: provider !== 'mongodb'
@@ -1051,7 +1052,7 @@ testMatrix.setupTestSuite(
         .$extends({
           query: {
             $allModels: {
-              findFirst({ args, query, operation, model }) {
+              findFirst({ args, query, model, operation }) {
                 fnModel({ args, operation, model })
 
                 return query(args)
@@ -1081,6 +1082,78 @@ testMatrix.setupTestSuite(
       expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
       expect(fnModel).toHaveBeenNthCalledWith(2, cbArgsUser)
       await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
+    })
+
+    test('extending with top-level $allOperations', async () => {
+      const fnModel = jest.fn()
+      const fnEmitter = jest.fn()
+
+      prisma.$on('query', fnEmitter)
+
+      const xprisma = prisma.$extends({
+        query: {
+          $allOperations({ args, query, operation, model }) {
+            fnModel({ args, operation, model })
+
+            return query(args)
+          },
+        },
+      })
+
+      const args = { where: { id: randomId1 } }
+      const cbArgsUser = { args: args, operation: 'findFirst', model: 'User' }
+
+      const dataUser1 = await xprisma.user.findFirst(args)
+
+      expect(dataUser1).toMatchInlineSnapshot(`null`)
+      expect(fnModel).toHaveBeenCalledTimes(1)
+      expect(fnModel).toHaveBeenNthCalledWith(1, cbArgsUser)
+      await waitFor(() => expect(fnEmitter).toHaveBeenCalledTimes(1))
+    })
+
+    test('unions can be properly discriminated', () => {
+      prisma.$extends({
+        query: {
+          $allModels: {
+            findFirst({ args, query, model }) {
+              ;() => {
+                if (model === 'User') {
+                  args.select?.firstName
+                  return query(args)
+                }
+
+                if (model === 'Post') {
+                  // @ts-expect-error
+                  args.select?.firstName
+                  return query(args)
+                }
+
+                return undefined
+              }
+
+              return query(args)
+            },
+            $allOperations({ args, query, operation }) {
+              ;() => {
+                if (operation === 'findFirst') {
+                  args.select?.id
+                  return query(args)
+                }
+
+                if (operation === 'groupBy') {
+                  // @ts-expect-error
+                  args.select?.id
+                  return query(args)
+                }
+
+                return undefined
+              }
+
+              return query(args)
+            },
+          },
+        },
+      })
     })
   },
   {

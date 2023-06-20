@@ -282,7 +282,7 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
 
           expectTypeOf(ctx.$connect).toEqualTypeOf<typeof prisma.$connect | undefined>()
           expectTypeOf(ctx.$disconnect).toEqualTypeOf<typeof prisma.$disconnect | undefined>()
-          expectTypeOf(ctx.$transaction).toEqualTypeOf<typeof prisma.$transaction | undefined>()
+          expectTypeOf(ctx.$transaction).toMatchTypeOf<Function | undefined>()
           expectTypeOf(ctx.$extends).toEqualTypeOf<typeof prisma.$extends | undefined>()
           expectTypeOf(ctx).not.toHaveProperty('$use')
           expectTypeOf(ctx).not.toHaveProperty('$on')
@@ -316,5 +316,24 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
       tx.testContextMethods(true)
       return Promise.resolve()
     })
+  })
+
+  test('isolation level is properly reflected in extended client', () => {
+    ;async () => {
+      const xprisma = prisma.$extends({})
+
+      // @ts-test-if: provider !== 'mongodb'
+      const data = await xprisma.$transaction(
+        () => {
+          return Promise.resolve(42)
+        },
+        {
+          isolationLevel: 'Serializable',
+        },
+      )
+
+      // @ts-test-if: provider !== 'mongodb'
+      expectTypeOf(data).toEqualTypeOf<number>()
+    }
   })
 })
