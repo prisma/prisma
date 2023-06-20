@@ -238,7 +238,7 @@ class DMMFSchemaHelper implements Pick<DMMF.Document, 'schema'> {
 }
 
 export interface DMMFHelper extends DMMFDatamodelHelper, DMMFMappingsHelper, DMMFSchemaHelper {}
-// TODO: move to generation, merge into single class
+// TODO: merge into single class
 export class DMMFHelper {
   constructor(dmmf: DMMF.Document) {
     return Object.assign(this, new DMMFDatamodelHelper(dmmf), new DMMFMappingsHelper(dmmf), new DMMFSchemaHelper(dmmf))
