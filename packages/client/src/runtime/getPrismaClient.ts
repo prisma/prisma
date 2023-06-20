@@ -947,7 +947,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           }),
         )
 
-        // as printJsonWithErrors takes a bit of compute
+        // as prettyPrintArguments takes a bit of compute
         // we only want to do it, if debug is enabled for 'prisma-client'
         if (Debug.enabled('prisma:client')) {
           debug(`Prisma Client call:`)
