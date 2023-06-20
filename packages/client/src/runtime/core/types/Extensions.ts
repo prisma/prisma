@@ -5,7 +5,7 @@ import { RequiredArgs as UserArgs } from '../extensions/$extends'
 import { GetFindResult, GetResult as GetOperationResult, Operation } from './GetResult'
 import { Payload } from './Payload'
 import { PrismaPromise } from './Public'
-import { Call, ComputeDeep, Fn, Optional, Path, Return, UnwrapTuple } from './Utils'
+import { Call, ComputeDeep, Fn, Optional, Return, UnwrapTuple } from './Utils'
 
 /* eslint-disable prettier/prettier */
 
@@ -87,7 +87,7 @@ export type DynamicResultExtensionArgs<R_, TypeMap extends TypeMapDef> = {
   [K in keyof R_]: {
     [P in keyof R_[K]]?: {
       needs?: DynamicResultExtensionNeeds<TypeMap, ModelKey<TypeMap, K>, R_[K][P]> 
-      compute<D extends DynamicResultExtensionData<TypeMap, ModelKey<TypeMap, K>, Path<R_, [K, P]>>>(data: D): unknown
+      compute(data: DynamicResultExtensionData<TypeMap, ModelKey<TypeMap, K>, R_[K][P]>): unknown
     }
   }
 }
