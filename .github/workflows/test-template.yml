@@ -1027,7 +1027,7 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest]
         node: [14]
-        queryEngine: ${{ fromJson(needs.inputs.queryEngine) }}
+        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         shard: ['1/2', '2/2']
 
     if: |
