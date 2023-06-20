@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "4.16.0-66.b20ead4d3ab9e78ac112966e242ded703f4a052c",
+    "@prisma/engines-version": "4.16.0-71.cockroachdb-with-postgres-provider-5dbcd575dfeb408cbd8d423edb813cf42606c8bb",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.64",
