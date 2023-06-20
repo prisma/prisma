@@ -87,8 +87,6 @@ export type OptionalKeys<O> = {
   [K in keyof O]-?: {} extends Pick<O, K> ? K : never
 }[keyof O]
 
-export type HasAllOptionalKeys<O> = keyof O extends OptionalKeys<O> ? 1 : 0
-
 export type Optional<O, K extends keyof any = keyof O> = {
   [P in K & keyof O]?: O[P]
 } & {

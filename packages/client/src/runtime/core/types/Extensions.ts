@@ -5,7 +5,7 @@ import { RequiredArgs as UserArgs } from '../extensions/$extends'
 import { GetFindResult, GetResult as GetOperationResult, Operation } from './GetResult'
 import { Payload } from './Payload'
 import { PrismaPromise } from './Public'
-import { Call, ComputeDeep, Fn, HasAllOptionalKeys, Optional, Path, Return, UnwrapTuple } from './Utils'
+import { Call, ComputeDeep, Fn, Optional, Path, Return, UnwrapTuple } from './Utils'
 
 /* eslint-disable prettier/prettier */
 
@@ -115,14 +115,15 @@ export type DynamicModelExtensionArgs<M_, TypeMap extends TypeMapDef, ExtArgs ex
 }
 
 type DynamicModelExtensionThis<TypeMap extends TypeMapDef, M extends PropertyKey, ExtArgs extends Record<string, any>> = {
-  [P in keyof TypeMap['model'][M] | keyof ExtArgs['model'][Uncapitalize<M & string>]]:
-    P extends Operation
-    ? HasAllOptionalKeys<TypeMap['model'][M][P]['args']> extends 1
-      ? <A extends TypeMap['model'][M][P]['args']>(args?: A) =>
-          PrismaPromise<GetOperationResult<TypeMap['model'][M][P]['payload'], A, P>>
-      : <A extends TypeMap['model'][M][P]['args']>(args: A) =>
-          PrismaPromise<GetOperationResult<TypeMap['model'][M][P]['payload'], A, P>>
-    : Return<ExtArgs['model'][Uncapitalize<M & string>][P]>
+  [P in keyof ExtArgs['model'][Uncapitalize<M & string>]]:
+    Return<ExtArgs['model'][Uncapitalize<M & string>][P]>
+} & {
+  [P in Exclude<keyof TypeMap['model'][M], keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
+    {} extends TypeMap['model'][M][P]['args'] // will match fully optional args
+    ? <A extends TypeMap['model'][M][P]['args']>(args?: A) =>
+        PrismaPromise<GetOperationResult<TypeMap['model'][M][P]['payload'], A, P & Operation>>
+    : <A extends TypeMap['model'][M][P]['args']>(args: A) =>
+        PrismaPromise<GetOperationResult<TypeMap['model'][M][P]['payload'], A, P & Operation>>
 } & {
   [K: symbol]: { types: TypeMap['model'][M] }
 }
@@ -135,15 +136,22 @@ export type DynamicClientExtensionArgs<C_, TypeMap extends TypeMapDef, TypeMapCb
   [K: symbol]: { ctx: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList> }
 }
 
-export type DynamicClientExtensionThis<TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
-  [P in keyof TypeMap['other'] | keyof TypeMap['model'] | keyof ExtArgs['client'] as Uncapitalize<P & string>]:
-    P extends Operation
-    ? <A extends TypeMap['other'][P]['args']>(...args: A extends any[] ? A : [A]) =>
-      PrismaPromise<GetOperationResult<TypeMap['other'][P]['payload'], A, P>>
-    : P extends keyof TypeMap['model']
-      ? DynamicModelExtensionThis<TypeMap, P, ExtArgs>
-      : Return<ExtArgs['client'][P]>
+type DynamicClientExtensionThis<TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
+  [P in keyof ExtArgs['client']]: Return<ExtArgs['client'][P]>
 } & {
+  [P in Exclude<TypeMap['meta']['modelProps'], keyof ExtArgs['client']>]:
+    DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, P>, ExtArgs>
+} & {
+  [P in Exclude<keyof TypeMap['other'], keyof ExtArgs['client']>]:
+    <A extends TypeMap['other'][P]['args']>(...args: A extends any[] ? A : [A]) =>
+      PrismaPromise<GetOperationResult<TypeMap['other'][P]['payload'], A, P & Operation>>
+} & {
+  [P in Exclude<ClientBuiltInProp, keyof ExtArgs['client']>]:
+    DynamicClientExtensionThisBuiltin<TypeMap, TypeMapCb, ExtArgs>[P]
+}
+
+type ClientBuiltInProp = '$connect' | '$disconnect' | '$transaction' | '$extends'
+type DynamicClientExtensionThisBuiltin<TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
   $extends: ExtendsHook<'extends', TypeMapCb, ExtArgs>
   $transaction<R>(fn: (client: Omit<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList>, options?: { maxWait?: number, timeout?: number, isolationLevel?: string }) => Promise<R>): Promise<R>
   $transaction<P extends PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: string }): Promise<UnwrapTuple<P>>
@@ -221,7 +229,7 @@ type TypeMapCbDef = Fn<{ extArgs: Args }, TypeMapDef>
 
 type ModelKey<TypeMap extends TypeMapDef, M extends PropertyKey> =
   M extends keyof TypeMap['model']
-  ? M & string
+  ? M
   : Capitalize<M & string>
 
 export type { UserArgs }

@@ -127,18 +127,26 @@ testMatrix.setupTestSuite(
       expect(firstMethod).not.toHaveBeenCalled()
     })
 
-    test('allows to override built-in methods', async () => {
+    test('allows to override built-in methods', () => {
       const extMethod = jest.fn()
       const xprisma = prisma.$extends({
         model: {
           user: {
-            findFirst: extMethod,
+            findFirst() {
+              extMethod()
+
+              return undefined
+            },
           },
         },
       })
 
-      await xprisma.user.findFirst({})
+      const findFirstData = xprisma.user.findFirst()
+      // @ts-expect-error
+      void xprisma.user.findFirst(2)
 
+      expect(findFirstData).toBeUndefined()
+      expectTypeOf(findFirstData).toEqualTypeOf<undefined>()
       expect(extMethod).toHaveBeenCalled()
     })
 

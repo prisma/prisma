@@ -106,15 +106,40 @@ testMatrix.setupTestSuite(() => {
     expect(override).toHaveBeenCalled()
   })
 
-  test('allows to override builtin methods', async () => {
+  test('allows to override builtin methods', () => {
     const transactionOverride = jest.fn()
+    const queryRawOverride = jest.fn()
     const xprisma = prisma.$extends({
-      client: { $transaction: transactionOverride },
+      client: {
+        $transaction() {
+          transactionOverride()
+
+          return undefined
+        },
+        $queryRaw() {
+          queryRawOverride()
+
+          return undefined
+        },
+      },
     })
 
-    await xprisma.$transaction()
+    const dataTransaction = xprisma.$transaction()
+    const dataQueryRaw = xprisma.$queryRaw()
+
+    // @ts-expect-error
+    void xprisma.$transaction([])
+    // @ts-expect-error
+    void xprisma.$queryRaw('')
+
+    expect(dataTransaction).toBeUndefined()
+    expect(dataQueryRaw).toBeUndefined()
+
+    expectTypeOf(dataTransaction).toEqualTypeOf<undefined>()
+    expectTypeOf(dataQueryRaw).toEqualTypeOf<undefined>()
 
     expect(transactionOverride).toHaveBeenCalled()
+    expect(queryRawOverride).toHaveBeenCalled()
   })
 
   test('allows to call builtin methods from extensions', async () => {
