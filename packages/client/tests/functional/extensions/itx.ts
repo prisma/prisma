@@ -317,4 +317,22 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
       return Promise.resolve()
     })
   })
+
+  test('isolation level is properly reflected in extended client', () => {
+    ;async () => {
+      const xprisma = prisma.$extends({})
+
+      // @ts-test-if: provider !== 'mongodb'
+      const data = await xprisma.$transaction(
+        () => {
+          return Promise.resolve(42)
+        },
+        {
+          isolationLevel: 'Serializable',
+        },
+      )
+
+      expectTypeOf(data).toEqualTypeOf<number>()
+    }
+  })
 })
