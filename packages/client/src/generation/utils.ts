@@ -4,24 +4,11 @@ import path from 'path'
 
 import type { DMMFHelper } from '../runtime/dmmf'
 import { DMMF } from '../runtime/dmmf-types'
-import { ifExtensions } from './TSClient/utils/ifExtensions'
 
 export enum Projection {
   select = 'select',
   include = 'include',
 }
-
-export function getScalarsName(modelName: string): string {
-  return `${modelName}Scalars`
-}
-
-export function getPayloadName(modelName: string): string {
-  return ifExtensions(`runtime.Types.GetResult`, `${modelName}GetPayload`)
-}
-
-// export function getExtractName(modelName: string, projection: Projection) {
-//   return `Extract${modelName}${capitalize(projection)}`
-// }
 
 export function getSelectName(modelName: string): string {
   return `${modelName}Select`
@@ -140,7 +127,7 @@ export function getModelArgName(modelName: string, action?: DMMF.ModelAction): s
     case DMMF.ModelAction.deleteMany:
       return `${modelName}DeleteManyArgs`
     case DMMF.ModelAction.groupBy:
-      return `${modelName}GroupByArgs`
+      return getGroupByArgsName(modelName)
     case DMMF.ModelAction.aggregate:
       return getAggregateArgsName(modelName)
     case DMMF.ModelAction.count:
@@ -257,42 +244,39 @@ export function getReturnType({
    * Important: We handle findMany or isList special, as we don't want chaining from there
    */
   if (isList || hideCondition) {
-    const listOpen = isList ? 'Array<' : ''
-    const listClose = isList ? '>' : ''
     const promiseOpen = renderPromise ? 'Prisma.PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `${promiseOpen}${ifExtensions('', listOpen)}${getPayloadName(name)}<${ifExtensions(
-      `${name}Payload<ExtArgs>, T, '${actionName}'`,
-      'T',
-    )}>${ifExtensions('', listClose)}${isChaining ? '| Null' : ''}${promiseClose}`
+    return `${promiseOpen}$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>${
+      isChaining ? '| Null' : ''
+    }${promiseClose}`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
     return `Prisma__${name}Client<${getType(
-      getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
+      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
       isList,
-    )}${ifExtensions(', never, ExtArgs', '')}>`
+    )}, never, ExtArgs>`
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
       return `Prisma__${name}Client<${getType(
-        getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
+        `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
         isList,
-      )} | Null${ifExtensions(', never, ExtArgs', '')}>`
+      )} | Null, never, ExtArgs>`
     }
     return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? Prisma__${name}Client<${getType(
-      getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
+      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
       isList,
-    )}${ifExtensions(', never, ExtArgs', '')}> : Prisma__${name}Client<${getType(
-      getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
+    )}, never, ExtArgs> : Prisma__${name}Client<${getType(
+      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
       isList,
-    )} | null, null${ifExtensions(', ExtArgs', '')}>`
+    )} | null, null, ExtArgs>`
   }
   return `Prisma__${name}Client<${getType(
-    getPayloadName(name) + `<${ifExtensions(`${name}Payload<ExtArgs>, T, '${actionName}'`, 'T')}>`,
+    `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
     isList,
-  )}${ifExtensions(', never, ExtArgs', '')}>`
+  )}, never, ExtArgs>`
 }
 
 export function isQueryAction(action: DMMF.ModelAction, operation: 'query' | 'mutation'): boolean {

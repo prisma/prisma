@@ -1,4 +1,5 @@
 import * as Extensions from './core/extensions'
+import * as Public from './core/public'
 import * as Types from './core/types'
 import { Payload } from './core/types'
 
@@ -33,6 +34,7 @@ export { empty, join, raw, Sql, default as sqltag } from 'sql-template-tag'
 
 export { Types }
 export { Extensions }
+export { Public }
 export { warnOnce } from '@prisma/internals'
 
 /**
@@ -41,3 +43,5 @@ export { warnOnce } from '@prisma/internals'
  * TODO: Maybe simply exporting all types in runtime will do the trick
  */
 export { type Payload }
+
+export type { ITXClientDenyList } from './itxClientDenyList'

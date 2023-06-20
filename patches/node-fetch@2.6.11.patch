@@ -1,0 +1,102 @@
+diff --git a/lib/index.es.js b/lib/index.es.js
+index 79d717be9ae56d455f7f5c7890178bc4bb65da9c..2743edfd1347678bb4e27f986d4593466d9df68d 100644
+--- a/lib/index.es.js
++++ b/lib/index.es.js
+@@ -3,7 +3,6 @@ process.emitWarning("The .es.js file is deprecated. Use .mjs instead.");
+ import Stream from 'stream';
+ import http from 'http';
+ import Url from 'url';
+-import whatwgUrl from 'whatwg-url';
+ import https from 'https';
+ import zlib from 'zlib';
+ 
+@@ -1138,7 +1137,7 @@ Object.defineProperty(Response.prototype, Symbol.toStringTag, {
+ });
+ 
+ const INTERNALS$2 = Symbol('Request internals');
+-const URL = Url.URL || whatwgUrl.URL;
++const URL = Url.URL;
+ 
+ // fix an issue where "format", "parse" aren't a named export for node <10
+ const parse_url = Url.parse;
+@@ -1401,7 +1400,7 @@ AbortError.prototype = Object.create(Error.prototype);
+ AbortError.prototype.constructor = AbortError;
+ AbortError.prototype.name = 'AbortError';
+ 
+-const URL$1 = Url.URL || whatwgUrl.URL;
++const URL$1 = Url.URL;
+ 
+ // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
+ const PassThrough$1 = Stream.PassThrough;
+diff --git a/lib/index.js b/lib/index.js
+index 337d6e52e5fc62c26f1f46ac115505fa8e327b5c..fb6b624fa38ee57bc50d4fc5891cb98ff3439174 100644
+--- a/lib/index.js
++++ b/lib/index.js
+@@ -7,7 +7,6 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
+ var Stream = _interopDefault(require('stream'));
+ var http = _interopDefault(require('http'));
+ var Url = _interopDefault(require('url'));
+-var whatwgUrl = _interopDefault(require('whatwg-url'));
+ var https = _interopDefault(require('https'));
+ var zlib = _interopDefault(require('zlib'));
+ 
+@@ -1142,7 +1141,7 @@ Object.defineProperty(Response.prototype, Symbol.toStringTag, {
+ });
+ 
+ const INTERNALS$2 = Symbol('Request internals');
+-const URL = Url.URL || whatwgUrl.URL;
++const URL = Url.URL;
+ 
+ // fix an issue where "format", "parse" aren't a named export for node <10
+ const parse_url = Url.parse;
+@@ -1405,7 +1404,7 @@ AbortError.prototype = Object.create(Error.prototype);
+ AbortError.prototype.constructor = AbortError;
+ AbortError.prototype.name = 'AbortError';
+ 
+-const URL$1 = Url.URL || whatwgUrl.URL;
++const URL$1 = Url.URL;
+ 
+ // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
+ const PassThrough$1 = Stream.PassThrough;
+diff --git a/lib/index.mjs b/lib/index.mjs
+index ace669fd0fee2f3a0e6ca0d34e46c60377da7c78..99c33037fff71127151906f87b004e379b4ffabf 100644
+--- a/lib/index.mjs
++++ b/lib/index.mjs
+@@ -1,7 +1,6 @@
+ import Stream from 'stream';
+ import http from 'http';
+ import Url from 'url';
+-import whatwgUrl from 'whatwg-url';
+ import https from 'https';
+ import zlib from 'zlib';
+ 
+@@ -1136,7 +1135,7 @@ Object.defineProperty(Response.prototype, Symbol.toStringTag, {
+ });
+ 
+ const INTERNALS$2 = Symbol('Request internals');
+-const URL = Url.URL || whatwgUrl.URL;
++const URL = Url.URL;
+ 
+ // fix an issue where "format", "parse" aren't a named export for node <10
+ const parse_url = Url.parse;
+@@ -1399,7 +1398,7 @@ AbortError.prototype = Object.create(Error.prototype);
+ AbortError.prototype.constructor = AbortError;
+ AbortError.prototype.name = 'AbortError';
+ 
+-const URL$1 = Url.URL || whatwgUrl.URL;
++const URL$1 = Url.URL;
+ 
+ // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
+ const PassThrough$1 = Stream.PassThrough;
+diff --git a/package.json b/package.json
+index fd4f67c33f867df64014fea96f9fa275cb793967..ec340331b92165b3901106c6181e8449d94c3f4d 100644
+--- a/package.json
++++ b/package.json
+@@ -37,7 +37,6 @@
+     },
+     "homepage": "https://github.com/bitinn/node-fetch",
+     "dependencies": {
+-        "whatwg-url": "^5.0.0"
+     },
+     "peerDependencies": {
+         "encoding": "^0.1.0"

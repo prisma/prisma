@@ -73,7 +73,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.numeric()
+      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
       await tx.user.create({
         data: {
@@ -136,7 +136,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.numeric()
+      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
       await Promise.all([
         tx.user.findMany({
@@ -197,7 +197,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
       })
     })
 
-    const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.numeric()
+    const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
     const q1 = client.user.findMany({
       where: {

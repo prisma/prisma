@@ -18,6 +18,8 @@ const args = arg(
     '--no-types': Boolean,
     // Only typecheck, don't run the code tests
     '--types-only': Boolean,
+    // Generates all the clients to run the type tests
+    '--generate-only': Boolean,
     // Restrict the list of providers
     '--provider': [String],
     '-p': '--provider',
@@ -47,13 +49,15 @@ const args = arg(
     '--changedFilesWithAncestor': Boolean,
     // Passes the same flag to Jest to shard tests between multiple machines
     '--shard': String,
+    // Passes the same flag to Jest to silence the output
+    '--silent': Boolean,
   },
   true,
   true,
 )
 
 async function main(): Promise<number | void> {
-  let jestCli = new JestCli(['--silent', '--config', 'tests/functional/jest.config.js'])
+  let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
 
   if (args['--provider']) {
@@ -121,6 +125,9 @@ async function main(): Promise<number | void> {
   if (args['--shard']) {
     jestArgs.push('--shard', args['--shard'])
   }
+  if (args['--silent']) {
+    jestArgs.push('--silent')
+  }
   const codeTestCli = jestCli.withArgs(jestArgs)
 
   try {
@@ -130,7 +137,12 @@ async function main(): Promise<number | void> {
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {
       if (!args['--types-only']) {
-        codeTestCli.withArgs(['--']).withArgs(args['_']).run()
+        codeTestCli
+          .withArgs(['--', args['_']])
+          .withEnv({
+            TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false',
+          })
+          .run()
       }
 
       if (!args['--no-types']) {

@@ -198,7 +198,7 @@ function serializeArgumentsValue(
   }
 
   if (isFieldRef(jsValue)) {
-    return { $type: 'FieldRef', value: { _ref: jsValue.name } }
+    return { $type: 'FieldRef', value: { _ref: jsValue.name, _container: jsValue.modelName } }
   }
 
   if (Array.isArray(jsValue)) {

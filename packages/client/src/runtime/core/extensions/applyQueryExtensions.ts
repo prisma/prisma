@@ -1,8 +1,7 @@
-import { klona } from 'klona'
-
 import { Client, InternalRequestParams } from '../../getPrismaClient'
-import { createPrismaPromise } from '../request/createPrismaPromise'
-import { QueryOptionsCb } from './$extends'
+import { RequestParams } from '../../RequestHandler'
+import { deepCloneArgs } from '../../utils/deepCloneArgs'
+import { BatchInternalParams, BatchQueryOptionsCb, CustomDataProxyFetch, QueryOptionsCb } from './$extends'
 
 function iterateAndCallQueryCallbacks(
   client: Client,
@@ -10,13 +9,13 @@ function iterateAndCallQueryCallbacks(
   queryCbs: QueryOptionsCb[],
   i = 0,
 ) {
-  return createPrismaPromise((transaction) => {
+  return client._createPrismaPromise((transaction) => {
     // we need to keep track of the previous customDataProxyFetch
-    const prevCustomFetch = params.customDataProxyFetch ?? ((f) => f)
+    const prevCustomFetch = params.customDataProxyFetch
 
     // allow query extensions to re-wrap in transactions
     // this will automatically discard the prev batch tx
-    if (transaction !== undefined) {
+    if ('transaction' in params && transaction !== undefined) {
       if (params.transaction?.kind === 'batch') {
         void params.transaction.lock.then() // discard
       }
@@ -32,14 +31,14 @@ function iterateAndCallQueryCallbacks(
     return queryCbs[i]({
       model: params.model,
       operation: params.model ? params.action : params.clientMethod,
-      args: klona(params.args ?? {}),
+      args: deepCloneArgs(params.args ?? {}),
       // @ts-expect-error because not part of public API
       __internalParams: params,
       query: (args, __internalParams = params) => {
         // we need to keep track of the current customDataProxyFetch
         // this is to cascade customDataProxyFetch like a middleware
-        const currCustomFetch = __internalParams.customDataProxyFetch ?? ((f) => f)
-        __internalParams.customDataProxyFetch = (f) => prevCustomFetch(currCustomFetch(f))
+        const currCustomFetch = __internalParams.customDataProxyFetch
+        __internalParams.customDataProxyFetch = composeCustomDataProxyFetch(prevCustomFetch, currCustomFetch)
         __internalParams.args = args
 
         return iterateAndCallQueryCallbacks(client, __internalParams, queryCbs, i + 1)
@@ -58,7 +57,60 @@ export function applyQueryExtensions(client: Client, params: InternalRequestPara
   }
 
   // get the cached query cbs for a given model and action
-  const cbs = client._extensions.getAllQueryCallbacks(jsModelName ?? '*', operation)
+  const cbs = client._extensions.getAllQueryCallbacks(jsModelName ?? '$none', operation)
 
   return iterateAndCallQueryCallbacks(client, params, cbs)
+}
+
+type BatchExecuteCallback = (params: BatchInternalParams) => Promise<unknown[]>
+
+export function createApplyBatchExtensionsFunction(executeBatch: BatchExecuteCallback) {
+  return (requests: RequestParams[]) => {
+    const params = { requests }
+    const callbacks = requests[0].extensions.getAllBatchQueryCallbacks()
+    if (!callbacks.length) {
+      return executeBatch(params)
+    }
+
+    return iterateAndCallBatchCallbacks(params, callbacks, 0, executeBatch)
+  }
+}
+
+export function iterateAndCallBatchCallbacks(
+  params: BatchInternalParams,
+  callbacks: BatchQueryOptionsCb[],
+  i: number,
+  executeBatch: BatchExecuteCallback,
+) {
+  if (i === callbacks.length) {
+    return executeBatch(params)
+  }
+
+  const prevFetch = params.customDataProxyFetch
+  const transaction = params.requests[0].transaction
+  return callbacks[i]({
+    args: {
+      queries: params.requests.map((request) => ({
+        model: request.modelName,
+        operation: request.action,
+        args: request.args,
+      })),
+      transaction: transaction
+        ? {
+            isolationLevel: transaction.kind === 'batch' ? transaction.isolationLevel : undefined,
+          }
+        : undefined,
+    },
+    __internalParams: params,
+    query(_args, __internalParams = params) {
+      const nextFetch = __internalParams.customDataProxyFetch
+      __internalParams.customDataProxyFetch = composeCustomDataProxyFetch(prevFetch, nextFetch)
+      return iterateAndCallBatchCallbacks(__internalParams, callbacks, i + 1, executeBatch)
+    },
+  })
+}
+
+const noopFetch: CustomDataProxyFetch = (f) => f
+function composeCustomDataProxyFetch(prevFetch = noopFetch, nextFetch = noopFetch): CustomDataProxyFetch {
+  return (f) => prevFetch(nextFetch(f))
 }
