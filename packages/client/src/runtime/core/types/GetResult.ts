@@ -38,10 +38,9 @@ export type Operation =
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
-export type GetFindResult<P extends Payload, A> = 
-  A extends 
-  | { select: infer S } & Record<string, unknown>
-  | { include: infer S } & Record<string, unknown>
+export type GetFindResult<P extends Payload, A> =
+  {} extends A ? DefaultSelection<P> :
+  A extends { select?: infer S, include?: infer S }
   ? {
       [K in keyof S as S[K] extends false | undefined | null ? never : K]:
         S[K] extends object
