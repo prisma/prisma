@@ -1,3 +1,3 @@
-# Readme
+# 19866-ts-composite-declaration
 
-This is an example of a readme file. Put a description of your test here.
+Regression test for <https://github.com/prisma/prisma/issues/19866>.
