@@ -228,7 +228,7 @@ importers:
       '@opentelemetry/semantic-conventions': 1.13.0
       '@prisma/debug': workspace:*
       '@prisma/engines': workspace:*
-      '@prisma/engines-version': 4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309
+      '@prisma/engines-version': 4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
@@ -299,7 +299,7 @@ importers:
       yo: 4.3.1
       zx: 7.2.2
     dependencies:
-      '@prisma/engines-version': 4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309
+      '@prisma/engines-version': 4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb
     devDependencies:
       '@codspeed/benchmark.js-plugin': 1.1.0_benchmark@2.1.4
       '@faker-js/faker': 8.0.2
@@ -411,7 +411,7 @@ importers:
   packages/engines:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309
+      '@prisma/engines-version': 4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb
       '@prisma/fetch-engine': workspace:*
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.64
@@ -423,7 +423,7 @@ importers:
       typescript: 4.9.5
     devDependencies:
       '@prisma/debug': link:../debug
-      '@prisma/engines-version': 4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309
+      '@prisma/engines-version': 4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/get-platform': link:../get-platform
       '@swc/core': 1.3.64
@@ -437,7 +437,7 @@ importers:
   packages/fetch-engine:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309
+      '@prisma/engines-version': 4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb
       '@prisma/get-platform': workspace:*
       '@swc/core': 1.3.64
       '@swc/jest': 0.2.26
@@ -483,7 +483,7 @@ importers:
       temp-dir: 2.0.0
       tempy: 1.0.1
     devDependencies:
-      '@prisma/engines-version': 4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309
+      '@prisma/engines-version': 4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb
       '@swc/core': 1.3.64
       '@swc/jest': 0.2.26_@swc+core@1.3.64
       '@types/jest': 29.5.2
@@ -663,7 +663,7 @@ importers:
       '@prisma/fetch-engine': workspace:*
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
-      '@prisma/prisma-fmt-wasm': 4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309
+      '@prisma/prisma-fmt-wasm': 4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb
       '@swc/core': 1.2.204
       '@swc/jest': 0.2.26
       '@types/jest': 29.5.2
@@ -719,7 +719,7 @@ importers:
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/get-platform': link:../get-platform
-      '@prisma/prisma-fmt-wasm': 4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309
+      '@prisma/prisma-fmt-wasm': 4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb
       archiver: 5.3.1
       arg: 5.0.2
       checkpoint-client: 1.1.24
@@ -772,7 +772,7 @@ importers:
   packages/migrate:
     specifiers:
       '@prisma/debug': workspace:*
-      '@prisma/engines-version': 4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309
+      '@prisma/engines-version': 4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb
       '@prisma/generator-helper': workspace:*
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
@@ -832,7 +832,7 @@ importers:
       strip-indent: 3.0.0
       ts-pattern: 4.3.0
     devDependencies:
-      '@prisma/engines-version': 4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309
+      '@prisma/engines-version': 4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
       '@swc/core': 1.3.64
@@ -3631,8 +3631,8 @@ packages:
     dev: true
     optional: true
 
-  /@prisma/engines-version/4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309:
-    resolution: {integrity: sha512-5V+AOhWmEsf0pQ6n6hMe6Dr1EQ4LD9Hi9GtNaJ3jq4bX1spsQbXOz0dchjZvYyKHgOzb41kxk2951moenBTGKA==}
+  /@prisma/engines-version/4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb:
+    resolution: {integrity: sha512-mZbCixKKyDmNO3r+W2rQB16yHyS2WHqXtgicUP4XQkyT/24o9fHJr33c98eeZvHAq9slbaaYJkzX7eyRxGSosA==}
 
   /@prisma/mini-proxy/0.7.0:
     resolution: {integrity: sha512-rax49DeUqAQJgzw2vMkT90zAKfhQq21RAjWYr3RyunkmQ78gKM29E+IpV6R0xs7zgjax283fp8I2oIl50jHn8Q==}
@@ -3640,8 +3640,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-fmt-wasm/4.17.0-1.46285f314e200f5f1afc2baea86e3e40ff7fb309:
-    resolution: {integrity: sha512-TePgKwrR//d9IZi1He11pfWdwDob9+LoNcttf2qmEmtYzNXX0uqdYqaCSr2ANPZBNOyZw2mq/YmWLX5jrHuG8A==}
+  /@prisma/prisma-fmt-wasm/4.17.0-3.integration-alula-ipv6-37e21ce44992c3c1449e7eaaca8c082507b653fb:
+    resolution: {integrity: sha512-VkeeAny4myh4711QhaAWVKUP8ReBEBcrFa9gUGV5rhynXGYaoAsT3GouA6AiKKyI6XbU1zXZwmUDAnxPfCtY3w==}
     dev: false
 
   /@prisma/studio-common/0.487.0:
