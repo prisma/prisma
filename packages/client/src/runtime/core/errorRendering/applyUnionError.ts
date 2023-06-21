@@ -131,7 +131,7 @@ function getCombinedPathLength(error: EngineValidationError) {
  * this spot, it's just that value provided has incorrect type.
  * - All other engine-side errors follow. At that point it's difficult to say which of them is more relevant,
  * so we treat them equally. We might adjust this logic in the future.
- * - RequiredArgumentMissing is penalized because this error iis often used to disambiguate
+ * - RequiredArgumentMissing is penalized because this error is often used to disambiguate
  * union types and what is required in one arm of the union might be fine to leave out in another
  * @param error
  * @returns
