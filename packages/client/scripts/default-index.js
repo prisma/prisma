@@ -1,3 +1,5 @@
+const path = require('path')
+
 class PrismaClient {
   constructor() {
     throw new Error(
@@ -25,10 +27,12 @@ module.exports = {
     defineExtension,
     getExtensionContext,
     get prismaVersion() {
-      // default-index might gets copied to a .prisma/client directory and
-      // no longer be able to require @prisma/engines-version package. Delegating
-      // version information to the file at stable location allows us to overcome this.
-      return require('@prisma/client/version')
+      const atPrismaClientDir = path.dirname(require.resolve('@prisma/client/package.json'))
+      const enginesVersionDir = require.resolve('@prisma/engines-version', { paths: [atPrismaClientDir] })
+      const { version: client } = require('@prisma/client/package.json')
+      const { enginesVersion: engine } = require(enginesVersionDir)
+
+      return { client, engine }
     },
   },
 }
