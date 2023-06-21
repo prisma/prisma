@@ -379,19 +379,6 @@ async function validateGenerators(generators: GeneratorConfig[]): Promise<void> 
   const platform = await getPlatform()
 
   for (const generator of generators) {
-    if (parseEnvValue(generator.provider) === 'photonjs') {
-      throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
-  1. Rename ${red('provider = "photonjs"')} to ${green('provider = "prisma-client-js"')} in your ${bold(
-        'schema.prisma',
-      )} file.
-  2. Replace your ${bold('package.json')}'s ${red('@prisma/photon')} dependency to ${green('@prisma/client')}
-  3. Replace ${red("import { Photon } from '@prisma/photon'")} with ${green(
-        "import { PrismaClient } from '@prisma/client'",
-      )} in your code.
-  4. Run ${green('prisma generate')} again.
-      `)
-    }
-
     if (generator.config.platforms) {
       throw new Error(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
