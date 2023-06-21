@@ -5,7 +5,7 @@ import { RequiredArgs as UserArgs } from '../extensions/$extends'
 import { GetFindResult, GetResult as GetOperationResult, Operation } from './GetResult'
 import { Payload } from './Payload'
 import { PrismaPromise } from './Public'
-import { Call, ComputeDeep, Fn, Optional, Return, UnwrapTuple } from './Utils'
+import { Call, ComputeDeep, Fn, Optional, Return, ToTuple, UnwrapTuple } from './Utils'
 
 /* eslint-disable prettier/prettier */
 
@@ -143,8 +143,8 @@ type DynamicClientExtensionThis<TypeMap extends TypeMapDef, TypeMapCb extends Ty
     DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, P>, ExtArgs>
 } & {
   [P in Exclude<keyof TypeMap['other'], keyof ExtArgs['client']>]:
-    <A extends TypeMap['other'][P]['args']>(...args: A extends any[] ? A : [A]) =>
-      PrismaPromise<GetOperationResult<TypeMap['other'][P]['payload'], A, P & Operation>>
+    <R = GetOperationResult<TypeMap['other'][P]['payload'], any, P & Operation>>
+    (...args: ToTuple<TypeMap['other'][P]['args']>) => PrismaPromise<R>
 } & {
   [P in Exclude<ClientBuiltInProp, keyof ExtArgs['client']>]:
     DynamicClientExtensionThisBuiltin<TypeMap, TypeMapCb, ExtArgs>[P]
@@ -153,7 +153,7 @@ type DynamicClientExtensionThis<TypeMap extends TypeMapDef, TypeMapCb extends Ty
 type ClientBuiltInProp = '$connect' | '$disconnect' | '$transaction' | '$extends'
 type DynamicClientExtensionThisBuiltin<TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
   $extends: ExtendsHook<'extends', TypeMapCb, ExtArgs>
-  $transaction<P extends PrismaPromise<any>[]>(arg: P, options?: { isolationLevel?: TypeMap['meta']['txIsolationLevel'] }): Promise<UnwrapTuple<P>>
+  $transaction<P extends PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: TypeMap['meta']['txIsolationLevel'] }): Promise<UnwrapTuple<P>>
   $transaction<R>(fn: (client: Omit<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList>) => Promise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: TypeMap['meta']['txIsolationLevel'] }): Promise<R>
   $disconnect(): Promise<void>
   $connect(): Promise<void>

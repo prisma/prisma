@@ -94,3 +94,5 @@ export type Optional<O, K extends keyof any = keyof O> = {
 }
 
 export type Return<T> = T extends (...args: any[]) => infer R ? R : T
+
+export type ToTuple<T> = T extends any[] ? T : [T]
