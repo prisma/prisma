@@ -191,7 +191,7 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
         isolationLevel: 'Serializable',
       })
 
-      expectTypeOf(data).toEqualTypeOf<({ id: string } | null)[]>()
+      expectTypeOf(data).toEqualTypeOf<[{ id: string } | null]>()
     }
   })
 })
