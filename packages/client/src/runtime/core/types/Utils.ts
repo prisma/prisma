@@ -41,6 +41,7 @@ export type Exact<A, W> = (W extends A ? {
 export type Cast<A, W> = A extends W ? A : W
 
 type LegacyNarrowable = string | number | boolean | bigint
+
 // prettier-ignore
 export type LegacyExact<A, W = unknown> = 
   W extends unknown ? A extends LegacyNarrowable ? Cast<A, W> : Cast<
@@ -96,3 +97,17 @@ export type Optional<O, K extends keyof any = keyof O> = {
 export type Return<T> = T extends (...args: any[]) => infer R ? R : T
 
 export type ToTuple<T> = T extends any[] ? T : [T]
+// prettier-ignore
+export type RenameAndNestPayloadKeys<P> = {
+  [K in keyof P as K extends 'scalars' | 'objects' | 'composites' ? keyof P[K] : never]:
+    P[K] // we lift the value up with the same key name so we can flatten it later
+}
+
+// prettier-ignore
+export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayloadKeys<P>> = {
+  [K in keyof O]?: O[K][K] extends any[]
+                   ? PayloadToResult<O[K][K][number]>[]
+                   : O[K][K] extends object
+                     ? PayloadToResult<O[K][K]>
+                    : O[K][K]
+}

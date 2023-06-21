@@ -1,11 +1,13 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
+import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
+import { Operation } from '../../runtime/core/types/GetResult'
 import type { DMMFHelper } from '../../runtime/dmmf'
 import { capitalize, lowerCase } from '../../runtime/utils/common'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import * as ts from '../ts-builders'
-import { getModelArgName } from '../utils'
+import { getAggregateName, getCountAggregateOutputName, getGroupByName, getModelArgName } from '../utils'
 import { runtimeImport } from '../utils/runtimeImport'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
@@ -33,7 +35,7 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
         return `${acc}
       ${action}: {
         args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
-        result: $Utils.OptionalFlat<${modelName}>
+        result: ${clientTypeMapModelsResultDefinition(modelName, action)}
         payload: ${modelName}Payload<ExtArgs>
       }`
       }, '')}
@@ -41,6 +43,28 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
     }, '')}
   }
 }`
+}
+
+function clientTypeMapModelsResultDefinition(modelName: string, action: Exclude<Operation, `$${string}`>) {
+  if (action === 'count') return `$Utils.Optional<${getCountAggregateOutputName(modelName)}> | number`
+  if (action === 'groupBy') return `$Utils.Optional<${getGroupByName(modelName)}>[]`
+  if (action === 'aggregate') return `$Utils.Optional<${getAggregateName(modelName)}>`
+  if (action === 'findRaw') return `Prisma.JsonObject`
+  if (action === 'aggregateRaw') return `Prisma.JsonObject`
+  if (action === 'deleteMany') return `Prisma.BatchPayload`
+  if (action === 'createMany') return `Prisma.BatchPayload`
+  if (action === 'updateMany') return `Prisma.BatchPayload`
+  if (action === 'findMany') return `$Utils.PayloadToResult<${modelName}Payload>[]`
+  if (action === 'findFirst') return `$Utils.PayloadToResult<${modelName}Payload> | null`
+  if (action === 'findUnique') return `$Utils.PayloadToResult<${modelName}Payload> | null`
+  if (action === 'findFirstOrThrow') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'findUniqueOrThrow') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'create') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'update') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'upsert') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'delete') return `$Utils.PayloadToResult<${modelName}Payload>`
+
+  assertNever(action, 'Unknown action: ' + action)
 }
 
 function clientTypeMapOthersDefinition(this: PrismaClientClass) {
