@@ -19,6 +19,7 @@ export default testMatrix.setupSchema(({ provider }) => {
 
   type Profile {
     name Name
+    alternateName Name?
     url String
     favoriteThings Thing[]
   }
