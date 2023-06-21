@@ -5,7 +5,7 @@ import { RequiredArgs as UserArgs } from '../extensions/$extends'
 import { GetFindResult, GetResult as GetOperationResult, Operation } from './GetResult'
 import { Payload } from './Payload'
 import { PrismaPromise } from './Public'
-import { Call, ComputeDeep, Fn, Optional, Return, UnwrapTuple } from './Utils'
+import { Call, ComputeDeep, Fn, Optional, Return, ToTuple, UnwrapTuple } from './Utils'
 
 /* eslint-disable prettier/prettier */
 
@@ -143,8 +143,8 @@ type DynamicClientExtensionThis<TypeMap extends TypeMapDef, TypeMapCb extends Ty
     DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, P>, ExtArgs>
 } & {
   [P in Exclude<keyof TypeMap['other'], keyof ExtArgs['client']>]:
-    <A extends TypeMap['other'][P]['args']>(...args: A extends any[] ? A : [A]) =>
-      PrismaPromise<GetOperationResult<TypeMap['other'][P]['payload'], A, P & Operation>>
+    <R = GetOperationResult<TypeMap['other'][P]['payload'], any, P & Operation>>
+    (...args: ToTuple<TypeMap['other'][P]['args']>) => PrismaPromise<R>
 } & {
   [P in Exclude<ClientBuiltInProp, keyof ExtArgs['client']>]:
     DynamicClientExtensionThisBuiltin<TypeMap, TypeMapCb, ExtArgs>[P]
