@@ -41,7 +41,7 @@ export { warnOnce } from '@prisma/internals'
 /**
  * Payload, PrismaPromise and Extensions types are already exported via Types but tsc
  * won't be able to trace them correctly back to runtime module and fail with either
- * "type can not be named" or "derived type is too large to be serializable" error.
+ * "... is using the type X but can not be named" or "The inferred type of this node exceeds the maximum length" error.
  * The issue lies with the type bundler which does not add exports for dependent types
  * TODO: Maybe simply exporting all types in runtime will do the trick
  */
