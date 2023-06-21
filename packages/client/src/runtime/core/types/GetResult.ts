@@ -1,8 +1,9 @@
 /* eslint-disable prettier/prettier */
 
-import { Payload } from "./Payload"
-import { JsonObject } from "./Utils"
+import { Payload } from './Payload'
+import { JsonObject } from './Utils'
 
+// prettier-ignore
 export type Operation =
 // finds
 | 'findFirst'
@@ -37,35 +38,64 @@ export type Operation =
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
-export type GetFindResult<P extends Payload, A> = 
+export type GetFindResult<P extends Payload, A> =
+  {} extends A ? DefaultSelection<P> :
   A extends 
   | { select: infer S } & Record<string, unknown>
   | { include: infer S } & Record<string, unknown>
   ? {
       [K in keyof S as S[K] extends false | undefined | null ? never : K]:
-        S[K] extends true
-        ? P extends { objects: { [k in K]: (infer O)[] } }
-          ? O extends Payload ? O['scalars'][] : never
-          : P extends { objects: { [k in K]: (infer O) | null } }
-            ? O extends Payload ? O['scalars'] | P['objects'][K] & null : never
+        S[K] extends object
+        ? P extends SelectablePayloadFields<K, (infer O)[]>
+          ? O extends Payload ? GetFindResult<O, S[K]>[] : never
+          : P extends SelectablePayloadFields<K, infer O | null>
+            ? O extends Payload ? GetFindResult<O, S[K]> | SelectField<P, K> & null : never
+            : K extends '_count'
+              ? Count<GetFindResult<P, S[K]>>
+              : never
+        : P extends SelectablePayloadFields<K, (infer O)[]>
+          ? O extends Payload ? DefaultSelection<O>[] : never
+          : P extends SelectablePayloadFields<K, infer O | null>
+            ? O extends Payload ? DefaultSelection<O> | SelectField<P, K> & null : never
             : P extends { scalars: { [k in K]: infer O } }
               ? O
               : K extends '_count'
                 ? Count<P['objects']>
                 : never
-        : P extends { objects: { [k in K]: (infer O)[] } }
-          ? O extends Payload ? GetFindResult<O, S[K]>[] : never
-          : P extends { objects: { [k in K]: (infer O) | null } }
-            ? O extends Payload ? GetFindResult<O, S[K]> | P['objects'][K] & null : never
-            : K extends '_count'
-              ? Count<GetFindResult<P, S[K]>>
-              : never
-    } & (A extends { include: any } & Record<string, unknown> ? P['scalars'] & P['composites'] : unknown)
-  : P['scalars'] & P['composites']
+    } & (A extends { include: any } & Record<string, unknown> ? DefaultSelection<P> : unknown)
+  : DefaultSelection<P>
+
+type SelectablePayloadFields<K extends PropertyKey, O> =
+  | { objects: { [k in K]: O } }
+  | { composites: { [k in K]: O } }
+
+// prettier-ignore
+type SelectField<P extends SelectablePayloadFields<any, any>, K extends PropertyKey> = 
+  P extends { objects: Record<K, any> } 
+  ? P['objects'][K]
+  : P extends { composites: Record<K, any> }
+    ? P['composites'][K]
+    : never
+
+// prettier-ignore
+export type DefaultSelection<P> = P extends Payload 
+  ? P['scalars'] & UnwrapPayload<P['composites']>
+  : P
+
+type UnwrapPayload<P> = {
+  [K in keyof P]:
+    P[K] extends Payload[]
+    ? UnwrapPayload<P[K]>
+    : P[K] extends Payload 
+      ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> 
+      : P[K]
+} & unknown
 
 type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
 
 type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum'
+
+// prettier-ignore
 type GetAggregateResult<P extends Payload, A> = {
   [K in keyof A as K extends Aggregate ? K : never]:
     K extends '_count'
@@ -75,15 +105,18 @@ type GetAggregateResult<P extends Payload, A> = {
 
 type GetBatchResult = { count: number }
 
+// prettier-ignore
 type GetGroupByResult<P extends Payload, A> =
   A extends { by: string[] }
   ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
   : never
 
-export type GetResult<P extends Payload, A, O extends Operation> = {
-  findUnique: GetFindResult<P, A> | null,
+// TODO Null can be removed once rejectOnNotFound is removed
+// prettier-ignore
+export type GetResult<P extends Payload, A, O extends Operation = 'findUniqueOrThrow', Null = null> = {
+  findUnique: GetFindResult<P, A> | Null,
   findUniqueOrThrow: GetFindResult<P, A>,
-  findFirst: GetFindResult<P, A> | null,
+  findFirst: GetFindResult<P, A> | Null,
   findFirstOrThrow: GetFindResult<P, A>,
   findMany: GetFindResult<P, A>[],
   create: GetFindResult<P, A>,
