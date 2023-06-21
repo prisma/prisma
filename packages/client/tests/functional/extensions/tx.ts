@@ -199,7 +199,6 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     ;async () => {
       const xprisma = prisma.$extends({})
 
-      // @ts-test-if: provider !== 'mongodb'
       const [data, count] = await xprisma.$transaction([
         xprisma.user.findFirst({ select: { id: true } }),
         xprisma.user.count(),
