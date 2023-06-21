@@ -3,7 +3,7 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient, User } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -370,5 +370,14 @@ testMatrix.setupTestSuite(() => {
     expectTypeOf(user.posts[0].user.id).toEqualTypeOf<string>()
     expectTypeOf(user.posts[0].user.posts[0].id).toEqualTypeOf<string>()
     expectTypeOf(user.posts[0].user.posts[0]).not.toHaveProperty('user')
+  })
+
+  test('when any type is passed as an input default selection type is returned', () => {
+    ;async () => {
+      const xprisma = prisma.$extends({})
+
+      const data = await xprisma.user.findFirstOrThrow({} as any)
+      expectTypeOf(data).toEqualTypeOf<User>()
+    }
   })
 })

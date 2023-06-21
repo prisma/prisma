@@ -9,7 +9,7 @@ importers:
 
   .:
     specifiers:
-      '@microsoft/api-extractor': 7.35.3
+      '@microsoft/api-extractor': 7.36.0
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
       '@types/benchmark': 2.1.2
@@ -66,7 +66,7 @@ importers:
       util: 0.12.5
       zx: 7.2.2
     devDependencies:
-      '@microsoft/api-extractor': 7.35.3_@types+node@18.16.16
+      '@microsoft/api-extractor': 7.36.0_@types+node@18.16.16
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
       '@types/benchmark': 2.1.2
@@ -133,8 +133,8 @@ importers:
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
-      '@prisma/studio': 0.484.0
-      '@prisma/studio-server': 0.484.0
+      '@prisma/studio': 0.487.0
+      '@prisma/studio-server': 0.487.0
       '@swc/core': 1.3.64
       '@swc/jest': 0.2.26
       '@types/debug': 4.1.8
@@ -177,8 +177,8 @@ importers:
       '@prisma/get-platform': link:../get-platform
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
-      '@prisma/studio': 0.484.0
-      '@prisma/studio-server': 0.484.0_af2arurw4njyhq5wa6w6rrkc54
+      '@prisma/studio': 0.487.0
+      '@prisma/studio-server': 0.487.0_af2arurw4njyhq5wa6w6rrkc54
       '@swc/core': 1.3.64
       '@swc/jest': 0.2.26_@swc+core@1.3.64
       '@types/debug': 4.1.8
@@ -272,7 +272,7 @@ importers:
       kleur: 4.1.5
       klona: 2.0.6
       lz-string: 1.5.0
-      mariadb: 3.1.2
+      mariadb: 3.2.0
       memfs: 3.5.3
       mssql: 9.1.1
       new-github-issue-url: 0.2.1
@@ -358,7 +358,7 @@ importers:
       kleur: 4.1.5
       klona: 2.0.6
       lz-string: 1.5.0
-      mariadb: 3.1.2
+      mariadb: 3.2.0
       memfs: 3.5.3
       mssql: 9.1.1
       new-github-issue-url: 0.2.1
@@ -615,7 +615,7 @@ importers:
       fs-jetpack: 5.1.0
       jest: 29.5.0
       jest-junit: 16.0.0
-      mariadb: 3.1.2
+      mariadb: 3.2.0
       mssql: 9.1.1
       pg: 8.9.0
       sqlite-async: 1.2.0
@@ -643,7 +643,7 @@ importers:
       fs-jetpack: 5.1.0
       jest: 29.5.0_u3tjahz4lx2ow4rgesw7wigoy4
       jest-junit: 16.0.0
-      mariadb: 3.1.2
+      mariadb: 3.2.0
       mssql: 9.1.1
       pg: 8.9.0
       sqlite-async: 1.2.0
@@ -796,7 +796,7 @@ importers:
       jest-junit: 16.0.0
       kleur: 4.1.5
       log-update: 4.0.0
-      mariadb: 3.1.2
+      mariadb: 3.2.0
       mock-stdin: 1.0.0
       mongoose: 6.11.2
       mssql: 9.1.1
@@ -821,7 +821,7 @@ importers:
       indent-string: 4.0.0
       kleur: 4.1.5
       log-update: 4.0.0
-      mariadb: 3.1.2
+      mariadb: 3.2.0
       mongoose: 6.11.2
       mssql: 9.1.1
       ora: 5.4.1
@@ -3184,26 +3184,26 @@ packages:
       - supports-color
     dev: true
 
-  /@microsoft/api-extractor-model/7.27.2_@types+node@18.16.16:
-    resolution: {integrity: sha512-JWhSfEb4UMYZgI4JsJOws1DjQrb7BaoXoWQV5XW23MWRn1krHVmRHky82Dby5rQPHdr/BBKvEjZV6joFmaGU4Q==}
+  /@microsoft/api-extractor-model/7.27.3_@types+node@18.16.16:
+    resolution: {integrity: sha512-fSFvw7otYHduOkyshjTbapKKgwF8bgquVHvgF8VgeKtMYvqXkoaj7W6VcM7PNY7E2bbblhUgC4XNdqZLD4SJGw==}
     dependencies:
       '@microsoft/tsdoc': 0.14.2
       '@microsoft/tsdoc-config': 0.16.2
-      '@rushstack/node-core-library': 3.59.3_@types+node@18.16.16
+      '@rushstack/node-core-library': 3.59.4_@types+node@18.16.16
     transitivePeerDependencies:
       - '@types/node'
     dev: true
 
-  /@microsoft/api-extractor/7.35.3_@types+node@18.16.16:
-    resolution: {integrity: sha512-Psh6rZB7BeJznIKJd1+xPhM0AQVXLyYHxIz5ezN7Whu3DIHfx/iRJZLFvMdshpB046ir/JDYBciuYdQbArloHQ==}
+  /@microsoft/api-extractor/7.36.0_@types+node@18.16.16:
+    resolution: {integrity: sha512-P+kYgJFDXIr+UNzhRMhlpM/dderi6ab4lxn35vdhfAIMPtGCSXIJxrrtpTOQmQW8CZtmoZX06LYoUsKCc1zjow==}
     hasBin: true
     dependencies:
-      '@microsoft/api-extractor-model': 7.27.2_@types+node@18.16.16
+      '@microsoft/api-extractor-model': 7.27.3_@types+node@18.16.16
       '@microsoft/tsdoc': 0.14.2
       '@microsoft/tsdoc-config': 0.16.2
-      '@rushstack/node-core-library': 3.59.3_@types+node@18.16.16
-      '@rushstack/rig-package': 0.3.20
-      '@rushstack/ts-command-line': 4.15.0
+      '@rushstack/node-core-library': 3.59.4_@types+node@18.16.16
+      '@rushstack/rig-package': 0.4.0
+      '@rushstack/ts-command-line': 4.15.1
       colors: 1.2.5
       lodash: 4.17.21
       resolve: 1.22.2
@@ -3644,15 +3644,15 @@ packages:
     resolution: {integrity: sha512-TePgKwrR//d9IZi1He11pfWdwDob9+LoNcttf2qmEmtYzNXX0uqdYqaCSr2ANPZBNOyZw2mq/YmWLX5jrHuG8A==}
     dev: false
 
-  /@prisma/studio-common/0.484.0:
-    resolution: {integrity: sha512-pdSgZ6Qq64MQntMbWRH0kJo76YBCXkVB32zaVykomS6fAFD+dDlrpFAooNyKC5WS5XDOzraE7nBXdzVKxLhf3w==}
+  /@prisma/studio-common/0.487.0:
+    resolution: {integrity: sha512-BCmiuDwFJe7kqZr0oG99Yr80iKTD7fIKdFUmFXoySg2TJ7qaTsp+TIxbghYFAmC0CQpuxgVQVYgsX8Xl/z2cCw==}
     engines: {node: '>= 12'}
     dependencies:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw/0.484.0_af2arurw4njyhq5wa6w6rrkc54:
-    resolution: {integrity: sha512-Gnyhcaa0KoM8WcntSbzF/aS4cXAGSBnSizMNhNWituEUt50Q4tS7Oxm/YZyBRXPxXqxeTTgDfm3M8GITPzaCTQ==}
+  /@prisma/studio-pcw/0.487.0_af2arurw4njyhq5wa6w6rrkc54:
+    resolution: {integrity: sha512-tIohMQEo2Ud5VfVsRLrb5xOyO4nvJ45USFXG54H4a8sei+Ur23Mkr/V63YY0FhzbQJyj+HIUcQivBxqkjBRSwQ==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/client': '*'
@@ -3666,17 +3666,17 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-server/0.484.0_af2arurw4njyhq5wa6w6rrkc54:
-    resolution: {integrity: sha512-WRI/XFXU5gElbqFFajzRfqgFivLL2T10j6YsSA4k/u3frgDwhXVhWibWxinRDn1N2rmTlN9DFQYZL0+8fryKLg==}
+  /@prisma/studio-server/0.487.0_af2arurw4njyhq5wa6w6rrkc54:
+    resolution: {integrity: sha512-jpig93ZvRak7Br+JF6UoGGbtPV2x3taQE8zmmu9HP/e/0087GSysJZiv1xFZGMAas5A87clJIeA5slEbmK4Tzw==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/internals': '*'
     dependencies:
       '@prisma/internals': link:packages/internals
-      '@prisma/studio': 0.484.0
-      '@prisma/studio-common': 0.484.0
-      '@prisma/studio-pcw': 0.484.0_af2arurw4njyhq5wa6w6rrkc54
-      checkpoint-client: 1.1.23
+      '@prisma/studio': 0.487.0
+      '@prisma/studio-common': 0.487.0
+      '@prisma/studio-pcw': 0.487.0_af2arurw4njyhq5wa6w6rrkc54
+      checkpoint-client: 1.1.24
       cors: 2.8.5
       debug: 4.3.3
       express: 4.17.2
@@ -3687,12 +3687,12 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio/0.484.0:
-    resolution: {integrity: sha512-qxNh1oo67PygVWVvzDL0wIfEtMzZgMv3YuePcR9gT8xXcUV7p1fE+ZBfL2VTXIPtVf8/v3Pte7dAC0bAFx4EQA==}
+  /@prisma/studio/0.487.0:
+    resolution: {integrity: sha512-ESkcAgT1UGlTnGlQlostXAoS2N3VmMKKhKWQYWs0WtfBPzkM2xf2aPX6Io8tpWC/Qx4VDPmltugwRhL6BKHL9w==}
     dev: true
 
-  /@rushstack/node-core-library/3.59.3_@types+node@18.16.16:
-    resolution: {integrity: sha512-OGk0nQc+SvDkn+IQN16co691A/96gPoRIoWdIlpUds+sYPAGWdTcNVjKMwFOAsCSASqOeF2lh1GdPtWoWJCkPQ==}
+  /@rushstack/node-core-library/3.59.4_@types+node@18.16.16:
+    resolution: {integrity: sha512-YAKJDC6Mz/KA1D7bvB88WaRX3knt/ZuLzkRu5G9QADGSjLtvTWzCNCytRF2PCSaaHOZaZsWul4F1KQdgFgUDqA==}
     peerDependencies:
       '@types/node': '*'
     peerDependenciesMeta:
@@ -3709,15 +3709,15 @@ packages:
       z-schema: 5.0.5
     dev: true
 
-  /@rushstack/rig-package/0.3.20:
-    resolution: {integrity: sha512-XemFRFbH9FOk1Es1kTjrYydenf3hXtrV3xxMCEWPuOSn2Lcll/dsLzEULbhCL0Nf5nGMe52ewEiVtX3odd5Ukg==}
+  /@rushstack/rig-package/0.4.0:
+    resolution: {integrity: sha512-FnM1TQLJYwSiurP6aYSnansprK5l8WUK8VG38CmAaZs29ZeL1msjK0AP1VS4ejD33G0kE/2cpsPsS9jDenBMxw==}
     dependencies:
       resolve: 1.22.2
       strip-json-comments: 3.1.1
     dev: true
 
-  /@rushstack/ts-command-line/4.15.0:
-    resolution: {integrity: sha512-Xl1Xc8d89ioJ6AbOQsSIPyYvrQPqmGG+YrqUZKYEDenZtKq57xuFbBJya9TXgAWSB+uVRmDYYd9ogu6WTwRjCQ==}
+  /@rushstack/ts-command-line/4.15.1:
+    resolution: {integrity: sha512-EL4jxZe5fhb1uVL/P/wQO+Z8Rc8FMiWJ1G7VgnPDvdIt5GVjRfK7vwzder1CZQiX3x0PY6uxENYLNGTFd1InRQ==}
     dependencies:
       '@types/argparse': 1.0.38
       argparse: 1.0.10
@@ -5798,20 +5798,6 @@ packages:
     resolution: {integrity: sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==}
     dev: true
 
-  /checkpoint-client/1.1.23:
-    resolution: {integrity: sha512-NrGvMiH1fUcZwrYc0Z+YTn7q9ysV0kPgVyDKZ5jrfIerFJuSllvyGsY7bHeQSEiljaIaUP1Q/xutZ8q1s7PGzg==}
-    dependencies:
-      ci-info: 3.3.0
-      env-paths: 2.2.1
-      fast-write-atomic: 0.2.1
-      make-dir: 3.1.0
-      ms: 2.1.3
-      node-fetch: 2.6.7
-      uuid: 8.3.2
-    transitivePeerDependencies:
-      - encoding
-    dev: true
-
   /checkpoint-client/1.1.24:
     resolution: {integrity: sha512-nIOlLhDS7MKs4tUzS3LCm+sE1NgTCVnVrXlD0RRxaoEkkLu8LIWSUNiNWai6a+LK5unLzTyZeTCYX1Smqy0YoA==}
     dependencies:
@@ -5852,10 +5838,6 @@ packages:
 
   /ci-info/2.0.0:
     resolution: {integrity: sha512-5tK7EtrZ0N+OLFMthtqOj4fI2Jeb88C4CAZPu25LDVUgXJ0A3Js4PMGqrn0JU1W0Mh1/Z8wZzYPxqUrXeBboCQ==}
-    dev: true
-
-  /ci-info/3.3.0:
-    resolution: {integrity: sha512-riT/3vI5YpVH6/qomlDnJow6TBee2PBKSEpx3O32EGPYbWGIRsIlGRms3Sm74wYE1JMo8RnO04Hb12+v1J5ICw==}
     dev: true
 
   /ci-info/3.8.0:
@@ -10218,8 +10200,8 @@ packages:
     resolution: {integrity: sha512-CkYQrPYZfWnu/DAmVCpTSX/xHpKZ80eKh2lAkyA6AJTef6bW+6JpbQZN5rofum7da+SyN1bi5ctTm+lTfcCW3g==}
     dev: true
 
-  /mariadb/3.1.2:
-    resolution: {integrity: sha512-ILlC54fkXkvizTJZC1uP7f/REBxuu1k+OWzpiIITIEdS+dGIjFe/Ob3EW9KrdtBa38l3z+odz6elva0RG/y5og==}
+  /mariadb/3.2.0:
+    resolution: {integrity: sha512-IH2nidQat1IBMxP5gjuNxG6dADtz1PESEC6rKrcATen5v3ngFyZITjehyYiwNfz3zUNQupfYmVntz93M+Pz8pQ==}
     engines: {node: '>= 12'}
     dependencies:
       '@types/geojson': 7946.0.10
@@ -10722,18 +10704,6 @@ packages:
     dependencies:
       whatwg-url: 5.0.0
     patched: true
-
-  /node-fetch/2.6.7:
-    resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
-    engines: {node: 4.x || >=6.0.0}
-    peerDependencies:
-      encoding: ^0.1.0
-    peerDependenciesMeta:
-      encoding:
-        optional: true
-    dependencies:
-      whatwg-url: 5.0.0
-    dev: true
 
   /node-fetch/3.3.1:
     resolution: {integrity: sha512-cRVc/kyto/7E5shrWca1Wsea4y6tL9iYJE5FBCius3JQfb/4P4I295PfhgbJQBLTx6lATE4z+wK0rPM4VS2uow==}
