@@ -10,7 +10,7 @@ import { Exact } from './Utils'
  */
 
 export type Args<T, F extends Operation> =
-  T extends { [K: symbol]: { types: { [K in F]: { args: any} } } }
+  T extends { [K: symbol]: { types: { [K in F]: { args: any } } } }
   ? T[symbol]['types'][F]['args']
   : never
 

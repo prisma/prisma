@@ -611,7 +611,7 @@ function stringify(value: any, inputType?: DMMF.SchemaArgInputType) {
   }
 
   if (value instanceof FieldRefImpl) {
-    return `{ _ref: ${JSON.stringify(value.name)}}`
+    return `{ _ref: ${JSON.stringify(value.name)}, _container: ${JSON.stringify(value.modelName)}}`
   }
 
   if (Object.prototype.toString.call(value) === '[object BigInt]') {

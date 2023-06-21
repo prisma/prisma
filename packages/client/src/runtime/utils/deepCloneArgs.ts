@@ -1,6 +1,5 @@
 import { assertNever } from '@prisma/internals'
 import Decimal from 'decimal.js'
-import { klona } from 'klona'
 import { Sql } from 'sql-template-tag'
 
 import { isFieldRef } from '../core/model/FieldRef'
@@ -11,8 +10,12 @@ import { isDate } from './date'
 import { isDecimalJsLike } from './decimalJsLike'
 
 export function deepCloneArgs(args: JsArgs | RawQueryArgs): JsArgs | RawQueryArgs {
+  if (args instanceof Sql) {
+    return cloneSql(args)
+  }
+
   if (Array.isArray(args)) {
-    const clone: RawQueryArgs = [cloneRaw(args[0])]
+    const clone: RawQueryArgs = [args[0]]
 
     for (let i = 1; i < args.length; i++) {
       clone[i] = deepCloneValue(args[i] as JsInputValue)
@@ -27,16 +30,13 @@ export function deepCloneArgs(args: JsArgs | RawQueryArgs): JsArgs | RawQueryArg
   return clone
 }
 
-function cloneRaw(rawParam: RawQueryArgs[0]): RawQueryArgs[0] {
-  if (rawParam instanceof Sql) {
-    return new Sql(rawParam.strings, rawParam.values)
-  }
-  return klona(rawParam)
+function cloneSql(rawParam: Sql): Sql {
+  return new Sql(rawParam.strings, rawParam.values)
 }
 
 // based on https://github.com/lukeed/klona/blob/v2.0.6/src/index.js
 function deepCloneValue(x: JsInputValue): JsInputValue {
-  if (typeof x !== 'object' || x === null || x instanceof ObjectEnumValue || isFieldRef(x)) {
+  if (typeof x !== 'object' || x == null || x instanceof ObjectEnumValue || isFieldRef(x)) {
     return x
   }
 

@@ -7,6 +7,7 @@ void executeSteps({
     await $`pnpm install`
   },
   test: async () => {
+    await $`pnpm exec tsc --noEmit`
     await $`pnpm exec jest`
   },
   finish: async () => {
