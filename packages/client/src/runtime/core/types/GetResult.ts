@@ -83,7 +83,12 @@ export type DefaultSelection<P> = P extends Payload
   : P
 
 type UnwrapPayload<P> = {
-  [K in keyof P]: P[K] extends Payload ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> : P[K]
+  [K in keyof P]:
+    P[K] extends Payload[]
+    ? UnwrapPayload<P[K]>
+    : P[K] extends Payload 
+      ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> 
+      : P[K]
 } & unknown
 
 type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
