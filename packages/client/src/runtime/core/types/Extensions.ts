@@ -128,7 +128,7 @@ export type DynamicModelExtensionThis<TypeMap extends TypeMapDef, M extends Prop
         PrismaPromise<GetOperationResult<TypeMap['model'][M]['operations'][P]['payload'], A, P & Operation>>
 } & {
   [P in Exclude<'fields' & keyof TypeMap['model'][M], keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
-    TypeMap['model'][M]['fields'] // TODO remove & keyof TypeMap['model'][M] once fieldRefs is GA
+    TypeMap['model'][M]['fields'] // TODO remove & keyof TypeMap['model'][M] once fieldReference is GA
 } & {
   [K: symbol]: { types: TypeMap['model'][M] }
 }
