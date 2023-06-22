@@ -38,11 +38,11 @@ export declare class PrismaClientExtends<
   ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs,
 > {
   $extends: { extArgs: ExtArgs } & (<
-    Q extends runtime.Types.Extensions.UserArgs['query'] = {},
     R extends runtime.Types.Extensions.UserArgs['result'] = {},
     M extends runtime.Types.Extensions.UserArgs['model'] = {},
+    Q extends runtime.Types.Extensions.UserArgs['query'] = {},
     C extends runtime.Types.Extensions.UserArgs['client'] = {},
-    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<Q, R, M, C>,
+    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, {}, C>,
   >(
     args:
       | ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } })
@@ -80,11 +80,11 @@ export namespace Prisma {
   export type TransactionClient = any
 
   export function defineExtension<
-    Q extends runtime.Types.Extensions.UserArgs['query'] = {},
     R extends runtime.Types.Extensions.UserArgs['result'] = {},
     M extends runtime.Types.Extensions.UserArgs['model'] = {},
+    Q extends runtime.Types.Extensions.UserArgs['query'] = {},
     C extends runtime.Types.Extensions.UserArgs['client'] = {},
-    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<Q, R, M, C>,
+    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, {}, C>,
   >(
     args:
       | ((client: PrismaClientExtends) => { $extends: { extArgs: Args } })
