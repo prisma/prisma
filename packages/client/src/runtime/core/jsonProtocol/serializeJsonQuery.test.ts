@@ -38,7 +38,10 @@ const Attachment = model('Attachment', [
 
 const datamodel = runtimeDataModel({ models: [User, Post, Attachment] })
 
-type SimplifiedParams = Omit<SerializeParams, 'runtimeDataModel' | 'extensions' | 'clientMethod' | 'errorFormat'> & {
+type SimplifiedParams = Omit<
+  SerializeParams,
+  'runtimeDataModel' | 'extensions' | 'clientMethod' | 'errorFormat' | 'clientVersion'
+> & {
   extensions?: MergedExtensionsList
 }
 
@@ -50,6 +53,7 @@ function serialize(params: SimplifiedParams) {
       extensions: params.extensions ?? MergedExtensionsList.empty(),
       clientMethod: 'foo',
       errorFormat: 'colorless',
+      clientVersion: '0.0.0',
     }),
     null,
     2,

@@ -52,6 +52,7 @@ export type SerializeParams = {
   extensions: MergedExtensionsList
   callsite?: CallSite
   clientMethod: string
+  clientVersion: string
   errorFormat: ErrorFormat
 }
 
@@ -64,6 +65,7 @@ export function serializeJsonQuery({
   callsite,
   clientMethod,
   errorFormat,
+  clientVersion,
 }: SerializeParams): JsonQuery {
   const context = new SerializeContext({
     runtimeDataModel,
@@ -76,6 +78,7 @@ export function serializeJsonQuery({
     argumentPath: [],
     originalMethod: clientMethod,
     errorFormat,
+    clientVersion,
   })
   return {
     modelName,
@@ -274,6 +277,7 @@ type ContextParams = {
   action: Action
   callsite?: CallSite
   errorFormat: ErrorFormat
+  clientVersion: string
 }
 
 class SerializeContext {
@@ -292,6 +296,7 @@ class SerializeContext {
       args: this.params.rootArgs ?? {},
       callsite: this.params.callsite,
       errorFormat: this.params.errorFormat,
+      clientVersion: this.params.clientVersion,
     })
   }
 

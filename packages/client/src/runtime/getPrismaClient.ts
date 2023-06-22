@@ -499,7 +499,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         return new BinaryEngine(this._engineConfig)
       }
 
-      throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`')
+      throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`', {
+        clientVersion: this._clientVersion,
+      })
     }
 
     /**
@@ -614,13 +616,16 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           return this.$executeRawInternal(transaction, '$executeRaw', sql, argsMapper)
         }
 
-        throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
+        throw new PrismaClientValidationError(
+          `\`$executeRaw\` is a tag function, please use it like the following:
 \`\`\`
 const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
 \`\`\`
 
 Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#executeraw
-`)
+`,
+          { clientVersion: this._clientVersion },
+        )
       })
     }
 
@@ -649,6 +654,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       if (config.activeProvider !== 'mongodb') {
         throw new PrismaClientValidationError(
           `The ${config.activeProvider} provider does not support $runCommandRaw. Use the mongodb provider.`,
+          { clientVersion: this._clientVersion },
         )
       }
 
@@ -700,13 +706,16 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           return this.$queryRawInternal(transaction, '$queryRaw', ...toSql(query, values))
         }
 
-        throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
+        throw new PrismaClientValidationError(
+          `\`$queryRaw\` is a tag function, please use it like the following:
 \`\`\`
 const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
 \`\`\`
 
 Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#queryraw
-`)
+`,
+          { clientVersion: this._clientVersion },
+        )
       })
     }
 
@@ -944,6 +953,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
             callsite,
             extensions: this._extensions,
             errorFormat: this._errorFormat,
+            clientVersion: this._clientVersion,
           }),
         )
 
@@ -987,6 +997,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       if (!this._hasPreviewFlag('metrics')) {
         throw new PrismaClientValidationError(
           '`metrics` preview feature must be enabled in order to access metrics API',
+          { clientVersion: this._clientVersion },
         )
       }
       return this._metrics

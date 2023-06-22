@@ -79,7 +79,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
       const dmmfActionName = key as DMMF.ModelAction
 
       let requestFn = (params: InternalRequestParams) => client._request(params)
-      requestFn = adaptErrors(dmmfActionName, dmmfModelName, requestFn)
+      requestFn = adaptErrors(dmmfActionName, dmmfModelName, client._clientVersion, requestFn)
 
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise

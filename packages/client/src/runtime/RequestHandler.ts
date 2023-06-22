@@ -211,6 +211,7 @@ export class RequestHandler {
         callsite,
         errorFormat: this.client._errorFormat,
         originalMethod: clientMethod,
+        clientVersion: this.client._clientVersion,
       })
     }
 
