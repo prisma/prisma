@@ -10,14 +10,14 @@ import { Call, ComputeDeep, Fn, Optional, Return, ToTuple, UnwrapTuple } from '.
 /* eslint-disable prettier/prettier */
 
 export type InternalArgs<
-  Q = { [K in string]: { [K in string]: unknown } },
   R = { [K in string]: { [K in string]: unknown } },
   M = { [K in string]: { [K in string]: unknown } },
+  Q = { [K in string]: { [K in string]: unknown } },
   C = { [K in string]: unknown },
 > = {
   result: { [K in keyof R]: { [P in keyof R[K]]: () => R[K][P] } },
-  query: { [K in keyof Q]: { [P in keyof Q[K]]: () => Q[K][P] } },
   model: { [K in keyof M]: { [P in keyof M[K]]: () => M[K][P] } },
+  query: { [K in keyof Q]: { [P in keyof Q[K]]: () => Q[K][P] } },
   client: { [K in keyof C]: () => C[K] },
 }
 
@@ -171,11 +171,11 @@ export interface ExtendsHook<Variant extends 'extends' | 'define', TypeMapCb ext
   <
     // X_ seeds the first fields for auto-completion and deals with dynamic inference
     // X doesn't deal with dynamic inference but captures the final inferred input type
-    Q_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels' | keyof TypeMap['other']['operations'] | '$allOperations']?: unknown },
     R_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels']?: unknown }, R,
     M_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels']?: unknown }, M,
+    Q_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels' | keyof TypeMap['other']['operations'] | '$allOperations']?: unknown },
     C_ extends { [K in string]?: unknown }, C,
-    Args extends InternalArgs = InternalArgs<{}, R, M, C>,
+    Args extends InternalArgs = InternalArgs<R, M, {}, C>,
     MergedArgs extends InternalArgs = MergeExtArgs<TypeMap, ExtArgs, Args>
   >(extension:
     | ((client: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>) => { $extends: { extArgs: Args } })
