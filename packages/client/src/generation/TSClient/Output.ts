@@ -1,9 +1,9 @@
 import indent from 'indent-string'
 
-import type { DMMFHelper } from '../../runtime/dmmf'
-import type { DMMF } from '../../runtime/dmmf-types'
-import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../../runtime/utils/common'
+import type { DMMFHelper } from '../dmmf'
+import type { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
+import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../utils/common'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { wrapComment } from './helpers'

@@ -2,9 +2,8 @@ import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import { klona } from 'klona'
 
-import type { DMMFHelper } from '../../runtime/dmmf'
-import { DMMF } from '../../runtime/dmmf-types'
-import { lowerCase } from '../../runtime/utils/common'
+import type { DMMFHelper } from '../dmmf'
+import { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import {
@@ -29,6 +28,7 @@ import {
   getSumAggregateName,
   Projection,
 } from '../utils'
+import { lowerCase } from '../utils/common'
 import { InputField } from './../TSClient'
 import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'

@@ -1,7 +1,7 @@
 import { assertNever } from '@prisma/internals'
 
+import { lowerCase } from '../../../generation/utils/common'
 import { ObjectEnumValue } from '../../object-enums'
-import { lowerCase } from '../../utils/common'
 import { isValidDate } from '../../utils/date'
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
 import { isFieldRef } from '../model/FieldRef'
