@@ -65,6 +65,7 @@ export type GetFindResult<P extends Payload, A> =
     } & (A extends { include: any } & Record<string, unknown> ? DefaultSelection<P> : unknown)
   : DefaultSelection<P>
 
+// prettier-ignore
 type SelectablePayloadFields<K extends PropertyKey, O> =
   | { objects: { [k in K]: O } }
   | { composites: { [k in K]: O } }
@@ -82,13 +83,16 @@ export type DefaultSelection<P> = P extends Payload
   ? P['scalars'] & UnwrapPayload<P['composites']>
   : P
 
+// prettier-ignore
 type UnwrapPayload<P> = {
   [K in keyof P]:
     P[K] extends Payload[]
     ? UnwrapPayload<P[K]>
     : P[K] extends Payload 
       ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> 
-      : P[K]
+      : P[K] extends (infer O extends Payload) | null
+        ? (O['scalars'] & UnwrapPayload<O['composites']>) | null
+        : P[K]
 } & unknown
 
 type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
