@@ -42,7 +42,6 @@ test('introspection basic', async () => {
       Post    Post[]
     }
     ,
-      version: NonPrisma,
       views: null,
       warnings: null,
     }
