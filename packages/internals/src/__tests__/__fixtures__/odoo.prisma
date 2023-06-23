@@ -3561,6 +3561,3 @@ model wizard_ir_model_menu_create {
   res_users_wizard_ir_model_menu_create_write_uidTores_users  res_users? @relation("wizard_ir_model_menu_create_write_uidTores_users", fields: [write_uid], references: [id], onUpdate: NoAction)
 }
 
-
-// introspectionSchemaVersion: NonPrisma 
-
