@@ -1,11 +1,8 @@
-import chalk from 'chalk'
+import { getDMMF } from '@prisma/internals'
 
 import { blog } from '../fixtures/blog'
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
-
-chalk.level = 0
 
 let dmmf
 

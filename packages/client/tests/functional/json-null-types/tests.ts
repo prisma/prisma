@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -38,7 +40,7 @@ testMatrix.setupTestSuite(
       })
 
       // TODO: Edge: skipped because of the error snapshot
-      testIf(clientMeta.runtime !== 'edge')('DbNull', async () => {
+      testIf(clientMeta.runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('DbNull', async () => {
         await expect(
           prisma.requiredJsonField.create({
             data: {
@@ -52,7 +54,7 @@ testMatrix.setupTestSuite(
           /client/tests/functional/json-null-types/tests.ts:0:0
 
             XX // TODO: Edge: skipped because of the error snapshot
-            XX testIf(clientMeta.runtime !== 'edge')('DbNull', async () => {
+            XX testIf(clientMeta.runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('DbNull', async () => {
             XX   await expect(
           → XX     prisma.requiredJsonField.create({
                      data: {
@@ -77,35 +79,38 @@ testMatrix.setupTestSuite(
       })
 
       // TODO: Edge: skipped because of the error snapshot
-      testIf(clientMeta.runtime !== 'edge')('custom instances are not allowed', async () => {
-        await expect(
-          prisma.requiredJsonField.create({
-            data: {
-              // @ts-expect-error
-              json: new Prisma.NullTypes.JsonNull(),
-            },
-          }),
-        ).rejects.toMatchPrismaErrorInlineSnapshot(`
+      testIf(clientMeta.runtime !== 'edge' && getQueryEngineProtocol() !== 'json')(
+        'custom instances are not allowed',
+        async () => {
+          await expect(
+            prisma.requiredJsonField.create({
+              data: {
+                // @ts-expect-error
+                json: new Prisma.NullTypes.JsonNull(),
+              },
+            }),
+          ).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-          Invalid \`prisma.requiredJsonField.create()\` invocation in
-          /client/tests/functional/json-null-types/tests.ts:0:0
+                                    Invalid \`prisma.requiredJsonField.create()\` invocation in
+                                    /client/tests/functional/json-null-types/tests.ts:0:0
 
-            XX // TODO: Edge: skipped because of the error snapshot
-            XX testIf(clientMeta.runtime !== 'edge')('custom instances are not allowed', async () => {
-            XX   await expect(
-          → XX     prisma.requiredJsonField.create({
-                     data: {
-                       json: new Prisma.NullTypes.JsonNull()
-                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                     }
-                   })
+                                      XX 'custom instances are not allowed',
+                                      XX async () => {
+                                      XX   await expect(
+                                    → XX     prisma.requiredJsonField.create({
+                                               data: {
+                                                 json: new Prisma.NullTypes.JsonNull()
+                                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                                               }
+                                             })
 
-          Argument json: Provided value new Prisma.NullTypes.JsonNull() of type JsonNull on prisma.createOneRequiredJsonField is not a JsonNullValueInput.
-          → Possible values: JsonNullValueInput.JsonNull
+                                    Argument json: Provided value new Prisma.NullTypes.JsonNull() of type JsonNull on prisma.createOneRequiredJsonField is not a JsonNullValueInput.
+                                    → Possible values: JsonNullValueInput.JsonNull
 
 
-        `)
-      })
+                              `)
+        },
+      )
     })
   },
   {

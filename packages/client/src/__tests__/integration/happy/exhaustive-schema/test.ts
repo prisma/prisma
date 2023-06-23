@@ -17,6 +17,10 @@ test('exhaustive-schema', async () => {
     'utf-8',
   )
 
-  expect(generatedTypeScript).toMatchSnapshot('generatedTypeScript')
-  expect(generatedBrowserJS).toMatchSnapshot('generatedBrowserJS')
+  expect(sanitizeRuntimeImport(generatedTypeScript)).toMatchSnapshot('generatedTypeScript')
+  expect(sanitizeRuntimeImport(generatedBrowserJS)).toMatchSnapshot('generatedBrowserJS')
 })
+
+function sanitizeRuntimeImport(source: string): string {
+  return source.replace(/@prisma\/client\/runtime\/(library|binary)/g, '@prisma/client/runtime/{RUNTIME_FILE}')
+}

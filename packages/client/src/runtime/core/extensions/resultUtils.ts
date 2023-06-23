@@ -2,9 +2,8 @@ import { mapObjectValues } from '@prisma/internals'
 
 import { Cache } from '../../../generation/Cache'
 import { dmmfToJSModelName } from '../model/utils/dmmfToJSModelName'
+import { Selection } from '../types/JsApi'
 import { Args, ResultArg, ResultArgsFieldCompute } from './$extends'
-import { Selection } from './visitQueryResult'
-import { wrapExtensionCallback } from './wrapExtensionCallback'
 
 export type ComputedField = {
   name: string
@@ -85,7 +84,7 @@ function getComputedFieldsFromModel(
   return mapObjectValues(modelResult, ({ needs, compute }, fieldName) => ({
     name: fieldName,
     needs: needs ? Object.keys(needs).filter((key) => needs[key]) : [],
-    compute: wrapExtensionCallback(name, composeCompute(previousComputedFields, fieldName, compute)),
+    compute: composeCompute(previousComputedFields, fieldName, compute),
   }))
 }
 

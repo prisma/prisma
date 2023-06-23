@@ -1,11 +1,8 @@
-import chalk from 'chalk'
+import { getDMMF } from '@prisma/internals'
 
 import { chinook } from '../fixtures/chinook'
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../runtime'
 import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
-
-chalk.level = 0
 
 describe('relation where transformation', () => {
   let dmmf

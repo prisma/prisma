@@ -1,10 +1,13 @@
-import * as lzString from 'lz-string'
-
 import * as Extensions from './core/extensions'
+import * as Public from './core/public'
 import * as Types from './core/types'
 import { Payload } from './core/types'
+import type { PrismaPromise } from './core/types/Public'
 
-export { PrismaClientExtensionError } from './core/extensions/wrapExtensionCallback'
+export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
+export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
+export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'
+export { PrismaClientUnknownRequestError } from './core/errors/PrismaClientUnknownRequestError'
 export {
   type Metric,
   type MetricHistogram,
@@ -13,6 +16,7 @@ export {
   MetricsClient,
 } from './core/metrics/MetricsClient'
 export type { FieldRef } from './core/model/FieldRef'
+export { defineDmmfProperty } from './core/runtimeDataModel'
 export { DMMFHelper as DMMFClass } from './dmmf'
 export { type BaseDMMF, DMMF } from './dmmf-types'
 export type { PrismaClientOptions } from './getPrismaClient'
@@ -21,30 +25,27 @@ export { objectEnumValues } from './object-enums'
 export { makeDocument, PrismaClientValidationError, transformDocument, unpack } from './query'
 export { makeStrictEnum } from './strictEnum'
 export type { DecimalJsLike } from './utils/decimalJsLike'
-export { findSync } from './utils/find'
+export { decompressFromBase64 } from './utils/decompressFromBase64'
 export { NotFoundError } from './utils/rejectOnNotFound'
 export { warnEnvConflicts } from './warnEnvConflicts'
 export { Debug } from '@prisma/debug'
-export {
-  Engine,
-  PrismaClientInitializationError,
-  PrismaClientKnownRequestError,
-  PrismaClientRustPanicError,
-  PrismaClientUnknownRequestError,
-} from '@prisma/engine-core'
 export { default as Decimal } from 'decimal.js'
 export type { RawValue, Value } from 'sql-template-tag'
 export { empty, join, raw, Sql, default as sqltag } from 'sql-template-tag'
-// ! export bundling fails for this dep, we work around it
-const decompressFromBase64 = lzString.decompressFromBase64
-export { decompressFromBase64 }
 
 export { Types }
 export { Extensions }
+export { Public }
+export { warnOnce } from '@prisma/internals'
 
 /**
- * Payload is already exported via Types but tsc will complain that it isn't reachable
+ * Payload, PrismaPromise and Extensions types are already exported via Types but tsc
+ * won't be able to trace them correctly back to runtime module and fail with either
+ * "... is using the type X but can not be named" or "The inferred type of this node exceeds the maximum length" error.
  * The issue lies with the type bundler which does not add exports for dependent types
  * TODO: Maybe simply exporting all types in runtime will do the trick
  */
-export { type Payload }
+export { type Payload, type PrismaPromise }
+
+export * from './core/types/Extensions'
+export type { ITXClientDenyList } from './itxClientDenyList'

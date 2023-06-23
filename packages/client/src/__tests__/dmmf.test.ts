@@ -1,7 +1,5 @@
-import { serializeQueryEngineName } from '@prisma/internals'
+import { getDMMF } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
-
-import { getDMMF } from '../generation/getDMMF'
 
 describe('dmmf', () => {
   test('dmmf enum filter mysql', async () => {
@@ -53,6 +51,12 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
+              {
+                isList: false,
+                location: enumTypes,
+                namespace: model,
+                type: PostKind,
+              },
             ],
             isNullable: false,
             isRequired: false,
@@ -62,6 +66,12 @@ describe('dmmf', () => {
             inputTypes: [
               {
                 isList: true,
+                location: enumTypes,
+                namespace: model,
+                type: PostKind,
+              },
+              {
+                isList: false,
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
@@ -122,6 +132,12 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
+              {
+                isList: false,
+                location: enumTypes,
+                namespace: model,
+                type: PostKind,
+              },
             ],
             isNullable: false,
             isRequired: false,
@@ -131,6 +147,12 @@ describe('dmmf', () => {
             inputTypes: [
               {
                 isList: true,
+                location: enumTypes,
+                namespace: model,
+                type: PostKind,
+              },
+              {
+                isList: false,
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
@@ -214,6 +236,12 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
+              {
+                isList: false,
+                location: enumTypes,
+                namespace: model,
+                type: PostKind,
+              },
             ],
             isNullable: false,
             isRequired: false,
@@ -223,6 +251,12 @@ describe('dmmf', () => {
             inputTypes: [
               {
                 isList: true,
+                location: enumTypes,
+                namespace: model,
+                type: PostKind,
+              },
+              {
+                isList: false,
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
@@ -283,6 +317,12 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
+              {
+                isList: false,
+                location: enumTypes,
+                namespace: model,
+                type: PostKind,
+              },
             ],
             isNullable: false,
             isRequired: false,
@@ -292,6 +332,12 @@ describe('dmmf', () => {
             inputTypes: [
               {
                 isList: true,
+                location: enumTypes,
+                namespace: model,
+                type: PostKind,
+              },
+              {
+                isList: false,
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
@@ -348,8 +394,8 @@ describe('dmmf', () => {
     try {
       await getDMMF({ datamodel })
     } catch (e) {
-      expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
-        Prisma schema validation - (query-engine-NORMALIZED)
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        Prisma schema validation - (get-dmmf wasm)
         Error code: P1012
         error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.
           -->  schema.prisma:14

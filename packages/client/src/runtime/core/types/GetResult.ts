@@ -1,7 +1,9 @@
 /* eslint-disable prettier/prettier */
 
-import { Payload } from "./Payload"
+import { Payload } from './Payload'
+import { JsonObject } from './Utils'
 
+// prettier-ignore
 export type Operation =
 // finds
 | 'findFirst'
@@ -23,76 +25,115 @@ export type Operation =
 | 'aggregate'
 | 'count'
 | 'groupBy'
+// raw sql
+| '$queryRaw'
+| '$executeRaw'
+| '$queryRawUnsafe'
+| '$executeRawUnsafe'
 // raw mongo
-// | 'findRaw'
-// | 'runCommandRaw'
+| 'findRaw'
+| 'aggregateRaw'
+| '$runCommandRaw'
 
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
-export type GetFindResult<P extends Payload, A> = 
-  A extends { select: infer S } | { include: infer S }
+// prettier-ignore
+export type GetFindResult<P extends Payload, A> =
+  {} extends A ? DefaultSelection<P> :
+  A extends 
+  | { select: infer S } & Record<string, unknown>
+  | { include: infer S } & Record<string, unknown>
   ? {
       [K in keyof S as S[K] extends false | undefined | null ? never : K]:
-        S[K] extends true
-        ? P extends { objects: { [k in K]: (infer O)[] } }
-          ? O extends Payload ? O['scalars'][] : never
-          : P extends { objects: { [k in K]: (infer O) | null } }
-            ? O extends Payload ? O['scalars'] | P['objects'][K] & null : never
+        S[K] extends object
+        ? P extends SelectablePayloadFields<K, (infer O)[]>
+          ? O extends Payload ? GetFindResult<O, S[K]>[] : never
+          : P extends SelectablePayloadFields<K, infer O | null>
+            ? O extends Payload ? GetFindResult<O, S[K]> | SelectField<P, K> & null : never
+            : K extends '_count'
+              ? Count<GetFindResult<P, S[K]>>
+              : never
+        : P extends SelectablePayloadFields<K, (infer O)[]>
+          ? O extends Payload ? DefaultSelection<O>[] : never
+          : P extends SelectablePayloadFields<K, infer O | null>
+            ? O extends Payload ? DefaultSelection<O> | SelectField<P, K> & null : never
             : P extends { scalars: { [k in K]: infer O } }
               ? O
               : K extends '_count'
                 ? Count<P['objects']>
                 : never
-        : P extends { objects: { [k in K]: (infer O)[] } }
-          ? O extends Payload ? GetFindResult<O, S[K]>[] : never
-          : P extends { objects: { [k in K]: (infer O) | null } }
-            ? O extends Payload ? GetFindResult<O, S[K]> | P['objects'][K] & null : never
-            : K extends '_count'
-              ? Count<GetFindResult<P, S[K]>>
-              : never
-  } & (A extends { include: any } ? P['scalars'] : unknown)
-  : P['scalars']
+    } & (A extends { include: any } & Record<string, unknown> ? DefaultSelection<P> : unknown)
+  : DefaultSelection<P>
 
-type GetCountResult<P, A> =
-  A extends { select: infer S }
-  ? S extends true
-    ? number
-    : Count<S>
-  : number
+type SelectablePayloadFields<K extends PropertyKey, O> =
+  | { objects: { [k in K]: O } }
+  | { composites: { [k in K]: O } }
 
-type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum' 
-type GetAggregateResult<P, A> = {
+// prettier-ignore
+type SelectField<P extends SelectablePayloadFields<any, any>, K extends PropertyKey> = 
+  P extends { objects: Record<K, any> } 
+  ? P['objects'][K]
+  : P extends { composites: Record<K, any> }
+    ? P['composites'][K]
+    : never
+
+// prettier-ignore
+export type DefaultSelection<P> = P extends Payload 
+  ? P['scalars'] & UnwrapPayload<P['composites']>
+  : P
+
+type UnwrapPayload<P> = {
+  [K in keyof P]:
+    P[K] extends Payload[]
+    ? UnwrapPayload<P[K]>
+    : P[K] extends Payload 
+      ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> 
+      : P[K]
+} & unknown
+
+type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
+
+type Aggregate = '_count' | '_max' | '_min' | '_avg' | '_sum'
+
+// prettier-ignore
+type GetAggregateResult<P extends Payload, A> = {
   [K in keyof A as K extends Aggregate ? K : never]:
     K extends '_count'
-    ? A[K] extends true
-      ? number
-      : Count<A[K]>
-    : Count<A[K]>
+    ? A[K] extends true ? number : Count<A[K]>
+    : { [J in keyof A[K] & string]: P['scalars'][J] | null }
 }
 
-type GetBatchResult<P, A> = { count: number }
+type GetBatchResult = { count: number }
 
-type GetGroupByResult<P, A> =
-  P extends Payload
-  ? A extends { by: string[] }
-    ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
-    : never
+// prettier-ignore
+type GetGroupByResult<P extends Payload, A> =
+  A extends { by: string[] }
+  ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
   : never
 
-export type GetResult<P extends Payload, A, O extends Operation> = {
-  findUnique: GetFindResult<P, A>,
+// TODO Null can be removed once rejectOnNotFound is removed
+// prettier-ignore
+export type GetResult<P extends Payload, A, O extends Operation = 'findUniqueOrThrow', Null = null> = {
+  findUnique: GetFindResult<P, A> | Null,
   findUniqueOrThrow: GetFindResult<P, A>,
-  findFirst: GetFindResult<P, A>,
+  findFirst: GetFindResult<P, A> | Null,
   findFirstOrThrow: GetFindResult<P, A>,
   findMany: GetFindResult<P, A>[],
   create: GetFindResult<P, A>,
-  createMany: GetBatchResult<P, A>,
+  createMany: GetBatchResult,
   update: GetFindResult<P, A>,
-  updateMany: GetBatchResult<P, A>,
+  updateMany: GetBatchResult,
   upsert: GetFindResult<P, A>,
   delete: GetFindResult<P, A>,
-  deleteMany: GetBatchResult<P, A>,
+  deleteMany: GetBatchResult,
   aggregate: GetAggregateResult<P, A>,
-  count: GetCountResult<P, A>,
+  count: GetCountResult<A>,
   groupBy: GetGroupByResult<P, A>,
+  $queryRaw: unknown,
+  $executeRaw: number,
+  $queryRawUnsafe: unknown,
+  $executeRawUnsafe: number,
+  $runCommandRaw: JsonObject,
+  findRaw: JsonObject,
+  aggregateRaw: JsonObject,
 }[O]

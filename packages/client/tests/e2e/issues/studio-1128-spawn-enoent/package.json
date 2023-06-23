@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "@prisma/client": "../../prisma-client-0.0.0.tgz"
+  },
+  "devDependencies": {
+    "prisma": "../../prisma-0.0.0.tgz"
+  }
+}

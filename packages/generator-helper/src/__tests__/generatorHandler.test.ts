@@ -32,6 +32,7 @@ const stubOptions: GeneratorOptions = {
         model: [],
         prisma: [],
       },
+      fieldRefTypes: {},
     },
   },
   generator: {
@@ -48,6 +49,7 @@ const stubOptions: GeneratorOptions = {
   otherGenerators: [],
   schemaPath: '',
   version: 'latest',
+  dataProxy: false,
 }
 
 function getExecutable(name: string): string {
@@ -59,7 +61,9 @@ function getExecutable(name: string): string {
 }
 
 describe('generatorHandler', () => {
-  // TODO: Windows: this test fails with timeout.
+  // TODO: Windows: this test fails with ENOENT on CI because it can't file the .cmd file:
+  //   spawn D:\\a\\prisma\\prisma\\packages\\generator-helper\\src\\__tests__\\exiting-executable.cmd ENOENT
+  // This does not happen on Windows locally.
   testIf(process.platform !== 'win32')('exiting', async () => {
     const generator = new GeneratorProcess(getExecutable('exiting-executable'))
     await generator.init()
@@ -71,12 +75,15 @@ describe('generatorHandler', () => {
     }
   })
 
-  // TODO: Windows: this test fails with ENOENT even though the .cmd file is there and can be run manually.
+  // TODO: Windows: this test fails with ENOENT on CI because it can't file the .cmd file:
+  //   spawn D:\\a\\prisma\\prisma\\packages\\generator-helper\\src\\__tests__\\invalid-executable.cmd ENOENT
+  // This does not happen on Windows locally.
   testIf(process.platform !== 'win32')(
     'parsing error',
     async () => {
-      const generator = new GeneratorProcess(getExecutable('invalid-executable'), { initWaitTime: 5000 })
-      await expect(() => generator.init()).rejects.toThrow('Cannot find module')
+      const generator = new GeneratorProcess(getExecutable('invalid-executable'))
+      await generator.init()
+      await expect(() => generator.getManifest(stubOptions.generator)).rejects.toThrow('Cannot find module')
     },
     10_000,
   )
@@ -95,7 +102,7 @@ describe('generatorHandler', () => {
         },
         "prettyName": "This is a pretty name",
         "requiresEngines": [
-          "introspection-engine",
+          "migration-engine",
           "query-engine",
         ],
         "requiresGenerators": [
@@ -116,8 +123,16 @@ describe('generatorHandler', () => {
     generator.stop()
   })
 
+  test('failing-after-1s-executable', async () => {
+    const generator = new GeneratorProcess(getExecutable('failing-after-1s-executable'))
+    await generator.init()
+    await expect(generator.getManifest(stubOptions.generator)).rejects.toThrow('test')
+    generator.stop()
+  })
+
   test('nonexistent executable', async () => {
-    const generator = new GeneratorProcess(getExecutable('random path that doesnt exist'))
-    await expect(() => generator.init()).rejects.toThrow()
+    const generator = new GeneratorProcess(getExecutable('this-executable-does-not-exist'))
+    await generator.init()
+    await expect(generator.getManifest(stubOptions.generator)).rejects.toThrow()
   })
 })

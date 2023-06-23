@@ -1,7 +1,6 @@
 node_modules
 migration-engine*
 query-engine*
-introspection-engine*
 libquery*
 yarn-error.log
 dist

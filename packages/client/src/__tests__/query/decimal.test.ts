@@ -1,6 +1,6 @@
+import { getDMMF } from '@prisma/internals'
 import { Decimal } from 'decimal.js'
 
-import { getDMMF } from '../../generation/getDMMF'
 import { DMMFClass, makeDocument } from '../../runtime'
 import { MergedExtensionsList } from '../../runtime/core/extensions/MergedExtensionsList'
 
@@ -98,6 +98,7 @@ test('allows to pass it decimal-like object', () => {
           d: [12, 5000000],
           e: 1,
           s: 1,
+          toFixed: () => '12.5',
         },
       },
     },
@@ -159,12 +160,14 @@ test('allows to pass it decimal-like objects array', () => {
               d: [12, 3400000],
               e: 1,
               s: 1,
+              toFixed: () => '12.34',
             },
 
             {
               d: [56, 7800000],
               e: 1,
               s: 1,
+              toFixed: () => '56.78',
             },
           ],
         },

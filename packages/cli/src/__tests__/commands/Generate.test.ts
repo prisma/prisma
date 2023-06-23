@@ -1,4 +1,5 @@
-import { getClientEngineType, jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { Generate } from '../../Generate'
@@ -87,7 +88,7 @@ describe('--schema from project directory', () => {
     ctx.fixture('generate-from-project-dir')
     const absoluteSchemaPath = path.resolve('./doesnotexists.prisma')
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    await expect(result).rejects.toThrowError(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
+    await expect(result).rejects.toThrow(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
   })
 })
 
@@ -149,7 +150,44 @@ describe('--schema from parent directory', () => {
 
     const absoluteSchemaPath = path.resolve('./subdirectory/doesnotexists.prisma')
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    await expect(result).rejects.toThrowError(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
+    await expect(result).rejects.toThrow(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
+  })
+
+  it('--generator: should work - valid generator names', async () => {
+    ctx.fixture('example-project')
+    const result = await Generate.new().parse([
+      '--schema=./prisma/multiple-generator.prisma',
+      '--generator=client',
+      '--generator=client_3',
+    ])
+    const output = stripAnsi(replaceEngineType(result))
+
+    expect(output).toMatchSnapshot()
+  })
+
+  it('--generator: should fail - single invalid generator name', async () => {
+    ctx.fixture('example-project')
+
+    await expect(
+      Generate.new().parse([
+        '--schema=./prisma/multiple-generator.prisma',
+        '--generator=client',
+        '--generator=invalid_client',
+      ]),
+    ).rejects.toMatchSnapshot()
+  })
+
+  it('--generator: should fail - multiple invalid generator names', async () => {
+    ctx.fixture('example-project')
+
+    await expect(
+      Generate.new().parse([
+        '--schema=./prisma/multiple-generator.prisma',
+        '--generator=client',
+        '--generator=invalid_client',
+        '--generator=invalid_client_2',
+      ]),
+    ).rejects.toMatchSnapshot()
   })
 })
 

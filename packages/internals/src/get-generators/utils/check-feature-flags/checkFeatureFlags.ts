@@ -18,10 +18,6 @@ function checkForbiddenFeaturesWithDataProxyFlag(config: ConfigMetaFormat, optio
         if (feature.toLocaleLowerCase() === 'metrics'.toLocaleLowerCase()) {
           throw new Error(forbiddenPreviewFeatureWithDataProxyFlagMessage('metrics'))
         }
-
-        if (feature.toLocaleLowerCase() === 'tracing'.toLocaleLowerCase()) {
-          throw new Error(forbiddenPreviewFeatureWithDataProxyFlagMessage('tracing'))
-        }
       })
     })
 }

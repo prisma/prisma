@@ -14,10 +14,9 @@ async function main() {
   let folder = enginesOverride?.['folder'] as string | undefined
 
   const engineCachePaths = {
-    [BinaryType.queryEngine]: path.join(cacheDir, BinaryType.queryEngine),
-    [BinaryType.libqueryEngine]: path.join(cacheDir, BinaryType.libqueryEngine),
-    [BinaryType.migrationEngine]: path.join(cacheDir, BinaryType.migrationEngine),
-    [BinaryType.introspectionEngine]: path.join(cacheDir, BinaryType.introspectionEngine),
+    [BinaryType.QueryEngineBinary]: path.join(cacheDir, BinaryType.QueryEngineBinary),
+    [BinaryType.QueryEngineLibrary]: path.join(cacheDir, BinaryType.QueryEngineLibrary),
+    [BinaryType.MigrationEngineBinary]: path.join(cacheDir, BinaryType.MigrationEngineBinary),
   }
 
   if (branch !== undefined) {
@@ -61,10 +60,9 @@ async function main() {
     const binExt = binaryTarget.includes('windows') ? '.exe' : ''
 
     const engineOutputPaths = {
-      [BinaryType.libqueryEngine]: path.join(folder, 'libquery_engine'.concat(libExt)),
-      [BinaryType.queryEngine]: path.join(folder, BinaryType.queryEngine.concat(binExt)),
-      [BinaryType.migrationEngine]: path.join(folder, BinaryType.migrationEngine.concat(binExt)),
-      [BinaryType.introspectionEngine]: path.join(folder, BinaryType.introspectionEngine.concat(binExt)),
+      [BinaryType.QueryEngineLibrary]: path.join(folder, 'libquery_engine'.concat(libExt)),
+      [BinaryType.QueryEngineBinary]: path.join(folder, BinaryType.QueryEngineBinary.concat(binExt)),
+      [BinaryType.MigrationEngineBinary]: path.join(folder, BinaryType.MigrationEngineBinary.concat(binExt)),
     }
 
     for (const [binaryType, outputPath] of Object.entries(engineOutputPaths)) {

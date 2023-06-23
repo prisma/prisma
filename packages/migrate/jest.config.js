@@ -9,7 +9,7 @@ module.exports = {
   coverageReporters: ['clover'],
   coverageDirectory: 'src/__tests__/coverage',
   collectCoverageFrom: ['src/**/*.ts', '!**/__tests__/**/*'],
-  snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
+  snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
   coveragePathIgnorePatterns: [
     'bin.ts',
     'setupMysql.ts',

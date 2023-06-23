@@ -4,6 +4,7 @@
   <a href="https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
   <a href="https://github.com/prisma/prisma/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
   <a href="https://slack.prisma.io/"><img src="https://img.shields.io/badge/chat-on%20slack-blue.svg" /></a>
+  <a href="https://pris.ly/discord"><img alt="Discord" src="https://img.shields.io/discord/937751382725886062?label=Discord"></a>
   <br />
   <br />
   <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
@@ -18,9 +19,9 @@
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://slack.prisma.io/">Slack</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://twitter.com/prisma">Twitter</a>
+  <a href="https://pris.ly/discord">Discord</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://github.com/prisma/prisma1">Prisma 1</a>
+  <a href="https://twitter.com/prisma">Twitter</a>
   <br />
   <hr />
 </div>
@@ -35,8 +36,6 @@ Prisma is a **next-generation ORM** that consists of these tools:
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/graphql) a gRPC API, or anything else that needs a database.
 
-> **Are you looking for Prisma 1? The Prisma 1 repository has been renamed to [`prisma/prisma1`](https://github.com/prisma/prisma1)**.
-
 ## Getting started
 
 The fastest way to get started with Prisma is by following the [**Quickstart (5 min)**](https://www.prisma.io/docs/getting-started/quickstart-typescript).
@@ -48,7 +47,7 @@ The Quickstart is based on a preconfigured SQLite database. You can also get sta
 
 ## Community
 
-Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io) and here on [GitHub](https://github.com/prisma/prisma/discussions).
+Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io), [Discord](https://pris.ly/discord), and here on [GitHub](https://github.com/prisma/prisma/discussions).
 
 ## Security
 

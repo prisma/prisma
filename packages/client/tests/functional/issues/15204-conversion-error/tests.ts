@@ -10,11 +10,12 @@ testMatrix.setupTestSuite(
     test('should return a descriptive error', async () => {
       await prisma.$executeRaw`INSERT INTO "TestModel" ("id", "field") VALUES ("1", 1.84467440724388e+19)`
 
-      await expect(prisma.testModel.findMany()).rejects.toThrowError(
+      await expect(prisma.testModel.findMany()).rejects.toThrow(
         expect.objectContaining({
-          code: 'P2020',
+          code: 'P2023',
           message: expect.stringContaining(
-            'Value out of range for the type. Unable to convert BigDecimal value "18446744072438800000" to type i64',
+            // Error message ends in two different strings depending on input: "... to `BigInt`" or "... to `Int`"
+            'Inconsistent column data: Could not convert from `BigDecimal(18446744072438800000)` to',
           ),
         }),
       )

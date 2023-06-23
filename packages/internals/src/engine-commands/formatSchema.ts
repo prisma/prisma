@@ -2,7 +2,7 @@ import fs from 'fs'
 import { match } from 'ts-pattern'
 
 import { logger } from '..'
-import { ErrorArea, RustPanic } from '../panic'
+import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
 import { prismaFmt } from '../wasm'
 import { getLintWarningsAsText, lintSchema } from './lintSchema'
 
@@ -94,15 +94,18 @@ function handleFormatPanic<T>(tryCb: () => T, { schemaPath, schema }: FormatSche
   try {
     return tryCb()
   } catch (e: unknown) {
-    const wasmError = e as Error
-    throw new RustPanic(
-      /* message */ wasmError.message,
-      /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
+    const { message, stack } = getWasmError(e as WasmPanic)
+
+    const panic = new RustPanic(
+      /* message */ message,
+      /* rustStack */ stack,
       /* request */ '@prisma/prisma-fmt-wasm format',
       ErrorArea.FMT_CLI,
       schemaPath,
       schema,
     )
+
+    throw panic
   }
 }
 

@@ -1,5 +1,6 @@
 import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/internals'
-import chalk from 'chalk'
+import { ArgError } from 'arg'
+import { bold, dim, red, yellow } from 'kleur/colors'
 
 import {
   executeSeedCommand,
@@ -14,15 +15,20 @@ export class DbSeed implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : chalk.bold('🙌  ')}Seed your database
+${process.platform === 'win32' ? '' : '🙌  '}Seed your database
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma db seed [options]
+  ${dim('$')} prisma db seed [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help   Display this help message
+
+${bold('Examples')}
+
+  Passing extra arguments to the seed command
+    ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -39,6 +45,11 @@ ${chalk.bold('Options')}
     )
 
     if (isError(args)) {
+      if (args instanceof ArgError && args.code === 'ARG_UNKNOWN_OPTION') {
+        throw new Error(`${args.message}
+Did you mean to pass these as arguments to your seed script? If so, add a -- separator before them:
+${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
+      }
       return this.help(args.message)
     }
 
@@ -48,7 +59,7 @@ ${chalk.bold('Options')}
 
     if (args['--preview-feature']) {
       logger.warn(`Prisma "db seed" was in Preview and is now Generally Available.
-You can now remove the ${chalk.red('--preview-feature')} flag.`)
+You can now remove the ${red('--preview-feature')} flag.`)
 
       // Print warning if user has a "ts-node" script in their package.json, not supported anymore
       await legacyTsNodeScriptWarning()
@@ -59,7 +70,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
     // Print warning if user is using --schema
     if (args['--schema']) {
       logger.warn(
-        chalk.yellow(
+        yellow(
           `The "--schema" parameter is not used anymore by "prisma db seed" since version 3.0 and can now be removed.`,
         ),
       )
@@ -80,9 +91,14 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       return ``
     }
 
+    // We pass the extra params after a -- separator
+    // Example: db seed -- --custom-param
+    // Then args._ will be ['--custom-param']
+    const extraArgs = args._.join(' ')
+
     // Seed command is set
     // Execute user seed command
-    const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+    const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson, extraArgs })
     if (successfulSeeding) {
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {
@@ -92,7 +108,7 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbSeed.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbSeed.help}`)
     }
     return DbSeed.help
   }

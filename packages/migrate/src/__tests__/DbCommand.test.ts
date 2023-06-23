@@ -29,7 +29,7 @@ it('help flag', async () => {
 })
 
 it('unknown command', async () => {
-  await expect(DbCommand.new({}).parse(['doesnotexist'])).resolves.toThrowError()
+  await expect(DbCommand.new({}).parse(['doesnotexist'])).resolves.toThrow()
 })
 
 it('db seed with --preview-feature flag', async () => {
@@ -37,7 +37,7 @@ it('db seed with --preview-feature flag', async () => {
     DbCommand.new({
       dev: DbSeed.new(),
     }).parse(['dev', '--preview-feature']),
-  ).rejects.toThrowError()
+  ).rejects.toThrow()
 })
 
 it('db seed without --preview-feature flag', async () => {
@@ -45,5 +45,5 @@ it('db seed without --preview-feature flag', async () => {
     DbCommand.new({
       dev: DbSeed.new(),
     }).parse(['dev']),
-  ).rejects.toThrowError()
+  ).rejects.toThrow()
 })

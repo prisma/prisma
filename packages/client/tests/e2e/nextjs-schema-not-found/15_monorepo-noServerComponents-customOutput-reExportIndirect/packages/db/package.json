@@ -1,0 +1,18 @@
+{
+  "name": "db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "prisma generate"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "18.11.18",
+    "prisma": "../../../../prisma-0.0.0.tgz"
+  },
+  "dependencies": {
+    "@prisma/client": "../../../../prisma-client-0.0.0.tgz"
+  }
+}

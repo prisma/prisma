@@ -1,11 +1,8 @@
-import chalk from 'chalk'
+import { getDMMF } from '@prisma/internals'
 
 import { enums } from '../fixtures/enums'
-import { getDMMF } from '../generation/getDMMF'
 import { DMMFClass, makeDocument, transformDocument } from '../runtime'
 import { MergedExtensionsList } from '../runtime/core/extensions/MergedExtensionsList'
-
-chalk.level = 0
 
 describe('scalar where transformation', () => {
   let dmmf

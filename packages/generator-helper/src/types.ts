@@ -47,8 +47,9 @@ export interface EnvValue {
 }
 
 export interface BinaryTargetsEnvValue {
-  fromEnvVar: null | string
+  fromEnvVar: string | null
   value: string
+  native?: boolean
 }
 
 export type ConnectorType =
@@ -77,7 +78,6 @@ export type BinaryPaths = {
   migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
-  introspectionEngine?: { [binaryTarget: string]: string }
 }
 
 /** The options passed to the generator implementations */
@@ -94,9 +94,10 @@ export type GeneratorOptions = {
   version: string // version hash
   binaryPaths?: BinaryPaths
   dataProxy: boolean
+  postinstall?: boolean
 }
 
-export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine'
+export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine'
 
 export type GeneratorManifest = {
   prettyName?: string

@@ -3,45 +3,41 @@ import indent from 'indent-string'
 import type { DMMFHelper } from '../../runtime/dmmf'
 import type { DMMF } from '../../runtime/dmmf-types'
 import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../../runtime/utils/common'
-import { buildComment } from '../utils/types/buildComment'
+import * as ts from '../ts-builders'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { wrapComment } from './helpers'
-import { ifExtensions } from './utils/ifExtensions'
 
-export class ModelOutputField implements Generatable {
-  constructor(
-    protected readonly dmmf: DMMFHelper,
-    protected readonly field: DMMF.Field,
-    protected readonly useNamespace = false,
-  ) {}
-  public toTS(): string {
-    const { field, useNamespace } = this
-    // ENUMTODO
-    let fieldType = GraphQLScalarToJSTypeTable[field.type] || field.type
-    if (Array.isArray(fieldType)) {
-      fieldType = fieldType[0]
-    }
-    const arrayStr = field.isList ? `[]` : ''
-    const nullableStr = !field.isRequired && !field.isList ? ' | null' : ''
-    const namespaceStr = useNamespace && needsNamespace(field.type, this.dmmf) ? `Prisma.` : ''
-
-    return ifExtensions(
-      () => {
-        if (field.kind === 'object') {
-          fieldType = `${fieldType}Payload`
-          return `${buildComment(field.documentation)}${
-            field.name
-          }: ${namespaceStr}${fieldType}<ExtArgs>${arrayStr}${nullableStr}`
-        }
-
-        return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
-      },
-      () => {
-        return `${buildComment(field.documentation)}${field.name}: ${namespaceStr}${fieldType}${arrayStr}${nullableStr}`
-      },
-    )
+export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper, useNamespace = false) {
+  let fieldTypeName = GraphQLScalarToJSTypeTable[field.type] || field.type
+  if (Array.isArray(fieldTypeName)) {
+    fieldTypeName = fieldTypeName[0]
   }
+  if (useNamespace && needsNamespace(field.type, dmmf)) {
+    fieldTypeName = `Prisma.${fieldTypeName}`
+  }
+  let fieldType: ts.TypeBuilder
+  if (field.kind === 'object') {
+    const payloadType = ts.namedType(`${fieldTypeName}Payload`)
+    if (!dmmf.typeMap[field.type]) {
+      // not a composite
+      payloadType.addGenericArgument(ts.namedType('ExtArgs'))
+    }
+    fieldType = payloadType
+  } else {
+    fieldType = ts.namedType(fieldTypeName)
+  }
+
+  if (field.isList) {
+    fieldType = ts.array(fieldType)
+  } else if (!field.isRequired) {
+    fieldType = ts.unionType(fieldType).addVariant(ts.nullType)
+  }
+  const property = ts.property(field.name, fieldType)
+  if (field.documentation) {
+    property.setDocComment(ts.docComment(field.documentation))
+  }
+  return property
 }
 
 export class OutputField implements Generatable {

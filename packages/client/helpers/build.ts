@@ -1,23 +1,36 @@
+import fs from 'fs'
 import path from 'path'
 
 import type { BuildOptions } from '../../../helpers/compile/build'
 import { build } from '../../../helpers/compile/build'
 import { fillPlugin } from '../../../helpers/compile/plugins/fill-plugin/fillPlugin'
+import { noSideEffectsPlugin } from '../../../helpers/compile/plugins/noSideEffectsPlugin'
 
 const fillPluginPath = path.join('..', '..', 'helpers', 'compile', 'plugins', 'fill-plugin')
 const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
+const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
-const nodeRuntimeBuildConfig: BuildOptions = {
-  name: 'runtime',
-  entryPoints: ['src/runtime/index.ts'],
-  outfile: 'runtime/index',
-  bundle: true,
-  define: {
-    NODE_CLIENT: 'true',
-    // that fixes an issue with lz-string umd builds
-    'define.amd': 'false',
-  },
+function nodeRuntimeBuildConfig(
+  targetEngineType: 'binary' | 'library' | 'data-proxy' | 'all',
+  outFileName: string = targetEngineType,
+): BuildOptions {
+  return {
+    name: targetEngineType,
+    entryPoints: ['src/runtime/index.ts'],
+    outfile: `runtime/${outFileName}`,
+    bundle: true,
+    minify: true,
+    sourcemap: 'linked',
+    emitTypes: targetEngineType === 'all',
+    define: {
+      NODE_CLIENT: 'true',
+      TARGET_ENGINE_TYPE: JSON.stringify(targetEngineType),
+      // that fixes an issue with lz-string umd builds
+      'define.amd': 'false',
+    },
+    plugins: [noSideEffectsPlugin(/^(arg|lz-string)$/)],
+  }
 }
 
 // we define the config for browser
@@ -37,11 +50,13 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   outfile: 'runtime/edge',
   bundle: true,
   minify: true,
+  sourcemap: 'linked',
   legalComments: 'none',
   emitTypes: false,
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
+    TARGET_ENGINE_TYPE: '"data-proxy"',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
@@ -56,9 +71,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
 
       // TODO no tree shaking on wrapper pkgs
       '@prisma/get-platform': { contents: '' },
-      // removes un-needed code out of `chalk`
-      'supports-color': { contents: '' },
-      // these can not be exported any longer
+      // these can not be exported anymore
       './warnEnvConflicts': { contents: '' },
       './utils/find': { contents: '' },
     }),
@@ -83,10 +96,22 @@ const generatorBuildConfig: BuildOptions = {
   emitTypes: false,
 }
 
+function writeDtsRexport(fileName: string) {
+  fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./index"\n')
+}
+
 void build([
   generatorBuildConfig,
-  nodeRuntimeBuildConfig,
+  // Exists for backward compatibility. Could be removed in next major
+  nodeRuntimeBuildConfig('all', 'index'),
+  nodeRuntimeBuildConfig('binary'),
+  nodeRuntimeBuildConfig('library'),
+  nodeRuntimeBuildConfig('data-proxy'),
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
-])
+]).then(() => {
+  writeDtsRexport('binary.d.ts')
+  writeDtsRexport('library.d.ts')
+  writeDtsRexport('data-proxy.d.ts')
+})

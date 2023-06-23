@@ -1,4 +1,4 @@
-import type { Engine, Metric, MetricHistogram, MetricHistogramBucket, Metrics } from '@prisma/engine-core'
+import type { Engine, Metric, MetricHistogram, MetricHistogramBucket, Metrics } from '../engines'
 
 export type MetricsOptions = {
   /**

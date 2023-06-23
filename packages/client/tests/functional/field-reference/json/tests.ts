@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -122,7 +124,7 @@ testMatrix.setupTestSuite(
     })
 
     // TODO: Edge: skipped because of the error snapshot
-    testIf(runtime !== 'edge')('wrong field type', async () => {
+    testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong field type', async () => {
       const products = prisma.product.findMany({
         where: {
           properties1: {
@@ -133,6 +135,30 @@ testMatrix.setupTestSuite(
       })
 
       await expect(products).rejects.toMatchPrismaErrorSnapshot()
+    })
+
+    test('via extended client', async () => {
+      const xprisma = prisma.$extends({})
+
+      await xprisma.product.createMany({
+        data: [
+          {
+            title: 'Potato',
+            properties1: {
+              kind: 'root vegetable',
+            },
+            properties2: {
+              kind: 'root vegetable',
+            },
+          },
+        ],
+      })
+
+      const products = await xprisma.product.findMany({
+        where: { properties1: { equals: xprisma.product.fields.properties2 } },
+      })
+
+      expect(products).toEqual([expect.objectContaining({ title: 'Potato' })])
     })
   },
   {

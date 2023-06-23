@@ -39,6 +39,15 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/ban-ts-comment': 'off',
     '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        // don't complain if we are omitting properties using spread operator, i.e. const { ignored, ...rest } = someObject
+        ignoreRestSiblings: true,
+        // for functions, allow to have unused arguments if they start with _. We need to do this from time to time to test type inference within the tests
+        argsIgnorePattern: '^_',
+      },
+    ],
     'eslint-comments/no-unlimited-disable': 'off',
     'eslint-comments/disable-enable-pair': 'off',
     '@typescript-eslint/no-misused-promises': 'off',
@@ -61,17 +70,8 @@ module.exports = {
     '@typescript-eslint/restrict-template-expressions': 'off',
     'jest/no-conditional-expect': 'off',
     'jest/no-export': 'off',
+    'jest/no-standalone-expect': 'off',
     '@typescript-eslint/no-empty-interface': 'off',
-    // Allow the `testIf`/`describeIf` pattern.
-    // TODO: it's not exactly correct to have `describeIf` in `additionalTestBlockFunctions`,
-    // but it's better than disabling the rule completely for files that need `describeIf`.
-    // Ideally, a new option like `additionalDescribeBlockFunctions` should be implemented in the rule.
-    'jest/no-standalone-expect': [
-      'error',
-      {
-        additionalTestBlockFunctions: ['testIf', 'describeIf'],
-      },
-    ],
     // https://github.com/lydell/eslint-plugin-simple-import-sort
     'simple-import-sort/imports': 'error',
     'simple-import-sort/exports': 'error',

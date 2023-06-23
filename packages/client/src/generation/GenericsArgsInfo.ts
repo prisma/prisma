@@ -1,6 +1,5 @@
 import { DMMF } from '../runtime/dmmf-types'
 import { Cache } from './Cache'
-import { getType } from './utils'
 
 type ToVisitItem = {
   key: string

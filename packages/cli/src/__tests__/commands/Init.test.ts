@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
@@ -196,7 +196,7 @@ test('works with provider param - MongoDB', async () => {
 test('errors with invalid provider param', async () => {
   ctx.fixture('init')
   const result = ctx.cli('init', '--datasource-provider', 'INVALID')
-  await expect(result).rejects.toThrowError()
+  await expect(result).rejects.toThrow()
 })
 
 test('warns when DATABASE_URL present in .env ', async () => {

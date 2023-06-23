@@ -1,6 +1,6 @@
 import { DMMF } from '@prisma/generator-helper'
-import chalk from 'chalk'
 import indentString from 'indent-string'
+import { bold, dim, gray, red, underline } from 'kleur/colors'
 
 import { CallSite, LocationInFile } from './CallSite'
 import { SourceFileSlice } from './SourceFileSlice'
@@ -24,11 +24,11 @@ type Colors = {
 }
 
 const colorsEnabled: Colors = {
-  red: (str) => chalk.red(str),
-  gray: (str) => chalk.gray(str),
-  dim: (str) => chalk.dim(str),
-  bold: (str) => chalk.bold(str),
-  underline: (str) => chalk.underline(str),
+  red,
+  gray,
+  dim,
+  bold,
+  underline,
   highlightSource: (source) => source.highlight(),
 }
 
@@ -111,12 +111,17 @@ function getTemplateParameters(
 
 function findPrismaActionCall(str: string): { code: string; openingBraceIndex: number } | null {
   const allActions = Object.keys(DMMF.ModelAction).join('|')
-  const regexp = new RegExp(String.raw`\S+(${allActions})\(`)
+  const regexp = new RegExp(String.raw`\.(${allActions})\(`)
   const match = regexp.exec(str)
   if (match) {
+    const openingBraceIndex = match.index + match[0].length
+    // to get the code we are slicing the string up to a found brace. We start
+    // with first non-space character if space is found in the line before that or
+    // 0 if it is not.
+    const statementStart = str.lastIndexOf(' ', match.index) + 1
     return {
-      code: match[0],
-      openingBraceIndex: match.index + match[0].length,
+      code: str.slice(statementStart, openingBraceIndex),
+      openingBraceIndex,
     }
   }
   return null

@@ -1,12 +1,11 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType } from '@prisma/fetch-engine'
-import { getPlatform } from '@prisma/get-platform'
+import { getPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 
 import { getGenerators } from '../../get-generators/getGenerators'
 import { resolveBinary } from '../../resolveBinary'
-import { jestConsoleContext, jestContext } from '../../utils/jestContext'
 import { omit } from '../../utils/omit'
 import { pick } from '../../utils/pick'
 
@@ -362,7 +361,7 @@ describe('getGenerators', () => {
 
     expect(generator.binaryTargets).toHaveLength(1)
     expect(generator.binaryTargets[0].value).toEqual(platform)
-    expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
+    expect(generator.binaryTargets[0].fromEnvVar).toEqual(null)
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
       {
@@ -454,23 +453,23 @@ describe('getGenerators', () => {
       {
         "binaryTargets": [
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "darwin",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "darwin-arm64",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "windows",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "debian-openssl-1.1.x",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "debian-openssl-3.0.x",
           },
         ],
@@ -561,7 +560,7 @@ describe('getGenerators', () => {
       {
         "binaryTargets": [
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "linux-musl",
           },
         ],
@@ -593,7 +592,7 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary(BinaryType.migrationEngine)
+    const migrationEngine = await resolveBinary(BinaryType.MigrationEngineBinary)
 
     const queryEngineBinaryType = getCliQueryEngineBinaryType()
     const queryEnginePath = await resolveBinary(queryEngineBinaryType)
@@ -615,6 +614,38 @@ describe('getGenerators', () => {
     expect(options[0]?.queryEngine?.[platform]).toBe(queryEnginePath)
     // we did not override the migrationEngine, so their paths should not be equal
     expect(options[0]?.migrationEngine?.[platform]).not.toBe(migrationEngine)
+
+    generators.forEach((g) => g.stop())
+  })
+
+  test('filter generator names', async () => {
+    const aliases = {
+      'predefined-generator-1': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-2': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-3': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    const generators = await getGenerators({
+      schemaPath: path.join(__dirname, 'multiple-generators-schema.prisma'),
+      dataProxy: false,
+      providerAliases: aliases,
+      generatorNames: ['client_1', 'client_3'],
+    })
+
+    expect(generators).toHaveLength(2)
+    expect(generators[0].config.name).toEqual('client_1')
+    expect(generators[0].getProvider()).toEqual('predefined-generator-1')
+    expect(generators[1].config.name).toEqual('client_3')
+    expect(generators[1].getProvider()).toEqual('predefined-generator-3')
 
     generators.forEach((g) => g.stop())
   })
@@ -774,7 +805,7 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
   })
 
-  test('fail if dataProxy and tracing are used together - prisma-client-js - postgres', async () => {
+  test('fail if dataProxy and metrics are used together - prisma-client-js - postgres', async () => {
     expect.assertions(5)
     const aliases = {
       'predefined-generator': {
@@ -785,7 +816,7 @@ describe('getGenerators', () => {
 
     try {
       await getGenerators({
-        schemaPath: path.join(__dirname, 'proxy-and-tracing-client-js.prisma'),
+        schemaPath: path.join(__dirname, 'proxy-and-metrics-client-js.prisma'),
         providerAliases: aliases,
         skipDownload: true,
         dataProxy: true,
@@ -793,8 +824,8 @@ describe('getGenerators', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        tracing preview feature is not yet available with --data-proxy.
-        Please remove tracing from the previewFeatures in your schema.
+        metrics preview feature is not yet available with --data-proxy.
+        Please remove metrics from the previewFeatures in your schema.
 
         More information about Data Proxy: https://pris.ly/d/data-proxy
         "
@@ -805,5 +836,37 @@ describe('getGenerators', () => {
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(`""`)
+  })
+
+  test('fail if generator not found', async () => {
+    expect.assertions(1)
+
+    const aliases = {
+      'predefined-generator-1': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-2': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+      'predefined-generator-3': {
+        generatorPath: generatorPath,
+        outputPath: __dirname,
+      },
+    }
+
+    try {
+      await getGenerators({
+        schemaPath: path.join(__dirname, 'multiple-generators-schema.prisma'),
+        dataProxy: false,
+        providerAliases: aliases,
+        generatorNames: ['client_1', 'invalid_generator'],
+      })
+    } catch (e) {
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(
+        `"The generator invalid_generator specified via --generator does not exist in your Prisma schema"`,
+      )
+    }
   })
 })

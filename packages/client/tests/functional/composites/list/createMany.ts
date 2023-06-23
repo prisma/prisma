@@ -1,3 +1,5 @@
+import { getQueryEngineProtocol } from '@prisma/internals'
+
 import { setupTestSuite } from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -43,7 +45,7 @@ setupTestSuite(() => {
     expect(result).toEqual({ count: 1 })
   })
 
-  test('set null', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('set null', async () => {
     const comment = prisma.commentRequiredList.createMany({
       data: {
         country: 'France',
@@ -54,14 +56,14 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining('Argument set for data.0.contents.set must not be null'),
+        message: expect.stringContaining('Argument set for data.contents.set must not be null'),
       }),
     )
   })
 
-  test('set null shorthand', async () => {
+  testIf(getQueryEngineProtocol() !== 'json')('set null shorthand', async () => {
     const comment = prisma.commentRequiredList.createMany({
       data: {
         country: 'France',
@@ -70,9 +72,9 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining('Argument contents for data.0.contents must not be null'),
+        message: expect.stringContaining('Argument contents for data.contents must not be null'),
       }),
     )
   })

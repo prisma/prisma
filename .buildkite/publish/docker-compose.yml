@@ -38,7 +38,10 @@ services:
       # Functional test URLS
       - TEST_FUNCTIONAL_POSTGRES_URI=postgres://prisma:prisma@postgres:5432/PRISMA_DB_NAME
       - TEST_FUNCTIONAL_MYSQL_URI=mysql://root:root@mysql:3306/PRISMA_DB_NAME
-      - TEST_FUNCTIONAL_VITESS_8_URI=mysql://root:root@localhost:33807/PRISMA_DB_NAME
+      - TEST_FUNCTIONAL_VITESS_8_URI=mysql://root:root@vitess-8:33807/PRISMA_DB_NAME
+      # Currently skipped because it failed with
+      # [2023-02-01T21:03:42Z]       target: test-vitess-80.0.primary: no healthy tablet available for 'keyspace:"test-vitess-80" shard:"0" tablet_type:PRIMARY'
+      - TEST_SKIP_VITESS=true
       - TEST_FUNCTIONAL_MSSQL_URI=sqlserver://mssql:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
       - TEST_FUNCTIONAL_MONGO_URI=mongodb://root:prisma@mongo:27018/PRISMA_DB_NAME?authSource=admin
       - TEST_FUNCTIONAL_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/PRISMA_DB_NAME
@@ -70,19 +73,17 @@ services:
       - postgres_isolated
       - mysql
       - mysql_isolated
+      # - vitess-8
       - mariadb
       - mssql
       - mongo
       - mongodb_migrate
       - mongodb_migrate_seed
       - cockroachdb
-  # TODO: uncomment when we test vitess in client functional test suite
-  # Currently we only test `relationMode` tests in GitHub Actions
-  #      - vitess-8
 
   postgres:
     image: postgres:10
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
@@ -92,7 +93,7 @@ services:
 
   postgres_isolated:
     image: postgres:10
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
@@ -102,7 +103,7 @@ services:
 
   cockroachdb:
     image: prismagraphql/cockroachdb-custom:22.1.0
-    restart: always
+    restart: unless-stopped
     command: start-single-node --insecure
     ports:
       - '26257:26257'
@@ -110,7 +111,7 @@ services:
   mysql:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -121,7 +122,7 @@ services:
   mysql_isolated:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -131,8 +132,8 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:1924ce05dce58173590540f9ab7f218ac7507aa4379e8feaa56738263dda7b19
-    restart: always
+    image: vitess/vttestserver:mysql80@sha256:d7486215316e352aecc6f34d4a3024017d79377e2a09545a7990b6aa4ea8d6a2
+    restart: unless-stopped
     ports:
       - 33807:33807
     environment:
@@ -145,7 +146,7 @@ services:
 
   mariadb:
     image: mariadb:10.7.3
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -156,7 +157,7 @@ services:
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
-    restart: always
+    restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=Pr1sm4_Pr1sm4
@@ -165,7 +166,7 @@ services:
 
   mongodb_migrate:
     image: mongo:4
-    restart: always
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma

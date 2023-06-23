@@ -1,9 +1,8 @@
-import { getConfig, parseEnvValue } from '@prisma/internals'
+import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
 import fs from 'fs/promises'
 import path from 'path'
 
 import { generateClient } from '../../../src/generation/generateClient'
-import { getDMMF } from '../../../src/generation/getDMMF'
 import { MemoryTestDir } from './MemoryTestDir'
 
 export async function generateMemoryTestClient(testDir: MemoryTestDir) {
@@ -36,6 +35,6 @@ export async function generateMemoryTestClient(testDir: MemoryTestDir) {
       edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime', 'edge'].join('/'),
     },
     projectRoot: testDir.basePath,
-    dataProxy: !!process.env.DATA_PROXY,
+    dataProxy: !!process.env.TEST_DATA_PROXY,
   })
 }

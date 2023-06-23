@@ -1,4 +1,6 @@
-import runtime from '@prisma/client/runtime'
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+import * as runtime from '@prisma/client/runtime'
 
 /**
  * ##  Prisma Client ʲˢ
@@ -12,7 +14,7 @@ import runtime from '@prisma/client/runtime'
  * ```
  *
  *
- * Read more in our [docs](https://github.com/prisma/prisma/blob/main/docs/prisma-client-js/api.md).
+ * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client).
  */
 export declare const PrismaClient: any
 
@@ -28,24 +30,37 @@ export declare const PrismaClient: any
  * ```
  *
  *
- * Read more in our [docs](https://github.com/prisma/prisma/blob/main/docs/prisma-client-js/api.md).
+ * Read more in our [docs](https://www.prisma.io/docs/concepts/components/prisma-client).
  */
 export declare type PrismaClient = any
 
-export declare type PrismaClientExtends<
+export declare class PrismaClientExtends<
   ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs,
-> = {
+> {
   $extends: { extArgs: ExtArgs } & (<
     R extends runtime.Types.Extensions.UserArgs['result'] = {},
     M extends runtime.Types.Extensions.UserArgs['model'] = {},
     Q extends runtime.Types.Extensions.UserArgs['query'] = {},
     C extends runtime.Types.Extensions.UserArgs['client'] = {},
-    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, Q, C>,
+    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, {}, C>,
   >(
     args:
       | ((client: PrismaClientExtends<ExtArgs>) => { $extends: { extArgs: Args } })
-      | { name?: string; result?: R; model?: M; query?: Q; client?: C },
-  ) => PrismaClientExtends<Args & ExtArgs>)
+      | { name?: string }
+      | { result?: R & runtime.Types.Extensions.UserArgs['result'] }
+      | { model?: M & runtime.Types.Extensions.UserArgs['model'] }
+      | { query?: Q & runtime.Types.Extensions.UserArgs['query'] }
+      | { client?: C & runtime.Types.Extensions.UserArgs['client'] },
+  ) => PrismaClientExtends<Args & ExtArgs> & Args['client'])
+
+  $transaction<R>(
+    fn: (prisma: Omit<this, runtime.ITXClientDenyList>) => Promise<R>,
+    options?: { maxWait?: number; timeout?: number; isolationLevel?: string },
+  ): Promise<R>
+  $transaction<P extends Prisma.PrismaPromise<any>[]>(
+    arg: [...P],
+    options?: { isolationLevel?: string },
+  ): Promise<runtime.Types.Utils.UnwrapTuple<P>>
 }
 
 export declare const dmmf: any
@@ -69,17 +84,27 @@ export namespace Prisma {
     M extends runtime.Types.Extensions.UserArgs['model'] = {},
     Q extends runtime.Types.Extensions.UserArgs['query'] = {},
     C extends runtime.Types.Extensions.UserArgs['client'] = {},
-    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, Q, C>,
+    Args extends runtime.Types.Extensions.Args = runtime.Types.Extensions.InternalArgs<R, M, {}, C>,
   >(
     args:
       | ((client: PrismaClientExtends) => { $extends: { extArgs: Args } })
-      | { name?: string; result?: R; model?: M; query?: Q; client?: C },
+      | { name?: string }
+      | { result?: R & runtime.Types.Extensions.UserArgs['result'] }
+      | { model?: M & runtime.Types.Extensions.UserArgs['model'] }
+      | { query?: Q & runtime.Types.Extensions.UserArgs['query'] }
+      | { client?: C & runtime.Types.Extensions.UserArgs['client'] },
   ): (client: any) => PrismaClientExtends<Args>
 
   export type Extension = runtime.Types.Extensions.UserArgs
   export import getExtensionContext = runtime.Extensions.getExtensionContext
-  export type Args<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Args<T, F> & {}
-  export type Payload<T, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Payload<T, F> & {}
-  export type Result<T, A, F extends runtime.Types.Public.Operation> = runtime.Types.Public.Result<T, A, F> & {}
-  export type Exact<T, W> = runtime.Types.Public.Exact<T, W> & {}
+  export import Args = runtime.Types.Public.Args
+  export import Payload = runtime.Types.Public.Payload
+  export import Result = runtime.Types.Public.Result
+  export import Exact = runtime.Types.Public.Exact
+  export import PrismaPromise = runtime.Types.Public.PrismaPromise
+
+  export const prismaVersion: {
+    client: string
+    engine: string
+  }
 }

@@ -18,6 +18,8 @@ const args = arg(
     '--no-types': Boolean,
     // Only typecheck, don't run the code tests
     '--types-only': Boolean,
+    // Generates all the clients to run the type tests
+    '--generate-only': Boolean,
     // Restrict the list of providers
     '--provider': [String],
     '-p': '--provider',
@@ -30,7 +32,7 @@ const args = arg(
     '--no-mini-proxy-server': Boolean,
     // Enable debug logs in the bundled Mini-Proxy server
     '--mini-proxy-debug': Boolean,
-    // Since `relationMode` tests need to be run with 2 different values
+    // Since `relationMode-in-separate-gh-action` tests need to be run with 2 different values
     // `foreignKeys` and `prisma`
     // We run them separately in a GitHub Action matrix for now
     // Also the typescript tests fail and it might not be easily fixable
@@ -47,13 +49,15 @@ const args = arg(
     '--changedFilesWithAncestor': Boolean,
     // Passes the same flag to Jest to shard tests between multiple machines
     '--shard': String,
+    // Passes the same flag to Jest to silence the output
+    '--silent': Boolean,
   },
   true,
   true,
 )
 
 async function main(): Promise<number | void> {
-  let jestCli = new JestCli(['--verbose', '--config', 'tests/functional/jest.config.js'])
+  let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
 
   if (args['--provider']) {
@@ -72,7 +76,7 @@ async function main(): Promise<number | void> {
     }
 
     jestCli = jestCli.withEnv({
-      DATA_PROXY: 'true',
+      TEST_DATA_PROXY: 'true',
     })
 
     if (args['--edge-client']) {
@@ -106,8 +110,10 @@ async function main(): Promise<number | void> {
 
   // See flag description above.
   // If the flag is not provided we want to ignore `relationMode` tests
-  if (!args['--relation-mode-tests-only']) {
-    jestArgs.push('--testPathIgnorePatterns', 'relationMode')
+  if (args['--relation-mode-tests-only']) {
+    jestArgs.push('--runInBand')
+  } else {
+    jestArgs.push('--testPathIgnorePatterns', 'relationMode-in-separate-gh-action')
   }
 
   if (args['--onlyChanged']) {
@@ -119,6 +125,9 @@ async function main(): Promise<number | void> {
   if (args['--shard']) {
     jestArgs.push('--shard', args['--shard'])
   }
+  if (args['--silent']) {
+    jestArgs.push('--silent')
+  }
   const codeTestCli = jestCli.withArgs(jestArgs)
 
   try {
@@ -128,10 +137,17 @@ async function main(): Promise<number | void> {
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {
       if (!args['--types-only']) {
-        codeTestCli.withArgs(['--']).withArgs(args['_']).run()
+        codeTestCli
+          .withArgs(['--', args['_']])
+          .withEnv({
+            TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false',
+          })
+          .run()
       }
 
       if (!args['--no-types']) {
+        // Disable JUnit output for typescript tests
+        process.env.JEST_JUNIT_DISABLE = 'true'
         jestCli.withArgs(['--', 'typescript']).run()
       }
     }
@@ -156,7 +172,7 @@ async function getBinaryForMiniProxy(): Promise<string> {
 
   const paths = await setupQueryEngine()
   const platform = await getPlatform()
-  const qePath = paths[BinaryType.queryEngine]?.[platform]
+  const qePath = paths[BinaryType.QueryEngineBinary]?.[platform]
 
   if (!qePath) {
     throw new Error('Query Engine binary missing')
