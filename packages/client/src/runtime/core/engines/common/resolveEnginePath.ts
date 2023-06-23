@@ -43,7 +43,8 @@ export async function resolveEnginePath(engineType: 'binary' | 'library', config
   debug('enginePath', enginePath)
 
   // if we find it, we apply +x chmod to the binary, cache, and return
-  if (enginePath !== undefined && engineType === 'binary') plusX(enginePath)
+  // Note: we only do this on non-windows platforms as chmod on Windows errors with `EACCES: permission denied`
+  if (process.platform !== 'win32' && enginePath !== undefined && engineType === 'binary') plusX(enginePath)
   if (enginePath !== undefined) return (config.prismaPath = enginePath)
 
   // if we don't find it, then we will throw helpful error messages
