@@ -14957,13 +14957,8 @@ exports[`getDMMF success @@unique model 1`] = `
                   "namespace": "prisma",
                   "type": "UserWhereInput",
                 },
-                {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Null",
-                },
               ],
-              "isNullable": true,
+              "isNullable": false,
               "isRequired": false,
               "name": "is",
             },
@@ -14975,13 +14970,8 @@ exports[`getDMMF success @@unique model 1`] = `
                   "namespace": "prisma",
                   "type": "UserWhereInput",
                 },
-                {
-                  "isList": false,
-                  "location": "scalar",
-                  "type": "Null",
-                },
               ],
-              "isNullable": true,
+              "isNullable": false,
               "isRequired": false,
               "name": "isNot",
             },
@@ -18724,7 +18714,7 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
-                  "type": "PostUncheckedUpdateManyWithoutPostsInput",
+                  "type": "PostUncheckedUpdateManyWithoutAuthorInput",
                 },
               ],
               "isNullable": false,
@@ -19101,7 +19091,7 @@ exports[`getDMMF success @@unique model 1`] = `
               "name": "published",
             },
           ],
-          "name": "PostUncheckedUpdateManyWithoutPostsInput",
+          "name": "PostUncheckedUpdateManyWithoutAuthorInput",
         },
       ],
     },
@@ -24027,7 +24017,7 @@ exports[`getDMMF success @@unique model 1`] = `
 
 exports[`getDMMF success big schema read via datamodel path 1`] = `142569472`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `919599`;
+exports[`getDMMF success chinook introspected schema 1`] = `924800`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -24146,7 +24136,7 @@ exports[`getDMMF success if a datamodel is provided, succeeds even when a non-ex
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `134808977`;
+exports[`getDMMF success odoo introspected schema 1`] = `135186022`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {

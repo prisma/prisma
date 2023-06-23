@@ -16422,7 +16422,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
-    one?: XOR<OneOptionalRelationFilter, OneOptionalWhereInput> | null
+    one?: XOR<OneOptionalNullableRelationFilter, OneOptionalWhereInput> | null
   }
 
   export type ManyRequiredOrderByWithRelationInput = {
@@ -16507,7 +16507,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
-    opti?: XOR<OptionalSide2RelationFilter, OptionalSide2WhereInput> | null
+    opti?: XOR<OptionalSide2NullableRelationFilter, OptionalSide2WhereInput> | null
   }
 
   export type OptionalSide1OrderByWithRelationInput = {
@@ -16592,7 +16592,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
-    opti?: XOR<OptionalSide1RelationFilter, OptionalSide1WhereInput> | null
+    opti?: XOR<OptionalSide1NullableRelationFilter, OptionalSide1WhereInput> | null
   }
 
   export type OptionalSide2OrderByWithRelationInput = {
@@ -18164,8 +18164,8 @@ export namespace Prisma {
   }
 
   export type UserRelationFilter = {
-    is?: UserWhereInput | null
-    isNot?: UserWhereInput | null
+    is?: UserWhereInput
+    isNot?: UserWhereInput
   }
 
   export type SortOrderInput = {
@@ -18789,7 +18789,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OneOptionalRelationFilter = {
+  export type OneOptionalNullableRelationFilter = {
     is?: OneOptionalWhereInput | null
     isNot?: OneOptionalWhereInput | null
   }
@@ -18859,7 +18859,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OptionalSide2RelationFilter = {
+  export type OptionalSide2NullableRelationFilter = {
     is?: OptionalSide2WhereInput | null
     isNot?: OptionalSide2WhereInput | null
   }
@@ -18929,7 +18929,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OptionalSide1RelationFilter = {
+  export type OptionalSide1NullableRelationFilter = {
     is?: OptionalSide1WhereInput | null
     isNot?: OptionalSide1WhereInput | null
   }
@@ -20111,7 +20111,7 @@ export namespace Prisma {
 
   export type PostUpdateManyWithWhereWithoutAuthorInput = {
     where: PostScalarWhereInput
-    data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyWithoutPostsInput>
+    data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyWithoutAuthorInput>
   }
 
   export type PostScalarWhereInput = {
@@ -20175,7 +20175,7 @@ export namespace Prisma {
 
   export type NUpdateManyWithWhereWithoutMInput = {
     where: NScalarWhereInput
-    data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyWithoutNInput>
+    data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyWithoutMInput>
   }
 
   export type NScalarWhereInput = {
@@ -20246,7 +20246,7 @@ export namespace Prisma {
 
   export type MUpdateManyWithWhereWithoutNInput = {
     where: MScalarWhereInput
-    data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyWithoutMInput>
+    data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyWithoutNInput>
   }
 
   export type MScalarWhereInput = {
@@ -20322,7 +20322,7 @@ export namespace Prisma {
 
   export type ManyRequiredUpdateManyWithWhereWithoutOneInput = {
     where: ManyRequiredScalarWhereInput
-    data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyWithoutManyInput>
+    data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyWithoutOneInput>
   }
 
   export type ManyRequiredScalarWhereInput = {
@@ -20584,7 +20584,7 @@ export namespace Prisma {
     published?: BoolFieldUpdateOperationsInput | boolean
   }
 
-  export type PostUncheckedUpdateManyWithoutPostsInput = {
+  export type PostUncheckedUpdateManyWithoutAuthorInput = {
     id?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
@@ -20623,7 +20623,7 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
-  export type NUncheckedUpdateManyWithoutNInput = {
+  export type NUncheckedUpdateManyWithoutMInput = {
     id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -20670,7 +20670,7 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
-  export type MUncheckedUpdateManyWithoutMInput = {
+  export type MUncheckedUpdateManyWithoutNInput = {
     id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -20733,7 +20733,7 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
-  export type ManyRequiredUncheckedUpdateManyWithoutManyInput = {
+  export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
     id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null

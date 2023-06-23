@@ -31,8 +31,8 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
                ?   OR?: UserWhereInput[],
                ?   NOT?: UserWhereInput | UserWhereInput[],
                ?   posts?: PostListRelationFilter,
-               ?   profile?: ProfileRelationFilter | ProfileWhereInput | Null,
-               ?   payment?: PaymentRelationFilter | PaymentWhereInput | Null
+               ?   profile?: ProfileNullableRelationFilter | ProfileWhereInput | Null,
+               ?   payment?: PaymentNullableRelationFilter | PaymentWhereInput | Null
                  }
                })
 
@@ -66,7 +66,7 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
              ?   OR?: UserWhereInput[],
              ?   NOT?: UserWhereInput | UserWhereInput[],
              ?   posts?: PostListRelationFilter,
-             ?   payment?: PaymentRelationFilter | PaymentWhereInput | Null
+             ?   payment?: PaymentNullableRelationFilter | PaymentWhereInput | Null
                }
              })
 
