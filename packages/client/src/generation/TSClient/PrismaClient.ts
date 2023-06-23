@@ -3,17 +3,18 @@ import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
 import { Operation } from '../../runtime/core/types/GetResult'
-import type { DMMFHelper } from '../../runtime/dmmf'
-import { capitalize, lowerCase } from '../../runtime/utils/common'
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
 import {
+  capitalize,
   getAggregateName,
   getCountAggregateOutputName,
   getFieldRefsTypeName,
   getGroupByName,
   getModelArgName,
 } from '../utils'
+import { lowerCase } from '../utils/common'
 import { runtimeImport } from '../utils/runtimeImport'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'

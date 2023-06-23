@@ -1,8 +1,8 @@
 import pluralize from 'pluralize'
 
-import { DMMF } from '../../runtime/dmmf-types'
-import { capitalize, lowerCase } from '../../runtime/utils/common'
+import { DMMF } from '../dmmf-types'
 import { getAggregateArgsName, getModelArgName } from '../utils'
+import { capitalize, lowerCase } from '../utils/common'
 import type { JSDocMethodBodyCtx } from './jsdoc'
 import { JSDocs } from './jsdoc'
 

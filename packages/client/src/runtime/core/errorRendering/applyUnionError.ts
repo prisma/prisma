@@ -69,7 +69,7 @@ function mergeInvalidArgumentTypeErrors(errorList: NonUnionError[]) {
         ...error,
         argument: {
           ...error.argument,
-          typeNames: prevError.argument.typeNames.concat(error.argument.typeNames),
+          typeNames: uniqueConcat(prevError.argument.typeNames, error.argument.typeNames),
         },
       })
     }
@@ -77,6 +77,10 @@ function mergeInvalidArgumentTypeErrors(errorList: NonUnionError[]) {
 
   result.push(...invalidArgsError.values())
   return result
+}
+
+function uniqueConcat<T>(head: T[], tail: T[]): T[] {
+  return [...new Set(head.concat(tail))]
 }
 
 /**
@@ -127,6 +131,8 @@ function getCombinedPathLength(error: EngineValidationError) {
  * this spot, it's just that value provided has incorrect type.
  * - All other engine-side errors follow. At that point it's difficult to say which of them is more relevant,
  * so we treat them equally. We might adjust this logic in the future.
+ * - RequiredArgumentMissing is penalized because this error is often used to disambiguate
+ * union types and what is required in one arm of the union might be fine to leave out in another
  * @param error
  * @returns
  */
@@ -137,6 +143,8 @@ function getErrorTypeScore(error: EngineValidationError): number {
       return 20
     case 'InvalidArgumentType':
       return 10
+    case 'RequiredArgumentMissing':
+      return -10
     default:
       return 0
   }

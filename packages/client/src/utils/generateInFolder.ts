@@ -8,7 +8,6 @@ import {
   getConfig,
   getDMMF,
   getPackedPackage,
-  mapPreviewFeatures,
 } from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import fs from 'fs'
@@ -50,7 +49,7 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = extractPreviewFeatures(config)
   const clientGenerator = config.generators[0]
   const clientEngineType = getClientEngineType(clientGenerator)
 

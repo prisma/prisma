@@ -49,7 +49,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       jobs: ${{ steps.detect.outputs.jobs }}
-      testAllCommentId: ${{ steps.findTestAllComment.outputs.comment-id }}
+      queryEngine: ${{ steps.enginesOutput.outputs.queryEngine }}
     steps:
       - id: checkout
         uses: actions/checkout@v3
@@ -66,10 +66,18 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-includes: 'ci test all'
+      - id: enginesOutput
+        name: Decide on which engine types to run the next workflow
+        run: |
+          if [ -z "${{ steps.findTestAllComment.outputs.comment-id }}" ]; then
+            echo 'queryEngine=["library"]' >> $GITHUB_OUTPUT
+          else
+            echo 'queryEngine=["library","binary"]' >> $GITHUB_OUTPUT
+          fi
   run_tests:
     needs: detect_jobs_to_run
     uses: ./.github/workflows/test-template.yml
     with:
       jobsToRun: ${{ needs.detect_jobs_to_run.outputs.jobs }}
-      testAll: ${{ needs.detect_jobs_to_run.outputs.testAllCommentId != '' }}
+      queryEngine: ${{ needs.detect_jobs_to_run.outputs.queryEngine }}
     secrets: inherit

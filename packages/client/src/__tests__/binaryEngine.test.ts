@@ -1,4 +1,4 @@
-import { ClientEngineType, getClientEngineType, getQueryEngineProtocol } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import { EventEmitter } from 'events'
 import path from 'path'
 
@@ -22,7 +22,6 @@ describe('BinaryEngine', () => {
         env: {},
         cwd: process.cwd(),
         logEmitter: new EventEmitter(),
-        engineProtocol: getQueryEngineProtocol(),
       })
       await engine.start()
     } catch (e) {

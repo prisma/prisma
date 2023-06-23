@@ -1,8 +1,8 @@
 import Debug from '@prisma/debug'
-import type { ConnectorType, DMMF } from '@prisma/generator-helper'
+import type { ConnectorType } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
-import { EngineSpanEvent, TracingHelper } from '@prisma/internals'
+import { byline, EngineSpanEvent, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
@@ -20,16 +20,15 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
-  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
-  EngineQuery,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { resolveEnginePath } from '../common/resolveEnginePath'
 import { EventEmitter } from '../common/types/Events'
+import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type { QueryEngineResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
@@ -37,10 +36,7 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import type { RustLog } from '../common/utils/log'
 import { convertLog, getMessage, isRustErrorLog } from '../common/utils/log'
-import byline from '../tools/byline'
-import { omit } from '../tools/omit'
-import type { Result } from './Connection'
-import { Connection } from './Connection'
+import { Connection, Result } from './Connection'
 
 const debug = Debug('prisma:engine')
 
@@ -84,7 +80,6 @@ export class BinaryEngine extends Engine<undefined> {
   private previewFeatures: string[] = []
   private engineEndpoint?: string
   private lastError?: PrismaClientRustError
-  private getDmmfPromise?: Promise<DMMF.Document>
   private stopPromise?: Promise<void>
   private beforeExitListener?: () => Promise<void>
   private cwd: string
@@ -375,6 +370,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         ]
 
         flags.push('--port', '0')
+        flags.push('--engine-protocol', 'json')
 
         debug({ flags })
 
@@ -649,26 +645,6 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
     this.connection.close()
   }
 
-  async getDmmf(): Promise<DMMF.Document> {
-    if (!this.getDmmfPromise) {
-      this.getDmmfPromise = this._getDmmf()
-    }
-    return this.getDmmfPromise
-  }
-
-  private async _getDmmf(): Promise<DMMF.Document> {
-    const enginePath = await resolveEnginePath('binary', this.config)
-
-    const env = await this.getEngineEnvVars()
-
-    const result = await execa(enginePath, ['--enable-raw-queries', 'cli', 'dmmf'], {
-      env: omit(env, ['PORT']),
-      cwd: this.cwd,
-    })
-
-    return JSON.parse(result.stdout)
-  }
-
   async version(forceRun = false) {
     if (this.versionPromise && !forceRun) {
       return this.versionPromise
@@ -687,7 +663,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async request<T>(
-    query: EngineQuery,
+    query: JsonQuery,
     { traceparent, numTry = 1, isWrite, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<QueryEngineResult<T>> {
     await this.start()
@@ -740,7 +716,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async requestBatch<T>(
-    queries: EngineBatchQueries,
+    queries: JsonQuery[],
     { traceparent, transaction, numTry = 1, containsWrite }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     await this.start()
