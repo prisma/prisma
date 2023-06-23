@@ -3856,7 +3856,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Posts.
      */
-    distinct?: PostScalarFieldEnum[]
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
   }
 
   /**
@@ -3916,7 +3916,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Posts.
      */
-    distinct?: PostScalarFieldEnum[]
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
   }
 
 
@@ -3960,7 +3960,7 @@ export namespace Prisma {
      * Skip the first \`n\` Posts.
      */
     skip?: number
-    distinct?: PostScalarFieldEnum[]
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
   }
 
 
@@ -4970,7 +4970,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Users.
      */
-    distinct?: UserScalarFieldEnum[]
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
   }
 
   /**
@@ -5030,7 +5030,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Users.
      */
-    distinct?: UserScalarFieldEnum[]
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
   }
 
 
@@ -5074,7 +5074,7 @@ export namespace Prisma {
      * Skip the first \`n\` Users.
      */
     skip?: number
-    distinct?: UserScalarFieldEnum[]
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
   }
 
 
@@ -5250,7 +5250,7 @@ export namespace Prisma {
     cursor?: PostWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: PostScalarFieldEnum[]
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
   }
 
 
@@ -5967,7 +5967,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of EmbedHolders.
      */
-    distinct?: EmbedHolderScalarFieldEnum[]
+    distinct?: EmbedHolderScalarFieldEnum | EmbedHolderScalarFieldEnum[]
   }
 
   /**
@@ -6027,7 +6027,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of EmbedHolders.
      */
-    distinct?: EmbedHolderScalarFieldEnum[]
+    distinct?: EmbedHolderScalarFieldEnum | EmbedHolderScalarFieldEnum[]
   }
 
 
@@ -6071,7 +6071,7 @@ export namespace Prisma {
      * Skip the first \`n\` EmbedHolders.
      */
     skip?: number
-    distinct?: EmbedHolderScalarFieldEnum[]
+    distinct?: EmbedHolderScalarFieldEnum | EmbedHolderScalarFieldEnum[]
   }
 
 
@@ -6247,7 +6247,7 @@ export namespace Prisma {
     cursor?: UserWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: UserScalarFieldEnum[]
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
   }
 
 
@@ -7085,7 +7085,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of MS.
      */
-    distinct?: MScalarFieldEnum[]
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
   }
 
   /**
@@ -7145,7 +7145,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of MS.
      */
-    distinct?: MScalarFieldEnum[]
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
   }
 
 
@@ -7189,7 +7189,7 @@ export namespace Prisma {
      * Skip the first \`n\` MS.
      */
     skip?: number
-    distinct?: MScalarFieldEnum[]
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
   }
 
 
@@ -7365,7 +7365,7 @@ export namespace Prisma {
     cursor?: NWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: NScalarFieldEnum[]
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
   }
 
 
@@ -8203,7 +8203,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of NS.
      */
-    distinct?: NScalarFieldEnum[]
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
   }
 
   /**
@@ -8263,7 +8263,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of NS.
      */
-    distinct?: NScalarFieldEnum[]
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
   }
 
 
@@ -8307,7 +8307,7 @@ export namespace Prisma {
      * Skip the first \`n\` NS.
      */
     skip?: number
-    distinct?: NScalarFieldEnum[]
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
   }
 
 
@@ -8483,7 +8483,7 @@ export namespace Prisma {
     cursor?: MWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: MScalarFieldEnum[]
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
   }
 
 
@@ -9316,7 +9316,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OneOptionals.
      */
-    distinct?: OneOptionalScalarFieldEnum[]
+    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[]
   }
 
   /**
@@ -9376,7 +9376,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OneOptionals.
      */
-    distinct?: OneOptionalScalarFieldEnum[]
+    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[]
   }
 
 
@@ -9420,7 +9420,7 @@ export namespace Prisma {
      * Skip the first \`n\` OneOptionals.
      */
     skip?: number
-    distinct?: OneOptionalScalarFieldEnum[]
+    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[]
   }
 
 
@@ -9596,7 +9596,7 @@ export namespace Prisma {
     cursor?: ManyRequiredWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: ManyRequiredScalarFieldEnum[]
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
   }
 
 
@@ -10436,7 +10436,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ManyRequireds.
      */
-    distinct?: ManyRequiredScalarFieldEnum[]
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
   }
 
   /**
@@ -10496,7 +10496,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ManyRequireds.
      */
-    distinct?: ManyRequiredScalarFieldEnum[]
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
   }
 
 
@@ -10540,7 +10540,7 @@ export namespace Prisma {
      * Skip the first \`n\` ManyRequireds.
      */
     skip?: number
-    distinct?: ManyRequiredScalarFieldEnum[]
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
   }
 
 
@@ -11535,7 +11535,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide1s.
      */
-    distinct?: OptionalSide1ScalarFieldEnum[]
+    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[]
   }
 
   /**
@@ -11595,7 +11595,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide1s.
      */
-    distinct?: OptionalSide1ScalarFieldEnum[]
+    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[]
   }
 
 
@@ -11639,7 +11639,7 @@ export namespace Prisma {
      * Skip the first \`n\` OptionalSide1s.
      */
     skip?: number
-    distinct?: OptionalSide1ScalarFieldEnum[]
+    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[]
   }
 
 
@@ -12625,7 +12625,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide2s.
      */
-    distinct?: OptionalSide2ScalarFieldEnum[]
+    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[]
   }
 
   /**
@@ -12685,7 +12685,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide2s.
      */
-    distinct?: OptionalSide2ScalarFieldEnum[]
+    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[]
   }
 
 
@@ -12729,7 +12729,7 @@ export namespace Prisma {
      * Skip the first \`n\` OptionalSide2s.
      */
     skip?: number
-    distinct?: OptionalSide2ScalarFieldEnum[]
+    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[]
   }
 
 
@@ -13638,7 +13638,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of AS.
      */
-    distinct?: AScalarFieldEnum[]
+    distinct?: AScalarFieldEnum | AScalarFieldEnum[]
   }
 
   /**
@@ -13694,7 +13694,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of AS.
      */
-    distinct?: AScalarFieldEnum[]
+    distinct?: AScalarFieldEnum | AScalarFieldEnum[]
   }
 
 
@@ -13734,7 +13734,7 @@ export namespace Prisma {
      * Skip the first \`n\` AS.
      */
     skip?: number
-    distinct?: AScalarFieldEnum[]
+    distinct?: AScalarFieldEnum | AScalarFieldEnum[]
   }
 
 
@@ -14592,7 +14592,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of BS.
      */
-    distinct?: BScalarFieldEnum[]
+    distinct?: BScalarFieldEnum | BScalarFieldEnum[]
   }
 
   /**
@@ -14648,7 +14648,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of BS.
      */
-    distinct?: BScalarFieldEnum[]
+    distinct?: BScalarFieldEnum | BScalarFieldEnum[]
   }
 
 
@@ -14688,7 +14688,7 @@ export namespace Prisma {
      * Skip the first \`n\` BS.
      */
     skip?: number
-    distinct?: BScalarFieldEnum[]
+    distinct?: BScalarFieldEnum | BScalarFieldEnum[]
   }
 
 
@@ -15544,7 +15544,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of CS.
      */
-    distinct?: CScalarFieldEnum[]
+    distinct?: CScalarFieldEnum | CScalarFieldEnum[]
   }
 
   /**
@@ -15600,7 +15600,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of CS.
      */
-    distinct?: CScalarFieldEnum[]
+    distinct?: CScalarFieldEnum | CScalarFieldEnum[]
   }
 
 
@@ -15640,7 +15640,7 @@ export namespace Prisma {
      * Skip the first \`n\` CS.
      */
     skip?: number
-    distinct?: CScalarFieldEnum[]
+    distinct?: CScalarFieldEnum | CScalarFieldEnum[]
   }
 
 
@@ -16518,7 +16518,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of DS.
      */
-    distinct?: DScalarFieldEnum[]
+    distinct?: DScalarFieldEnum | DScalarFieldEnum[]
   }
 
   /**
@@ -16574,7 +16574,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of DS.
      */
-    distinct?: DScalarFieldEnum[]
+    distinct?: DScalarFieldEnum | DScalarFieldEnum[]
   }
 
 
@@ -16614,7 +16614,7 @@ export namespace Prisma {
      * Skip the first \`n\` DS.
      */
     skip?: number
-    distinct?: DScalarFieldEnum[]
+    distinct?: DScalarFieldEnum | DScalarFieldEnum[]
   }
 
 
@@ -17443,7 +17443,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ES.
      */
-    distinct?: EScalarFieldEnum[]
+    distinct?: EScalarFieldEnum | EScalarFieldEnum[]
   }
 
   /**
@@ -17499,7 +17499,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ES.
      */
-    distinct?: EScalarFieldEnum[]
+    distinct?: EScalarFieldEnum | EScalarFieldEnum[]
   }
 
 
@@ -17539,7 +17539,7 @@ export namespace Prisma {
      * Skip the first \`n\` ES.
      */
     skip?: number
-    distinct?: EScalarFieldEnum[]
+    distinct?: EScalarFieldEnum | EScalarFieldEnum[]
   }
 
 
@@ -18088,7 +18088,7 @@ export namespace Prisma {
     time?: DateTimeFilter | Date | string
     text?: StringFilter | string
     boolean?: BoolFilter | boolean
-    embedList?: XOR<EmbedCompositeListFilter, EmbedObjectEqualityInput> | EmbedObjectEqualityInput[]
+    embedList?: EmbedCompositeListFilter | EmbedObjectEqualityInput[]
     requiredEmbed?: XOR<EmbedCompositeFilter, EmbedObjectEqualityInput>
     optionalEmbed?: XOR<EmbedNullableCompositeFilter, EmbedObjectEqualityInput> | null
     User?: UserListRelationFilter
@@ -20085,8 +20085,8 @@ export namespace Prisma {
 
   export type StringFilter = {
     equals?: string
-    in?: string[] | string
-    notIn?: string[] | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -20100,8 +20100,8 @@ export namespace Prisma {
 
   export type DateTimeFilter = {
     equals?: Date | string
-    in?: Date[] | string[] | Date | string
-    notIn?: Date[] | string[] | Date | string
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -20111,8 +20111,8 @@ export namespace Prisma {
 
   export type StringNullableFilter = {
     equals?: string | null
-    in?: string[] | string | null
-    notIn?: string[] | string | null
+    in?: string[] | null
+    notIn?: string[] | null
     lt?: string
     lte?: string
     gt?: string
@@ -20164,8 +20164,8 @@ export namespace Prisma {
 
   export type StringWithAggregatesFilter = {
     equals?: string
-    in?: string[] | string
-    notIn?: string[] | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -20182,8 +20182,8 @@ export namespace Prisma {
 
   export type DateTimeWithAggregatesFilter = {
     equals?: Date | string
-    in?: Date[] | string[] | Date | string
-    notIn?: Date[] | string[] | Date | string
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -20196,8 +20196,8 @@ export namespace Prisma {
 
   export type StringNullableWithAggregatesFilter = {
     equals?: string | null
-    in?: string[] | string | null
-    notIn?: string[] | string | null
+    in?: string[] | null
+    notIn?: string[] | null
     lt?: string
     lte?: string
     gt?: string
@@ -20223,8 +20223,8 @@ export namespace Prisma {
 
   export type IntFilter = {
     equals?: number
-    in?: number[] | number
-    notIn?: number[] | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -20234,8 +20234,8 @@ export namespace Prisma {
 
   export type IntNullableFilter = {
     equals?: number | null
-    in?: number[] | number | null
-    notIn?: number[] | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -20246,8 +20246,8 @@ export namespace Prisma {
 
   export type FloatFilter = {
     equals?: number
-    in?: number[] | number
-    notIn?: number[] | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -20257,8 +20257,8 @@ export namespace Prisma {
 
   export type FloatNullableFilter = {
     equals?: number | null
-    in?: number[] | number | null
-    notIn?: number[] | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -20292,15 +20292,15 @@ export namespace Prisma {
 
   export type EnumABeautifulEnumFilter = {
     equals?: ABeautifulEnum
-    in?: ABeautifulEnum[] | ABeautifulEnum
-    notIn?: ABeautifulEnum[] | ABeautifulEnum
+    in?: ABeautifulEnum[]
+    notIn?: ABeautifulEnum[]
     not?: NestedEnumABeautifulEnumFilter | ABeautifulEnum
   }
 
   export type EnumABeautifulEnumNullableFilter = {
     equals?: ABeautifulEnum | null
-    in?: ABeautifulEnum[] | ABeautifulEnum | null
-    notIn?: ABeautifulEnum[] | ABeautifulEnum | null
+    in?: ABeautifulEnum[] | null
+    notIn?: ABeautifulEnum[] | null
     not?: NestedEnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     isSet?: boolean
   }
@@ -20392,8 +20392,8 @@ export namespace Prisma {
 
   export type IntWithAggregatesFilter = {
     equals?: number
-    in?: number[] | number
-    notIn?: number[] | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -20408,8 +20408,8 @@ export namespace Prisma {
 
   export type IntNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: number[] | number | null
-    notIn?: number[] | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -20425,8 +20425,8 @@ export namespace Prisma {
 
   export type FloatWithAggregatesFilter = {
     equals?: number
-    in?: number[] | number
-    notIn?: number[] | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -20441,8 +20441,8 @@ export namespace Prisma {
 
   export type FloatNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: number[] | number | null
-    notIn?: number[] | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -20487,8 +20487,8 @@ export namespace Prisma {
 
   export type EnumABeautifulEnumWithAggregatesFilter = {
     equals?: ABeautifulEnum
-    in?: ABeautifulEnum[] | ABeautifulEnum
-    notIn?: ABeautifulEnum[] | ABeautifulEnum
+    in?: ABeautifulEnum[]
+    notIn?: ABeautifulEnum[]
     not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
     _count?: NestedIntFilter
     _min?: NestedEnumABeautifulEnumFilter
@@ -20497,8 +20497,8 @@ export namespace Prisma {
 
   export type EnumABeautifulEnumNullableWithAggregatesFilter = {
     equals?: ABeautifulEnum | null
-    in?: ABeautifulEnum[] | ABeautifulEnum | null
-    notIn?: ABeautifulEnum[] | ABeautifulEnum | null
+    in?: ABeautifulEnum[] | null
+    notIn?: ABeautifulEnum[] | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
     _count?: NestedIntNullableFilter
     _min?: NestedEnumABeautifulEnumNullableFilter
@@ -20516,7 +20516,7 @@ export namespace Prisma {
   }
 
   export type EmbedCompositeListFilter = {
-    equals?: EmbedObjectEqualityInput | EmbedObjectEqualityInput[]
+    equals?: EmbedObjectEqualityInput[]
     every?: EmbedWhereInput
     some?: EmbedWhereInput
     none?: EmbedWhereInput
@@ -20527,7 +20527,7 @@ export namespace Prisma {
   export type EmbedObjectEqualityInput = {
     text: string
     boolean: boolean
-    embedEmbedList?: EmbedEmbedObjectEqualityInput | EmbedEmbedObjectEqualityInput[]
+    embedEmbedList?: EmbedEmbedObjectEqualityInput[]
     requiredEmbedEmbed: EmbedEmbedObjectEqualityInput
     optionalEmbedEmbed?: EmbedEmbedObjectEqualityInput | null
     scalarList?: number[]
@@ -21001,8 +21001,8 @@ export namespace Prisma {
 
   export type BigIntFilter = {
     equals?: bigint | number
-    in?: bigint[] | number[] | bigint | number
-    notIn?: bigint[] | number[] | bigint | number
+    in?: bigint[] | number[]
+    notIn?: bigint[] | number[]
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -21051,8 +21051,8 @@ export namespace Prisma {
 
   export type BigIntWithAggregatesFilter = {
     equals?: bigint | number
-    in?: bigint[] | number[] | bigint | number
-    notIn?: bigint[] | number[] | bigint | number
+    in?: bigint[] | number[]
+    notIn?: bigint[] | number[]
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -21125,8 +21125,8 @@ export namespace Prisma {
 
   export type BytesFilter = {
     equals?: Buffer
-    in?: Buffer[] | Buffer
-    notIn?: Buffer[] | Buffer
+    in?: Buffer[]
+    notIn?: Buffer[]
     not?: NestedBytesFilter | Buffer
   }
 
@@ -21172,8 +21172,8 @@ export namespace Prisma {
 
   export type BytesWithAggregatesFilter = {
     equals?: Buffer
-    in?: Buffer[] | Buffer
-    notIn?: Buffer[] | Buffer
+    in?: Buffer[]
+    notIn?: Buffer[]
     not?: NestedBytesWithAggregatesFilter | Buffer
     _count?: NestedIntFilter
     _min?: NestedBytesFilter
@@ -21640,8 +21640,8 @@ export namespace Prisma {
 
   export type NestedStringFilter = {
     equals?: string
-    in?: string[] | string
-    notIn?: string[] | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -21654,8 +21654,8 @@ export namespace Prisma {
 
   export type NestedDateTimeFilter = {
     equals?: Date | string
-    in?: Date[] | string[] | Date | string
-    notIn?: Date[] | string[] | Date | string
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -21665,8 +21665,8 @@ export namespace Prisma {
 
   export type NestedStringNullableFilter = {
     equals?: string | null
-    in?: string[] | string | null
-    notIn?: string[] | string | null
+    in?: string[] | null
+    notIn?: string[] | null
     lt?: string
     lte?: string
     gt?: string
@@ -21685,8 +21685,8 @@ export namespace Prisma {
 
   export type NestedStringWithAggregatesFilter = {
     equals?: string
-    in?: string[] | string
-    notIn?: string[] | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -21702,8 +21702,8 @@ export namespace Prisma {
 
   export type NestedIntFilter = {
     equals?: number
-    in?: number[] | number
-    notIn?: number[] | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -21713,8 +21713,8 @@ export namespace Prisma {
 
   export type NestedDateTimeWithAggregatesFilter = {
     equals?: Date | string
-    in?: Date[] | string[] | Date | string
-    notIn?: Date[] | string[] | Date | string
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -21727,8 +21727,8 @@ export namespace Prisma {
 
   export type NestedStringNullableWithAggregatesFilter = {
     equals?: string | null
-    in?: string[] | string | null
-    notIn?: string[] | string | null
+    in?: string[] | null
+    notIn?: string[] | null
     lt?: string
     lte?: string
     gt?: string
@@ -21745,8 +21745,8 @@ export namespace Prisma {
 
   export type NestedIntNullableFilter = {
     equals?: number | null
-    in?: number[] | number | null
-    notIn?: number[] | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -21765,8 +21765,8 @@ export namespace Prisma {
 
   export type NestedFloatFilter = {
     equals?: number
-    in?: number[] | number
-    notIn?: number[] | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -21776,8 +21776,8 @@ export namespace Prisma {
 
   export type NestedFloatNullableFilter = {
     equals?: number | null
-    in?: number[] | number | null
-    notIn?: number[] | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -21788,15 +21788,15 @@ export namespace Prisma {
 
   export type NestedEnumABeautifulEnumFilter = {
     equals?: ABeautifulEnum
-    in?: ABeautifulEnum[] | ABeautifulEnum
-    notIn?: ABeautifulEnum[] | ABeautifulEnum
+    in?: ABeautifulEnum[]
+    notIn?: ABeautifulEnum[]
     not?: NestedEnumABeautifulEnumFilter | ABeautifulEnum
   }
 
   export type NestedEnumABeautifulEnumNullableFilter = {
     equals?: ABeautifulEnum | null
-    in?: ABeautifulEnum[] | ABeautifulEnum | null
-    notIn?: ABeautifulEnum[] | ABeautifulEnum | null
+    in?: ABeautifulEnum[] | null
+    notIn?: ABeautifulEnum[] | null
     not?: NestedEnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     isSet?: boolean
   }
@@ -21809,8 +21809,8 @@ export namespace Prisma {
 
   export type NestedIntWithAggregatesFilter = {
     equals?: number
-    in?: number[] | number
-    notIn?: number[] | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -21825,8 +21825,8 @@ export namespace Prisma {
 
   export type NestedIntNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: number[] | number | null
-    notIn?: number[] | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -21842,8 +21842,8 @@ export namespace Prisma {
 
   export type NestedFloatWithAggregatesFilter = {
     equals?: number
-    in?: number[] | number
-    notIn?: number[] | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -21858,8 +21858,8 @@ export namespace Prisma {
 
   export type NestedFloatNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: number[] | number | null
-    notIn?: number[] | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -21898,8 +21898,8 @@ export namespace Prisma {
 
   export type NestedEnumABeautifulEnumWithAggregatesFilter = {
     equals?: ABeautifulEnum
-    in?: ABeautifulEnum[] | ABeautifulEnum
-    notIn?: ABeautifulEnum[] | ABeautifulEnum
+    in?: ABeautifulEnum[]
+    notIn?: ABeautifulEnum[]
     not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
     _count?: NestedIntFilter
     _min?: NestedEnumABeautifulEnumFilter
@@ -21908,8 +21908,8 @@ export namespace Prisma {
 
   export type NestedEnumABeautifulEnumNullableWithAggregatesFilter = {
     equals?: ABeautifulEnum | null
-    in?: ABeautifulEnum[] | ABeautifulEnum | null
-    notIn?: ABeautifulEnum[] | ABeautifulEnum | null
+    in?: ABeautifulEnum[] | null
+    notIn?: ABeautifulEnum[] | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
     _count?: NestedIntNullableFilter
     _min?: NestedEnumABeautifulEnumNullableFilter
@@ -21932,7 +21932,7 @@ export namespace Prisma {
     NOT?: EmbedWhereInput | EmbedWhereInput[]
     text?: StringFilter | string
     boolean?: BoolFilter | boolean
-    embedEmbedList?: XOR<EmbedEmbedCompositeListFilter, EmbedEmbedObjectEqualityInput> | EmbedEmbedObjectEqualityInput[]
+    embedEmbedList?: EmbedEmbedCompositeListFilter | EmbedEmbedObjectEqualityInput[]
     requiredEmbedEmbed?: XOR<EmbedEmbedCompositeFilter, EmbedEmbedObjectEqualityInput>
     optionalEmbedEmbed?: XOR<EmbedEmbedNullableCompositeFilter, EmbedEmbedObjectEqualityInput> | null
     scalarList?: IntNullableListFilter
@@ -21954,8 +21954,8 @@ export namespace Prisma {
 
   export type NestedBigIntFilter = {
     equals?: bigint | number
-    in?: bigint[] | number[] | bigint | number
-    notIn?: bigint[] | number[] | bigint | number
+    in?: bigint[] | number[]
+    notIn?: bigint[] | number[]
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -21965,8 +21965,8 @@ export namespace Prisma {
 
   export type NestedBigIntWithAggregatesFilter = {
     equals?: bigint | number
-    in?: bigint[] | number[] | bigint | number
-    notIn?: bigint[] | number[] | bigint | number
+    in?: bigint[] | number[]
+    notIn?: bigint[] | number[]
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -21981,15 +21981,15 @@ export namespace Prisma {
 
   export type NestedBytesFilter = {
     equals?: Buffer
-    in?: Buffer[] | Buffer
-    notIn?: Buffer[] | Buffer
+    in?: Buffer[]
+    notIn?: Buffer[]
     not?: NestedBytesFilter | Buffer
   }
 
   export type NestedBytesWithAggregatesFilter = {
     equals?: Buffer
-    in?: Buffer[] | Buffer
-    notIn?: Buffer[] | Buffer
+    in?: Buffer[]
+    notIn?: Buffer[]
     not?: NestedBytesWithAggregatesFilter | Buffer
     _count?: NestedIntFilter
     _min?: NestedBytesFilter
@@ -22733,7 +22733,7 @@ export namespace Prisma {
   }
 
   export type EmbedEmbedCompositeListFilter = {
-    equals?: EmbedEmbedObjectEqualityInput | EmbedEmbedObjectEqualityInput[]
+    equals?: EmbedEmbedObjectEqualityInput[]
     every?: EmbedEmbedWhereInput
     some?: EmbedEmbedWhereInput
     none?: EmbedEmbedWhereInput
