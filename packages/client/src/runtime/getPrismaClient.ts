@@ -1,14 +1,11 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import type { DMMF, GeneratorConfig } from '@prisma/generator-helper'
+import type { GeneratorConfig } from '@prisma/generator-helper'
 import {
-  callOnceOnSuccess,
   ClientEngineType,
   ExtendedSpanOptions,
   getClientEngineType,
-  getQueryEngineProtocol,
   logger,
-  QueryEngineProtocol,
   TracingHelper,
   tryLoadEnvs,
   warnOnce,
@@ -20,7 +17,6 @@ import fs from 'fs'
 import path from 'path'
 import { RawValue, Sql } from 'sql-template-tag'
 
-import { getPrismaClientDMMF } from '../generation/getDMMF'
 import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
@@ -36,19 +32,18 @@ import {
   LibraryEngine,
   Options,
 } from './core/engines'
+import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
+import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
   applyModelsAndClientExtensions,
   unApplyModelsAndClientExtensions,
 } from './core/model/applyModelsAndClientExtensions'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
-import { ProtocolEncoder } from './core/protocol/common'
-import { GraphQLProtocolEncoder } from './core/protocol/graphql'
-import { JsonProtocolEncoder } from './core/protocol/json'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
 import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import {
@@ -64,11 +59,10 @@ import {
   PrismaPromiseTransaction,
 } from './core/request/PrismaPromise'
 import { UserArgs } from './core/request/UserArgs'
-import { dmmfToRuntimeDataModel, RuntimeDataModel } from './core/runtimeDataModel'
+import { RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
 import { JsInputValue } from './core/types/JsApi'
-import { DMMFHelper } from './dmmf'
 import { getLogLevel } from './getLogLevel'
 import { itxClientDenyList } from './itxClientDenyList'
 import { mergeBy } from './mergeBy'
@@ -78,7 +72,6 @@ import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
 import { deserializeRawResults } from './utils/deserializeRawResults'
-import { printJsonWithErrors } from './utils/printJsonErrors'
 import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectOnNotFound'
 import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
@@ -232,21 +225,11 @@ export type LogEvent = {
  * loaded, this same config is passed to {@link getPrismaClient} which creates a
  * closure with that config around a non-instantiated [[PrismaClient]].
  */
-export type GetPrismaClientConfig = (
-  | {
-      // Case for normal client (with both protocols) or data proxy
-      // client (with json protocol): only runtime datamodel is provided,
-      // full DMMF document is not
-      runtimeDataModel: RuntimeDataModel
-      document?: undefined
-    }
-  | {
-      // Case for data proxy client with graphql protocol: full DMMF document
-      // is provided, runtime datamodel needs to be computed
-      runtimeDataModel?: undefined
-      document: DMMF.Document
-    }
-) & {
+export type GetPrismaClientConfig = {
+  // Case for normal client (with both protocols) or data proxy
+  // client (with json protocol): only runtime datamodel is provided,
+  // full DMMF document is not
+  runtimeDataModel: RuntimeDataModel
   generator?: GeneratorConfig
   sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
@@ -281,13 +264,6 @@ export type GetPrismaClientConfig = (
    * @remarks only used for the purpose of data proxy
    */
   injectableEdgeEnv?: LoadedEnv
-
-  /**
-   * Engine protocol to use within edge runtime. Passed
-   * through config because edge client can not read env variables
-   * @remarks only used for the purpose of data proxy
-   */
-  edgeClientProtocol?: QueryEngineProtocol
 
   /**
    * The contents of the datasource url saved in a string.
@@ -341,7 +317,6 @@ export type Client = ReturnType<typeof getPrismaClient> extends new () => infer 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient {
     _runtimeDataModel: RuntimeDataModel
-    _dmmf?: DMMFHelper
     _engine: Engine
     _fetcher: RequestHandler
     _connectionPromise?: Promise<any>
@@ -439,23 +414,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           this._errorFormat = 'colorless' // default errorFormat
         }
 
-        if (config.runtimeDataModel) {
-          this._runtimeDataModel = config.runtimeDataModel
-        } else {
-          this._runtimeDataModel = dmmfToRuntimeDataModel(config.document.datamodel)
-        }
-
-        const engineProtocol = NODE_CLIENT
-          ? getQueryEngineProtocol(config.generator)
-          : config.edgeClientProtocol ?? getQueryEngineProtocol(config.generator)
-
-        debug('protocol', engineProtocol)
-
-        if (config.document) {
-          // the data proxy can't get the dmmf from the engine
-          // so the generated client always has the full dmmf
-          this._dmmf = new DMMFHelper(config.document)
-        }
+        this._runtimeDataModel = config.runtimeDataModel
 
         this._engineConfig = {
           cwd,
@@ -487,7 +446,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
-          engineProtocol,
           isBundled: config.isBundled,
         }
 
@@ -541,7 +499,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         return new BinaryEngine(this._engineConfig)
       }
 
-      throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`')
+      throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`', {
+        clientVersion: this._clientVersion,
+      })
     }
 
     /**
@@ -611,9 +571,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         // error in this list will prevent jest sandbox from being GCed. Clearing logs on disconnect
         // helps to avoid that
         clearLogs()
-        if (!this._dataProxy) {
-          this._dmmf = undefined
-        }
       }
     }
 
@@ -659,13 +616,16 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           return this.$executeRawInternal(transaction, '$executeRaw', sql, argsMapper)
         }
 
-        throw new PrismaClientValidationError(`\`$executeRaw\` is a tag function, please use it like the following:
+        throw new PrismaClientValidationError(
+          `\`$executeRaw\` is a tag function, please use it like the following:
 \`\`\`
 const result = await prisma.$executeRaw\`UPDATE User SET cool = \${true} WHERE email = \${'user@email.com'};\`
 \`\`\`
 
 Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#executeraw
-`)
+`,
+          { clientVersion: this._clientVersion },
+        )
       })
     }
 
@@ -694,6 +654,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       if (config.activeProvider !== 'mongodb') {
         throw new PrismaClientValidationError(
           `The ${config.activeProvider} provider does not support $runCommandRaw. Use the mongodb provider.`,
+          { clientVersion: this._clientVersion },
         )
       }
 
@@ -745,13 +706,16 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           return this.$queryRawInternal(transaction, '$queryRaw', ...toSql(query, values))
         }
 
-        throw new PrismaClientValidationError(`\`$queryRaw\` is a tag function, please use it like the following:
+        throw new PrismaClientValidationError(
+          `\`$queryRaw\` is a tag function, please use it like the following:
 \`\`\`
 const result = await prisma.$queryRaw\`SELECT * FROM User WHERE id = \${1} OR email = \${'user@email.com'};\`
 \`\`\`
 
 Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client/raw-database-access#queryraw
-`)
+`,
+          { clientVersion: this._clientVersion },
+        )
       })
     }
 
@@ -966,8 +930,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       customDataProxyFetch,
     }: InternalRequestParams) {
       try {
-        const protocolEncoder = await this._getProtocolEncoder({ clientMethod, callsite })
-
         // execute argument transformation before execution
         args = argsMapper ? argsMapper(args) : args
 
@@ -982,30 +944,26 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         }
 
         const message = this._tracingHelper.runInChildSpan(spanOptions, () =>
-          protocolEncoder.createMessage({
+          serializeJsonQuery({
             modelName: model,
+            runtimeDataModel: this._runtimeDataModel,
             action,
             args,
             clientMethod,
             callsite,
             extensions: this._extensions,
+            errorFormat: this._errorFormat,
+            clientVersion: this._clientVersion,
           }),
         )
 
-        // as printJsonWithErrors takes a bit of compute
+        // as prettyPrintArguments takes a bit of compute
         // we only want to do it, if debug is enabled for 'prisma-client'
         if (Debug.enabled('prisma:client')) {
           debug(`Prisma Client call:`)
-          debug(
-            `prisma.${clientMethod}(${printJsonWithErrors({
-              ast: args as object,
-              keyPaths: [],
-              valuePaths: [],
-              missingItems: [],
-            })})`,
-          )
+          debug(`prisma.${clientMethod}(${prettyPrintArguments(args)})`)
           debug(`Generated request:`)
-          debug(message.toDebugString() + '\n')
+          debug(JSON.stringify(message, null, 2) + '\n')
         }
 
         if (transaction?.kind === 'batch') {
@@ -1014,8 +972,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         }
 
         return this._fetcher.request({
-          protocolMessage: message,
-          protocolEncoder,
+          protocolQuery: message,
           modelName: model,
           action,
           clientMethod,
@@ -1036,37 +993,11 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       }
     }
 
-    _getDmmf = callOnceOnSuccess(async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>) => {
-      try {
-        const dmmf = await this._tracingHelper.runInChildSpan({ name: 'getDmmf', internal: true }, () =>
-          this._engine.getDmmf(),
-        )
-
-        return this._tracingHelper.runInChildSpan({ name: 'processDmmf', internal: true }, () => {
-          return new DMMFHelper(getPrismaClientDMMF(dmmf))
-        })
-      } catch (error) {
-        this._fetcher.handleAndLogRequestError({ ...params, args: {}, error })
-      }
-    })
-
-    _getProtocolEncoder = callOnceOnSuccess(
-      async (params: Pick<InternalRequestParams, 'clientMethod' | 'callsite'>): Promise<ProtocolEncoder> => {
-        if (this._engineConfig.engineProtocol === 'json') {
-          return new JsonProtocolEncoder(this._runtimeDataModel, this._errorFormat)
-        }
-
-        if (this._dmmf === undefined) {
-          this._dmmf = await this._getDmmf(params)
-        }
-        return new GraphQLProtocolEncoder(this._dmmf, this._errorFormat)
-      },
-    )
-
     get $metrics(): MetricsClient {
       if (!this._hasPreviewFlag('metrics')) {
         throw new PrismaClientValidationError(
           '`metrics` preview feature must be enabled in order to access metrics API',
+          { clientVersion: this._clientVersion },
         )
       }
       return this._metrics

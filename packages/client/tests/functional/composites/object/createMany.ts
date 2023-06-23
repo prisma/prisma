@@ -1,5 +1,3 @@
-import { getQueryEngineProtocol } from '@prisma/internals'
-
 import { setupTestSuite } from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -55,13 +53,11 @@ setupTestSuite(({ contentProperty }) => {
     })
 
     if (contentProperty === 'required') {
-      if (getQueryEngineProtocol() !== 'json') {
-        await expect(result).rejects.toThrow(
-          expect.objectContaining({
-            message: expect.stringContaining('Argument set for data.content.set must not be null'),
-          }),
-        )
-      }
+      await expect(result).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining('Argument `set` must not be null'),
+        }),
+      )
     } else {
       await expect(result).resolves.toEqual({ count: 1 })
     }
@@ -77,13 +73,11 @@ setupTestSuite(({ contentProperty }) => {
     })
 
     if (contentProperty === 'required') {
-      if (getQueryEngineProtocol() !== 'json') {
-        await expect(comment).rejects.toThrow(
-          expect.objectContaining({
-            message: expect.stringContaining('Got invalid value null on prisma.createManyComment'),
-          }),
-        )
-      }
+      await expect(comment).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining('Argument `content` must not be null.'),
+        }),
+      )
     } else {
       await expect(comment).resolves.toEqual({ count: 1 })
     }

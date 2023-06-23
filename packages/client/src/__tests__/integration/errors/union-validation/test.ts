@@ -1,10 +1,6 @@
-import { getQueryEngineProtocol } from '@prisma/internals'
-
 import { getTestClient } from '../../../../utils/getTestClient'
 
-const testIf = (condition: boolean) => (condition ? test : test.skip)
-
-testIf(getQueryEngineProtocol() !== 'json')('union validation', async () => {
+test('union validation', async () => {
   expect.assertions(1)
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
@@ -30,34 +26,30 @@ testIf(getQueryEngineProtocol() !== 'json')('union validation', async () => {
       Invalid \`prisma.organization.create()\` invocation in
       /client/src/__tests__/integration/errors/union-validation/test.ts:0:0
 
-        10 const prisma = new PrismaClient()
-        11 
-        12 try {
-      → 13   await prisma.organization.create({
-               data: {
-                 fullName: 'name',
-                 accounts: {
-                   create: {
-                     operator: {
-                       create: {
-                         prefix: 'prefix',
-             +           organization: {
-             +             create?: OrganizationCreateWithoutOperatorInput | OrganizationUncheckedCreateWithoutOperatorInput,
-             +             connectOrCreate?: OrganizationCreateOrConnectWithoutOperatorInput,
-             +             connect?: OrganizationWhereUniqueInput
-             +           },
-             ?           id?: String
-                       }
-                     }
-                   }
-                 }
-               }
-             })
+        6 const prisma = new PrismaClient()
+        7 
+        8 try {
+      → 9   await prisma.organization.create({
+              data: {
+                fullName: "name",
+                accounts: {
+                  create: {
+                    operator: {
+                      create: {
+                        prefix: "prefix",
+            +           organization: {
+            +             create: OrganizationCreateWithoutOperatorInput | OrganizationUncheckedCreateWithoutOperatorInput,
+            +             connectOrCreate: OrganizationCreateOrConnectWithoutOperatorInput,
+            +             connect: OrganizationWhereUniqueInput
+            +           }
+                      }
+                    }
+                  }
+                }
+              }
+            })
 
-      Argument organization for data.accounts.create.operator.create.organization is missing.
-
-      Note: Lines with + are required, lines with ? are optional.
-
+      Argument \`organization\` is missing.
     `)
   }
 

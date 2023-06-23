@@ -1,8 +1,8 @@
 import { isError } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
+import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
-import { PrismaClientConstructorValidationError } from '../query'
 
 const knownProperties = ['datasources', 'errorFormat', 'log', '__internal', 'rejectOnNotFound']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']

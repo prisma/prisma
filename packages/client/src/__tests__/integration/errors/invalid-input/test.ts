@@ -1,9 +1,6 @@
-import { getQueryEngineProtocol } from '@prisma/internals'
-
 import { getTestClient } from '../../../../utils/getTestClient'
 
-const testIf = (condition: boolean) => (condition ? test : test.skip)
-testIf(getQueryEngineProtocol() !== 'json')('invalid-input', async () => {
+test('invalid-input', async () => {
   expect.assertions(1)
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()
@@ -24,24 +21,22 @@ testIf(getQueryEngineProtocol() !== 'json')('invalid-input', async () => {
       Invalid \`prisma.user.create()\` invocation in
       /client/src/__tests__/integration/errors/invalid-input/test.ts:0:0
 
-        10 await prisma.user.deleteMany()
-        11 
-        12 try {
-      → 13   await prisma.user.create({
+         7 await prisma.user.deleteMany()
+         8 
+         9 try {
+      → 10   await prisma.user.create({
                data: {
-                 email: 'a@a.de',
+                 email: "a@a.de",
                  posts: {
                    connect: {
                      id: []
-                     ~~
+                         ~~
                    }
                  }
                }
              })
 
-      Argument id: Got invalid value [] on prisma.createOneUser. Provided List<>, expected String.
-
-
+      Argument \`id\`: Invalid value provided. Expected String, provided ().
     `)
   }
 

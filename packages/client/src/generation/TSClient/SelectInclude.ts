@@ -1,9 +1,9 @@
 import { DMMF } from '@prisma/generator-helper'
 
-import { DMMFHelper } from '../../runtime/dmmf'
-import { lowerCase } from '../../runtime/utils/common'
+import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
 import { getFieldArgName, getIncludeName, getSelectName } from '../utils'
+import { lowerCase } from '../utils/common'
 
 type BuildIncludeTypeParams = {
   modelName: string

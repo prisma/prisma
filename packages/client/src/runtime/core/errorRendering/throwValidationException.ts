@@ -1,8 +1,8 @@
 import { Writer } from '../../../generation/ts-builders/Writer'
 import { ErrorFormat } from '../../getPrismaClient'
-import { PrismaClientValidationError } from '../../query'
 import { CallSite } from '../../utils/CallSite'
 import { createErrorMessageWithContext } from '../../utils/createErrorMessageWithContext'
+import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 import { JsArgs } from '../types/JsApi'
 import { ValidationError } from '../types/ValidationError'
 import { applyValidationError } from './applyValidationError'
@@ -15,6 +15,7 @@ type ExceptionParams = {
   callsite?: CallSite
   originalMethod: string
   errorFormat: ErrorFormat
+  clientVersion: string
 }
 
 export function throwValidationException({
@@ -23,6 +24,7 @@ export function throwValidationException({
   errorFormat,
   callsite,
   originalMethod,
+  clientVersion,
 }: ExceptionParams): never {
   const argsTree = buildArgumentsRenderingTree(args)
   for (const error of errors) {
@@ -42,5 +44,5 @@ export function throwValidationException({
     callArguments: renderedArgs,
   })
 
-  throw new PrismaClientValidationError(messageWithContext)
+  throw new PrismaClientValidationError(messageWithContext, { clientVersion })
 }
