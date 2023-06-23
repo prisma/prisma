@@ -14,7 +14,6 @@ import { getConfig, getDMMF } from '..'
 import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
-import { mapPreviewFeatures } from '../utils/mapPreviewFeatures'
 import { missingDatasource } from '../utils/missingDatasource'
 import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missingGeneratorMessage'
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
@@ -127,8 +126,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   printConfigWarnings(config.warnings)
 
-  // TODO: This needs a better abstraction, but we don't have any better right now
-  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = extractPreviewFeatures(config)
 
   const dmmf = await getDMMF({
     datamodel,
