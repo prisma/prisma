@@ -38,8 +38,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data0).toBe(null)
       expectTypeOf(data0).toBeNullable()
-      expectTypeOf(data0!.id).toEqualTypeOf<string>()
-      expectTypeOf(data0!.houseId).toEqualTypeOf<string>()
+      expectTypeOf(data0?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data0?.houseId).toEqualTypeOf<string | undefined>()
 
       const data1 = await prisma.user
         .findUnique({
@@ -52,8 +52,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data1).toBe(null)
       // TODO expectTypeOf(data1).toBeNullable()
-      expectTypeOf(data1!.id).toEqualTypeOf<string>()
-      expectTypeOf(data1!.likeId).toEqualTypeOf<string>()
+      expectTypeOf(data1?.id).toEqualTypeOf<string>()
+      expectTypeOf(data1?.likeId).toEqualTypeOf<string>()
 
       const data2 = await prisma.user
         .findUnique({
@@ -67,8 +67,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data2).toBe(null)
       // TODO expectTypeOf(data2).toBeNullable()
-      expectTypeOf(data2!.id).toEqualTypeOf<string>()
-      expectTypeOf(data2!.userId).toEqualTypeOf<string>()
+      expectTypeOf(data2?.id).toEqualTypeOf<string>()
+      expectTypeOf(data2?.userId).toEqualTypeOf<string>()
 
       const data3 = await prisma.user
         .findUnique({
@@ -83,8 +83,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data3).toBe(null)
       // TODO expectTypeOf(data3).toBeNullable()
-      expectTypeOf(data3!.id).toEqualTypeOf<string>()
-      expectTypeOf(data3!.authorId).toEqualTypeOf<string | null>()
+      expectTypeOf(data3?.id).toEqualTypeOf<string>()
+      expectTypeOf(data3?.authorId).toEqualTypeOf<string | null>()
 
       const data4 = await prisma.user
         .findUnique({
@@ -100,8 +100,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data4).toBe(null)
       // TODO expectTypeOf(data4).toBeNullable()
-      expectTypeOf(data4!.id).toEqualTypeOf<string>()
-      expectTypeOf(data4!.email).toEqualTypeOf<string>()
+      expectTypeOf(data4?.id).toEqualTypeOf<string>()
+      expectTypeOf(data4?.email).toEqualTypeOf<string>()
 
       const data5 = await prisma.user
         .findUnique({
@@ -118,8 +118,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data5).toBe(null)
       // TODO expectTypeOf(data5).toBeNullable()
-      expectTypeOf(data5!.id).toEqualTypeOf<string>()
-      expectTypeOf(data5!.houseId).toEqualTypeOf<string>()
+      expectTypeOf(data5?.id).toEqualTypeOf<string>()
+      expectTypeOf(data5?.houseId).toEqualTypeOf<string>()
     })
 
     test('upper-cased relations', async () => {
@@ -133,8 +133,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data0).toBe(null)
       expectTypeOf(data0).toBeNullable()
-      expectTypeOf(data0!.id).toEqualTypeOf<string>()
-      expectTypeOf(data0!.iban).toEqualTypeOf<string>()
+      expectTypeOf(data0?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data0?.iban).toEqualTypeOf<string | undefined>()
 
       const data1 = await prisma.user
         .findUnique({
@@ -147,8 +147,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data1).toBe(null)
       // TODO expectTypeOf(data1).toBeNullable()
-      expectTypeOf(data1!.id).toEqualTypeOf<string>()
-      expectTypeOf(data1!.email).toEqualTypeOf<string>()
+      expectTypeOf(data1?.id).toEqualTypeOf<string>()
+      expectTypeOf(data1?.email).toEqualTypeOf<string>()
     })
 
     test('findFirst', async () => {
@@ -293,7 +293,7 @@ testMatrix.setupTestSuite(() => {
     })
 
     test('chaining and selecting twice', async () => {
-      const posts = await prisma.user
+      const house = await prisma.user
         .findFirst({
           where: {
             email,
@@ -311,8 +311,8 @@ testMatrix.setupTestSuite(() => {
         })
 
       // TODO expectTypeOf(posts).toBeNullable()
-      expectTypeOf(posts).toEqualTypeOf<{ likeId: string }>()
-      expect(posts).toEqual([expect.objectContaining({ title })])
+      expectTypeOf(house).toEqualTypeOf<{ likeId: string }>()
+      expect(house).toBeNull()
     })
   })
 
@@ -344,8 +344,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data0).toBe(null)
       expectTypeOf(data0).toBeNullable()
-      expectTypeOf(data0!.id).toEqualTypeOf<string>()
-      expectTypeOf(data0!.houseId).toEqualTypeOf<string>()
+      expectTypeOf(data0?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data0?.houseId).toEqualTypeOf<string | undefined>()
 
       const data1 = await prisma
         .$extends({})
@@ -359,8 +359,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data1).toBe(null)
       expectTypeOf(data1).toBeNullable()
-      expectTypeOf(data1!.id).toEqualTypeOf<string>()
-      expectTypeOf(data1!.likeId).toEqualTypeOf<string>()
+      expectTypeOf(data1?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data1?.likeId).toEqualTypeOf<string | undefined>()
 
       const data2 = await prisma
         .$extends({})
@@ -375,8 +375,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data2).toBe(null)
       expectTypeOf(data2).toBeNullable()
-      expectTypeOf(data2!.id).toEqualTypeOf<string>()
-      expectTypeOf(data2!.userId).toEqualTypeOf<string>()
+      expectTypeOf(data2?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data2?.userId).toEqualTypeOf<string | undefined>()
 
       const data3 = await prisma
         .$extends({})
@@ -392,8 +392,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data3).toBe(null)
       expectTypeOf(data3).toBeNullable()
-      expectTypeOf(data3!.id).toEqualTypeOf<string>()
-      expectTypeOf(data3!.authorId).toEqualTypeOf<string | null>()
+      expectTypeOf(data3?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data3?.authorId).toEqualTypeOf<string | undefined | null>()
 
       const data4 = await prisma
         .$extends({})
@@ -410,8 +410,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data4).toBe(null)
       expectTypeOf(data4).toBeNullable()
-      expectTypeOf(data4!.id).toEqualTypeOf<string>()
-      expectTypeOf(data4!.email).toEqualTypeOf<string>()
+      expectTypeOf(data4?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data4?.email).toEqualTypeOf<string | undefined>()
 
       const data5 = await prisma
         .$extends({})
@@ -429,8 +429,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data5).toBe(null)
       expectTypeOf(data5).toBeNullable()
-      expectTypeOf(data5!.id).toEqualTypeOf<string>()
-      expectTypeOf(data5!.houseId).toEqualTypeOf<string>()
+      expectTypeOf(data5?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data5?.houseId).toEqualTypeOf<string | undefined>()
     })
 
     test('upper-cased relations', async () => {
@@ -445,8 +445,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data0).toBe(null)
       expectTypeOf(data0).toBeNullable()
-      expectTypeOf(data0!.id).toEqualTypeOf<string>()
-      expectTypeOf(data0!.iban).toEqualTypeOf<string>()
+      expectTypeOf(data0?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data0?.iban).toEqualTypeOf<string | undefined>()
 
       const data1 = await prisma
         .$extends({})
@@ -460,8 +460,8 @@ testMatrix.setupTestSuite(() => {
 
       expect(data1).toBe(null)
       expectTypeOf(data1).toBeNullable()
-      expectTypeOf(data1!.id).toEqualTypeOf<string>()
-      expectTypeOf(data1!.email).toEqualTypeOf<string>()
+      expectTypeOf(data1?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data1?.email).toEqualTypeOf<string | undefined>()
     })
 
     test('findFirst', async () => {
@@ -638,7 +638,7 @@ testMatrix.setupTestSuite(() => {
 
       expectTypeOf(posts).toBeNullable()
       expectTypeOf(posts).toEqualTypeOf<{ likeId: string } | null>()
-      expect(posts).toEqual([expect.objectContaining({ title })])
+      expect(posts).toBeNull()
     })
   })
 })
