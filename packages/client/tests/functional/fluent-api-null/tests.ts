@@ -510,22 +510,5 @@ testMatrix.setupTestSuite(() => {
       expect(result).toStrictEqual([])
       expectTypeOf(result).not.toBeNullable()
     })
-
-    test('findFirst with rejectOnNotFound', async () => {
-      const result = prisma.$extends({}).resource.findFirst({ rejectOnNotFound: true }).children()
-
-      await expect(result).rejects.toThrow()
-      expectTypeOf(result).resolves.not.toBeNullable()
-    })
-
-    test('findUnique with rejectOnNotFound', async () => {
-      const result = prisma
-        .$extends({})
-        .resource.findUnique({ where: { id: nonExistingId }, rejectOnNotFound: true })
-        .children()
-
-      await expect(result).rejects.toThrow()
-      expectTypeOf(result).resolves.not.toBeNullable()
-    })
   })
 })
