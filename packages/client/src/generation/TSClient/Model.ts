@@ -306,6 +306,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       `${model.name}Payload`,
       ts
         .objectType()
+        .add(ts.property('name', ts.stringLiteral(model.name)))
         .add(ts.property('objects', objects))
         .add(ts.property('scalars', scalarsType))
         .add(ts.property('composites', composites)),
