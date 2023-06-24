@@ -1,8 +1,9 @@
 import { faker } from '@faker-js/faker'
+import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Post, PrismaClient, Property } from './node_modules/@prisma/client'
 
 const email = faker.internet.email()
 const title = faker.lorem.sentence()
@@ -27,103 +28,127 @@ testMatrix.setupTestSuite(() => {
     })
 
     test('lower-cased relations', async () => {
-      await expect(
-        prisma.user
-          .findUnique({
-            where: {
-              email,
-            },
-          })
-          .property(),
-      ).resolves.toBe(null)
+      const data0 = await prisma.user
+        .findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
 
-      await expect(
-        prisma.user
-          .findUnique({
-            where: {
-              email,
-            },
-          })
-          .property()
-          .house(),
-      ).resolves.toBe(null)
+      expect(data0).toBe(null)
+      expectTypeOf(data0).toBeNullable()
+      expectTypeOf(data0!.id).toEqualTypeOf<string>()
+      expectTypeOf(data0!.houseId).toEqualTypeOf<string>()
 
-      await expect(
-        prisma.user
-          .findUnique({
-            where: {
-              email,
-            },
-          })
-          .property()
-          .house()
-          .like(),
-      ).resolves.toBe(null)
+      const data1 = await prisma.user
+        .findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
+        .house()
 
-      await expect(
-        prisma.user
-          .findUnique({
-            where: {
-              email,
-            },
-          })
-          .property()
-          .house()
-          .like()
-          .post(),
-      ).resolves.toBe(null)
+      expect(data1).toBe(null)
+      // TODO expectTypeOf(data1).toBeNullable()
+      expectTypeOf(data1!.id).toEqualTypeOf<string>()
+      expectTypeOf(data1!.likeId).toEqualTypeOf<string>()
 
-      await expect(
-        prisma.user
-          .findUnique({
-            where: {
-              email,
-            },
-          })
-          .property()
-          .house()
-          .like()
-          .post()
-          .author(),
-      ).resolves.toBe(null)
+      const data2 = await prisma.user
+        .findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
+        .house()
+        .like()
 
-      await expect(
-        prisma.user
-          .findUnique({
-            where: {
-              email,
-            },
-          })
-          .property()
-          .house()
-          .like()
-          .post()
-          .author()
-          .property(),
-      ).resolves.toBe(null)
+      expect(data2).toBe(null)
+      // TODO expectTypeOf(data2).toBeNullable()
+      expectTypeOf(data2!.id).toEqualTypeOf<string>()
+      expectTypeOf(data2!.userId).toEqualTypeOf<string>()
+
+      const data3 = await prisma.user
+        .findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
+        .house()
+        .like()
+        .post()
+
+      expect(data3).toBe(null)
+      // TODO expectTypeOf(data3).toBeNullable()
+      expectTypeOf(data3!.id).toEqualTypeOf<string>()
+      expectTypeOf(data3!.authorId).toEqualTypeOf<string | null>()
+
+      const data4 = await prisma.user
+        .findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
+        .house()
+        .like()
+        .post()
+        .author()
+
+      expect(data4).toBe(null)
+      // TODO expectTypeOf(data4).toBeNullable()
+      expectTypeOf(data4!.id).toEqualTypeOf<string>()
+      expectTypeOf(data4!.email).toEqualTypeOf<string>()
+
+      const data5 = await prisma.user
+        .findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
+        .house()
+        .like()
+        .post()
+        .author()
+        .property()
+
+      expect(data5).toBe(null)
+      // TODO expectTypeOf(data5).toBeNullable()
+      expectTypeOf(data5!.id).toEqualTypeOf<string>()
+      expectTypeOf(data5!.houseId).toEqualTypeOf<string>()
     })
 
     test('upper-cased relations', async () => {
-      await expect(
-        prisma.user
-          .findUnique({
-            where: {
-              email,
-            },
-          })
-          .Banking(),
-      ).resolves.toBe(null)
+      const data0 = await prisma.user
+        .findUnique({
+          where: {
+            email,
+          },
+        })
+        .Banking()
 
-      await expect(
-        prisma.user
-          .findUnique({
-            where: {
-              email,
-            },
-          })
-          .Banking()
-          .user(),
-      ).resolves.toBe(null)
+      expect(data0).toBe(null)
+      expectTypeOf(data0).toBeNullable()
+      expectTypeOf(data0!.id).toEqualTypeOf<string>()
+      expectTypeOf(data0!.iban).toEqualTypeOf<string>()
+
+      const data1 = await prisma.user
+        .findUnique({
+          where: {
+            email,
+          },
+        })
+        .Banking()
+        .user()
+
+      expect(data1).toBe(null)
+      // TODO expectTypeOf(data1).toBeNullable()
+      expectTypeOf(data1!.id).toEqualTypeOf<string>()
+      expectTypeOf(data1!.email).toEqualTypeOf<string>()
     })
 
     test('findFirst', async () => {
@@ -135,6 +160,7 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[] | null>()
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
 
@@ -147,6 +173,7 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
 
@@ -159,6 +186,7 @@ testMatrix.setupTestSuite(() => {
         })
         .property()
 
+      expectTypeOf(property).toEqualTypeOf<Property>() // TODO null missing
       expect(property).toBeNull()
     })
 
@@ -171,6 +199,7 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
 
@@ -183,6 +212,7 @@ testMatrix.setupTestSuite(() => {
         })
         .property()
 
+      expectTypeOf(property).toEqualTypeOf<Property>() // TODO null missing
       expect(property).toBeNull()
     })
 
@@ -195,6 +225,7 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
       expect(posts).toEqual([])
     })
 
@@ -207,6 +238,8 @@ testMatrix.setupTestSuite(() => {
           data: {},
         })
         .posts()
+
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
 
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
@@ -224,6 +257,7 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
 
@@ -236,6 +270,48 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
+      expect(posts).toEqual([expect.objectContaining({ title })])
+    })
+
+    test('chaining and selecting', async () => {
+      const posts = await prisma.user
+        .findFirst({
+          where: {
+            email,
+          },
+        })
+        .posts({
+          select: {
+            title: true,
+          },
+        })
+
+      expectTypeOf(posts).toBeNullable()
+      expectTypeOf(posts).toEqualTypeOf<{ title: string }[] | null>()
+      expect(posts).toEqual([expect.objectContaining({ title })])
+    })
+
+    test('chaining and selecting twice', async () => {
+      const posts = await prisma.user
+        .findFirst({
+          where: {
+            email,
+          },
+        })
+        .property({
+          select: {
+            houseId: true,
+          },
+        })
+        .house({
+          select: {
+            likeId: true,
+          },
+        })
+
+      // TODO expectTypeOf(posts).toBeNullable()
+      expectTypeOf(posts).toEqualTypeOf<{ likeId: string }>()
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
   })
@@ -257,111 +333,135 @@ testMatrix.setupTestSuite(() => {
     })
 
     test('lower-cased relations', async () => {
-      await expect(
-        prisma
-          .$extends({})
-          .user.findUnique({
-            where: {
-              email,
-            },
-          })
-          .property(),
-      ).resolves.toBe(null)
+      const data0 = await prisma
+        .$extends({})
+        .user.findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
 
-      await expect(
-        prisma
-          .$extends({})
-          .user.findUnique({
-            where: {
-              email,
-            },
-          })
-          .property()
-          .house(),
-      ).resolves.toBe(null)
+      expect(data0).toBe(null)
+      expectTypeOf(data0).toBeNullable()
+      expectTypeOf(data0!.id).toEqualTypeOf<string>()
+      expectTypeOf(data0!.houseId).toEqualTypeOf<string>()
 
-      await expect(
-        prisma
-          .$extends({})
-          .user.findUnique({
-            where: {
-              email,
-            },
-          })
-          .property()
-          .house()
-          .like(),
-      ).resolves.toBe(null)
+      const data1 = await prisma
+        .$extends({})
+        .user.findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
+        .house()
 
-      await expect(
-        prisma
-          .$extends({})
-          .user.findUnique({
-            where: {
-              email,
-            },
-          })
-          .property()
-          .house()
-          .like()
-          .post(),
-      ).resolves.toBe(null)
+      expect(data1).toBe(null)
+      expectTypeOf(data1).toBeNullable()
+      expectTypeOf(data1!.id).toEqualTypeOf<string>()
+      expectTypeOf(data1!.likeId).toEqualTypeOf<string>()
 
-      await expect(
-        prisma
-          .$extends({})
-          .user.findUnique({
-            where: {
-              email,
-            },
-          })
-          .property()
-          .house()
-          .like()
-          .post()
-          .author(),
-      ).resolves.toBe(null)
+      const data2 = await prisma
+        .$extends({})
+        .user.findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
+        .house()
+        .like()
 
-      await expect(
-        prisma
-          .$extends({})
-          .user.findUnique({
-            where: {
-              email,
-            },
-          })
-          .property()
-          .house()
-          .like()
-          .post()
-          .author()
-          .property(),
-      ).resolves.toBe(null)
+      expect(data2).toBe(null)
+      expectTypeOf(data2).toBeNullable()
+      expectTypeOf(data2!.id).toEqualTypeOf<string>()
+      expectTypeOf(data2!.userId).toEqualTypeOf<string>()
+
+      const data3 = await prisma
+        .$extends({})
+        .user.findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
+        .house()
+        .like()
+        .post()
+
+      expect(data3).toBe(null)
+      expectTypeOf(data3).toBeNullable()
+      expectTypeOf(data3!.id).toEqualTypeOf<string>()
+      expectTypeOf(data3!.authorId).toEqualTypeOf<string | null>()
+
+      const data4 = await prisma
+        .$extends({})
+        .user.findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
+        .house()
+        .like()
+        .post()
+        .author()
+
+      expect(data4).toBe(null)
+      expectTypeOf(data4).toBeNullable()
+      expectTypeOf(data4!.id).toEqualTypeOf<string>()
+      expectTypeOf(data4!.email).toEqualTypeOf<string>()
+
+      const data5 = await prisma
+        .$extends({})
+        .user.findUnique({
+          where: {
+            email,
+          },
+        })
+        .property()
+        .house()
+        .like()
+        .post()
+        .author()
+        .property()
+
+      expect(data5).toBe(null)
+      expectTypeOf(data5).toBeNullable()
+      expectTypeOf(data5!.id).toEqualTypeOf<string>()
+      expectTypeOf(data5!.houseId).toEqualTypeOf<string>()
     })
 
     test('upper-cased relations', async () => {
-      await expect(
-        prisma
-          .$extends({})
-          .user.findUnique({
-            where: {
-              email,
-            },
-          })
-          .Banking(),
-      ).resolves.toBe(null)
+      const data0 = await prisma
+        .$extends({})
+        .user.findUnique({
+          where: {
+            email,
+          },
+        })
+        .Banking()
 
-      await expect(
-        prisma
-          .$extends({})
-          .user.findUnique({
-            where: {
-              email,
-            },
-          })
-          .Banking()
-          .user(),
-      ).resolves.toBe(null)
+      expect(data0).toBe(null)
+      expectTypeOf(data0).toBeNullable()
+      expectTypeOf(data0!.id).toEqualTypeOf<string>()
+      expectTypeOf(data0!.iban).toEqualTypeOf<string>()
+
+      const data1 = await prisma
+        .$extends({})
+        .user.findUnique({
+          where: {
+            email,
+          },
+        })
+        .Banking()
+        .user()
+
+      expect(data1).toBe(null)
+      expectTypeOf(data1).toBeNullable()
+      expectTypeOf(data1!.id).toEqualTypeOf<string>()
+      expectTypeOf(data1!.email).toEqualTypeOf<string>()
     })
 
     test('findFirst', async () => {
@@ -374,6 +474,7 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[] | null>()
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
 
@@ -387,6 +488,7 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
 
@@ -400,6 +502,8 @@ testMatrix.setupTestSuite(() => {
         })
         .property()
 
+      expectTypeOf(property).toBeNullable()
+      expectTypeOf(property).toEqualTypeOf<Property | null>()
       expect(property).toBeNull()
     })
 
@@ -413,6 +517,7 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
 
@@ -426,6 +531,8 @@ testMatrix.setupTestSuite(() => {
         })
         .property()
 
+      expectTypeOf(property).toBeNullable()
+      expectTypeOf(property).toEqualTypeOf<Property | null>()
       expect(property).toBeNull()
     })
 
@@ -439,6 +546,7 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
       expect(posts).toEqual([])
     })
 
@@ -452,6 +560,8 @@ testMatrix.setupTestSuite(() => {
           data: {},
         })
         .posts()
+
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
 
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
@@ -470,6 +580,7 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
 
@@ -483,6 +594,50 @@ testMatrix.setupTestSuite(() => {
         })
         .posts()
 
+      expectTypeOf(posts).toEqualTypeOf<Post[]>()
+      expect(posts).toEqual([expect.objectContaining({ title })])
+    })
+
+    test('chaining and selecting', async () => {
+      const posts = await prisma
+        .$extends({})
+        .user.findFirst({
+          where: {
+            email,
+          },
+        })
+        .posts({
+          select: {
+            title: true,
+          },
+        })
+
+      expectTypeOf(posts).toBeNullable()
+      expectTypeOf(posts).toEqualTypeOf<{ title: string }[] | null>()
+      expect(posts).toEqual([expect.objectContaining({ title })])
+    })
+
+    test('chaining and selecting twice', async () => {
+      const posts = await prisma
+        .$extends({})
+        .user.findFirst({
+          where: {
+            email,
+          },
+        })
+        .property({
+          select: {
+            houseId: true,
+          },
+        })
+        .house({
+          select: {
+            likeId: true,
+          },
+        })
+
+      expectTypeOf(posts).toBeNullable()
+      expectTypeOf(posts).toEqualTypeOf<{ likeId: string } | null>()
       expect(posts).toEqual([expect.objectContaining({ title })])
     })
   })
