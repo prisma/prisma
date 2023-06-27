@@ -20,7 +20,7 @@ async function main() {
   prisma.$on('query', (a) => {
     //
   })
-  prisma.$on('beforeExit', () => {
+  prisma.$on('beforeExit', async () => {
     //
   })
   Prisma.prismaVersion.client
