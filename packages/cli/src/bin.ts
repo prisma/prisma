@@ -23,7 +23,6 @@ import { bold, red } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
-import { Doctor } from './Doctor'
 import { Format } from './Format'
 import { Generate } from './Generate'
 import { Init } from './Init'
@@ -106,7 +105,6 @@ async function main(): Promise<number> {
       version: Version.new(),
       validate: Validate.new(),
       format: Format.new(),
-      doctor: Doctor.new(),
       telemetry: Telemetry.new(),
     },
     [
