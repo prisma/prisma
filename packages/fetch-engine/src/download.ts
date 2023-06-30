@@ -9,7 +9,7 @@ import path from 'path'
 import tempDir from 'temp-dir'
 import { promisify } from 'util'
 
-import plusxSync from './chmod'
+import { chmodPlusX } from './chmodPlusX'
 import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
 import { getHash } from './getHash'
@@ -288,7 +288,9 @@ async function binaryNeedsToBeDownloaded(
       }
     } else if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
       // If the env var is truthy we do not error if the checksum file is missing
-      debug(`The checksum file: ${sha256FilePath} is missing but this was ignored as the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is truthy.`)
+      debug(
+        `The checksum file: ${sha256FilePath} is missing but this was ignored as the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is truthy.`,
+      )
       return false
     } else {
       return true
@@ -429,9 +431,7 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     progressCb(1)
   }
 
-  if (process.platform !== 'win32') {
-    plusxSync(targetFilePath)
-  }
+  chmodPlusX(targetFilePath)
 
   // Cache result
   await saveFileToCache(options, version, sha256, zippedSha256)
