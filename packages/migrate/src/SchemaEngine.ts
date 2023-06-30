@@ -110,7 +110,7 @@ export class SchemaEngine {
   }
 
   /**
-   * Make the migration engine panic. Only useful to test client error handling.
+   * Make the Schema engine panic. Only useful to test client error handling.
    */
   public debugPanic(): Promise<void> {
     return this.runCommand(this.getRPCPayload('debugPanic', undefined))
@@ -129,7 +129,7 @@ export class SchemaEngine {
 
   /**
    * Read the contents of the migrations directory and the migrations table, and returns their relative statuses.
-   * At this stage, the migration engine only reads,
+   * At this stage, the Schema engine only reads,
    * it does not write to the database nor the migrations directory, nor does it use a shadow database.
    */
   public diagnoseMigrationHistory(
@@ -139,7 +139,7 @@ export class SchemaEngine {
   }
 
   /**
-   * Make sure the migration engine can connect to the database from the Prisma schema.
+   * Make sure the Schema engine can connect to the database from the Prisma schema.
    */
   public ensureConnectionValidity(args: EngineArgs.EnsureConnectionValidityInput): Promise<void> {
     return this.runCommand(this.getRPCPayload('ensureConnectionValidity', args))
@@ -282,7 +282,7 @@ export class SchemaEngine {
     try {
       result = JSON.parse(response)
     } catch (e) {
-      console.error(`Could not parse migration engine response: ${response.slice(0, 200)}`)
+      console.error(`Could not parse Schema engine response: ${response.slice(0, 200)}`)
     }
 
     // See https://www.jsonrpc.org/specification for the expected shape of messages.
@@ -330,7 +330,7 @@ export class SchemaEngine {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const { PWD, ...processEnv } = process.env
         const binaryPath = await resolveBinary(BinaryType.SchemaEngineBinary)
-        debugRpc('starting migration engine with binary: ' + binaryPath)
+        debugRpc('starting Schema engine with binary: ' + binaryPath)
         const args: string[] = []
 
         if (this.schemaPath) {
@@ -377,7 +377,7 @@ export class SchemaEngine {
              *
              * ```
              * [EXIT_PANIC]
-             * Starting migration engine RPC server
+             * Starting Schema engine RPC server
              * The migration was not applied because it triggered warnings and the force flag was not passed
              * 0: backtrace::capture::Backtrace::new
              * 1: schema_engine::set_panic_hook::{{closure}}
@@ -405,7 +405,7 @@ export class SchemaEngine {
             case SchemaEngineExitCode.Success:
               break
             case SchemaEngineExitCode.Error:
-              exitWithErr(new Error(`Error in migration engine: ${engineMessage}`))
+              exitWithErr(new Error(`Error in Schema engine: ${engineMessage}`))
               break
             case SchemaEngineExitCode.Panic:
               handlePanic()
@@ -460,7 +460,7 @@ export class SchemaEngine {
     await this.init()
 
     if (this.child?.killed) {
-      throw new Error(`Can't execute ${JSON.stringify(request)} because migration engine already exited.`)
+      throw new Error(`Can't execute ${JSON.stringify(request)} because Schema engine  already exited.`)
     }
 
     return new Promise((resolve, reject) => {
@@ -523,7 +523,7 @@ export class SchemaEngine {
       })
 
       if (this.child!.stdin!.destroyed) {
-        throw new Error(`Can't execute ${JSON.stringify(request)} because migration engine is destroyed.`)
+        throw new Error(`Can't execute ${JSON.stringify(request)} because Schema engine is destroyed.`)
       }
 
       debugRpc('SENDING RPC CALL', JSON.stringify(request))
@@ -546,5 +546,5 @@ export class SchemaEngine {
 
 /** The full message with context we return to the user in case of engine panic. */
 function serializePanic(log: string): string {
-  return `${red(bold('Error in migration engine.\nReason: '))}${log}\n`
+  return `${red(bold('Error in Schema engine.\nReason: '))}${log}\n`
 }
