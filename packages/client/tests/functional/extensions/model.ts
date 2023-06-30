@@ -741,6 +741,56 @@ testMatrix.setupTestSuite(
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
     })
+
+    test('one specific user extension along a generic $allModels model extension', () => {
+      const myCustomCallA = jest.fn()
+      const myCustomCallB = jest.fn()
+
+      const xprisma = prisma.$extends({
+        model: {
+          user: {
+            myCustomCallB(input: string) {
+              myCustomCallB(input)
+              return input
+            },
+          },
+          $allModels: {
+            myCustomCallA(input: number) {
+              myCustomCallA(input)
+              return input
+            },
+          },
+        },
+      })
+
+      const results = [
+        xprisma.user.myCustomCallA(42),
+        xprisma.user.myCustomCallA(42),
+        xprisma.user.myCustomCallB('Hello'),
+      ] as const
+
+      // @ts-expect-error
+      expect(() => xprisma.post.myCustomCallB('Hello')).toThrow()
+
+      expect(results).toEqual([42, 42, 'Hello'])
+      expectTypeOf(results).toEqualTypeOf<readonly [number, number, string]>()
+
+      expect(myCustomCallA).toHaveBeenCalledTimes(2)
+      expect(myCustomCallA).toHaveBeenCalledWith(42)
+      expect(myCustomCallB).toHaveBeenCalledTimes(1)
+      expect(myCustomCallB).toHaveBeenCalledWith('Hello')
+    })
+
+    test('does not allow to pass invalid properties', async () => {
+      const xprisma = prisma.$extends({})
+
+      await expect(
+        xprisma.user.findFirst({
+          // @ts-expect-error
+          invalid: true,
+        }),
+      ).rejects.toThrow()
+    })
   },
   {
     skipDefaultClientInstance: true,

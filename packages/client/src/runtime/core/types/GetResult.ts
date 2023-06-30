@@ -35,6 +35,16 @@ export type Operation =
 | 'aggregateRaw'
 | '$runCommandRaw'
 
+export type FluentOperation =
+| 'findUnique' 
+| 'findUniqueOrThrow' 
+| 'findFirst' 
+| 'findFirstOrThrow' 
+| 'create' 
+| 'update' 
+| 'upsert' 
+| 'delete'
+
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
