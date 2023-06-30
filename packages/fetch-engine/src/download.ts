@@ -10,7 +10,7 @@ import tempDir from 'temp-dir'
 import { promisify } from 'util'
 
 import { BinaryType } from './BinaryType'
-import plusxSync from './chmod'
+import { chmodPlusX } from './chmodPlusX'
 import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
 import { getBinaryEnvVarPath } from './env'
@@ -405,9 +405,7 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     progressCb(1)
   }
 
-  if (process.platform !== 'win32') {
-    plusxSync(targetFilePath)
-  }
+  chmodPlusX(targetFilePath)
 
   // Cache result
   await saveFileToCache(options, version, sha256, zippedSha256)

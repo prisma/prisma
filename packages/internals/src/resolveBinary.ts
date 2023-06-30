@@ -7,7 +7,7 @@ import { ensureDir } from 'fs-extra'
 import path from 'path'
 import tempDir from 'temp-dir'
 
-import { plusX } from './utils/plusX'
+import { chmodPlusX } from './utils/chmodPlusX'
 
 export { BinaryType, engineEnvVarMap }
 
@@ -95,7 +95,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     // TODO Undo when https://github.com/vercel/pkg/pull/1484 is released
     // await copyFile(file, target)
 
-    plusX(target)
+    chmodPlusX(target)
     return target
   }
 
