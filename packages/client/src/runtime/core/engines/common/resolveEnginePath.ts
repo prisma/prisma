@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { getNodeAPIName, getPlatform, Platform } from '@prisma/get-platform'
-import { plusX } from '@prisma/internals'
+import { chmodPlusX } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
@@ -43,8 +43,7 @@ export async function resolveEnginePath(engineType: 'binary' | 'library', config
   debug('enginePath', enginePath)
 
   // if we find it, we apply +x chmod to the binary, cache, and return
-  // Note: we only do this on non-windows platforms as chmod on Windows errors with `EACCES: permission denied`
-  if (process.platform !== 'win32' && enginePath !== undefined && engineType === 'binary') plusX(enginePath)
+  if (enginePath !== undefined && engineType === 'binary') chmodPlusX(enginePath)
   if (enginePath !== undefined) return (config.prismaPath = enginePath)
 
   // if we don't find it, then we will throw helpful error messages
