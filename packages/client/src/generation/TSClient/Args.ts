@@ -1,13 +1,12 @@
 import indent from 'indent-string'
 
-import { DMMF } from '../../runtime/dmmf-types'
+import { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { getArgFieldJSDoc } from './helpers'
 import { InputField } from './Input'
-import { ifExtensions } from './utils/ifExtensions'
 
 export class ArgsType implements Generatable {
   private generatedName: string | null = null
@@ -92,11 +91,8 @@ export class ArgsType implements Generatable {
 /**
  * ${this.getGeneratedComment()}
  */
-export type ${generatedName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
+export type ${generatedName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+${indent(argsToGenerate.map((arg) => new InputField(arg, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
   }
@@ -118,20 +114,14 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInf
 /**
  * ${name} base type for ${action} actions
  */
-export type ${baseTypeName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
+export type ${baseTypeName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+${indent(argsToGenerate.map((arg) => new InputField(arg, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 
 /**
  * ${this.getGeneratedComment()}
  */
-export interface ${modelArgName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} extends ${baseTypeName}${ifExtensions('<ExtArgs>', '')} {
+export interface ${modelArgName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends ${baseTypeName}<ExtArgs> {
  /**
   * Throw an Error if query returns no results
   * @deprecated since 4.0.0: use \`${replacement}\` method instead
@@ -166,15 +156,11 @@ export class MinimalArgsType implements Generatable {
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${this.generatedTypeName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
+export type ${this.generatedTypeName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
 ${indent(
   args
     .map((arg) => {
-      const noEnumerable = arg.inputTypes.some((input) => input.type === 'Json') && arg.name === 'pipeline'
-      return new InputField(arg, noEnumerable, this.genericsInfo).toTS()
+      return new InputField(arg, this.genericsInfo).toTS()
     })
     .join('\n'),
   TAB_SIZE,

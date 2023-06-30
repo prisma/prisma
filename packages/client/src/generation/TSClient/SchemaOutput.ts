@@ -1,7 +1,7 @@
 import indent from 'indent-string'
 
-import type { DMMF } from '../../runtime/dmmf-types'
-import { GraphQLScalarToJSTypeTable } from '../../runtime/utils/common'
+import type { DMMF } from '../dmmf-types'
+import { GraphQLScalarToJSTypeTable } from '../utils/common'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 

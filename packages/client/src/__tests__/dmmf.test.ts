@@ -51,12 +51,6 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
-              {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
-              },
             ],
             isNullable: false,
             isRequired: false,
@@ -66,12 +60,6 @@ describe('dmmf', () => {
             inputTypes: [
               {
                 isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
-              },
-              {
-                isList: false,
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
@@ -132,12 +120,6 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
-              {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
-              },
             ],
             isNullable: false,
             isRequired: false,
@@ -147,12 +129,6 @@ describe('dmmf', () => {
             inputTypes: [
               {
                 isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
-              },
-              {
-                isList: false,
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
@@ -236,12 +212,6 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
-              {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
-              },
             ],
             isNullable: false,
             isRequired: false,
@@ -251,12 +221,6 @@ describe('dmmf', () => {
             inputTypes: [
               {
                 isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
-              },
-              {
-                isList: false,
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
@@ -317,12 +281,6 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
-              {
-                isList: false,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
-              },
             ],
             isNullable: false,
             isRequired: false,
@@ -332,12 +290,6 @@ describe('dmmf', () => {
             inputTypes: [
               {
                 isList: true,
-                location: enumTypes,
-                namespace: model,
-                type: PostKind,
-              },
-              {
-                isList: false,
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,

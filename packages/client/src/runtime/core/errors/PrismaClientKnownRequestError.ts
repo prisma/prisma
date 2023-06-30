@@ -17,6 +17,7 @@ export class PrismaClientKnownRequestError extends Error implements ErrorWithBat
 
   constructor(message: string, { code, clientVersion, meta, batchRequestIdx }: KnownErrorParams) {
     super(message)
+    this.name = 'PrismaClientKnownRequestError'
 
     this.code = code
     this.clientVersion = clientVersion

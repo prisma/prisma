@@ -1,5 +1,4 @@
 import Debug from '@prisma/debug'
-import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
 import { EngineSpanEvent } from '@prisma/internals'
@@ -14,16 +13,14 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
-  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
-  EngineProtocol,
-  EngineQuery,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { EventEmitter } from '../common/types/Events'
+import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
@@ -71,7 +68,6 @@ export class LibraryEngine extends Engine<undefined> {
   private libraryLoader: LibraryLoader
   private library?: Library
   private logEmitter: EventEmitter
-  private engineProtocol: EngineProtocol
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
@@ -124,7 +120,6 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     this.logLevel = config.logLevel ?? 'error'
     this.libraryLoader = loader
     this.logEmitter = config.logEmitter
-    this.engineProtocol = config.engineProtocol
     this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
@@ -137,7 +132,11 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
 
   private checkForTooManyEngines() {
     if (engineInstanceCount === 10) {
-      console.warn(`${yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`)
+      console.warn(
+        `${yellow(
+          'warn(prisma-client)',
+        )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
+      )
     }
   }
 
@@ -261,7 +260,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             datasourceOverrides: this.datasourceOverrides,
             logLevel: this.logLevel,
             configDir: this.config.cwd,
-            engineProtocol: this.engineProtocol,
+            engineProtocol: 'json',
           },
           (log) => {
             weakThis.deref()?.logger(log)
@@ -436,15 +435,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return this.libraryStoppingPromise
   }
 
-  async getDmmf(): Promise<DMMF.Document> {
-    await this.start()
-
-    const traceparent = this.config.tracingHelper.getTraceParent()
-    const response = await this.engine!.dmmf(JSON.stringify({ traceparent }))
-
-    return this.config.tracingHelper.runInChildSpan({ name: 'parseDmmf', internal: true }, () => JSON.parse(response))
-  }
-
   version(): string {
     this.versionInfo = this.library?.version()
     return this.versionInfo?.version ?? 'unknown'
@@ -457,7 +447,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async request<T>(
-    query: EngineQuery,
+    query: JsonQuery,
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
@@ -503,7 +493,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async requestBatch<T>(
-    queries: EngineBatchQueries,
+    queries: JsonQuery[],
     { transaction, traceparent }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     debug('requestBatch')

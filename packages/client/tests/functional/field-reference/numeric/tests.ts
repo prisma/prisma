@@ -1,5 +1,4 @@
 import { faker } from '@faker-js/faker'
-import { getQueryEngineProtocol } from '@prisma/internals'
 
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -88,7 +87,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
   })
 
   // TODO: Edge: skipped because of the error snapshot
-  testIf(runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('wrong column numeric type', async () => {
+  testIf(runtime !== 'edge')('wrong column numeric type', async () => {
     const products = prisma.product.findMany({
       where: {
         quantity: {
@@ -99,5 +98,17 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
     })
 
     await expect(products).rejects.toMatchPrismaErrorSnapshot()
+  })
+
+  test('via extended client', async () => {
+    const xprisma = prisma.$extends({})
+
+    const products = await xprisma.product.findMany({
+      where: {
+        quantity: { gt: xprisma.product.fields.maxQuantity },
+      },
+    })
+
+    expect(products).toEqual([expect.objectContaining({ title: 'Rice' })])
   })
 })

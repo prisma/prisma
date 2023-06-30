@@ -1,5 +1,4 @@
 node_modules
-schema-engine*
 yarn-error.log
 dist
 build

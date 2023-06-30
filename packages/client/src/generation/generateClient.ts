@@ -11,10 +11,10 @@ import type { O } from 'ts-toolbelt'
 import { promisify } from 'util'
 
 import { name as clientPackageName } from '../../package.json'
-import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
-import type { Dictionary } from '../runtime/utils/common'
+import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
+import type { Dictionary } from './utils/common'
 
 const exists = promisify(fs.exists)
 

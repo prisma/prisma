@@ -3,7 +3,6 @@ import {
   arg,
   checkUnsupportedDataProxy,
   Command,
-  drawBox,
   format,
   formatms,
   getCommandWithExecutor,
@@ -271,7 +270,6 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
     const before = Date.now()
     let introspectionSchema = ''
     let introspectionWarnings: EngineArgs.IntrospectResult['warnings']
-    let introspectionSchemaVersion: EngineArgs.IntrospectionSchemaVersion
     try {
       const introspectionResult = await engine.introspect({
         schema,
@@ -283,8 +281,6 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
       introspectionSchema = introspectionResult.datamodel
       introspectionWarnings = introspectionResult.warnings
       debug(`Introspection warnings`, introspectionWarnings)
-      introspectionSchemaVersion = introspectionResult.version
-      debug(`Introspection Schema Version: ${introspectionResult.version}`)
     } catch (e: any) {
       introspectionSpinner.failure()
 
@@ -359,26 +355,9 @@ Or run this command with the ${green(
 
     const introspectionWarningsMessage = this.getWarningMessage(introspectionWarnings)
 
-    const prisma1UpgradeMessage = introspectionSchemaVersion.includes('Prisma1')
-      ? `\n${bold('Upgrading from Prisma 1 to Prisma 2+?')}
-      \nThe database you introspected could belong to a Prisma 1 project.
-
-Please run the following command to upgrade to Prisma 2+:
-${green('npx prisma-upgrade [path-to-prisma-yml] [path-to-schema-prisma]')}
-
-Note: \`prisma.yml\` and \`schema.prisma\` paths are optional.
- 
-Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upgrading-to-prisma2')}
-`
-      : ''
-
     if (args['--print']) {
       console.log(introspectionSchema)
-      introspectionSchemaVersion &&
-        console.log(
-          `\n// introspectionSchemaVersion: ${introspectionSchemaVersion}`,
-          prisma1UpgradeMessage.replace(/(\n)/gm, '\n// '),
-        )
+
       if (introspectionWarningsMessage.trim().length > 0) {
         // Replace make it a // comment block
         console.error(introspectionWarningsMessage.replace(/(\n)/gm, '\n// '))
@@ -402,21 +381,9 @@ Learn more about the upgrade process in the docs:\n${link('https://pris.ly/d/upg
           ? `${modelsAndTypesMessage} and wrote them`
           : `${modelsAndTypesMessage} and wrote it`
 
-      const prisma1UpgradeMessageBox = prisma1UpgradeMessage
-        ? '\n\n' +
-          drawBox({
-            height: 16,
-            width: 74,
-            str:
-              prisma1UpgradeMessage +
-              '\nOnce you upgraded your database schema to Prisma 2+, \ncontinue with the instructions below.\n',
-            horizontalPadding: 2,
-          })
-        : ''
-
       introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
         path.relative(process.cwd(), schemaPath),
-      )} in ${bold(formatms(Date.now() - before))}${prisma1UpgradeMessageBox}
+      )} in ${bold(formatms(Date.now() - before))}
       ${yellow(introspectionWarningsMessage)}
 ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }

@@ -39,8 +39,6 @@ model your_url {
   @@index([timestamp], map: "timestamp")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`mysql basic introspection 2`] = `
@@ -82,6 +80,4 @@ model your_url {
   @@index([timestamp], map: "timestamp")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
