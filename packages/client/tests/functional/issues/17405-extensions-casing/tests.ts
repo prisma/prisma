@@ -10,8 +10,8 @@ testMatrix.setupTestSuite(
   () => {
     test('empty', () => {
       expectTypeOf<
-        PrismaNamespace.TypeMap['model']['user']['groupBy']['args']
-      >().toEqualTypeOf<PrismaNamespace.UserGroupByArgs>()
+        PrismaNamespace.TypeMap['model']['user']['operations']['groupBy']['args']
+      >().toEqualTypeOf<PrismaNamespace.userGroupByArgs>()
       ;async () => {
         await prisma.$extends({}).user.findFirst()
       }

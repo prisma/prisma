@@ -35,14 +35,26 @@ export type Operation =
 | 'aggregateRaw'
 | '$runCommandRaw'
 
+export type FluentOperation =
+  | 'findUnique'
+  | 'findUniqueOrThrow'
+  | 'findFirst'
+  | 'findFirstOrThrow'
+  | 'create'
+  | 'update'
+  | 'upsert'
+  | 'delete'
+
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
-export type GetFindResult<P extends Payload, A> = 
+export type GetFindResult<P extends Payload, A> =
+  {} extends A ? DefaultSelection<P> :
   A extends 
   | { select: infer S } & Record<string, unknown>
   | { include: infer S } & Record<string, unknown>
-  ? {
+  ? S extends undefined ? DefaultSelection<P> :
+    {
       [K in keyof S as S[K] extends false | undefined | null ? never : K]:
         S[K] extends object
         ? P extends SelectablePayloadFields<K, (infer O)[]>
@@ -64,6 +76,7 @@ export type GetFindResult<P extends Payload, A> =
     } & (A extends { include: any } & Record<string, unknown> ? DefaultSelection<P> : unknown)
   : DefaultSelection<P>
 
+// prettier-ignore
 type SelectablePayloadFields<K extends PropertyKey, O> =
   | { objects: { [k in K]: O } }
   | { composites: { [k in K]: O } }
@@ -81,8 +94,16 @@ export type DefaultSelection<P> = P extends Payload
   ? P['scalars'] & UnwrapPayload<P['composites']>
   : P
 
+// prettier-ignore
 type UnwrapPayload<P> = {
-  [K in keyof P]: P[K] extends Payload ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> : P[K]
+  [K in keyof P]:
+    P[K] extends Payload[]
+    ? UnwrapPayload<P[K]>
+    : P[K] extends Payload 
+      ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> 
+      : P[K] extends (infer O extends Payload) | null
+        ? (O['scalars'] & UnwrapPayload<O['composites']>) | null
+        : P[K]
 } & unknown
 
 type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number

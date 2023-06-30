@@ -17,6 +17,7 @@ testMatrix.setupTestSuite(
               lastName: 'McHorseFace',
             },
             url: 'https://horsey.example.com',
+            favoriteThings: [{ name: 'Horsing around at the speed of sound' }],
           },
         },
       })
@@ -27,10 +28,16 @@ testMatrix.setupTestSuite(
       expect(user).toHaveProperty('profile')
       expect(user.profile).toHaveProperty('url')
       expect(user.profile).toHaveProperty('name')
+      expect(user.profile).toHaveProperty('favoriteThings')
 
       expectTypeOf(user).toHaveProperty('profile')
       expectTypeOf(user.profile).toHaveProperty('url')
       expectTypeOf(user.profile).toHaveProperty('name')
+      expectTypeOf(user.profile.name).not.toBeNullable()
+      expectTypeOf(user.profile).toHaveProperty('alternateName')
+      expectTypeOf(user.profile.alternateName).toMatchTypeOf<{ firstName: string; lastName: string } | null>()
+      expectTypeOf(user.profile).toHaveProperty('favoriteThings')
+      expectTypeOf(user.profile.favoriteThings).toMatchTypeOf<Array<{ name: string }>>()
     })
 
     test('composites can be selected explicitly', async () => {
@@ -42,10 +49,16 @@ testMatrix.setupTestSuite(
       expect(user).toHaveProperty('profile')
       expect(user.profile).toHaveProperty('url')
       expect(user.profile).toHaveProperty('name')
+      expect(user.profile).toHaveProperty('favoriteThings')
 
       expectTypeOf(user).toHaveProperty('profile')
       expectTypeOf(user.profile).toHaveProperty('url')
       expectTypeOf(user.profile).toHaveProperty('name')
+      expectTypeOf(user.profile.name).not.toBeNullable()
+      expectTypeOf(user.profile).toHaveProperty('alternateName')
+      expectTypeOf(user.profile.alternateName).toMatchTypeOf<{ firstName: string; lastName: string } | null>()
+      expectTypeOf(user.profile).toHaveProperty('favoriteThings')
+      expectTypeOf(user.profile.favoriteThings).toMatchTypeOf<Array<{ name: string }>>()
     })
 
     test('composites can be selected explicitly on multiple nesting levels', async () => {
@@ -53,6 +66,7 @@ testMatrix.setupTestSuite(
         select: {
           profile: {
             select: {
+              favoriteThings: true,
               name: {
                 select: {
                   firstName: true,
@@ -73,11 +87,18 @@ testMatrix.setupTestSuite(
       expectTypeOf(user.profile).toHaveProperty('name')
       expectTypeOf(user.profile.name).toHaveProperty('firstName')
       expectTypeOf(user.profile.name).not.toHaveProperty('lastName')
+
+      expectTypeOf(user.profile).toHaveProperty('favoriteThings')
+      expectTypeOf(user.profile.favoriteThings).toMatchTypeOf<Array<{ name: string }>>()
     })
 
     test('composites are included on default types', () => {
       expectTypeOf<User>().toHaveProperty('profile')
       expectTypeOf<Profile>().toHaveProperty('name')
+      expectTypeOf<Profile>().toHaveProperty('alternateName')
+      expectTypeOf<Profile['alternateName']>().toMatchTypeOf<{ firstName: string; lastName: string } | null>()
+      expectTypeOf<Profile>().toHaveProperty('favoriteThings')
+      expectTypeOf<Profile['favoriteThings']>().toMatchTypeOf<Array<{ name: string }>>()
     })
   },
   {

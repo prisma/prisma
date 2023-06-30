@@ -1,11 +1,20 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
+import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
-import type { DMMFHelper } from '../../runtime/dmmf'
-import { capitalize, lowerCase } from '../../runtime/utils/common'
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { Operation } from '../../runtime/core/types/GetResult'
+import { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
-import { getModelArgName } from '../utils'
+import {
+  capitalize,
+  getAggregateName,
+  getCountAggregateOutputName,
+  getFieldRefsTypeName,
+  getGroupByName,
+  getModelArgName,
+} from '../utils'
+import { lowerCase } from '../utils/common'
 import { runtimeImport } from '../utils/runtimeImport'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
@@ -17,30 +26,56 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
   const modelNames = Object.keys(this.dmmf.getModelMap())
 
   return `{
-    meta: {
-      modelProps: ${modelNames.map((mn) => `'${lowerCase(mn)}'`).join(' | ')}
-      txIsolationLevel: ${
-        this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')
-          ? 'Prisma.TransactionIsolationLevel'
-          : 'never'
-      }
-    },
-    model: {${modelNames.reduce((acc, modelName) => {
-      const actions = getModelActions(this.dmmf, modelName)
+  meta: {
+    modelProps: ${modelNames.map((mn) => `'${lowerCase(mn)}'`).join(' | ')}
+    txIsolationLevel: ${
+      this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma') ? 'Prisma.TransactionIsolationLevel' : 'never'
+    }
+  },
+  model: {${modelNames.reduce((acc, modelName) => {
+    const actions = getModelActions(this.dmmf, modelName)
 
+    return `${acc}
+    ${modelName}: {
+      payload: ${modelName}Payload<ExtArgs>
+${
+  this.generator?.previewFeatures.includes('fieldReference')
+    ? `      fields: Prisma.${getFieldRefsTypeName(modelName)}\n`
+    : ''
+}      operations: {${actions.reduce((acc, action) => {
       return `${acc}
-    ${modelName}: {${actions.reduce((acc, action) => {
-        return `${acc}
-      ${action}: {
-        args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
-        result: $Utils.OptionalFlat<${modelName}>
-        payload: ${modelName}Payload<ExtArgs>
-      }`
-      }, '')}
-    }`
+        ${action}: {
+          args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
+          result: ${clientTypeMapModelsResultDefinition(modelName, action)}
+        }`
     }, '')}
+      }
+    }`
+  }, '')}
   }
 }`
+}
+
+function clientTypeMapModelsResultDefinition(modelName: string, action: Exclude<Operation, `$${string}`>) {
+  if (action === 'count') return `$Utils.Optional<${getCountAggregateOutputName(modelName)}> | number`
+  if (action === 'groupBy') return `$Utils.Optional<${getGroupByName(modelName)}>[]`
+  if (action === 'aggregate') return `$Utils.Optional<${getAggregateName(modelName)}>`
+  if (action === 'findRaw') return `Prisma.JsonObject`
+  if (action === 'aggregateRaw') return `Prisma.JsonObject`
+  if (action === 'deleteMany') return `Prisma.BatchPayload`
+  if (action === 'createMany') return `Prisma.BatchPayload`
+  if (action === 'updateMany') return `Prisma.BatchPayload`
+  if (action === 'findMany') return `$Utils.PayloadToResult<${modelName}Payload>[]`
+  if (action === 'findFirst') return `$Utils.PayloadToResult<${modelName}Payload> | null`
+  if (action === 'findUnique') return `$Utils.PayloadToResult<${modelName}Payload> | null`
+  if (action === 'findFirstOrThrow') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'findUniqueOrThrow') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'create') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'update') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'upsert') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'delete') return `$Utils.PayloadToResult<${modelName}Payload>`
+
+  assertNever(action, 'Unknown action: ' + action)
 }
 
 function clientTypeMapOthersDefinition(this: PrismaClientClass) {
@@ -61,14 +96,16 @@ function clientTypeMapOthersDefinition(this: PrismaClientClass) {
   }
 
   return `{
-  other: {${otherOperationsNames.reduce((acc, action) => {
-    return `${acc}
-    ${action}: {
-      args: ${argsResultMap[action].args},
-      result: ${argsResultMap[action].result}
-      payload: any
-    }`
-  }, '')}
+  other: {
+    payload: any
+    operations: {${otherOperationsNames.reduce((acc, action) => {
+      return `${acc}
+      ${action}: {
+        args: ${argsResultMap[action].args},
+        result: ${argsResultMap[action].result}
+      }`
+    }, '')}
+    }
   }
 }`
 }
@@ -86,7 +123,7 @@ export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> 
 
 function clientExtensionsDefinitions(this: PrismaClientClass) {
   const typeMap = clientTypeMapDefinition.call(this)
-  const define = `  export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>`
+  const define = `export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>`
   const extend = `  $extends: $Extensions.ExtendsHook<'extends', Prisma.TypeMapCb, ExtArgs>`
 
   return {

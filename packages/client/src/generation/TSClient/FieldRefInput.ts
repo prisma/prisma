@@ -1,4 +1,4 @@
-import type { DMMF } from '../../runtime/dmmf-types'
+import type { DMMF } from '../dmmf-types'
 import { getRefAllowedTypeName } from '../utils'
 import type { Generatable } from './Generatable'
 

@@ -1,6 +1,6 @@
 import indent from 'indent-string'
 
-import { DMMF } from '../../runtime/dmmf-types'
+import { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
@@ -92,7 +92,7 @@ export class ArgsType implements Generatable {
  * ${this.getGeneratedComment()}
  */
 export type ${generatedName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
+${indent(argsToGenerate.map((arg) => new InputField(arg, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
   }
@@ -115,7 +115,7 @@ ${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInf
  * ${name} base type for ${action} actions
  */
 export type ${baseTypeName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
+${indent(argsToGenerate.map((arg) => new InputField(arg, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 
 /**
@@ -160,8 +160,7 @@ export type ${this.generatedTypeName}<ExtArgs extends $Extensions.Args = $Extens
 ${indent(
   args
     .map((arg) => {
-      const noEnumerable = arg.inputTypes.some((input) => input.type === 'Json') && arg.name === 'pipeline'
-      return new InputField(arg, noEnumerable, this.genericsInfo).toTS()
+      return new InputField(arg, this.genericsInfo).toTS()
     })
     .join('\n'),
   TAB_SIZE,

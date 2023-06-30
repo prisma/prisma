@@ -191,7 +191,21 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
         isolationLevel: 'Serializable',
       })
 
-      expectTypeOf(data).toEqualTypeOf<({ id: string } | null)[]>()
+      expectTypeOf(data).toEqualTypeOf<[{ id: string } | null]>()
+    }
+  })
+
+  test('type inference allows for destructuring the array', () => {
+    ;async () => {
+      const xprisma = prisma.$extends({})
+
+      const [data, count] = await xprisma.$transaction([
+        xprisma.user.findFirst({ select: { id: true } }),
+        xprisma.user.count(),
+      ])
+
+      expectTypeOf(data).toEqualTypeOf<{ id: string } | null>()
+      expectTypeOf(count).toEqualTypeOf<number>()
     }
   })
 })

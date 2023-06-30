@@ -2,8 +2,8 @@ import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 import path from 'path'
 
-import type { DMMFHelper } from '../runtime/dmmf'
-import { DMMF } from '../runtime/dmmf-types'
+import type { DMMFHelper } from './dmmf'
+import { DMMF } from './dmmf-types'
 
 export enum Projection {
   select = 'select',
@@ -51,7 +51,7 @@ export function getAggregateInputType(aggregateOutputType: string): string {
 }
 
 export function getGroupByArgsName(modelName: string): string {
-  return `${capitalize(modelName)}GroupByArgs`
+  return `${modelName}GroupByArgs`
 }
 
 export function getGroupByPayloadName(modelName: string): string {

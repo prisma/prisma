@@ -1,8 +1,8 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 
-import type { DMMFHelper } from '../../runtime/dmmf'
-import { DMMF } from '../../runtime/dmmf-types'
+import type { DMMFHelper } from '../dmmf'
+import { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { capitalize, getFieldArgName, getSelectName } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'

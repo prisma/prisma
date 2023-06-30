@@ -1,5 +1,3 @@
-import { getQueryEngineProtocol } from '@prisma/internals'
-
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -100,7 +98,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     `)
   })
 
-  testIf(clientMeta.runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('bad prop', async () => {
+  testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
     const err = prisma.user.count({
       select: {
         _all: true,
@@ -117,17 +115,17 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       Invalid \`prisma.user.count()\` invocation in
       /client/tests/functional/methods/count/tests.ts:0:0
 
-        XX })
+         XX })
         XX 
-        XX testIf(clientMeta.runtime !== 'edge' && getQueryEngineProtocol() !== 'json')('bad prop', async () => {
+        XX testIf(clientMeta.runtime !== 'edge')('bad prop', async () => {
       → XX   const err = prisma.user.count({
                 select: {
                   _count: {
                     select: {
-              ?       _all?: true,
-              ?       email?: true,
-              ?       age?: true,
-              ?       name?: true,
+                      _all: true,
+                      email: true,
+                      age: true,
+                      name: true,
                       posts: true,
                       ~~~~~
               ?       id?: true
@@ -136,9 +134,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
                 }
               })
 
-
-      Unknown field \`posts\` for select statement on model UserCountAggregateOutputType. Available options are listed in green. Did you mean \`id\`?
-
+      Unknown field \`posts\` for select statement on model \`UserCountAggregateOutputType\`. Available options are listed in green.
     `)
   })
 })

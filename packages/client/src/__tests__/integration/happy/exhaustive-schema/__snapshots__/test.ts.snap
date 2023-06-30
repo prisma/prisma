@@ -363,6 +363,7 @@ export type PrismaPromise<T> = $Public.PrismaPromise<T>
 
 
 export type PostPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "Post"
   objects: {
     author: UserPayload<ExtArgs>
   }
@@ -383,6 +384,7 @@ export type PostPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultAr
  */
 export type Post = runtime.Types.DefaultSelection<PostPayload>
 export type UserPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "User"
   objects: {
     posts: PostPayload<ExtArgs>[]
   }
@@ -411,6 +413,7 @@ export type UserPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultAr
  */
 export type User = runtime.Types.DefaultSelection<UserPayload>
 export type MPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "M"
   objects: {
     n: NPayload<ExtArgs>[]
   }
@@ -438,6 +441,7 @@ export type MPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  */
 export type M = runtime.Types.DefaultSelection<MPayload>
 export type NPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "N"
   objects: {
     m: MPayload<ExtArgs>[]
   }
@@ -465,6 +469,7 @@ export type NPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  */
 export type N = runtime.Types.DefaultSelection<NPayload>
 export type OneOptionalPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "OneOptional"
   objects: {
     many: ManyRequiredPayload<ExtArgs>[]
   }
@@ -492,6 +497,7 @@ export type OneOptionalPayload<ExtArgs extends $Extensions.Args = $Extensions.De
  */
 export type OneOptional = runtime.Types.DefaultSelection<OneOptionalPayload>
 export type ManyRequiredPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "ManyRequired"
   objects: {
     one: OneOptionalPayload<ExtArgs> | null
   }
@@ -520,6 +526,7 @@ export type ManyRequiredPayload<ExtArgs extends $Extensions.Args = $Extensions.D
  */
 export type ManyRequired = runtime.Types.DefaultSelection<ManyRequiredPayload>
 export type OptionalSide1Payload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "OptionalSide1"
   objects: {
     opti: OptionalSide2Payload<ExtArgs> | null
   }
@@ -548,6 +555,7 @@ export type OptionalSide1Payload<ExtArgs extends $Extensions.Args = $Extensions.
  */
 export type OptionalSide1 = runtime.Types.DefaultSelection<OptionalSide1Payload>
 export type OptionalSide2Payload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "OptionalSide2"
   objects: {
     opti: OptionalSide1Payload<ExtArgs> | null
   }
@@ -575,6 +583,7 @@ export type OptionalSide2Payload<ExtArgs extends $Extensions.Args = $Extensions.
  */
 export type OptionalSide2 = runtime.Types.DefaultSelection<OptionalSide2Payload>
 export type APayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "A"
   objects: {}
   scalars: $Extensions.GetResult<{
     /**
@@ -602,6 +611,7 @@ export type APayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  */
 export type A = runtime.Types.DefaultSelection<APayload>
 export type BPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "B"
   objects: {}
   scalars: $Extensions.GetResult<{
     id: string
@@ -619,6 +629,7 @@ export type BPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  */
 export type B = runtime.Types.DefaultSelection<BPayload>
 export type CPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "C"
   objects: {}
   scalars: $Extensions.GetResult<{
     id: string
@@ -638,6 +649,7 @@ export type CPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  */
 export type C = runtime.Types.DefaultSelection<CPayload>
 export type DPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "D"
   objects: {}
   scalars: $Extensions.GetResult<{
     id: string
@@ -657,6 +669,7 @@ export type DPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs>
  */
 export type D = runtime.Types.DefaultSelection<DPayload>
 export type EPayload<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+  name: "E"
   objects: {}
   scalars: $Extensions.GetResult<{
     id: string
@@ -1407,9 +1420,9 @@ export namespace Prisma {
   type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
 
   /**
-   * Like \`Pick\`, but with an array
+   * Like \`Pick\`, but additionally can also accept an array of keys
    */
-  type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
+  type PickEnumerable<T, K extends Enumerable<keyof T> | keyof T> = Prisma__Pick<T, MaybeTupleToUnion<K>>
 
   /**
    * Exclude all keys with underscores
@@ -1451,1038 +1464,881 @@ export namespace Prisma {
   }
 
   export type TypeMap<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-      meta: {
-        modelProps: 'post' | 'user' | 'm' | 'n' | 'oneOptional' | 'manyRequired' | 'optionalSide1' | 'optionalSide2' | 'a' | 'b' | 'c' | 'd' | 'e'
-        txIsolationLevel: Prisma.TransactionIsolationLevel
-      },
-      model: {
+    meta: {
+      modelProps: 'post' | 'user' | 'm' | 'n' | 'oneOptional' | 'manyRequired' | 'optionalSide1' | 'optionalSide2' | 'a' | 'b' | 'c' | 'd' | 'e'
+      txIsolationLevel: Prisma.TransactionIsolationLevel
+    },
+    model: {
       Post: {
-        findUnique: {
-          args: Prisma.PostFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.PostFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.PostFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.PostFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.PostFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.PostCreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.PostCreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.PostDeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.PostUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.PostDeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.PostUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.PostUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.PostAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.PostGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.PostCountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<Post>
-          payload: PostPayload<ExtArgs>
+        payload: PostPayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.PostFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<PostPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PostFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<PostPayload>
+          }
+          findFirst: {
+            args: Prisma.PostFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<PostPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PostFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<PostPayload>
+          }
+          findMany: {
+            args: Prisma.PostFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<PostPayload>[]
+          }
+          create: {
+            args: Prisma.PostCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<PostPayload>
+          }
+          createMany: {
+            args: Prisma.PostCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.PostDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<PostPayload>
+          }
+          update: {
+            args: Prisma.PostUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<PostPayload>
+          }
+          deleteMany: {
+            args: Prisma.PostDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PostUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.PostUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<PostPayload>
+          }
+          aggregate: {
+            args: Prisma.PostAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregatePost>
+          }
+          groupBy: {
+            args: Prisma.PostGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<PostGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PostCountArgs<ExtArgs>,
+            result: $Utils.Optional<PostCountAggregateOutputType> | number
+          }
         }
       }
       User: {
-        findUnique: {
-          args: Prisma.UserFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.UserFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.UserFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.UserFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.UserFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.UserCreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.UserCreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.UserDeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.UserUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.UserDeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.UserUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.UserUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.UserAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.UserGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.UserCountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<User>
-          payload: UserPayload<ExtArgs>
+        payload: UserPayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.UserFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<UserPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.UserFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<UserPayload>
+          }
+          findFirst: {
+            args: Prisma.UserFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<UserPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.UserFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<UserPayload>
+          }
+          findMany: {
+            args: Prisma.UserFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<UserPayload>[]
+          }
+          create: {
+            args: Prisma.UserCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<UserPayload>
+          }
+          createMany: {
+            args: Prisma.UserCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.UserDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<UserPayload>
+          }
+          update: {
+            args: Prisma.UserUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<UserPayload>
+          }
+          deleteMany: {
+            args: Prisma.UserDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.UserUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.UserUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<UserPayload>
+          }
+          aggregate: {
+            args: Prisma.UserAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateUser>
+          }
+          groupBy: {
+            args: Prisma.UserGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<UserGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.UserCountArgs<ExtArgs>,
+            result: $Utils.Optional<UserCountAggregateOutputType> | number
+          }
         }
       }
       M: {
-        findUnique: {
-          args: Prisma.MFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.MFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.MFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.MFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.MFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.MCreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.MCreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.MDeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.MUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.MDeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.MUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.MUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.MAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.MGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.MCountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<M>
-          payload: MPayload<ExtArgs>
+        payload: MPayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.MFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<MPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<MPayload>
+          }
+          findFirst: {
+            args: Prisma.MFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<MPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<MPayload>
+          }
+          findMany: {
+            args: Prisma.MFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<MPayload>[]
+          }
+          create: {
+            args: Prisma.MCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<MPayload>
+          }
+          createMany: {
+            args: Prisma.MCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.MDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<MPayload>
+          }
+          update: {
+            args: Prisma.MUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<MPayload>
+          }
+          deleteMany: {
+            args: Prisma.MDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.MUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<MPayload>
+          }
+          aggregate: {
+            args: Prisma.MAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateM>
+          }
+          groupBy: {
+            args: Prisma.MGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<MGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MCountArgs<ExtArgs>,
+            result: $Utils.Optional<MCountAggregateOutputType> | number
+          }
         }
       }
       N: {
-        findUnique: {
-          args: Prisma.NFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.NFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.NFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.NFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.NFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.NCreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.NCreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.NDeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.NUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.NDeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.NUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.NUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.NAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.NGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.NCountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<N>
-          payload: NPayload<ExtArgs>
+        payload: NPayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.NFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<NPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.NFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<NPayload>
+          }
+          findFirst: {
+            args: Prisma.NFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<NPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.NFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<NPayload>
+          }
+          findMany: {
+            args: Prisma.NFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<NPayload>[]
+          }
+          create: {
+            args: Prisma.NCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<NPayload>
+          }
+          createMany: {
+            args: Prisma.NCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.NDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<NPayload>
+          }
+          update: {
+            args: Prisma.NUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<NPayload>
+          }
+          deleteMany: {
+            args: Prisma.NDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.NUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.NUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<NPayload>
+          }
+          aggregate: {
+            args: Prisma.NAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateN>
+          }
+          groupBy: {
+            args: Prisma.NGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<NGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.NCountArgs<ExtArgs>,
+            result: $Utils.Optional<NCountAggregateOutputType> | number
+          }
         }
       }
       OneOptional: {
-        findUnique: {
-          args: Prisma.OneOptionalFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.OneOptionalFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.OneOptionalFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.OneOptionalFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.OneOptionalFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.OneOptionalCreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.OneOptionalCreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.OneOptionalDeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.OneOptionalUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.OneOptionalDeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.OneOptionalUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.OneOptionalUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.OneOptionalAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.OneOptionalGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.OneOptionalCountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OneOptional>
-          payload: OneOptionalPayload<ExtArgs>
+        payload: OneOptionalPayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.OneOptionalFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OneOptionalPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OneOptionalFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OneOptionalPayload>
+          }
+          findFirst: {
+            args: Prisma.OneOptionalFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OneOptionalPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OneOptionalFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OneOptionalPayload>
+          }
+          findMany: {
+            args: Prisma.OneOptionalFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OneOptionalPayload>[]
+          }
+          create: {
+            args: Prisma.OneOptionalCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OneOptionalPayload>
+          }
+          createMany: {
+            args: Prisma.OneOptionalCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.OneOptionalDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OneOptionalPayload>
+          }
+          update: {
+            args: Prisma.OneOptionalUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OneOptionalPayload>
+          }
+          deleteMany: {
+            args: Prisma.OneOptionalDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OneOptionalUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.OneOptionalUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OneOptionalPayload>
+          }
+          aggregate: {
+            args: Prisma.OneOptionalAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateOneOptional>
+          }
+          groupBy: {
+            args: Prisma.OneOptionalGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<OneOptionalGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OneOptionalCountArgs<ExtArgs>,
+            result: $Utils.Optional<OneOptionalCountAggregateOutputType> | number
+          }
         }
       }
       ManyRequired: {
-        findUnique: {
-          args: Prisma.ManyRequiredFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.ManyRequiredFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.ManyRequiredFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.ManyRequiredFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.ManyRequiredFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.ManyRequiredCreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.ManyRequiredCreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.ManyRequiredDeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.ManyRequiredUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.ManyRequiredDeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.ManyRequiredUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.ManyRequiredUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.ManyRequiredAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.ManyRequiredGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.ManyRequiredCountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<ManyRequired>
-          payload: ManyRequiredPayload<ExtArgs>
+        payload: ManyRequiredPayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.ManyRequiredFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<ManyRequiredPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ManyRequiredFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<ManyRequiredPayload>
+          }
+          findFirst: {
+            args: Prisma.ManyRequiredFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<ManyRequiredPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ManyRequiredFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<ManyRequiredPayload>
+          }
+          findMany: {
+            args: Prisma.ManyRequiredFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<ManyRequiredPayload>[]
+          }
+          create: {
+            args: Prisma.ManyRequiredCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<ManyRequiredPayload>
+          }
+          createMany: {
+            args: Prisma.ManyRequiredCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.ManyRequiredDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<ManyRequiredPayload>
+          }
+          update: {
+            args: Prisma.ManyRequiredUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<ManyRequiredPayload>
+          }
+          deleteMany: {
+            args: Prisma.ManyRequiredDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ManyRequiredUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.ManyRequiredUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<ManyRequiredPayload>
+          }
+          aggregate: {
+            args: Prisma.ManyRequiredAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateManyRequired>
+          }
+          groupBy: {
+            args: Prisma.ManyRequiredGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<ManyRequiredGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ManyRequiredCountArgs<ExtArgs>,
+            result: $Utils.Optional<ManyRequiredCountAggregateOutputType> | number
+          }
         }
       }
       OptionalSide1: {
-        findUnique: {
-          args: Prisma.OptionalSide1FindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.OptionalSide1FindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.OptionalSide1FindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.OptionalSide1FindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.OptionalSide1FindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        create: {
-          args: Prisma.OptionalSide1CreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.OptionalSide1CreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.OptionalSide1DeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        update: {
-          args: Prisma.OptionalSide1UpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.OptionalSide1DeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.OptionalSide1UpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.OptionalSide1UpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.OptionalSide1AggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.OptionalSide1GroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
-        }
-        count: {
-          args: Prisma.OptionalSide1CountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide1>
-          payload: OptionalSide1Payload<ExtArgs>
+        payload: OptionalSide1Payload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.OptionalSide1FindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide1Payload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OptionalSide1FindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide1Payload>
+          }
+          findFirst: {
+            args: Prisma.OptionalSide1FindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide1Payload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OptionalSide1FindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide1Payload>
+          }
+          findMany: {
+            args: Prisma.OptionalSide1FindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide1Payload>[]
+          }
+          create: {
+            args: Prisma.OptionalSide1CreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide1Payload>
+          }
+          createMany: {
+            args: Prisma.OptionalSide1CreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.OptionalSide1DeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide1Payload>
+          }
+          update: {
+            args: Prisma.OptionalSide1UpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide1Payload>
+          }
+          deleteMany: {
+            args: Prisma.OptionalSide1DeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OptionalSide1UpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.OptionalSide1UpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide1Payload>
+          }
+          aggregate: {
+            args: Prisma.OptionalSide1AggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateOptionalSide1>
+          }
+          groupBy: {
+            args: Prisma.OptionalSide1GroupByArgs<ExtArgs>,
+            result: $Utils.Optional<OptionalSide1GroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OptionalSide1CountArgs<ExtArgs>,
+            result: $Utils.Optional<OptionalSide1CountAggregateOutputType> | number
+          }
         }
       }
       OptionalSide2: {
-        findUnique: {
-          args: Prisma.OptionalSide2FindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.OptionalSide2FindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.OptionalSide2FindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.OptionalSide2FindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.OptionalSide2FindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        create: {
-          args: Prisma.OptionalSide2CreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.OptionalSide2CreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.OptionalSide2DeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        update: {
-          args: Prisma.OptionalSide2UpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.OptionalSide2DeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.OptionalSide2UpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.OptionalSide2UpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.OptionalSide2AggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.OptionalSide2GroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
-        }
-        count: {
-          args: Prisma.OptionalSide2CountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<OptionalSide2>
-          payload: OptionalSide2Payload<ExtArgs>
+        payload: OptionalSide2Payload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.OptionalSide2FindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide2Payload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OptionalSide2FindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide2Payload>
+          }
+          findFirst: {
+            args: Prisma.OptionalSide2FindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide2Payload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OptionalSide2FindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide2Payload>
+          }
+          findMany: {
+            args: Prisma.OptionalSide2FindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide2Payload>[]
+          }
+          create: {
+            args: Prisma.OptionalSide2CreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide2Payload>
+          }
+          createMany: {
+            args: Prisma.OptionalSide2CreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.OptionalSide2DeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide2Payload>
+          }
+          update: {
+            args: Prisma.OptionalSide2UpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide2Payload>
+          }
+          deleteMany: {
+            args: Prisma.OptionalSide2DeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OptionalSide2UpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.OptionalSide2UpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<OptionalSide2Payload>
+          }
+          aggregate: {
+            args: Prisma.OptionalSide2AggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateOptionalSide2>
+          }
+          groupBy: {
+            args: Prisma.OptionalSide2GroupByArgs<ExtArgs>,
+            result: $Utils.Optional<OptionalSide2GroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OptionalSide2CountArgs<ExtArgs>,
+            result: $Utils.Optional<OptionalSide2CountAggregateOutputType> | number
+          }
         }
       }
       A: {
-        findUnique: {
-          args: Prisma.AFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.AFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.AFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.AFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.AFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.ACreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.ACreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.ADeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.AUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.ADeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.AUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.AUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.AAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.AGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.ACountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<A>
-          payload: APayload<ExtArgs>
+        payload: APayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.AFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<APayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<APayload>
+          }
+          findFirst: {
+            args: Prisma.AFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<APayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<APayload>
+          }
+          findMany: {
+            args: Prisma.AFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<APayload>[]
+          }
+          create: {
+            args: Prisma.ACreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<APayload>
+          }
+          createMany: {
+            args: Prisma.ACreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.ADeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<APayload>
+          }
+          update: {
+            args: Prisma.AUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<APayload>
+          }
+          deleteMany: {
+            args: Prisma.ADeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.AUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<APayload>
+          }
+          aggregate: {
+            args: Prisma.AAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateA>
+          }
+          groupBy: {
+            args: Prisma.AGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<AGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ACountArgs<ExtArgs>,
+            result: $Utils.Optional<ACountAggregateOutputType> | number
+          }
         }
       }
       B: {
-        findUnique: {
-          args: Prisma.BFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.BFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.BFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.BFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.BFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.BCreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.BCreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.BDeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.BUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.BDeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.BUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.BUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.BAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.BGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.BCountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<B>
-          payload: BPayload<ExtArgs>
+        payload: BPayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.BFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<BPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.BFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<BPayload>
+          }
+          findFirst: {
+            args: Prisma.BFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<BPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.BFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<BPayload>
+          }
+          findMany: {
+            args: Prisma.BFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<BPayload>[]
+          }
+          create: {
+            args: Prisma.BCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<BPayload>
+          }
+          createMany: {
+            args: Prisma.BCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.BDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<BPayload>
+          }
+          update: {
+            args: Prisma.BUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<BPayload>
+          }
+          deleteMany: {
+            args: Prisma.BDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.BUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.BUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<BPayload>
+          }
+          aggregate: {
+            args: Prisma.BAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateB>
+          }
+          groupBy: {
+            args: Prisma.BGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<BGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.BCountArgs<ExtArgs>,
+            result: $Utils.Optional<BCountAggregateOutputType> | number
+          }
         }
       }
       C: {
-        findUnique: {
-          args: Prisma.CFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.CFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.CFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.CFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.CFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.CCreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.CCreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.CDeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.CUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.CDeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.CUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.CUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.CAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.CGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.CCountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<C>
-          payload: CPayload<ExtArgs>
+        payload: CPayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.CFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<CPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.CFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<CPayload>
+          }
+          findFirst: {
+            args: Prisma.CFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<CPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.CFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<CPayload>
+          }
+          findMany: {
+            args: Prisma.CFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<CPayload>[]
+          }
+          create: {
+            args: Prisma.CCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<CPayload>
+          }
+          createMany: {
+            args: Prisma.CCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.CDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<CPayload>
+          }
+          update: {
+            args: Prisma.CUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<CPayload>
+          }
+          deleteMany: {
+            args: Prisma.CDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.CUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.CUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<CPayload>
+          }
+          aggregate: {
+            args: Prisma.CAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateC>
+          }
+          groupBy: {
+            args: Prisma.CGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<CGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.CCountArgs<ExtArgs>,
+            result: $Utils.Optional<CCountAggregateOutputType> | number
+          }
         }
       }
       D: {
-        findUnique: {
-          args: Prisma.DFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.DFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.DFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.DFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.DFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.DCreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.DCreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.DDeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.DUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.DDeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.DUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.DUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.DAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.DGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.DCountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<D>
-          payload: DPayload<ExtArgs>
+        payload: DPayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.DFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<DPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<DPayload>
+          }
+          findFirst: {
+            args: Prisma.DFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<DPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<DPayload>
+          }
+          findMany: {
+            args: Prisma.DFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<DPayload>[]
+          }
+          create: {
+            args: Prisma.DCreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<DPayload>
+          }
+          createMany: {
+            args: Prisma.DCreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.DDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<DPayload>
+          }
+          update: {
+            args: Prisma.DUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<DPayload>
+          }
+          deleteMany: {
+            args: Prisma.DDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.DUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<DPayload>
+          }
+          aggregate: {
+            args: Prisma.DAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateD>
+          }
+          groupBy: {
+            args: Prisma.DGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<DGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DCountArgs<ExtArgs>,
+            result: $Utils.Optional<DCountAggregateOutputType> | number
+          }
         }
       }
       E: {
-        findUnique: {
-          args: Prisma.EFindUniqueArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        findUniqueOrThrow: {
-          args: Prisma.EFindUniqueOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        findFirst: {
-          args: Prisma.EFindFirstArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        findFirstOrThrow: {
-          args: Prisma.EFindFirstOrThrowArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        findMany: {
-          args: Prisma.EFindManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        create: {
-          args: Prisma.ECreateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        createMany: {
-          args: Prisma.ECreateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        delete: {
-          args: Prisma.EDeleteArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        update: {
-          args: Prisma.EUpdateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        deleteMany: {
-          args: Prisma.EDeleteManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        updateMany: {
-          args: Prisma.EUpdateManyArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        upsert: {
-          args: Prisma.EUpsertArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        aggregate: {
-          args: Prisma.EAggregateArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        groupBy: {
-          args: Prisma.EGroupByArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
-        }
-        count: {
-          args: Prisma.ECountArgs<ExtArgs>,
-          result: $Utils.OptionalFlat<E>
-          payload: EPayload<ExtArgs>
+        payload: EPayload<ExtArgs>
+        operations: {
+          findUnique: {
+            args: Prisma.EFindUniqueArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<EPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.EFindUniqueOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<EPayload>
+          }
+          findFirst: {
+            args: Prisma.EFindFirstArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<EPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.EFindFirstOrThrowArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<EPayload>
+          }
+          findMany: {
+            args: Prisma.EFindManyArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<EPayload>[]
+          }
+          create: {
+            args: Prisma.ECreateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<EPayload>
+          }
+          createMany: {
+            args: Prisma.ECreateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          delete: {
+            args: Prisma.EDeleteArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<EPayload>
+          }
+          update: {
+            args: Prisma.EUpdateArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<EPayload>
+          }
+          deleteMany: {
+            args: Prisma.EDeleteManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          updateMany: {
+            args: Prisma.EUpdateManyArgs<ExtArgs>,
+            result: Prisma.BatchPayload
+          }
+          upsert: {
+            args: Prisma.EUpsertArgs<ExtArgs>,
+            result: $Utils.PayloadToResult<EPayload>
+          }
+          aggregate: {
+            args: Prisma.EAggregateArgs<ExtArgs>,
+            result: $Utils.Optional<AggregateE>
+          }
+          groupBy: {
+            args: Prisma.EGroupByArgs<ExtArgs>,
+            result: $Utils.Optional<EGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ECountArgs<ExtArgs>,
+            result: $Utils.Optional<ECountAggregateOutputType> | number
+          }
         }
       }
     }
   } & {
     other: {
-      $executeRawUnsafe: {
-        args: [query: string, ...values: any[]],
-        result: any
-        payload: any
-      }
-      $executeRaw: {
-        args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
-        result: any
-        payload: any
-      }
-      $queryRawUnsafe: {
-        args: [query: string, ...values: any[]],
-        result: any
-        payload: any
-      }
-      $queryRaw: {
-        args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
-        result: any
-        payload: any
+      payload: any
+      operations: {
+        $executeRawUnsafe: {
+          args: [query: string, ...values: any[]],
+          result: any
+        }
+        $executeRaw: {
+          args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
+          result: any
+        }
+        $queryRawUnsafe: {
+          args: [query: string, ...values: any[]],
+          result: any
+        }
+        $queryRaw: {
+          args: [query: TemplateStringsArray | Prisma.Sql, ...values: any[]],
+          result: any
+        }
       }
     }
   }
-    export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>
+  export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>
   export type DefaultPrismaClient = PrismaClient
   export type RejectOnNotFound = boolean | ((error: Error) => Error)
   export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
@@ -2878,7 +2734,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
      */
-    orderBy?: Enumerable<PostOrderByWithRelationInput>
+    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -2942,8 +2798,8 @@ export namespace Prisma {
 
   export type PostGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: PostWhereInput
-    orderBy?: Enumerable<PostOrderByWithAggregationInput>
-    by: PostScalarFieldEnum[]
+    orderBy?: PostOrderByWithAggregationInput | PostOrderByWithAggregationInput[]
+    by: PostScalarFieldEnum[] | PostScalarFieldEnum
     having?: PostScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -2971,7 +2827,7 @@ export namespace Prisma {
 
   type GetPostGroupByPayload<T extends PostGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<PostGroupByOutputType, T['by']> &
+      PickEnumerable<PostGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof PostGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -3304,7 +3160,7 @@ export namespace Prisma {
         ? { orderBy: PostGroupByArgs['orderBy'] }
         : { orderBy?: PostGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -3475,7 +3331,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
      */
-    orderBy?: Enumerable<PostOrderByWithRelationInput>
+    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3499,7 +3355,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Posts.
      */
-    distinct?: Enumerable<PostScalarFieldEnum>
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
   }
 
   /**
@@ -3535,7 +3391,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
      */
-    orderBy?: Enumerable<PostOrderByWithRelationInput>
+    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3559,7 +3415,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Posts.
      */
-    distinct?: Enumerable<PostScalarFieldEnum>
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
   }
 
 
@@ -3584,7 +3440,7 @@ export namespace Prisma {
      * 
      * Determine the order of Posts to fetch.
      */
-    orderBy?: Enumerable<PostOrderByWithRelationInput>
+    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3603,7 +3459,7 @@ export namespace Prisma {
      * Skip the first \`n\` Posts.
      */
     skip?: number
-    distinct?: Enumerable<PostScalarFieldEnum>
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
   }
 
 
@@ -3633,7 +3489,7 @@ export namespace Prisma {
     /**
      * The data used to create many Posts.
      */
-    data: Enumerable<PostCreateManyInput>
+    data: PostCreateManyInput | PostCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -3901,7 +3757,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
      */
-    orderBy?: Enumerable<UserOrderByWithRelationInput>
+    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -3965,8 +3821,8 @@ export namespace Prisma {
 
   export type UserGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: UserWhereInput
-    orderBy?: Enumerable<UserOrderByWithAggregationInput>
-    by: UserScalarFieldEnum[]
+    orderBy?: UserOrderByWithAggregationInput | UserOrderByWithAggregationInput[]
+    by: UserScalarFieldEnum[] | UserScalarFieldEnum
     having?: UserScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -4002,7 +3858,7 @@ export namespace Prisma {
 
   type GetUserGroupByPayload<T extends UserGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<UserGroupByOutputType, T['by']> &
+      PickEnumerable<UserGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof UserGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -4353,7 +4209,7 @@ export namespace Prisma {
         ? { orderBy: UserGroupByArgs['orderBy'] }
         : { orderBy?: UserGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -4524,7 +4380,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
      */
-    orderBy?: Enumerable<UserOrderByWithRelationInput>
+    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -4548,7 +4404,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Users.
      */
-    distinct?: Enumerable<UserScalarFieldEnum>
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
   }
 
   /**
@@ -4584,7 +4440,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
      */
-    orderBy?: Enumerable<UserOrderByWithRelationInput>
+    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -4608,7 +4464,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of Users.
      */
-    distinct?: Enumerable<UserScalarFieldEnum>
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
   }
 
 
@@ -4633,7 +4489,7 @@ export namespace Prisma {
      * 
      * Determine the order of Users to fetch.
      */
-    orderBy?: Enumerable<UserOrderByWithRelationInput>
+    orderBy?: UserOrderByWithRelationInput | UserOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -4652,7 +4508,7 @@ export namespace Prisma {
      * Skip the first \`n\` Users.
      */
     skip?: number
-    distinct?: Enumerable<UserScalarFieldEnum>
+    distinct?: UserScalarFieldEnum | UserScalarFieldEnum[]
   }
 
 
@@ -4682,7 +4538,7 @@ export namespace Prisma {
     /**
      * The data used to create many Users.
      */
-    data: Enumerable<UserCreateManyInput>
+    data: UserCreateManyInput | UserCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -4795,11 +4651,11 @@ export namespace Prisma {
      */
     include?: PostInclude<ExtArgs> | null
     where?: PostWhereInput
-    orderBy?: Enumerable<PostOrderByWithRelationInput>
+    orderBy?: PostOrderByWithRelationInput | PostOrderByWithRelationInput[]
     cursor?: PostWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<PostScalarFieldEnum>
+    distinct?: PostScalarFieldEnum | PostScalarFieldEnum[]
   }
 
 
@@ -4965,7 +4821,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
      */
-    orderBy?: Enumerable<MOrderByWithRelationInput>
+    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5029,8 +4885,8 @@ export namespace Prisma {
 
   export type MGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: MWhereInput
-    orderBy?: Enumerable<MOrderByWithAggregationInput>
-    by: MScalarFieldEnum[]
+    orderBy?: MOrderByWithAggregationInput | MOrderByWithAggregationInput[]
+    by: MScalarFieldEnum[] | MScalarFieldEnum
     having?: MScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -5065,7 +4921,7 @@ export namespace Prisma {
 
   type GetMGroupByPayload<T extends MGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<MGroupByOutputType, T['by']> &
+      PickEnumerable<MGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof MGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -5414,7 +5270,7 @@ export namespace Prisma {
         ? { orderBy: MGroupByArgs['orderBy'] }
         : { orderBy?: MGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -5585,7 +5441,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
      */
-    orderBy?: Enumerable<MOrderByWithRelationInput>
+    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5609,7 +5465,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of MS.
      */
-    distinct?: Enumerable<MScalarFieldEnum>
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
   }
 
   /**
@@ -5645,7 +5501,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
      */
-    orderBy?: Enumerable<MOrderByWithRelationInput>
+    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5669,7 +5525,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of MS.
      */
-    distinct?: Enumerable<MScalarFieldEnum>
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
   }
 
 
@@ -5694,7 +5550,7 @@ export namespace Prisma {
      * 
      * Determine the order of MS to fetch.
      */
-    orderBy?: Enumerable<MOrderByWithRelationInput>
+    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -5713,7 +5569,7 @@ export namespace Prisma {
      * Skip the first \`n\` MS.
      */
     skip?: number
-    distinct?: Enumerable<MScalarFieldEnum>
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
   }
 
 
@@ -5743,7 +5599,7 @@ export namespace Prisma {
     /**
      * The data used to create many MS.
      */
-    data: Enumerable<MCreateManyInput>
+    data: MCreateManyInput | MCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -5856,11 +5712,11 @@ export namespace Prisma {
      */
     include?: NInclude<ExtArgs> | null
     where?: NWhereInput
-    orderBy?: Enumerable<NOrderByWithRelationInput>
+    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[]
     cursor?: NWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<NScalarFieldEnum>
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
   }
 
 
@@ -6026,7 +5882,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
      */
-    orderBy?: Enumerable<NOrderByWithRelationInput>
+    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -6090,8 +5946,8 @@ export namespace Prisma {
 
   export type NGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: NWhereInput
-    orderBy?: Enumerable<NOrderByWithAggregationInput>
-    by: NScalarFieldEnum[]
+    orderBy?: NOrderByWithAggregationInput | NOrderByWithAggregationInput[]
+    by: NScalarFieldEnum[] | NScalarFieldEnum
     having?: NScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -6126,7 +5982,7 @@ export namespace Prisma {
 
   type GetNGroupByPayload<T extends NGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<NGroupByOutputType, T['by']> &
+      PickEnumerable<NGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof NGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -6475,7 +6331,7 @@ export namespace Prisma {
         ? { orderBy: NGroupByArgs['orderBy'] }
         : { orderBy?: NGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -6646,7 +6502,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
      */
-    orderBy?: Enumerable<NOrderByWithRelationInput>
+    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -6670,7 +6526,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of NS.
      */
-    distinct?: Enumerable<NScalarFieldEnum>
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
   }
 
   /**
@@ -6706,7 +6562,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
      */
-    orderBy?: Enumerable<NOrderByWithRelationInput>
+    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -6730,7 +6586,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of NS.
      */
-    distinct?: Enumerable<NScalarFieldEnum>
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
   }
 
 
@@ -6755,7 +6611,7 @@ export namespace Prisma {
      * 
      * Determine the order of NS to fetch.
      */
-    orderBy?: Enumerable<NOrderByWithRelationInput>
+    orderBy?: NOrderByWithRelationInput | NOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -6774,7 +6630,7 @@ export namespace Prisma {
      * Skip the first \`n\` NS.
      */
     skip?: number
-    distinct?: Enumerable<NScalarFieldEnum>
+    distinct?: NScalarFieldEnum | NScalarFieldEnum[]
   }
 
 
@@ -6804,7 +6660,7 @@ export namespace Prisma {
     /**
      * The data used to create many NS.
      */
-    data: Enumerable<NCreateManyInput>
+    data: NCreateManyInput | NCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -6917,11 +6773,11 @@ export namespace Prisma {
      */
     include?: MInclude<ExtArgs> | null
     where?: MWhereInput
-    orderBy?: Enumerable<MOrderByWithRelationInput>
+    orderBy?: MOrderByWithRelationInput | MOrderByWithRelationInput[]
     cursor?: MWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<MScalarFieldEnum>
+    distinct?: MScalarFieldEnum | MScalarFieldEnum[]
   }
 
 
@@ -7087,7 +6943,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
      */
-    orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
+    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -7151,8 +7007,8 @@ export namespace Prisma {
 
   export type OneOptionalGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: OneOptionalWhereInput
-    orderBy?: Enumerable<OneOptionalOrderByWithAggregationInput>
-    by: OneOptionalScalarFieldEnum[]
+    orderBy?: OneOptionalOrderByWithAggregationInput | OneOptionalOrderByWithAggregationInput[]
+    by: OneOptionalScalarFieldEnum[] | OneOptionalScalarFieldEnum
     having?: OneOptionalScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -7187,7 +7043,7 @@ export namespace Prisma {
 
   type GetOneOptionalGroupByPayload<T extends OneOptionalGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<OneOptionalGroupByOutputType, T['by']> &
+      PickEnumerable<OneOptionalGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof OneOptionalGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -7536,7 +7392,7 @@ export namespace Prisma {
         ? { orderBy: OneOptionalGroupByArgs['orderBy'] }
         : { orderBy?: OneOptionalGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -7707,7 +7563,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
      */
-    orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
+    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -7731,7 +7587,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OneOptionals.
      */
-    distinct?: Enumerable<OneOptionalScalarFieldEnum>
+    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[]
   }
 
   /**
@@ -7767,7 +7623,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
      */
-    orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
+    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -7791,7 +7647,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OneOptionals.
      */
-    distinct?: Enumerable<OneOptionalScalarFieldEnum>
+    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[]
   }
 
 
@@ -7816,7 +7672,7 @@ export namespace Prisma {
      * 
      * Determine the order of OneOptionals to fetch.
      */
-    orderBy?: Enumerable<OneOptionalOrderByWithRelationInput>
+    orderBy?: OneOptionalOrderByWithRelationInput | OneOptionalOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -7835,7 +7691,7 @@ export namespace Prisma {
      * Skip the first \`n\` OneOptionals.
      */
     skip?: number
-    distinct?: Enumerable<OneOptionalScalarFieldEnum>
+    distinct?: OneOptionalScalarFieldEnum | OneOptionalScalarFieldEnum[]
   }
 
 
@@ -7865,7 +7721,7 @@ export namespace Prisma {
     /**
      * The data used to create many OneOptionals.
      */
-    data: Enumerable<OneOptionalCreateManyInput>
+    data: OneOptionalCreateManyInput | OneOptionalCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -7978,11 +7834,11 @@ export namespace Prisma {
      */
     include?: ManyRequiredInclude<ExtArgs> | null
     where?: ManyRequiredWhereInput
-    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
+    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[]
     cursor?: ManyRequiredWhereUniqueInput
     take?: number
     skip?: number
-    distinct?: Enumerable<ManyRequiredScalarFieldEnum>
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
   }
 
 
@@ -8158,7 +8014,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
      */
-    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
+    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8222,8 +8078,8 @@ export namespace Prisma {
 
   export type ManyRequiredGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: ManyRequiredWhereInput
-    orderBy?: Enumerable<ManyRequiredOrderByWithAggregationInput>
-    by: ManyRequiredScalarFieldEnum[]
+    orderBy?: ManyRequiredOrderByWithAggregationInput | ManyRequiredOrderByWithAggregationInput[]
+    by: ManyRequiredScalarFieldEnum[] | ManyRequiredScalarFieldEnum
     having?: ManyRequiredScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -8259,7 +8115,7 @@ export namespace Prisma {
 
   type GetManyRequiredGroupByPayload<T extends ManyRequiredGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<ManyRequiredGroupByOutputType, T['by']> &
+      PickEnumerable<ManyRequiredGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof ManyRequiredGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -8608,7 +8464,7 @@ export namespace Prisma {
         ? { orderBy: ManyRequiredGroupByArgs['orderBy'] }
         : { orderBy?: ManyRequiredGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -8779,7 +8635,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
      */
-    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
+    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8803,7 +8659,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ManyRequireds.
      */
-    distinct?: Enumerable<ManyRequiredScalarFieldEnum>
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
   }
 
   /**
@@ -8839,7 +8695,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
      */
-    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
+    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8863,7 +8719,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ManyRequireds.
      */
-    distinct?: Enumerable<ManyRequiredScalarFieldEnum>
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
   }
 
 
@@ -8888,7 +8744,7 @@ export namespace Prisma {
      * 
      * Determine the order of ManyRequireds to fetch.
      */
-    orderBy?: Enumerable<ManyRequiredOrderByWithRelationInput>
+    orderBy?: ManyRequiredOrderByWithRelationInput | ManyRequiredOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -8907,7 +8763,7 @@ export namespace Prisma {
      * Skip the first \`n\` ManyRequireds.
      */
     skip?: number
-    distinct?: Enumerable<ManyRequiredScalarFieldEnum>
+    distinct?: ManyRequiredScalarFieldEnum | ManyRequiredScalarFieldEnum[]
   }
 
 
@@ -8937,7 +8793,7 @@ export namespace Prisma {
     /**
      * The data used to create many ManyRequireds.
      */
-    data: Enumerable<ManyRequiredCreateManyInput>
+    data: ManyRequiredCreateManyInput | ManyRequiredCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -9209,7 +9065,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
      */
-    orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
+    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9273,8 +9129,8 @@ export namespace Prisma {
 
   export type OptionalSide1GroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: OptionalSide1WhereInput
-    orderBy?: Enumerable<OptionalSide1OrderByWithAggregationInput>
-    by: OptionalSide1ScalarFieldEnum[]
+    orderBy?: OptionalSide1OrderByWithAggregationInput | OptionalSide1OrderByWithAggregationInput[]
+    by: OptionalSide1ScalarFieldEnum[] | OptionalSide1ScalarFieldEnum
     having?: OptionalSide1ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -9310,7 +9166,7 @@ export namespace Prisma {
 
   type GetOptionalSide1GroupByPayload<T extends OptionalSide1GroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<OptionalSide1GroupByOutputType, T['by']> &
+      PickEnumerable<OptionalSide1GroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof OptionalSide1GroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -9659,7 +9515,7 @@ export namespace Prisma {
         ? { orderBy: OptionalSide1GroupByArgs['orderBy'] }
         : { orderBy?: OptionalSide1GroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -9830,7 +9686,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
      */
-    orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
+    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9854,7 +9710,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide1s.
      */
-    distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
+    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[]
   }
 
   /**
@@ -9890,7 +9746,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
      */
-    orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
+    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9914,7 +9770,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide1s.
      */
-    distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
+    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[]
   }
 
 
@@ -9939,7 +9795,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide1s to fetch.
      */
-    orderBy?: Enumerable<OptionalSide1OrderByWithRelationInput>
+    orderBy?: OptionalSide1OrderByWithRelationInput | OptionalSide1OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -9958,7 +9814,7 @@ export namespace Prisma {
      * Skip the first \`n\` OptionalSide1s.
      */
     skip?: number
-    distinct?: Enumerable<OptionalSide1ScalarFieldEnum>
+    distinct?: OptionalSide1ScalarFieldEnum | OptionalSide1ScalarFieldEnum[]
   }
 
 
@@ -9988,7 +9844,7 @@ export namespace Prisma {
     /**
      * The data used to create many OptionalSide1s.
      */
-    data: Enumerable<OptionalSide1CreateManyInput>
+    data: OptionalSide1CreateManyInput | OptionalSide1CreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -10250,7 +10106,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
      */
-    orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
+    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10314,8 +10170,8 @@ export namespace Prisma {
 
   export type OptionalSide2GroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: OptionalSide2WhereInput
-    orderBy?: Enumerable<OptionalSide2OrderByWithAggregationInput>
-    by: OptionalSide2ScalarFieldEnum[]
+    orderBy?: OptionalSide2OrderByWithAggregationInput | OptionalSide2OrderByWithAggregationInput[]
+    by: OptionalSide2ScalarFieldEnum[] | OptionalSide2ScalarFieldEnum
     having?: OptionalSide2ScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -10350,7 +10206,7 @@ export namespace Prisma {
 
   type GetOptionalSide2GroupByPayload<T extends OptionalSide2GroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<OptionalSide2GroupByOutputType, T['by']> &
+      PickEnumerable<OptionalSide2GroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof OptionalSide2GroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -10697,7 +10553,7 @@ export namespace Prisma {
         ? { orderBy: OptionalSide2GroupByArgs['orderBy'] }
         : { orderBy?: OptionalSide2GroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -10868,7 +10724,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
      */
-    orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
+    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10892,7 +10748,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide2s.
      */
-    distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
+    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[]
   }
 
   /**
@@ -10928,7 +10784,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
      */
-    orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
+    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10952,7 +10808,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of OptionalSide2s.
      */
-    distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
+    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[]
   }
 
 
@@ -10977,7 +10833,7 @@ export namespace Prisma {
      * 
      * Determine the order of OptionalSide2s to fetch.
      */
-    orderBy?: Enumerable<OptionalSide2OrderByWithRelationInput>
+    orderBy?: OptionalSide2OrderByWithRelationInput | OptionalSide2OrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -10996,7 +10852,7 @@ export namespace Prisma {
      * Skip the first \`n\` OptionalSide2s.
      */
     skip?: number
-    distinct?: Enumerable<OptionalSide2ScalarFieldEnum>
+    distinct?: OptionalSide2ScalarFieldEnum | OptionalSide2ScalarFieldEnum[]
   }
 
 
@@ -11026,7 +10882,7 @@ export namespace Prisma {
     /**
      * The data used to create many OptionalSide2s.
      */
-    data: Enumerable<OptionalSide2CreateManyInput>
+    data: OptionalSide2CreateManyInput | OptionalSide2CreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -11276,7 +11132,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
      */
-    orderBy?: Enumerable<AOrderByWithRelationInput>
+    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11340,8 +11196,8 @@ export namespace Prisma {
 
   export type AGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: AWhereInput
-    orderBy?: Enumerable<AOrderByWithAggregationInput>
-    by: AScalarFieldEnum[]
+    orderBy?: AOrderByWithAggregationInput | AOrderByWithAggregationInput[]
+    by: AScalarFieldEnum[] | AScalarFieldEnum
     having?: AScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -11372,7 +11228,7 @@ export namespace Prisma {
 
   type GetAGroupByPayload<T extends AGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<AGroupByOutputType, T['by']> &
+      PickEnumerable<AGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof AGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -11706,7 +11562,7 @@ export namespace Prisma {
         ? { orderBy: AGroupByArgs['orderBy'] }
         : { orderBy?: AGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -11864,7 +11720,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
      */
-    orderBy?: Enumerable<AOrderByWithRelationInput>
+    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11888,7 +11744,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of AS.
      */
-    distinct?: Enumerable<AScalarFieldEnum>
+    distinct?: AScalarFieldEnum | AScalarFieldEnum[]
   }
 
   /**
@@ -11920,7 +11776,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
      */
-    orderBy?: Enumerable<AOrderByWithRelationInput>
+    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11944,7 +11800,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of AS.
      */
-    distinct?: Enumerable<AScalarFieldEnum>
+    distinct?: AScalarFieldEnum | AScalarFieldEnum[]
   }
 
 
@@ -11965,7 +11821,7 @@ export namespace Prisma {
      * 
      * Determine the order of AS to fetch.
      */
-    orderBy?: Enumerable<AOrderByWithRelationInput>
+    orderBy?: AOrderByWithRelationInput | AOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -11984,7 +11840,7 @@ export namespace Prisma {
      * Skip the first \`n\` AS.
      */
     skip?: number
-    distinct?: Enumerable<AScalarFieldEnum>
+    distinct?: AScalarFieldEnum | AScalarFieldEnum[]
   }
 
 
@@ -12010,7 +11866,7 @@ export namespace Prisma {
     /**
      * The data used to create many AS.
      */
-    data: Enumerable<ACreateManyInput>
+    data: ACreateManyInput | ACreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -12212,7 +12068,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
      */
-    orderBy?: Enumerable<BOrderByWithRelationInput>
+    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -12276,8 +12132,8 @@ export namespace Prisma {
 
   export type BGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: BWhereInput
-    orderBy?: Enumerable<BOrderByWithAggregationInput>
-    by: BScalarFieldEnum[]
+    orderBy?: BOrderByWithAggregationInput | BOrderByWithAggregationInput[]
+    by: BScalarFieldEnum[] | BScalarFieldEnum
     having?: BScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -12304,7 +12160,7 @@ export namespace Prisma {
 
   type GetBGroupByPayload<T extends BGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<BGroupByOutputType, T['by']> &
+      PickEnumerable<BGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof BGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -12630,7 +12486,7 @@ export namespace Prisma {
         ? { orderBy: BGroupByArgs['orderBy'] }
         : { orderBy?: BGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -12788,7 +12644,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
      */
-    orderBy?: Enumerable<BOrderByWithRelationInput>
+    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -12812,7 +12668,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of BS.
      */
-    distinct?: Enumerable<BScalarFieldEnum>
+    distinct?: BScalarFieldEnum | BScalarFieldEnum[]
   }
 
   /**
@@ -12844,7 +12700,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
      */
-    orderBy?: Enumerable<BOrderByWithRelationInput>
+    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -12868,7 +12724,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of BS.
      */
-    distinct?: Enumerable<BScalarFieldEnum>
+    distinct?: BScalarFieldEnum | BScalarFieldEnum[]
   }
 
 
@@ -12889,7 +12745,7 @@ export namespace Prisma {
      * 
      * Determine the order of BS to fetch.
      */
-    orderBy?: Enumerable<BOrderByWithRelationInput>
+    orderBy?: BOrderByWithRelationInput | BOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -12908,7 +12764,7 @@ export namespace Prisma {
      * Skip the first \`n\` BS.
      */
     skip?: number
-    distinct?: Enumerable<BScalarFieldEnum>
+    distinct?: BScalarFieldEnum | BScalarFieldEnum[]
   }
 
 
@@ -12934,7 +12790,7 @@ export namespace Prisma {
     /**
      * The data used to create many BS.
      */
-    data: Enumerable<BCreateManyInput>
+    data: BCreateManyInput | BCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -13118,7 +12974,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
      */
-    orderBy?: Enumerable<COrderByWithRelationInput>
+    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -13170,8 +13026,8 @@ export namespace Prisma {
 
   export type CGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: CWhereInput
-    orderBy?: Enumerable<COrderByWithAggregationInput>
-    by: CScalarFieldEnum[]
+    orderBy?: COrderByWithAggregationInput | COrderByWithAggregationInput[]
+    by: CScalarFieldEnum[] | CScalarFieldEnum
     having?: CScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -13196,7 +13052,7 @@ export namespace Prisma {
 
   type GetCGroupByPayload<T extends CGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<CGroupByOutputType, T['by']> &
+      PickEnumerable<CGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof CGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -13526,7 +13382,7 @@ export namespace Prisma {
         ? { orderBy: CGroupByArgs['orderBy'] }
         : { orderBy?: CGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -13684,7 +13540,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
      */
-    orderBy?: Enumerable<COrderByWithRelationInput>
+    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -13708,7 +13564,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of CS.
      */
-    distinct?: Enumerable<CScalarFieldEnum>
+    distinct?: CScalarFieldEnum | CScalarFieldEnum[]
   }
 
   /**
@@ -13740,7 +13596,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
      */
-    orderBy?: Enumerable<COrderByWithRelationInput>
+    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -13764,7 +13620,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of CS.
      */
-    distinct?: Enumerable<CScalarFieldEnum>
+    distinct?: CScalarFieldEnum | CScalarFieldEnum[]
   }
 
 
@@ -13785,7 +13641,7 @@ export namespace Prisma {
      * 
      * Determine the order of CS to fetch.
      */
-    orderBy?: Enumerable<COrderByWithRelationInput>
+    orderBy?: COrderByWithRelationInput | COrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -13804,7 +13660,7 @@ export namespace Prisma {
      * Skip the first \`n\` CS.
      */
     skip?: number
-    distinct?: Enumerable<CScalarFieldEnum>
+    distinct?: CScalarFieldEnum | CScalarFieldEnum[]
   }
 
 
@@ -13830,7 +13686,7 @@ export namespace Prisma {
     /**
      * The data used to create many CS.
      */
-    data: Enumerable<CCreateManyInput>
+    data: CCreateManyInput | CCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -14020,7 +13876,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
      */
-    orderBy?: Enumerable<DOrderByWithRelationInput>
+    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -14084,8 +13940,8 @@ export namespace Prisma {
 
   export type DGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: DWhereInput
-    orderBy?: Enumerable<DOrderByWithAggregationInput>
-    by: DScalarFieldEnum[]
+    orderBy?: DOrderByWithAggregationInput | DOrderByWithAggregationInput[]
+    by: DScalarFieldEnum[] | DScalarFieldEnum
     having?: DScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -14114,7 +13970,7 @@ export namespace Prisma {
 
   type GetDGroupByPayload<T extends DGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<DGroupByOutputType, T['by']> &
+      PickEnumerable<DGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof DGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -14444,7 +14300,7 @@ export namespace Prisma {
         ? { orderBy: DGroupByArgs['orderBy'] }
         : { orderBy?: DGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -14602,7 +14458,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
      */
-    orderBy?: Enumerable<DOrderByWithRelationInput>
+    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -14626,7 +14482,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of DS.
      */
-    distinct?: Enumerable<DScalarFieldEnum>
+    distinct?: DScalarFieldEnum | DScalarFieldEnum[]
   }
 
   /**
@@ -14658,7 +14514,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
      */
-    orderBy?: Enumerable<DOrderByWithRelationInput>
+    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -14682,7 +14538,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of DS.
      */
-    distinct?: Enumerable<DScalarFieldEnum>
+    distinct?: DScalarFieldEnum | DScalarFieldEnum[]
   }
 
 
@@ -14703,7 +14559,7 @@ export namespace Prisma {
      * 
      * Determine the order of DS to fetch.
      */
-    orderBy?: Enumerable<DOrderByWithRelationInput>
+    orderBy?: DOrderByWithRelationInput | DOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -14722,7 +14578,7 @@ export namespace Prisma {
      * Skip the first \`n\` DS.
      */
     skip?: number
-    distinct?: Enumerable<DScalarFieldEnum>
+    distinct?: DScalarFieldEnum | DScalarFieldEnum[]
   }
 
 
@@ -14748,7 +14604,7 @@ export namespace Prisma {
     /**
      * The data used to create many DS.
      */
-    data: Enumerable<DCreateManyInput>
+    data: DCreateManyInput | DCreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -14914,7 +14770,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
      */
-    orderBy?: Enumerable<EOrderByWithRelationInput>
+    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -14966,8 +14822,8 @@ export namespace Prisma {
 
   export type EGroupByArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
     where?: EWhereInput
-    orderBy?: Enumerable<EOrderByWithAggregationInput>
-    by: EScalarFieldEnum[]
+    orderBy?: EOrderByWithAggregationInput | EOrderByWithAggregationInput[]
+    by: EScalarFieldEnum[] | EScalarFieldEnum
     having?: EScalarWhereWithAggregatesInput
     take?: number
     skip?: number
@@ -14989,7 +14845,7 @@ export namespace Prisma {
 
   type GetEGroupByPayload<T extends EGroupByArgs> = Prisma.PrismaPromise<
     Array<
-      PickArray<EGroupByOutputType, T['by']> &
+      PickEnumerable<EGroupByOutputType, T['by']> &
         {
           [P in ((keyof T) & (keyof EGroupByOutputType))]: P extends '_count'
             ? T[P] extends boolean
@@ -15313,7 +15169,7 @@ export namespace Prisma {
         ? { orderBy: EGroupByArgs['orderBy'] }
         : { orderBy?: EGroupByArgs['orderBy'] },
       OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-      ByFields extends TupleToUnion<T['by']>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
       ByValid extends Has<ByFields, OrderFields>,
       HavingFields extends GetHavingFields<T['having']>,
       HavingValid extends Has<ByFields, HavingFields>,
@@ -15471,7 +15327,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
      */
-    orderBy?: Enumerable<EOrderByWithRelationInput>
+    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -15495,7 +15351,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ES.
      */
-    distinct?: Enumerable<EScalarFieldEnum>
+    distinct?: EScalarFieldEnum | EScalarFieldEnum[]
   }
 
   /**
@@ -15527,7 +15383,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
      */
-    orderBy?: Enumerable<EOrderByWithRelationInput>
+    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -15551,7 +15407,7 @@ export namespace Prisma {
      * 
      * Filter by unique combinations of ES.
      */
-    distinct?: Enumerable<EScalarFieldEnum>
+    distinct?: EScalarFieldEnum | EScalarFieldEnum[]
   }
 
 
@@ -15572,7 +15428,7 @@ export namespace Prisma {
      * 
      * Determine the order of ES to fetch.
      */
-    orderBy?: Enumerable<EOrderByWithRelationInput>
+    orderBy?: EOrderByWithRelationInput | EOrderByWithRelationInput[]
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
      * 
@@ -15591,7 +15447,7 @@ export namespace Prisma {
      * Skip the first \`n\` ES.
      */
     skip?: number
-    distinct?: Enumerable<EScalarFieldEnum>
+    distinct?: EScalarFieldEnum | EScalarFieldEnum[]
   }
 
 
@@ -15617,7 +15473,7 @@ export namespace Prisma {
     /**
      * The data used to create many ES.
      */
-    data: Enumerable<ECreateManyInput>
+    data: ECreateManyInput | ECreateManyInput[]
     skipDuplicates?: boolean
   }
 
@@ -15995,9 +15851,9 @@ export namespace Prisma {
 
 
   export type PostWhereInput = {
-    AND?: Enumerable<PostWhereInput>
-    OR?: Enumerable<PostWhereInput>
-    NOT?: Enumerable<PostWhereInput>
+    AND?: PostWhereInput | PostWhereInput[]
+    OR?: PostWhereInput[]
+    NOT?: PostWhereInput | PostWhereInput[]
     id?: IntFilter | number
     createdAt?: DateTimeFilter | Date | string
     title?: StringFilter | string
@@ -16036,9 +15892,9 @@ export namespace Prisma {
   }
 
   export type PostScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<PostScalarWhereWithAggregatesInput>
-    OR?: Enumerable<PostScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<PostScalarWhereWithAggregatesInput>
+    AND?: PostScalarWhereWithAggregatesInput | PostScalarWhereWithAggregatesInput[]
+    OR?: PostScalarWhereWithAggregatesInput[]
+    NOT?: PostScalarWhereWithAggregatesInput | PostScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter | number
     createdAt?: DateTimeWithAggregatesFilter | Date | string
     title?: StringWithAggregatesFilter | string
@@ -16048,9 +15904,9 @@ export namespace Prisma {
   }
 
   export type UserWhereInput = {
-    AND?: Enumerable<UserWhereInput>
-    OR?: Enumerable<UserWhereInput>
-    NOT?: Enumerable<UserWhereInput>
+    AND?: UserWhereInput | UserWhereInput[]
+    OR?: UserWhereInput[]
+    NOT?: UserWhereInput | UserWhereInput[]
     id?: IntFilter | number
     email?: StringFilter | string
     int?: IntFilter | number
@@ -16114,9 +15970,9 @@ export namespace Prisma {
   }
 
   export type UserScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<UserScalarWhereWithAggregatesInput>
-    OR?: Enumerable<UserScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<UserScalarWhereWithAggregatesInput>
+    AND?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
+    OR?: UserScalarWhereWithAggregatesInput[]
+    NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter | number
     email?: StringWithAggregatesFilter | string
     int?: IntWithAggregatesFilter | number
@@ -16134,9 +15990,9 @@ export namespace Prisma {
   }
 
   export type MWhereInput = {
-    AND?: Enumerable<MWhereInput>
-    OR?: Enumerable<MWhereInput>
-    NOT?: Enumerable<MWhereInput>
+    AND?: MWhereInput | MWhereInput[]
+    OR?: MWhereInput[]
+    NOT?: MWhereInput | MWhereInput[]
     id?: IntFilter | number
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -16196,9 +16052,9 @@ export namespace Prisma {
   }
 
   export type MScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<MScalarWhereWithAggregatesInput>
-    OR?: Enumerable<MScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<MScalarWhereWithAggregatesInput>
+    AND?: MScalarWhereWithAggregatesInput | MScalarWhereWithAggregatesInput[]
+    OR?: MScalarWhereWithAggregatesInput[]
+    NOT?: MScalarWhereWithAggregatesInput | MScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter | number
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
@@ -16215,9 +16071,9 @@ export namespace Prisma {
   }
 
   export type NWhereInput = {
-    AND?: Enumerable<NWhereInput>
-    OR?: Enumerable<NWhereInput>
-    NOT?: Enumerable<NWhereInput>
+    AND?: NWhereInput | NWhereInput[]
+    OR?: NWhereInput[]
+    NOT?: NWhereInput | NWhereInput[]
     id?: IntFilter | number
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -16277,9 +16133,9 @@ export namespace Prisma {
   }
 
   export type NScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<NScalarWhereWithAggregatesInput>
-    OR?: Enumerable<NScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<NScalarWhereWithAggregatesInput>
+    AND?: NScalarWhereWithAggregatesInput | NScalarWhereWithAggregatesInput[]
+    OR?: NScalarWhereWithAggregatesInput[]
+    NOT?: NScalarWhereWithAggregatesInput | NScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter | number
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
@@ -16296,9 +16152,9 @@ export namespace Prisma {
   }
 
   export type OneOptionalWhereInput = {
-    AND?: Enumerable<OneOptionalWhereInput>
-    OR?: Enumerable<OneOptionalWhereInput>
-    NOT?: Enumerable<OneOptionalWhereInput>
+    AND?: OneOptionalWhereInput | OneOptionalWhereInput[]
+    OR?: OneOptionalWhereInput[]
+    NOT?: OneOptionalWhereInput | OneOptionalWhereInput[]
     id?: IntFilter | number
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -16358,9 +16214,9 @@ export namespace Prisma {
   }
 
   export type OneOptionalScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<OneOptionalScalarWhereWithAggregatesInput>
-    OR?: Enumerable<OneOptionalScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<OneOptionalScalarWhereWithAggregatesInput>
+    AND?: OneOptionalScalarWhereWithAggregatesInput | OneOptionalScalarWhereWithAggregatesInput[]
+    OR?: OneOptionalScalarWhereWithAggregatesInput[]
+    NOT?: OneOptionalScalarWhereWithAggregatesInput | OneOptionalScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter | number
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
@@ -16377,9 +16233,9 @@ export namespace Prisma {
   }
 
   export type ManyRequiredWhereInput = {
-    AND?: Enumerable<ManyRequiredWhereInput>
-    OR?: Enumerable<ManyRequiredWhereInput>
-    NOT?: Enumerable<ManyRequiredWhereInput>
+    AND?: ManyRequiredWhereInput | ManyRequiredWhereInput[]
+    OR?: ManyRequiredWhereInput[]
+    NOT?: ManyRequiredWhereInput | ManyRequiredWhereInput[]
     id?: IntFilter | number
     oneOptionalId?: IntNullableFilter | number | null
     int?: IntFilter | number
@@ -16394,7 +16250,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
-    one?: XOR<OneOptionalRelationFilter, OneOptionalWhereInput> | null
+    one?: XOR<OneOptionalNullableRelationFilter, OneOptionalWhereInput> | null
   }
 
   export type ManyRequiredOrderByWithRelationInput = {
@@ -16442,9 +16298,9 @@ export namespace Prisma {
   }
 
   export type ManyRequiredScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
-    OR?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<ManyRequiredScalarWhereWithAggregatesInput>
+    AND?: ManyRequiredScalarWhereWithAggregatesInput | ManyRequiredScalarWhereWithAggregatesInput[]
+    OR?: ManyRequiredScalarWhereWithAggregatesInput[]
+    NOT?: ManyRequiredScalarWhereWithAggregatesInput | ManyRequiredScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter | number
     oneOptionalId?: IntNullableWithAggregatesFilter | number | null
     int?: IntWithAggregatesFilter | number
@@ -16462,9 +16318,9 @@ export namespace Prisma {
   }
 
   export type OptionalSide1WhereInput = {
-    AND?: Enumerable<OptionalSide1WhereInput>
-    OR?: Enumerable<OptionalSide1WhereInput>
-    NOT?: Enumerable<OptionalSide1WhereInput>
+    AND?: OptionalSide1WhereInput | OptionalSide1WhereInput[]
+    OR?: OptionalSide1WhereInput[]
+    NOT?: OptionalSide1WhereInput | OptionalSide1WhereInput[]
     id?: IntFilter | number
     optionalSide2Id?: IntNullableFilter | number | null
     int?: IntFilter | number
@@ -16479,7 +16335,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
-    opti?: XOR<OptionalSide2RelationFilter, OptionalSide2WhereInput> | null
+    opti?: XOR<OptionalSide2NullableRelationFilter, OptionalSide2WhereInput> | null
   }
 
   export type OptionalSide1OrderByWithRelationInput = {
@@ -16528,9 +16384,9 @@ export namespace Prisma {
   }
 
   export type OptionalSide1ScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
-    OR?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<OptionalSide1ScalarWhereWithAggregatesInput>
+    AND?: OptionalSide1ScalarWhereWithAggregatesInput | OptionalSide1ScalarWhereWithAggregatesInput[]
+    OR?: OptionalSide1ScalarWhereWithAggregatesInput[]
+    NOT?: OptionalSide1ScalarWhereWithAggregatesInput | OptionalSide1ScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter | number
     optionalSide2Id?: IntNullableWithAggregatesFilter | number | null
     int?: IntWithAggregatesFilter | number
@@ -16548,9 +16404,9 @@ export namespace Prisma {
   }
 
   export type OptionalSide2WhereInput = {
-    AND?: Enumerable<OptionalSide2WhereInput>
-    OR?: Enumerable<OptionalSide2WhereInput>
-    NOT?: Enumerable<OptionalSide2WhereInput>
+    AND?: OptionalSide2WhereInput | OptionalSide2WhereInput[]
+    OR?: OptionalSide2WhereInput[]
+    NOT?: OptionalSide2WhereInput | OptionalSide2WhereInput[]
     id?: IntFilter | number
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -16564,7 +16420,7 @@ export namespace Prisma {
     optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
     boolean?: BoolFilter | boolean
     optionalBoolean?: BoolNullableFilter | boolean | null
-    opti?: XOR<OptionalSide1RelationFilter, OptionalSide1WhereInput> | null
+    opti?: XOR<OptionalSide1NullableRelationFilter, OptionalSide1WhereInput> | null
   }
 
   export type OptionalSide2OrderByWithRelationInput = {
@@ -16610,9 +16466,9 @@ export namespace Prisma {
   }
 
   export type OptionalSide2ScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<OptionalSide2ScalarWhereWithAggregatesInput>
-    OR?: Enumerable<OptionalSide2ScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<OptionalSide2ScalarWhereWithAggregatesInput>
+    AND?: OptionalSide2ScalarWhereWithAggregatesInput | OptionalSide2ScalarWhereWithAggregatesInput[]
+    OR?: OptionalSide2ScalarWhereWithAggregatesInput[]
+    NOT?: OptionalSide2ScalarWhereWithAggregatesInput | OptionalSide2ScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter | number
     int?: IntWithAggregatesFilter | number
     optionalInt?: IntNullableWithAggregatesFilter | number | null
@@ -16629,9 +16485,9 @@ export namespace Prisma {
   }
 
   export type AWhereInput = {
-    AND?: Enumerable<AWhereInput>
-    OR?: Enumerable<AWhereInput>
-    NOT?: Enumerable<AWhereInput>
+    AND?: AWhereInput | AWhereInput[]
+    OR?: AWhereInput[]
+    NOT?: AWhereInput | AWhereInput[]
     id?: StringFilter | string
     email?: StringFilter | string
     name?: StringNullableFilter | string | null
@@ -16678,9 +16534,9 @@ export namespace Prisma {
   }
 
   export type AScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<AScalarWhereWithAggregatesInput>
-    OR?: Enumerable<AScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<AScalarWhereWithAggregatesInput>
+    AND?: AScalarWhereWithAggregatesInput | AScalarWhereWithAggregatesInput[]
+    OR?: AScalarWhereWithAggregatesInput[]
+    NOT?: AScalarWhereWithAggregatesInput | AScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter | string
     email?: StringWithAggregatesFilter | string
     name?: StringNullableWithAggregatesFilter | string | null
@@ -16693,9 +16549,9 @@ export namespace Prisma {
   }
 
   export type BWhereInput = {
-    AND?: Enumerable<BWhereInput>
-    OR?: Enumerable<BWhereInput>
-    NOT?: Enumerable<BWhereInput>
+    AND?: BWhereInput | BWhereInput[]
+    OR?: BWhereInput[]
+    NOT?: BWhereInput | BWhereInput[]
     id?: StringFilter | string
     float?: FloatFilter | number
     dFloat?: FloatFilter | number
@@ -16729,9 +16585,9 @@ export namespace Prisma {
   }
 
   export type BScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<BScalarWhereWithAggregatesInput>
-    OR?: Enumerable<BScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<BScalarWhereWithAggregatesInput>
+    AND?: BScalarWhereWithAggregatesInput | BScalarWhereWithAggregatesInput[]
+    OR?: BScalarWhereWithAggregatesInput[]
+    NOT?: BScalarWhereWithAggregatesInput | BScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter | string
     float?: FloatWithAggregatesFilter | number
     dFloat?: FloatWithAggregatesFilter | number
@@ -16740,9 +16596,9 @@ export namespace Prisma {
   }
 
   export type CWhereInput = {
-    AND?: Enumerable<CWhereInput>
-    OR?: Enumerable<CWhereInput>
-    NOT?: Enumerable<CWhereInput>
+    AND?: CWhereInput | CWhereInput[]
+    OR?: CWhereInput[]
+    NOT?: CWhereInput | CWhereInput[]
     id?: StringFilter | string
     char?: StringFilter | string
     vChar?: StringFilter | string
@@ -16780,9 +16636,9 @@ export namespace Prisma {
   }
 
   export type CScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<CScalarWhereWithAggregatesInput>
-    OR?: Enumerable<CScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<CScalarWhereWithAggregatesInput>
+    AND?: CScalarWhereWithAggregatesInput | CScalarWhereWithAggregatesInput[]
+    OR?: CScalarWhereWithAggregatesInput[]
+    NOT?: CScalarWhereWithAggregatesInput | CScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter | string
     char?: StringWithAggregatesFilter | string
     vChar?: StringWithAggregatesFilter | string
@@ -16793,9 +16649,9 @@ export namespace Prisma {
   }
 
   export type DWhereInput = {
-    AND?: Enumerable<DWhereInput>
-    OR?: Enumerable<DWhereInput>
-    NOT?: Enumerable<DWhereInput>
+    AND?: DWhereInput | DWhereInput[]
+    OR?: DWhereInput[]
+    NOT?: DWhereInput | DWhereInput[]
     id?: StringFilter | string
     bool?: BoolFilter | boolean
     byteA?: BytesFilter | Buffer
@@ -16835,9 +16691,9 @@ export namespace Prisma {
   }
 
   export type DScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<DScalarWhereWithAggregatesInput>
-    OR?: Enumerable<DScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<DScalarWhereWithAggregatesInput>
+    AND?: DScalarWhereWithAggregatesInput | DScalarWhereWithAggregatesInput[]
+    OR?: DScalarWhereWithAggregatesInput[]
+    NOT?: DScalarWhereWithAggregatesInput | DScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter | string
     bool?: BoolWithAggregatesFilter | boolean
     byteA?: BytesWithAggregatesFilter | Buffer
@@ -16848,9 +16704,9 @@ export namespace Prisma {
   }
 
   export type EWhereInput = {
-    AND?: Enumerable<EWhereInput>
-    OR?: Enumerable<EWhereInput>
-    NOT?: Enumerable<EWhereInput>
+    AND?: EWhereInput | EWhereInput[]
+    OR?: EWhereInput[]
+    NOT?: EWhereInput | EWhereInput[]
     id?: StringFilter | string
     date?: DateTimeFilter | Date | string
     time?: DateTimeFilter | Date | string
@@ -16879,9 +16735,9 @@ export namespace Prisma {
   }
 
   export type EScalarWhereWithAggregatesInput = {
-    AND?: Enumerable<EScalarWhereWithAggregatesInput>
-    OR?: Enumerable<EScalarWhereWithAggregatesInput>
-    NOT?: Enumerable<EScalarWhereWithAggregatesInput>
+    AND?: EScalarWhereWithAggregatesInput | EScalarWhereWithAggregatesInput[]
+    OR?: EScalarWhereWithAggregatesInput[]
+    NOT?: EScalarWhereWithAggregatesInput | EScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter | string
     date?: DateTimeWithAggregatesFilter | Date | string
     time?: DateTimeWithAggregatesFilter | Date | string
@@ -17966,7 +17822,7 @@ export namespace Prisma {
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
-    list?: DCreatelistInput | Enumerable<number>
+    list?: DCreatelistInput | number[]
   }
 
   export type DUncheckedCreateInput = {
@@ -17976,7 +17832,7 @@ export namespace Prisma {
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
-    list?: DCreatelistInput | Enumerable<number>
+    list?: DCreatelistInput | number[]
   }
 
   export type DUpdateInput = {
@@ -17986,7 +17842,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
-    list?: DUpdatelistInput | Enumerable<number>
+    list?: DUpdatelistInput | number[]
   }
 
   export type DUncheckedUpdateInput = {
@@ -17996,7 +17852,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
-    list?: DUpdatelistInput | Enumerable<number>
+    list?: DUpdatelistInput | number[]
   }
 
   export type DCreateManyInput = {
@@ -18006,7 +17862,7 @@ export namespace Prisma {
     xml: string
     json: JsonNullValueInput | InputJsonValue
     jsonb: JsonNullValueInput | InputJsonValue
-    list?: DCreatelistInput | Enumerable<number>
+    list?: DCreatelistInput | number[]
   }
 
   export type DUpdateManyMutationInput = {
@@ -18016,7 +17872,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
-    list?: DUpdatelistInput | Enumerable<number>
+    list?: DUpdatelistInput | number[]
   }
 
   export type DUncheckedUpdateManyInput = {
@@ -18026,7 +17882,7 @@ export namespace Prisma {
     xml?: StringFieldUpdateOperationsInput | string
     json?: JsonNullValueInput | InputJsonValue
     jsonb?: JsonNullValueInput | InputJsonValue
-    list?: DUpdatelistInput | Enumerable<number>
+    list?: DUpdatelistInput | number[]
   }
 
   export type ECreateInput = {
@@ -18080,8 +17936,8 @@ export namespace Prisma {
 
   export type IntFilter = {
     equals?: number
-    in?: Enumerable<number> | number
-    notIn?: Enumerable<number> | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -18091,8 +17947,8 @@ export namespace Prisma {
 
   export type DateTimeFilter = {
     equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string> | Date | string
-    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -18102,8 +17958,8 @@ export namespace Prisma {
 
   export type StringFilter = {
     equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -18117,8 +17973,8 @@ export namespace Prisma {
 
   export type StringNullableFilter = {
     equals?: string | null
-    in?: Enumerable<string> | string | null
-    notIn?: Enumerable<string> | string | null
+    in?: string[] | null
+    notIn?: string[] | null
     lt?: string
     lte?: string
     gt?: string
@@ -18136,8 +17992,8 @@ export namespace Prisma {
   }
 
   export type UserRelationFilter = {
-    is?: UserWhereInput | null
-    isNot?: UserWhereInput | null
+    is?: UserWhereInput
+    isNot?: UserWhereInput
   }
 
   export type SortOrderInput = {
@@ -18184,8 +18040,8 @@ export namespace Prisma {
 
   export type IntWithAggregatesFilter = {
     equals?: number
-    in?: Enumerable<number> | number
-    notIn?: Enumerable<number> | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -18200,8 +18056,8 @@ export namespace Prisma {
 
   export type DateTimeWithAggregatesFilter = {
     equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string> | Date | string
-    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -18214,8 +18070,8 @@ export namespace Prisma {
 
   export type StringWithAggregatesFilter = {
     equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -18232,8 +18088,8 @@ export namespace Prisma {
 
   export type StringNullableWithAggregatesFilter = {
     equals?: string | null
-    in?: Enumerable<string> | string | null
-    notIn?: Enumerable<string> | string | null
+    in?: string[] | null
+    notIn?: string[] | null
     lt?: string
     lte?: string
     gt?: string
@@ -18258,8 +18114,8 @@ export namespace Prisma {
 
   export type IntNullableFilter = {
     equals?: number | null
-    in?: Enumerable<number> | number | null
-    notIn?: Enumerable<number> | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -18269,8 +18125,8 @@ export namespace Prisma {
 
   export type FloatFilter = {
     equals?: number
-    in?: Enumerable<number> | number
-    notIn?: Enumerable<number> | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -18280,8 +18136,8 @@ export namespace Prisma {
 
   export type FloatNullableFilter = {
     equals?: number | null
-    in?: Enumerable<number> | number | null
-    notIn?: Enumerable<number> | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -18335,15 +18191,15 @@ export namespace Prisma {
 
   export type EnumABeautifulEnumFilter = {
     equals?: ABeautifulEnum
-    in?: Enumerable<ABeautifulEnum>
-    notIn?: Enumerable<ABeautifulEnum>
+    in?: ABeautifulEnum[]
+    notIn?: ABeautifulEnum[]
     not?: NestedEnumABeautifulEnumFilter | ABeautifulEnum
   }
 
   export type EnumABeautifulEnumNullableFilter = {
     equals?: ABeautifulEnum | null
-    in?: Enumerable<ABeautifulEnum> | null
-    notIn?: Enumerable<ABeautifulEnum> | null
+    in?: ABeautifulEnum[] | null
+    notIn?: ABeautifulEnum[] | null
     not?: NestedEnumABeautifulEnumNullableFilter | ABeautifulEnum | null
   }
 
@@ -18427,8 +18283,8 @@ export namespace Prisma {
 
   export type IntNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: Enumerable<number> | number | null
-    notIn?: Enumerable<number> | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -18443,8 +18299,8 @@ export namespace Prisma {
 
   export type FloatWithAggregatesFilter = {
     equals?: number
-    in?: Enumerable<number> | number
-    notIn?: Enumerable<number> | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -18459,8 +18315,8 @@ export namespace Prisma {
 
   export type FloatNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: Enumerable<number> | number | null
-    notIn?: Enumerable<number> | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -18525,8 +18381,8 @@ export namespace Prisma {
 
   export type EnumABeautifulEnumWithAggregatesFilter = {
     equals?: ABeautifulEnum
-    in?: Enumerable<ABeautifulEnum>
-    notIn?: Enumerable<ABeautifulEnum>
+    in?: ABeautifulEnum[]
+    notIn?: ABeautifulEnum[]
     not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
     _count?: NestedIntFilter
     _min?: NestedEnumABeautifulEnumFilter
@@ -18535,8 +18391,8 @@ export namespace Prisma {
 
   export type EnumABeautifulEnumNullableWithAggregatesFilter = {
     equals?: ABeautifulEnum | null
-    in?: Enumerable<ABeautifulEnum> | null
-    notIn?: Enumerable<ABeautifulEnum> | null
+    in?: ABeautifulEnum[] | null
+    notIn?: ABeautifulEnum[] | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
     _count?: NestedIntNullableFilter
     _min?: NestedEnumABeautifulEnumNullableFilter
@@ -18761,7 +18617,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OneOptionalRelationFilter = {
+  export type OneOptionalNullableRelationFilter = {
     is?: OneOptionalWhereInput | null
     isNot?: OneOptionalWhereInput | null
   }
@@ -18831,7 +18687,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OptionalSide2RelationFilter = {
+  export type OptionalSide2NullableRelationFilter = {
     is?: OptionalSide2WhereInput | null
     isNot?: OptionalSide2WhereInput | null
   }
@@ -18901,7 +18757,7 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type OptionalSide1RelationFilter = {
+  export type OptionalSide1NullableRelationFilter = {
     is?: OptionalSide1WhereInput | null
     isNot?: OptionalSide1WhereInput | null
   }
@@ -18968,8 +18824,8 @@ export namespace Prisma {
 
   export type BigIntFilter = {
     equals?: bigint | number
-    in?: Enumerable<bigint> | Enumerable<number> | bigint | number
-    notIn?: Enumerable<bigint> | Enumerable<number> | bigint | number
+    in?: bigint[] | number[]
+    notIn?: bigint[] | number[]
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -19033,8 +18889,8 @@ export namespace Prisma {
 
   export type BigIntWithAggregatesFilter = {
     equals?: bigint | number
-    in?: Enumerable<bigint> | Enumerable<number> | bigint | number
-    notIn?: Enumerable<bigint> | Enumerable<number> | bigint | number
+    in?: bigint[] | number[]
+    notIn?: bigint[] | number[]
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -19049,8 +18905,8 @@ export namespace Prisma {
 
   export type DecimalFilter = {
     equals?: Decimal | DecimalJsLike | number | string
-    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
-    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
     lt?: Decimal | DecimalJsLike | number | string
     lte?: Decimal | DecimalJsLike | number | string
     gt?: Decimal | DecimalJsLike | number | string
@@ -19098,8 +18954,8 @@ export namespace Prisma {
 
   export type DecimalWithAggregatesFilter = {
     equals?: Decimal | DecimalJsLike | number | string
-    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
-    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
     lt?: Decimal | DecimalJsLike | number | string
     lte?: Decimal | DecimalJsLike | number | string
     gt?: Decimal | DecimalJsLike | number | string
@@ -19114,8 +18970,8 @@ export namespace Prisma {
 
   export type UuidFilter = {
     equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -19156,8 +19012,8 @@ export namespace Prisma {
 
   export type UuidWithAggregatesFilter = {
     equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -19171,16 +19027,16 @@ export namespace Prisma {
 
   export type BytesFilter = {
     equals?: Buffer
-    in?: Enumerable<Buffer> | Buffer
-    notIn?: Enumerable<Buffer> | Buffer
+    in?: Buffer[]
+    notIn?: Buffer[]
     not?: NestedBytesFilter | Buffer
   }
 
   export type IntNullableListFilter = {
-    equals?: Enumerable<number> | null
+    equals?: number[] | null
     has?: number | null
-    hasEvery?: Enumerable<number>
-    hasSome?: Enumerable<number>
+    hasEvery?: number[]
+    hasSome?: number[]
     isEmpty?: boolean
   }
 
@@ -19218,8 +19074,8 @@ export namespace Prisma {
 
   export type BytesWithAggregatesFilter = {
     equals?: Buffer
-    in?: Enumerable<Buffer> | Buffer
-    notIn?: Enumerable<Buffer> | Buffer
+    in?: Buffer[]
+    notIn?: Buffer[]
     not?: NestedBytesWithAggregatesFilter | Buffer
     _count?: NestedIntFilter
     _min?: NestedBytesFilter
@@ -19286,17 +19142,17 @@ export namespace Prisma {
   }
 
   export type PostCreateNestedManyWithoutAuthorInput = {
-    create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
-    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
+    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[]
     createMany?: PostCreateManyAuthorInputEnvelope
-    connect?: Enumerable<PostWhereUniqueInput>
+    connect?: PostWhereUniqueInput | PostWhereUniqueInput[]
   }
 
   export type PostUncheckedCreateNestedManyWithoutAuthorInput = {
-    create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
-    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
+    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[]
     createMany?: PostCreateManyAuthorInputEnvelope
-    connect?: Enumerable<PostWhereUniqueInput>
+    connect?: PostWhereUniqueInput | PostWhereUniqueInput[]
   }
 
   export type NullableIntFieldUpdateOperationsInput = {
@@ -19336,149 +19192,149 @@ export namespace Prisma {
   }
 
   export type PostUpdateManyWithoutAuthorNestedInput = {
-    create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
-    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
-    upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
+    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[]
+    upsert?: PostUpsertWithWhereUniqueWithoutAuthorInput | PostUpsertWithWhereUniqueWithoutAuthorInput[]
     createMany?: PostCreateManyAuthorInputEnvelope
-    set?: Enumerable<PostWhereUniqueInput>
-    disconnect?: Enumerable<PostWhereUniqueInput>
-    delete?: Enumerable<PostWhereUniqueInput>
-    connect?: Enumerable<PostWhereUniqueInput>
-    update?: Enumerable<PostUpdateWithWhereUniqueWithoutAuthorInput>
-    updateMany?: Enumerable<PostUpdateManyWithWhereWithoutAuthorInput>
-    deleteMany?: Enumerable<PostScalarWhereInput>
+    set?: PostWhereUniqueInput | PostWhereUniqueInput[]
+    disconnect?: PostWhereUniqueInput | PostWhereUniqueInput[]
+    delete?: PostWhereUniqueInput | PostWhereUniqueInput[]
+    connect?: PostWhereUniqueInput | PostWhereUniqueInput[]
+    update?: PostUpdateWithWhereUniqueWithoutAuthorInput | PostUpdateWithWhereUniqueWithoutAuthorInput[]
+    updateMany?: PostUpdateManyWithWhereWithoutAuthorInput | PostUpdateManyWithWhereWithoutAuthorInput[]
+    deleteMany?: PostScalarWhereInput | PostScalarWhereInput[]
   }
 
   export type PostUncheckedUpdateManyWithoutAuthorNestedInput = {
-    create?: XOR<Enumerable<PostCreateWithoutAuthorInput>, Enumerable<PostUncheckedCreateWithoutAuthorInput>>
-    connectOrCreate?: Enumerable<PostCreateOrConnectWithoutAuthorInput>
-    upsert?: Enumerable<PostUpsertWithWhereUniqueWithoutAuthorInput>
+    create?: XOR<PostCreateWithoutAuthorInput, PostUncheckedCreateWithoutAuthorInput> | PostCreateWithoutAuthorInput[] | PostUncheckedCreateWithoutAuthorInput[]
+    connectOrCreate?: PostCreateOrConnectWithoutAuthorInput | PostCreateOrConnectWithoutAuthorInput[]
+    upsert?: PostUpsertWithWhereUniqueWithoutAuthorInput | PostUpsertWithWhereUniqueWithoutAuthorInput[]
     createMany?: PostCreateManyAuthorInputEnvelope
-    set?: Enumerable<PostWhereUniqueInput>
-    disconnect?: Enumerable<PostWhereUniqueInput>
-    delete?: Enumerable<PostWhereUniqueInput>
-    connect?: Enumerable<PostWhereUniqueInput>
-    update?: Enumerable<PostUpdateWithWhereUniqueWithoutAuthorInput>
-    updateMany?: Enumerable<PostUpdateManyWithWhereWithoutAuthorInput>
-    deleteMany?: Enumerable<PostScalarWhereInput>
+    set?: PostWhereUniqueInput | PostWhereUniqueInput[]
+    disconnect?: PostWhereUniqueInput | PostWhereUniqueInput[]
+    delete?: PostWhereUniqueInput | PostWhereUniqueInput[]
+    connect?: PostWhereUniqueInput | PostWhereUniqueInput[]
+    update?: PostUpdateWithWhereUniqueWithoutAuthorInput | PostUpdateWithWhereUniqueWithoutAuthorInput[]
+    updateMany?: PostUpdateManyWithWhereWithoutAuthorInput | PostUpdateManyWithWhereWithoutAuthorInput[]
+    deleteMany?: PostScalarWhereInput | PostScalarWhereInput[]
   }
 
   export type NCreateNestedManyWithoutMInput = {
-    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
-    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
-    connect?: Enumerable<NWhereUniqueInput>
+    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[]
+    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[]
+    connect?: NWhereUniqueInput | NWhereUniqueInput[]
   }
 
   export type NUncheckedCreateNestedManyWithoutMInput = {
-    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
-    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
-    connect?: Enumerable<NWhereUniqueInput>
+    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[]
+    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[]
+    connect?: NWhereUniqueInput | NWhereUniqueInput[]
   }
 
   export type NUpdateManyWithoutMNestedInput = {
-    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
-    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
-    upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
-    set?: Enumerable<NWhereUniqueInput>
-    disconnect?: Enumerable<NWhereUniqueInput>
-    delete?: Enumerable<NWhereUniqueInput>
-    connect?: Enumerable<NWhereUniqueInput>
-    update?: Enumerable<NUpdateWithWhereUniqueWithoutMInput>
-    updateMany?: Enumerable<NUpdateManyWithWhereWithoutMInput>
-    deleteMany?: Enumerable<NScalarWhereInput>
+    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[]
+    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[]
+    upsert?: NUpsertWithWhereUniqueWithoutMInput | NUpsertWithWhereUniqueWithoutMInput[]
+    set?: NWhereUniqueInput | NWhereUniqueInput[]
+    disconnect?: NWhereUniqueInput | NWhereUniqueInput[]
+    delete?: NWhereUniqueInput | NWhereUniqueInput[]
+    connect?: NWhereUniqueInput | NWhereUniqueInput[]
+    update?: NUpdateWithWhereUniqueWithoutMInput | NUpdateWithWhereUniqueWithoutMInput[]
+    updateMany?: NUpdateManyWithWhereWithoutMInput | NUpdateManyWithWhereWithoutMInput[]
+    deleteMany?: NScalarWhereInput | NScalarWhereInput[]
   }
 
   export type NUncheckedUpdateManyWithoutMNestedInput = {
-    create?: XOR<Enumerable<NCreateWithoutMInput>, Enumerable<NUncheckedCreateWithoutMInput>>
-    connectOrCreate?: Enumerable<NCreateOrConnectWithoutMInput>
-    upsert?: Enumerable<NUpsertWithWhereUniqueWithoutMInput>
-    set?: Enumerable<NWhereUniqueInput>
-    disconnect?: Enumerable<NWhereUniqueInput>
-    delete?: Enumerable<NWhereUniqueInput>
-    connect?: Enumerable<NWhereUniqueInput>
-    update?: Enumerable<NUpdateWithWhereUniqueWithoutMInput>
-    updateMany?: Enumerable<NUpdateManyWithWhereWithoutMInput>
-    deleteMany?: Enumerable<NScalarWhereInput>
+    create?: XOR<NCreateWithoutMInput, NUncheckedCreateWithoutMInput> | NCreateWithoutMInput[] | NUncheckedCreateWithoutMInput[]
+    connectOrCreate?: NCreateOrConnectWithoutMInput | NCreateOrConnectWithoutMInput[]
+    upsert?: NUpsertWithWhereUniqueWithoutMInput | NUpsertWithWhereUniqueWithoutMInput[]
+    set?: NWhereUniqueInput | NWhereUniqueInput[]
+    disconnect?: NWhereUniqueInput | NWhereUniqueInput[]
+    delete?: NWhereUniqueInput | NWhereUniqueInput[]
+    connect?: NWhereUniqueInput | NWhereUniqueInput[]
+    update?: NUpdateWithWhereUniqueWithoutMInput | NUpdateWithWhereUniqueWithoutMInput[]
+    updateMany?: NUpdateManyWithWhereWithoutMInput | NUpdateManyWithWhereWithoutMInput[]
+    deleteMany?: NScalarWhereInput | NScalarWhereInput[]
   }
 
   export type MCreateNestedManyWithoutNInput = {
-    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
-    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
-    connect?: Enumerable<MWhereUniqueInput>
+    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[]
+    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[]
+    connect?: MWhereUniqueInput | MWhereUniqueInput[]
   }
 
   export type MUncheckedCreateNestedManyWithoutNInput = {
-    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
-    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
-    connect?: Enumerable<MWhereUniqueInput>
+    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[]
+    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[]
+    connect?: MWhereUniqueInput | MWhereUniqueInput[]
   }
 
   export type MUpdateManyWithoutNNestedInput = {
-    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
-    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
-    upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
-    set?: Enumerable<MWhereUniqueInput>
-    disconnect?: Enumerable<MWhereUniqueInput>
-    delete?: Enumerable<MWhereUniqueInput>
-    connect?: Enumerable<MWhereUniqueInput>
-    update?: Enumerable<MUpdateWithWhereUniqueWithoutNInput>
-    updateMany?: Enumerable<MUpdateManyWithWhereWithoutNInput>
-    deleteMany?: Enumerable<MScalarWhereInput>
+    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[]
+    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[]
+    upsert?: MUpsertWithWhereUniqueWithoutNInput | MUpsertWithWhereUniqueWithoutNInput[]
+    set?: MWhereUniqueInput | MWhereUniqueInput[]
+    disconnect?: MWhereUniqueInput | MWhereUniqueInput[]
+    delete?: MWhereUniqueInput | MWhereUniqueInput[]
+    connect?: MWhereUniqueInput | MWhereUniqueInput[]
+    update?: MUpdateWithWhereUniqueWithoutNInput | MUpdateWithWhereUniqueWithoutNInput[]
+    updateMany?: MUpdateManyWithWhereWithoutNInput | MUpdateManyWithWhereWithoutNInput[]
+    deleteMany?: MScalarWhereInput | MScalarWhereInput[]
   }
 
   export type MUncheckedUpdateManyWithoutNNestedInput = {
-    create?: XOR<Enumerable<MCreateWithoutNInput>, Enumerable<MUncheckedCreateWithoutNInput>>
-    connectOrCreate?: Enumerable<MCreateOrConnectWithoutNInput>
-    upsert?: Enumerable<MUpsertWithWhereUniqueWithoutNInput>
-    set?: Enumerable<MWhereUniqueInput>
-    disconnect?: Enumerable<MWhereUniqueInput>
-    delete?: Enumerable<MWhereUniqueInput>
-    connect?: Enumerable<MWhereUniqueInput>
-    update?: Enumerable<MUpdateWithWhereUniqueWithoutNInput>
-    updateMany?: Enumerable<MUpdateManyWithWhereWithoutNInput>
-    deleteMany?: Enumerable<MScalarWhereInput>
+    create?: XOR<MCreateWithoutNInput, MUncheckedCreateWithoutNInput> | MCreateWithoutNInput[] | MUncheckedCreateWithoutNInput[]
+    connectOrCreate?: MCreateOrConnectWithoutNInput | MCreateOrConnectWithoutNInput[]
+    upsert?: MUpsertWithWhereUniqueWithoutNInput | MUpsertWithWhereUniqueWithoutNInput[]
+    set?: MWhereUniqueInput | MWhereUniqueInput[]
+    disconnect?: MWhereUniqueInput | MWhereUniqueInput[]
+    delete?: MWhereUniqueInput | MWhereUniqueInput[]
+    connect?: MWhereUniqueInput | MWhereUniqueInput[]
+    update?: MUpdateWithWhereUniqueWithoutNInput | MUpdateWithWhereUniqueWithoutNInput[]
+    updateMany?: MUpdateManyWithWhereWithoutNInput | MUpdateManyWithWhereWithoutNInput[]
+    deleteMany?: MScalarWhereInput | MScalarWhereInput[]
   }
 
   export type ManyRequiredCreateNestedManyWithoutOneInput = {
-    create?: XOR<Enumerable<ManyRequiredCreateWithoutOneInput>, Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>>
-    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
+    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[]
+    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[]
     createMany?: ManyRequiredCreateManyOneInputEnvelope
-    connect?: Enumerable<ManyRequiredWhereUniqueInput>
+    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
   }
 
   export type ManyRequiredUncheckedCreateNestedManyWithoutOneInput = {
-    create?: XOR<Enumerable<ManyRequiredCreateWithoutOneInput>, Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>>
-    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
+    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[]
+    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[]
     createMany?: ManyRequiredCreateManyOneInputEnvelope
-    connect?: Enumerable<ManyRequiredWhereUniqueInput>
+    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
   }
 
   export type ManyRequiredUpdateManyWithoutOneNestedInput = {
-    create?: XOR<Enumerable<ManyRequiredCreateWithoutOneInput>, Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>>
-    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
-    upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
+    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[]
+    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[]
+    upsert?: ManyRequiredUpsertWithWhereUniqueWithoutOneInput | ManyRequiredUpsertWithWhereUniqueWithoutOneInput[]
     createMany?: ManyRequiredCreateManyOneInputEnvelope
-    set?: Enumerable<ManyRequiredWhereUniqueInput>
-    disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
-    delete?: Enumerable<ManyRequiredWhereUniqueInput>
-    connect?: Enumerable<ManyRequiredWhereUniqueInput>
-    update?: Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>
-    updateMany?: Enumerable<ManyRequiredUpdateManyWithWhereWithoutOneInput>
-    deleteMany?: Enumerable<ManyRequiredScalarWhereInput>
+    set?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
+    disconnect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
+    delete?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
+    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
+    update?: ManyRequiredUpdateWithWhereUniqueWithoutOneInput | ManyRequiredUpdateWithWhereUniqueWithoutOneInput[]
+    updateMany?: ManyRequiredUpdateManyWithWhereWithoutOneInput | ManyRequiredUpdateManyWithWhereWithoutOneInput[]
+    deleteMany?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[]
   }
 
   export type ManyRequiredUncheckedUpdateManyWithoutOneNestedInput = {
-    create?: XOR<Enumerable<ManyRequiredCreateWithoutOneInput>, Enumerable<ManyRequiredUncheckedCreateWithoutOneInput>>
-    connectOrCreate?: Enumerable<ManyRequiredCreateOrConnectWithoutOneInput>
-    upsert?: Enumerable<ManyRequiredUpsertWithWhereUniqueWithoutOneInput>
+    create?: XOR<ManyRequiredCreateWithoutOneInput, ManyRequiredUncheckedCreateWithoutOneInput> | ManyRequiredCreateWithoutOneInput[] | ManyRequiredUncheckedCreateWithoutOneInput[]
+    connectOrCreate?: ManyRequiredCreateOrConnectWithoutOneInput | ManyRequiredCreateOrConnectWithoutOneInput[]
+    upsert?: ManyRequiredUpsertWithWhereUniqueWithoutOneInput | ManyRequiredUpsertWithWhereUniqueWithoutOneInput[]
     createMany?: ManyRequiredCreateManyOneInputEnvelope
-    set?: Enumerable<ManyRequiredWhereUniqueInput>
-    disconnect?: Enumerable<ManyRequiredWhereUniqueInput>
-    delete?: Enumerable<ManyRequiredWhereUniqueInput>
-    connect?: Enumerable<ManyRequiredWhereUniqueInput>
-    update?: Enumerable<ManyRequiredUpdateWithWhereUniqueWithoutOneInput>
-    updateMany?: Enumerable<ManyRequiredUpdateManyWithWhereWithoutOneInput>
-    deleteMany?: Enumerable<ManyRequiredScalarWhereInput>
+    set?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
+    disconnect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
+    delete?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
+    connect?: ManyRequiredWhereUniqueInput | ManyRequiredWhereUniqueInput[]
+    update?: ManyRequiredUpdateWithWhereUniqueWithoutOneInput | ManyRequiredUpdateWithWhereUniqueWithoutOneInput[]
+    updateMany?: ManyRequiredUpdateManyWithWhereWithoutOneInput | ManyRequiredUpdateManyWithWhereWithoutOneInput[]
+    deleteMany?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[]
   }
 
   export type OneOptionalCreateNestedOneWithoutManyInput = {
@@ -19562,7 +19418,7 @@ export namespace Prisma {
   }
 
   export type DCreatelistInput = {
-    set: Enumerable<number>
+    set: number[]
   }
 
   export type BytesFieldUpdateOperationsInput = {
@@ -19570,14 +19426,14 @@ export namespace Prisma {
   }
 
   export type DUpdatelistInput = {
-    set?: Enumerable<number>
-    push?: number | Enumerable<number>
+    set?: number[]
+    push?: number | number[]
   }
 
   export type NestedIntFilter = {
     equals?: number
-    in?: Enumerable<number> | number
-    notIn?: Enumerable<number> | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -19587,8 +19443,8 @@ export namespace Prisma {
 
   export type NestedDateTimeFilter = {
     equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string> | Date | string
-    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -19598,8 +19454,8 @@ export namespace Prisma {
 
   export type NestedStringFilter = {
     equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -19612,8 +19468,8 @@ export namespace Prisma {
 
   export type NestedStringNullableFilter = {
     equals?: string | null
-    in?: Enumerable<string> | string | null
-    notIn?: Enumerable<string> | string | null
+    in?: string[] | null
+    notIn?: string[] | null
     lt?: string
     lte?: string
     gt?: string
@@ -19631,8 +19487,8 @@ export namespace Prisma {
 
   export type NestedIntWithAggregatesFilter = {
     equals?: number
-    in?: Enumerable<number> | number
-    notIn?: Enumerable<number> | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -19647,8 +19503,8 @@ export namespace Prisma {
 
   export type NestedFloatFilter = {
     equals?: number
-    in?: Enumerable<number> | number
-    notIn?: Enumerable<number> | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -19658,8 +19514,8 @@ export namespace Prisma {
 
   export type NestedDateTimeWithAggregatesFilter = {
     equals?: Date | string
-    in?: Enumerable<Date> | Enumerable<string> | Date | string
-    notIn?: Enumerable<Date> | Enumerable<string> | Date | string
+    in?: Date[] | string[]
+    notIn?: Date[] | string[]
     lt?: Date | string
     lte?: Date | string
     gt?: Date | string
@@ -19672,8 +19528,8 @@ export namespace Prisma {
 
   export type NestedStringWithAggregatesFilter = {
     equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -19689,8 +19545,8 @@ export namespace Prisma {
 
   export type NestedStringNullableWithAggregatesFilter = {
     equals?: string | null
-    in?: Enumerable<string> | string | null
-    notIn?: Enumerable<string> | string | null
+    in?: string[] | null
+    notIn?: string[] | null
     lt?: string
     lte?: string
     gt?: string
@@ -19706,8 +19562,8 @@ export namespace Prisma {
 
   export type NestedIntNullableFilter = {
     equals?: number | null
-    in?: Enumerable<number> | number | null
-    notIn?: Enumerable<number> | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -19725,8 +19581,8 @@ export namespace Prisma {
 
   export type NestedFloatNullableFilter = {
     equals?: number | null
-    in?: Enumerable<number> | number | null
-    notIn?: Enumerable<number> | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -19736,15 +19592,15 @@ export namespace Prisma {
 
   export type NestedEnumABeautifulEnumFilter = {
     equals?: ABeautifulEnum
-    in?: Enumerable<ABeautifulEnum>
-    notIn?: Enumerable<ABeautifulEnum>
+    in?: ABeautifulEnum[]
+    notIn?: ABeautifulEnum[]
     not?: NestedEnumABeautifulEnumFilter | ABeautifulEnum
   }
 
   export type NestedEnumABeautifulEnumNullableFilter = {
     equals?: ABeautifulEnum | null
-    in?: Enumerable<ABeautifulEnum> | null
-    notIn?: Enumerable<ABeautifulEnum> | null
+    in?: ABeautifulEnum[] | null
+    notIn?: ABeautifulEnum[] | null
     not?: NestedEnumABeautifulEnumNullableFilter | ABeautifulEnum | null
   }
 
@@ -19755,8 +19611,8 @@ export namespace Prisma {
 
   export type NestedIntNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: Enumerable<number> | number | null
-    notIn?: Enumerable<number> | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -19771,8 +19627,8 @@ export namespace Prisma {
 
   export type NestedFloatWithAggregatesFilter = {
     equals?: number
-    in?: Enumerable<number> | number
-    notIn?: Enumerable<number> | number
+    in?: number[]
+    notIn?: number[]
     lt?: number
     lte?: number
     gt?: number
@@ -19787,8 +19643,8 @@ export namespace Prisma {
 
   export type NestedFloatNullableWithAggregatesFilter = {
     equals?: number | null
-    in?: Enumerable<number> | number | null
-    notIn?: Enumerable<number> | number | null
+    in?: number[] | null
+    notIn?: number[] | null
     lt?: number
     lte?: number
     gt?: number
@@ -19847,8 +19703,8 @@ export namespace Prisma {
 
   export type NestedEnumABeautifulEnumWithAggregatesFilter = {
     equals?: ABeautifulEnum
-    in?: Enumerable<ABeautifulEnum>
-    notIn?: Enumerable<ABeautifulEnum>
+    in?: ABeautifulEnum[]
+    notIn?: ABeautifulEnum[]
     not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
     _count?: NestedIntFilter
     _min?: NestedEnumABeautifulEnumFilter
@@ -19857,8 +19713,8 @@ export namespace Prisma {
 
   export type NestedEnumABeautifulEnumNullableWithAggregatesFilter = {
     equals?: ABeautifulEnum | null
-    in?: Enumerable<ABeautifulEnum> | null
-    notIn?: Enumerable<ABeautifulEnum> | null
+    in?: ABeautifulEnum[] | null
+    notIn?: ABeautifulEnum[] | null
     not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
     _count?: NestedIntNullableFilter
     _min?: NestedEnumABeautifulEnumNullableFilter
@@ -19875,8 +19731,8 @@ export namespace Prisma {
 
   export type NestedBigIntFilter = {
     equals?: bigint | number
-    in?: Enumerable<bigint> | Enumerable<number> | bigint | number
-    notIn?: Enumerable<bigint> | Enumerable<number> | bigint | number
+    in?: bigint[] | number[]
+    notIn?: bigint[] | number[]
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -19886,8 +19742,8 @@ export namespace Prisma {
 
   export type NestedBigIntWithAggregatesFilter = {
     equals?: bigint | number
-    in?: Enumerable<bigint> | Enumerable<number> | bigint | number
-    notIn?: Enumerable<bigint> | Enumerable<number> | bigint | number
+    in?: bigint[] | number[]
+    notIn?: bigint[] | number[]
     lt?: bigint | number
     lte?: bigint | number
     gt?: bigint | number
@@ -19902,8 +19758,8 @@ export namespace Prisma {
 
   export type NestedDecimalFilter = {
     equals?: Decimal | DecimalJsLike | number | string
-    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
-    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
     lt?: Decimal | DecimalJsLike | number | string
     lte?: Decimal | DecimalJsLike | number | string
     gt?: Decimal | DecimalJsLike | number | string
@@ -19913,8 +19769,8 @@ export namespace Prisma {
 
   export type NestedDecimalWithAggregatesFilter = {
     equals?: Decimal | DecimalJsLike | number | string
-    in?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
-    notIn?: Enumerable<Decimal> | Enumerable<DecimalJsLike> | Enumerable<number> | Enumerable<string> | Decimal | DecimalJsLike | number | string
+    in?: Decimal[] | DecimalJsLike[] | number[] | string[]
+    notIn?: Decimal[] | DecimalJsLike[] | number[] | string[]
     lt?: Decimal | DecimalJsLike | number | string
     lte?: Decimal | DecimalJsLike | number | string
     gt?: Decimal | DecimalJsLike | number | string
@@ -19929,8 +19785,8 @@ export namespace Prisma {
 
   export type NestedUuidFilter = {
     equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -19940,8 +19796,8 @@ export namespace Prisma {
 
   export type NestedUuidWithAggregatesFilter = {
     equals?: string
-    in?: Enumerable<string> | string
-    notIn?: Enumerable<string> | string
+    in?: string[]
+    notIn?: string[]
     lt?: string
     lte?: string
     gt?: string
@@ -19954,15 +19810,15 @@ export namespace Prisma {
 
   export type NestedBytesFilter = {
     equals?: Buffer
-    in?: Enumerable<Buffer> | Buffer
-    notIn?: Enumerable<Buffer> | Buffer
+    in?: Buffer[]
+    notIn?: Buffer[]
     not?: NestedBytesFilter | Buffer
   }
 
   export type NestedBytesWithAggregatesFilter = {
     equals?: Buffer
-    in?: Enumerable<Buffer> | Buffer
-    notIn?: Enumerable<Buffer> | Buffer
+    in?: Buffer[]
+    notIn?: Buffer[]
     not?: NestedBytesWithAggregatesFilter | Buffer
     _count?: NestedIntFilter
     _min?: NestedBytesFilter
@@ -20066,7 +19922,7 @@ export namespace Prisma {
   }
 
   export type PostCreateManyAuthorInputEnvelope = {
-    data: Enumerable<PostCreateManyAuthorInput>
+    data: PostCreateManyAuthorInput | PostCreateManyAuthorInput[]
     skipDuplicates?: boolean
   }
 
@@ -20083,13 +19939,13 @@ export namespace Prisma {
 
   export type PostUpdateManyWithWhereWithoutAuthorInput = {
     where: PostScalarWhereInput
-    data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyWithoutPostsInput>
+    data: XOR<PostUpdateManyMutationInput, PostUncheckedUpdateManyWithoutAuthorInput>
   }
 
   export type PostScalarWhereInput = {
-    AND?: Enumerable<PostScalarWhereInput>
-    OR?: Enumerable<PostScalarWhereInput>
-    NOT?: Enumerable<PostScalarWhereInput>
+    AND?: PostScalarWhereInput | PostScalarWhereInput[]
+    OR?: PostScalarWhereInput[]
+    NOT?: PostScalarWhereInput | PostScalarWhereInput[]
     id?: IntFilter | number
     createdAt?: DateTimeFilter | Date | string
     title?: StringFilter | string
@@ -20147,13 +20003,13 @@ export namespace Prisma {
 
   export type NUpdateManyWithWhereWithoutMInput = {
     where: NScalarWhereInput
-    data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyWithoutNInput>
+    data: XOR<NUpdateManyMutationInput, NUncheckedUpdateManyWithoutMInput>
   }
 
   export type NScalarWhereInput = {
-    AND?: Enumerable<NScalarWhereInput>
-    OR?: Enumerable<NScalarWhereInput>
-    NOT?: Enumerable<NScalarWhereInput>
+    AND?: NScalarWhereInput | NScalarWhereInput[]
+    OR?: NScalarWhereInput[]
+    NOT?: NScalarWhereInput | NScalarWhereInput[]
     id?: IntFilter | number
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -20218,13 +20074,13 @@ export namespace Prisma {
 
   export type MUpdateManyWithWhereWithoutNInput = {
     where: MScalarWhereInput
-    data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyWithoutMInput>
+    data: XOR<MUpdateManyMutationInput, MUncheckedUpdateManyWithoutNInput>
   }
 
   export type MScalarWhereInput = {
-    AND?: Enumerable<MScalarWhereInput>
-    OR?: Enumerable<MScalarWhereInput>
-    NOT?: Enumerable<MScalarWhereInput>
+    AND?: MScalarWhereInput | MScalarWhereInput[]
+    OR?: MScalarWhereInput[]
+    NOT?: MScalarWhereInput | MScalarWhereInput[]
     id?: IntFilter | number
     int?: IntFilter | number
     optionalInt?: IntNullableFilter | number | null
@@ -20277,7 +20133,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredCreateManyOneInputEnvelope = {
-    data: Enumerable<ManyRequiredCreateManyOneInput>
+    data: ManyRequiredCreateManyOneInput | ManyRequiredCreateManyOneInput[]
     skipDuplicates?: boolean
   }
 
@@ -20294,13 +20150,13 @@ export namespace Prisma {
 
   export type ManyRequiredUpdateManyWithWhereWithoutOneInput = {
     where: ManyRequiredScalarWhereInput
-    data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyWithoutManyInput>
+    data: XOR<ManyRequiredUpdateManyMutationInput, ManyRequiredUncheckedUpdateManyWithoutOneInput>
   }
 
   export type ManyRequiredScalarWhereInput = {
-    AND?: Enumerable<ManyRequiredScalarWhereInput>
-    OR?: Enumerable<ManyRequiredScalarWhereInput>
-    NOT?: Enumerable<ManyRequiredScalarWhereInput>
+    AND?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[]
+    OR?: ManyRequiredScalarWhereInput[]
+    NOT?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[]
     id?: IntFilter | number
     oneOptionalId?: IntNullableFilter | number | null
     int?: IntFilter | number
@@ -20556,7 +20412,7 @@ export namespace Prisma {
     published?: BoolFieldUpdateOperationsInput | boolean
   }
 
-  export type PostUncheckedUpdateManyWithoutPostsInput = {
+  export type PostUncheckedUpdateManyWithoutAuthorInput = {
     id?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
@@ -20595,7 +20451,7 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
-  export type NUncheckedUpdateManyWithoutNInput = {
+  export type NUncheckedUpdateManyWithoutMInput = {
     id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -20642,7 +20498,7 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
-  export type MUncheckedUpdateManyWithoutMInput = {
+  export type MUncheckedUpdateManyWithoutNInput = {
     id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null
@@ -20705,7 +20561,7 @@ export namespace Prisma {
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
 
-  export type ManyRequiredUncheckedUpdateManyWithoutManyInput = {
+  export type ManyRequiredUncheckedUpdateManyWithoutOneInput = {
     id?: IntFieldUpdateOperationsInput | number
     int?: IntFieldUpdateOperationsInput | number
     optionalInt?: NullableIntFieldUpdateOperationsInput | number | null

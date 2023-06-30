@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { DMMF } from '../../dmmf-types'
+import { DMMF } from '../../../generation/dmmf-types'
 import { ObjectEnumValue } from '../../object-enums'
 import { DecimalJsLike } from '../../utils/decimalJsLike'
 import { FieldRef } from '../model/FieldRef'
