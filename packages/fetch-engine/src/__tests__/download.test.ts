@@ -206,10 +206,6 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
       expect(files).toMatchInlineSnapshot(`
         [
           {
-            "name": ".DS_Store",
-            "size": 6148,
-          },
-          {
             "name": ".gitkeep",
             "size": 0,
           },
