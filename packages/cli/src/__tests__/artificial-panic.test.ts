@@ -21,17 +21,17 @@ describe('artificial-panic introspection', () => {
     process.env = { ...OLD_ENV }
   })
 
-  it('migration-engine', async () => {
+  it('schema-engine', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(6)
-    process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
+    process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
 
     const command = new DbPull()
     try {
       await command.parse(['--print'])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
-        Error in migration engine.
+        Error in Schema engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
 
       `)

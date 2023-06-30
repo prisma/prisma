@@ -1,14 +1,13 @@
 import { getCliQueryEngineBinaryType } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { BinaryType, getBinaryEnvVarPath } from '@prisma/fetch-engine'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as O from 'fp-ts/Option'
 import * as TE from 'fp-ts/TaskEither'
-import fs from 'fs'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 
-import { engineEnvVarMap, safeResolveBinary } from '../resolveBinary'
+import { safeResolveBinary } from '../resolveBinary'
 import { safeGetEngineVersion } from './getEngineVersion'
 
 /**
@@ -26,7 +25,7 @@ export type EngineInfo = {
 
 export type BinaryMatrix<T> = {
   'query-engine': T
-  'migration-engine': T
+  'schema-engine': T
 }
 
 export type BinaryInfoMatrix = BinaryMatrix<EngineInfo>
@@ -40,8 +39,8 @@ export async function getEnginesMetaInfo() {
       type: cliQueryEngineBinaryType,
     },
     {
-      name: 'migration-engine' as const,
-      type: BinaryType.MigrationEngineBinary,
+      name: 'schema-engine' as const,
+      type: BinaryType.SchemaEngineBinary,
     },
   ] as const
 
@@ -62,7 +61,7 @@ export async function getEnginesMetaInfo() {
   // map each engine to its version
   const engineMetaInfo: {
     'query-engine': string
-    'migration-engine': string
+    'schema-engine': string
   }[] = engineDataAcc.map((arr) => arr[0])
 
   // keep track of any error that has occurred, if any
@@ -112,35 +111,24 @@ export function getEnginesInfo(enginesInfo: EngineInfo): readonly [string, Error
   return [versionMessage, errors] as const
 }
 
-/**
- * An engine path read from the environment is valid only if it exists on disk.
- * @param pathFromEnv engine path read from process.env
- */
-function isPathFromEnvValid(pathFromEnv: string | undefined): pathFromEnv is string {
-  return !!pathFromEnv && fs.existsSync(pathFromEnv)
-}
-
 export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo> {
-  const envVar = engineEnvVarMap[binaryName]
-  const pathFromEnv = process.env[envVar]
+  const pathFromEnvOption = O.fromNullable(getBinaryEnvVarPath(binaryName))
 
   /**
    * Read the binary path, preferably from the environment, or resolving the canonical path
    * from the given `binaryName`.
    */
 
-  const pathFromEnvOption: O.Option<string> = O.fromPredicate(isPathFromEnvValid)(pathFromEnv)
-
   const fromEnvVarOption: O.Option<string> = pipe(
     pathFromEnvOption,
-    O.map(() => envVar),
+    O.map((p) => p.fromEnvVar),
   )
 
   const enginePathEither: E.Either<Error, string> = await pipe(
     pathFromEnvOption,
     O.fold(
       () => safeResolveBinary(binaryName),
-      (_pathFromEnv) => TE.right(_pathFromEnv),
+      (pathFromEnv) => TE.right(pathFromEnv.path),
     ),
   )()
 

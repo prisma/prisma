@@ -77,8 +77,8 @@ export class Version implements Command {
             currEngineInfo,
           ]
         })
-        .with({ 'migration-engine': P.select() }, (currEngineInfo) => {
-          return ['Migration Engine', currEngineInfo]
+        .with({ 'schema-engine': P.select() }, (currEngineInfo) => {
+          return ['Schema Engine', currEngineInfo]
         })
         .exhaustive()
     })

@@ -32,7 +32,9 @@ testMatrix.setupTestSuite(
           await client.$connect()
         }
 
-        expect(warnings.join('')).toContain('This is the 10th instance of Prisma Client being started. Make sure this is intentional.')
+        expect(warnings.join('')).toContain(
+          'This is the 10th instance of Prisma Client being started. Make sure this is intentional.',
+        )
       },
       TIMEOUT,
     )
