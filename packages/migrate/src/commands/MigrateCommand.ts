@@ -1,8 +1,6 @@
 import type { Command, Commands } from '@prisma/internals'
-import { arg, format, HelpError, isError, link, logger, unknownCommand } from '@prisma/internals'
+import { arg, format, HelpError, isError, unknownCommand } from '@prisma/internals'
 import { bold, dim, red } from 'kleur/colors'
-
-import { ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 
 export class MigrateCommand implements Command {
   public static new(cmds: Commands): MigrateCommand {
@@ -68,18 +66,12 @@ ${bold('Examples')}
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
-      '--experimental': Boolean,
       '--preview-feature': Boolean,
-      '--early-access-feature': Boolean,
       '--telemetry-information': String,
     })
 
     if (isError(args)) {
       return this.help(args.message)
-    }
-
-    if (args['--experimental']) {
-      throw new ExperimentalFlagWithMigrateError()
     }
 
     // display help for help flag or no subcommand
@@ -88,20 +80,6 @@ ${bold('Examples')}
     }
 
     const commandName = args._[0]
-
-    if (['up', 'save', 'down'].includes(commandName)) {
-      throw new Error(
-        `The current command "${args._[0]}" doesn't exist in the new version of Prisma Migrate.
-Read more about how to upgrade: ${link('https://pris.ly/d/migrate-upgrade')}`,
-      )
-    }
-
-    // Legacy warning only if --preview-feature is place before the command like below
-    // prisma migrate --preview-feature command
-    if (args['--preview-feature']) {
-      logger.warn(`Prisma Migrate was in Preview and is now Generally Available.
-You can now remove the ${red('--preview-feature')} flag.`)
-    }
 
     // check if we have that subcommand
     const cmd = this.cmds[commandName]

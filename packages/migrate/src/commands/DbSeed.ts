@@ -1,13 +1,8 @@
-import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/internals'
+import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { ArgError } from 'arg'
-import { bold, dim, red, yellow } from 'kleur/colors'
+import { bold, dim, red } from 'kleur/colors'
 
-import {
-  executeSeedCommand,
-  getSeedCommandFromPackageJson,
-  legacyTsNodeScriptWarning,
-  verifySeedConfigAndReturnMessage,
-} from '../utils/seed'
+import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
 
 export class DbSeed implements Command {
   public static new(): DbSeed {
@@ -37,7 +32,6 @@ ${bold('Examples')}
       {
         '--help': Boolean,
         '-h': '--help',
-        '--preview-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -57,24 +51,7 @@ ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
       return this.help()
     }
 
-    if (args['--preview-feature']) {
-      logger.warn(`Prisma "db seed" was in Preview and is now Generally Available.
-You can now remove the ${red('--preview-feature')} flag.`)
-
-      // Print warning if user has a "ts-node" script in their package.json, not supported anymore
-      await legacyTsNodeScriptWarning()
-    }
-
     loadEnvFile(args['--schema'], true)
-
-    // Print warning if user is using --schema
-    if (args['--schema']) {
-      logger.warn(
-        yellow(
-          `The "--schema" parameter is not used anymore by "prisma db seed" since version 3.0 and can now be removed.`,
-        ),
-      )
-    }
 
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
