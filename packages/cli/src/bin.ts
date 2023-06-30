@@ -19,7 +19,7 @@ import {
   MigrateResolve,
   MigrateStatus,
 } from '@prisma/migrate'
-import { bold, green, red, yellow } from 'kleur/colors'
+import { bold, red } from 'kleur/colors'
 import path from 'path'
 
 import { CLI } from './CLI'
@@ -54,15 +54,6 @@ process.removeAllListeners('warning')
 process.once('SIGINT', () => {
   process.exit(130)
 })
-
-if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
-  console.log(
-    yellow('deprecated') +
-      `  The ${red('prisma2')} command is deprecated and has been renamed to ${green('prisma')}.\nPlease execute ${bold(
-        green('prisma' + (commandArray.length ? ' ' + commandArray.join(' ') : '')),
-      )} instead.\n`,
-  )
-}
 
 // Parse CLI arguments
 const args = arg(
