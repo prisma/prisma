@@ -146,7 +146,7 @@ importers:
       dotenv: 16.0.3
       esbuild: 0.15.13
       execa: 5.1.1
-      fast-glob: 3.2.12
+      fast-glob: 3.3.0
       fs-extra: 11.1.1
       fs-jetpack: 5.1.0
       get-port: 5.1.1
@@ -188,7 +188,7 @@ importers:
       dotenv: 16.0.3
       esbuild: 0.15.13
       execa: 5.1.1
-      fast-glob: 3.2.12
+      fast-glob: 3.3.0
       fs-extra: 11.1.1
       fs-jetpack: 5.1.0
       get-port: 5.1.1
@@ -7441,8 +7441,8 @@ packages:
     resolution: {integrity: sha512-xJuoT5+L99XlZ8twedaRf6Ax2TgQVxvgZOYoPKqZufmJib0tL2tegPBOZb1pVNgIhlqDlA0eO0c3wBvQcmzx4w==}
     dev: true
 
-  /fast-glob/3.2.12:
-    resolution: {integrity: sha512-DVj4CQIYYow0BlaelwK1pHl5n5cRSJfM60UA0zK891sVInoPri2Ekj7+e1CT3/3qxXenpI+nBBmQAcJPJgaj4w==}
+  /fast-glob/3.3.0:
+    resolution: {integrity: sha512-ChDuvbOypPuNjO8yIDf36x7BlZX1smcUMTTcyoIjycexOxd6DFsKsg21qVBzEmr3G7fUKIRy2/psii+CIUt7FA==}
     engines: {node: '>=8.6.0'}
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -8023,7 +8023,7 @@ packages:
     dependencies:
       array-union: 2.1.0
       dir-glob: 3.0.1
-      fast-glob: 3.2.12
+      fast-glob: 3.3.0
       ignore: 5.2.4
       merge2: 1.4.1
       slash: 3.0.0
@@ -8033,7 +8033,7 @@ packages:
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dependencies:
       dir-glob: 3.0.1
-      fast-glob: 3.2.12
+      fast-glob: 3.3.0
       ignore: 5.2.4
       merge2: 1.4.1
       slash: 4.0.0
