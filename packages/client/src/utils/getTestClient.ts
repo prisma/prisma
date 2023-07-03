@@ -6,7 +6,6 @@ import {
   getConfig,
   getEnvPaths,
   getRelativeSchemaPath,
-  mapPreviewFeatures,
   parseEnvValue,
   printConfigWarnings,
 } from '@prisma/internals'
@@ -36,7 +35,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   }
 
   const generator = config.generators.find((g) => parseEnvValue(g.provider) === 'prisma-client-js')
-  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = extractPreviewFeatures(config)
   const platform = await getPlatform()
   const clientEngineType = getClientEngineType(generator!)
   ;(global as any).TARGET_ENGINE_TYPE = clientEngineType === ClientEngineType.Library ? 'library' : 'binary'

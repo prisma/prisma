@@ -49,7 +49,7 @@ describe('getGenerators', () => {
           "prettyName": "This is a pretty name",
           "requiresEngines": [
             "queryEngine",
-            "migrationEngine",
+            "schemaEngine",
           ],
         },
       ]
@@ -133,7 +133,7 @@ describe('getGenerators', () => {
           "prettyName": "This is a pretty name",
           "requiresEngines": [
             "queryEngine",
-            "migrationEngine",
+            "schemaEngine",
           ],
         },
       ]
@@ -225,7 +225,7 @@ describe('getGenerators', () => {
           "prettyName": "This is a pretty name",
           "requiresEngines": [
             "queryEngine",
-            "migrationEngine",
+            "schemaEngine",
           ],
         },
       ]
@@ -317,7 +317,7 @@ describe('getGenerators', () => {
           "prettyName": "This is a pretty name",
           "requiresEngines": [
             "queryEngine",
-            "migrationEngine",
+            "schemaEngine",
           ],
         },
       ]
@@ -361,7 +361,7 @@ describe('getGenerators', () => {
 
     expect(generator.binaryTargets).toHaveLength(1)
     expect(generator.binaryTargets[0].value).toEqual(platform)
-    expect(generator.binaryTargets[0].fromEnvVar).toEqual('BINARY_TARGETS_ENV_VAR_TEST')
+    expect(generator.binaryTargets[0].fromEnvVar).toEqual(null)
 
     expect(omit(generator, ['binaryTargets'])).toMatchInlineSnapshot(`
       {
@@ -410,7 +410,7 @@ describe('getGenerators', () => {
           "prettyName": "This is a pretty name",
           "requiresEngines": [
             "queryEngine",
-            "migrationEngine",
+            "schemaEngine",
           ],
         },
       ]
@@ -453,23 +453,23 @@ describe('getGenerators', () => {
       {
         "binaryTargets": [
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "darwin",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "darwin-arm64",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "windows",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "debian-openssl-1.1.x",
           },
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "debian-openssl-3.0.x",
           },
         ],
@@ -517,7 +517,7 @@ describe('getGenerators', () => {
           "prettyName": "This is a pretty name",
           "requiresEngines": [
             "queryEngine",
-            "migrationEngine",
+            "schemaEngine",
           ],
         },
       ]
@@ -560,7 +560,7 @@ describe('getGenerators', () => {
       {
         "binaryTargets": [
           {
-            "fromEnvVar": "BINARY_TARGETS_ENV_VAR_TEST",
+            "fromEnvVar": null,
             "value": "linux-musl",
           },
         ],
@@ -592,7 +592,7 @@ describe('getGenerators', () => {
       },
     }
 
-    const migrationEngine = await resolveBinary(BinaryType.MigrationEngineBinary)
+    const schemaEngine = await resolveBinary(BinaryType.SchemaEngineBinary)
 
     const queryEngineBinaryType = getCliQueryEngineBinaryType()
     const queryEnginePath = await resolveBinary(queryEngineBinaryType)
@@ -612,8 +612,8 @@ describe('getGenerators', () => {
 
     // we override queryEngine, so its paths should be equal to the one of the generator
     expect(options[0]?.queryEngine?.[platform]).toBe(queryEnginePath)
-    // we did not override the migrationEngine, so their paths should not be equal
-    expect(options[0]?.migrationEngine?.[platform]).not.toBe(migrationEngine)
+    // we did not override the schemaEngine, so their paths should not be equal
+    expect(options[0]?.schemaEngine?.[platform]).not.toBe(schemaEngine)
 
     generators.forEach((g) => g.stop())
   })

@@ -697,8 +697,8 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 }
 
 async function getEnginesCommit(): Promise<string> {
-  const prisma2Path = path.resolve(process.cwd(), './packages/engines/package.json')
-  const pkg = JSON.parse(await fs.promises.readFile(prisma2Path, 'utf-8'))
+  const prismaPath = path.resolve(process.cwd(), './packages/engines/package.json')
+  const pkg = JSON.parse(await fs.promises.readFile(prismaPath, 'utf-8'))
   // const engineVersion = pkg.prisma.version
   const engineVersion = pkg.devDependencies['@prisma/engines-version']?.split('.').slice(-1)[0]
 
@@ -810,12 +810,12 @@ async function testPackages(packages: Packages, publishOrder: string[][]): Promi
       if (process.env.BUILDKITE_PARALLEL_JOB === '0') {
         await run(
           path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="library" PRISMA_CLI_QUERY_ENGINE_TYPE="library" pnpm run test',
+          'PRISMA_CLIENT_ENGINE_TYPE="library" PRISMA_CLI_QUERY_ENGINE_TYPE="library" pnpm run test --silent',
         )
       } else if (process.env.BUILDKITE_PARALLEL_JOB === '1') {
         await run(
           path.dirname(pkg.path),
-          'PRISMA_CLIENT_ENGINE_TYPE="binary" PRISMA_CLI_QUERY_ENGINE_TYPE="binary" pnpm run test',
+          'PRISMA_CLIENT_ENGINE_TYPE="binary" PRISMA_CLI_QUERY_ENGINE_TYPE="binary" pnpm run test --silent',
         )
       } else {
         await run(path.dirname(pkg.path), 'pnpm run test')

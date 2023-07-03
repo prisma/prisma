@@ -147,7 +147,7 @@ testMatrix.setupTestSuite(
                 userId: undefined, // this would actually be a type-error, but we don't have access to types here
               },
             }),
-          ).rejects.toThrow('Argument user for data.user is missing.')
+          ).rejects.toThrow('Argument `user` is missing.')
 
           expect(
             await prisma[profileModel].findMany({

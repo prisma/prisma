@@ -429,35 +429,35 @@ async function findLibSSL(directory: string) {
  * Get the binary target for the current platform, e.g. `linux-musl-arm64-openssl-3.0.x` for Linux Alpine on arm64.
  */
 export async function getPlatform(): Promise<Platform> {
-  const { binaryTarget } = await getPlatformMemoized()
+  const { binaryTarget } = await getPlatformInfoMemoized()
   return binaryTarget
 }
 
-export type PlatformWithOSResult = GetOSResult & { binaryTarget: Platform }
+export type PlatformInfo = GetOSResult & { binaryTarget: Platform }
 
-function isPlatformWithOSResultDefined(args: Partial<PlatformWithOSResult>): args is PlatformWithOSResult {
+function isPlatformInfoDefined(args: Partial<PlatformInfo>): args is PlatformInfo {
   return args.binaryTarget !== undefined
 }
 
 /**
  * Get the binary target and other system information (e.g., the libssl version to look for) for the current platform.
  */
-export async function getPlatformWithOSResult(): Promise<PlatformWithOSResult> {
-  const { memoized: _, ...rest } = await getPlatformMemoized()
+export async function getPlatformInfo(): Promise<PlatformInfo> {
+  const { memoized: _, ...rest } = await getPlatformInfoMemoized()
   return rest
 }
 
-let memoizedPlatformWithInfo: Partial<PlatformWithOSResult> = {}
+let memoizedPlatformWithInfo: Partial<PlatformInfo> = {}
 
-export async function getPlatformMemoized(): Promise<PlatformWithOSResult & { memoized: boolean }> {
-  if (isPlatformWithOSResultDefined(memoizedPlatformWithInfo)) {
+export async function getPlatformInfoMemoized(): Promise<PlatformInfo & { memoized: boolean }> {
+  if (isPlatformInfoDefined(memoizedPlatformWithInfo)) {
     return Promise.resolve({ ...memoizedPlatformWithInfo, memoized: true })
   }
 
   const args = await getos()
   const binaryTarget = getPlatformInternal(args)
   memoizedPlatformWithInfo = { ...args, binaryTarget }
-  return { ...(memoizedPlatformWithInfo as PlatformWithOSResult), memoized: false }
+  return { ...(memoizedPlatformWithInfo as PlatformInfo), memoized: false }
 }
 
 /**
@@ -481,7 +481,7 @@ export function getPlatformInternal(args: GetOSResult): Platform {
      */
     const additionalMessage = match({ familyDistro })
       .with({ familyDistro: 'debian' }, () => {
-        return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with `node:lts-slim`, which already ships with OpenSSL installed."
+        return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, add this command to your Dockerfile, or switch to an image that already has OpenSSL installed."
       })
       .otherwise(() => {
         return 'Please manually install OpenSSL and try installing Prisma again.'

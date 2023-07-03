@@ -1,12 +1,8 @@
-import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile, logger } from '@prisma/internals'
-import { bold, dim, red, yellow } from 'kleur/colors'
+import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import { ArgError } from 'arg'
+import { bold, dim, red } from 'kleur/colors'
 
-import {
-  executeSeedCommand,
-  getSeedCommandFromPackageJson,
-  legacyTsNodeScriptWarning,
-  verifySeedConfigAndReturnMessage,
-} from '../utils/seed'
+import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
 
 export class DbSeed implements Command {
   public static new(): DbSeed {
@@ -23,6 +19,11 @@ ${bold('Usage')}
 ${bold('Options')}
 
   -h, --help   Display this help message
+
+${bold('Examples')}
+
+  Passing extra arguments to the seed command
+    ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -31,7 +32,6 @@ ${bold('Options')}
       {
         '--help': Boolean,
         '-h': '--help',
-        '--preview-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -39,6 +39,11 @@ ${bold('Options')}
     )
 
     if (isError(args)) {
+      if (args instanceof ArgError && args.code === 'ARG_UNKNOWN_OPTION') {
+        throw new Error(`${args.message}
+Did you mean to pass these as arguments to your seed script? If so, add a -- separator before them:
+${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
+      }
       return this.help(args.message)
     }
 
@@ -46,24 +51,7 @@ ${bold('Options')}
       return this.help()
     }
 
-    if (args['--preview-feature']) {
-      logger.warn(`Prisma "db seed" was in Preview and is now Generally Available.
-You can now remove the ${red('--preview-feature')} flag.`)
-
-      // Print warning if user has a "ts-node" script in their package.json, not supported anymore
-      await legacyTsNodeScriptWarning()
-    }
-
     loadEnvFile(args['--schema'], true)
-
-    // Print warning if user is using --schema
-    if (args['--schema']) {
-      logger.warn(
-        yellow(
-          `The "--schema" parameter is not used anymore by "prisma db seed" since version 3.0 and can now be removed.`,
-        ),
-      )
-    }
 
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
@@ -80,9 +68,14 @@ You can now remove the ${red('--preview-feature')} flag.`)
       return ``
     }
 
+    // We pass the extra params after a -- separator
+    // Example: db seed -- --custom-param
+    // Then args._ will be ['--custom-param']
+    const extraArgs = args._.join(' ')
+
     // Seed command is set
     // Execute user seed command
-    const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+    const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson, extraArgs })
     if (successfulSeeding) {
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {

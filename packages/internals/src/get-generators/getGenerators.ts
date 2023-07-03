@@ -14,7 +14,6 @@ import { getConfig, getDMMF } from '..'
 import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
-import { mapPreviewFeatures } from '../utils/mapPreviewFeatures'
 import { missingDatasource } from '../utils/missingDatasource'
 import { missingModelMessage, missingModelMessageMongoDB } from '../utils/missingGeneratorMessage'
 import { parseBinaryTargetsEnvValue, parseEnvValue } from '../utils/parseEnvValue'
@@ -127,8 +126,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
 
   printConfigWarnings(config.warnings)
 
-  // TODO: This needs a better abstraction, but we don't have any better right now
-  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = extractPreviewFeatures(config)
 
   const dmmf = await getDMMF({
     datamodel,
@@ -277,37 +275,7 @@ generator gen {
         const generatorBinaryTargets = g.options?.generator?.binaryTargets
 
         if (generatorBinaryTargets && generatorBinaryTargets.length > 0) {
-          const binaryTarget0 = generatorBinaryTargets[0]
-          // If set from env var, there is only one item
-          // and we need to read the env var
-          if (binaryTarget0.fromEnvVar !== null) {
-            const parsedBinaryTargetsEnvValue = parseBinaryTargetsEnvValue(binaryTarget0)
-
-            // remove item and replace with parsed values
-            // value is an array
-            // so we create one new item for each element in the array
-            generatorBinaryTargets.shift()
-
-            if (Array.isArray(parsedBinaryTargetsEnvValue)) {
-              for (const platformName of parsedBinaryTargetsEnvValue) {
-                generatorBinaryTargets.push({
-                  fromEnvVar: binaryTarget0.fromEnvVar,
-                  value: platformName,
-                })
-              }
-            } else {
-              generatorBinaryTargets.push({
-                fromEnvVar: binaryTarget0.fromEnvVar,
-                value: parsedBinaryTargetsEnvValue,
-              })
-            }
-          }
-
           for (const binaryTarget of generatorBinaryTargets) {
-            if (binaryTarget.value === 'native') {
-              binaryTarget.value = platform
-            }
-
             if (!neededVersions[neededVersion].binaryTargets.find((object) => object.value === binaryTarget.value)) {
               neededVersions[neededVersion].binaryTargets.push(binaryTarget)
             }
@@ -409,19 +377,6 @@ async function validateGenerators(generators: GeneratorConfig[]): Promise<void> 
   const platform = await getPlatform()
 
   for (const generator of generators) {
-    if (parseEnvValue(generator.provider) === 'photonjs') {
-      throw new Error(`Oops! Photon has been renamed to Prisma Client. Please make the following adjustments:
-  1. Rename ${red('provider = "photonjs"')} to ${green('provider = "prisma-client-js"')} in your ${bold(
-        'schema.prisma',
-      )} file.
-  2. Replace your ${bold('package.json')}'s ${red('@prisma/photon')} dependency to ${green('@prisma/client')}
-  3. Replace ${red("import { Photon } from '@prisma/photon'")} with ${green(
-        "import { PrismaClient } from '@prisma/client'",
-      )} in your code.
-  4. Run ${green('prisma generate')} again.
-      `)
-    }
-
     if (generator.config.platforms) {
       throw new Error(
         `The \`platforms\` field on the generator definition is deprecated. Please rename it to \`binaryTargets\`.`,
@@ -466,12 +421,11 @@ Possible binaryTargets: ${green(knownBinaryTargets.join(', '))}`,
       if (!resolvedBinaryTargets.includes(platform)) {
         const originalBinaryTargetsConfig = getOriginalBinaryTargetsValue(generator.binaryTargets)
 
-        if (generator) {
-          console.log(`${yellow('Warning:')} Your current platform \`${bold(
-            platform,
-          )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
-            originalBinaryTargetsConfig,
-          )}.
+        console.log(`${yellow('Warning:')} Your current platform \`${bold(
+          platform,
+        )}\` is not included in your generator's \`binaryTargets\` configuration ${JSON.stringify(
+          originalBinaryTargetsConfig,
+        )}.
 To fix it, use this generator config in your ${bold('schema.prisma')}:
 ${green(
   printGeneratorConfig({
@@ -485,16 +439,6 @@ Read more about deploying Prisma Client: ${underline(
     'https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-schema/generators',
   )}`,
 )}\n`)
-        } else {
-          console.log(
-            `${yellow('Warning')} The binaryTargets ${JSON.stringify(
-              originalBinaryTargetsConfig,
-            )} don't include your local platform ${platform}, which you can also point to with \`native\`.
-In case you want to fix this, you can provide ${green(
-              `binaryTargets: ${JSON.stringify(['native', ...(binaryTargets || [])])}`,
-            )} in the schema.prisma file.`,
-          )
-        }
       }
     }
   }

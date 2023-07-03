@@ -1,3 +1,4 @@
+import { afterAll, beforeAll, test } from '@jest/globals'
 import fs from 'fs-extra'
 import path from 'path'
 
@@ -6,7 +7,7 @@ import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from '.
 import { getTestSuitePlan } from './getTestSuitePlan'
 import { ProviderFlavors } from './relationMode/ProviderFlavor'
 import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
-import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
 import { ClientMeta, MatrixOptions } from './types'
 
@@ -45,7 +46,12 @@ export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
  * @param tests where you write your tests
  */
 function setupTestSuiteMatrix(
-  tests: (suiteConfig: Record<string, string>, suiteMeta: TestCallbackSuiteMeta, clientMeta: ClientMeta) => void,
+  tests: (
+    suiteConfig: Record<string, string>,
+    suiteMeta: TestCallbackSuiteMeta,
+    clientMeta: ClientMeta,
+    setupDatabase: () => Promise<void>,
+  ) => void,
   options?: MatrixOptions,
 ) {
   const originalEnv = process.env
@@ -53,6 +59,12 @@ function setupTestSuiteMatrix(
   const clientMeta = getClientMeta()
   const suiteConfigs = getTestSuiteConfigs(suiteMeta)
   const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, clientMeta, options)
+
+  if (originalEnv.TEST_GENERATE_ONLY === 'true') {
+    options = options ?? {}
+    options.skipDefaultClientInstance = true
+    options.skipDb = true
+  }
 
   checkMissingProviders({
     suiteConfigs,
@@ -135,7 +147,24 @@ function setupTestSuiteMatrix(
         delete globalThis['newPrismaClient']
       }, 180_000)
 
-      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta)
+      const setupDatabase = async () => {
+        if (!options?.skipDb) {
+          throw new Error(
+            'Pass skipDb: true in the matrix options if you want to manually setup the database in your test.',
+          )
+        }
+
+        return setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback)
+      }
+
+      if (originalEnv.TEST_GENERATE_ONLY === 'true') {
+        // because we have our own custom `test` global call defined that reacts
+        // to this env var already, we import the original jest `test` and call
+        // it because we need to run at least one test to generate the client
+        test('generate only', () => {})
+      }
+
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, setupDatabase)
     })
   }
 }

@@ -1,14 +1,14 @@
 import stripAnsi from 'strip-ansi'
 
-import { getPlatformInternal, getPlatformMemoized } from '../getPlatform'
+import { getPlatformInfoMemoized, getPlatformInternal } from '../getPlatform'
 import { jestConsoleContext, jestContext } from '../test-utils'
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 describe('getPlatformMemoized', () => {
   it('repeated invocations are idempotent and memoized', async () => {
-    const platformFirst = await getPlatformMemoized()
-    const platformSecond = await getPlatformMemoized()
+    const platformFirst = await getPlatformInfoMemoized()
+    const platformSecond = await getPlatformInfoMemoized()
     expect(platformFirst.binaryTarget).toBe(platformSecond.binaryTarget)
     expect(platformFirst.memoized).toBeFalsy()
     expect(platformSecond.memoized).toBeTruthy()
@@ -128,7 +128,7 @@ describe('getPlatformInternal', () => {
       expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
       expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
         prisma:warn Prisma failed to detect the libssl/openssl version to use, and may not work as expected. Defaulting to "openssl-1.1.x".
-        Please manually install OpenSSL via \`apt-get update -y && apt-get install -y openssl\` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with \`node:lts-slim\`, which already ships with OpenSSL installed.
+        Please manually install OpenSSL via \`apt-get update -y && apt-get install -y openssl\` and try installing Prisma again. If you're running Prisma on Docker, add this command to your Dockerfile, or switch to an image that already has OpenSSL installed.
       `)
       expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     })

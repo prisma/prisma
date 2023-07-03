@@ -1,6 +1,6 @@
 import { GeneratorConfig } from '@prisma/generator-helper'
 
-import { DMMF } from '../../runtime/dmmf-types'
+import { DMMF } from '../dmmf-types'
 import { getFieldRefsTypeName, getRefAllowedTypeName } from '../utils'
 import { Generatable } from './Generatable'
 

@@ -1,15 +1,12 @@
 import Debug from '@prisma/debug'
-import { DMMF } from '@prisma/generator-helper'
 import { EngineSpan, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type {
   BatchQueryEngineResult,
-  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
-  EngineQuery,
   InlineDatasource,
   InteractiveTransactionOptions,
   RequestBatchOptions,
@@ -17,6 +14,7 @@ import type {
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { EventEmitter } from '../common/types/Events'
+import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
@@ -247,13 +245,6 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     return `https://${this.host}/${await this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
   }
 
-  getDmmf(): Promise<DMMF.Document> {
-    // This code path should not be reachable, as it is handled upstream in `getPrismaClient`.
-    throw new NotImplementedYetError('getDmmf is not yet supported', {
-      clientVersion: this.clientVersion,
-    })
-  }
-
   private async uploadSchema() {
     const spanOptions = {
       name: 'schemaUpload',
@@ -286,7 +277,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   request<T>(
-    query: EngineQuery,
+    query: JsonQuery,
     { traceparent, interactiveTransaction, customDataProxyFetch }: RequestOptions<DataProxyTxInfoPayload>,
   ) {
     // TODO: `elapsed`?
@@ -299,7 +290,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   async requestBatch<T>(
-    queries: EngineBatchQueries,
+    queries: JsonQuery[],
     { traceparent, transaction, customDataProxyFetch }: RequestBatchOptions<DataProxyTxInfoPayload>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     const interactiveTransaction = transaction?.kind === 'itx' ? transaction.options : undefined

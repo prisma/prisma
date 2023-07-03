@@ -39,6 +39,17 @@ testMatrix.setupTestSuite(
       })
     })
 
+    test('batches findUniqueOrThrow', async () => {
+      await Promise.allSettled([
+        prisma.user.findUniqueOrThrow({ where: { id: id1 } }),
+        prisma.user.findUniqueOrThrow({ where: { id: id2 } }),
+      ])
+
+      await waitFor(() => {
+        expect(queriesExecuted).toBe(1)
+      })
+    })
+
     test('does not batch different models', async () => {
       await Promise.all([
         prisma.user.findUnique({ where: { id: id1 } }),

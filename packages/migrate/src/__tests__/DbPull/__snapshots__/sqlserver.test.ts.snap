@@ -13,8 +13,6 @@ model jobs {
   created_at  DateTime?
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`SQL Server basic introspection 2`] = `
@@ -30,8 +28,6 @@ model jobs {
   created_at  DateTime?
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`sqlserver-multischema --url with \`?schema=base\` should succeed 2`] = `
@@ -50,8 +46,6 @@ model SomeUser {
   email String @db.NVarChar(1)
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`sqlserver-multischema --url with \`?schema=does-not-exist\` should error with with P4001, empty database 1`] = ``;
@@ -82,8 +76,6 @@ model SomeUser {
   @@schema("base")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`sqlserver-multischema datasource property \`schemas=["does-not-exist", "base"]\` should succeed 2`] = `
@@ -112,8 +104,6 @@ model SomeUser {
   @@schema("base")
 }
 
-
-// introspectionSchemaVersion: NonPrisma,
 `;
 
 exports[`sqlserver-multischema datasource property \`schemas=["does-not-exist"]\` should error with P4001, empty database 1`] = ``;
