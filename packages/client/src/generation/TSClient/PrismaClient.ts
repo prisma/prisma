@@ -38,17 +38,14 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
     return `${acc}
     ${modelName}: {
       payload: ${modelName}Payload<ExtArgs>
-${
-  this.generator?.previewFeatures.includes('fieldReference')
-    ? `      fields: Prisma.${getFieldRefsTypeName(modelName)}\n`
-    : ''
-}      operations: {${actions.reduce((acc, action) => {
-      return `${acc}
+      fields: Prisma.${getFieldRefsTypeName(modelName)}
+      operations: {${actions.reduce((acc, action) => {
+        return `${acc}
         ${action}: {
           args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
           result: ${clientTypeMapModelsResultDefinition(modelName, action)}
         }`
-    }, '')}
+      }, '')}
       }
     }`
   }, '')}

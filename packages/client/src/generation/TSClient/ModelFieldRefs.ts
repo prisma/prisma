@@ -7,9 +7,6 @@ import { Generatable } from './Generatable'
 export class ModelFieldRefs implements Generatable {
   constructor(protected generator: GeneratorConfig | undefined, protected outputType: DMMF.OutputType) {}
   toTS() {
-    if (!this.generator?.previewFeatures.includes('fieldReference')) {
-      return ''
-    }
     const { name } = this.outputType
     return `
 

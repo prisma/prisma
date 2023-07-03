@@ -123,8 +123,8 @@ export type DynamicModelExtensionThis<TypeMap extends TypeMapDef, M extends Prop
   [P in Exclude<keyof TypeMap['model'][M]['operations'], keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
     DynamicModelExtensionOperationFn<TypeMap, M, P>
 } & {
-  [P in Exclude<'fields' & keyof TypeMap['model'][M], keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
-    TypeMap['model'][M]['fields'] // TODO remove & keyof TypeMap['model'][M] once fieldReference is GA
+  [P in Exclude<'fields', keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
+    TypeMap['model'][M]['fields'] 
 } & {
   [K: symbol]: { types: TypeMap['model'][M] }
 }
