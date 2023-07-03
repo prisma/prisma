@@ -203,7 +203,7 @@ export namespace EngineArgs {
 
   type MigrateDiffTargetUrl = {
     // The url to a live database. Its schema will be considered.
-    // This will cause the migration engine to connect to the database and read from it. It will not write.
+    // This will cause the Schema engine to connect to the database and read from it. It will not write.
     tag: 'url'
     url: string
   }

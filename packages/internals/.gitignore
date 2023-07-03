@@ -1,8 +1,4 @@
 node_modules
-query-engine*
-libquery_engine*
-migration-engine*
-libquery*
 /engines
 /debug.d.ts
 /debug.js
