@@ -37,6 +37,7 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
 
     return `${acc}
     ${modelName}: {
+      payload: ${modelName}Payload<ExtArgs>
 ${
   this.generator?.previewFeatures.includes('fieldReference')
     ? `      fields: Prisma.${getFieldRefsTypeName(modelName)}\n`
@@ -46,7 +47,6 @@ ${
         ${action}: {
           args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
           result: ${clientTypeMapModelsResultDefinition(modelName, action)}
-          payload: ${modelName}Payload<ExtArgs>
         }`
     }, '')}
       }
@@ -97,12 +97,12 @@ function clientTypeMapOthersDefinition(this: PrismaClientClass) {
 
   return `{
   other: {
+    payload: any
     operations: {${otherOperationsNames.reduce((acc, action) => {
       return `${acc}
       ${action}: {
         args: ${argsResultMap[action].args},
         result: ${argsResultMap[action].result}
-        payload: any
       }`
     }, '')}
     }

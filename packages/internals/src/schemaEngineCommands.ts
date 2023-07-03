@@ -8,18 +8,18 @@ import { resolveBinary } from './resolveBinary'
 // `1`: abnormal (error) exit
 // `101`: panic
 // Non-zero exit codes should always be accompanied by a log message on stderr with the `ERROR` level.
-export enum MigrateEngineExitCode {
+export enum SchemaEngineExitCode {
   Success = 0,
   Error = 1,
   Panic = 101,
 }
 
-// Logging and crash reporting happens through JSON logs on the Migration Engine's
+// Logging and crash reporting happens through JSON logs on the Schema Engine's
 // stderr. Every line contains a single JSON object conforming to the following
 // interface:
-// {"timestamp":"2021-06-11T15:35:34.084486+00:00","level":"ERROR","fields":{"is_panic":false,"error_code":"","message":"Failed to delete SQLite database at `dev.db`.\nNo such file or directory (os error 2)\n"},"target":"migration_engine::logger"}
-// {"timestamp":"2021-06-11T15:35:34.320358+00:00","level":"INFO","fields":{"message":"Starting migration engine CLI","git_hash":"a92947d63ede9b0b5b5aab253c2a7d9ad6cabe15"},"target":"migration_engine"}
-export interface MigrateEngineLogLine {
+// {"timestamp":"2021-06-11T15:35:34.084486+00:00","level":"ERROR","fields":{"is_panic":false,"error_code":"","message":"Failed to delete SQLite database at `dev.db`.\nNo such file or directory (os error 2)\n"},"target":"schema_engine::logger"}
+// {"timestamp":"2021-06-11T15:35:34.320358+00:00","level":"INFO","fields":{"message":"Starting schema engine CLI","git_hash":"a92947d63ede9b0b5b5aab253c2a7d9ad6cabe15"},"target":"schema_engine"}
+export interface SchemaEngineLogLine {
   timestamp: string
   level: LogLevel
   fields: LogFields
@@ -46,7 +46,7 @@ export interface ConnectionError {
   code: DatabaseErrorCodes
 }
 
-function parseJsonFromStderr(stderr: string): MigrateEngineLogLine[] {
+function parseJsonFromStderr(stderr: string): SchemaEngineLogLine[] {
   // split by new line
   const lines = stderr.split(/\r?\n/).slice(1) // Remove first element
   const logs: any = []
@@ -54,10 +54,10 @@ function parseJsonFromStderr(stderr: string): MigrateEngineLogLine[] {
   for (const line of lines) {
     const data = String(line)
     try {
-      const json: MigrateEngineLogLine = JSON.parse(data)
+      const json: SchemaEngineLogLine = JSON.parse(data)
       logs.push(json)
     } catch (e) {
-      throw new Error(`Could not parse migration engine response: ${e}`)
+      throw new Error(`Could not parse schema engine response: ${e}`)
     }
   }
 
@@ -68,7 +68,7 @@ function parseJsonFromStderr(stderr: string): MigrateEngineLogLine[] {
 export async function canConnectToDatabase(
   connectionString: string,
   cwd = process.cwd(),
-  migrationEnginePath?: string,
+  schemaEnginePath?: string,
 ): Promise<ConnectionResult> {
   if (!connectionString) {
     throw new Error(
@@ -80,7 +80,7 @@ export async function canConnectToDatabase(
     await execaCommand({
       connectionString,
       cwd,
-      migrationEnginePath,
+      schemaEnginePath: schemaEnginePath,
       engineCommandName: 'can-connect-to-database',
     })
   } catch (_e) {
@@ -88,7 +88,7 @@ export async function canConnectToDatabase(
 
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
-      const error = logs.find((it) => it.level === 'ERROR' && it.target === 'migration_engine::logger')
+      const error = logs.find((it) => it.level === 'ERROR' && it.target === 'schema_engine::logger')
 
       if (error && error.fields.error_code && error.fields.message) {
         return {
@@ -96,10 +96,10 @@ export async function canConnectToDatabase(
           message: error.fields.message,
         }
       } else {
-        throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
+        throw new Error(`Schema engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
       }
     } else {
-      throw new Error(`Migration engine exited. ${_e}`)
+      throw new Error(`Schema engine exited. ${_e}`)
     }
   }
 
@@ -107,8 +107,8 @@ export async function canConnectToDatabase(
 }
 
 // could be refactored with engines using JSON RPC instead and just passing the schema
-export async function createDatabase(connectionString: string, cwd = process.cwd(), migrationEnginePath?: string) {
-  const dbExists = await canConnectToDatabase(connectionString, cwd, migrationEnginePath)
+export async function createDatabase(connectionString: string, cwd = process.cwd(), schemaEnginePath?: string) {
+  const dbExists = await canConnectToDatabase(connectionString, cwd, schemaEnginePath)
 
   // If database is already created, stop here, don't create it
   if (dbExists === true) {
@@ -119,7 +119,7 @@ export async function createDatabase(connectionString: string, cwd = process.cwd
     await execaCommand({
       connectionString,
       cwd,
-      migrationEnginePath,
+      schemaEnginePath,
       engineCommandName: 'create-database',
     })
 
@@ -129,25 +129,25 @@ export async function createDatabase(connectionString: string, cwd = process.cwd
 
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
-      const error = logs.find((it) => it.level === 'ERROR' && it.target === 'migration_engine::logger')
+      const error = logs.find((it) => it.level === 'ERROR' && it.target === 'schema_engine::logger')
 
       if (error && error.fields.error_code && error.fields.message) {
         throw new Error(`${error.fields.error_code}: ${error.fields.message}`)
       } else {
-        throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
+        throw new Error(`Schema engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
       }
     } else {
-      throw new Error(`Migration engine exited. ${_e}`)
+      throw new Error(`Schema engine exited. ${_e}`)
     }
   }
 }
 
-export async function dropDatabase(connectionString: string, cwd = process.cwd(), migrationEnginePath?: string) {
+export async function dropDatabase(connectionString: string, cwd = process.cwd(), schemaEnginePath?: string) {
   try {
     const result = await execaCommand({
       connectionString,
       cwd,
-      migrationEnginePath,
+      schemaEnginePath,
       engineCommandName: 'drop-database',
     })
     if (result && result.exitCode === 0 && result.stderr.includes('The database was successfully dropped')) {
@@ -160,9 +160,9 @@ export async function dropDatabase(connectionString: string, cwd = process.cwd()
     if (e.stderr) {
       const logs = parseJsonFromStderr(e.stderr)
 
-      throw new Error(`Migration engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
+      throw new Error(`Schema engine error:\n${logs.map((log) => log.fields.message).join('\n')}`)
     } else {
-      throw new Error(`Migration engine exited. ${e}`)
+      throw new Error(`Schema engine exited. ${e}`)
     }
   }
 }
@@ -170,18 +170,18 @@ export async function dropDatabase(connectionString: string, cwd = process.cwd()
 export async function execaCommand({
   connectionString,
   cwd,
-  migrationEnginePath,
+  schemaEnginePath,
   engineCommandName,
 }: {
   connectionString: string
   cwd: string
-  migrationEnginePath?: string
+  schemaEnginePath?: string
   engineCommandName: 'create-database' | 'drop-database' | 'can-connect-to-database'
 }) {
-  migrationEnginePath = migrationEnginePath || (await resolveBinary(BinaryType.MigrationEngineBinary))
+  schemaEnginePath = schemaEnginePath || (await resolveBinary(BinaryType.SchemaEngineBinary))
 
   try {
-    return await execa(migrationEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {
+    return await execa(schemaEnginePath, ['cli', '--datasource', connectionString, engineCommandName], {
       cwd,
       env: {
         RUST_BACKTRACE: process.env.RUST_BACKTRACE ?? '1',

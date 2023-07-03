@@ -24,11 +24,8 @@ export async function getEngineVersion(enginePath?: string, binaryName?: BinaryT
     const QE = loadLibrary<NodeAPILibrary>(enginePath, platformInfo)
     return `${BinaryType.QueryEngineLibrary} ${QE.version().commit}`
   } else {
-    // E.g, when enginePath refers to "migration-engine", this returns
-    // `schema-engine-cli b952e556c57c90e9fe3152674d223600fba2a65d`.
-    // "migration-engine" will be publicly renamed as "schema-engine" in Prisma 5.
     const { stdout } = await execa(enginePath, ['--version'])
-    return stdout.replace('schema-engine-cli', 'migration-engine-cli')
+    return stdout
   }
 }
 

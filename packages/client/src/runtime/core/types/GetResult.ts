@@ -35,6 +35,16 @@ export type Operation =
 | 'aggregateRaw'
 | '$runCommandRaw'
 
+export type FluentOperation =
+  | 'findUnique'
+  | 'findUniqueOrThrow'
+  | 'findFirst'
+  | 'findFirstOrThrow'
+  | 'create'
+  | 'update'
+  | 'upsert'
+  | 'delete'
+
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
@@ -43,7 +53,8 @@ export type GetFindResult<P extends Payload, A> =
   A extends 
   | { select: infer S } & Record<string, unknown>
   | { include: infer S } & Record<string, unknown>
-  ? {
+  ? S extends undefined ? DefaultSelection<P> :
+    {
       [K in keyof S as S[K] extends false | undefined | null ? never : K]:
         S[K] extends object
         ? P extends SelectablePayloadFields<K, (infer O)[]>
