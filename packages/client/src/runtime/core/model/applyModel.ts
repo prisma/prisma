@@ -15,7 +15,6 @@ import type { UserArgs } from '../request/UserArgs'
 import { applyAggregates } from './applyAggregates'
 import { applyFieldsProxy } from './applyFieldsProxy'
 import { applyFluent } from './applyFluent'
-import { adaptErrors } from './applyOrThrowErrorAdapter'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 
 export type ModelAction = (
@@ -78,8 +77,7 @@ function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProx
     getPropertyValue(key) {
       const dmmfActionName = key as DMMF.ModelAction
 
-      let requestFn = (params: InternalRequestParams) => client._request(params)
-      requestFn = adaptErrors(dmmfActionName, dmmfModelName, client._clientVersion, requestFn)
+      const requestFn = (params: InternalRequestParams) => client._request(params)
 
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise

@@ -35,7 +35,6 @@ import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import { deepGet } from './utils/deep-set'
-import { NotFoundError, RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 
 const debug = Debug('prisma:client:request_handler')
 
@@ -46,7 +45,6 @@ export type RequestParams = {
   dataPath: string[]
   clientMethod: string
   callsite?: CallSite
-  rejectOnNotFound?: RejectOnNotFound
   transaction?: PrismaPromiseTransaction
   extensions: MergedExtensionsList
   args?: any
@@ -144,9 +142,7 @@ export class RequestHandler {
 
   async request(params: RequestParams) {
     try {
-      const result = await this.dataloader.request(params)
-      throwIfNotFound(result, params.clientMethod, params.modelName, params.rejectOnNotFound)
-      return result
+      return await this.dataloader.request(params)
     } catch (error) {
       const { clientMethod, callsite, transaction, args } = params
       this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
@@ -194,12 +190,6 @@ export class RequestHandler {
     if (isMismatchingBatchIndex(error, transaction)) {
       // if this is batch error and current request was not it's cause, we don't add
       // context information to the error: this wasn't a request that caused batch to fail
-      throw error
-    }
-
-    if (error instanceof NotFoundError) {
-      // TODO: This is a workaround to keep backwards compatibility with clients
-      // consuming NotFoundError
       throw error
     }
 
