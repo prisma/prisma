@@ -101,9 +101,11 @@ type UnwrapPayload<P> = {
     ? UnwrapPayload<P[K]>
     : P[K] extends Payload 
       ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> 
-      : P[K] extends (infer O extends Payload) | null
-        ? (O['scalars'] & UnwrapPayload<O['composites']>) | null
+      : P[K] extends infer O | null 
+        ? O extends Payload 
+          ? (O['scalars'] & UnwrapPayload<O['composites']>) | null
         : P[K]
+      : P[K]
 } & unknown
 
 type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
