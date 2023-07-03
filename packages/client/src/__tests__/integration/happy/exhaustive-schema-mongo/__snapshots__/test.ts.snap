@@ -1486,6 +1486,7 @@ export namespace Prisma {
     model: {
       Post: {
         payload: PostPayload<ExtArgs>
+        fields: Prisma.PostFieldRefs
         operations: {
           findUnique: {
             args: Prisma.PostFindUniqueArgs<ExtArgs>,
@@ -1559,6 +1560,7 @@ export namespace Prisma {
       }
       User: {
         payload: UserPayload<ExtArgs>
+        fields: Prisma.UserFieldRefs
         operations: {
           findUnique: {
             args: Prisma.UserFindUniqueArgs<ExtArgs>,
@@ -1632,6 +1634,7 @@ export namespace Prisma {
       }
       EmbedHolder: {
         payload: EmbedHolderPayload<ExtArgs>
+        fields: Prisma.EmbedHolderFieldRefs
         operations: {
           findUnique: {
             args: Prisma.EmbedHolderFindUniqueArgs<ExtArgs>,
@@ -1705,6 +1708,7 @@ export namespace Prisma {
       }
       M: {
         payload: MPayload<ExtArgs>
+        fields: Prisma.MFieldRefs
         operations: {
           findUnique: {
             args: Prisma.MFindUniqueArgs<ExtArgs>,
@@ -1778,6 +1782,7 @@ export namespace Prisma {
       }
       N: {
         payload: NPayload<ExtArgs>
+        fields: Prisma.NFieldRefs
         operations: {
           findUnique: {
             args: Prisma.NFindUniqueArgs<ExtArgs>,
@@ -1851,6 +1856,7 @@ export namespace Prisma {
       }
       OneOptional: {
         payload: OneOptionalPayload<ExtArgs>
+        fields: Prisma.OneOptionalFieldRefs
         operations: {
           findUnique: {
             args: Prisma.OneOptionalFindUniqueArgs<ExtArgs>,
@@ -1924,6 +1930,7 @@ export namespace Prisma {
       }
       ManyRequired: {
         payload: ManyRequiredPayload<ExtArgs>
+        fields: Prisma.ManyRequiredFieldRefs
         operations: {
           findUnique: {
             args: Prisma.ManyRequiredFindUniqueArgs<ExtArgs>,
@@ -1997,6 +2004,7 @@ export namespace Prisma {
       }
       OptionalSide1: {
         payload: OptionalSide1Payload<ExtArgs>
+        fields: Prisma.OptionalSide1FieldRefs
         operations: {
           findUnique: {
             args: Prisma.OptionalSide1FindUniqueArgs<ExtArgs>,
@@ -2070,6 +2078,7 @@ export namespace Prisma {
       }
       OptionalSide2: {
         payload: OptionalSide2Payload<ExtArgs>
+        fields: Prisma.OptionalSide2FieldRefs
         operations: {
           findUnique: {
             args: Prisma.OptionalSide2FindUniqueArgs<ExtArgs>,
@@ -2143,6 +2152,7 @@ export namespace Prisma {
       }
       A: {
         payload: APayload<ExtArgs>
+        fields: Prisma.AFieldRefs
         operations: {
           findUnique: {
             args: Prisma.AFindUniqueArgs<ExtArgs>,
@@ -2216,6 +2226,7 @@ export namespace Prisma {
       }
       B: {
         payload: BPayload<ExtArgs>
+        fields: Prisma.BFieldRefs
         operations: {
           findUnique: {
             args: Prisma.BFindUniqueArgs<ExtArgs>,
@@ -2289,6 +2300,7 @@ export namespace Prisma {
       }
       C: {
         payload: CPayload<ExtArgs>
+        fields: Prisma.CFieldRefs
         operations: {
           findUnique: {
             args: Prisma.CFindUniqueArgs<ExtArgs>,
@@ -2362,6 +2374,7 @@ export namespace Prisma {
       }
       D: {
         payload: DPayload<ExtArgs>
+        fields: Prisma.DFieldRefs
         operations: {
           findUnique: {
             args: Prisma.DFindUniqueArgs<ExtArgs>,
@@ -2435,6 +2448,7 @@ export namespace Prisma {
       }
       E: {
         payload: EPayload<ExtArgs>
+        fields: Prisma.EFieldRefs
         operations: {
           findUnique: {
             args: Prisma.EFindUniqueArgs<ExtArgs>,
@@ -2881,6 +2895,16 @@ export namespace Prisma {
 
 
 
+  /**
+   * Fields of the Embed model
+   */ 
+  interface EmbedFieldRefs {
+    readonly text: FieldRef<"Embed", 'String'>
+    readonly boolean: FieldRef<"Embed", 'Boolean'>
+    readonly scalarList: FieldRef<"Embed", 'Int[]'>
+  }
+    
+
   // Custom InputTypes
 
   /**
@@ -2923,6 +2947,15 @@ export namespace Prisma {
 
 
 
+
+  /**
+   * Fields of the EmbedEmbed model
+   */ 
+  interface EmbedEmbedFieldRefs {
+    readonly text: FieldRef<"EmbedEmbed", 'String'>
+    readonly boolean: FieldRef<"EmbedEmbed", 'Boolean'>
+  }
+    
 
   // Custom InputTypes
 
@@ -3501,7 +3534,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, PostGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPostGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the Post model
+   */
+  readonly fields: PostFieldRefs;
   }
 
   /**
@@ -3551,6 +3587,19 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the Post model
+   */ 
+  interface PostFieldRefs {
+    readonly id: FieldRef<"Post", 'String'>
+    readonly createdAt: FieldRef<"Post", 'DateTime'>
+    readonly title: FieldRef<"Post", 'String'>
+    readonly content: FieldRef<"Post", 'String'>
+    readonly published: FieldRef<"Post", 'Boolean'>
+    readonly authorId: FieldRef<"Post", 'String'>
+  }
+    
 
   // Custom InputTypes
 
@@ -4613,7 +4662,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, UserGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetUserGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the User model
+   */
+  readonly fields: UserFieldRefs;
   }
 
   /**
@@ -4665,6 +4717,28 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the User model
+   */ 
+  interface UserFieldRefs {
+    readonly id: FieldRef<"User", 'String'>
+    readonly email: FieldRef<"User", 'String'>
+    readonly int: FieldRef<"User", 'Int'>
+    readonly optionalInt: FieldRef<"User", 'Int'>
+    readonly float: FieldRef<"User", 'Float'>
+    readonly optionalFloat: FieldRef<"User", 'Float'>
+    readonly string: FieldRef<"User", 'String'>
+    readonly optionalString: FieldRef<"User", 'String'>
+    readonly json: FieldRef<"User", 'Json'>
+    readonly optionalJson: FieldRef<"User", 'Json'>
+    readonly enum: FieldRef<"User", 'ABeautifulEnum'>
+    readonly optionalEnum: FieldRef<"User", 'ABeautifulEnum'>
+    readonly boolean: FieldRef<"User", 'Boolean'>
+    readonly optionalBoolean: FieldRef<"User", 'Boolean'>
+    readonly embedHolderId: FieldRef<"User", 'String'>
+  }
+    
 
   // Custom InputTypes
 
@@ -5612,7 +5686,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, EmbedHolderGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEmbedHolderGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the EmbedHolder model
+   */
+  readonly fields: EmbedHolderFieldRefs;
   }
 
   /**
@@ -5662,6 +5739,17 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the EmbedHolder model
+   */ 
+  interface EmbedHolderFieldRefs {
+    readonly id: FieldRef<"EmbedHolder", 'String'>
+    readonly time: FieldRef<"EmbedHolder", 'DateTime'>
+    readonly text: FieldRef<"EmbedHolder", 'String'>
+    readonly boolean: FieldRef<"EmbedHolder", 'Boolean'>
+  }
+    
 
   // Custom InputTypes
 
@@ -6730,7 +6818,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, MGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the M model
+   */
+  readonly fields: MFieldRefs;
   }
 
   /**
@@ -6780,6 +6871,27 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the M model
+   */ 
+  interface MFieldRefs {
+    readonly id: FieldRef<"M", 'String'>
+    readonly n_ids: FieldRef<"M", 'String[]'>
+    readonly int: FieldRef<"M", 'Int'>
+    readonly optionalInt: FieldRef<"M", 'Int'>
+    readonly float: FieldRef<"M", 'Float'>
+    readonly optionalFloat: FieldRef<"M", 'Float'>
+    readonly string: FieldRef<"M", 'String'>
+    readonly optionalString: FieldRef<"M", 'String'>
+    readonly json: FieldRef<"M", 'Json'>
+    readonly optionalJson: FieldRef<"M", 'Json'>
+    readonly enum: FieldRef<"M", 'ABeautifulEnum'>
+    readonly optionalEnum: FieldRef<"M", 'ABeautifulEnum'>
+    readonly boolean: FieldRef<"M", 'Boolean'>
+    readonly optionalBoolean: FieldRef<"M", 'Boolean'>
+  }
+    
 
   // Custom InputTypes
 
@@ -7848,7 +7960,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, NGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the N model
+   */
+  readonly fields: NFieldRefs;
   }
 
   /**
@@ -7898,6 +8013,27 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the N model
+   */ 
+  interface NFieldRefs {
+    readonly id: FieldRef<"N", 'String'>
+    readonly m_ids: FieldRef<"N", 'String[]'>
+    readonly int: FieldRef<"N", 'Int'>
+    readonly optionalInt: FieldRef<"N", 'Int'>
+    readonly float: FieldRef<"N", 'Float'>
+    readonly optionalFloat: FieldRef<"N", 'Float'>
+    readonly string: FieldRef<"N", 'String'>
+    readonly optionalString: FieldRef<"N", 'String'>
+    readonly json: FieldRef<"N", 'Json'>
+    readonly optionalJson: FieldRef<"N", 'Json'>
+    readonly enum: FieldRef<"N", 'ABeautifulEnum'>
+    readonly optionalEnum: FieldRef<"N", 'ABeautifulEnum'>
+    readonly boolean: FieldRef<"N", 'Boolean'>
+    readonly optionalBoolean: FieldRef<"N", 'Boolean'>
+  }
+    
 
   // Custom InputTypes
 
@@ -8961,7 +9097,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, OneOptionalGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOneOptionalGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the OneOptional model
+   */
+  readonly fields: OneOptionalFieldRefs;
   }
 
   /**
@@ -9011,6 +9150,26 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the OneOptional model
+   */ 
+  interface OneOptionalFieldRefs {
+    readonly id: FieldRef<"OneOptional", 'String'>
+    readonly int: FieldRef<"OneOptional", 'Int'>
+    readonly optionalInt: FieldRef<"OneOptional", 'Int'>
+    readonly float: FieldRef<"OneOptional", 'Float'>
+    readonly optionalFloat: FieldRef<"OneOptional", 'Float'>
+    readonly string: FieldRef<"OneOptional", 'String'>
+    readonly optionalString: FieldRef<"OneOptional", 'String'>
+    readonly json: FieldRef<"OneOptional", 'Json'>
+    readonly optionalJson: FieldRef<"OneOptional", 'Json'>
+    readonly enum: FieldRef<"OneOptional", 'ABeautifulEnum'>
+    readonly optionalEnum: FieldRef<"OneOptional", 'ABeautifulEnum'>
+    readonly boolean: FieldRef<"OneOptional", 'Boolean'>
+    readonly optionalBoolean: FieldRef<"OneOptional", 'Boolean'>
+  }
+    
 
   // Custom InputTypes
 
@@ -10081,7 +10240,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, ManyRequiredGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetManyRequiredGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the ManyRequired model
+   */
+  readonly fields: ManyRequiredFieldRefs;
   }
 
   /**
@@ -10131,6 +10293,27 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the ManyRequired model
+   */ 
+  interface ManyRequiredFieldRefs {
+    readonly id: FieldRef<"ManyRequired", 'String'>
+    readonly oneOptionalId: FieldRef<"ManyRequired", 'String'>
+    readonly int: FieldRef<"ManyRequired", 'Int'>
+    readonly optionalInt: FieldRef<"ManyRequired", 'Int'>
+    readonly float: FieldRef<"ManyRequired", 'Float'>
+    readonly optionalFloat: FieldRef<"ManyRequired", 'Float'>
+    readonly string: FieldRef<"ManyRequired", 'String'>
+    readonly optionalString: FieldRef<"ManyRequired", 'String'>
+    readonly json: FieldRef<"ManyRequired", 'Json'>
+    readonly optionalJson: FieldRef<"ManyRequired", 'Json'>
+    readonly enum: FieldRef<"ManyRequired", 'ABeautifulEnum'>
+    readonly optionalEnum: FieldRef<"ManyRequired", 'ABeautifulEnum'>
+    readonly boolean: FieldRef<"ManyRequired", 'Boolean'>
+    readonly optionalBoolean: FieldRef<"ManyRequired", 'Boolean'>
+  }
+    
 
   // Custom InputTypes
 
@@ -11180,7 +11363,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, OptionalSide1GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide1GroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the OptionalSide1 model
+   */
+  readonly fields: OptionalSide1FieldRefs;
   }
 
   /**
@@ -11230,6 +11416,27 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the OptionalSide1 model
+   */ 
+  interface OptionalSide1FieldRefs {
+    readonly id: FieldRef<"OptionalSide1", 'String'>
+    readonly optionalSide2Id: FieldRef<"OptionalSide1", 'String'>
+    readonly int: FieldRef<"OptionalSide1", 'Int'>
+    readonly optionalInt: FieldRef<"OptionalSide1", 'Int'>
+    readonly float: FieldRef<"OptionalSide1", 'Float'>
+    readonly optionalFloat: FieldRef<"OptionalSide1", 'Float'>
+    readonly string: FieldRef<"OptionalSide1", 'String'>
+    readonly optionalString: FieldRef<"OptionalSide1", 'String'>
+    readonly json: FieldRef<"OptionalSide1", 'Json'>
+    readonly optionalJson: FieldRef<"OptionalSide1", 'Json'>
+    readonly enum: FieldRef<"OptionalSide1", 'ABeautifulEnum'>
+    readonly optionalEnum: FieldRef<"OptionalSide1", 'ABeautifulEnum'>
+    readonly boolean: FieldRef<"OptionalSide1", 'Boolean'>
+    readonly optionalBoolean: FieldRef<"OptionalSide1", 'Boolean'>
+  }
+    
 
   // Custom InputTypes
 
@@ -12270,7 +12477,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, OptionalSide2GroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOptionalSide2GroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the OptionalSide2 model
+   */
+  readonly fields: OptionalSide2FieldRefs;
   }
 
   /**
@@ -12320,6 +12530,26 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the OptionalSide2 model
+   */ 
+  interface OptionalSide2FieldRefs {
+    readonly id: FieldRef<"OptionalSide2", 'String'>
+    readonly int: FieldRef<"OptionalSide2", 'Int'>
+    readonly optionalInt: FieldRef<"OptionalSide2", 'Int'>
+    readonly float: FieldRef<"OptionalSide2", 'Float'>
+    readonly optionalFloat: FieldRef<"OptionalSide2", 'Float'>
+    readonly string: FieldRef<"OptionalSide2", 'String'>
+    readonly optionalString: FieldRef<"OptionalSide2", 'String'>
+    readonly json: FieldRef<"OptionalSide2", 'Json'>
+    readonly optionalJson: FieldRef<"OptionalSide2", 'Json'>
+    readonly enum: FieldRef<"OptionalSide2", 'ABeautifulEnum'>
+    readonly optionalEnum: FieldRef<"OptionalSide2", 'ABeautifulEnum'>
+    readonly boolean: FieldRef<"OptionalSide2", 'Boolean'>
+    readonly optionalBoolean: FieldRef<"OptionalSide2", 'Boolean'>
+  }
+    
 
   // Custom InputTypes
 
@@ -13296,7 +13526,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, AGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the A model
+   */
+  readonly fields: AFieldRefs;
   }
 
   /**
@@ -13345,6 +13578,19 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the A model
+   */ 
+  interface AFieldRefs {
+    readonly id: FieldRef<"A", 'String'>
+    readonly email: FieldRef<"A", 'String'>
+    readonly name: FieldRef<"A", 'String'>
+    readonly int: FieldRef<"A", 'Int'>
+    readonly sInt: FieldRef<"A", 'Int'>
+    readonly bInt: FieldRef<"A", 'BigInt'>
+  }
+    
 
   // Custom InputTypes
 
@@ -14250,7 +14496,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, BGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetBGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the B model
+   */
+  readonly fields: BFieldRefs;
   }
 
   /**
@@ -14299,6 +14548,16 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the B model
+   */ 
+  interface BFieldRefs {
+    readonly id: FieldRef<"B", 'String'>
+    readonly float: FieldRef<"B", 'Float'>
+    readonly dFloat: FieldRef<"B", 'Float'>
+  }
+    
 
   // Custom InputTypes
 
@@ -15202,7 +15461,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, CGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetCGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the C model
+   */
+  readonly fields: CFieldRefs;
   }
 
   /**
@@ -15251,6 +15513,20 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the C model
+   */ 
+  interface CFieldRefs {
+    readonly id: FieldRef<"C", 'String'>
+    readonly char: FieldRef<"C", 'String'>
+    readonly vChar: FieldRef<"C", 'String'>
+    readonly text: FieldRef<"C", 'String'>
+    readonly bit: FieldRef<"C", 'String'>
+    readonly vBit: FieldRef<"C", 'String'>
+    readonly uuid: FieldRef<"C", 'String'>
+  }
+    
 
   // Custom InputTypes
 
@@ -16176,7 +16452,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, DGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the D model
+   */
+  readonly fields: DFieldRefs;
   }
 
   /**
@@ -16225,6 +16504,20 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the D model
+   */ 
+  interface DFieldRefs {
+    readonly id: FieldRef<"D", 'String'>
+    readonly bool: FieldRef<"D", 'Boolean'>
+    readonly byteA: FieldRef<"D", 'Bytes'>
+    readonly xml: FieldRef<"D", 'String'>
+    readonly json: FieldRef<"D", 'Json'>
+    readonly jsonb: FieldRef<"D", 'Json'>
+    readonly list: FieldRef<"D", 'Int[]'>
+  }
+    
 
   // Custom InputTypes
 
@@ -17101,7 +17394,10 @@ export namespace Prisma {
             : \`Error: Field "\${P}" in "orderBy" needs to be provided in "by"\`
         }[OrderFields]
     >(args: SubsetIntersection<T, EGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetEGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
-
+  /**
+   * Fields of the E model
+   */
+  readonly fields: EFieldRefs;
   }
 
   /**
@@ -17150,6 +17446,17 @@ export namespace Prisma {
   }
 
 
+
+  /**
+   * Fields of the E model
+   */ 
+  interface EFieldRefs {
+    readonly id: FieldRef<"E", 'String'>
+    readonly date: FieldRef<"E", 'DateTime'>
+    readonly time: FieldRef<"E", 'DateTime'>
+    readonly ts: FieldRef<"E", 'DateTime'>
+  }
+    
 
   // Custom InputTypes
 
@@ -17725,6 +18032,121 @@ export namespace Prisma {
 
 
   /**
+   * Field references 
+   */
+
+
+  /**
+   * Reference to a field of type 'String'
+   */
+  export type StringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String'>
+    
+
+
+  /**
+   * Reference to a field of type 'String[]'
+   */
+  export type ListStringFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'String[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'DateTime'
+   */
+  export type DateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime'>
+    
+
+
+  /**
+   * Reference to a field of type 'DateTime[]'
+   */
+  export type ListDateTimeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'DateTime[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Boolean'
+   */
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+  /**
+   * Reference to a field of type 'Int'
+   */
+  export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+  /**
+   * Reference to a field of type 'Int[]'
+   */
+  export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float'
+   */
+  export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
+    
+
+
+  /**
+   * Reference to a field of type 'Float[]'
+   */
+  export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'ABeautifulEnum'
+   */
+  export type EnumABeautifulEnumFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ABeautifulEnum'>
+    
+
+
+  /**
+   * Reference to a field of type 'ABeautifulEnum[]'
+   */
+  export type ListEnumABeautifulEnumFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ABeautifulEnum[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'BigInt'
+   */
+  export type BigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt'>
+    
+
+
+  /**
+   * Reference to a field of type 'BigInt[]'
+   */
+  export type ListBigIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'BigInt[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Bytes'
+   */
+  export type BytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes'>
+    
+
+
+  /**
+   * Reference to a field of type 'Bytes[]'
+   */
+  export type ListBytesFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Bytes[]'>
+    
+  /**
    * Deep Input Types
    */
 
@@ -17733,12 +18155,12 @@ export namespace Prisma {
     AND?: PostWhereInput | PostWhereInput[]
     OR?: PostWhereInput[]
     NOT?: PostWhereInput | PostWhereInput[]
-    id?: StringFilter | string
-    createdAt?: DateTimeFilter | Date | string
-    title?: StringFilter | string
-    content?: StringNullableFilter | string | null
-    published?: BoolFilter | boolean
-    authorId?: StringFilter | string
+    id?: StringFilter<"Post"> | string
+    createdAt?: DateTimeFilter<"Post"> | Date | string
+    title?: StringFilter<"Post"> | string
+    content?: StringNullableFilter<"Post"> | string | null
+    published?: BoolFilter<"Post"> | boolean
+    authorId?: StringFilter<"Post"> | string
     author?: XOR<UserRelationFilter, UserWhereInput>
   }
 
@@ -17772,33 +18194,33 @@ export namespace Prisma {
     AND?: PostScalarWhereWithAggregatesInput | PostScalarWhereWithAggregatesInput[]
     OR?: PostScalarWhereWithAggregatesInput[]
     NOT?: PostScalarWhereWithAggregatesInput | PostScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    createdAt?: DateTimeWithAggregatesFilter | Date | string
-    title?: StringWithAggregatesFilter | string
-    content?: StringNullableWithAggregatesFilter | string | null
-    published?: BoolWithAggregatesFilter | boolean
-    authorId?: StringWithAggregatesFilter | string
+    id?: StringWithAggregatesFilter<"Post"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Post"> | Date | string
+    title?: StringWithAggregatesFilter<"Post"> | string
+    content?: StringNullableWithAggregatesFilter<"Post"> | string | null
+    published?: BoolWithAggregatesFilter<"Post"> | boolean
+    authorId?: StringWithAggregatesFilter<"Post"> | string
   }
 
   export type UserWhereInput = {
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
-    id?: StringFilter | string
-    email?: StringFilter | string
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
-    embedHolderId?: StringFilter | string
+    id?: StringFilter<"User"> | string
+    email?: StringFilter<"User"> | string
+    int?: IntFilter<"User"> | number
+    optionalInt?: IntNullableFilter<"User"> | number | null
+    float?: FloatFilter<"User"> | number
+    optionalFloat?: FloatNullableFilter<"User"> | number | null
+    string?: StringFilter<"User"> | string
+    optionalString?: StringNullableFilter<"User"> | string | null
+    json?: JsonFilter<"User">
+    optionalJson?: JsonNullableFilter<"User">
+    enum?: EnumABeautifulEnumFilter<"User"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"User"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"User"> | boolean
+    optionalBoolean?: BoolNullableFilter<"User"> | boolean | null
+    embedHolderId?: StringFilter<"User"> | string
     posts?: PostListRelationFilter
     embedHolder?: XOR<EmbedHolderRelationFilter, EmbedHolderWhereInput>
   }
@@ -17855,31 +18277,31 @@ export namespace Prisma {
     AND?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
     OR?: UserScalarWhereWithAggregatesInput[]
     NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    email?: StringWithAggregatesFilter | string
-    int?: IntWithAggregatesFilter | number
-    optionalInt?: IntNullableWithAggregatesFilter | number | null
-    float?: FloatWithAggregatesFilter | number
-    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
-    string?: StringWithAggregatesFilter | string
-    optionalString?: StringNullableWithAggregatesFilter | string | null
-    json?: JsonWithAggregatesFilter
-    optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
-    embedHolderId?: StringWithAggregatesFilter | string
+    id?: StringWithAggregatesFilter<"User"> | string
+    email?: StringWithAggregatesFilter<"User"> | string
+    int?: IntWithAggregatesFilter<"User"> | number
+    optionalInt?: IntNullableWithAggregatesFilter<"User"> | number | null
+    float?: FloatWithAggregatesFilter<"User"> | number
+    optionalFloat?: FloatNullableWithAggregatesFilter<"User"> | number | null
+    string?: StringWithAggregatesFilter<"User"> | string
+    optionalString?: StringNullableWithAggregatesFilter<"User"> | string | null
+    json?: JsonWithAggregatesFilter<"User">
+    optionalJson?: JsonNullableWithAggregatesFilter<"User">
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"User"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"User"> | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter<"User"> | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter<"User"> | boolean | null
+    embedHolderId?: StringWithAggregatesFilter<"User"> | string
   }
 
   export type EmbedHolderWhereInput = {
     AND?: EmbedHolderWhereInput | EmbedHolderWhereInput[]
     OR?: EmbedHolderWhereInput[]
     NOT?: EmbedHolderWhereInput | EmbedHolderWhereInput[]
-    id?: StringFilter | string
-    time?: DateTimeFilter | Date | string
-    text?: StringFilter | string
-    boolean?: BoolFilter | boolean
+    id?: StringFilter<"EmbedHolder"> | string
+    time?: DateTimeFilter<"EmbedHolder"> | Date | string
+    text?: StringFilter<"EmbedHolder"> | string
+    boolean?: BoolFilter<"EmbedHolder"> | boolean
     embedList?: EmbedCompositeListFilter | EmbedObjectEqualityInput[]
     requiredEmbed?: XOR<EmbedCompositeFilter, EmbedObjectEqualityInput>
     optionalEmbed?: XOR<EmbedNullableCompositeFilter, EmbedObjectEqualityInput> | null
@@ -17915,30 +18337,30 @@ export namespace Prisma {
     AND?: EmbedHolderScalarWhereWithAggregatesInput | EmbedHolderScalarWhereWithAggregatesInput[]
     OR?: EmbedHolderScalarWhereWithAggregatesInput[]
     NOT?: EmbedHolderScalarWhereWithAggregatesInput | EmbedHolderScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    time?: DateTimeWithAggregatesFilter | Date | string
-    text?: StringWithAggregatesFilter | string
-    boolean?: BoolWithAggregatesFilter | boolean
+    id?: StringWithAggregatesFilter<"EmbedHolder"> | string
+    time?: DateTimeWithAggregatesFilter<"EmbedHolder"> | Date | string
+    text?: StringWithAggregatesFilter<"EmbedHolder"> | string
+    boolean?: BoolWithAggregatesFilter<"EmbedHolder"> | boolean
   }
 
   export type MWhereInput = {
     AND?: MWhereInput | MWhereInput[]
     OR?: MWhereInput[]
     NOT?: MWhereInput | MWhereInput[]
-    id?: StringFilter | string
-    n_ids?: StringNullableListFilter
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    id?: StringFilter<"M"> | string
+    n_ids?: StringNullableListFilter<"M">
+    int?: IntFilter<"M"> | number
+    optionalInt?: IntNullableFilter<"M"> | number | null
+    float?: FloatFilter<"M"> | number
+    optionalFloat?: FloatNullableFilter<"M"> | number | null
+    string?: StringFilter<"M"> | string
+    optionalString?: StringNullableFilter<"M"> | string | null
+    json?: JsonFilter<"M">
+    optionalJson?: JsonNullableFilter<"M">
+    enum?: EnumABeautifulEnumFilter<"M"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"M"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"M"> | boolean
+    optionalBoolean?: BoolNullableFilter<"M"> | boolean | null
     n?: NListRelationFilter
   }
 
@@ -17990,40 +18412,40 @@ export namespace Prisma {
     AND?: MScalarWhereWithAggregatesInput | MScalarWhereWithAggregatesInput[]
     OR?: MScalarWhereWithAggregatesInput[]
     NOT?: MScalarWhereWithAggregatesInput | MScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    n_ids?: StringNullableListFilter
-    int?: IntWithAggregatesFilter | number
-    optionalInt?: IntNullableWithAggregatesFilter | number | null
-    float?: FloatWithAggregatesFilter | number
-    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
-    string?: StringWithAggregatesFilter | string
-    optionalString?: StringNullableWithAggregatesFilter | string | null
-    json?: JsonWithAggregatesFilter
-    optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    id?: StringWithAggregatesFilter<"M"> | string
+    n_ids?: StringNullableListFilter<"M">
+    int?: IntWithAggregatesFilter<"M"> | number
+    optionalInt?: IntNullableWithAggregatesFilter<"M"> | number | null
+    float?: FloatWithAggregatesFilter<"M"> | number
+    optionalFloat?: FloatNullableWithAggregatesFilter<"M"> | number | null
+    string?: StringWithAggregatesFilter<"M"> | string
+    optionalString?: StringNullableWithAggregatesFilter<"M"> | string | null
+    json?: JsonWithAggregatesFilter<"M">
+    optionalJson?: JsonNullableWithAggregatesFilter<"M">
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"M"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"M"> | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter<"M"> | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter<"M"> | boolean | null
   }
 
   export type NWhereInput = {
     AND?: NWhereInput | NWhereInput[]
     OR?: NWhereInput[]
     NOT?: NWhereInput | NWhereInput[]
-    id?: StringFilter | string
-    m_ids?: StringNullableListFilter
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    id?: StringFilter<"N"> | string
+    m_ids?: StringNullableListFilter<"N">
+    int?: IntFilter<"N"> | number
+    optionalInt?: IntNullableFilter<"N"> | number | null
+    float?: FloatFilter<"N"> | number
+    optionalFloat?: FloatNullableFilter<"N"> | number | null
+    string?: StringFilter<"N"> | string
+    optionalString?: StringNullableFilter<"N"> | string | null
+    json?: JsonFilter<"N">
+    optionalJson?: JsonNullableFilter<"N">
+    enum?: EnumABeautifulEnumFilter<"N"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"N"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"N"> | boolean
+    optionalBoolean?: BoolNullableFilter<"N"> | boolean | null
     m?: MListRelationFilter
   }
 
@@ -18075,39 +18497,39 @@ export namespace Prisma {
     AND?: NScalarWhereWithAggregatesInput | NScalarWhereWithAggregatesInput[]
     OR?: NScalarWhereWithAggregatesInput[]
     NOT?: NScalarWhereWithAggregatesInput | NScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    m_ids?: StringNullableListFilter
-    int?: IntWithAggregatesFilter | number
-    optionalInt?: IntNullableWithAggregatesFilter | number | null
-    float?: FloatWithAggregatesFilter | number
-    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
-    string?: StringWithAggregatesFilter | string
-    optionalString?: StringNullableWithAggregatesFilter | string | null
-    json?: JsonWithAggregatesFilter
-    optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    id?: StringWithAggregatesFilter<"N"> | string
+    m_ids?: StringNullableListFilter<"N">
+    int?: IntWithAggregatesFilter<"N"> | number
+    optionalInt?: IntNullableWithAggregatesFilter<"N"> | number | null
+    float?: FloatWithAggregatesFilter<"N"> | number
+    optionalFloat?: FloatNullableWithAggregatesFilter<"N"> | number | null
+    string?: StringWithAggregatesFilter<"N"> | string
+    optionalString?: StringNullableWithAggregatesFilter<"N"> | string | null
+    json?: JsonWithAggregatesFilter<"N">
+    optionalJson?: JsonNullableWithAggregatesFilter<"N">
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"N"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"N"> | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter<"N"> | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter<"N"> | boolean | null
   }
 
   export type OneOptionalWhereInput = {
     AND?: OneOptionalWhereInput | OneOptionalWhereInput[]
     OR?: OneOptionalWhereInput[]
     NOT?: OneOptionalWhereInput | OneOptionalWhereInput[]
-    id?: StringFilter | string
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    id?: StringFilter<"OneOptional"> | string
+    int?: IntFilter<"OneOptional"> | number
+    optionalInt?: IntNullableFilter<"OneOptional"> | number | null
+    float?: FloatFilter<"OneOptional"> | number
+    optionalFloat?: FloatNullableFilter<"OneOptional"> | number | null
+    string?: StringFilter<"OneOptional"> | string
+    optionalString?: StringNullableFilter<"OneOptional"> | string | null
+    json?: JsonFilter<"OneOptional">
+    optionalJson?: JsonNullableFilter<"OneOptional">
+    enum?: EnumABeautifulEnumFilter<"OneOptional"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OneOptional"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"OneOptional"> | boolean
+    optionalBoolean?: BoolNullableFilter<"OneOptional"> | boolean | null
     many?: ManyRequiredListRelationFilter
   }
 
@@ -18157,39 +18579,39 @@ export namespace Prisma {
     AND?: OneOptionalScalarWhereWithAggregatesInput | OneOptionalScalarWhereWithAggregatesInput[]
     OR?: OneOptionalScalarWhereWithAggregatesInput[]
     NOT?: OneOptionalScalarWhereWithAggregatesInput | OneOptionalScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    int?: IntWithAggregatesFilter | number
-    optionalInt?: IntNullableWithAggregatesFilter | number | null
-    float?: FloatWithAggregatesFilter | number
-    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
-    string?: StringWithAggregatesFilter | string
-    optionalString?: StringNullableWithAggregatesFilter | string | null
-    json?: JsonWithAggregatesFilter
-    optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    id?: StringWithAggregatesFilter<"OneOptional"> | string
+    int?: IntWithAggregatesFilter<"OneOptional"> | number
+    optionalInt?: IntNullableWithAggregatesFilter<"OneOptional"> | number | null
+    float?: FloatWithAggregatesFilter<"OneOptional"> | number
+    optionalFloat?: FloatNullableWithAggregatesFilter<"OneOptional"> | number | null
+    string?: StringWithAggregatesFilter<"OneOptional"> | string
+    optionalString?: StringNullableWithAggregatesFilter<"OneOptional"> | string | null
+    json?: JsonWithAggregatesFilter<"OneOptional">
+    optionalJson?: JsonNullableWithAggregatesFilter<"OneOptional">
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"OneOptional"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"OneOptional"> | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter<"OneOptional"> | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter<"OneOptional"> | boolean | null
   }
 
   export type ManyRequiredWhereInput = {
     AND?: ManyRequiredWhereInput | ManyRequiredWhereInput[]
     OR?: ManyRequiredWhereInput[]
     NOT?: ManyRequiredWhereInput | ManyRequiredWhereInput[]
-    id?: StringFilter | string
-    oneOptionalId?: StringNullableFilter | string | null
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    id?: StringFilter<"ManyRequired"> | string
+    oneOptionalId?: StringNullableFilter<"ManyRequired"> | string | null
+    int?: IntFilter<"ManyRequired"> | number
+    optionalInt?: IntNullableFilter<"ManyRequired"> | number | null
+    float?: FloatFilter<"ManyRequired"> | number
+    optionalFloat?: FloatNullableFilter<"ManyRequired"> | number | null
+    string?: StringFilter<"ManyRequired"> | string
+    optionalString?: StringNullableFilter<"ManyRequired"> | string | null
+    json?: JsonFilter<"ManyRequired">
+    optionalJson?: JsonNullableFilter<"ManyRequired">
+    enum?: EnumABeautifulEnumFilter<"ManyRequired"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"ManyRequired"> | boolean
+    optionalBoolean?: BoolNullableFilter<"ManyRequired"> | boolean | null
     one?: XOR<OneOptionalNullableRelationFilter, OneOptionalWhereInput> | null
   }
 
@@ -18241,40 +18663,40 @@ export namespace Prisma {
     AND?: ManyRequiredScalarWhereWithAggregatesInput | ManyRequiredScalarWhereWithAggregatesInput[]
     OR?: ManyRequiredScalarWhereWithAggregatesInput[]
     NOT?: ManyRequiredScalarWhereWithAggregatesInput | ManyRequiredScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    oneOptionalId?: StringNullableWithAggregatesFilter | string | null
-    int?: IntWithAggregatesFilter | number
-    optionalInt?: IntNullableWithAggregatesFilter | number | null
-    float?: FloatWithAggregatesFilter | number
-    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
-    string?: StringWithAggregatesFilter | string
-    optionalString?: StringNullableWithAggregatesFilter | string | null
-    json?: JsonWithAggregatesFilter
-    optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    id?: StringWithAggregatesFilter<"ManyRequired"> | string
+    oneOptionalId?: StringNullableWithAggregatesFilter<"ManyRequired"> | string | null
+    int?: IntWithAggregatesFilter<"ManyRequired"> | number
+    optionalInt?: IntNullableWithAggregatesFilter<"ManyRequired"> | number | null
+    float?: FloatWithAggregatesFilter<"ManyRequired"> | number
+    optionalFloat?: FloatNullableWithAggregatesFilter<"ManyRequired"> | number | null
+    string?: StringWithAggregatesFilter<"ManyRequired"> | string
+    optionalString?: StringNullableWithAggregatesFilter<"ManyRequired"> | string | null
+    json?: JsonWithAggregatesFilter<"ManyRequired">
+    optionalJson?: JsonNullableWithAggregatesFilter<"ManyRequired">
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"ManyRequired"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"ManyRequired"> | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter<"ManyRequired"> | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter<"ManyRequired"> | boolean | null
   }
 
   export type OptionalSide1WhereInput = {
     AND?: OptionalSide1WhereInput | OptionalSide1WhereInput[]
     OR?: OptionalSide1WhereInput[]
     NOT?: OptionalSide1WhereInput | OptionalSide1WhereInput[]
-    id?: StringFilter | string
-    optionalSide2Id?: StringNullableFilter | string | null
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    id?: StringFilter<"OptionalSide1"> | string
+    optionalSide2Id?: StringNullableFilter<"OptionalSide1"> | string | null
+    int?: IntFilter<"OptionalSide1"> | number
+    optionalInt?: IntNullableFilter<"OptionalSide1"> | number | null
+    float?: FloatFilter<"OptionalSide1"> | number
+    optionalFloat?: FloatNullableFilter<"OptionalSide1"> | number | null
+    string?: StringFilter<"OptionalSide1"> | string
+    optionalString?: StringNullableFilter<"OptionalSide1"> | string | null
+    json?: JsonFilter<"OptionalSide1">
+    optionalJson?: JsonNullableFilter<"OptionalSide1">
+    enum?: EnumABeautifulEnumFilter<"OptionalSide1"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide1"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"OptionalSide1"> | boolean
+    optionalBoolean?: BoolNullableFilter<"OptionalSide1"> | boolean | null
     opti?: XOR<OptionalSide2NullableRelationFilter, OptionalSide2WhereInput> | null
   }
 
@@ -18327,39 +18749,39 @@ export namespace Prisma {
     AND?: OptionalSide1ScalarWhereWithAggregatesInput | OptionalSide1ScalarWhereWithAggregatesInput[]
     OR?: OptionalSide1ScalarWhereWithAggregatesInput[]
     NOT?: OptionalSide1ScalarWhereWithAggregatesInput | OptionalSide1ScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    optionalSide2Id?: StringNullableWithAggregatesFilter | string | null
-    int?: IntWithAggregatesFilter | number
-    optionalInt?: IntNullableWithAggregatesFilter | number | null
-    float?: FloatWithAggregatesFilter | number
-    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
-    string?: StringWithAggregatesFilter | string
-    optionalString?: StringNullableWithAggregatesFilter | string | null
-    json?: JsonWithAggregatesFilter
-    optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    id?: StringWithAggregatesFilter<"OptionalSide1"> | string
+    optionalSide2Id?: StringNullableWithAggregatesFilter<"OptionalSide1"> | string | null
+    int?: IntWithAggregatesFilter<"OptionalSide1"> | number
+    optionalInt?: IntNullableWithAggregatesFilter<"OptionalSide1"> | number | null
+    float?: FloatWithAggregatesFilter<"OptionalSide1"> | number
+    optionalFloat?: FloatNullableWithAggregatesFilter<"OptionalSide1"> | number | null
+    string?: StringWithAggregatesFilter<"OptionalSide1"> | string
+    optionalString?: StringNullableWithAggregatesFilter<"OptionalSide1"> | string | null
+    json?: JsonWithAggregatesFilter<"OptionalSide1">
+    optionalJson?: JsonNullableWithAggregatesFilter<"OptionalSide1">
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"OptionalSide1"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"OptionalSide1"> | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter<"OptionalSide1"> | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter<"OptionalSide1"> | boolean | null
   }
 
   export type OptionalSide2WhereInput = {
     AND?: OptionalSide2WhereInput | OptionalSide2WhereInput[]
     OR?: OptionalSide2WhereInput[]
     NOT?: OptionalSide2WhereInput | OptionalSide2WhereInput[]
-    id?: StringFilter | string
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    id?: StringFilter<"OptionalSide2"> | string
+    int?: IntFilter<"OptionalSide2"> | number
+    optionalInt?: IntNullableFilter<"OptionalSide2"> | number | null
+    float?: FloatFilter<"OptionalSide2"> | number
+    optionalFloat?: FloatNullableFilter<"OptionalSide2"> | number | null
+    string?: StringFilter<"OptionalSide2"> | string
+    optionalString?: StringNullableFilter<"OptionalSide2"> | string | null
+    json?: JsonFilter<"OptionalSide2">
+    optionalJson?: JsonNullableFilter<"OptionalSide2">
+    enum?: EnumABeautifulEnumFilter<"OptionalSide2"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide2"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"OptionalSide2"> | boolean
+    optionalBoolean?: BoolNullableFilter<"OptionalSide2"> | boolean | null
     opti?: XOR<OptionalSide1NullableRelationFilter, OptionalSide1WhereInput> | null
   }
 
@@ -18409,31 +18831,31 @@ export namespace Prisma {
     AND?: OptionalSide2ScalarWhereWithAggregatesInput | OptionalSide2ScalarWhereWithAggregatesInput[]
     OR?: OptionalSide2ScalarWhereWithAggregatesInput[]
     NOT?: OptionalSide2ScalarWhereWithAggregatesInput | OptionalSide2ScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    int?: IntWithAggregatesFilter | number
-    optionalInt?: IntNullableWithAggregatesFilter | number | null
-    float?: FloatWithAggregatesFilter | number
-    optionalFloat?: FloatNullableWithAggregatesFilter | number | null
-    string?: StringWithAggregatesFilter | string
-    optionalString?: StringNullableWithAggregatesFilter | string | null
-    json?: JsonWithAggregatesFilter
-    optionalJson?: JsonNullableWithAggregatesFilter
-    enum?: EnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    boolean?: BoolWithAggregatesFilter | boolean
-    optionalBoolean?: BoolNullableWithAggregatesFilter | boolean | null
+    id?: StringWithAggregatesFilter<"OptionalSide2"> | string
+    int?: IntWithAggregatesFilter<"OptionalSide2"> | number
+    optionalInt?: IntNullableWithAggregatesFilter<"OptionalSide2"> | number | null
+    float?: FloatWithAggregatesFilter<"OptionalSide2"> | number
+    optionalFloat?: FloatNullableWithAggregatesFilter<"OptionalSide2"> | number | null
+    string?: StringWithAggregatesFilter<"OptionalSide2"> | string
+    optionalString?: StringNullableWithAggregatesFilter<"OptionalSide2"> | string | null
+    json?: JsonWithAggregatesFilter<"OptionalSide2">
+    optionalJson?: JsonNullableWithAggregatesFilter<"OptionalSide2">
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"OptionalSide2"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"OptionalSide2"> | ABeautifulEnum | null
+    boolean?: BoolWithAggregatesFilter<"OptionalSide2"> | boolean
+    optionalBoolean?: BoolNullableWithAggregatesFilter<"OptionalSide2"> | boolean | null
   }
 
   export type AWhereInput = {
     AND?: AWhereInput | AWhereInput[]
     OR?: AWhereInput[]
     NOT?: AWhereInput | AWhereInput[]
-    id?: StringFilter | string
-    email?: StringFilter | string
-    name?: StringNullableFilter | string | null
-    int?: IntFilter | number
-    sInt?: IntFilter | number
-    bInt?: BigIntFilter | bigint | number
+    id?: StringFilter<"A"> | string
+    email?: StringFilter<"A"> | string
+    name?: StringNullableFilter<"A"> | string | null
+    int?: IntFilter<"A"> | number
+    sInt?: IntFilter<"A"> | number
+    bInt?: BigIntFilter<"A"> | bigint | number
   }
 
   export type AOrderByWithRelationInput = {
@@ -18468,21 +18890,21 @@ export namespace Prisma {
     AND?: AScalarWhereWithAggregatesInput | AScalarWhereWithAggregatesInput[]
     OR?: AScalarWhereWithAggregatesInput[]
     NOT?: AScalarWhereWithAggregatesInput | AScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    email?: StringWithAggregatesFilter | string
-    name?: StringNullableWithAggregatesFilter | string | null
-    int?: IntWithAggregatesFilter | number
-    sInt?: IntWithAggregatesFilter | number
-    bInt?: BigIntWithAggregatesFilter | bigint | number
+    id?: StringWithAggregatesFilter<"A"> | string
+    email?: StringWithAggregatesFilter<"A"> | string
+    name?: StringNullableWithAggregatesFilter<"A"> | string | null
+    int?: IntWithAggregatesFilter<"A"> | number
+    sInt?: IntWithAggregatesFilter<"A"> | number
+    bInt?: BigIntWithAggregatesFilter<"A"> | bigint | number
   }
 
   export type BWhereInput = {
     AND?: BWhereInput | BWhereInput[]
     OR?: BWhereInput[]
     NOT?: BWhereInput | BWhereInput[]
-    id?: StringFilter | string
-    float?: FloatFilter | number
-    dFloat?: FloatFilter | number
+    id?: StringFilter<"B"> | string
+    float?: FloatFilter<"B"> | number
+    dFloat?: FloatFilter<"B"> | number
   }
 
   export type BOrderByWithRelationInput = {
@@ -18510,22 +18932,22 @@ export namespace Prisma {
     AND?: BScalarWhereWithAggregatesInput | BScalarWhereWithAggregatesInput[]
     OR?: BScalarWhereWithAggregatesInput[]
     NOT?: BScalarWhereWithAggregatesInput | BScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    float?: FloatWithAggregatesFilter | number
-    dFloat?: FloatWithAggregatesFilter | number
+    id?: StringWithAggregatesFilter<"B"> | string
+    float?: FloatWithAggregatesFilter<"B"> | number
+    dFloat?: FloatWithAggregatesFilter<"B"> | number
   }
 
   export type CWhereInput = {
     AND?: CWhereInput | CWhereInput[]
     OR?: CWhereInput[]
     NOT?: CWhereInput | CWhereInput[]
-    id?: StringFilter | string
-    char?: StringFilter | string
-    vChar?: StringFilter | string
-    text?: StringFilter | string
-    bit?: StringFilter | string
-    vBit?: StringFilter | string
-    uuid?: StringFilter | string
+    id?: StringFilter<"C"> | string
+    char?: StringFilter<"C"> | string
+    vChar?: StringFilter<"C"> | string
+    text?: StringFilter<"C"> | string
+    bit?: StringFilter<"C"> | string
+    vBit?: StringFilter<"C"> | string
+    uuid?: StringFilter<"C"> | string
   }
 
   export type COrderByWithRelationInput = {
@@ -18559,26 +18981,26 @@ export namespace Prisma {
     AND?: CScalarWhereWithAggregatesInput | CScalarWhereWithAggregatesInput[]
     OR?: CScalarWhereWithAggregatesInput[]
     NOT?: CScalarWhereWithAggregatesInput | CScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    char?: StringWithAggregatesFilter | string
-    vChar?: StringWithAggregatesFilter | string
-    text?: StringWithAggregatesFilter | string
-    bit?: StringWithAggregatesFilter | string
-    vBit?: StringWithAggregatesFilter | string
-    uuid?: StringWithAggregatesFilter | string
+    id?: StringWithAggregatesFilter<"C"> | string
+    char?: StringWithAggregatesFilter<"C"> | string
+    vChar?: StringWithAggregatesFilter<"C"> | string
+    text?: StringWithAggregatesFilter<"C"> | string
+    bit?: StringWithAggregatesFilter<"C"> | string
+    vBit?: StringWithAggregatesFilter<"C"> | string
+    uuid?: StringWithAggregatesFilter<"C"> | string
   }
 
   export type DWhereInput = {
     AND?: DWhereInput | DWhereInput[]
     OR?: DWhereInput[]
     NOT?: DWhereInput | DWhereInput[]
-    id?: StringFilter | string
-    bool?: BoolFilter | boolean
-    byteA?: BytesFilter | Buffer
-    xml?: StringFilter | string
-    json?: JsonFilter
-    jsonb?: JsonFilter
-    list?: IntNullableListFilter
+    id?: StringFilter<"D"> | string
+    bool?: BoolFilter<"D"> | boolean
+    byteA?: BytesFilter<"D"> | Buffer
+    xml?: StringFilter<"D"> | string
+    json?: JsonFilter<"D">
+    jsonb?: JsonFilter<"D">
+    list?: IntNullableListFilter<"D">
   }
 
   export type DOrderByWithRelationInput = {
@@ -18614,23 +19036,23 @@ export namespace Prisma {
     AND?: DScalarWhereWithAggregatesInput | DScalarWhereWithAggregatesInput[]
     OR?: DScalarWhereWithAggregatesInput[]
     NOT?: DScalarWhereWithAggregatesInput | DScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    bool?: BoolWithAggregatesFilter | boolean
-    byteA?: BytesWithAggregatesFilter | Buffer
-    xml?: StringWithAggregatesFilter | string
-    json?: JsonWithAggregatesFilter
-    jsonb?: JsonWithAggregatesFilter
-    list?: IntNullableListFilter
+    id?: StringWithAggregatesFilter<"D"> | string
+    bool?: BoolWithAggregatesFilter<"D"> | boolean
+    byteA?: BytesWithAggregatesFilter<"D"> | Buffer
+    xml?: StringWithAggregatesFilter<"D"> | string
+    json?: JsonWithAggregatesFilter<"D">
+    jsonb?: JsonWithAggregatesFilter<"D">
+    list?: IntNullableListFilter<"D">
   }
 
   export type EWhereInput = {
     AND?: EWhereInput | EWhereInput[]
     OR?: EWhereInput[]
     NOT?: EWhereInput | EWhereInput[]
-    id?: StringFilter | string
-    date?: DateTimeFilter | Date | string
-    time?: DateTimeFilter | Date | string
-    ts?: DateTimeFilter | Date | string
+    id?: StringFilter<"E"> | string
+    date?: DateTimeFilter<"E"> | Date | string
+    time?: DateTimeFilter<"E"> | Date | string
+    ts?: DateTimeFilter<"E"> | Date | string
   }
 
   export type EOrderByWithRelationInput = {
@@ -18658,10 +19080,10 @@ export namespace Prisma {
     AND?: EScalarWhereWithAggregatesInput | EScalarWhereWithAggregatesInput[]
     OR?: EScalarWhereWithAggregatesInput[]
     NOT?: EScalarWhereWithAggregatesInput | EScalarWhereWithAggregatesInput[]
-    id?: StringWithAggregatesFilter | string
-    date?: DateTimeWithAggregatesFilter | Date | string
-    time?: DateTimeWithAggregatesFilter | Date | string
-    ts?: DateTimeWithAggregatesFilter | Date | string
+    id?: StringWithAggregatesFilter<"E"> | string
+    date?: DateTimeWithAggregatesFilter<"E"> | Date | string
+    time?: DateTimeWithAggregatesFilter<"E"> | Date | string
+    ts?: DateTimeWithAggregatesFilter<"E"> | Date | string
   }
 
   export type PostCreateInput = {
@@ -19875,51 +20297,51 @@ export namespace Prisma {
     ts?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
-  export type StringFilter = {
-    equals?: string
-    in?: string[]
-    notIn?: string[]
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
+  export type StringFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel>
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
-    not?: NestedStringFilter | string
+    not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type DateTimeFilter = {
-    equals?: Date | string
-    in?: Date[] | string[]
-    notIn?: Date[] | string[]
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeFilter | Date | string
+  export type DateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
-  export type StringNullableFilter = {
-    equals?: string | null
-    in?: string[] | null
-    notIn?: string[] | null
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
+  export type StringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
-    not?: NestedStringNullableFilter | string | null
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
     isSet?: boolean
   }
 
-  export type BoolFilter = {
-    equals?: boolean
-    not?: NestedBoolFilter | boolean
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type UserRelationFilter = {
@@ -19954,152 +20376,152 @@ export namespace Prisma {
     authorId?: SortOrder
   }
 
-  export type StringWithAggregatesFilter = {
-    equals?: string
-    in?: string[]
-    notIn?: string[]
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
+  export type StringWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel>
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
-    not?: NestedStringWithAggregatesFilter | string
-    _count?: NestedIntFilter
-    _min?: NestedStringFilter
-    _max?: NestedStringFilter
+    not?: NestedStringWithAggregatesFilter<$PrismaModel> | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedStringFilter<$PrismaModel>
+    _max?: NestedStringFilter<$PrismaModel>
   }
 
-  export type DateTimeWithAggregatesFilter = {
-    equals?: Date | string
-    in?: Date[] | string[]
-    notIn?: Date[] | string[]
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeWithAggregatesFilter | Date | string
-    _count?: NestedIntFilter
-    _min?: NestedDateTimeFilter
-    _max?: NestedDateTimeFilter
+  export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
-  export type StringNullableWithAggregatesFilter = {
-    equals?: string | null
-    in?: string[] | null
-    notIn?: string[] | null
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
+  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
-    not?: NestedStringNullableWithAggregatesFilter | string | null
-    _count?: NestedIntNullableFilter
-    _min?: NestedStringNullableFilter
-    _max?: NestedStringNullableFilter
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
     isSet?: boolean
   }
 
-  export type BoolWithAggregatesFilter = {
-    equals?: boolean
-    not?: NestedBoolWithAggregatesFilter | boolean
-    _count?: NestedIntFilter
-    _min?: NestedBoolFilter
-    _max?: NestedBoolFilter
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
-  export type IntFilter = {
-    equals?: number
-    in?: number[]
-    notIn?: number[]
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntFilter | number
+  export type IntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
   }
 
-  export type IntNullableFilter = {
-    equals?: number | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntNullableFilter | number | null
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
     isSet?: boolean
   }
 
-  export type FloatFilter = {
-    equals?: number
-    in?: number[]
-    notIn?: number[]
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedFloatFilter | number
+  export type FloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
   }
 
-  export type FloatNullableFilter = {
-    equals?: number | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedFloatNullableFilter | number | null
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
     isSet?: boolean
   }
-  export type JsonFilter = 
+  export type JsonFilter<$PrismaModel = never> = 
     | PatchUndefined<
-        Either<Required<JsonFilterBase>, Exclude<keyof Required<JsonFilterBase>, 'path'>>,
-        Required<JsonFilterBase>
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Omit<Required<JsonFilterBase>, 'path'>>
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
 
-  export type JsonFilterBase = {
-    equals?: InputJsonValue
-    not?: InputJsonValue
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
   }
-  export type JsonNullableFilter = 
+  export type JsonNullableFilter<$PrismaModel = never> = 
     | PatchUndefined<
-        Either<Required<JsonNullableFilterBase>, Exclude<keyof Required<JsonNullableFilterBase>, 'path'>>,
-        Required<JsonNullableFilterBase>
+        Either<Required<JsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Omit<Required<JsonNullableFilterBase>, 'path'>>
+    | OptionalFlat<Omit<Required<JsonNullableFilterBase<$PrismaModel>>, 'path'>>
 
-  export type JsonNullableFilterBase = {
-    equals?: InputJsonValue | null
-    not?: InputJsonValue | null
+  export type JsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     isSet?: boolean
   }
 
-  export type EnumABeautifulEnumFilter = {
-    equals?: ABeautifulEnum
-    in?: ABeautifulEnum[]
-    notIn?: ABeautifulEnum[]
-    not?: NestedEnumABeautifulEnumFilter | ABeautifulEnum
+  export type EnumABeautifulEnumFilter<$PrismaModel = never> = {
+    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    not?: NestedEnumABeautifulEnumFilter<$PrismaModel> | ABeautifulEnum
   }
 
-  export type EnumABeautifulEnumNullableFilter = {
-    equals?: ABeautifulEnum | null
-    in?: ABeautifulEnum[] | null
-    notIn?: ABeautifulEnum[] | null
-    not?: NestedEnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  export type EnumABeautifulEnumNullableFilter<$PrismaModel = never> = {
+    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel> | ABeautifulEnum | null
     isSet?: boolean
   }
 
-  export type BoolNullableFilter = {
-    equals?: boolean | null
-    not?: NestedBoolNullableFilter | boolean | null
+  export type BoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
     isSet?: boolean
   }
 
@@ -20182,128 +20604,128 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type IntWithAggregatesFilter = {
-    equals?: number
-    in?: number[]
-    notIn?: number[]
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntWithAggregatesFilter | number
-    _count?: NestedIntFilter
-    _avg?: NestedFloatFilter
-    _sum?: NestedIntFilter
-    _min?: NestedIntFilter
-    _max?: NestedIntFilter
+  export type IntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
 
-  export type IntNullableWithAggregatesFilter = {
-    equals?: number | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntNullableWithAggregatesFilter | number | null
-    _count?: NestedIntNullableFilter
-    _avg?: NestedFloatNullableFilter
-    _sum?: NestedIntNullableFilter
-    _min?: NestedIntNullableFilter
-    _max?: NestedIntNullableFilter
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
     isSet?: boolean
   }
 
-  export type FloatWithAggregatesFilter = {
-    equals?: number
-    in?: number[]
-    notIn?: number[]
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedFloatWithAggregatesFilter | number
-    _count?: NestedIntFilter
-    _avg?: NestedFloatFilter
-    _sum?: NestedFloatFilter
-    _min?: NestedFloatFilter
-    _max?: NestedFloatFilter
+  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
   }
 
-  export type FloatNullableWithAggregatesFilter = {
-    equals?: number | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedFloatNullableWithAggregatesFilter | number | null
-    _count?: NestedIntNullableFilter
-    _avg?: NestedFloatNullableFilter
-    _sum?: NestedFloatNullableFilter
-    _min?: NestedFloatNullableFilter
-    _max?: NestedFloatNullableFilter
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
     isSet?: boolean
   }
-  export type JsonWithAggregatesFilter = 
+  export type JsonWithAggregatesFilter<$PrismaModel = never> = 
     | PatchUndefined<
-        Either<Required<JsonWithAggregatesFilterBase>, Exclude<keyof Required<JsonWithAggregatesFilterBase>, 'path'>>,
-        Required<JsonWithAggregatesFilterBase>
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase>, 'path'>>
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
 
-  export type JsonWithAggregatesFilterBase = {
-    equals?: InputJsonValue
-    not?: InputJsonValue
-    _count?: NestedIntFilter
-    _min?: NestedJsonFilter
-    _max?: NestedJsonFilter
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
   }
-  export type JsonNullableWithAggregatesFilter = 
+  export type JsonNullableWithAggregatesFilter<$PrismaModel = never> = 
     | PatchUndefined<
-        Either<Required<JsonNullableWithAggregatesFilterBase>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase>, 'path'>>,
-        Required<JsonNullableWithAggregatesFilterBase>
+        Either<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase>, 'path'>>
+    | OptionalFlat<Omit<Required<JsonNullableWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
 
-  export type JsonNullableWithAggregatesFilterBase = {
-    equals?: InputJsonValue | null
-    not?: InputJsonValue | null
-    _count?: NestedIntNullableFilter
-    _min?: NestedJsonNullableFilter
-    _max?: NestedJsonNullableFilter
+  export type JsonNullableWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedJsonNullableFilter<$PrismaModel>
+    _max?: NestedJsonNullableFilter<$PrismaModel>
     isSet?: boolean
   }
 
-  export type EnumABeautifulEnumWithAggregatesFilter = {
-    equals?: ABeautifulEnum
-    in?: ABeautifulEnum[]
-    notIn?: ABeautifulEnum[]
-    not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    _count?: NestedIntFilter
-    _min?: NestedEnumABeautifulEnumFilter
-    _max?: NestedEnumABeautifulEnumFilter
+  export type EnumABeautifulEnumWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    not?: NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel> | ABeautifulEnum
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumABeautifulEnumFilter<$PrismaModel>
+    _max?: NestedEnumABeautifulEnumFilter<$PrismaModel>
   }
 
-  export type EnumABeautifulEnumNullableWithAggregatesFilter = {
-    equals?: ABeautifulEnum | null
-    in?: ABeautifulEnum[] | null
-    notIn?: ABeautifulEnum[] | null
-    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    _count?: NestedIntNullableFilter
-    _min?: NestedEnumABeautifulEnumNullableFilter
-    _max?: NestedEnumABeautifulEnumNullableFilter
+  export type EnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel> | ABeautifulEnum | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel>
+    _max?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel>
     isSet?: boolean
   }
 
-  export type BoolNullableWithAggregatesFilter = {
-    equals?: boolean | null
-    not?: NestedBoolNullableWithAggregatesFilter | boolean | null
-    _count?: NestedIntNullableFilter
-    _min?: NestedBoolNullableFilter
-    _max?: NestedBoolNullableFilter
+  export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBoolNullableFilter<$PrismaModel>
+    _max?: NestedBoolNullableFilter<$PrismaModel>
     isSet?: boolean
   }
 
@@ -20382,11 +20804,11 @@ export namespace Prisma {
     boolean?: SortOrder
   }
 
-  export type StringNullableListFilter = {
-    equals?: string[] | null
-    has?: string | null
-    hasEvery?: string[]
-    hasSome?: string[]
+  export type StringNullableListFilter<$PrismaModel = never> = {
+    equals?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    has?: string | StringFieldRefInput<$PrismaModel> | null
+    hasEvery?: string[] | ListStringFieldRefInput<$PrismaModel>
+    hasSome?: string[] | ListStringFieldRefInput<$PrismaModel>
     isEmpty?: boolean
   }
 
@@ -20791,15 +21213,15 @@ export namespace Prisma {
     optionalFloat?: SortOrder
   }
 
-  export type BigIntFilter = {
-    equals?: bigint | number
-    in?: bigint[] | number[]
-    notIn?: bigint[] | number[]
-    lt?: bigint | number
-    lte?: bigint | number
-    gt?: bigint | number
-    gte?: bigint | number
-    not?: NestedBigIntFilter | bigint | number
+  export type BigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
   export type ACountOrderByAggregateInput = {
@@ -20841,20 +21263,20 @@ export namespace Prisma {
     bInt?: SortOrder
   }
 
-  export type BigIntWithAggregatesFilter = {
-    equals?: bigint | number
-    in?: bigint[] | number[]
-    notIn?: bigint[] | number[]
-    lt?: bigint | number
-    lte?: bigint | number
-    gt?: bigint | number
-    gte?: bigint | number
-    not?: NestedBigIntWithAggregatesFilter | bigint | number
-    _count?: NestedIntFilter
-    _avg?: NestedFloatFilter
-    _sum?: NestedBigIntFilter
-    _min?: NestedBigIntFilter
-    _max?: NestedBigIntFilter
+  export type BigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedBigIntFilter<$PrismaModel>
+    _min?: NestedBigIntFilter<$PrismaModel>
+    _max?: NestedBigIntFilter<$PrismaModel>
   }
 
   export type BCountOrderByAggregateInput = {
@@ -20915,18 +21337,18 @@ export namespace Prisma {
     uuid?: SortOrder
   }
 
-  export type BytesFilter = {
-    equals?: Buffer
-    in?: Buffer[]
-    notIn?: Buffer[]
-    not?: NestedBytesFilter | Buffer
+  export type BytesFilter<$PrismaModel = never> = {
+    equals?: Buffer | BytesFieldRefInput<$PrismaModel>
+    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesFilter<$PrismaModel> | Buffer
   }
 
-  export type IntNullableListFilter = {
-    equals?: number[] | null
-    has?: number | null
-    hasEvery?: number[]
-    hasSome?: number[]
+  export type IntNullableListFilter<$PrismaModel = never> = {
+    equals?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    has?: number | IntFieldRefInput<$PrismaModel> | null
+    hasEvery?: number[] | ListIntFieldRefInput<$PrismaModel>
+    hasSome?: number[] | ListIntFieldRefInput<$PrismaModel>
     isEmpty?: boolean
   }
 
@@ -20962,14 +21384,14 @@ export namespace Prisma {
     list?: SortOrder
   }
 
-  export type BytesWithAggregatesFilter = {
-    equals?: Buffer
-    in?: Buffer[]
-    notIn?: Buffer[]
-    not?: NestedBytesWithAggregatesFilter | Buffer
-    _count?: NestedIntFilter
-    _min?: NestedBytesFilter
-    _max?: NestedBytesFilter
+  export type BytesWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Buffer | BytesFieldRefInput<$PrismaModel>
+    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Buffer
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBytesFilter<$PrismaModel>
+    _max?: NestedBytesFilter<$PrismaModel>
   }
 
   export type ECountOrderByAggregateInput = {
@@ -21430,291 +21852,291 @@ export namespace Prisma {
     push?: number | number[]
   }
 
-  export type NestedStringFilter = {
-    equals?: string
-    in?: string[]
-    notIn?: string[]
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
-    not?: NestedStringFilter | string
+  export type NestedStringFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel>
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringFilter<$PrismaModel> | string
   }
 
-  export type NestedDateTimeFilter = {
-    equals?: Date | string
-    in?: Date[] | string[]
-    notIn?: Date[] | string[]
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeFilter | Date | string
+  export type NestedDateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
   }
 
-  export type NestedStringNullableFilter = {
-    equals?: string | null
-    in?: string[] | null
-    notIn?: string[] | null
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
-    not?: NestedStringNullableFilter | string | null
+  export type NestedStringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
     isSet?: boolean
   }
 
-  export type NestedBoolFilter = {
-    equals?: boolean
-    not?: NestedBoolFilter | boolean
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
-  export type NestedStringWithAggregatesFilter = {
-    equals?: string
-    in?: string[]
-    notIn?: string[]
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
-    not?: NestedStringWithAggregatesFilter | string
-    _count?: NestedIntFilter
-    _min?: NestedStringFilter
-    _max?: NestedStringFilter
+  export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel>
+    in?: string[] | ListStringFieldRefInput<$PrismaModel>
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel>
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringWithAggregatesFilter<$PrismaModel> | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedStringFilter<$PrismaModel>
+    _max?: NestedStringFilter<$PrismaModel>
   }
 
-  export type NestedIntFilter = {
-    equals?: number
-    in?: number[]
-    notIn?: number[]
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntFilter | number
+  export type NestedIntFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntFilter<$PrismaModel> | number
   }
 
-  export type NestedDateTimeWithAggregatesFilter = {
-    equals?: Date | string
-    in?: Date[] | string[]
-    notIn?: Date[] | string[]
-    lt?: Date | string
-    lte?: Date | string
-    gt?: Date | string
-    gte?: Date | string
-    not?: NestedDateTimeWithAggregatesFilter | Date | string
-    _count?: NestedIntFilter
-    _min?: NestedDateTimeFilter
-    _max?: NestedDateTimeFilter
+  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
-  export type NestedStringNullableWithAggregatesFilter = {
-    equals?: string | null
-    in?: string[] | null
-    notIn?: string[] | null
-    lt?: string
-    lte?: string
-    gt?: string
-    gte?: string
-    contains?: string
-    startsWith?: string
-    endsWith?: string
-    not?: NestedStringNullableWithAggregatesFilter | string | null
-    _count?: NestedIntNullableFilter
-    _min?: NestedStringNullableFilter
-    _max?: NestedStringNullableFilter
+  export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
     isSet?: boolean
   }
 
-  export type NestedIntNullableFilter = {
-    equals?: number | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntNullableFilter | number | null
+  export type NestedIntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
     isSet?: boolean
   }
 
-  export type NestedBoolWithAggregatesFilter = {
-    equals?: boolean
-    not?: NestedBoolWithAggregatesFilter | boolean
-    _count?: NestedIntFilter
-    _min?: NestedBoolFilter
-    _max?: NestedBoolFilter
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
-  export type NestedFloatFilter = {
-    equals?: number
-    in?: number[]
-    notIn?: number[]
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedFloatFilter | number
+  export type NestedFloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
   }
 
-  export type NestedFloatNullableFilter = {
-    equals?: number | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedFloatNullableFilter | number | null
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
     isSet?: boolean
   }
 
-  export type NestedEnumABeautifulEnumFilter = {
-    equals?: ABeautifulEnum
-    in?: ABeautifulEnum[]
-    notIn?: ABeautifulEnum[]
-    not?: NestedEnumABeautifulEnumFilter | ABeautifulEnum
+  export type NestedEnumABeautifulEnumFilter<$PrismaModel = never> = {
+    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    not?: NestedEnumABeautifulEnumFilter<$PrismaModel> | ABeautifulEnum
   }
 
-  export type NestedEnumABeautifulEnumNullableFilter = {
-    equals?: ABeautifulEnum | null
-    in?: ABeautifulEnum[] | null
-    notIn?: ABeautifulEnum[] | null
-    not?: NestedEnumABeautifulEnumNullableFilter | ABeautifulEnum | null
+  export type NestedEnumABeautifulEnumNullableFilter<$PrismaModel = never> = {
+    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel> | ABeautifulEnum | null
     isSet?: boolean
   }
 
-  export type NestedBoolNullableFilter = {
-    equals?: boolean | null
-    not?: NestedBoolNullableFilter | boolean | null
+  export type NestedBoolNullableFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
     isSet?: boolean
   }
 
-  export type NestedIntWithAggregatesFilter = {
-    equals?: number
-    in?: number[]
-    notIn?: number[]
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntWithAggregatesFilter | number
-    _count?: NestedIntFilter
-    _avg?: NestedFloatFilter
-    _sum?: NestedIntFilter
-    _min?: NestedIntFilter
-    _max?: NestedIntFilter
+  export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel>
+    in?: number[] | ListIntFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel>
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedIntFilter<$PrismaModel>
+    _min?: NestedIntFilter<$PrismaModel>
+    _max?: NestedIntFilter<$PrismaModel>
   }
 
-  export type NestedIntNullableWithAggregatesFilter = {
-    equals?: number | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedIntNullableWithAggregatesFilter | number | null
-    _count?: NestedIntNullableFilter
-    _avg?: NestedFloatNullableFilter
-    _sum?: NestedIntNullableFilter
-    _min?: NestedIntNullableFilter
-    _max?: NestedIntNullableFilter
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
     isSet?: boolean
   }
 
-  export type NestedFloatWithAggregatesFilter = {
-    equals?: number
-    in?: number[]
-    notIn?: number[]
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedFloatWithAggregatesFilter | number
-    _count?: NestedIntFilter
-    _avg?: NestedFloatFilter
-    _sum?: NestedFloatFilter
-    _min?: NestedFloatFilter
-    _max?: NestedFloatFilter
+  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
   }
 
-  export type NestedFloatNullableWithAggregatesFilter = {
-    equals?: number | null
-    in?: number[] | null
-    notIn?: number[] | null
-    lt?: number
-    lte?: number
-    gt?: number
-    gte?: number
-    not?: NestedFloatNullableWithAggregatesFilter | number | null
-    _count?: NestedIntNullableFilter
-    _avg?: NestedFloatNullableFilter
-    _sum?: NestedFloatNullableFilter
-    _min?: NestedFloatNullableFilter
-    _max?: NestedFloatNullableFilter
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
     isSet?: boolean
   }
-  export type NestedJsonFilter = 
+  export type NestedJsonFilter<$PrismaModel = never> = 
     | PatchUndefined<
-        Either<Required<NestedJsonFilterBase>, Exclude<keyof Required<NestedJsonFilterBase>, 'path'>>,
-        Required<NestedJsonFilterBase>
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Omit<Required<NestedJsonFilterBase>, 'path'>>
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
 
-  export type NestedJsonFilterBase = {
-    equals?: InputJsonValue
-    not?: InputJsonValue
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
   }
-  export type NestedJsonNullableFilter = 
+  export type NestedJsonNullableFilter<$PrismaModel = never> = 
     | PatchUndefined<
-        Either<Required<NestedJsonNullableFilterBase>, Exclude<keyof Required<NestedJsonNullableFilterBase>, 'path'>>,
-        Required<NestedJsonNullableFilterBase>
+        Either<Required<NestedJsonNullableFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonNullableFilterBase<$PrismaModel>>
       >
-    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase>, 'path'>>
+    | OptionalFlat<Omit<Required<NestedJsonNullableFilterBase<$PrismaModel>>, 'path'>>
 
-  export type NestedJsonNullableFilterBase = {
-    equals?: InputJsonValue | null
-    not?: InputJsonValue | null
+  export type NestedJsonNullableFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
     isSet?: boolean
   }
 
-  export type NestedEnumABeautifulEnumWithAggregatesFilter = {
-    equals?: ABeautifulEnum
-    in?: ABeautifulEnum[]
-    notIn?: ABeautifulEnum[]
-    not?: NestedEnumABeautifulEnumWithAggregatesFilter | ABeautifulEnum
-    _count?: NestedIntFilter
-    _min?: NestedEnumABeautifulEnumFilter
-    _max?: NestedEnumABeautifulEnumFilter
+  export type NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    not?: NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel> | ABeautifulEnum
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumABeautifulEnumFilter<$PrismaModel>
+    _max?: NestedEnumABeautifulEnumFilter<$PrismaModel>
   }
 
-  export type NestedEnumABeautifulEnumNullableWithAggregatesFilter = {
-    equals?: ABeautifulEnum | null
-    in?: ABeautifulEnum[] | null
-    notIn?: ABeautifulEnum[] | null
-    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter | ABeautifulEnum | null
-    _count?: NestedIntNullableFilter
-    _min?: NestedEnumABeautifulEnumNullableFilter
-    _max?: NestedEnumABeautifulEnumNullableFilter
+  export type NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel> | ABeautifulEnum | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel>
+    _max?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel>
     isSet?: boolean
   }
 
-  export type NestedBoolNullableWithAggregatesFilter = {
-    equals?: boolean | null
-    not?: NestedBoolNullableWithAggregatesFilter | boolean | null
-    _count?: NestedIntNullableFilter
-    _min?: NestedBoolNullableFilter
-    _max?: NestedBoolNullableFilter
+  export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
+    not?: NestedBoolNullableWithAggregatesFilter<$PrismaModel> | boolean | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedBoolNullableFilter<$PrismaModel>
+    _max?: NestedBoolNullableFilter<$PrismaModel>
     isSet?: boolean
   }
 
@@ -21722,12 +22144,12 @@ export namespace Prisma {
     AND?: EmbedWhereInput | EmbedWhereInput[]
     OR?: EmbedWhereInput[]
     NOT?: EmbedWhereInput | EmbedWhereInput[]
-    text?: StringFilter | string
-    boolean?: BoolFilter | boolean
+    text?: StringFilter<"Embed"> | string
+    boolean?: BoolFilter<"Embed"> | boolean
     embedEmbedList?: EmbedEmbedCompositeListFilter | EmbedEmbedObjectEqualityInput[]
     requiredEmbedEmbed?: XOR<EmbedEmbedCompositeFilter, EmbedEmbedObjectEqualityInput>
     optionalEmbedEmbed?: XOR<EmbedEmbedNullableCompositeFilter, EmbedEmbedObjectEqualityInput> | null
-    scalarList?: IntNullableListFilter
+    scalarList?: IntNullableListFilter<"Embed">
   }
 
   export type EmbedEmbedObjectEqualityInput = {
@@ -21744,48 +22166,48 @@ export namespace Prisma {
     boolean?: SortOrder
   }
 
-  export type NestedBigIntFilter = {
-    equals?: bigint | number
-    in?: bigint[] | number[]
-    notIn?: bigint[] | number[]
-    lt?: bigint | number
-    lte?: bigint | number
-    gt?: bigint | number
-    gte?: bigint | number
-    not?: NestedBigIntFilter | bigint | number
+  export type NestedBigIntFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntFilter<$PrismaModel> | bigint | number
   }
 
-  export type NestedBigIntWithAggregatesFilter = {
-    equals?: bigint | number
-    in?: bigint[] | number[]
-    notIn?: bigint[] | number[]
-    lt?: bigint | number
-    lte?: bigint | number
-    gt?: bigint | number
-    gte?: bigint | number
-    not?: NestedBigIntWithAggregatesFilter | bigint | number
-    _count?: NestedIntFilter
-    _avg?: NestedFloatFilter
-    _sum?: NestedBigIntFilter
-    _min?: NestedBigIntFilter
-    _max?: NestedBigIntFilter
+  export type NestedBigIntWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    in?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    notIn?: bigint[] | number[] | ListBigIntFieldRefInput<$PrismaModel>
+    lt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    lte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gt?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    gte?: bigint | number | BigIntFieldRefInput<$PrismaModel>
+    not?: NestedBigIntWithAggregatesFilter<$PrismaModel> | bigint | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedBigIntFilter<$PrismaModel>
+    _min?: NestedBigIntFilter<$PrismaModel>
+    _max?: NestedBigIntFilter<$PrismaModel>
   }
 
-  export type NestedBytesFilter = {
-    equals?: Buffer
-    in?: Buffer[]
-    notIn?: Buffer[]
-    not?: NestedBytesFilter | Buffer
+  export type NestedBytesFilter<$PrismaModel = never> = {
+    equals?: Buffer | BytesFieldRefInput<$PrismaModel>
+    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesFilter<$PrismaModel> | Buffer
   }
 
-  export type NestedBytesWithAggregatesFilter = {
-    equals?: Buffer
-    in?: Buffer[]
-    notIn?: Buffer[]
-    not?: NestedBytesWithAggregatesFilter | Buffer
-    _count?: NestedIntFilter
-    _min?: NestedBytesFilter
-    _max?: NestedBytesFilter
+  export type NestedBytesWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Buffer | BytesFieldRefInput<$PrismaModel>
+    in?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
+    notIn?: Buffer[] | ListBytesFieldRefInput<$PrismaModel>
+    not?: NestedBytesWithAggregatesFilter<$PrismaModel> | Buffer
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBytesFilter<$PrismaModel>
+    _max?: NestedBytesFilter<$PrismaModel>
   }
 
   export type UserCreateWithoutPostsInput = {
@@ -21938,12 +22360,12 @@ export namespace Prisma {
     AND?: PostScalarWhereInput | PostScalarWhereInput[]
     OR?: PostScalarWhereInput[]
     NOT?: PostScalarWhereInput | PostScalarWhereInput[]
-    id?: StringFilter | string
-    createdAt?: DateTimeFilter | Date | string
-    title?: StringFilter | string
-    content?: StringNullableFilter | string | null
-    published?: BoolFilter | boolean
-    authorId?: StringFilter | string
+    id?: StringFilter<"Post"> | string
+    createdAt?: DateTimeFilter<"Post"> | Date | string
+    title?: StringFilter<"Post"> | string
+    content?: StringNullableFilter<"Post"> | string | null
+    published?: BoolFilter<"Post"> | boolean
+    authorId?: StringFilter<"Post"> | string
   }
 
   export type EmbedHolderUpsertWithoutUserInput = {
@@ -22066,21 +22488,21 @@ export namespace Prisma {
     AND?: UserScalarWhereInput | UserScalarWhereInput[]
     OR?: UserScalarWhereInput[]
     NOT?: UserScalarWhereInput | UserScalarWhereInput[]
-    id?: StringFilter | string
-    email?: StringFilter | string
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
-    embedHolderId?: StringFilter | string
+    id?: StringFilter<"User"> | string
+    email?: StringFilter<"User"> | string
+    int?: IntFilter<"User"> | number
+    optionalInt?: IntNullableFilter<"User"> | number | null
+    float?: FloatFilter<"User"> | number
+    optionalFloat?: FloatNullableFilter<"User"> | number | null
+    string?: StringFilter<"User"> | string
+    optionalString?: StringNullableFilter<"User"> | string | null
+    json?: JsonFilter<"User">
+    optionalJson?: JsonNullableFilter<"User">
+    enum?: EnumABeautifulEnumFilter<"User"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"User"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"User"> | boolean
+    optionalBoolean?: BoolNullableFilter<"User"> | boolean | null
+    embedHolderId?: StringFilter<"User"> | string
   }
 
   export type NCreateWithoutMInput = {
@@ -22141,20 +22563,20 @@ export namespace Prisma {
     AND?: NScalarWhereInput | NScalarWhereInput[]
     OR?: NScalarWhereInput[]
     NOT?: NScalarWhereInput | NScalarWhereInput[]
-    id?: StringFilter | string
-    m_ids?: StringNullableListFilter
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    id?: StringFilter<"N"> | string
+    m_ids?: StringNullableListFilter<"N">
+    int?: IntFilter<"N"> | number
+    optionalInt?: IntNullableFilter<"N"> | number | null
+    float?: FloatFilter<"N"> | number
+    optionalFloat?: FloatNullableFilter<"N"> | number | null
+    string?: StringFilter<"N"> | string
+    optionalString?: StringNullableFilter<"N"> | string | null
+    json?: JsonFilter<"N">
+    optionalJson?: JsonNullableFilter<"N">
+    enum?: EnumABeautifulEnumFilter<"N"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"N"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"N"> | boolean
+    optionalBoolean?: BoolNullableFilter<"N"> | boolean | null
   }
 
   export type MCreateWithoutNInput = {
@@ -22215,20 +22637,20 @@ export namespace Prisma {
     AND?: MScalarWhereInput | MScalarWhereInput[]
     OR?: MScalarWhereInput[]
     NOT?: MScalarWhereInput | MScalarWhereInput[]
-    id?: StringFilter | string
-    n_ids?: StringNullableListFilter
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    id?: StringFilter<"M"> | string
+    n_ids?: StringNullableListFilter<"M">
+    int?: IntFilter<"M"> | number
+    optionalInt?: IntNullableFilter<"M"> | number | null
+    float?: FloatFilter<"M"> | number
+    optionalFloat?: FloatNullableFilter<"M"> | number | null
+    string?: StringFilter<"M"> | string
+    optionalString?: StringNullableFilter<"M"> | string | null
+    json?: JsonFilter<"M">
+    optionalJson?: JsonNullableFilter<"M">
+    enum?: EnumABeautifulEnumFilter<"M"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"M"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"M"> | boolean
+    optionalBoolean?: BoolNullableFilter<"M"> | boolean | null
   }
 
   export type ManyRequiredCreateWithoutOneInput = {
@@ -22292,20 +22714,20 @@ export namespace Prisma {
     AND?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[]
     OR?: ManyRequiredScalarWhereInput[]
     NOT?: ManyRequiredScalarWhereInput | ManyRequiredScalarWhereInput[]
-    id?: StringFilter | string
-    oneOptionalId?: StringNullableFilter | string | null
-    int?: IntFilter | number
-    optionalInt?: IntNullableFilter | number | null
-    float?: FloatFilter | number
-    optionalFloat?: FloatNullableFilter | number | null
-    string?: StringFilter | string
-    optionalString?: StringNullableFilter | string | null
-    json?: JsonFilter
-    optionalJson?: JsonNullableFilter
-    enum?: EnumABeautifulEnumFilter | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter | ABeautifulEnum | null
-    boolean?: BoolFilter | boolean
-    optionalBoolean?: BoolNullableFilter | boolean | null
+    id?: StringFilter<"ManyRequired"> | string
+    oneOptionalId?: StringNullableFilter<"ManyRequired"> | string | null
+    int?: IntFilter<"ManyRequired"> | number
+    optionalInt?: IntNullableFilter<"ManyRequired"> | number | null
+    float?: FloatFilter<"ManyRequired"> | number
+    optionalFloat?: FloatNullableFilter<"ManyRequired"> | number | null
+    string?: StringFilter<"ManyRequired"> | string
+    optionalString?: StringNullableFilter<"ManyRequired"> | string | null
+    json?: JsonFilter<"ManyRequired">
+    optionalJson?: JsonNullableFilter<"ManyRequired">
+    enum?: EnumABeautifulEnumFilter<"ManyRequired"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"ManyRequired"> | boolean
+    optionalBoolean?: BoolNullableFilter<"ManyRequired"> | boolean | null
   }
 
   export type OneOptionalCreateWithoutManyInput = {
@@ -22824,8 +23246,8 @@ export namespace Prisma {
     AND?: EmbedEmbedWhereInput | EmbedEmbedWhereInput[]
     OR?: EmbedEmbedWhereInput[]
     NOT?: EmbedEmbedWhereInput | EmbedEmbedWhereInput[]
-    text?: StringFilter | string
-    boolean?: BoolFilter | boolean
+    text?: StringFilter<"EmbedEmbed"> | string
+    boolean?: BoolFilter<"EmbedEmbed"> | boolean
   }
 
   export type EmbedEmbedUpdateManyInput = {
