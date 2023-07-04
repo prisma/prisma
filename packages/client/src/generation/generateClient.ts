@@ -529,9 +529,19 @@ type CopyRuntimeOptions = {
 }
 
 async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
-  const files = ['index.d.ts', 'index-browser.js', 'index-browser.d.ts']
+  const files = [
+    // library.d.ts is always included, because
+    // it contains the actual runtime type definitions. Rest of
+    // the `runtime.d.ts` files just re-export everything from `library.d.ts`
+    'library.d.ts',
+    'index-browser.js',
+    'index-browser.d.ts',
+  ]
 
-  files.push(`${runtimeName}.js`, `${runtimeName}.d.ts`)
+  files.push(`${runtimeName}.js`)
+  if (runtimeName !== 'library') {
+    files.push(`${runtimeName}.d.ts`)
+  }
 
   if (runtimeName === 'data-proxy') {
     files.push('edge.js', 'edge-esm.js')

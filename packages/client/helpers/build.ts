@@ -11,18 +11,15 @@ const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
-function nodeRuntimeBuildConfig(
-  targetEngineType: 'binary' | 'library' | 'data-proxy' | 'all',
-  outFileName: string = targetEngineType,
-): BuildOptions {
+function nodeRuntimeBuildConfig(targetEngineType: 'binary' | 'library' | 'data-proxy'): BuildOptions {
   return {
     name: targetEngineType,
     entryPoints: ['src/runtime/index.ts'],
-    outfile: `runtime/${outFileName}`,
+    outfile: `runtime/${targetEngineType}`,
     bundle: true,
     minify: true,
     sourcemap: 'linked',
-    emitTypes: targetEngineType === 'all',
+    emitTypes: targetEngineType === 'library',
     define: {
       NODE_CLIENT: 'true',
       TARGET_ENGINE_TYPE: JSON.stringify(targetEngineType),
@@ -97,13 +94,11 @@ const generatorBuildConfig: BuildOptions = {
 }
 
 function writeDtsRexport(fileName: string) {
-  fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./index"\n')
+  fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
 
 void build([
   generatorBuildConfig,
-  // Exists for backward compatibility. Could be removed in next major
-  nodeRuntimeBuildConfig('all', 'index'),
   nodeRuntimeBuildConfig('binary'),
   nodeRuntimeBuildConfig('library'),
   nodeRuntimeBuildConfig('data-proxy'),
@@ -112,6 +107,5 @@ void build([
   edgeEsmRuntimeBuildConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
-  writeDtsRexport('library.d.ts')
   writeDtsRexport('data-proxy.d.ts')
 })
