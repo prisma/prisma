@@ -57,7 +57,7 @@ test('runtime files exists', async () => {
   "edge.js",
   "index-browser.d.ts",
   "index-browser.js",
-  "index.d.ts",
+  "library.d.ts",
 ]
 `)
 })
