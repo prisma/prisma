@@ -1,8 +1,9 @@
 import Debug from '@prisma/debug'
 import fs from 'fs'
-import { bold, green } from 'kleur/colors'
+import { bold, dim, green, yellow } from 'kleur/colors'
 import path from 'path'
 
+import { longestCommonPathPrefix } from '../../../utils/path'
 import { findPrismaClientDir } from './auto-installation/findPrismaClientDir'
 import { getPackageCmd } from './auto-installation/getPackageCmd'
 import { runPackageCmd } from './auto-installation/runPackageCmd'
@@ -30,27 +31,30 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
   await checkTypeScriptVersion()
 
   if (!prismaClientDir && !process.env.PRISMA_GENERATE_SKIP_AUTOINSTALL) {
-    // TODO: should this be relative to `baseDir` rather than `process.cwd()`?
-    if (
-      !fs.existsSync(path.join(process.cwd(), 'package.json')) &&
-      !fs.existsSync(path.join(process.cwd(), '../package.json'))
-    ) {
-      // Create default package.json
-      const defaultPackageJson = `{
-"name": "my-prisma-project",
-"version": "1.0.0",
-"description": "",
-"main": "index.js",
-"scripts": {
-  "test": "echo \\"Error: no test specified\\" && exit 1"
-},
-"keywords": [],
-"author": "",
-"license": "ISC"
-}
-`
-      fs.writeFileSync(path.join(process.cwd(), 'package.json'), defaultPackageJson)
-      console.info(`✔ Created ${bold(green('./package.json'))}`)
+    let projectRoot = longestCommonPathPrefix(baseDir, process.cwd())
+    debug('projectRoot', projectRoot)
+
+    const warningTag = `${bold('Warning:')} ${dim('[Prisma auto-install on generate]')}`
+
+    if (projectRoot === undefined) {
+      console.warn(
+        yellow(
+          `${warningTag} The Prisma schema directory ${bold(baseDir)} and the current working directory ${bold(
+            process.cwd(),
+          )} have no common ancestor. The Prisma schema directory will be used as the project root.`,
+        ),
+      )
+      projectRoot = baseDir
+    }
+
+    if (!fs.existsSync(path.join(projectRoot, 'package.json'))) {
+      console.warn(
+        yellow(
+          `${warningTag} Prisma could not find a ${bold('package.json')} file in the inferred project root ${bold(
+            projectRoot,
+          )}. During the next step, when an auto-install of Prisma package(s) will be attempted, it will then be created by your package manager on the appropriate level if necessary.`,
+        ),
+      )
     }
 
     const prismaCliDir = await resolvePkg('prisma', { basedir: baseDir })
@@ -74,10 +78,10 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
     }
 
     if (!prismaCliDir) {
-      await runPackageCmd(baseDir, 'add', `prisma@${version ?? 'latest'}`, '-D')
+      await runPackageCmd(projectRoot, 'add', `prisma@${version ?? 'latest'}`, '-D')
     }
 
-    await runPackageCmd(baseDir, 'add', `@prisma/client@${version ?? 'latest'}`)
+    await runPackageCmd(projectRoot, 'add', `@prisma/client@${version ?? 'latest'}`)
 
     // resolvePkg has caching, so we trick it not to do it 👇
     prismaClientDir = await findPrismaClientDir(path.join('.', baseDir))
