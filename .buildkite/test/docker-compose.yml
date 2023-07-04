@@ -57,6 +57,9 @@ services:
       # To hide "Update available 0.0.0 -> x.x.x"
       - PRISMA_HIDE_UPDATE_MESSAGE="true"
       - SKIP_ECOSYSTEMTESTS_CHECK
+      # TODO find why we need NODE_OPTIONS for Buildkite (we need it since Node v16)
+      # This is to avoid OOM errors like "FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory"
+      - NODE_OPTIONS="--max-old-space-size=8096"
     depends_on:
       - postgres
       - postgres_isolated
