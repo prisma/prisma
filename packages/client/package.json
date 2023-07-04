@@ -153,7 +153,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.17.0-18.43aefb4a29db88d246ea74e047e05571b65aa86f"
+    "@prisma/engines-version": "4.17.0-20.cockroachdb-with-postgres-provider-5a3e8f5928a8bade7ddb9c9b73edcd011fc4bc4c"
   },
   "sideEffects": false
 }

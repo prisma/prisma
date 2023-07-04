@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "4.17.0-18.43aefb4a29db88d246ea74e047e05571b65aa86f",
+    "@prisma/engines-version": "4.17.0-20.cockroachdb-with-postgres-provider-5a3e8f5928a8bade7ddb9c9b73edcd011fc4bc4c",
     "@swc/core": "1.3.64",
     "@swc/jest": "0.2.26",
     "@types/jest": "29.5.2",
