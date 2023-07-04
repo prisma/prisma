@@ -70,8 +70,8 @@ type DynamicQueryExtensionCbArgs<TypeMap extends TypeMapDef, _0 extends Property
       args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>,
       model: _0 extends 0 ? undefined : _1,
       operation: _2,
-      query: (args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>) =>
-      PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
+      query: <A extends DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>>(args: A) =>
+        PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
     } : never : never
   ) & { // but we don't distribute for query so that the input types stay union
     query: (args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>) =>
