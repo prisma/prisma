@@ -1,6 +1,5 @@
 import Debug from '@prisma/debug'
 import { assertNodeAPISupported, getNodeAPIName, getos, getPlatform, Platform, platforms } from '@prisma/get-platform'
-import { vercelPkgPathRegex } from '@prisma/internals'
 import execa from 'execa'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
@@ -25,6 +24,9 @@ const debug = Debug('prisma:download')
 const exists = promisify(fs.exists)
 
 const channel = 'master'
+
+// matches `/snapshot/` or `C:\\snapshot\\` or `C:/snapshot/` for vercel's pkg apps
+export const vercelPkgPathRegex = /^((\w:[\\\/])|\/)snapshot[\/\\]/
 
 export type BinaryDownloadConfiguration = {
   [binary in BinaryType]?: string // that is a path to the binary download location
