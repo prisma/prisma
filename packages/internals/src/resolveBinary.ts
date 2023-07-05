@@ -25,11 +25,8 @@ async function getBinaryName(name: BinaryType): Promise<string> {
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
   // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
   if (proposedPath && !proposedPath.match(vercelPkgPathRegex) && fs.existsSync(proposedPath)) {
-    console.log(`resolveBinary: Using ${name} at proposedPath ${proposedPath}`)
     return proposedPath
   }
-
-  console.log('resolveBinary: Proposed path not found, searching for', name)
 
   // If engine path was provided via env var, check and use that one
   const pathFromEnvVar = getBinaryEnvVarPath(name)
@@ -42,28 +39,24 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
 
   const prismaPath = path.join(getEnginesPath(), binaryName)
   if (fs.existsSync(prismaPath)) {
-    console.log(`resolveBinary: 1. Found ${name} at ${prismaPath}`)
     return maybeCopyToTmp(prismaPath)
   }
 
   // for pkg (related: https://github.com/vercel/pkg#snapshot-filesystem)
   const prismaPath2 = path.join(__dirname, '..', binaryName)
   if (fs.existsSync(prismaPath2)) {
-    console.log(`resolveBinary: 2. Found ${name} at ${prismaPath}`)
     return maybeCopyToTmp(prismaPath2)
   }
 
   // TODO for ??
   const prismaPath3 = path.join(__dirname, '../..', binaryName)
   if (fs.existsSync(prismaPath3)) {
-    console.log(`resolveBinary: 3. Found ${name} at ${prismaPath}`)
     return maybeCopyToTmp(prismaPath3)
   }
 
   // TODO for ?? / needed to come from @prisma/client/generator-build to @prisma/client/runtime
   const prismaPath4 = path.join(__dirname, '../runtime', binaryName)
   if (fs.existsSync(prismaPath4)) {
-    console.log(`resolveBinary: 4. Found ${name} at ${prismaPath}`)
     return maybeCopyToTmp(prismaPath4)
   }
 
@@ -88,7 +81,6 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   const dir = eval('__dirname')
 
   if (dir.match(vercelPkgPathRegex)) {
-    console.log('maybeCopyToTpm: Vercel pkg detected')
     // In this case, we are in a "pkg" context with a simulated fs.
     // We can't execute a binary from here because it's not a real
     // file system but rather something implemented on JavaScript
@@ -107,8 +99,6 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     chmodPlusX(target)
     return target
   }
-
-  console.log('maybeCopyToTpm: Vercel pkg NOT detected')
 
   return file
 }
