@@ -6,7 +6,7 @@ prisma                  : 0.0.0
 Current platform        : TEST_PLATFORM
 Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node)
 Schema Engine           : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM)
-Format Wasm             : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
+Schema Wasm             : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash    : ENGINE_VERSION
 Studio                  : STUDIO_VERSION
 `;
@@ -17,7 +17,7 @@ prisma                : 0.0.0
 Current platform      : TEST_PLATFORM
 Query Engine (Binary) : query-engine ENGINE_VERSION (at sanitized_path/query-engine-TEST_PLATFORM)
 Schema Engine         : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM)
-Format Wasm           : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
+Schema Wasm           : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash  : ENGINE_VERSION
 Studio                : STUDIO_VERSION
 `;
@@ -28,7 +28,7 @@ prisma                  : 0.0.0
 Current platform        : TEST_PLATFORM
 Query Engine (Node-API) : libquery-engine ENGINE_VERSION (at sanitized_path/libquery_engine-TEST_PLATFORM.LIBRARY_TYPE.node, resolved by PRISMA_QUERY_ENGINE_LIBRARY)
 Schema Engine           : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM, resolved by PRISMA_SCHEMA_ENGINE_BINARY)
-Format Wasm             : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
+Schema Wasm             : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash    : ENGINE_VERSION
 Studio                  : STUDIO_VERSION
 `;
@@ -39,7 +39,7 @@ prisma                : 0.0.0
 Current platform      : TEST_PLATFORM
 Query Engine (Binary) : query-engine ENGINE_VERSION (at sanitized_path/query-engine-TEST_PLATFORM, resolved by PRISMA_QUERY_ENGINE_BINARY)
 Schema Engine         : schema-engine-cli ENGINE_VERSION (at sanitized_path/schema-engine-TEST_PLATFORM, resolved by PRISMA_SCHEMA_ENGINE_BINARY)
-Format Wasm           : @prisma/prisma-fmt-wasm CLI_VERSION.ENGINE_VERSION
+Schema Wasm           : @prisma/prisma-schema-wasm CLI_VERSION.ENGINE_VERSION
 Default Engines Hash  : ENGINE_VERSION
 Studio                : STUDIO_VERSION
 `;

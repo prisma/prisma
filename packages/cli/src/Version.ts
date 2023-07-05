@@ -91,7 +91,7 @@ export class Version implements Command {
       ['Current platform', platform],
 
       ...enginesRows,
-      ['Format Wasm', `@prisma/prisma-fmt-wasm ${wasm.prismaFmtVersion}`],
+      ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaVersion}`],
 
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
