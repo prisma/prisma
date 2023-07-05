@@ -232,10 +232,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
-      // TODO: hook into the process
-      throw new NotImplementedYetError('beforeExit event is not yet supported', {
-        clientVersion: this.clientVersion,
-      })
+      console.warn('prisma:warn "beforeExit" hook is not applicable to the remote query engine')
     } else {
       this.logEmitter.on(event, listener)
     }
