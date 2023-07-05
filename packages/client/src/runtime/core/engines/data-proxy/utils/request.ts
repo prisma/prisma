@@ -126,7 +126,11 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
       }
 
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
-      response.on('end', () => resolve(buildResponse(incomingData, response)))
+      response.on('end', () => {
+        console.log('DATA PROXY incomingData: ', incomingData)
+        console.log('DATA PROXY Buffer.concat(incomingData).toString(): ', Buffer.concat(incomingData).toString())
+        return resolve(buildResponse(incomingData, response))
+      })
       response.on('error', reject)
     })
 
