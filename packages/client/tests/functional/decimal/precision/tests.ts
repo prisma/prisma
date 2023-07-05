@@ -44,6 +44,8 @@ testMatrix.setupTestSuite(
       'decimals should not lose precision when written to db',
       [decimalArbitrary(Number(precision), Number(scale))],
       async (decimalString) => {
+        if (process.env.TEST_GENERATE_ONLY === 'true') return
+
         const result = await prisma.testModel.create({
           data: {
             decimal: new Prisma.Decimal(decimalString),

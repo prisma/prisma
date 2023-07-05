@@ -260,7 +260,6 @@ List of directories in the monorepo
 - cli
 - client
 - debug
-- engine-core
 - engines
 - fetch-engine
 - generator-helper

@@ -6,9 +6,6 @@ const path = require('path')
 const c = require('./colors')
 
 const exec = promisify(childProcess.exec)
-const copyFile = promisify(fs.copyFile)
-const mkdir = promisify(fs.mkdir)
-const stat = promisify(fs.stat)
 
 function debug(message, ...optionalParams) {
   if (process.env.DEBUG && process.env.DEBUG === 'prisma:postinstall') {
@@ -215,27 +212,27 @@ async function createDefaultGeneratedThrowFiles() {
     await makeDir(defaultDenoClientDir)
 
     if (!fs.existsSync(defaultNodeIndexPath)) {
-      await copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
+      await fs.promises.copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
     }
 
     if (!fs.existsSync(defaultBrowserIndexPath)) {
-      await copyFile(path.join(__dirname, 'default-index-browser.js'), defaultBrowserIndexPath)
+      await fs.promises.copyFile(path.join(__dirname, 'default-index-browser.js'), defaultBrowserIndexPath)
     }
 
     if (!fs.existsSync(defaultNodeIndexDtsPath)) {
-      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultNodeIndexDtsPath)
+      await fs.promises.copyFile(path.join(__dirname, 'default-index.d.ts'), defaultNodeIndexDtsPath)
     }
 
     if (!fs.existsSync(defaultEdgeIndexPath)) {
-      await copyFile(path.join(__dirname, 'default-edge.js'), defaultEdgeIndexPath)
+      await fs.promises.copyFile(path.join(__dirname, 'default-edge.js'), defaultEdgeIndexPath)
     }
 
     if (!fs.existsSync(defaultEdgeIndexDtsPath)) {
-      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultEdgeIndexDtsPath)
+      await fs.promises.copyFile(path.join(__dirname, 'default-index.d.ts'), defaultEdgeIndexDtsPath)
     }
 
     if (!fs.existsSync(defaultDenoEdgeIndexPath)) {
-      await copyFile(path.join(__dirname, 'default-deno-edge.ts'), defaultDenoEdgeIndexPath)
+      await fs.promises.copyFile(path.join(__dirname, 'default-deno-edge.ts'), defaultDenoEdgeIndexPath)
     }
   } catch (e) {
     console.error(e)
@@ -246,7 +243,7 @@ async function createDefaultGeneratedThrowFiles() {
 function makeDir(input) {
   const make = async (pth) => {
     try {
-      await mkdir(pth)
+      await fs.promises.mkdir(pth)
 
       return pth
     } catch (error) {
@@ -269,7 +266,7 @@ function makeDir(input) {
       }
 
       try {
-        const stats = await stat(pth)
+        const stats = await fs.promises.stat(pth)
         if (!stats.isDirectory()) {
           throw new Error('The path is not a directory')
         }

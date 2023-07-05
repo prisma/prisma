@@ -1,5 +1,5 @@
 import { Writer } from './Writer'
 
-export interface BasicBuilder {
-  write(writer: Writer): void
+export interface BasicBuilder<ContextType = undefined> {
+  write(writer: Writer<ContextType>): void
 }

@@ -72,7 +72,7 @@ services:
 
   postgres:
     image: postgres:10
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
@@ -82,7 +82,7 @@ services:
 
   postgres_isolated:
     image: postgres:10
-    restart: always
+    restart: unless-stopped
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
@@ -92,7 +92,7 @@ services:
 
   cockroachdb:
     image: prismagraphql/cockroachdb-custom:22.1.0
-    restart: always
+    restart: unless-stopped
     command: start-single-node --insecure
     ports:
       - '26257:26257'
@@ -100,7 +100,7 @@ services:
   mysql:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -111,7 +111,7 @@ services:
   mysql_isolated:
     image: mysql:8.0
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -122,7 +122,7 @@ services:
 
   vitess-8:
     image: vitess/vttestserver:mysql80@sha256:9412e3d51bde38e09c3039090b5c68808e299579f12c79178a4ec316f7831889
-    restart: always
+    restart: unless-stopped
     ports:
       - 33807:33807
     environment:
@@ -136,7 +136,7 @@ services:
 
   mariadb:
     image: mariadb:10.7.3
-    restart: always
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
@@ -147,7 +147,7 @@ services:
 
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
-    restart: always
+    restart: unless-stopped
     environment:
       - ACCEPT_EULA=Y
       - SA_PASSWORD=Pr1sm4_Pr1sm4
@@ -156,7 +156,7 @@ services:
 
   mongodb_migrate:
     image: mongo:4
-    restart: always
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: prisma

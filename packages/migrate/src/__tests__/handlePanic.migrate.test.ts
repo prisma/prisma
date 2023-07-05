@@ -1,13 +1,12 @@
-import { ErrorArea, handlePanic, isCi, RustPanic } from '@prisma/internals'
+import { handlePanic, isCi, RustPanic } from '@prisma/internals'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
-import { dirname, join, resolve } from 'path'
+import { dirname, join } from 'path'
 import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import dedent from 'strip-indent'
 import tempy from 'tempy'
-import { promisify } from 'util'
 
 import { Migrate } from '../Migrate'
 import CaptureStdout from './__helpers__/captureStdout'
@@ -26,7 +25,6 @@ const sendKeystrokes = async (io) => {
 // helper function for timing
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms)) // Mock stdin so we can send messages to the CLI
 
-const writeFile = promisify(fs.writeFile)
 const testRootDir = tempy.directory()
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
@@ -41,7 +39,7 @@ async function writeFiles(
   for (const name in files) {
     const filepath = join(root, name)
     await ensureDir(dirname(filepath))
-    await writeFile(filepath, dedent(files[name]))
+    await fs.promises.writeFile(filepath, dedent(files[name]))
   }
   // return the test path
   return root
@@ -74,7 +72,7 @@ describe('handlePanic migrate', () => {
   const command = 'something-test'
 
   it('test interactive engine panic', async () => {
-    process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
+    process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
     const captureStdout = new CaptureStdout()
     const files = {
       'schema.prisma': `
@@ -126,11 +124,8 @@ describe('handlePanic migrate', () => {
     // We use prompts.inject() for testing in our CI
     if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
       expect(error).toMatchInlineSnapshot(`
-        Error in migration engine.
+        Error in Schema engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
-
-        Please create an issue with your \`schema.prisma\` at
-        https://github.com/prisma/prisma/issues/new
 
       `)
     } else {
@@ -141,7 +136,7 @@ describe('handlePanic migrate', () => {
   })
 
   it('engine panic no interactive mode in CI', async () => {
-    process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
+    process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
 
     const files = {
       'schema.prisma': `

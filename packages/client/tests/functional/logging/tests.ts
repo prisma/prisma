@@ -7,7 +7,7 @@ import type { Prisma, PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
-testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite((suiteConfig) => {
   let client: PrismaClient<Prisma.PrismaClientOptions, 'query'>
 
   test('should log queries on a method call', async () => {
@@ -73,7 +73,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.numeric()
+      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
       await tx.user.create({
         data: {
@@ -136,7 +136,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.numeric()
+      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
       await Promise.all([
         tx.user.findMany({
@@ -197,7 +197,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
       })
     })
 
-    const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.numeric()
+    const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
     const q1 = client.user.findMany({
       where: {

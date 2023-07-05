@@ -1,21 +1,22 @@
-import Debug from '@prisma/debug'
+// import Debug from '@prisma/debug'
 
-import { MigrateEngine } from '../MigrateEngine'
+// import { SchemaEngine } from '../SchemaEngine'
 
-const debug = Debug('prisma:cli')
+// const debug = Debug('prisma:cli')
 
 /**
  * Retrieve the database version from the given schema or url.
  * This function never throws, and was introduced to prevent circular dependencies in `@prisma/internals`.
  */
 export function getDatabaseVersionSafe(schemaOrUrl: string): Promise<string | undefined> {
+  void schemaOrUrl
   return Promise.resolve(undefined)
   // TODO: uncomment once https://github.com/prisma/prisma-private/issues/203 is closed.
 
-  // let engine: MigrateEngine | undefined
+  // let engine: SchemaEngine | undefined
   // let dbVersion: string | undefined
   // try {
-  //   engine = new MigrateEngine({
+  //   engine = new SchemaEngine({
   //     projectDir: process.cwd(),
   //   })
   //   dbVersion = await engine.getDatabaseVersion({ schema: schemaOrUrl })

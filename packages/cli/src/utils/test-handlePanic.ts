@@ -1,5 +1,5 @@
 import { handlePanic } from '@prisma/internals'
-import { MigrateEngine } from '@prisma/migrate'
+import { SchemaEngine } from '@prisma/migrate'
 import fs from 'fs'
 import path from 'path'
 
@@ -16,7 +16,7 @@ async function main() {
     const schemaPath = path.join(dirPath, 'schema.prisma')
     const schema = fs.readFileSync(schemaPath, 'utf-8')
 
-    const engine = new MigrateEngine({
+    const engine = new SchemaEngine({
       projectDir: dirPath,
     })
 

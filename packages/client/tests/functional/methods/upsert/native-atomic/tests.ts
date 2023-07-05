@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
-import { getQueryEngineProtocol } from '@prisma/internals'
 
 import { NewPrismaClient } from '../../../_utils/types'
 import testMatrix from './_matrix'
@@ -66,9 +65,9 @@ testMatrix.setupTestSuite(
     })
 
     test('should only use ON CONFLICT when update arguments do not have any nested queries', async () => {
-      const name = faker.name.firstName()
-      const title = faker.name.jobTitle()
-      const title2 = faker.name.jobTitle()
+      const name = faker.person.firstName()
+      const title = faker.person.jobTitle()
+      const title2 = faker.person.jobTitle()
 
       await client.user.create({
         data: {
@@ -188,34 +187,15 @@ testMatrix.setupTestSuite(
       expect(checker.usedNative()).toBeTruthy()
     })
 
-    testIf(getQueryEngineProtocol() !== 'json')(
-      'should only use ON CONFLICT when there is only 1 unique field in the where clause',
-      async () => {
-        const name = faker.name.firstName()
+    test('should only use ON CONFLICT when there is only 1 unique field in the where clause', async () => {
+      const name = faker.person.firstName()
 
-        await expect(() =>
-          // This will fail
-          client.user.upsert({
-            where: {
-              // Because two unique fields are used
-              id: '1',
-              name,
-            },
-            create: {
-              name,
-            },
-            update: {
-              name,
-            },
-          }),
-        ).rejects.toThrow('Argument where of type UserWhereUniqueInput needs exactly one argument')
-
-        const checker = new UpsertChecker(client)
-
-        // This 'will' use ON CONFLICT
-        await client.user.upsert({
+      await expect(() =>
+        // This will fail
+        client.user.upsert({
           where: {
-            // Because only one unique field is used
+            // Because two unique fields are used
+            id: '1',
             name,
           },
           create: {
@@ -224,14 +204,30 @@ testMatrix.setupTestSuite(
           update: {
             name,
           },
-        })
+        }),
+      ).rejects.toThrow('needs exactly one argument')
 
-        expect(checker.usedNative()).toBeTruthy()
-      },
-    )
+      const checker = new UpsertChecker(client)
+
+      // This 'will' use ON CONFLICT
+      await client.user.upsert({
+        where: {
+          // Because only one unique field is used
+          name,
+        },
+        create: {
+          name,
+        },
+        update: {
+          name,
+        },
+      })
+
+      expect(checker.usedNative()).toBeTruthy()
+    })
 
     test('should only use ON CONFLICT when the unique field defined in where clause has the same value as defined in the create arguments', async () => {
-      const name = faker.name.firstName()
+      const name = faker.person.firstName()
 
       const checker = new UpsertChecker(client)
 
@@ -269,7 +265,7 @@ testMatrix.setupTestSuite(
     })
 
     test('should perform an upsert using ON CONFLICT', async () => {
-      const name = faker.name.firstName()
+      const name = faker.person.firstName()
 
       const checker = new UpsertChecker(client)
 
@@ -306,7 +302,7 @@ testMatrix.setupTestSuite(
     })
 
     test('should perform an upsert using ON CONFLICT with id', async () => {
-      const name = faker.name.firstName()
+      const name = faker.person.firstName()
 
       const checker = new UpsertChecker(client)
 

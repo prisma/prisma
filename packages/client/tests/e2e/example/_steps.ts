@@ -11,8 +11,8 @@ void executeSteps({
   test: async () => {
     await $`pnpm exec prisma -v`
     await $`ts-node src/index.ts`
+    await $`pnpm exec tsc --noEmit`
     await $`pnpm exec jest`
-    await $`pnpm exec tsc`
   },
   finish: async () => {
     await $`echo "done"`

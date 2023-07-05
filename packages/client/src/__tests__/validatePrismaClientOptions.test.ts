@@ -64,7 +64,7 @@ describe('invalid options', () => {
         ['db'],
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      Unknown datasource asd provided to PrismaClient constructor.Available datasources: db
+      Unknown datasource asd provided to PrismaClient constructor. Available datasources: db
       Read more at https://pris.ly/d/client-constructor
     `)
     expect(() =>

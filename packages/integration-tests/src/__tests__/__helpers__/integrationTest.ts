@@ -1,4 +1,4 @@
-import { MigrateEngine } from '@prisma/migrate'
+import { SchemaEngine } from '@prisma/migrate'
 import slugify from '@sindresorhus/slugify'
 import fs from 'fs-jetpack'
 import type { FSJetpack } from 'fs-jetpack/types'
@@ -136,16 +136,16 @@ type Settings = {
 }
 
 /**
- * A list of available preview features on the Prisma client.
+ * A list of available preview features on Prisma Client.
  */
 type PreviewFeature = ''
 
 /**
- * Settings to add properties on the Prisma client.
+ * Settings to add properties on Prisma Client.
  */
 type PrismaClientSettings = {
   /**
-   *  Supply the enabled preview features for the Prisma client.
+   *  Supply the enabled preview features for Prisma Client.
    */
   previewFeatures?: PreviewFeature[]
 }
@@ -301,7 +301,7 @@ async function setupScenario(kind: string, input: Input, scenario: Scenario) {
     ${datasourceBlock}
   `
 
-  const engine = new MigrateEngine({
+  const engine = new SchemaEngine({
     projectDir: process.cwd(),
   })
   const introspectionResult = await engine.introspect({ schema: schemaBase })

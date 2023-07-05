@@ -150,12 +150,8 @@ export const jestProcessContext: ContextContributorFactory<{}, BaseContext, Proc
   const ctx = c as BaseContext & ProcessContext
 
   beforeEach(() => {
-    ctx.mocked['process.stderr.write'] = jest
-      .spyOn(process.stderr, 'write')
-      .mockImplementation((message: string | Uint8Array) => true)
-    ctx.mocked['process.stdout.write'] = jest
-      .spyOn(process.stdout, 'write')
-      .mockImplementation((message: string | Uint8Array) => true)
+    ctx.mocked['process.stderr.write'] = jest.spyOn(process.stderr, 'write').mockImplementation(() => true)
+    ctx.mocked['process.stdout.write'] = jest.spyOn(process.stdout, 'write').mockImplementation(() => true)
   })
 
   afterEach(() => {

@@ -1,4 +1,4 @@
-import { $, cd, ProcessPromise } from 'zx'
+import { $, cd } from 'zx'
 
 import { executeSteps } from '../../_utils/executeSteps'
 import { testServerComponents } from '../_shared/test'

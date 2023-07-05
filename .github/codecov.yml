@@ -17,10 +17,6 @@ flags:
     carryforward: true
     paths:
       - packages/debug/
-  engine-core:
-    carryforward: true
-    paths:
-      - packages/engine-core/
   generator-helper:
     carryforward: true
     paths:

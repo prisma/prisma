@@ -1,14 +1,14 @@
 import Debug from '@prisma/debug'
 import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
-import chalk from 'chalk'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
+import { blue, bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
-import { prismaFmt } from '../wasm'
+import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
 
@@ -39,7 +39,7 @@ ${errorCodeMessage}
 ${message}`
       })
       .with({ _tag: 'unparsed' }, ({ message, reason }) => {
-        const detailsHeader = chalk.red.bold('Details:')
+        const detailsHeader = red(bold('Details:'))
         return `${reason}
 ${detailsHeader} ${message}`
       })
@@ -48,6 +48,7 @@ ${detailsHeader} ${message}`
 [Context: getDmmf]`
 
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
+    this.name = 'GetDmmfError'
   }
 }
 
@@ -55,7 +56,7 @@ ${detailsHeader} ${message}`
  * Wasm'd version of `getDMMF`.
  */
 export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
-  // TODO: substitute this warning with `prismaFmt.lint()`.
+  // TODO: substitute this warning with `prismaSchemaWasm.lint()`.
   // See https://github.com/prisma/prisma/issues/16538
   warnOnDeprecatedFeatureFlag(options.previewFeatures)
 
@@ -87,14 +88,14 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
           () => {
             if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF) {
               debug('Triggering a Rust panic...')
-              prismaFmt.debug_panic()
+              prismaSchemaWasm.debug_panic()
             }
 
             const params = JSON.stringify({
               prismaSchema: datamodel,
               noColor: Boolean(process.env.NO_COLOR),
             })
-            const data = prismaFmt.get_dmmf(params)
+            const data = prismaSchemaWasm.get_dmmf(params)
             return data
           },
           (e) =>
@@ -153,7 +154,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
         const panic = new RustPanic(
           /* message */ message,
           /* rustStack */ stack,
-          /* request */ '@prisma/prisma-fmt-wasm get_dmmf',
+          /* request */ '@prisma/prisma-schema-wasm get_dmmf',
           ErrorArea.FMT_CLI,
           /* schemaPath */ options.prismaPath,
           /* schema */ options.datamodel,
@@ -177,12 +178,10 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
 }
 
 // See also removedFlags at
-// https://github.com/prisma/prisma/blob/main/packages/engine-core/src/binary/BinaryEngine.ts#L174
+// https://github.com/prisma/prisma/blob/main/packages/client/src/runtime/core/engine/BinaryEngine.ts
 function warnOnDeprecatedFeatureFlag(previewFeatures?: string[]) {
   const getMessage = (flag: string) =>
-    `${chalk.blueBright(
-      'info',
-    )} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`
+    `${blue(bold('info'))} The preview flag "${flag}" is not needed anymore, please remove it from your schema.prisma`
 
   const removedFeatureFlagMap = {
     insensitiveFilters: getMessage('insensitiveFilters'),

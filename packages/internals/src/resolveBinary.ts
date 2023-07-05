@@ -1,6 +1,5 @@
-import { plusX } from '@prisma/engine-core'
 import { getEnginesPath } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { BinaryType, engineEnvVarMap, getBinaryEnvVarPath } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
@@ -8,21 +7,20 @@ import { copyFile, ensureDir } from 'fs-extra'
 import path from 'path'
 import tempDir from 'temp-dir'
 
+import { chmodPlusX } from './utils/chmodPlusX'
+
+export { BinaryType, engineEnvVarMap }
+
 async function getBinaryName(name: BinaryType): Promise<string> {
   const platform = await getPlatform()
   const extension = platform === 'windows' ? '.exe' : ''
 
-  if (name === BinaryType.libqueryEngine) {
+  if (name === BinaryType.QueryEngineLibrary) {
     return getNodeAPIName(platform, 'fs')
   }
   return `${name}-${platform}${extension}`
 }
-export const engineEnvVarMap = {
-  [BinaryType.queryEngine]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [BinaryType.libqueryEngine]: 'PRISMA_QUERY_ENGINE_LIBRARY',
-  [BinaryType.migrationEngine]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-}
-export { BinaryType }
+
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
   // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
   if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
@@ -30,12 +28,9 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
   }
 
   // If engine path was provided via env var, check and use that one
-  const envVar = engineEnvVarMap[name]
-  if (process.env[envVar]) {
-    if (!fs.existsSync(process.env[envVar]!)) {
-      throw new Error(`Env var ${envVar} is provided, but provided path ${process.env[envVar]} can't be resolved.`)
-    }
-    return process.env[envVar]!
+  const pathFromEnvVar = getBinaryEnvVarPath(name)
+  if (pathFromEnvVar !== null) {
+    return pathFromEnvVar.path
   }
 
   // If still here, try different paths
@@ -85,18 +80,18 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   const dir = eval('__dirname')
 
   if (dir.startsWith('/snapshot/')) {
-    // in this case, we are in a "pkg" context with a virtual fs
-    // to make this work, we need to copy the binary to /tmp and execute it from there
-    // TODO Why is this needed? What happens if you do not do it?
-    // TODO Probably to be able to make the file executable?
-    // TODO Go and Python Client (which use pkg) actually provide the binaries _outside_ of the CLI via env vars - so never and up here
+    // In this case, we are in a "pkg" context with a simulated fs.
+    // We can't execute a binary from here because it's not a real
+    // file system but rather something implemented on JavaScript
+    // side, and the operating system cannot work with it, so we have
+    // to copy the binary to /tmp and execute it from there.
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
 
     await copyFile(file, target)
 
-    plusX(target)
+    chmodPlusX(target)
     return target
   }
 

@@ -18,6 +18,38 @@ describe('seed', () => {
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 
+  it('seed.js with -- extra args should succeed', async () => {
+    ctx.fixture('seed-sqlite-js-extra-args')
+
+    const result = DbSeed.new().parse([
+      '--',
+      '--my-custom-arg-from-cli-1',
+      'my-value',
+      '--my-custom-arg-from-cli-2=my-value',
+      '-z',
+    ])
+    await expect(result).resolves.toContain(`The seed command has been executed.`)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
+      `Running seed command \`node prisma/seed.js --my-custom-arg-from-config-1 my-value --my-custom-arg-from-config-2=my-value -y --my-custom-arg-from-cli-1 my-value --my-custom-arg-from-cli-2=my-value -z\` ...`,
+    )
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
+  it('seed.js with extra args but missing -- should throw with specific message', async () => {
+    ctx.fixture('seed-sqlite-js-extra-args')
+
+    const result = DbSeed.new().parse(['--my-custom-arg-from-cli=my-value', '-z'])
+    await expect(result).rejects.toMatchInlineSnapshot(`
+      unknown or unexpected option: --my-custom-arg-from-cli
+      Did you mean to pass these as arguments to your seed script? If so, add a -- separator before them:
+      $ prisma db seed -- --arg1 value1 --arg2 value2
+    `)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+
   it('one broken seed.js file', async () => {
     const mockExit = jest.spyOn(process, 'exit').mockImplementation((number) => {
       throw new Error('process.exit: ' + number)
@@ -149,36 +181,6 @@ https://pris.ly/d/seeding
 `)
 
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  })
-
-  it('deprecation of --preview-feature flag', async () => {
-    ctx.fixture('seed-sqlite-js')
-
-    const result = DbSeed.new().parse(['--preview-feature'])
-    await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Running seed command \`node prisma/seed.js\` ...`,
-    )
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(`
-      prisma:warn Prisma "db seed" was in Preview and is now Generally Available.
-      You can now remove the --preview-feature flag.
-    `)
-    expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-  })
-
-  // legacy flag should warn
-  it('using --schema should warn', async () => {
-    ctx.fixture('seed-sqlite-js')
-
-    const result = DbSeed.new().parse(['--schema=./some-folder/schema.prisma'])
-    await expect(result).resolves.toContain(`The seed command has been executed.`)
-    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `Running seed command \`node prisma/seed.js\` ...`,
-    )
-    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(
-      `prisma:warn The "--schema" parameter is not used anymore by "prisma db seed" since version 3.0 and can now be removed.`,
-    )
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 

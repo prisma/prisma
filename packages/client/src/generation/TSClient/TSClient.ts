@@ -1,19 +1,19 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths, getQueryEngineProtocol } from '@prisma/internals'
+import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
+import ciInfo from 'ci-info'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
 
-import { DMMFHelper } from '../../runtime/dmmf'
-import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { DMMFHelper } from '../dmmf'
+import type { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
-import { buildDMMF } from '../utils/buildDMMF'
-import { buildEdgeClientProtocol } from '../utils/buildEdgeClientProtocol'
+import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasource } from '../utils/buildInlineDatasources'
 import { buildInlineSchema } from '../utils/buildInlineSchema'
@@ -47,6 +47,7 @@ export interface TSClientOptions {
   activeProvider: string
   dataProxy: boolean
   deno?: boolean
+  postinstall?: boolean
 }
 
 export class TSClient implements Generatable {
@@ -74,12 +75,11 @@ export class TSClient implements Generatable {
       dataProxy,
       deno,
     } = this.options
-    const engineProtocol = getQueryEngineProtocol(generator)
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
-      rootEnvPath: envPaths.rootEnvPath && path.relative(outputDir, envPaths.rootEnvPath),
-      schemaEnvPath: envPaths.schemaEnvPath && path.relative(outputDir, envPaths.schemaEnvPath),
+      rootEnvPath: envPaths.rootEnvPath && pathToPosix(path.relative(outputDir, envPaths.rootEnvPath)),
+      schemaEnvPath: envPaths.schemaEnvPath && pathToPosix(path.relative(outputDir, envPaths.schemaEnvPath)),
     }
 
     // This ensures that any engine override is propagated to the generated clients config
@@ -88,16 +88,18 @@ export class TSClient implements Generatable {
       generator.config.engineType = engineType
     }
 
-    const config: Omit<GetPrismaClientConfig, 'document' | 'dirname'> = {
+    const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
       sqliteDatasourceOverrides,
-      relativePath: path.relative(outputDir, path.dirname(schemaPath)),
+      relativePath: pathToPosix(path.relative(outputDir, path.dirname(schemaPath))),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
       dataProxy: this.options.dataProxy,
+      postinstall: this.options.postinstall,
+      ciName: ciInfo.name ?? undefined,
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -106,14 +108,10 @@ export class TSClient implements Generatable {
 
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(edge)}
-${buildDirname(edge, relativeOutdir, runtimeDir)}
 
 /**
  * Enums
  */
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-function makeEnum(x) { return x; }
 
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
@@ -125,19 +123,17 @@ ${new Enum(
   },
   true,
 ).toJS()}
-${buildDMMF(dataProxy && engineProtocol === 'graphql', this.options.document)}
-
 /**
  * Create the Client
  */
 const config = ${JSON.stringify(config, null, 2)}
-config.dirname = dirname
-config.document = dmmf
+${buildDirname(edge, relativeOutdir)}
+${buildRuntimeDataModel(this.dmmf.datamodel)}
+
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
-${buildEdgeClientProtocol(edge, generator)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
@@ -195,9 +191,6 @@ ${
  * Enums
  */
 
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-
 ${modelEnums.join('\n\n')}
 `
     : ''
@@ -234,9 +227,6 @@ ${modelAndTypes.map((model) => model.toTS()).join('\n')}
 /**
  * Enums
  */
-
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
 
 ${prismaEnums.join('\n\n')}
 ${
@@ -308,9 +298,6 @@ export const dmmf: runtime.BaseDMMF
 /**
  * Enums
  */
-// Based on
-// https://github.com/microsoft/TypeScript/issues/3192#issuecomment-261720275
-function makeEnum(x) { return x; }
 
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}

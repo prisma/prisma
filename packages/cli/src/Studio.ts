@@ -1,11 +1,14 @@
+import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { StudioServer } from '@prisma/studio-server'
-import chalk from 'chalk'
 import getPort from 'get-port'
+import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
 import path from 'path'
+
+const debug = Debug('prisma:studio')
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -19,11 +22,11 @@ export class Studio implements Command {
   private static help = format(`
 Browse your data with Prisma Studio
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma studio [options]
+  ${dim('$')} prisma studio [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help        Display this help message
   -p, --port        Port to start Studio on
@@ -31,24 +34,24 @@ ${chalk.bold('Options')}
   -n, --hostname    Hostname to bind the Express server to
   --schema          Custom path to your Prisma schema
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   Start Studio on the default port
-    ${chalk.dim('$')} prisma studio
+    ${dim('$')} prisma studio
 
   Start Studio on a custom port
-    ${chalk.dim('$')} prisma studio --port 5555
+    ${dim('$')} prisma studio --port 5555
 
   Start Studio in a specific browser
-    ${chalk.dim('$')} prisma studio --port 5555 --browser firefox
-    ${chalk.dim('$')} BROWSER=firefox prisma studio --port 5555
+    ${dim('$')} prisma studio --port 5555 --browser firefox
+    ${dim('$')} BROWSER=firefox prisma studio --port 5555
 
   Start Studio without opening in a browser
-    ${chalk.dim('$')} prisma studio --port 5555 --browser none
-    ${chalk.dim('$')} BROWSER=none prisma studio --port 5555
+    ${dim('$')} prisma studio --port 5555 --browser none
+    ${dim('$')} BROWSER=none prisma studio --port 5555
 
   Specify a schema
-    ${chalk.dim('$')} prisma studio --schema=./schema.prisma
+    ${dim('$')} prisma studio --schema=./schema.prisma
 `)
 
   /**
@@ -111,12 +114,24 @@ ${chalk.bold('Examples')}
     const serverUrl = `http://localhost:${port}`
     if (!browser || browser.toLowerCase() !== 'none') {
       try {
-        await open(serverUrl, {
+        const subprocess = await open(serverUrl, {
           app: browser,
           url: true,
         })
+
+        subprocess.on('spawn', () => {
+          // We match on this string in debug logs in tests
+          debug(`requested to open the url ${serverUrl}`)
+        })
+
+        subprocess.on('error', (e) => {
+          debug(e)
+          // We match on this string in debug logs in tests
+          debug(`failed to open the url ${serverUrl} in browser`)
+        })
       } catch (e) {
         // Ignore any errors that occur when trying to open the browser, since they should not halt the process
+        debug(e)
       }
     }
 
@@ -128,7 +143,7 @@ ${chalk.bold('Examples')}
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Studio.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Studio.help}`)
     }
 
     return Studio.help

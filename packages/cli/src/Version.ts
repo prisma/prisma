@@ -15,7 +15,7 @@ import {
   loadEnvFile,
   wasm,
 } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, dim, red } from 'kleur/colors'
 import { match, P } from 'ts-pattern'
 
 import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
@@ -33,12 +33,12 @@ export class Version implements Command {
   private static help = format(`
   Print current version of Prisma components
 
-  ${chalk.bold('Usage')}
+  ${bold('Usage')}
 
-    ${chalk.dim('$')} prisma -v [options]
-    ${chalk.dim('$')} prisma version [options]
+    ${dim('$')} prisma -v [options]
+    ${dim('$')} prisma version [options]
 
-  ${chalk.bold('Options')}
+  ${bold('Options')}
 
     -h, --help     Display this help message
         --json     Output JSON
@@ -73,12 +73,12 @@ export class Version implements Command {
       return match(engineMetaInfo)
         .with({ 'query-engine': P.select() }, (currEngineInfo) => {
           return [
-            `Query Engine${cliQueryEngineBinaryType === BinaryType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
+            `Query Engine${cliQueryEngineBinaryType === BinaryType.QueryEngineLibrary ? ' (Node-API)' : ' (Binary)'}`,
             currEngineInfo,
           ]
         })
-        .with({ 'migration-engine': P.select() }, (currEngineInfo) => {
-          return ['Migration Engine', currEngineInfo]
+        .with({ 'schema-engine': P.select() }, (currEngineInfo) => {
+          return ['Schema Engine', currEngineInfo]
         })
         .exhaustive()
     })
@@ -91,7 +91,7 @@ export class Version implements Command {
       ['Current platform', platform],
 
       ...enginesRows,
-      ['Format Wasm', `@prisma/prisma-fmt-wasm ${wasm.prismaFmtVersion}`],
+      ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaVersion}`],
 
       ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
@@ -139,7 +139,7 @@ export class Version implements Command {
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Version.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Version.help}`)
     }
 
     return Version.help

@@ -1,12 +1,13 @@
 import Debug from '@prisma/debug'
 import type { DataSource, EnvValue, GeneratorConfig } from '@prisma/generator-helper'
-import chalk from 'chalk'
+import { getPlatform } from '@prisma/get-platform'
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
+import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
-import { prismaFmt } from '../wasm'
+import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
 
@@ -37,7 +38,7 @@ ${errorCodeMessage}
 ${message}`
       })
       .with({ _tag: 'unparsed' }, ({ message, reason }) => {
-        const detailsHeader = chalk.red.bold('Details:')
+        const detailsHeader = red(bold('Details:'))
         return `${reason}
 ${detailsHeader} ${message}`
       })
@@ -47,6 +48,7 @@ ${detailsHeader} ${message}`
 [Context: getConfig]`
 
     super(addVersionDetailsToErrorMessage(errorMessageWithContext))
+    this.name = 'GetConfigError'
   }
 }
 
@@ -68,7 +70,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
       () => {
         if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
           debug('Triggering a Rust panic...')
-          prismaFmt.debug_panic()
+          prismaSchemaWasm.debug_panic()
         }
 
         const params = JSON.stringify({
@@ -78,7 +80,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           env: process.env,
         })
 
-        const data = prismaFmt.get_config(params)
+        const data = prismaSchemaWasm.get_config(params)
         return data
       },
       (e) => ({
@@ -104,6 +106,11 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
   if (E.isRight(configEither)) {
     debug('config data retrieved without errors in getConfig Wasm')
     const { right: data } = configEither
+
+    for (const generator of data.generators) {
+      await resolveBinaryTargets(generator)
+    }
+
     return Promise.resolve(data)
   }
 
@@ -123,7 +130,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
         const panic = new RustPanic(
           /* message */ message,
           /* rustStack */ stack,
-          /* request */ '@prisma/prisma-fmt-wasm get_config',
+          /* request */ '@prisma/prisma-schema-wasm get_config',
           ErrorArea.FMT_CLI,
           /* schemaPath */ options.prismaPath,
           /* schema */ options.datamodel,
@@ -140,4 +147,30 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
     })
 
   throw error
+}
+
+async function resolveBinaryTargets(generator: GeneratorConfig) {
+  for (const binaryTarget of generator.binaryTargets) {
+    // load the binaryTargets from the env var
+    if (binaryTarget.fromEnvVar && process.env[binaryTarget.fromEnvVar]) {
+      const value = JSON.parse(process.env[binaryTarget.fromEnvVar]!)
+
+      if (Array.isArray(value)) {
+        generator.binaryTargets = value.map((v) => ({ fromEnvVar: null, value: v }))
+        await resolveBinaryTargets(generator) // resolve again if we have native
+      } else {
+        binaryTarget.value = value
+      }
+    }
+
+    // resolve native to the current platform
+    if (binaryTarget.value === 'native') {
+      binaryTarget.value = await getPlatform()
+      binaryTarget.native = true
+    }
+  }
+
+  if (generator.binaryTargets.length === 0) {
+    generator.binaryTargets = [{ fromEnvVar: null, value: await getPlatform(), native: true }]
+  }
 }

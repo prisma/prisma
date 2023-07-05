@@ -13,17 +13,15 @@ import {
   loadEnvFile,
   validate,
 } from '@prisma/internals'
-import chalk from 'chalk'
 import fs from 'fs'
+import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
 import type { EngineResults } from '../types'
-import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
 import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
 import { MigrateDevEnvNonInteractiveError } from '../utils/errors'
-import { EarlyAccessFeatureFlagWithMigrateError, ExperimentalFlagWithMigrateError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { handleUnexecutableSteps } from '../utils/handleEvaluateDataloss'
 import { printDatasource } from '../utils/printDatasource'
@@ -41,14 +39,14 @@ export class MigrateDev implements Command {
 
   private static help = format(`
 ${
-  process.platform === 'win32' ? '' : chalk.bold('🏋️  ')
+  process.platform === 'win32' ? '' : '🏋️  '
 }Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
  
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate dev [options]
+  ${dim('$')} prisma migrate dev [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
        -h, --help   Display this help message
          --schema   Custom path to your Prisma schema
@@ -58,16 +56,16 @@ ${chalk.bold('Options')}
   --skip-generate   Skip triggering generators (e.g. Prisma Client)
       --skip-seed   Skip triggering seed
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   Create a migration from changes in Prisma schema, apply it to the database, trigger generators (e.g. Prisma Client)
-  ${chalk.dim('$')} prisma migrate dev
+  ${dim('$')} prisma migrate dev
 
   Specify a schema
-  ${chalk.dim('$')} prisma migrate dev --schema=./schema.prisma
+  ${dim('$')} prisma migrate dev --schema=./schema.prisma
 
   Create a migration without applying it
-  ${chalk.dim('$')} prisma migrate dev --create-only
+  ${dim('$')} prisma migrate dev --create-only
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -82,8 +80,6 @@ ${chalk.bold('Examples')}
       '--schema': String,
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
-      '--experimental': Boolean,
-      '--early-access-feature': Boolean,
       '--telemetry-information': String,
     })
 
@@ -97,14 +93,6 @@ ${chalk.bold('Examples')}
       return this.help()
     }
 
-    if (args['--experimental']) {
-      throw new ExperimentalFlagWithMigrateError()
-    }
-
-    if (args['--early-access-feature']) {
-      throw new EarlyAccessFeatureFlagWithMigrateError()
-    }
-
     loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'])
@@ -113,8 +101,6 @@ ${chalk.bold('Examples')}
     printDatasource({ datasourceInfo })
 
     console.info() // empty line
-
-    throwUpgradeErrorIfOldMigrate(schemaPath)
 
     // Validate schema (same as prisma validate)
     const schema = fs.readFileSync(schemaPath, 'utf-8')
@@ -185,10 +171,12 @@ ${chalk.bold('Examples')}
       if (appliedMigrationNames.length > 0) {
         console.info() // empty line
         console.info(
-          `The following migration(s) have been applied:\n\n${chalk(
-            printFilesFromMigrationIds('migrations', appliedMigrationNames, {
+          `The following migration(s) have been applied:\n\n${printFilesFromMigrationIds(
+            'migrations',
+            appliedMigrationNames,
+            {
               'migration.sql': '',
-            }),
+            },
           )}`,
         )
       }
@@ -219,9 +207,9 @@ ${chalk.bold('Examples')}
 
     // log warnings and prompt user to continue if needed
     if (evaluateDataLossResult.warnings && evaluateDataLossResult.warnings.length > 0) {
-      console.log(chalk.bold(`\n⚠️  Warnings for the current datasource:\n`))
+      console.log(bold(`\n⚠️  Warnings for the current datasource:\n`))
       for (const warning of evaluateDataLossResult.warnings) {
-        console.log(chalk(`  • ${warning.message}`))
+        console.log(`  • ${warning.message}`)
       }
       console.info() // empty line
 
@@ -278,9 +266,7 @@ ${chalk.bold('Examples')}
 
         return `Prisma Migrate created the following migration without applying it ${printMigrationId(
           createMigrationResult.generatedMigrationName!,
-        )}\n\nYou can now edit it and apply it by running ${chalk.greenBright(
-          getCommandWithExecutor('prisma migrate dev'),
-        )}.`
+        )}\n\nYou can now edit it and apply it by running ${green(getCommandWithExecutor('prisma migrate dev'))}.`
       }
 
       const { appliedMigrationNames } = await migrate.applyMigrations()
@@ -295,20 +281,22 @@ ${chalk.bold('Examples')}
 
     if (migrationIds.length === 0) {
       if (migrationIdsApplied.length > 0) {
-        console.info(`${chalk.green('Your database is now in sync with your schema.')}`)
+        console.info(`${green('Your database is now in sync with your schema.')}`)
       } else {
         console.info(`Already in sync, no schema change or pending migration was found.`)
       }
     } else {
       console.info() // empty line
       console.info(
-        `The following migration(s) have been created and applied from new schema changes:\n\n${chalk(
-          printFilesFromMigrationIds('migrations', migrationIds, {
+        `The following migration(s) have been created and applied from new schema changes:\n\n${printFilesFromMigrationIds(
+          'migrations',
+          migrationIds,
+          {
             'migration.sql': '',
-          }),
+          },
         )}
 
-${chalk.green('Your database is now in sync with your schema.')}`,
+${green('Your database is now in sync with your schema.')}`,
       )
     }
 
@@ -331,7 +319,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
 
         if (seedCommandFromPkgJson) {
           console.info() // empty line
-          const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+          const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson })
           if (successfulSeeding) {
             console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.\n`)
           } else {
@@ -381,7 +369,7 @@ ${chalk.green('Your database is now in sync with your schema.')}`,
     }
 
     const messageForPrompt = `${messageFirstLine}
-Do you want to continue? ${chalk.red('All data will be lost')}.`
+Do you want to continue? ${red('All data will be lost')}.`
 
     // For testing purposes we log the message
     // An alternative would be to find a way to capture the prompt message from jest tests
@@ -400,7 +388,7 @@ Do you want to continue? ${chalk.red('All data will be lost')}.`
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateDev.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateDev.help}`)
     }
     return MigrateDev.help
   }

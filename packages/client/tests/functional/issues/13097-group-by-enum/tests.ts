@@ -42,7 +42,6 @@ testMatrix.setupTestSuite(
       `)
     })
 
-    /* eslint-disable jest/no-standalone-expect */
     testIf(provider !== 'mysql')('groupBy on enumArray field', async () => {
       const result = await prisma.resource.groupBy({
         // @ts-test-if: provider !== 'mysql'

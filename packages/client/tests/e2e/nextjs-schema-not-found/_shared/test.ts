@@ -7,9 +7,8 @@ import { $ } from 'zx'
  * - Workaround + Server Components: should succeed
  * - Workaround + non-Server Components: should succeed
  * @param endpoint the endpoint to test
- * @param serverComponents whether we use server components or not
  */
-async function test(endpoint: string, serverComponents: boolean) {
+async function test(endpoint: string) {
   console.log(`Testing ${endpoint} with WORKAROUND=${process.env.WORKAROUND}`)
 
   // prepare and start the next.js server
@@ -57,14 +56,14 @@ Find out why and learn how to fix this: https://pris.ly/d/schema-not-found-nextj
 
 export async function testServerComponents() {
   process.env.WORKAROUND = 'true'
-  await test('test/42', true)
+  await test('test/42')
   process.env.WORKAROUND = 'false'
-  await test('test/42', true)
+  await test('test/42')
 }
 
 export async function testNonServerComponents() {
   process.env.WORKAROUND = 'true'
-  await test('api/test', false)
+  await test('api/test')
   process.env.WORKAROUND = 'false'
-  await test('api/test', false)
+  await test('api/test')
 }

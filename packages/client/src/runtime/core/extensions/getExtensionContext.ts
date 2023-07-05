@@ -8,12 +8,9 @@
 /* eslint-disable prettier/prettier */
 export type Context<T> =
   T extends { [K: symbol]: { ctx: infer C } }
-  ? C & { [K in Exclude<keyof T, keyof C> & string]: T[K] } & ContextMeta
-  : T & ContextMeta
+  ? C & T & { name?: string }
+  : T & { name?: string }
   
-type ContextMeta = { name: string }
-/* eslint-enable prettier/prettier */
-
 export function getExtensionContext<T>(that: T) {
   return that as any as Context<T>
 }

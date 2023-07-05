@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import cp from 'child_process'
-import fs from 'fs'
+import fs from 'fs/promises'
 import os from 'os'
 import { match } from 'ts-pattern'
 import { promisify } from 'util'
@@ -9,7 +9,6 @@ import { link } from './link'
 import { warn } from './logger'
 import { Platform } from './platforms'
 
-const readFile = promisify(fs.readFile)
 const exec = promisify(cp.exec)
 
 const debug = Debug('prisma:get-platform')
@@ -66,7 +65,7 @@ export async function getos(): Promise<GetOSResult> {
   const platform = os.platform()
   const arch = process.arch as Arch
   if (platform === 'freebsd') {
-    const version = await getFirstSuccessfulExec([`freebsd-version`])
+    const version = await getCommandOutput(`freebsd-version`)
     if (version && version.trim().length > 0) {
       const regex = /^(\d+)\.?/
       const match = regex.exec(version)
@@ -221,7 +220,7 @@ export async function resolveDistro(): Promise<DistroInfo> {
 
   const osReleaseFile = '/etc/os-release'
   try {
-    const osReleaseInput = await readFile(osReleaseFile, { encoding: 'utf-8' })
+    const osReleaseInput = await fs.readFile(osReleaseFile, { encoding: 'utf-8' })
     return parseDistro(osReleaseInput)
   } catch (_) {
     return {
@@ -334,10 +333,7 @@ type GetOpenSSLVersionResult =
  */
 export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetOpenSSLVersionResult> {
   const excludeLibssl0x = 'grep -v "libssl.so.0"'
-  const libsslSpecificCommands = libsslSpecificPaths.map(
-    (path) => `ls -v "libssl.so.0*" ${path} | grep libssl.so | ${excludeLibssl0x}`,
-  )
-  const libsslFilenameFromSpecificPath: string | undefined = await getFirstSuccessfulExec(libsslSpecificCommands)
+  const libsslFilenameFromSpecificPath: string | undefined = await findLibSSLInLocations(libsslSpecificPaths)
 
   if (libsslFilenameFromSpecificPath) {
     debug(`Found libssl.so file using platform-specific paths: ${libsslFilenameFromSpecificPath}`)
@@ -349,7 +345,7 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
   }
 
   debug('Falling back to "ldconfig" and other generic paths')
-  const libsslFilename: string | undefined = await getFirstSuccessfulExec([
+  let libsslFilename: string | undefined = await getCommandOutput(
     /**
      * The `ldconfig -p` returns the dynamic linker cache paths, where libssl.so files are likely to be included.
      * Each line looks like this:
@@ -361,18 +357,19 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
      * fail with error code 0.
      */
     `ldconfig -p | sed "s/.*=>s*//" | sed "s|.*/||" | grep libssl | sort | ${excludeLibssl0x}`,
+  )
 
+  if (!libsslFilename) {
     /**
      * Fall back to the rhel-specific paths (although `familyDistro` isn't detected as rhel) when the `ldconfig` command fails.
      */
-    `ls /lib64 | grep libssl | ${excludeLibssl0x}`,
-    `ls /usr/lib64 | grep libssl | ${excludeLibssl0x}`,
-    `ls /lib | grep libssl | ${excludeLibssl0x}`,
-  ])
+    libsslFilename = await findLibSSLInLocations(['/lib64', '/usr/lib64', '/lib'])
+  }
 
   if (libsslFilename) {
     debug(`Found libssl.so file using "ldconfig" or other generic paths: ${libsslFilename}`)
     const libsslVersion = parseLibSSLVersion(libsslFilename)
+    debug(`The parsed libssl version is: ${libsslVersion}`)
     if (libsslVersion) {
       return { libssl: libsslVersion, strategy: 'ldconfig' }
     }
@@ -380,7 +377,7 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
 
   /* Reading the libssl.so version didn't work, fall back to openssl */
 
-  const openSSLVersionLine: string | undefined = await getFirstSuccessfulExec(['openssl version -v'])
+  const openSSLVersionLine: string | undefined = await getCommandOutput('openssl version -v')
 
   if (openSSLVersionLine) {
     debug(`Found openssl binary with version: ${openSSLVersionLine}`)
@@ -397,38 +394,70 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
 }
 
 /**
+ * Looks for libssl in specified directories, returns the first one found
+ * @param directories
+ * @returns
+ */
+async function findLibSSLInLocations(directories: string[]) {
+  for (const dir of directories) {
+    const libssl = await findLibSSL(dir)
+    if (libssl) {
+      return libssl
+    }
+  }
+  return undefined
+}
+
+/**
+ * Looks for libssl in specific directory
+ * @param directory
+ * @returns
+ */
+async function findLibSSL(directory: string) {
+  try {
+    const dirContents = await fs.readdir(directory)
+    return dirContents.find((value) => value.startsWith('libssl.so') && !value.startsWith('libssl.so.0'))
+  } catch (e) {
+    if (e.code === 'ENOENT') {
+      return undefined
+    }
+    throw e
+  }
+}
+
+/**
  * Get the binary target for the current platform, e.g. `linux-musl-arm64-openssl-3.0.x` for Linux Alpine on arm64.
  */
 export async function getPlatform(): Promise<Platform> {
-  const { binaryTarget } = await getPlatformMemoized()
+  const { binaryTarget } = await getPlatformInfoMemoized()
   return binaryTarget
 }
 
-export type PlatformWithOSResult = GetOSResult & { binaryTarget: Platform }
+export type PlatformInfo = GetOSResult & { binaryTarget: Platform }
 
-function isPlatformWithOSResultDefined(args: Partial<PlatformWithOSResult>): args is PlatformWithOSResult {
+function isPlatformInfoDefined(args: Partial<PlatformInfo>): args is PlatformInfo {
   return args.binaryTarget !== undefined
 }
 
 /**
  * Get the binary target and other system information (e.g., the libssl version to look for) for the current platform.
  */
-export async function getPlatformWithOSResult(): Promise<PlatformWithOSResult> {
-  const { memoized: _, ...rest } = await getPlatformMemoized()
+export async function getPlatformInfo(): Promise<PlatformInfo> {
+  const { memoized: _, ...rest } = await getPlatformInfoMemoized()
   return rest
 }
 
-let memoizedPlatformWithInfo: Partial<PlatformWithOSResult> = {}
+let memoizedPlatformWithInfo: Partial<PlatformInfo> = {}
 
-export async function getPlatformMemoized(): Promise<PlatformWithOSResult & { memoized: boolean }> {
-  if (isPlatformWithOSResultDefined(memoizedPlatformWithInfo)) {
+export async function getPlatformInfoMemoized(): Promise<PlatformInfo & { memoized: boolean }> {
+  if (isPlatformInfoDefined(memoizedPlatformWithInfo)) {
     return Promise.resolve({ ...memoizedPlatformWithInfo, memoized: true })
   }
 
   const args = await getos()
   const binaryTarget = getPlatformInternal(args)
   memoizedPlatformWithInfo = { ...args, binaryTarget }
-  return { ...(memoizedPlatformWithInfo as PlatformWithOSResult), memoized: false }
+  return { ...(memoizedPlatformWithInfo as PlatformInfo), memoized: false }
 }
 
 /**
@@ -452,7 +481,7 @@ export function getPlatformInternal(args: GetOSResult): Platform {
      */
     const additionalMessage = match({ familyDistro })
       .with({ familyDistro: 'debian' }, () => {
-        return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, you may also try to replace your base image with `node:lts-slim`, which already ships with OpenSSL installed."
+        return "Please manually install OpenSSL via `apt-get update -y && apt-get install -y openssl` and try installing Prisma again. If you're running Prisma on Docker, add this command to your Dockerfile, or switch to an image that already has OpenSSL installed."
       })
       .otherwise(() => {
         return 'Please manually install OpenSSL and try installing Prisma again.'
@@ -567,23 +596,14 @@ async function discardError<T>(runPromise: () => Promise<T>): Promise<T | undefi
 }
 
 /**
- * Given a list of system commands, runs them until they all resolve or reject, and returns the result of the first successful command
- * in the order of the input list.
- * This function never throws.
+ * Executes system command and returns its output. If command fails, returns undefined
  */
-function getFirstSuccessfulExec(commands: string[]) {
+function getCommandOutput(command: string) {
   return discardError(async () => {
-    const results = await Promise.allSettled(commands.map((cmd) => exec(cmd)))
-    const idx = results.findIndex(({ status }) => status === 'fulfilled')
-    if (idx === -1) {
-      return undefined
-    }
+    const result = await exec(command)
 
-    const { value } = results[idx] as PromiseFulfilledResult<{ stdout: string | Buffer }>
-    const output = String(value.stdout)
-
-    debug(`Command "${commands[idx]}" successfully returned "${output}"`)
-    return output
+    debug(`Command "${command}" successfully returned "${result.stdout}"`)
+    return result.stdout
   })
 }
 
@@ -594,7 +614,10 @@ function getFirstSuccessfulExec(commands: string[]) {
  * supported Node.js version for Prisma.
  */
 export async function getArchFromUname(): Promise<string | undefined> {
-  const arch = await getFirstSuccessfulExec(['uname -m'])
+  if (typeof os['machine'] === 'function') {
+    return os['machine']()
+  }
+  const arch = await getCommandOutput('uname -m')
   return arch?.trim()
 }
 

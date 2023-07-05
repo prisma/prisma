@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
  * Order by self relation
  * TODO: enable mongodb tests when fix is merged
  */
-testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
+testMatrix.setupTestSuite(() => {
   test('findFirst', async () => {
     await prisma.parent.findFirst({
       orderBy: {

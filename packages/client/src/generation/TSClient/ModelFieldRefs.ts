@@ -1,15 +1,12 @@
 import { GeneratorConfig } from '@prisma/generator-helper'
 
-import { DMMF } from '../../runtime/dmmf-types'
+import { DMMF } from '../dmmf-types'
 import { getFieldRefsTypeName, getRefAllowedTypeName } from '../utils'
 import { Generatable } from './Generatable'
 
 export class ModelFieldRefs implements Generatable {
   constructor(protected generator: GeneratorConfig | undefined, protected outputType: DMMF.OutputType) {}
   toTS() {
-    if (!this.generator?.previewFeatures.includes('fieldReference')) {
-      return ''
-    }
     const { name } = this.outputType
     return `
 

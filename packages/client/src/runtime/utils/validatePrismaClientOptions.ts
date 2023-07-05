@@ -1,8 +1,8 @@
 import { isError } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
+import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
-import { PrismaClientConstructorValidationError } from '../query'
 
 const knownProperties = ['datasources', 'errorFormat', 'log', '__internal', 'rejectOnNotFound']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
@@ -21,7 +21,8 @@ const validators = {
 
     for (const [key, value] of Object.entries(options)) {
       if (!datasourceNames.includes(key)) {
-        const didYouMean = getDidYouMean(key, datasourceNames) || `Available datasources: ${datasourceNames.join(', ')}`
+        const didYouMean =
+          getDidYouMean(key, datasourceNames) || ` Available datasources: ${datasourceNames.join(', ')}`
         throw new PrismaClientConstructorValidationError(
           `Unknown datasource ${key} provided to PrismaClient constructor.${didYouMean}`,
         )

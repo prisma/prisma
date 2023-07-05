@@ -1,7 +1,7 @@
 import { Providers } from '../_utils/providers'
-import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
+import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */

@@ -17,28 +17,41 @@ const del = promisify(rimraf)
 
 export type DownloadResult = {
   lastModified: string
-  sha256: string
-  zippedSha256: string
+  sha256: string | null
+  zippedSha256: string | null
 }
 
-async function fetchSha256(url: string): Promise<{ sha256: string; zippedSha256: string }> {
-  // We get a string like this:
-  // "3c82ee6cd9fedaec18a5e7cd3fc41f8c6b3dd32575dc13443d96aab4bd018411  query-engine.gz\n"
-  // So we split it by whitespace and just get the hash, as that's what we're interested in
-  const [zippedSha256, sha256] = [
-    (
-      await fetch(`${url}.sha256`, {
-        agent: getProxyAgent(url) as any,
-      }).then((res) => res.text())
-    ).split(/\s+/)[0],
-    (
-      await fetch(`${url.slice(0, url.length - 3)}.sha256`, {
-        agent: getProxyAgent(url.slice(0, url.length - 3)) as any,
-      }).then((res) => res.text())
-    ).split(/\s+/)[0],
-  ]
-
-  return { sha256, zippedSha256 }
+async function fetchChecksum(url: string): Promise<string | null> {
+  try {
+    const checksumUrl = `${url}.sha256`
+    const response = await fetch(checksumUrl, {
+      agent: getProxyAgent(url) as any,
+    })
+    if (!response.ok) {
+      let errorMessage = `Failed to fetch sha256 checksum at ${checksumUrl}. ${response.status} ${response.statusText}`
+      if (!process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
+        errorMessage += `\n\nIf you need to ignore this error (e.g. in an offline environment), set the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable to a truthy value.\nExample: PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1`
+      }
+      throw new Error(errorMessage)
+    }
+    const body = await response.text()
+    // We get a string like this:
+    // "3c82ee6cd9fedaec18a5e7cd3fc41f8c6b3dd32575dc13443d96aab4bd018411  query-engine.gz\n"
+    // So we split it by whitespace and just get the hash, as that's what we're interested in
+    const [checksum] = body.split(/\s+/)
+    if (!/^[a-f0-9]{64}$/gi.test(checksum)) {
+      throw new Error(`Unable to parse checksum from ${checksumUrl} - response body: ${body}`)
+    }
+    return checksum
+  } catch (error) {
+    if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
+      debug(
+        `fetchChecksum() failed and was ignored as the PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING environment variable is truthy.\nError: ${error}`,
+      )
+      return null
+    }
+    throw error
+  }
 }
 
 export async function downloadZip(
@@ -48,7 +61,7 @@ export async function downloadZip(
 ): Promise<DownloadResult> {
   const tmpDir = tempy.directory()
   const partial = path.join(tmpDir, 'partial')
-  const { sha256, zippedSha256 } = await fetchSha256(url)
+  const [zippedSha256, sha256] = await Promise.all([fetchChecksum(url), fetchChecksum(url.slice(0, url.length - 3))])
   const result = await retry(
     async () => {
       try {
@@ -97,12 +110,14 @@ export async function downloadZip(
           const hash = await hashPromise
           const zippedHash = await zippedHashPromise
 
-          if (zippedHash !== zippedSha256) {
-            throw new Error(`sha256 of ${url} (zipped) should be ${zippedSha256} but is ${zippedHash}`)
+          if (zippedSha256 !== null && zippedSha256 !== zippedHash) {
+            return reject(
+              new Error(`sha256 checksum of ${url} (zipped) should be ${zippedSha256} but is ${zippedHash}`),
+            )
           }
 
-          if (hash !== sha256) {
-            throw new Error(`sha256 of ${url} (unzipped) should be ${sha256} but is ${hash}`)
+          if (sha256 !== null && sha256 !== hash) {
+            return reject(new Error(`sha256 checksum of ${url} (unzipped) should be ${sha256} but is ${hash}`))
           }
         })
       } finally {

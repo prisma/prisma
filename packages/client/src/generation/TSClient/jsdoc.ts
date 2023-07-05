@@ -1,7 +1,7 @@
 import type { DMMF } from '@prisma/generator-helper'
 
-import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getGroupByArgsName, getModelArgName } from '../utils'
+import { capitalize, lowerCase } from '../utils/common'
 
 export interface JSDocMethodBodyCtx {
   singular: string

@@ -1,5 +1,6 @@
 import { DMMF } from '@prisma/generator-helper'
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const dmmf: DMMF.Document = {
   datamodel: {
     enums: [],

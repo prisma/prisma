@@ -17,7 +17,7 @@ model Events {
   start       DateTime
   end         DateTime
   organiserId Int?
-  /// This type is currently not supported by the Prisma Client.
+  /// This type is currently not supported by Prisma Client.
   attendees   User[]   @relation("attendance")
   User        User?    @relation(fields: [userId], references: [id])
   userId      String?

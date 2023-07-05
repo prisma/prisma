@@ -55,7 +55,7 @@ export const depCheckPlugin = (bundle?: boolean): esbuild.Plugin => ({
 
     // we prepare to collect dependencies that are only packages
     const collectedDependencies = new Set<string>()
-    const onlyPackages = /^[^.\/]|^\.[^.\/]|^\.\.[^\/]/
+    const onlyPackages = /^[^.\/](?!:)|^\.[^.\/]|^\.\.[^\/]/
     build.onResolve({ filter: onlyPackages }, (args) => {
       // we limit this search to the parent folder, don't go back
       if (args.importer.includes(process.cwd())) {

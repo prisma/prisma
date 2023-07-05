@@ -43,4 +43,6 @@ OUTPUT_REMOVAL_REGEX="$PNPM_EXDEV_WARN_REGEX|$PNPM_FALLBACK_COPY_REGEX"
   # execute the test by running the _steps.ts file with esbuild-register
   cd /test/$NAME;
   node -r 'esbuild-register' _steps.ts;
+  # when inline snapshots are created the first time, copy for convencience
+  cp -r /test/$NAME/tests/* /e2e/$NAME/tests/ 2> /dev/null || true;
 ) 2>&1 | grep -v -E --line-buffered "$OUTPUT_REMOVAL_REGEX" > /e2e/$NAME/LOGS.txt;

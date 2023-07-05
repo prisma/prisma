@@ -2,7 +2,6 @@
 /* eslint-disable jest/no-identical-title */
 
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import stripAnsi from 'strip-ansi'
 
 import { MigrateDiff } from '../commands/MigrateDiff'
 import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
@@ -18,16 +17,6 @@ const originalEnv = { ...process.env }
 
 describe('migrate diff', () => {
   describe('generic', () => {
-    it('should trigger a warning if --preview-feature is provided', async () => {
-      ctx.fixture('introspection/sqlite')
-      await MigrateDiff.new().parse(['--preview-feature', '--from-empty', '--to-url=file:dev.db'])
-
-      expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
-        prisma:warn "prisma migrate diff" was in Preview and is now Generally Available.
-        You can now remove the --preview-feature flag.
-      `)
-    })
-
     it('should fail if missing --from-... and --to-...', async () => {
       ctx.fixture('empty')
 
@@ -420,11 +409,8 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--from-url', connectionString!, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Error in migration engine.
+              Error in Schema engine.
               Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
-
-              Please create an issue with your \`schema.prisma\` at
-              https://github.com/prisma/prisma/issues/new
 
             `)
     })
@@ -499,11 +485,8 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--from-url', connectionString, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        Error in migration engine.
+        Error in Schema engine.
         Reason: [/some/rust/path:0:0] called \`Option::unwrap()\` on a \`None\` value
-
-        Please create an issue with your \`schema.prisma\` at
-        https://github.com/prisma/prisma/issues/new
 
       `)
     })
@@ -576,11 +559,8 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--from-url', connectionString, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        Error in migration engine.
+        Error in Schema engine.
         Reason: [/some/rust/path:0:0] Column native type missing in mysql_renderer::render_column_type()
-
-        Please create an issue with your \`schema.prisma\` at
-        https://github.com/prisma/prisma/issues/new
 
       `)
     })
@@ -671,11 +651,8 @@ describe('migrate diff', () => {
 
       const result = MigrateDiff.new().parse(['--from-url', jdbcConnectionString!, '--to-url=file:dev.db', '--script'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-        Error in migration engine.
+        Error in Schema engine.
         Reason: [/some/rust/path:0:0] Missing column native type in mssql_renderer::render_column_type()
-
-        Please create an issue with your \`schema.prisma\` at
-        https://github.com/prisma/prisma/issues/new
 
       `)
     })

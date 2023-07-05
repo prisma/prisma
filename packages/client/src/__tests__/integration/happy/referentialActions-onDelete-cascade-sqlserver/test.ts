@@ -12,7 +12,6 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions(sqlserver)', () => 
       throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI. See TESTING.md')
     }
     await migrateDb({
-      connectionString: process.env.TEST_MSSQL_JDBC_URI,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
@@ -55,7 +54,7 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('referentialActions(sqlserver)', () => 
     expect(await prisma.profile.findMany()).toHaveLength(2)
     expect(await prisma.post.findMany()).toHaveLength(2)
 
-    const deleteBob = await prisma.user.delete({
+    await prisma.user.delete({
       where: {
         email: 'bob@prisma.io',
       },
