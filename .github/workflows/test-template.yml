@@ -261,7 +261,7 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-          DEBUG: '*'
+          DEBUG: 'prisma*'
 
       - run: pnpm run test:functional --data-proxy --edge-client --mini-proxy-debug --shard ${{ matrix.shard }}
         working-directory: packages/client
@@ -278,7 +278,7 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-          DEBUG: '*'
+          DEBUG: 'prisma*'
 
       - uses: codecov/codecov-action@v3
         with:
