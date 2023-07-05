@@ -164,7 +164,7 @@ To change the default Rust artifacts' type used under the hood, you can set the 
 
 ### Trigger panic in Formatter
 
-- run `FORCE_PANIC_PRISMA_FMT=1 npx prisma format`
+- run `FORCE_PANIC_PRISMA_SCHEMA=1 npx prisma format`
 
 ### Trigger panic in Query Engine - Get DMMF
 

@@ -2,11 +2,10 @@ import { foreignKeyForProvider, idForProvider } from '../../_utils/idForProvider
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
-  const schemaFeatures = previewFeatures === '' ? '"fieldReference"' : `"fieldReference",${previewFeatures}`
   return /* Prisma */ `
   generator client {
     provider = "prisma-client-js"
-    previewFeatures = [${schemaFeatures}]
+    previewFeatures = [${previewFeatures}]
   }
   
   datasource db {
