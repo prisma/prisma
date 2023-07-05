@@ -1,5 +1,6 @@
 import Debug from '@prisma/debug'
 import { assertNodeAPISupported, getNodeAPIName, getos, getPlatform, Platform, platforms } from '@prisma/get-platform'
+import { vercelPkgPathRegex } from '@prisma/internals'
 import execa from 'execa'
 import fs from 'fs'
 import { ensureDir } from 'fs-extra'
@@ -164,7 +165,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const dir = eval('__dirname')
 
   // this is necessary for pkg
-  if (dir.startsWith('/snapshot/')) {
+  if (dir.match(vercelPkgPathRegex)) {
     for (const engineType in binaryPaths) {
       const binaryTargets = binaryPaths[engineType]
       for (const binaryTarget in binaryTargets) {
@@ -446,7 +447,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   // to make this work, we need to copy the binary to /tmp and execute it from there
 
   const dir = eval('__dirname')
-  if (dir.startsWith('/snapshot/')) {
+  if (dir.match(vercelPkgPathRegex)) {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
