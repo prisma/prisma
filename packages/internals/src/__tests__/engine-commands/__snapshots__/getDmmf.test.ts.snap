@@ -702,7 +702,10 @@ exports[`getDMMF success @@id model 1`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "customName",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -718,6 +721,129 @@ exports[`getDMMF success @@id model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "customName",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User1WhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User1WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User1WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User1WhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User1WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "firstName",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lastName",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BoolFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isAdmin",
             },
           ],
           "meta": {
@@ -1184,7 +1310,10 @@ exports[`getDMMF success @@id model 1`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "firstName_lastName_isAdmin",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -1200,6 +1329,129 @@ exports[`getDMMF success @@id model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "firstName_lastName_isAdmin",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User2WhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User2WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User2WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User2WhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User2WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "firstName",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lastName",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BoolFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isAdmin",
             },
           ],
           "meta": {
@@ -8183,7 +8435,10 @@ exports[`getDMMF success @@map model 2`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "email",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -8198,6 +8453,75 @@ exports[`getDMMF success @@map model 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "email",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
             },
           ],
           "meta": {
@@ -12897,7 +13221,10 @@ exports[`getDMMF success @@unique model 1`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "authorId_title",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -12913,6 +13240,148 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "authorId_title",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "authorId",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "title",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BoolFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "published",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserRelationFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "author",
             },
           ],
           "meta": {
@@ -13343,7 +13812,11 @@ exports[`getDMMF success @@unique model 1`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "id",
+              "email",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -13370,6 +13843,70 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "email",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "PostListRelationFilter",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "posts",
             },
           ],
           "meta": {
@@ -13774,7 +14311,10 @@ exports[`getDMMF success @@unique model 1`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "firstName_lastName",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -13790,6 +14330,129 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "firstName_lastName",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User1WhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User1WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User1WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User1WhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User1WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "firstName",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lastName",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BoolFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isAdmin",
             },
           ],
           "meta": {
@@ -14256,7 +14919,10 @@ exports[`getDMMF success @@unique model 1`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "firstName_lastName_isAdmin",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -14272,6 +14938,129 @@ exports[`getDMMF success @@unique model 1`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "firstName_lastName_isAdmin",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User2WhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User2WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User2WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User2WhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "User2WhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "IntFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Int",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "firstName",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "lastName",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "BoolFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "Boolean",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "isAdmin",
             },
           ],
           "meta": {
@@ -18572,6 +19361,12 @@ exports[`getDMMF success @@unique model 1`] = `
                   "isList": false,
                   "location": "inputObjectTypes",
                   "namespace": "prisma",
+                  "type": "UserUpdateToOneWithWhereWithoutPostsInput",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
                   "type": "UserUpdateWithoutPostsInput",
                 },
                 {
@@ -20463,8 +21258,62 @@ exports[`getDMMF success @@unique model 1`] = `
               "isRequired": true,
               "name": "create",
             },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "where",
+            },
           ],
           "name": "UserUpsertWithoutPostsInput",
+        },
+        {
+          "constraints": {
+            "maxNumFields": null,
+            "minNumFields": null,
+          },
+          "fields": [
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "where",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUpdateWithoutPostsInput",
+                },
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "UserUncheckedUpdateWithoutPostsInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": true,
+              "name": "data",
+            },
+          ],
+          "name": "UserUpdateToOneWithWhereWithoutPostsInput",
         },
         {
           "constraints": {
@@ -26142,9 +26991,9 @@ exports[`getDMMF success @@unique model 1`] = `
 }
 `;
 
-exports[`getDMMF success big schema read via datamodel path 1`] = `142578654`;
+exports[`getDMMF success big schema read via datamodel path 1`] = `148202208`;
 
-exports[`getDMMF success chinook introspected schema 1`] = `942059`;
+exports[`getDMMF success chinook introspected schema 1`] = `979838`;
 
 exports[`getDMMF success if a datamodel is provided, succeeds even when a non-existing datamodel path is given 2`] = `
 {
@@ -26263,7 +27112,7 @@ exports[`getDMMF success if a datamodel is provided, succeeds even when a non-ex
 }
 `;
 
-exports[`getDMMF success odoo introspected schema 1`] = `135217545`;
+exports[`getDMMF success odoo introspected schema 1`] = `136726822`;
 
 exports[`getDMMF success simple model, mongodb 1`] = `
 {
@@ -26769,7 +27618,10 @@ exports[`getDMMF success simple model, mongodb 2`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "id",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -26784,6 +27636,75 @@ exports[`getDMMF success simple model, mongodb 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
             },
           ],
           "meta": {
@@ -30793,7 +31714,10 @@ exports[`getDMMF success simple model, mysql 2`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "id",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -30808,6 +31732,75 @@ exports[`getDMMF success simple model, mysql 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
             },
           ],
           "meta": {
@@ -34800,7 +35793,10 @@ exports[`getDMMF success simple model, no datasource 2`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "id",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -34815,6 +35811,75 @@ exports[`getDMMF success simple model, no datasource 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
             },
           ],
           "meta": {
@@ -38648,7 +39713,10 @@ exports[`getDMMF success simple model, postgresql 2`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "id",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -38663,6 +39731,75 @@ exports[`getDMMF success simple model, postgresql 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
             },
           ],
           "meta": {
@@ -42803,7 +43940,10 @@ exports[`getDMMF success simple model, sql server 2`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "id",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -42818,6 +43958,75 @@ exports[`getDMMF success simple model, sql server 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
             },
           ],
           "meta": {
@@ -46807,7 +48016,10 @@ exports[`getDMMF success simple model, sqlite 2`] = `
         },
         {
           "constraints": {
-            "maxNumFields": 1,
+            "fields": [
+              "id",
+            ],
+            "maxNumFields": null,
             "minNumFields": 1,
           },
           "fields": [
@@ -46822,6 +48034,75 @@ exports[`getDMMF success simple model, sqlite 2`] = `
               "isNullable": false,
               "isRequired": false,
               "name": "id",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "AND",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "OR",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+                {
+                  "isList": true,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "AWhereInput",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "NOT",
+            },
+            {
+              "inputTypes": [
+                {
+                  "isList": false,
+                  "location": "inputObjectTypes",
+                  "namespace": "prisma",
+                  "type": "StringFilter",
+                },
+                {
+                  "isList": false,
+                  "location": "scalar",
+                  "type": "String",
+                },
+              ],
+              "isNullable": false,
+              "isRequired": false,
+              "name": "name",
             },
           ],
           "meta": {
