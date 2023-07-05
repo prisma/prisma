@@ -40,7 +40,7 @@ async function _getClientVersion(config: EngineConfig) {
     // because `jsonProtocol` is GA in the client
     // but not in the Data Proxy version that we fallback to by default, here `4.16.2`
     if (major === '4' && minor === '17') {
-      return '5.0.0'
+      return '4.17.0-dev.47'
     }
 
     // to ensure that the data proxy exists, we check if it's published
