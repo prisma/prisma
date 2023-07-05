@@ -234,7 +234,7 @@ COMMIT;`,
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`
           SQLite database error
-          near "ThisisnotSQL": syntax error
+          near "ThisisnotSQL": syntax error in ThisisnotSQL,itshouldfail at offset 0
 
 
         `)
