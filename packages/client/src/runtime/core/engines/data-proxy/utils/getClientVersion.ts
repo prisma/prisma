@@ -33,6 +33,15 @@ async function _getClientVersion(config: EngineConfig) {
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
 
+    // If the engines version is 4.17, this is for testing Prisma 5 dev versions in
+    // ecosystem-tests against a real Data Proxy. We need to test with a Data Proxy
+    // engine version deployed which includes an engine with `jsonProtocol` GA
+    // because `jsonProtocol` is GA in the client but not in the Data Proxy version
+    // that we fallback to by default, here `4.16.2`
+    if (major === '4' && minor === '17') {
+      return '5.0.0'
+    }
+
     // to ensure that the data proxy exists, we check if it's published
     // we resolve with the closest or previous version published on npm
     const pkgURL = prismaPkgURL(`<=${major}.${minor}.${patch}`)

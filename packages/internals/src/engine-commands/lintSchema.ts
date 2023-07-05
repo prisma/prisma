@@ -1,7 +1,7 @@
 import { yellow } from 'kleur/colors'
 
 import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
-import { prismaFmt } from '../wasm'
+import { prismaSchemaWasm } from '../wasm'
 
 type LintSchemaParams = { schema: string }
 
@@ -21,7 +21,7 @@ export type LintDiagnostic = LintWarning | LintError
  * This function may panic, but it won't throw any standard error.
  */
 export function lintSchema({ schema }: LintSchemaParams): LintDiagnostic[] {
-  const lintResult = prismaFmt.lint(schema)
+  const lintResult = prismaSchemaWasm.lint(schema)
   const lintDiagnostics = JSON.parse(lintResult) as LintDiagnostic[]
   return lintDiagnostics
 }
@@ -35,7 +35,7 @@ export function handleLintPanic<T>(tryCb: () => T, { schema }: LintSchemaParams)
     const panic = new RustPanic(
       /* message */ message,
       /* rustStack */ stack,
-      /* request */ '@prisma/prisma-fmt-wasm lint',
+      /* request */ '@prisma/prisma-schema-wasm lint',
       ErrorArea.FMT_CLI,
       undefined,
       schema,
