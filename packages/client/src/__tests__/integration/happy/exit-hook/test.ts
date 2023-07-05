@@ -1,6 +1,10 @@
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 
-test('exit-hook for sigint', async () => {
+const testIf = (condition: boolean) => (condition ? test : test.skip)
+
+testIf(getClientEngineType() === ClientEngineType.Binary)('exit-hook for sigint', async () => {
   expect.assertions(2)
 
   const PrismaClient = await getTestClient()
@@ -36,7 +40,7 @@ test('exit-hook for sigint', async () => {
   await prisma.$disconnect()
 })
 
-async function doWork(prisma) {
+async function doWork(prisma: Awaited<ReturnType<typeof getTestClient>>) {
   const users = await prisma.user.findMany()
   return users
 }
