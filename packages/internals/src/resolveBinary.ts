@@ -10,7 +10,7 @@ import tempDir from 'temp-dir'
 import { chmodPlusX } from './utils/chmodPlusX'
 
 // matches `/snapshot/` or `C:\\snapshot\\` or `C:/snapshot/` for vercel's pkg apps
-const vercelPkgPathRegex = /^((\w:((\\\\)|\/))|\/)snapshot[\/\\]/
+const vercelPkgPathRegex = /^((\w:[\\\/])|\/)snapshot[\/\\]/
 
 export { BinaryType, engineEnvVarMap }
 
@@ -27,8 +27,11 @@ async function getBinaryName(name: BinaryType): Promise<string> {
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
   // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
   if (proposedPath && !proposedPath.match(vercelPkgPathRegex) && fs.existsSync(proposedPath)) {
+    console.log(`Using ${name} at proposedPath ${proposedPath}`)
     return proposedPath
   }
+
+  console.log('Proposed path not found, searching for', name)
 
   // If engine path was provided via env var, check and use that one
   const pathFromEnvVar = getBinaryEnvVarPath(name)
