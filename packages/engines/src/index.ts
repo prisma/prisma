@@ -57,6 +57,7 @@ export { enginesVersion } from '@prisma/engines-version'
  * And needed for https://github.com/vercel/pkg#detecting-assets-in-source-code
  */
 
+path.join(__dirname, '../query-engine-windows.exe')
 path.join(__dirname, '../query-engine-darwin')
 path.join(__dirname, '../query-engine-darwin-arm64')
 path.join(__dirname, '../query-engine-debian-openssl-1.0.x')
@@ -67,6 +68,18 @@ path.join(__dirname, '../query-engine-linux-static-arm64')
 path.join(__dirname, '../query-engine-rhel-openssl-1.0.x')
 path.join(__dirname, '../query-engine-rhel-openssl-1.1.x')
 path.join(__dirname, '../query-engine-rhel-openssl-3.0.x')
+
+path.join(__dirname, '../schema-engine-windows.exe')
+path.join(__dirname, '../schema-engine-darwin')
+path.join(__dirname, '../schema-engine-darwin-arm64')
+path.join(__dirname, '../schema-engine-debian-openssl-1.0.x')
+path.join(__dirname, '../schema-engine-debian-openssl-1.1.x')
+path.join(__dirname, '../schema-engine-debian-openssl-3.0.x')
+path.join(__dirname, '../schema-engine-linux-static-x64')
+path.join(__dirname, '../schema-engine-linux-static-arm64')
+path.join(__dirname, '../schema-engine-rhel-openssl-1.0.x')
+path.join(__dirname, '../schema-engine-rhel-openssl-1.1.x')
+path.join(__dirname, '../schema-engine-rhel-openssl-3.0.x')
 
 // Node API
 path.join(__dirname, '../libquery_engine-darwin.dylib.node')
