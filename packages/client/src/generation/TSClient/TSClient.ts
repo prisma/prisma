@@ -154,6 +154,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
       this.options.generator,
       this.options.sqliteDatasourceOverrides,
       path.dirname(this.options.schemaPath),
+      this.options.dataProxy,
     )
 
     const commonCode = commonCodeTS(this.options)
