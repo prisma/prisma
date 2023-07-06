@@ -146,7 +146,7 @@ importers:
       dotenv: 16.0.3
       esbuild: 0.15.13
       execa: 5.1.1
-      fast-glob: 3.2.12
+      fast-glob: 3.3.0
       fs-extra: 11.1.1
       fs-jetpack: 5.1.0
       get-port: 5.1.1
@@ -188,7 +188,7 @@ importers:
       dotenv: 16.0.3
       esbuild: 0.15.13
       execa: 5.1.1
-      fast-glob: 3.2.12
+      fast-glob: 3.3.0
       fs-extra: 11.1.1
       fs-jetpack: 5.1.0
       get-port: 5.1.1
@@ -210,18 +210,18 @@ importers:
 
   packages/client:
     specifiers:
-      '@codspeed/benchmark.js-plugin': 1.1.0
+      '@codspeed/benchmark.js-plugin': 2.0.0
       '@faker-js/faker': 8.0.2
       '@fast-check/jest': 1.7.0
       '@jest/create-cache-key-function': 29.6.0
       '@jest/globals': 29.6.0
       '@jest/test-sequencer': 29.6.0
       '@opentelemetry/api': 1.4.1
-      '@opentelemetry/context-async-hooks': 1.13.0
-      '@opentelemetry/instrumentation': 0.39.1
-      '@opentelemetry/resources': 1.13.0
-      '@opentelemetry/sdk-trace-base': 1.13.0
-      '@opentelemetry/semantic-conventions': 1.13.0
+      '@opentelemetry/context-async-hooks': 1.14.0
+      '@opentelemetry/instrumentation': 0.40.0
+      '@opentelemetry/resources': 1.14.0
+      '@opentelemetry/sdk-trace-base': 1.14.0
+      '@opentelemetry/semantic-conventions': 1.14.0
       '@prisma/debug': workspace:*
       '@prisma/engines': workspace:*
       '@prisma/engines-version': 4.17.0-21.a6324410622b51700b1f574eeca057c71b1a3c5a
@@ -231,7 +231,7 @@ importers:
       '@prisma/instrumentation': workspace:*
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
-      '@prisma/mini-proxy': 0.8.0
+      '@prisma/mini-proxy': 0.9.0
       '@swc-node/register': 1.6.5
       '@swc/core': 1.3.64
       '@swc/jest': 0.2.26
@@ -293,18 +293,18 @@ importers:
     dependencies:
       '@prisma/engines-version': 4.17.0-21.a6324410622b51700b1f574eeca057c71b1a3c5a
     devDependencies:
-      '@codspeed/benchmark.js-plugin': 1.1.0_benchmark@2.1.4
+      '@codspeed/benchmark.js-plugin': 2.0.0_benchmark@2.1.4
       '@faker-js/faker': 8.0.2
       '@fast-check/jest': 1.7.0_@jest+globals@29.6.0
       '@jest/create-cache-key-function': 29.6.0
       '@jest/globals': 29.6.0
       '@jest/test-sequencer': 29.6.0
       '@opentelemetry/api': 1.4.1
-      '@opentelemetry/context-async-hooks': 1.13.0_@opentelemetry+api@1.4.1
-      '@opentelemetry/instrumentation': 0.39.1_@opentelemetry+api@1.4.1
-      '@opentelemetry/resources': 1.13.0_@opentelemetry+api@1.4.1
-      '@opentelemetry/sdk-trace-base': 1.13.0_@opentelemetry+api@1.4.1
-      '@opentelemetry/semantic-conventions': 1.13.0
+      '@opentelemetry/context-async-hooks': 1.14.0_@opentelemetry+api@1.4.1
+      '@opentelemetry/instrumentation': 0.40.0_@opentelemetry+api@1.4.1
+      '@opentelemetry/resources': 1.14.0_@opentelemetry+api@1.4.1
+      '@opentelemetry/sdk-trace-base': 1.14.0_@opentelemetry+api@1.4.1
+      '@opentelemetry/semantic-conventions': 1.14.0
       '@prisma/debug': link:../debug
       '@prisma/engines': link:../engines
       '@prisma/fetch-engine': link:../fetch-engine
@@ -313,7 +313,7 @@ importers:
       '@prisma/instrumentation': link:../instrumentation
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
-      '@prisma/mini-proxy': 0.8.0
+      '@prisma/mini-proxy': 0.9.0
       '@swc-node/register': 1.6.5_w2a3vrbasjgrtv5bvwiyhpfbku
       '@swc/core': 1.3.64
       '@swc/jest': 0.2.26_@swc+core@1.3.64
@@ -518,7 +518,7 @@ importers:
 
   packages/get-platform:
     specifiers:
-      '@codspeed/benchmark.js-plugin': 1.1.0
+      '@codspeed/benchmark.js-plugin': 2.0.0
       '@prisma/debug': workspace:*
       '@swc/core': 1.3.64
       '@swc/jest': 0.2.26
@@ -549,7 +549,7 @@ importers:
       terminal-link: 2.1.1
       ts-pattern: 4.3.0
     devDependencies:
-      '@codspeed/benchmark.js-plugin': 1.1.0_benchmark@2.1.4
+      '@codspeed/benchmark.js-plugin': 2.0.0_benchmark@2.1.4
       '@swc/core': 1.3.64
       '@swc/jest': 0.2.26_@swc+core@1.3.64
       '@types/jest': 29.5.2
@@ -562,8 +562,8 @@ importers:
   packages/instrumentation:
     specifiers:
       '@opentelemetry/api': 1.4.1
-      '@opentelemetry/instrumentation': 0.39.1
-      '@opentelemetry/sdk-trace-base': 1.13.0
+      '@opentelemetry/instrumentation': 0.40.0
+      '@opentelemetry/sdk-trace-base': 1.14.0
       '@prisma/internals': workspace:*
       '@swc/core': 1.3.64
       '@types/jest': 29.5.2
@@ -573,8 +573,8 @@ importers:
       typescript: 4.9.5
     dependencies:
       '@opentelemetry/api': 1.4.1
-      '@opentelemetry/instrumentation': 0.39.1_@opentelemetry+api@1.4.1
-      '@opentelemetry/sdk-trace-base': 1.13.0_@opentelemetry+api@1.4.1
+      '@opentelemetry/instrumentation': 0.40.0_@opentelemetry+api@1.4.1
+      '@opentelemetry/sdk-trace-base': 1.14.0_@opentelemetry+api@1.4.1
     devDependencies:
       '@prisma/internals': link:../internals
       '@swc/core': 1.3.64
@@ -1871,19 +1871,20 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@codspeed/benchmark.js-plugin/1.1.0_benchmark@2.1.4:
-    resolution: {integrity: sha512-sb82u775euk6uPXnDC2nxTen/O/6xk9OkswNRuenqkCuv7GPdQ3wBIITJtzWoFOWHnpRzfUPtHpDAppBhToYdw==}
+  /@codspeed/benchmark.js-plugin/2.0.0_benchmark@2.1.4:
+    resolution: {integrity: sha512-YMnR0mSh/dw2J8dhAIpsbgR8bkEf/IIaFwRmo3iuk9L24orpL1USgjZOJgfRkZctWPTeDlLeU1h+XG089PvS6Q==}
     peerDependencies:
       benchmark: ^2.1.0
     dependencies:
-      '@codspeed/core': 1.1.0
+      '@codspeed/core': 2.0.0
       benchmark: 2.1.4
       find-up: 6.3.0
-      stack-trace: 1.0.0-pre1
+      lodash: 4.17.21
+      stack-trace: 1.0.0-pre2
     dev: true
 
-  /@codspeed/core/1.1.0:
-    resolution: {integrity: sha512-OxIkM91d8qwmNRuB0zZQG0JO9ZW/4GrufkncOIi+jxzrZqaOxNPj/ivzKI9BRbHA2r+T3lfzCWB9xq+J1L9uBg==}
+  /@codspeed/core/2.0.0:
+    resolution: {integrity: sha512-CuxrWhzGI4rVg8w9pr7K0Eyc8oMs4ITSQqk+Vk/oL1BBeNBOm1DA/P364q7B99llthyPv2/5zxaKjM09SXYooA==}
     dependencies:
       node-gyp-build: 4.6.0
     dev: true
@@ -2969,8 +2970,8 @@ packages:
     resolution: {integrity: sha512-O2yRJce1GOc6PAy3QxFM4NzFiWzvScDC1/5ihYBL6BUEVdq0XMWN01sppE+H6bBXbaFYipjwFLEWLg5PaSOThA==}
     engines: {node: '>=8.0.0'}
 
-  /@opentelemetry/context-async-hooks/1.13.0_@opentelemetry+api@1.4.1:
-    resolution: {integrity: sha512-pS5fU4lrRjOIPZQqA2V1SUM9QUFXbO+8flubAiy6ntLjnAjJJUdRFOUOxK6v86ZHI2p2S8A0vD0BTu95FZYvjA==}
+  /@opentelemetry/context-async-hooks/1.14.0_@opentelemetry+api@1.4.1:
+    resolution: {integrity: sha512-KfwMzdjxUtQM3uy4ogEdN3pdakFreyZNybKKlvxUM+inF5tAObsGamlmsfmUt6s3mXEC70+DY743+TdG4FMf/Q==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.5.0'
@@ -2978,51 +2979,53 @@ packages:
       '@opentelemetry/api': 1.4.1
     dev: true
 
-  /@opentelemetry/core/1.13.0_@opentelemetry+api@1.4.1:
-    resolution: {integrity: sha512-2dBX3Sj99H96uwJKvc2w9NOiNgbvAO6mOFJFramNkKfS9O4Um+VWgpnlAazoYjT6kUJ1MP70KQ5ngD4ed+4NUw==}
+  /@opentelemetry/core/1.14.0_@opentelemetry+api@1.4.1:
+    resolution: {integrity: sha512-MnMZ+sxsnlzloeuXL2nm5QcNczt/iO82UOeQQDHhV83F2fP3sgntW2evvtoxJki0MBLxEsh5ADD7PR/Hn5uzjw==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.5.0'
     dependencies:
       '@opentelemetry/api': 1.4.1
-      '@opentelemetry/semantic-conventions': 1.13.0
+      '@opentelemetry/semantic-conventions': 1.14.0
 
-  /@opentelemetry/instrumentation/0.39.1_@opentelemetry+api@1.4.1:
-    resolution: {integrity: sha512-s7/9tPmM0l5KCd07VQizC4AO2/5UJdkXq5gMSHPdCeiMKSeBEdyDyQX7A+Cq+RYZM452qzFmrJ4ut628J5bnSg==}
+  /@opentelemetry/instrumentation/0.40.0_@opentelemetry+api@1.4.1:
+    resolution: {integrity: sha512-23TzBKPflUS1uEq5SXymnQKQDSda35KvHjnvxdcDQGE+wg6hwDHgScUCWiBmZW4sxAaPcANfs+Wc9B7yDuyT6Q==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': ^1.3.0
     dependencies:
       '@opentelemetry/api': 1.4.1
+      '@types/shimmer': 1.0.2
+      import-in-the-middle: 1.3.5
       require-in-the-middle: 7.1.0
-      semver: 7.3.8
+      semver: 7.5.1
       shimmer: 1.2.1
     transitivePeerDependencies:
       - supports-color
 
-  /@opentelemetry/resources/1.13.0_@opentelemetry+api@1.4.1:
-    resolution: {integrity: sha512-euqjOkiN6xhjE//0vQYGvbStxoD/WWQRhDiO0OTLlnLBO9Yw2Gd/VoSx2H+svsebjzYk5OxLuREBmcdw6rbUNg==}
+  /@opentelemetry/resources/1.14.0_@opentelemetry+api@1.4.1:
+    resolution: {integrity: sha512-qRfWIgBxxl3z47E036Aey0Lj2ZjlFb27Q7Xnj1y1z/P293RXJZGLtcfn/w8JF7v1Q2hs3SDGxz7Wb9Dko1YUQA==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.5.0'
     dependencies:
       '@opentelemetry/api': 1.4.1
-      '@opentelemetry/core': 1.13.0_@opentelemetry+api@1.4.1
-      '@opentelemetry/semantic-conventions': 1.13.0
+      '@opentelemetry/core': 1.14.0_@opentelemetry+api@1.4.1
+      '@opentelemetry/semantic-conventions': 1.14.0
 
-  /@opentelemetry/sdk-trace-base/1.13.0_@opentelemetry+api@1.4.1:
-    resolution: {integrity: sha512-moTiQtc0uPR1hQLt6gLDJH9IIkeBhgRb71OKjNHZPE1VF45fHtD6nBDi5J/DkTHTwYP5X3kBJLa3xN7ub6J4eg==}
+  /@opentelemetry/sdk-trace-base/1.14.0_@opentelemetry+api@1.4.1:
+    resolution: {integrity: sha512-NzRGt3PS+HPKfQYMb6Iy8YYc5OKA73qDwci/6ujOIvyW9vcqBJSWbjZ8FeLEAmuatUB5WrRhEKu9b0sIiIYTrQ==}
     engines: {node: '>=14'}
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.5.0'
     dependencies:
       '@opentelemetry/api': 1.4.1
-      '@opentelemetry/core': 1.13.0_@opentelemetry+api@1.4.1
-      '@opentelemetry/resources': 1.13.0_@opentelemetry+api@1.4.1
-      '@opentelemetry/semantic-conventions': 1.13.0
+      '@opentelemetry/core': 1.14.0_@opentelemetry+api@1.4.1
+      '@opentelemetry/resources': 1.14.0_@opentelemetry+api@1.4.1
+      '@opentelemetry/semantic-conventions': 1.14.0
 
-  /@opentelemetry/semantic-conventions/1.13.0:
-    resolution: {integrity: sha512-LMGqfSZkaMQXqewO0o1wvWr/2fQdCh4a3Sqlxka/UsJCe0cfLulh6x2aqnKLnsrSGiCq5rSCwvINd152i0nCqw==}
+  /@opentelemetry/semantic-conventions/1.14.0:
+    resolution: {integrity: sha512-rJfCY8rCWz3cb4KI6pEofnytvMPuj3YLQwoscCCYZ5DkdiPjo15IQ0US7+mjcWy9H3fcZIzf2pbJZ7ck/h4tug==}
     engines: {node: '>=14'}
 
   /@pkgjs/parseargs/0.11.0:
@@ -3035,8 +3038,8 @@ packages:
   /@prisma/engines-version/4.17.0-21.a6324410622b51700b1f574eeca057c71b1a3c5a:
     resolution: {integrity: sha512-p1dHyubJlDBTmLpUHCwYIanvmj/viGT1aRhSLLz4tEcYszwvWmpVrUNT7YgRRIDi/PGE/c7QHr/knhNIa/SeaA==}
 
-  /@prisma/mini-proxy/0.8.0:
-    resolution: {integrity: sha512-aAYccg8m9ah/vYCqTAlQaGfFOF6COFvmSc/FhV70sQyIs8hxlIrxjorAqsP/3VE5FOL+sXvrKv2VDCPenFn5Aw==}
+  /@prisma/mini-proxy/0.9.0:
+    resolution: {integrity: sha512-ZfgNSkQJ+Ut3c/O+BJ1/VEx1NUsQiP7O0H7Lzwf82cwVRHzxGpMKgfOzB7otMKdyAw+9kvsBD4esFzWKgopYFg==}
     engines: {node: '>=16'}
     hasBin: true
     dev: true
@@ -4395,6 +4398,9 @@ packages:
   /@types/semver/7.3.13:
     resolution: {integrity: sha512-21cFJr9z3g5dW8B0CVI9g2O9beqaThGQ6ZFBqHfwhzLDKUxaqTIy3vnfah/UPkfOiF2pLq+tGz+W8RyCskuslw==}
     dev: true
+
+  /@types/shimmer/1.0.2:
+    resolution: {integrity: sha512-dKkr1bTxbEsFlh2ARpKzcaAmsYixqt9UyCdoEZk8rHyE4iQYcDCyvSjDSf7JUWJHlJiTtbIoQjxKh6ViywqDAg==}
 
   /@types/sqlite3/3.1.8:
     resolution: {integrity: sha512-sQMt/qnyUWnqiTcJXm5ZfNPIBeJ/DVvJDwxw+0tAxPJvadzfiP1QhryO1JOR6t1yfb8NpzQb/Rud06mob5laIA==}
@@ -7192,8 +7198,8 @@ packages:
     resolution: {integrity: sha512-xJuoT5+L99XlZ8twedaRf6Ax2TgQVxvgZOYoPKqZufmJib0tL2tegPBOZb1pVNgIhlqDlA0eO0c3wBvQcmzx4w==}
     dev: true
 
-  /fast-glob/3.2.12:
-    resolution: {integrity: sha512-DVj4CQIYYow0BlaelwK1pHl5n5cRSJfM60UA0zK891sVInoPri2Ekj7+e1CT3/3qxXenpI+nBBmQAcJPJgaj4w==}
+  /fast-glob/3.3.0:
+    resolution: {integrity: sha512-ChDuvbOypPuNjO8yIDf36x7BlZX1smcUMTTcyoIjycexOxd6DFsKsg21qVBzEmr3G7fUKIRy2/psii+CIUt7FA==}
     engines: {node: '>=8.6.0'}
     dependencies:
       '@nodelib/fs.stat': 2.0.5
@@ -7774,7 +7780,7 @@ packages:
     dependencies:
       array-union: 2.1.0
       dir-glob: 3.0.1
-      fast-glob: 3.2.12
+      fast-glob: 3.3.0
       ignore: 5.2.4
       merge2: 1.4.1
       slash: 3.0.0
@@ -7784,7 +7790,7 @@ packages:
     engines: {node: ^12.20.0 || ^14.13.1 || >=16.0.0}
     dependencies:
       dir-glob: 3.0.1
-      fast-glob: 3.2.12
+      fast-glob: 3.3.0
       ignore: 5.2.4
       merge2: 1.4.1
       slash: 4.0.0
@@ -8147,6 +8153,11 @@ packages:
       parent-module: 1.0.1
       resolve-from: 4.0.0
     dev: true
+
+  /import-in-the-middle/1.3.5:
+    resolution: {integrity: sha512-yzHlBqi1EBFrkieAnSt8eTgO5oLSl+YJ7qaOpUH/PMqQOMZoQ/RmDlwnTLQrwYto+gHYjRG+i/IbsB1eDx32NQ==}
+    dependencies:
+      module-details-from-path: 1.0.3
 
   /import-lazy/2.1.0:
     resolution: {integrity: sha512-m7ZEHgtw69qOGw+jwxXkHlrlIPdTGkyh66zXZ1ajZbxkDBNjSY/LGbmjc7h0s2ELsUDTAhFr55TrPSSqJGPG0A==}
@@ -12271,6 +12282,7 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
+    dev: true
 
   /semver/7.5.1:
     resolution: {integrity: sha512-Wvss5ivl8TMRZXXESstBA4uR5iXgEN/VC5/sOcuXdVLzcdkz4HWetIoRfG5gb5X+ij/G9rw9YoGn3QoQ8OCSpw==}
@@ -12278,7 +12290,6 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
-    dev: true
 
   /semver/7.5.3:
     resolution: {integrity: sha512-QBlUtyVk/5EeHbi7X0fw6liDZc7BBmEaSYn01fMU1OUYbf6GPsbTtd8WmnqbI20SeycoHSeiybkE/q1Q+qlThQ==}
@@ -12626,9 +12637,9 @@ packages:
       minipass: 3.3.4
     dev: true
 
-  /stack-trace/1.0.0-pre1:
-    resolution: {integrity: sha512-biM7OwS3J2hcou7tfozHcsqhJZxX5pqMMqe/Zr6stw9uVn8Gh7ct3eFR9Gb66BBi/ToSeOgk4FsjKgZVrDIyew==}
-    engines: {node: '16'}
+  /stack-trace/1.0.0-pre2:
+    resolution: {integrity: sha512-2ztBJRek8IVofG9DBJqdy2N5kulaacX30Nz7xmkYF6ale9WBVmIy6mFBchvGX7Vx/MyjBhx+Rcxqrj+dbOnQ6A==}
+    engines: {node: '>=16'}
     dev: true
 
   /stack-utils/2.0.5:
