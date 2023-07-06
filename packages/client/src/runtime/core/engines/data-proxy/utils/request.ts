@@ -87,16 +87,7 @@ function buildOptions(options: RequestOptions): Https.RequestOptions {
 function buildResponse(incomingData: Buffer[], response: IncomingMessage): RequestResponse {
   return {
     text: () => Promise.resolve(Buffer.concat(incomingData).toString()),
-    json: () => {
-      const dataAsString = Buffer.concat(incomingData).toString()
-      let dataAsJson
-      try {
-        dataAsJson = JSON.parse(dataAsString)
-        return Promise.resolve(dataAsJson)
-      } catch (e) {
-        throw new Error(`Failed to parse JSON: ${e.message} - data:\`${dataAsString}\``)
-      }
-    },
+    json: () => Promise.resolve(JSON.parse(Buffer.concat(incomingData).toString())),
     ok: response.statusCode! >= 200 && response.statusCode! <= 299,
     status: response.statusCode!,
     url: response.url!,
@@ -126,10 +117,6 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
         headers: { location },
       } = response
 
-      console.debug(httpsOptions)
-      console.debug(response)
-      console.debug('https.request statusCode', response.statusCode, 'headers', response.headers)
-
       if (statusCode! >= 301 && statusCode! <= 399 && location) {
         if (location.startsWith('http') === false) {
           resolve(nodeFetch(`${origin}${location}`, options))
@@ -139,9 +126,7 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
       }
 
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
-      response.on('end', () => {
-        return resolve(buildResponse(incomingData, response))
-      })
+      response.on('end', () => resolve(buildResponse(incomingData, response)))
       response.on('error', reject)
     })
 
