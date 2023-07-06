@@ -126,6 +126,10 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
         headers: { location },
       } = response
 
+      console.debug(httpsOptions)
+      console.debug(response)
+      console.debug('https.request statusCode', response.statusCode, 'headers', response.headers)
+
       if (statusCode! >= 301 && statusCode! <= 399 && location) {
         if (location.startsWith('http') === false) {
           resolve(nodeFetch(`${origin}${location}`, options))
