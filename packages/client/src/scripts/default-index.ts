@@ -1,4 +1,8 @@
-class PrismaClient {
+import { prisma } from '@prisma/engines-version/package.json'
+
+import { clientVersion } from '../runtime/utils/clientVersion'
+
+export class PrismaClient {
   constructor() {
     throw new Error(
       `@prisma/client did not initialize yet. Please run "prisma generate" and try to import it again.
@@ -19,11 +23,8 @@ function getExtensionContext(that) {
   return that
 }
 
-module.exports = {
-  PrismaClient,
-  Prisma: {
-    defineExtension,
-    getExtensionContext,
-    prismaVersion: { client: '__CLIENT_VERSION__', engine: '__ENGINE_VERSION__' },
-  },
+export const Prisma = {
+  defineExtension,
+  getExtensionContext,
+  prismaVersion: { client: clientVersion, engine: prisma.enginesVersion },
 }

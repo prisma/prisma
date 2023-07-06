@@ -1,4 +1,3 @@
-import assert from 'assert'
 import fs from 'fs'
 import path from 'path'
 
@@ -97,22 +96,17 @@ const generatorBuildConfig: BuildOptions = {
   emitTypes: false,
 }
 
-function writeDtsRexport(fileName: string) {
-  fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./index"\n')
+// default-index.js file in scripts
+const defaultIndexConfig: BuildOptions = {
+  name: 'default-index',
+  entryPoints: ['src/scripts/default-index.ts'],
+  outfile: 'scripts/default-index',
+  bundle: true,
+  emitTypes: false,
 }
 
-function writeDefaultIndexFile() {
-  const { enginesVersion } = require('@prisma/engines-version')
-  const { version: clientVersion } = require('../package.json')
-
-  assert(typeof enginesVersion === 'string')
-  assert(typeof clientVersion === 'string')
-
-  const scriptsPath = path.join(__dirname, '..', 'scripts')
-  const template = fs.readFileSync(path.join(scriptsPath, 'default-index-template.js'), 'utf8')
-  const content = template.replace('__CLIENT_VERSION__', clientVersion).replace('__ENGINE_VERSION__', enginesVersion)
-
-  fs.writeFileSync(path.join(scriptsPath, 'default-index.js'), content)
+function writeDtsRexport(fileName: string) {
+  fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./index"\n')
 }
 
 void build([
@@ -125,9 +119,9 @@ void build([
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
+  defaultIndexConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
   writeDtsRexport('library.d.ts')
   writeDtsRexport('data-proxy.d.ts')
-  writeDefaultIndexFile()
 })

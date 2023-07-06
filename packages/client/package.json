@@ -54,7 +54,6 @@
     "runtime",
     "!runtime/*.map",
     "scripts",
-    "!scripts/default-index-template.js",
     "generator-build",
     "edge.js",
     "edge.d.ts",
