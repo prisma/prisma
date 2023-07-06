@@ -1,3 +1,4 @@
+import assert from 'assert'
 import fs from 'fs'
 import path from 'path'
 
@@ -100,6 +101,20 @@ function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./index"\n')
 }
 
+function writeDefaultIndexFile() {
+  const { enginesVersion } = require('@prisma/engines-version')
+  const { version: clientVersion } = require('../package.json')
+
+  assert(typeof enginesVersion === 'string')
+  assert(typeof clientVersion === 'string')
+
+  const scriptsPath = path.join(__dirname, '..', 'scripts')
+  const template = fs.readFileSync(path.join(scriptsPath, 'default-index-template.js'), 'utf8')
+  const content = template.replace('__CLIENT_VERSION__', clientVersion).replace('__ENGINE_VERSION__', enginesVersion)
+
+  fs.writeFileSync(path.join(scriptsPath, 'default-index.js'), content)
+}
+
 void build([
   generatorBuildConfig,
   // Exists for backward compatibility. Could be removed in next major
@@ -114,4 +129,5 @@ void build([
   writeDtsRexport('binary.d.ts')
   writeDtsRexport('library.d.ts')
   writeDtsRexport('data-proxy.d.ts')
+  writeDefaultIndexFile()
 })
