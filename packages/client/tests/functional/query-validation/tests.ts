@@ -376,6 +376,7 @@ testMatrix.setupTestSuite(
 
     test('missing one of the specific required fields', async () => {
       const result = prisma.user.findUnique({
+        // @ts-expect-error
         where: {},
       })
 
