@@ -8264,7 +8264,7 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
-    one?: boolean | OneOptionalArgs<ExtArgs>
+    one?: boolean | ManyRequired$oneArgs<ExtArgs>
   }, ExtArgs["result"]["manyRequired"]>
 
   export type ManyRequiredSelectScalar = {
@@ -8285,7 +8285,7 @@ export namespace Prisma {
   }
 
   export type ManyRequiredInclude<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    one?: boolean | OneOptionalArgs<ExtArgs>
+    one?: boolean | ManyRequired$oneArgs<ExtArgs>
   }
 
 
@@ -8661,7 +8661,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    one<T extends OneOptionalArgs<ExtArgs> = {}>(args?: Subset<T, OneOptionalArgs<ExtArgs>>): Prisma__OneOptionalClient<$Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
+    one<T extends ManyRequired$oneArgs<ExtArgs> = {}>(args?: Subset<T, ManyRequired$oneArgs<ExtArgs>>): Prisma__OneOptionalClient<$Types.GetResult<OneOptionalPayload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -9040,6 +9040,22 @@ export namespace Prisma {
 
 
   /**
+   * ManyRequired.one
+   */
+  export type ManyRequired$oneArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OneOptional
+     */
+    select?: OneOptionalSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     */
+    include?: OneOptionalInclude<ExtArgs> | null
+    where?: OneOptionalWhereInput
+  }
+
+
+  /**
    * ManyRequired without action
    */
   export type ManyRequiredArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
@@ -9339,7 +9355,7 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
-    opti?: boolean | OptionalSide2Args<ExtArgs>
+    opti?: boolean | OptionalSide1$optiArgs<ExtArgs>
   }, ExtArgs["result"]["optionalSide1"]>
 
   export type OptionalSide1SelectScalar = {
@@ -9360,7 +9376,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide1Include<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    opti?: boolean | OptionalSide2Args<ExtArgs>
+    opti?: boolean | OptionalSide1$optiArgs<ExtArgs>
   }
 
 
@@ -9736,7 +9752,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    opti<T extends OptionalSide2Args<ExtArgs> = {}>(args?: Subset<T, OptionalSide2Args<ExtArgs>>): Prisma__OptionalSide2Client<$Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
+    opti<T extends OptionalSide1$optiArgs<ExtArgs> = {}>(args?: Subset<T, OptionalSide1$optiArgs<ExtArgs>>): Prisma__OptionalSide2Client<$Types.GetResult<OptionalSide2Payload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -10115,6 +10131,22 @@ export namespace Prisma {
 
 
   /**
+   * OptionalSide1.opti
+   */
+  export type OptionalSide1$optiArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OptionalSide2
+     */
+    select?: OptionalSide2Select<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     */
+    include?: OptionalSide2Include<ExtArgs> | null
+    where?: OptionalSide2WhereInput
+  }
+
+
+  /**
    * OptionalSide1 without action
    */
   export type OptionalSide1Args<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
@@ -10402,7 +10434,7 @@ export namespace Prisma {
     optionalEnum?: boolean
     boolean?: boolean
     optionalBoolean?: boolean
-    opti?: boolean | OptionalSide1Args<ExtArgs>
+    opti?: boolean | OptionalSide2$optiArgs<ExtArgs>
   }, ExtArgs["result"]["optionalSide2"]>
 
   export type OptionalSide2SelectScalar = {
@@ -10422,7 +10454,7 @@ export namespace Prisma {
   }
 
   export type OptionalSide2Include<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-    opti?: boolean | OptionalSide1Args<ExtArgs>
+    opti?: boolean | OptionalSide2$optiArgs<ExtArgs>
   }
 
 
@@ -10798,7 +10830,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: 'PrismaPromise';
     constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 
-    opti<T extends OptionalSide1Args<ExtArgs> = {}>(args?: Subset<T, OptionalSide1Args<ExtArgs>>): Prisma__OptionalSide1Client<$Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
+    opti<T extends OptionalSide2$optiArgs<ExtArgs> = {}>(args?: Subset<T, OptionalSide2$optiArgs<ExtArgs>>): Prisma__OptionalSide1Client<$Types.GetResult<OptionalSide1Payload<ExtArgs>, T, 'findUnique', never> | Null, never, ExtArgs>;
 
     private get _document();
     /**
@@ -11172,6 +11204,22 @@ export namespace Prisma {
      * Filter which OptionalSide2s to delete
      */
     where?: OptionalSide2WhereInput
+  }
+
+
+  /**
+   * OptionalSide2.opti
+   */
+  export type OptionalSide2$optiArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OptionalSide1
+     */
+    select?: OptionalSide1Select<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well.
+     */
+    include?: OptionalSide1Include<ExtArgs> | null
+    where?: OptionalSide1WhereInput
   }
 
 
@@ -16277,9 +16325,18 @@ export namespace Prisma {
     author?: UserOrderByWithRelationInput
   }
 
-  export type PostWhereUniqueInput = {
+  export type PostWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-  }
+    AND?: PostWhereInput | PostWhereInput[]
+    OR?: PostWhereInput[]
+    NOT?: PostWhereInput | PostWhereInput[]
+    createdAt?: DateTimeFilter<"Post"> | Date | string
+    title?: StringFilter<"Post"> | string
+    content?: StringNullableFilter<"Post"> | string | null
+    published?: BoolFilter<"Post"> | boolean
+    authorId?: IntFilter<"Post"> | number
+    author?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id">
 
   export type PostOrderByWithAggregationInput = {
     id?: SortOrder
@@ -16346,10 +16403,26 @@ export namespace Prisma {
     posts?: PostOrderByRelationAggregateInput
   }
 
-  export type UserWhereUniqueInput = {
+  export type UserWhereUniqueInput = Prisma.AtLeast<{
     id?: number
     email?: string
-  }
+    AND?: UserWhereInput | UserWhereInput[]
+    OR?: UserWhereInput[]
+    NOT?: UserWhereInput | UserWhereInput[]
+    int?: IntFilter<"User"> | number
+    optionalInt?: IntNullableFilter<"User"> | number | null
+    float?: FloatFilter<"User"> | number
+    optionalFloat?: FloatNullableFilter<"User"> | number | null
+    string?: StringFilter<"User"> | string
+    optionalString?: StringNullableFilter<"User"> | string | null
+    json?: JsonFilter<"User">
+    optionalJson?: JsonNullableFilter<"User">
+    enum?: EnumABeautifulEnumFilter<"User"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"User"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"User"> | boolean
+    optionalBoolean?: BoolNullableFilter<"User"> | boolean | null
+    posts?: PostListRelationFilter
+  }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder
@@ -16430,9 +16503,25 @@ export namespace Prisma {
     n?: NOrderByRelationAggregateInput
   }
 
-  export type MWhereUniqueInput = {
+  export type MWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-  }
+    AND?: MWhereInput | MWhereInput[]
+    OR?: MWhereInput[]
+    NOT?: MWhereInput | MWhereInput[]
+    int?: IntFilter<"M"> | number
+    optionalInt?: IntNullableFilter<"M"> | number | null
+    float?: FloatFilter<"M"> | number
+    optionalFloat?: FloatNullableFilter<"M"> | number | null
+    string?: StringFilter<"M"> | string
+    optionalString?: StringNullableFilter<"M"> | string | null
+    json?: JsonFilter<"M">
+    optionalJson?: JsonNullableFilter<"M">
+    enum?: EnumABeautifulEnumFilter<"M"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"M"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"M"> | boolean
+    optionalBoolean?: BoolNullableFilter<"M"> | boolean | null
+    n?: NListRelationFilter
+  }, "id">
 
   export type MOrderByWithAggregationInput = {
     id?: SortOrder
@@ -16511,9 +16600,25 @@ export namespace Prisma {
     m?: MOrderByRelationAggregateInput
   }
 
-  export type NWhereUniqueInput = {
+  export type NWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-  }
+    AND?: NWhereInput | NWhereInput[]
+    OR?: NWhereInput[]
+    NOT?: NWhereInput | NWhereInput[]
+    int?: IntFilter<"N"> | number
+    optionalInt?: IntNullableFilter<"N"> | number | null
+    float?: FloatFilter<"N"> | number
+    optionalFloat?: FloatNullableFilter<"N"> | number | null
+    string?: StringFilter<"N"> | string
+    optionalString?: StringNullableFilter<"N"> | string | null
+    json?: JsonFilter<"N">
+    optionalJson?: JsonNullableFilter<"N">
+    enum?: EnumABeautifulEnumFilter<"N"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"N"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"N"> | boolean
+    optionalBoolean?: BoolNullableFilter<"N"> | boolean | null
+    m?: MListRelationFilter
+  }, "id">
 
   export type NOrderByWithAggregationInput = {
     id?: SortOrder
@@ -16592,9 +16697,25 @@ export namespace Prisma {
     many?: ManyRequiredOrderByRelationAggregateInput
   }
 
-  export type OneOptionalWhereUniqueInput = {
+  export type OneOptionalWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-  }
+    AND?: OneOptionalWhereInput | OneOptionalWhereInput[]
+    OR?: OneOptionalWhereInput[]
+    NOT?: OneOptionalWhereInput | OneOptionalWhereInput[]
+    int?: IntFilter<"OneOptional"> | number
+    optionalInt?: IntNullableFilter<"OneOptional"> | number | null
+    float?: FloatFilter<"OneOptional"> | number
+    optionalFloat?: FloatNullableFilter<"OneOptional"> | number | null
+    string?: StringFilter<"OneOptional"> | string
+    optionalString?: StringNullableFilter<"OneOptional"> | string | null
+    json?: JsonFilter<"OneOptional">
+    optionalJson?: JsonNullableFilter<"OneOptional">
+    enum?: EnumABeautifulEnumFilter<"OneOptional"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OneOptional"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"OneOptional"> | boolean
+    optionalBoolean?: BoolNullableFilter<"OneOptional"> | boolean | null
+    many?: ManyRequiredListRelationFilter
+  }, "id">
 
   export type OneOptionalOrderByWithAggregationInput = {
     id?: SortOrder
@@ -16675,9 +16796,26 @@ export namespace Prisma {
     one?: OneOptionalOrderByWithRelationInput
   }
 
-  export type ManyRequiredWhereUniqueInput = {
+  export type ManyRequiredWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-  }
+    AND?: ManyRequiredWhereInput | ManyRequiredWhereInput[]
+    OR?: ManyRequiredWhereInput[]
+    NOT?: ManyRequiredWhereInput | ManyRequiredWhereInput[]
+    oneOptionalId?: IntNullableFilter<"ManyRequired"> | number | null
+    int?: IntFilter<"ManyRequired"> | number
+    optionalInt?: IntNullableFilter<"ManyRequired"> | number | null
+    float?: FloatFilter<"ManyRequired"> | number
+    optionalFloat?: FloatNullableFilter<"ManyRequired"> | number | null
+    string?: StringFilter<"ManyRequired"> | string
+    optionalString?: StringNullableFilter<"ManyRequired"> | string | null
+    json?: JsonFilter<"ManyRequired">
+    optionalJson?: JsonNullableFilter<"ManyRequired">
+    enum?: EnumABeautifulEnumFilter<"ManyRequired"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"ManyRequired"> | boolean
+    optionalBoolean?: BoolNullableFilter<"ManyRequired"> | boolean | null
+    one?: XOR<OneOptionalNullableRelationFilter, OneOptionalWhereInput> | null
+  }, "id">
 
   export type ManyRequiredOrderByWithAggregationInput = {
     id?: SortOrder
@@ -16760,10 +16898,26 @@ export namespace Prisma {
     opti?: OptionalSide2OrderByWithRelationInput
   }
 
-  export type OptionalSide1WhereUniqueInput = {
+  export type OptionalSide1WhereUniqueInput = Prisma.AtLeast<{
     id?: number
     optionalSide2Id?: number
-  }
+    AND?: OptionalSide1WhereInput | OptionalSide1WhereInput[]
+    OR?: OptionalSide1WhereInput[]
+    NOT?: OptionalSide1WhereInput | OptionalSide1WhereInput[]
+    int?: IntFilter<"OptionalSide1"> | number
+    optionalInt?: IntNullableFilter<"OptionalSide1"> | number | null
+    float?: FloatFilter<"OptionalSide1"> | number
+    optionalFloat?: FloatNullableFilter<"OptionalSide1"> | number | null
+    string?: StringFilter<"OptionalSide1"> | string
+    optionalString?: StringNullableFilter<"OptionalSide1"> | string | null
+    json?: JsonFilter<"OptionalSide1">
+    optionalJson?: JsonNullableFilter<"OptionalSide1">
+    enum?: EnumABeautifulEnumFilter<"OptionalSide1"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide1"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"OptionalSide1"> | boolean
+    optionalBoolean?: BoolNullableFilter<"OptionalSide1"> | boolean | null
+    opti?: XOR<OptionalSide2NullableRelationFilter, OptionalSide2WhereInput> | null
+  }, "id" | "optionalSide2Id">
 
   export type OptionalSide1OrderByWithAggregationInput = {
     id?: SortOrder
@@ -16844,9 +16998,25 @@ export namespace Prisma {
     opti?: OptionalSide1OrderByWithRelationInput
   }
 
-  export type OptionalSide2WhereUniqueInput = {
+  export type OptionalSide2WhereUniqueInput = Prisma.AtLeast<{
     id?: number
-  }
+    AND?: OptionalSide2WhereInput | OptionalSide2WhereInput[]
+    OR?: OptionalSide2WhereInput[]
+    NOT?: OptionalSide2WhereInput | OptionalSide2WhereInput[]
+    int?: IntFilter<"OptionalSide2"> | number
+    optionalInt?: IntNullableFilter<"OptionalSide2"> | number | null
+    float?: FloatFilter<"OptionalSide2"> | number
+    optionalFloat?: FloatNullableFilter<"OptionalSide2"> | number | null
+    string?: StringFilter<"OptionalSide2"> | string
+    optionalString?: StringNullableFilter<"OptionalSide2"> | string | null
+    json?: JsonFilter<"OptionalSide2">
+    optionalJson?: JsonNullableFilter<"OptionalSide2">
+    enum?: EnumABeautifulEnumFilter<"OptionalSide2"> | ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide2"> | ABeautifulEnum | null
+    boolean?: BoolFilter<"OptionalSide2"> | boolean
+    optionalBoolean?: BoolNullableFilter<"OptionalSide2"> | boolean | null
+    opti?: XOR<OptionalSide1NullableRelationFilter, OptionalSide1WhereInput> | null
+  }, "id">
 
   export type OptionalSide2OrderByWithAggregationInput = {
     id?: SortOrder
@@ -16915,10 +17085,20 @@ export namespace Prisma {
     inc_bInt?: SortOrder
   }
 
-  export type AWhereUniqueInput = {
+  export type AWhereUniqueInput = Prisma.AtLeast<{
     id?: string
     email?: string
-  }
+    AND?: AWhereInput | AWhereInput[]
+    OR?: AWhereInput[]
+    NOT?: AWhereInput | AWhereInput[]
+    name?: StringNullableFilter<"A"> | string | null
+    int?: IntFilter<"A"> | number
+    sInt?: IntFilter<"A"> | number
+    bInt?: BigIntFilter<"A"> | bigint | number
+    inc_int?: IntFilter<"A"> | number
+    inc_sInt?: IntFilter<"A"> | number
+    inc_bInt?: BigIntFilter<"A"> | bigint | number
+  }, "id" | "email">
 
   export type AOrderByWithAggregationInput = {
     id?: SortOrder
@@ -16971,9 +17151,16 @@ export namespace Prisma {
     numFloat?: SortOrder
   }
 
-  export type BWhereUniqueInput = {
+  export type BWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-  }
+    AND?: BWhereInput | BWhereInput[]
+    OR?: BWhereInput[]
+    NOT?: BWhereInput | BWhereInput[]
+    float?: FloatFilter<"B"> | number
+    dFloat?: FloatFilter<"B"> | number
+    decFloat?: DecimalFilter<"B"> | Decimal | DecimalJsLike | number | string
+    numFloat?: DecimalFilter<"B"> | Decimal | DecimalJsLike | number | string
+  }, "id">
 
   export type BOrderByWithAggregationInput = {
     id?: SortOrder
@@ -17022,9 +17209,18 @@ export namespace Prisma {
     uuid?: SortOrder
   }
 
-  export type CWhereUniqueInput = {
+  export type CWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-  }
+    AND?: CWhereInput | CWhereInput[]
+    OR?: CWhereInput[]
+    NOT?: CWhereInput | CWhereInput[]
+    char?: StringFilter<"C"> | string
+    vChar?: StringFilter<"C"> | string
+    text?: StringFilter<"C"> | string
+    bit?: StringFilter<"C"> | string
+    vBit?: StringFilter<"C"> | string
+    uuid?: UuidFilter<"C"> | string
+  }, "id">
 
   export type COrderByWithAggregationInput = {
     id?: SortOrder
@@ -17075,9 +17271,18 @@ export namespace Prisma {
     list?: SortOrder
   }
 
-  export type DWhereUniqueInput = {
+  export type DWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-  }
+    AND?: DWhereInput | DWhereInput[]
+    OR?: DWhereInput[]
+    NOT?: DWhereInput | DWhereInput[]
+    bool?: BoolFilter<"D"> | boolean
+    byteA?: BytesFilter<"D"> | Buffer
+    xml?: StringFilter<"D"> | string
+    json?: JsonFilter<"D">
+    jsonb?: JsonFilter<"D">
+    list?: IntNullableListFilter<"D">
+  }, "id">
 
   export type DOrderByWithAggregationInput = {
     id?: SortOrder
@@ -17124,9 +17329,15 @@ export namespace Prisma {
     ts?: SortOrder
   }
 
-  export type EWhereUniqueInput = {
+  export type EWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-  }
+    AND?: EWhereInput | EWhereInput[]
+    OR?: EWhereInput[]
+    NOT?: EWhereInput | EWhereInput[]
+    date?: DateTimeFilter<"E"> | Date | string
+    time?: DateTimeFilter<"E"> | Date | string
+    ts?: DateTimeFilter<"E"> | Date | string
+  }, "id">
 
   export type EOrderByWithAggregationInput = {
     id?: SortOrder
@@ -19534,7 +19745,7 @@ export namespace Prisma {
     connectOrCreate?: UserCreateOrConnectWithoutPostsInput
     upsert?: UserUpsertWithoutPostsInput
     connect?: UserWhereUniqueInput
-    update?: XOR<UserUpdateWithoutPostsInput, UserUncheckedUpdateWithoutPostsInput>
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutPostsInput, UserUpdateWithoutPostsInput>, UserUncheckedUpdateWithoutPostsInput>
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -19751,10 +19962,10 @@ export namespace Prisma {
     create?: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
     connectOrCreate?: OneOptionalCreateOrConnectWithoutManyInput
     upsert?: OneOptionalUpsertWithoutManyInput
-    disconnect?: boolean
-    delete?: boolean
+    disconnect?: OneOptionalWhereInput | boolean
+    delete?: OneOptionalWhereInput | boolean
     connect?: OneOptionalWhereUniqueInput
-    update?: XOR<OneOptionalUpdateWithoutManyInput, OneOptionalUncheckedUpdateWithoutManyInput>
+    update?: XOR<XOR<OneOptionalUpdateToOneWithWhereWithoutManyInput, OneOptionalUpdateWithoutManyInput>, OneOptionalUncheckedUpdateWithoutManyInput>
   }
 
   export type OptionalSide2CreateNestedOneWithoutOptiInput = {
@@ -19767,10 +19978,10 @@ export namespace Prisma {
     create?: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide2CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide2UpsertWithoutOptiInput
-    disconnect?: boolean
-    delete?: boolean
+    disconnect?: OptionalSide2WhereInput | boolean
+    delete?: OptionalSide2WhereInput | boolean
     connect?: OptionalSide2WhereUniqueInput
-    update?: XOR<OptionalSide2UpdateWithoutOptiInput, OptionalSide2UncheckedUpdateWithoutOptiInput>
+    update?: XOR<XOR<OptionalSide2UpdateToOneWithWhereWithoutOptiInput, OptionalSide2UpdateWithoutOptiInput>, OptionalSide2UncheckedUpdateWithoutOptiInput>
   }
 
   export type OptionalSide1CreateNestedOneWithoutOptiInput = {
@@ -19789,20 +20000,20 @@ export namespace Prisma {
     create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide1UpsertWithoutOptiInput
-    disconnect?: boolean
-    delete?: boolean
+    disconnect?: OptionalSide1WhereInput | boolean
+    delete?: OptionalSide1WhereInput | boolean
     connect?: OptionalSide1WhereUniqueInput
-    update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
+    update?: XOR<XOR<OptionalSide1UpdateToOneWithWhereWithoutOptiInput, OptionalSide1UpdateWithoutOptiInput>, OptionalSide1UncheckedUpdateWithoutOptiInput>
   }
 
   export type OptionalSide1UncheckedUpdateOneWithoutOptiNestedInput = {
     create?: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
     connectOrCreate?: OptionalSide1CreateOrConnectWithoutOptiInput
     upsert?: OptionalSide1UpsertWithoutOptiInput
-    disconnect?: boolean
-    delete?: boolean
+    disconnect?: OptionalSide1WhereInput | boolean
+    delete?: OptionalSide1WhereInput | boolean
     connect?: OptionalSide1WhereUniqueInput
-    update?: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
+    update?: XOR<XOR<OptionalSide1UpdateToOneWithWhereWithoutOptiInput, OptionalSide1UpdateWithoutOptiInput>, OptionalSide1UncheckedUpdateWithoutOptiInput>
   }
 
   export type BigIntFieldUpdateOperationsInput = {
@@ -20270,6 +20481,12 @@ export namespace Prisma {
   export type UserUpsertWithoutPostsInput = {
     update: XOR<UserUpdateWithoutPostsInput, UserUncheckedUpdateWithoutPostsInput>
     create: XOR<UserCreateWithoutPostsInput, UserUncheckedCreateWithoutPostsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutPostsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutPostsInput, UserUncheckedUpdateWithoutPostsInput>
   }
 
   export type UserUpdateWithoutPostsInput = {
@@ -20616,6 +20833,12 @@ export namespace Prisma {
   export type OneOptionalUpsertWithoutManyInput = {
     update: XOR<OneOptionalUpdateWithoutManyInput, OneOptionalUncheckedUpdateWithoutManyInput>
     create: XOR<OneOptionalCreateWithoutManyInput, OneOptionalUncheckedCreateWithoutManyInput>
+    where?: OneOptionalWhereInput
+  }
+
+  export type OneOptionalUpdateToOneWithWhereWithoutManyInput = {
+    where?: OneOptionalWhereInput
+    data: XOR<OneOptionalUpdateWithoutManyInput, OneOptionalUncheckedUpdateWithoutManyInput>
   }
 
   export type OneOptionalUpdateWithoutManyInput = {
@@ -20688,6 +20911,12 @@ export namespace Prisma {
   export type OptionalSide2UpsertWithoutOptiInput = {
     update: XOR<OptionalSide2UpdateWithoutOptiInput, OptionalSide2UncheckedUpdateWithoutOptiInput>
     create: XOR<OptionalSide2CreateWithoutOptiInput, OptionalSide2UncheckedCreateWithoutOptiInput>
+    where?: OptionalSide2WhereInput
+  }
+
+  export type OptionalSide2UpdateToOneWithWhereWithoutOptiInput = {
+    where?: OptionalSide2WhereInput
+    data: XOR<OptionalSide2UpdateWithoutOptiInput, OptionalSide2UncheckedUpdateWithoutOptiInput>
   }
 
   export type OptionalSide2UpdateWithoutOptiInput = {
@@ -20760,6 +20989,12 @@ export namespace Prisma {
   export type OptionalSide1UpsertWithoutOptiInput = {
     update: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
     create: XOR<OptionalSide1CreateWithoutOptiInput, OptionalSide1UncheckedCreateWithoutOptiInput>
+    where?: OptionalSide1WhereInput
+  }
+
+  export type OptionalSide1UpdateToOneWithWhereWithoutOptiInput = {
+    where?: OptionalSide1WhereInput
+    data: XOR<OptionalSide1UpdateWithoutOptiInput, OptionalSide1UncheckedUpdateWithoutOptiInput>
   }
 
   export type OptionalSide1UpdateWithoutOptiInput = {
