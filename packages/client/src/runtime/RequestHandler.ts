@@ -20,7 +20,6 @@ import {
 import { QueryEngineResult } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
-import { NotFoundError } from './core/errors/NotFoundError'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
@@ -196,12 +195,6 @@ export class RequestHandler {
     if (isMismatchingBatchIndex(error, transaction)) {
       // if this is batch error and current request was not it's cause, we don't add
       // context information to the error: this wasn't a request that caused batch to fail
-      throw error
-    }
-
-    if (error instanceof NotFoundError) {
-      // TODO: This is a workaround to keep backwards compatibility with clients
-      // consuming NotFoundError
       throw error
     }
 
