@@ -87,7 +87,16 @@ function buildOptions(options: RequestOptions): Https.RequestOptions {
 function buildResponse(incomingData: Buffer[], response: IncomingMessage): RequestResponse {
   return {
     text: () => Promise.resolve(Buffer.concat(incomingData).toString()),
-    json: () => Promise.resolve(JSON.parse(Buffer.concat(incomingData).toString().replaceAll(`\"`, `\\"`))),
+    json: () => {
+      const dataAsString = Buffer.concat(incomingData).toString()
+      let dataAsJson
+      try {
+        dataAsJson = JSON.parse(dataAsString)
+        return Promise.resolve(dataAsJson)
+      } catch (e) {
+        throw new Error(`Failed to parse JSON: ${e.message} - data:\`${dataAsString}\``)
+      }
+    },
     ok: response.statusCode! >= 200 && response.statusCode! <= 299,
     status: response.statusCode!,
     url: response.url!,
@@ -127,8 +136,6 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
 
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
       response.on('end', () => {
-        console.log('DATA PROXY incomingData: ', incomingData)
-        console.log('DATA PROXY Buffer.concat(incomingData).toString(): ', Buffer.concat(incomingData).toString())
         return resolve(buildResponse(incomingData, response))
       })
       response.on('error', reject)
