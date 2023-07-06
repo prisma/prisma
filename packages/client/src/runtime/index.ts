@@ -6,7 +6,6 @@ import type { PrismaPromise } from './core/types/Public'
 
 export { DMMFHelper as DMMFClass } from '../generation/dmmf'
 export { type BaseDMMF, DMMF } from '../generation/dmmf-types'
-export { NotFoundError } from './core/errors/NotFoundError'
 export { PrismaClientInitializationError } from './core/errors/PrismaClientInitializationError'
 export { PrismaClientKnownRequestError } from './core/errors/PrismaClientKnownRequestError'
 export { PrismaClientRustPanicError } from './core/errors/PrismaClientRustPanicError'
