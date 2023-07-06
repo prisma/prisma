@@ -246,7 +246,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --data-proxy --mini-proxy-debug --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
@@ -261,8 +261,9 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+          DEBUG: 'prisma*'
 
-      - run: pnpm run test:functional --data-proxy --edge-client --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --data-proxy --edge-client --mini-proxy-debug --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
@@ -277,6 +278,7 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+          DEBUG: 'prisma*'
 
       - uses: codecov/codecov-action@v3
         with:
