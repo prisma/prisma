@@ -1,5 +1,3 @@
-const path = require('path')
-
 class PrismaClient {
   constructor() {
     throw new Error(
@@ -27,12 +25,19 @@ module.exports = {
     defineExtension,
     getExtensionContext,
     get prismaVersion() {
-      const atPrismaClientDir = path.dirname(require.resolve('@prisma/client/package.json'))
-      const enginesVersionDir = require.resolve('@prisma/engines-version', { paths: [atPrismaClientDir] })
-      const { version: client } = require('@prisma/client/package.json')
-      const { enginesVersion: engine } = require(enginesVersionDir)
+      try {
+        const path = require('path')
 
-      return { client, engine }
+        const atPrismaClientDir = path.dirname(require.resolve('@prisma/client/package.json'))
+        const enginesVersionDir = require.resolve('@prisma/engines-version', { paths: [atPrismaClientDir] })
+        const { version: client } = require('@prisma/client/package.json')
+        const { enginesVersion: engine } = require(enginesVersionDir)
+
+        return { client, engine }
+      } catch (err) {
+        console.error(err)
+        return { client: '', engine: '' }
+      }
     },
   },
 }
