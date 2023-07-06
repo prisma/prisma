@@ -51,9 +51,9 @@ testMatrix.setupTestSuite(() => {
         .house()
 
       expect(data1).toBe(null)
-      // TODO expectTypeOf(data1).toBeNullable()
-      expectTypeOf(data1?.id).toEqualTypeOf<string>()
-      expectTypeOf(data1?.likeId).toEqualTypeOf<string>()
+      expectTypeOf(data1).toBeNullable()
+      expectTypeOf(data1?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data1?.likeId).toEqualTypeOf<string | undefined>()
 
       const data2 = await prisma.user
         .findUnique({
@@ -66,9 +66,9 @@ testMatrix.setupTestSuite(() => {
         .like()
 
       expect(data2).toBe(null)
-      // TODO expectTypeOf(data2).toBeNullable()
-      expectTypeOf(data2?.id).toEqualTypeOf<string>()
-      expectTypeOf(data2?.userId).toEqualTypeOf<string>()
+      expectTypeOf(data2).toBeNullable()
+      expectTypeOf(data2?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data2?.userId).toEqualTypeOf<string | undefined>()
 
       const data3 = await prisma.user
         .findUnique({
@@ -82,9 +82,9 @@ testMatrix.setupTestSuite(() => {
         .post()
 
       expect(data3).toBe(null)
-      // TODO expectTypeOf(data3).toBeNullable()
-      expectTypeOf(data3?.id).toEqualTypeOf<string>()
-      expectTypeOf(data3?.authorId).toEqualTypeOf<string | null>()
+      expectTypeOf(data3).toBeNullable()
+      expectTypeOf(data3?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data3?.authorId).toEqualTypeOf<string | undefined | null>()
 
       const data4 = await prisma.user
         .findUnique({
@@ -99,9 +99,9 @@ testMatrix.setupTestSuite(() => {
         .author()
 
       expect(data4).toBe(null)
-      // TODO expectTypeOf(data4).toBeNullable()
-      expectTypeOf(data4?.id).toEqualTypeOf<string>()
-      expectTypeOf(data4?.email).toEqualTypeOf<string>()
+      expectTypeOf(data4).toBeNullable()
+      expectTypeOf(data4?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data4?.email).toEqualTypeOf<string | undefined>()
 
       const data5 = await prisma.user
         .findUnique({
@@ -117,9 +117,9 @@ testMatrix.setupTestSuite(() => {
         .property()
 
       expect(data5).toBe(null)
-      // TODO expectTypeOf(data5).toBeNullable()
-      expectTypeOf(data5?.id).toEqualTypeOf<string>()
-      expectTypeOf(data5?.houseId).toEqualTypeOf<string>()
+      expectTypeOf(data5).toBeNullable()
+      expectTypeOf(data5?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data5?.houseId).toEqualTypeOf<string | undefined>()
     })
 
     test('upper-cased relations', async () => {
@@ -146,9 +146,9 @@ testMatrix.setupTestSuite(() => {
         .user()
 
       expect(data1).toBe(null)
-      // TODO expectTypeOf(data1).toBeNullable()
-      expectTypeOf(data1?.id).toEqualTypeOf<string>()
-      expectTypeOf(data1?.email).toEqualTypeOf<string>()
+      expectTypeOf(data1).toBeNullable()
+      expectTypeOf(data1?.id).toEqualTypeOf<string | undefined>()
+      expectTypeOf(data1?.email).toEqualTypeOf<string | undefined>()
     })
 
     test('findFirst', async () => {
@@ -186,7 +186,7 @@ testMatrix.setupTestSuite(() => {
         })
         .property()
 
-      expectTypeOf(property).toEqualTypeOf<Property>() // TODO null missing
+      expectTypeOf(property).toEqualTypeOf<Property | null>()
       expect(property).toBeNull()
     })
 
@@ -212,7 +212,7 @@ testMatrix.setupTestSuite(() => {
         })
         .property()
 
-      expectTypeOf(property).toEqualTypeOf<Property>() // TODO null missing
+      expectTypeOf(property).toEqualTypeOf<Property | null>()
       expect(property).toBeNull()
     })
 
@@ -310,8 +310,8 @@ testMatrix.setupTestSuite(() => {
           },
         })
 
-      // TODO expectTypeOf(posts).toBeNullable()
-      expectTypeOf(house).toEqualTypeOf<{ likeId: string }>()
+      expectTypeOf(house).toBeNullable()
+      expectTypeOf(house).toEqualTypeOf<{ likeId: string } | null>()
       expect(house).toBeNull()
     })
   })
