@@ -35,10 +35,7 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
     return ''
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
-    return `<T extends ${getModelArgName(
-      name,
-      actionName,
-    )}<ExtArgs>, LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
+    return `<T extends ${getModelArgName(name, actionName)}<ExtArgs>>`
   }
   const modelArgName = getModelArgName(name, actionName)
 

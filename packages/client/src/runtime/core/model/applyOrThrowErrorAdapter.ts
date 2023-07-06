@@ -2,7 +2,7 @@ import { DMMF } from '@prisma/generator-helper'
 
 import { InternalRequestParams } from '../../getPrismaClient'
 import { createErrorMessageWithContext } from '../../utils/createErrorMessageWithContext'
-import { NotFoundError } from '../../utils/rejectOnNotFound'
+import { NotFoundError } from '../errors/NotFoundError'
 import { PrismaClientKnownRequestError } from '../errors/PrismaClientKnownRequestError'
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 
@@ -53,7 +53,7 @@ function applyOrThrowWrapper(
     }
     const result = await requestCallback(requestParams).catch((e) => {
       if (e instanceof PrismaClientKnownRequestError && e.code === 'P2025') {
-        throw new NotFoundError(`No ${dmmfModelName} found`)
+        throw new NotFoundError(`No ${dmmfModelName} found`, clientVersion)
       } else {
         throw e
       }

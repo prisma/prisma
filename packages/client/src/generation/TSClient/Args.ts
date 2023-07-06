@@ -83,9 +83,6 @@ export class ArgsType implements Generatable {
 
     argsToGenerate.push(...args)
     const generatedName = this.generatedName ?? getModelArgName(name, action)
-    if (action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findFirst) {
-      return this.generateFindMethodArgs(action, name, argsToGenerate, generatedName)
-    }
 
     return `
 /**
@@ -95,40 +92,6 @@ export type ${generatedName}<ExtArgs extends $Extensions.Args = $Extensions.Defa
 ${indent(argsToGenerate.map((arg) => new InputField(arg, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
-  }
-
-  private generateFindMethodArgs(
-    action: DMMF.ModelAction.findFirst | DMMF.ModelAction.findUnique,
-    name: string,
-    argsToGenerate: DMMF.SchemaArg[],
-    modelArgName: string,
-  ) {
-    const baseTypeName = getBaseTypeName(name, action)
-    const replacement =
-      action === DMMF.ModelAction.findFirst ? DMMF.ModelAction.findFirstOrThrow : DMMF.ModelAction.findUniqueOrThrow
-
-    // we have to use interface for arg type here, since as for TS 4.7.2
-    // using BaseType & { rejectOnNotFound } intersection breaks type checking for `select`
-    // option
-    return `
-/**
- * ${name} base type for ${action} actions
- */
-export type ${baseTypeName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
-}
-
-/**
- * ${this.getGeneratedComment()}
- */
-export interface ${modelArgName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends ${baseTypeName}<ExtArgs> {
- /**
-  * Throw an Error if query returns no results
-  * @deprecated since 4.0.0: use \`${replacement}\` method instead
-  */
-  rejectOnNotFound?: RejectOnNotFound
-}
-      `
   }
 
   private getGeneratedComment() {
@@ -167,16 +130,5 @@ ${indent(
 )}
 }
 `
-  }
-}
-
-type ActionWithBaseType = DMMF.ModelAction.findFirst | DMMF.ModelAction.findUnique
-
-function getBaseTypeName(modelName: string, action: ActionWithBaseType): string {
-  switch (action) {
-    case DMMF.ModelAction.findFirst:
-      return `${modelName}FindFirstArgsBase`
-    case DMMF.ModelAction.findUnique:
-      return `${modelName}FindUniqueArgsBase`
   }
 }

@@ -24,16 +24,15 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
 
   test('throws if record was not found', async () => {
     const record = prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } })
-    await expect(record).rejects.toThrow(new Prisma.NotFoundError('No User found'))
+
+    await expect(record).rejects.toMatchObject(new Prisma.NotFoundError('No User found', '0.0.0'))
   })
 
-  // TODO: it actually does not work this way, but neither does `rejectOnNotFound`.
-  // unclear, if intentional
-  test.skip('works with transactions', async () => {
+  testIf(clientMeta.runtime !== 'edge')('works with transactions', async () => {
     const newEmail = faker.internet.email()
     const result = prisma.$transaction([
       prisma.user.create({ data: { email: newEmail } }),
-      prisma.user.findFirst({ where: { email: nonExistingEmail }, rejectOnNotFound: true }),
+      prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } }),
     ])
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
@@ -42,7 +41,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     expect(record).toBeNull()
   })
 
-  test('works with interactive transactions', async () => {
+  testIf(clientMeta.runtime !== 'edge')('works with interactive transactions', async () => {
     const newEmail = faker.internet.email()
     const result = prisma.$transaction(async (prisma) => {
       await prisma.user.create({ data: { email: newEmail } })
@@ -65,26 +64,5 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
     await expect(record).rejects.toMatchObject({
       message: expect.stringContaining('Invalid `prisma.user.findFirstOrThrow()` invocation'),
     })
-  })
-
-  // TODO: Edge: skipped because of the error snapshot
-  testIf(clientMeta.runtime !== 'edge')('does not accept rejectOnNotFound option', async () => {
-    const record = prisma.user.findFirstOrThrow({
-      where: { email: existingEmail },
-      // @ts-expect-error passing not supported option on purpose
-      rejectOnNotFound: false,
-    })
-
-    await expect(record).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-      Invalid \`prisma.user.findFirstOrThrow()\` invocation in
-      /client/tests/functional/methods/findFirstOrThrow/tests.ts:0:0
-
-        XX 
-        XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(clientMeta.runtime !== 'edge')('does not accept rejectOnNotFound option', async () => {
-      → XX   const record = prisma.user.findFirstOrThrow(
-      'rejectOnNotFound' option is not supported
-    `)
   })
 })
