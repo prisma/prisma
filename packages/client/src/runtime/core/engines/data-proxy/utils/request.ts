@@ -87,7 +87,7 @@ function buildOptions(options: RequestOptions): Https.RequestOptions {
 function buildResponse(incomingData: Buffer[], response: IncomingMessage): RequestResponse {
   return {
     text: () => Promise.resolve(Buffer.concat(incomingData).toString()),
-    json: () => Promise.resolve(JSON.parse(Buffer.concat(incomingData).toString())),
+    json: () => Promise.resolve(JSON.parse(Buffer.concat(incomingData).toString().replaceAll(`\"`, `\\"`))),
     ok: response.statusCode! >= 200 && response.statusCode! <= 299,
     status: response.statusCode!,
     url: response.url!,
