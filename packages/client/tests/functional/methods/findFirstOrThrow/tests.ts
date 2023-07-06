@@ -3,9 +3,10 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
+declare let Prisma: typeof PrismaNamespace
 
 const existingEmail = faker.internet.email()
 const nonExistingEmail = faker.internet.email()
@@ -24,10 +25,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
   test('throws if record was not found', async () => {
     const record = prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } })
 
-    await expect(record).rejects.toMatchObject({
-      name: 'PrismaClientKnownRequestError',
-      code: 'P2025',
-    })
+    await expect(record).rejects.toMatchObject(new Prisma.NotFoundError('No User found', '0.0.0'))
   })
 
   testIf(clientMeta.runtime !== 'edge')('works with transactions', async () => {
@@ -37,17 +35,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } }),
     ])
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-      Invalid \`prisma.user.findFirstOrThrow()\` invocation in
-      /client/tests/functional/methods/findFirstOrThrow/tests.ts:0:0
-
-        34 const newEmail = faker.internet.email()
-        35 const result = prisma.$transaction([
-        36   prisma.user.create({ data: { email: newEmail } }),
-      → 37   prisma.user.findFirstOrThrow(
-      An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.
-    `)
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
 
     const record = await prisma.user.findFirst({ where: { email: newEmail } })
     expect(record).toBeNull()
@@ -60,17 +48,7 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, clientMeta) => {
       await prisma.user.findFirstOrThrow({ where: { email: nonExistingEmail } })
     })
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-      Invalid \`prisma.user.findFirstOrThrow()\` invocation in
-      /client/tests/functional/methods/findFirstOrThrow/tests.ts:0:0
-
-        57 const newEmail = faker.internet.email()
-        58 const result = prisma.$transaction(async (prisma) => {
-        59   await prisma.user.create({ data: { email: newEmail } })
-      → 60   await prisma.user.findFirstOrThrow(
-      An operation failed because it depends on one or more records that were required but not found. Expected a record, found none.
-    `)
+    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`No User found`)
 
     const record = await prisma.user.findFirst({ where: { email: newEmail } })
     expect(record).toBeNull()

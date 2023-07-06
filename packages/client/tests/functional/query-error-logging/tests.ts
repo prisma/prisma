@@ -31,10 +31,7 @@ testMatrix.setupTestSuite(
             email,
           },
         }),
-      ).rejects.toMatchObject({
-        name: 'PrismaClientKnownRequestError',
-        code: 'P2025',
-      })
+      ).rejects.toThrow('No User found')
 
       expect(errors).toHaveLength(1)
 
@@ -52,10 +49,7 @@ testMatrix.setupTestSuite(
             email,
           },
         }),
-      ).rejects.toMatchObject({
-        name: 'PrismaClientKnownRequestError',
-        code: 'P2025',
-      })
+      ).rejects.toThrow('No User found')
 
       expect(errors).toHaveLength(1)
 
