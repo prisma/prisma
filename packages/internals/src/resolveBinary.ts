@@ -8,6 +8,7 @@ import path from 'path'
 import tempDir from 'temp-dir'
 
 import { chmodPlusX } from './utils/chmodPlusX'
+import { vercelPkgPathRegex } from './utils/vercelPkgPathRegex'
 
 export { BinaryType, engineEnvVarMap }
 
@@ -23,7 +24,7 @@ async function getBinaryName(name: BinaryType): Promise<string> {
 
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
   // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
-  if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
+  if (proposedPath && !proposedPath.match(vercelPkgPathRegex) && fs.existsSync(proposedPath)) {
     return proposedPath
   }
 
@@ -79,7 +80,7 @@ export function safeResolveBinary(name: BinaryType, proposedPath?: string): TE.T
 export async function maybeCopyToTmp(file: string): Promise<string> {
   const dir = eval('__dirname')
 
-  if (dir.startsWith('/snapshot/')) {
+  if (dir.match(vercelPkgPathRegex)) {
     // In this case, we are in a "pkg" context with a simulated fs.
     // We can't execute a binary from here because it's not a real
     // file system but rather something implemented on JavaScript

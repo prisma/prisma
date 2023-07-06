@@ -25,6 +25,9 @@ const exists = promisify(fs.exists)
 
 const channel = 'master'
 
+// matches `/snapshot/` or `C:\\snapshot\\` or `C:/snapshot/` for vercel's pkg apps
+export const vercelPkgPathRegex = /^((\w:[\\\/])|\/)snapshot[\/\\]/
+
 export type BinaryDownloadConfiguration = {
   [binary in BinaryType]?: string // that is a path to the binary download location
 }
@@ -164,7 +167,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const dir = eval('__dirname')
 
   // this is necessary for pkg
-  if (dir.startsWith('/snapshot/')) {
+  if (dir.match(vercelPkgPathRegex)) {
     for (const engineType in binaryPaths) {
       const binaryTargets = binaryPaths[engineType]
       for (const binaryTarget in binaryTargets) {
@@ -446,7 +449,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   // to make this work, we need to copy the binary to /tmp and execute it from there
 
   const dir = eval('__dirname')
-  if (dir.startsWith('/snapshot/')) {
+  if (dir.match(vercelPkgPathRegex)) {
     const targetDir = path.join(tempDir, 'prisma-binaries')
     await ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
