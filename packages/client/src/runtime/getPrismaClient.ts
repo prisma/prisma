@@ -8,7 +8,6 @@ import {
   logger,
   TracingHelper,
   tryLoadEnvs,
-  warnOnce,
 } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
@@ -43,7 +42,6 @@ import {
   applyModelsAndClientExtensions,
   unApplyModelsAndClientExtensions,
 } from './core/model/applyModelsAndClientExtensions'
-import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
 import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import {
@@ -72,8 +70,6 @@ import { RequestHandler } from './RequestHandler'
 import { CallSite, getCallSite } from './utils/CallSite'
 import { clientVersion } from './utils/clientVersion'
 import { deserializeRawResults } from './utils/deserializeRawResults'
-import type { InstanceRejectOnNotFound, RejectOnNotFound } from './utils/rejectOnNotFound'
-import { getRejectOnNotFound } from './utils/rejectOnNotFound'
 import { validatePrismaClientOptions } from './utils/validatePrismaClientOptions'
 import { waitForBatch } from './utils/waitForBatch'
 
@@ -103,10 +99,6 @@ export type Datasource = {
 export type Datasources = { [name in string]: Datasource }
 
 export interface PrismaClientOptions {
-  /**
-   * Will throw an Error if findUnique returns null
-   */
-  rejectOnNotFound?: InstanceRejectOnNotFound
   /**
    * Overwrites the datasource url from your schema.prisma file
    */
@@ -330,7 +322,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
-    _rejectOnNotFound?: InstanceRejectOnNotFound
     _dataProxy: boolean
     _extensions: MergedExtensionsList
     _createPrismaPromise = createPrismaPromiseFactory()
@@ -353,7 +344,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
       this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = config.generator?.previewFeatures ?? []
-      this._rejectOnNotFound = optionsArg?.rejectOnNotFound
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       this._dataProxy = config.dataProxy
@@ -937,12 +927,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           name: 'serialize',
         }
 
-        let rejectOnNotFound: RejectOnNotFound
-        if (model) {
-          rejectOnNotFound = getRejectOnNotFound(action, model, args, this._rejectOnNotFound)
-          warnAboutRejectOnNotFound(rejectOnNotFound, model, action)
-        }
-
         const message = this._tracingHelper.runInChildSpan(spanOptions, () =>
           serializeJsonQuery({
             modelName: model,
@@ -977,7 +961,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           action,
           clientMethod,
           dataPath,
-          rejectOnNotFound,
           callsite,
           args,
           extensions: this._extensions,
@@ -1016,30 +999,6 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
   }
 
   return PrismaClient
-}
-
-const rejectOnNotFoundReplacements = {
-  findUnique: 'findUniqueOrThrow',
-  findFirst: 'findFirstOrThrow',
-}
-
-function warnAboutRejectOnNotFound(
-  rejectOnNotFound: RejectOnNotFound,
-  model: string | undefined,
-  action: string,
-): void {
-  if (rejectOnNotFound) {
-    const replacementAction = rejectOnNotFoundReplacements[action]
-    const replacementCall = model
-      ? `prisma.${dmmfToJSModelName(model)}.${replacementAction}`
-      : `prisma.${replacementAction}`
-    const key = `rejectOnNotFound.${model ?? ''}.${action}`
-
-    warnOnce(
-      key,
-      `\`rejectOnNotFound\` option is deprecated and will be removed in Prisma 5. Please use \`${replacementCall}\` method instead`,
-    )
-  }
 }
 
 function toSql(query: TemplateStringsArray | Sql, values: unknown[]): [Sql, MiddlewareArgsMapper<unknown, unknown>] {

@@ -411,7 +411,7 @@ ${
 `
     : ''
 }
-export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
+export interface ${name}Delegate<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
 ${indent(`[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`, TAB_SIZE)}
 ${indent(
   nonAggregateActions
