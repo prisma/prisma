@@ -68,7 +68,7 @@
     "p-reduce": "2.1.0",
     "p-retry": "4.6.2",
     "path-browserify": "1.0.1",
-    "prettier": "2.8.8",
+    "prettier": "3.0.0",
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
     "regenerator-runtime": "0.13.11",

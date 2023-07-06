@@ -49,7 +49,7 @@ importers:
       p-reduce: 2.1.0
       p-retry: 4.6.2
       path-browserify: 1.0.1
-      prettier: 2.8.8
+      prettier: 3.0.0
       redis: 3.1.2
       redis-lock: 0.1.4
       regenerator-runtime: 0.13.11
@@ -89,7 +89,7 @@ importers:
       eslint-plugin-eslint-comments: 3.2.0_eslint@8.44.0
       eslint-plugin-import: 2.27.5_ejqdggoi4ttnavuewvp24znboa
       eslint-plugin-jest: 27.2.2_ozfinf22umwko6a7fypeu2mwzq
-      eslint-plugin-prettier: 4.2.1_qkgbdr345imkz5woyd5e5k6xse
+      eslint-plugin-prettier: 4.2.1_bfkxsspkudohjhqnqlctvx4z7i
       eslint-plugin-simple-import-sort: 10.0.0_eslint@8.44.0
       eventemitter3: 5.0.1
       execa: 5.1.1
@@ -106,7 +106,7 @@ importers:
       p-reduce: 2.1.0
       p-retry: 4.6.2
       path-browserify: 1.0.1
-      prettier: 2.8.8
+      prettier: 3.0.0
       redis: 3.1.2
       redis-lock: 0.1.4
       regenerator-runtime: 0.13.11
@@ -6855,7 +6855,7 @@ packages:
       - typescript
     dev: true
 
-  /eslint-plugin-prettier/4.2.1_qkgbdr345imkz5woyd5e5k6xse:
+  /eslint-plugin-prettier/4.2.1_bfkxsspkudohjhqnqlctvx4z7i:
     resolution: {integrity: sha512-f/0rXLXUt0oFYs8ra4w49wYZBG5GKZpAYsJSm6rnYL5uVDjd+zowwMwVZHnAjf4edNrKpCDYfXDgmRE/Ak7QyQ==}
     engines: {node: '>=12.0.0'}
     peerDependencies:
@@ -6868,7 +6868,7 @@ packages:
     dependencies:
       eslint: 8.44.0
       eslint-config-prettier: 8.8.0_eslint@8.44.0
-      prettier: 2.8.8
+      prettier: 3.0.0
       prettier-linter-helpers: 1.0.0
     dev: true
 
@@ -11619,9 +11619,9 @@ packages:
       fast-diff: 1.2.0
     dev: true
 
-  /prettier/2.8.8:
-    resolution: {integrity: sha512-tdN8qQGvNjw4CHbY+XXk0JgCXn9QiF21a55rBe5LJAU+kDyC4WQn4+awm2Xfk2lQMk5fKup9XgzTZtGkjBdP9Q==}
-    engines: {node: '>=10.13.0'}
+  /prettier/3.0.0:
+    resolution: {integrity: sha512-zBf5eHpwHOGPC47h0zrPyNn+eAEIdEzfywMoYn2XPi0P44Zp0tSq64rq0xAREh4auw2cJZHo9QUob+NqCQky4g==}
+    engines: {node: '>=14'}
     hasBin: true
     dev: true
 
