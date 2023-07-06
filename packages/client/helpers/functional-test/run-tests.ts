@@ -59,6 +59,7 @@ const args = arg(
 async function main(): Promise<number | void> {
   let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
+  const jestArgs = ['--testPathIgnorePatterns', 'typescript']
 
   if (args['--provider']) {
     const providers = args['--provider'] as Providers[]
@@ -71,6 +72,9 @@ async function main(): Promise<number | void> {
   }
 
   if (args['--data-proxy']) {
+    jestArgs.push('--runInBand')
+    jestArgs.push('--verbose')
+
     if (!fs.existsSync(miniProxy.defaultServerConfig.cert)) {
       await miniProxy.generateCertificates(miniProxy.defaultCertificatesConfig)
     }
@@ -105,8 +109,6 @@ async function main(): Promise<number | void> {
   if (args['--edge-client'] && !args['--data-proxy']) {
     throw new Error('--edge-client is only available when --data-proxy is used')
   }
-
-  const jestArgs = ['--testPathIgnorePatterns', 'typescript']
 
   // See flag description above.
   // If the flag is not provided we want to ignore `relationMode` tests
