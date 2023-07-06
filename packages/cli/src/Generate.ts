@@ -48,6 +48,7 @@ ${bold('Options')}
 
     -h, --help   Display this help message
       --schema   Custom path to your Prisma schema
+  --accelerate   Enable Accelerate in the Prisma Client
   --data-proxy   Enable the Data Proxy in the Prisma Client
        --watch   Watch the Prisma schema and rerun after a change
    --generator   Generator to use (may be provided multiple times)
@@ -98,6 +99,7 @@ ${bold('Examples')}
       '--watch': Boolean,
       '--schema': String,
       '--data-proxy': Boolean,
+      '--accelerate': Boolean,
       '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
@@ -134,7 +136,11 @@ ${bold('Examples')}
         printDownloadProgress: !watchMode,
         version: enginesVersion,
         cliVersion: pkg.version,
-        dataProxy: !!args['--data-proxy'] || !!process.env.PRISMA_GENERATE_DATAPROXY,
+        dataProxy:
+          !!args['--data-proxy'] ||
+          !!args['--accelerate'] ||
+          !!process.env.PRISMA_GENERATE_DATAPROXY ||
+          !!process.env.PRISMA_GENERATE_ACCELERATE,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
       })
@@ -284,7 +290,11 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               printDownloadProgress: !watchMode,
               version: enginesVersion,
               cliVersion: pkg.version,
-              dataProxy: !!args['--data-proxy'] || !!process.env.PRISMA_GENERATE_DATAPROXY,
+              dataProxy:
+                !!args['--data-proxy'] ||
+                !!args['--accelerate'] ||
+                !!process.env.PRISMA_GENERATE_DATAPROXY ||
+                !!process.env.PRISMA_GENERATE_ACCELERATE,
               generatorNames: args['--generator'],
             })
 

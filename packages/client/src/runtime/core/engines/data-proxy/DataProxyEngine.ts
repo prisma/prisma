@@ -467,9 +467,12 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new InvalidDatasourceError('Datasource URL must use prisma:// protocol when --data-proxy is used', {
-        clientVersion: this.clientVersion,
-      })
+      throw new InvalidDatasourceError(
+        'Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used',
+        {
+          clientVersion: this.clientVersion,
+        },
+      )
     }
 
     const apiKey = searchParams.get('api_key')

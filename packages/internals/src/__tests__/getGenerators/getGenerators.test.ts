@@ -824,7 +824,7 @@ describe('getGenerators', () => {
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
         "
-        metrics preview feature is not yet available with --data-proxy.
+        metrics preview feature is not yet available with --accelerate or --data-proxy.
         Please remove metrics from the previewFeatures in your schema.
 
         More information about Data Proxy: https://pris.ly/d/data-proxy
