@@ -5,7 +5,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  ({ previewFeatures }) => {
+  () => {
     test('include and select are used at the same time', async () => {
       // @ts-expect-error
       const result = prisma.user.findMany({
@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
         Invalid \`prisma.user.findMany()\` invocation in
         /client/tests/functional/query-validation/tests.ts:0:0
 
-           XX ({ previewFeatures }) => {
+           XX () => {
            XX   test('include and select are used at the same time', async () => {
           XX     // @ts-expect-error
         → XX     const result = prisma.user.findMany({
@@ -374,9 +374,9 @@ testMatrix.setupTestSuite(
                                     `)
     })
 
-    testIf(previewFeatures === '')('missing required field', async () => {
+    test('missing one of the specific required fields', async () => {
       const result = prisma.user.findUnique({
-        // @ts-test-if: previewFeatures !== '"extendedWhereUnique"'
+        // @ts-expect-error
         where: {},
       })
 
@@ -387,33 +387,7 @@ testMatrix.setupTestSuite(
 
                                                 XX })
                                                 XX 
-                                                XX testIf(previewFeatures === '')('missing required field', async () => {
-                                              → XX   const result = prisma.user.findUnique({
-                                                        where: {
-                                                      ?   id?: String,
-                                                      ?   email?: String,
-                                                      ?   organizationId?: String
-                                                        }
-                                                      })
-
-                                              Argument \`where\` of type UserWhereUniqueInput needs at least one argument. Available options are listed in green.
-                                    `)
-    })
-
-    testIf(previewFeatures === '"extendedWhereUnique"')('missing one of the specific required fields', async () => {
-      const result = prisma.user.findUnique({
-        // @ts-test-if: previewFeatures !== '"extendedWhereUnique"'
-        where: {},
-      })
-
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-                                              Invalid \`prisma.user.findUnique()\` invocation in
-                                              /client/tests/functional/query-validation/tests.ts:0:0
-
-                                                XX })
-                                                XX 
-                                                XX testIf(previewFeatures === '"extendedWhereUnique"')('missing one of the specific required fields', async () => {
+                                                XX test('missing one of the specific required fields', async () => {
                                               → XX   const result = prisma.user.findUnique({
                                                         where: {
                                                       ?   id?: String,
@@ -430,29 +404,6 @@ testMatrix.setupTestSuite(
                                                       })
 
                                               Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`email\` or \`organizationId\` arguments. Available options are listed in green.
-                                    `)
-    })
-
-    testIf(previewFeatures === '')('too many fields', async () => {
-      const result = prisma.user.findUnique({ where: { id: '123', email: 'foo@bar.com' } })
-
-      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-                                              Invalid \`prisma.user.findUnique()\` invocation in
-                                              /client/tests/functional/query-validation/tests.ts:0:0
-
-                                                XX })
-                                                XX 
-                                                XX testIf(previewFeatures === '')('too many fields', async () => {
-                                              → XX   const result = prisma.user.findUnique({
-                                                        where: {
-                                                          id: "123",
-                                                          email: "foo@bar.com"
-                                                        }
-                                                        ~~~~~~~~~~~~~~~~~~~~~~
-                                                      })
-
-                                              Argument \`where\` of type UserWhereUniqueInput needs exactly one argument, but you provided id and email. Please choose one.
                                     `)
     })
   },
