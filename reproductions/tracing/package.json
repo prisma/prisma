@@ -25,7 +25,7 @@
     "@opentelemetry/resources": "1.14.0",
     "@opentelemetry/sdk-trace-base": "1.14.0",
     "@opentelemetry/semantic-conventions": "1.14.0",
-    "@types/node": "17.0.21",
+    "@types/node": "17.0.45",
     "prisma": "../../packages/cli",
     "ts-node": "10.9.1",
     "typescript": "5.0.4"
