@@ -93,6 +93,15 @@ const generatorBuildConfig: BuildOptions = {
   emitTypes: false,
 }
 
+// default-index.js file in scripts
+const defaultIndexConfig: BuildOptions = {
+  name: 'default-index',
+  entryPoints: ['src/scripts/default-index.ts'],
+  outfile: 'scripts/default-index',
+  bundle: true,
+  emitTypes: false,
+}
+
 function writeDtsRexport(fileName: string) {
   fs.writeFileSync(path.join(runtimeDir, fileName), 'export * from "./library"\n')
 }
@@ -105,6 +114,7 @@ void build([
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
+  defaultIndexConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
   writeDtsRexport('data-proxy.d.ts')
