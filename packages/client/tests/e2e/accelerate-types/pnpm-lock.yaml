@@ -2,7 +2,7 @@ lockfileVersion: 5.4
 
 specifiers:
   '@prisma/client': ../prisma-client-0.0.0.tgz
-  '@prisma/extension-accelerate': latest
+  '@prisma/extension-accelerate': dev
   '@types/jest': 29.5.1
   '@types/node': 16.18.11
   expect-type: 0.16.0
@@ -10,7 +10,7 @@ specifiers:
 
 dependencies:
   '@prisma/client': file:../prisma-client-0.0.0.tgz_prisma@0.0.0
-  '@prisma/extension-accelerate': 0.2.0_@prisma+client@0.0.0
+  '@prisma/extension-accelerate': 0.0.0-experimental-8b03dde_@prisma+client@0.0.0
 
 devDependencies:
   '@types/jest': 29.5.1
@@ -67,10 +67,10 @@ packages:
       chalk: 4.1.2
     dev: true
 
-  /@prisma/extension-accelerate/0.2.0_@prisma+client@0.0.0:
-    resolution: {integrity: sha512-AqeLhNIPJP9h3PAJiPQ52+mKbqYi/hWEsvcuRaaKLiSTMLJQBSLF6mIVLJqYrG9RZloQQfV1YKq+cBxsQ9o8Jw==}
+  /@prisma/extension-accelerate/0.0.0-experimental-8b03dde_@prisma+client@0.0.0:
+    resolution: {integrity: sha512-pCuJEdSl2Ec5iBpaVCOmQnc46mM1kKbl0BToM3iUF6GGLrigRLyYlo3KBXpUSlNhdPqd1Plz9fqjNm/R30gKkw==}
     peerDependencies:
-      '@prisma/client': '>=4.10.0'
+      '@prisma/client': '>=4.16.1'
     dependencies:
       '@prisma/client': file:../prisma-client-0.0.0.tgz_prisma@0.0.0
     dev: false
@@ -362,7 +362,7 @@ packages:
     dev: true
 
   file:../prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-gYWun+O57LFUbOZJ+pPe580+fa864pncXFuD3/xjHqaY7EMQz+VXiohf8JwmYe5tPFcibQbUsKTAMUCeEE58hQ==, tarball: file:../prisma-0.0.0.tgz}
+    resolution: {integrity: sha512-djA5mZTiuR1phbeVcC8W+LE3ClS3+itvd2gQOx9eZsLS8JVzRerO4f5H7BZ8AXb/15/MBveBnJVaLpHIYQm+dg==, tarball: file:../prisma-0.0.0.tgz}
     name: prisma
     version: 0.0.0
     engines: {node: '>=14.17'}
@@ -372,7 +372,7 @@ packages:
       - '@prisma/engines'
 
   file:../prisma-client-0.0.0.tgz_prisma@0.0.0:
-    resolution: {integrity: sha512-/j0yso44BIf57LbTj/3kC/roZ+qByUEbXcs5k/rwuGLKge32+8+liIMDY92ITTxYxIX4ETGTyC9RBvUJZ/ZTSQ==, tarball: file:../prisma-client-0.0.0.tgz}
+    resolution: {integrity: sha512-ZjxJgII6Mqj+Jt9rTmowTFlcgexnAtt3EnZUXPrYzCdXsTC5gHKgKAQs2p7Dh7mvi4Kqx70E9n2/d3Jwfel66w==, tarball: file:../prisma-client-0.0.0.tgz}
     id: file:../prisma-client-0.0.0.tgz
     name: '@prisma/client'
     version: 0.0.0
