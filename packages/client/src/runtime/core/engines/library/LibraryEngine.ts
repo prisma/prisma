@@ -337,10 +337,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
-      console.warn(
-        `${yellow(
-          'prisma:warn',
-        )} "beforeExit" hook is not applicable to the library engine type, it is only relevant and implemented for the binary engine type. Please add your event listener to the \`process\` object directly instead.`,
+      throw new Error(
+        '"beforeExit" hook is not applicable to the library engine type, it is only relevant and implemented for the binary engine type. Please add your event listener to the `process` object directly instead.',
       )
     } else {
       this.logEmitter.on(event, listener)
