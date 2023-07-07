@@ -135,7 +135,17 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
       }
 
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
-      response.on('end', () => resolve(buildResponse(incomingData, response)))
+      response.on('end', () => {
+        try {
+          return resolve(buildResponse(incomingData, response))
+        } catch (e) {
+          console.log('REQ URL', url)
+          console.log('REQ', request)
+          console.log('RES', response)
+          console.log('DATA', incomingData)
+          throw e
+        }
+      })
       response.on('error', reject)
     })
 
