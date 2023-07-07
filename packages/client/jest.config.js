@@ -20,6 +20,8 @@ module.exports = {
     '<rootDir>/tests/e2e',
     '<rootDir>/src/__tests__/benchmarks/',
     '<rootDir>/src/__tests__/types/.*/test.ts',
+    '<rootDir>/src/__tests__/types/.*/test.binary.ts',
+    '<rootDir>/src/__tests__/types/.*/test.library.ts',
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema/common.ts',
     '<rootDir>/src/__tests__/integration/happy/exhaustive-schema/generated-dmmf.ts',
     '<rootDir>/src/__tests__/generation/__fixture__',
