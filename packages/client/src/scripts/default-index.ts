@@ -28,3 +28,5 @@ export const Prisma = {
   getExtensionContext,
   prismaVersion: { client: clientVersion, engine: prisma.enginesVersion },
 }
+
+export default { Prisma }
