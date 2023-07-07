@@ -10,6 +10,7 @@ import {
 } from '@opentelemetry/api'
 import { Span as SpanConstructor, Tracer } from '@opentelemetry/sdk-trace-base'
 import { EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
+import { PrismaLayerType } from './types'
 
 // If true, will publish internal spans as well
 const showAllTraces = process.env.PRISMA_SHOW_ALL_TRACES === 'true'
@@ -21,12 +22,15 @@ const nonSampledTraceParent = `00-10-10-00`
 
 type Options = {
   traceMiddleware: boolean
+  ignoreLayersTypes: PrismaLayerType[]
 }
 
 export class ActiveTracingHelper implements TracingHelper {
   private traceMiddleware: boolean
-  constructor({ traceMiddleware }: Options) {
+  private ignoreLayersTypes: PrismaLayerType[]
+  constructor({ traceMiddleware, ignoreLayersTypes }: Options) {
     this.traceMiddleware = traceMiddleware
+    this.ignoreLayersTypes = ignoreLayersTypes
   }
 
   isEnabled(): boolean {
@@ -45,6 +49,10 @@ export class ActiveTracingHelper implements TracingHelper {
     const tracer = trace.getTracer('prisma') as Tracer
 
     engineSpanEvent.spans.forEach((engineSpan) => {
+      if (this.ignoreLayersTypes.map((value) => value.toString()).includes(engineSpan.name)) {
+        return
+      }
+
       const spanContext: SpanContext = {
         traceId: engineSpan.trace_id,
         spanId: engineSpan.span_id,
@@ -100,6 +108,11 @@ export class ActiveTracingHelper implements TracingHelper {
     const tracer = trace.getTracer('prisma')
     const context = options.context ?? this.getActiveContext()
     const name = `prisma:client:${options.name}`
+
+    if (this.ignoreLayersTypes.map((value) => value.toString()).includes(name)) {
+      return callback()
+    }
+
     // these spans will not be nested by default even in recursive calls
     // it's useful for showing middleware sequentially instead of nested
     if (options.active === false) {
