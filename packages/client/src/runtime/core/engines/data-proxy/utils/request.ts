@@ -43,10 +43,11 @@ export async function request(
   const jsRuntimeName = getJSRuntimeName()
 
   try {
-    if (jsRuntimeName === 'browser') {
+    if (jsRuntimeName === 'browser-like') {
       return await customFetch(fetch)(url, options)
     } else {
-      return await customFetch(nodeFetch)(url, options)
+      const defaultFetch = nodeFetch //typeof globalThis.fetch !== 'undefined' ? globalThis.fetch : nodeFetch
+      return await customFetch(defaultFetch)(url, options)
     }
   } catch (e) {
     const message = e.message ?? 'Unknown error'
@@ -84,11 +85,20 @@ function buildOptions(options: RequestOptions): Https.RequestOptions {
  * @param response
  * @returns
  */
-function buildResponse(incomingData: Buffer[], response: IncomingMessage): RequestResponse {
+function buildResponse(incomingData: Buffer[], response: IncomingMessage, req: any, url: string): RequestResponse {
   return {
     text: () => Promise.resolve(Buffer.concat(incomingData).toString()),
     json: () => {
-      return Promise.resolve(JSON.parse(Buffer.concat(incomingData).toString()))
+      let json: any
+      try {
+        json = JSON.parse(Buffer.concat(incomingData).toString())
+      } catch (e) {
+        console.log('REQ URL', url)
+        console.log('REQ', req)
+        console.log('RES', response)
+        console.log('DATA', incomingData)
+      }
+      return Promise.resolve(json)
     },
     ok: response.statusCode! >= 200 && response.statusCode! <= 299,
     status: response.statusCode!,
@@ -129,15 +139,7 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
 
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
       response.on('close', () => {
-        try {
-          return resolve(buildResponse(incomingData, response))
-        } catch (e) {
-          console.log('REQ URL', url)
-          console.log('REQ', request)
-          console.log('RES', response)
-          console.log('DATA', incomingData)
-          throw e
-        }
+        return resolve(buildResponse(incomingData, response, request, url))
       })
       response.on('error', reject)
     })
