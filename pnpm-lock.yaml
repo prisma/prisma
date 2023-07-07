@@ -1,9 +1,6 @@
 lockfileVersion: 5.4
 
 patchedDependencies:
-  '@prisma/mini-proxy@0.9.0':
-    hash: ahbwzujqwnsvqrurl6xt3hu2zq
-    path: patches/@prisma__mini-proxy@0.9.0.patch
   node-fetch@2.6.11:
     hash: oawau75ow7jz373yzwkw5fs4ry
     path: patches/node-fetch@2.6.11.patch
@@ -234,7 +231,7 @@ importers:
       '@prisma/instrumentation': workspace:*
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
-      '@prisma/mini-proxy': 0.9.0
+      '@prisma/mini-proxy': 0.9.1
       '@swc-node/register': 1.6.5
       '@swc/core': 1.3.64
       '@swc/jest': 0.2.26
@@ -316,7 +313,7 @@ importers:
       '@prisma/instrumentation': link:../instrumentation
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
-      '@prisma/mini-proxy': 0.9.0_ahbwzujqwnsvqrurl6xt3hu2zq
+      '@prisma/mini-proxy': 0.9.1
       '@swc-node/register': 1.6.5_w2a3vrbasjgrtv5bvwiyhpfbku
       '@swc/core': 1.3.64
       '@swc/jest': 0.2.26_@swc+core@1.3.64
@@ -3041,12 +3038,11 @@ packages:
   /@prisma/engines-version/4.17.0-22.eac90b24528fc540a7549eac798e4fde23cb7472:
     resolution: {integrity: sha512-fkRu0MJgCvqFg71BJQmEa9lhaqHT83MH4mCDEUZcodNRJbfMY2lv13VXoeBoaYDqELgSo3AgxjjIpt3na6fWJA==}
 
-  /@prisma/mini-proxy/0.9.0_ahbwzujqwnsvqrurl6xt3hu2zq:
-    resolution: {integrity: sha512-ZfgNSkQJ+Ut3c/O+BJ1/VEx1NUsQiP7O0H7Lzwf82cwVRHzxGpMKgfOzB7otMKdyAw+9kvsBD4esFzWKgopYFg==}
+  /@prisma/mini-proxy/0.9.1:
+    resolution: {integrity: sha512-Kkjy8QTF7BBrAGNnINvwE1dNOmCoBLnC1RSQPl6v0gl3dP7IUhBbsyS/zIz5dMxZ1h7WZKPS04MEYy/A5MJp7g==}
     engines: {node: '>=16'}
     hasBin: true
     dev: true
-    patched: true
 
   /@prisma/prisma-schema-wasm/4.17.0-22.eac90b24528fc540a7549eac798e4fde23cb7472:
     resolution: {integrity: sha512-WUqyCnUsziMmUGtNHepF4wEcVDCMLNfL2gCnm/jUquviRv1HJCoF8H549iktbiDS+Dw1kgLEDPCTc/tdi1Js1A==}
