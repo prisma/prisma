@@ -97,6 +97,7 @@ function buildResponse(incomingData: Buffer[], response: IncomingMessage, req: a
         console.log('REQ', req)
         console.log('RES', response)
         console.log('DATA', incomingData)
+        return Promise.reject(e)
       }
       return Promise.resolve(json)
     },
