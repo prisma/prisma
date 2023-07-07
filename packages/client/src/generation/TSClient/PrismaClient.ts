@@ -307,11 +307,11 @@ function runCommandRawDefinition(this: PrismaClientClass) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
-function eventRegistrationMethodDeclaration(dataProxy: boolean) {
-  if (dataProxy) {
-    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;`
-  } else {
+function eventRegistrationMethodDeclaration(runtimeName: string) {
+  if (runtimeName === 'binary') {
     return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => Promise<void> : Prisma.LogEvent) => void): void;`
+  } else {
+    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;`
   }
 }
 
@@ -324,11 +324,11 @@ export class PrismaClientClass implements Generatable {
     protected readonly dmmf: DMMFHelper,
     protected readonly internalDatasources: InternalDatasource[],
     protected readonly outputDir: string,
+    protected readonly runtimeName: string,
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
     protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
     protected readonly cwd?: string,
-    protected readonly dataProxy?: boolean,
   ) {
     this.clientExtensionsDefinitions = clientExtensionsDefinitions.bind(this)()
   }
@@ -364,7 +364,7 @@ export class PrismaClient<
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-  ${eventRegistrationMethodDeclaration(this.dataProxy ?? false)}
+  ${eventRegistrationMethodDeclaration(this.runtimeName)}
 
   /**
    * Connect with the database
