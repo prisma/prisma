@@ -173,7 +173,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       logQueries: config.logQueries,
     })
 
-    this.remoteClientVersion = P.then(() => getClientVersion(this.config))
+    this.remoteClientVersion = P.then(() => getClientVersion(host, this.config))
 
     debug('host', this.host)
   }
