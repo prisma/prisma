@@ -88,14 +88,7 @@ function buildResponse(incomingData: Buffer[], response: IncomingMessage): Reque
   return {
     text: () => Promise.resolve(Buffer.concat(incomingData).toString()),
     json: () => {
-      const dataAsString = Buffer.concat(incomingData).toString()
-      let dataAsJson
-      try {
-        dataAsJson = JSON.parse(dataAsString)
-        return Promise.resolve(dataAsJson)
-      } catch (e) {
-        return Promise.reject(`Failed to parse JSON: ${e.message} - data.length=${dataAsString.length}`)
-      }
+      return Promise.resolve(JSON.parse(Buffer.concat(incomingData).toString()))
     },
     ok: response.statusCode! >= 200 && response.statusCode! <= 299,
     status: response.statusCode!,
@@ -135,7 +128,7 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
       }
 
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
-      response.on('end', () => {
+      response.on('close', () => {
         try {
           return resolve(buildResponse(incomingData, response))
         } catch (e) {
