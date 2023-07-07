@@ -72,6 +72,8 @@ async function main(): Promise<number | void> {
   }
 
   if (args['--data-proxy']) {
+    jestArgs.push('--runInBand')
+
     if (!fs.existsSync(miniProxy.defaultServerConfig.cert)) {
       await miniProxy.generateCertificates(miniProxy.defaultCertificatesConfig)
     }
