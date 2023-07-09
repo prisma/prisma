@@ -193,10 +193,13 @@ export interface ExtendsHook<Variant extends 'extends' | 'define', TypeMapCb ext
   <
     // X_ seeds the first fields for auto-completion and deals with dynamic inference
     // X doesn't deal with dynamic inference but captures the final inferred input type
-    R_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels']?: unknown }, R,
-    M_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels']?: unknown }, M,
-    Q_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels' | keyof TypeMap['other']['operations'] | '$allOperations']?: unknown },
-    C_ extends { [K in string]?: unknown }, C,
+    R_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels']?: unknown } = { [K in TypeMap['meta']['modelProps'] | '$allModels']?: unknown }, 
+    R = unknown,
+    M_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels']?: unknown } = { [K in TypeMap['meta']['modelProps'] | '$allModels']?: unknown }, 
+    M = unknown,
+    Q_ extends { [K in TypeMap['meta']['modelProps'] | '$allModels' | keyof TypeMap['other']['operations'] | '$allOperations']?: unknown } = { [K in TypeMap['meta']['modelProps'] | '$allModels' | keyof TypeMap['other']['operations'] | '$allOperations']?: unknown },
+    C_ extends { [K in string]?: unknown } = { [K in string]?: unknown }, 
+    C = unknown,
     Args extends InternalArgs = InternalArgs<R, M, {}, C>,
     MergedArgs extends InternalArgs = MergeExtArgs<TypeMap, ExtArgs, Args>
   >(extension:
