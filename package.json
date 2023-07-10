@@ -92,8 +92,7 @@
       }
     },
     "patchedDependencies": {
-      "node-fetch@2.6.11": "patches/node-fetch@2.6.11.patch",
-      "@prisma/mini-proxy@0.9.1": "patches/@prisma__mini-proxy@0.9.1.patch"
+      "node-fetch@2.6.11": "patches/node-fetch@2.6.11.patch"
     }
   },
   "lint-staged": {
