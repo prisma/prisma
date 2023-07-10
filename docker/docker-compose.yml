@@ -88,6 +88,12 @@ services:
     ports:
       - '4306:3306'
 
+  tidb:
+    image: pingcap/tidb:v7.0.0
+    restart: always
+    ports:
+      - '4000:4000'
+
   mssql:
     image: mcr.microsoft.com/mssql/server:2019-latest
     restart: unless-stopped

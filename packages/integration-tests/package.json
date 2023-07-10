@@ -49,6 +49,7 @@
     "test:mysql": "jest integration.mysql --maxWorkers=1 --silent",
     "test:mariadb": "jest integration.mariadb --maxWorkers=1 --silent",
     "test:mssql": "jest integration.mssql --maxWorkers=1 --silent",
+    "test:tidb": "jest integration.tidb --maxConcurrency=1 --silent",
     "jest": "jest",
     "test": "jest --maxWorkers=1 --silent"
   },
