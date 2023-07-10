@@ -1,7 +1,7 @@
 {
   "name": "@prisma/migrate",
   "version": "0.0.0",
-  "description": "This package is intended for Prisma's internal use",
+  "description": "This package is intended for Prisma's internal use - test",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "repository": {
