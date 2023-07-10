@@ -94,8 +94,7 @@ function buildResponse(incomingData: Buffer[], response: IncomingMessage, req: a
         json = JSON.parse(Buffer.concat(incomingData).toString())
       } catch (e) {
         console.log('REQ URL', url)
-        console.log('REQ', req)
-        console.log('RES', response)
+        console.log('STATUS CODE', response.statusCode)
         console.log('DATA', incomingData)
         return Promise.reject(e)
       }
