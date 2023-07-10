@@ -162,6 +162,7 @@ export async function responseToError(
     throw new BadRequestError(info, buildErrorMessage(BAD_REQUEST_DEFAULT_MESSAGE, error))
   }
 
+  console.log('NO MATCHING ERROR')
   return undefined
 }
 
