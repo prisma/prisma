@@ -106,7 +106,7 @@ jobs:
       matrix:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [16, 18]
+        node: [18, 20]
 
     env:
       CI: true
@@ -214,7 +214,7 @@ jobs:
       fail-fast: false
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [14, 16, 18]
+        node: [16, 18, 20]
 
     steps:
       - uses: actions/checkout@v3
@@ -246,7 +246,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:functional --silent --data-proxy --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
@@ -262,7 +262,7 @@ jobs:
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-      - run: pnpm run test:functional --silent --data-proxy --edge-client --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --data-proxy --edge-client --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
@@ -315,7 +315,7 @@ jobs:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        node: [14, 16, 18]
+        node: [16, 18, 20]
     steps:
       - uses: actions/checkout@v3
 
@@ -1026,7 +1026,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        node: [14]
+        node: [16]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         shard: ['1/2', '2/2']
 
@@ -1124,7 +1124,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        node: [14]
+        node: [16]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
 
     steps:
