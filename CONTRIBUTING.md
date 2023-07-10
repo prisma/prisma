@@ -12,7 +12,7 @@ Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Eng
 
 ## General Prerequisites
 
-1. Install Node.js `>=16` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
+1. Install Node.js `>=16.13` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
 
    - Recommended: use [`nvm`](https://github.com/nvm-sh/nvm) for managing Node.js versions
 
