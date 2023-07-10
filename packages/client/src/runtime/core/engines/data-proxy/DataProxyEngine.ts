@@ -409,10 +409,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
             clientVersion: this.clientVersion,
           })
 
-          console.log('TX RESP OK', response.ok)
           const err = await responseToError(response, this.clientVersion)
           await this.handleError(err)
-          console.log('POST HANDLE ERROR')
 
           const json = await response.json()
 

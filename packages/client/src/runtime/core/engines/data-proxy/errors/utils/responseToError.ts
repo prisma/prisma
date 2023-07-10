@@ -47,7 +47,6 @@ async function getResponseErrorBody(response: RequestResponse): Promise<Response
   let text: string
 
   try {
-    // eslint-disable-next-line @typescript-eslint/await-thenable
     text = await response.text()
   } catch {
     return { type: 'EmptyError' }
@@ -162,7 +161,6 @@ export async function responseToError(
     throw new BadRequestError(info, buildErrorMessage(BAD_REQUEST_DEFAULT_MESSAGE, error))
   }
 
-  console.log('NO MATCHING ERROR')
   return undefined
 }
 

@@ -251,7 +251,6 @@ jobs:
         env:
           CI: true
           SKIP_GIT: true
-          DEBUG: 'mini-proxy:server'
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
@@ -268,7 +267,6 @@ jobs:
         env:
           CI: true
           SKIP_GIT: true
-          DEBUG: 'mini-proxy:server'
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
