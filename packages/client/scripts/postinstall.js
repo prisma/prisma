@@ -211,7 +211,9 @@ async function createDefaultGeneratedThrowFiles() {
     await makeDir(dotPrismaClientDir)
     await makeDir(defaultDenoClientDir)
 
-    if (!fs.existsSync(defaultNodeIndexPath)) {
+    // `default-index.js` may not exist in scripts yet when the postinstall script is running
+    // in Prisma repo itself. It will always exist in the published package.
+    if (!fs.existsSync(defaultNodeIndexPath) && fs.existsSync(path.join(__dirname, 'default-index.js'))) {
       await fs.promises.copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
     }
 
