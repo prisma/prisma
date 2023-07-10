@@ -112,5 +112,3 @@ enum Role {
 `;
 
 exports[`cockroachdb basic introspection (with postgresql provider) --url should fail 2`] = ``;
-
-exports[`cockroachdb basic introspection (with postgresql provider) 2`] = ``;

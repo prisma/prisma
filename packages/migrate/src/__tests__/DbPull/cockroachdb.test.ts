@@ -80,7 +80,7 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 
 
     `)
-    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchSnapshot()
+    expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
