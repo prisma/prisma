@@ -52,6 +52,7 @@ export interface GenerateClientOptions {
   activeProvider: string
   dataProxy: boolean
   postinstall?: boolean
+  overrideEngineType?: ClientEngineType
 }
 
 export interface BuildClientResult {
@@ -74,10 +75,11 @@ export async function buildClient({
   activeProvider,
   dataProxy,
   postinstall,
+  overrideEngineType,
 }: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
-  const clientEngineType = getClientEngineType(generator!)
+  const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
   const tsClientOptions = {
     document,
     datasources,
@@ -205,9 +207,10 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     dataProxy,
     postinstall,
+    overrideEngineType,
   } = options
 
-  const clientEngineType = getClientEngineType(generator!)
+  const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
   const { runtimeDirs, finalOutputDir, projectRoot } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
@@ -226,6 +229,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     dataProxy,
     postinstall,
+    overrideEngineType,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)

@@ -36,7 +36,6 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
-import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine')
@@ -54,7 +53,6 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
 let engineInstanceCount = 0
-const exitHooks = new ExitHooks()
 
 export class LibraryEngine extends Engine<undefined> {
   private engine?: QueryEngineInstance
@@ -80,14 +78,6 @@ export class LibraryEngine extends Engine<undefined> {
   versionInfo?: {
     commit: string
     version: string
-  }
-
-  get beforeExitListener() {
-    return exitHooks.getListener(this)
-  }
-
-  set beforeExitListener(listener: BeforeExitListener | undefined) {
-    exitHooks.setListener(this, listener)
   }
 
   constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
@@ -126,7 +116,6 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
-    exitHooks.install()
     this.checkForTooManyEngines()
   }
 
@@ -348,7 +337,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
-      this.beforeExitListener = listener
+      throw new Error(
+        '"beforeExit" hook is not applicable to the library engine since Prisma 5.0.0, it is only relevant and implemented for the binary engine. Please add your event listener to the `process` object directly instead.',
+      )
     } else {
       this.logEmitter.on(event, listener)
     }
