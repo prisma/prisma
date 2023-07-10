@@ -96,7 +96,8 @@ function buildResponse(incomingData: Buffer[], response: IncomingMessage, req: a
         console.log('REQ URL', url)
         console.log('STATUS CODE', response.statusCode)
         console.log('DATA', incomingData)
-        return Promise.reject(e)
+        throw e
+        // return Promise.reject(e)
       }
       return Promise.resolve(json)
     },
