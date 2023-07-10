@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`exhaustive-schema: generatedBrowserJS 1`] = `
+exports[`exhaustive-schema-mongo (binary): generatedBrowserJS 1`] = `
 
 Object.defineProperty(exports, "__esModule", { value: true });
 
@@ -326,13 +326,13 @@ Object.assign(exports, Prisma)
 
 `;
 
-exports[`exhaustive-schema: generatedTypeScript 1`] = `
+exports[`exhaustive-schema-mongo (binary): generatedTypeScript 1`] = `
 
 /**
  * Client
 **/
 
-import * as runtime from '@prisma/client/runtime/{RUNTIME_FILE}';
+import * as runtime from '@prisma/client/runtime/binary';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils

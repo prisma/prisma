@@ -8,7 +8,7 @@ const { dependencies } = require('../package.json')
 
 export { prismaSchemaWasm }
 // e.g. 4.3.0-18.a39215673171b87177b86233206a5d65f2558857
-export const prismaSchemaVersion: string = dependencies['@prisma/prisma-schema-wasm']
+export const prismaSchemaWasmVersion: string = dependencies['@prisma/prisma-schema-wasm']
 
 /**
  * Set up a global registry for Wasm panics.
