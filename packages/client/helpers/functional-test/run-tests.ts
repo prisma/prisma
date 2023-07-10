@@ -72,7 +72,6 @@ async function main(): Promise<number | void> {
   }
 
   if (args['--data-proxy']) {
-    jestArgs.push('--verbose')
     if (!fs.existsSync(miniProxy.defaultServerConfig.cert)) {
       await miniProxy.generateCertificates(miniProxy.defaultCertificatesConfig)
     }
