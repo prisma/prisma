@@ -143,7 +143,7 @@ export async function buildClient({
       const denoEdgeTsClient = new TSClient({
         ...tsClientOptions,
         dataProxy: true, // edge only works w/ data proxy
-        runtimeName: 'index.d.ts',
+        runtimeName: 'library.d.ts',
         runtimeDir: '../' + runtimeDirs.edge,
         deno: true,
       })
