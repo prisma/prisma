@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`exhaustive-schema: generatedBrowserJS 1`] = `
+exports[`exhaustive-schema-mongo (data-proxy): generatedBrowserJS 1`] = `
 
 Object.defineProperty(exports, "__esModule", { value: true });
 
@@ -326,13 +326,13 @@ Object.assign(exports, Prisma)
 
 `;
 
-exports[`exhaustive-schema: generatedTypeScript 1`] = `
+exports[`exhaustive-schema-mongo (data-proxy): generatedTypeScript 1`] = `
 
 /**
  * Client
 **/
 
-import * as runtime from '@prisma/client/runtime/{RUNTIME_FILE}';
+import * as runtime from '@prisma/client/runtime/data-proxy';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
@@ -772,7 +772,7 @@ export class PrismaClient<
    */
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-  $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => Promise<void> : Prisma.LogEvent) => void): void;
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
 
   /**
    * Connect with the database
@@ -1015,10 +1015,10 @@ export namespace Prisma {
   */
   export type Extension = $Extensions.UserArgs
   export import getExtensionContext = runtime.Extensions.getExtensionContext
-  export type Args<T, F extends $Public.Operation> = $Public.Args<T, F> & {}
-  export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F> & {}
-  export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F> & {}
-  export type Exact<T, W> = $Public.Exact<T, W> & {}
+  export type Args<T, F extends $Public.Operation> = $Public.Args<T, F>
+  export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F>
+  export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F>
+  export type Exact<T, W> = $Public.Exact<T, W>
 
   /**
    * Prisma Client JS version: local

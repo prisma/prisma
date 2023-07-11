@@ -76,7 +76,7 @@ function buildTests() {
           process.env[envVar] = value
 
           // Generate Client to tmp dir
-          await generateTestClient(projectDir)
+          await generateTestClient({ projectDir })
 
           // Run Tests
           const { PrismaClient } = require(path.join(projectDir, 'node_modules/@prisma/client'))
