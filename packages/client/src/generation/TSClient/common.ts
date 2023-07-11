@@ -185,10 +185,10 @@ export type MetricHistogramBucket = runtime.MetricHistogramBucket
 */
 export type Extension = $Extensions.UserArgs
 export import getExtensionContext = runtime.Extensions.getExtensionContext
-export type Args<T, F extends $Public.Operation> = $Public.Args<T, F>
-export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F>
-export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F>
-export type Exact<T, W> = $Public.Exact<T, W>
+export type Args<T, F extends $Public.Operation> = $Public.Args<T, F> & unknown
+export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F> & unknown
+export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F> & unknown
+export type Exact<T, W> = $Public.Exact<T, W> & unknown
 
 /**
  * Prisma Client JS version: ${clientVersion}
