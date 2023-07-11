@@ -26,24 +26,24 @@ echo "~~~ pnpm run setup"
 # See package.json setup script
 pnpm run setup
 
-# if [[ $BUILDKITE_BRANCH == integration/* ]] ;
-# then
-#     echo "+++ Integration branch"
-#     echo "Testing was skipped as it's an integration branch. For tests, check GitHub Actions or the Buildkite testing pipeline https://buildkite.com/prisma/test-prisma-typescript"
-# else
-#     echo "Start testing..."
-#     echo "~~~ @prisma/client test:functional"
-#     pnpm run --filter "@prisma/client" test:functional
+if [[ $BUILDKITE_BRANCH == integration/* ]] ;
+then
+    echo "+++ Integration branch"
+    echo "Testing was skipped as it's an integration branch. For tests, check GitHub Actions or the Buildkite testing pipeline https://buildkite.com/prisma/test-prisma-typescript"
+else
+    echo "Start testing..."
+    echo "~~~ @prisma/client test:functional"
+    pnpm run --filter "@prisma/client" test:functional
 
-#     echo "~~~ Test all packages"
-#     pnpm run test
+    echo "~~~ Test all packages"
+    pnpm run test
 
-#     echo "~~~ @prisma/client test:memory"
-#     # Client memory test suite
-#     # Note: we run it last as DB is not isolated and will be dropped after memory tests, which in turn will fail subsequent tests.
-#     # We should fix it in a similar way we did for functional tests, eventually.
-#     pnpm run --filter "@prisma/client" test:memory
-# fi
+    echo "~~~ @prisma/client test:memory"
+    # Client memory test suite
+    # Note: we run it last as DB is not isolated and will be dropped after memory tests, which in turn will fail subsequent tests.
+    # We should fix it in a similar way we did for functional tests, eventually.
+    pnpm run --filter "@prisma/client" test:memory
+fi
 
 echo "+++ Publishing packages to npm"
 # Disable printing with +x and return as before just after
