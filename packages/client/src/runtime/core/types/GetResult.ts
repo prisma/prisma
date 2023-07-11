@@ -49,12 +49,11 @@ type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
 export type GetFindResult<P extends Payload, _A, A = { 0: _A, 1: { select: undefined } }[Equals<_A, any>]> =
-  A extends // ensures distribution and performs type inference
+  A extends
   | { select: infer S } & Record<string, unknown>
   | { include: infer S } & Record<string, unknown>
-  // sanitization step for handling default selection edge cases
-  ? S extends undefined ? DefaultSelection<P> :
-    { // recursive mapped type responsible for handling selections
+  ? S extends undefined ? DefaultSelection<P>
+  : {
       [K in keyof S as S[K] extends false | undefined | null ? never : K]:
         S[K] extends object
         ? P extends SelectablePayloadFields<K, (infer O)[]>
