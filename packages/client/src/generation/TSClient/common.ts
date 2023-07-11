@@ -82,6 +82,23 @@ Prisma.prismaVersion = {
   engine: "${engineVersion}"
 }
 
+${ browser &&
+`
+const runtimeDescription = (() => {
+  // https://edge-runtime.vercel.app/features/available-apis#addressing-the-runtime
+  if ("EdgeRuntime" in globalThis && typeof globalThis.EdgeRuntime === "string") {
+    return "under the Vercel Edge Runtime";
+  }
+  // Deno
+  if ("Deno" in globalThis && typeof globalThis.Deno === "object") {
+    return "under the Deno runtime";
+  }
+  // Default to assuming browser
+  return "in the browser";
+})();
+`
+}
+
 Prisma.PrismaClientKnownRequestError = ${notSupportOnBrowser('PrismaClientKnownRequestError', browser)};
 Prisma.PrismaClientUnknownRequestError = ${notSupportOnBrowser('PrismaClientUnknownRequestError', browser)}
 Prisma.PrismaClientRustPanicError = ${notSupportOnBrowser('PrismaClientRustPanicError', browser)}
@@ -122,7 +139,7 @@ Prisma.NullTypes = {
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser)
     return `() => {
-  throw new Error(\`${fnc} is unable to be run in the browser.
+  throw new Error(\`${fnc} is unable to be run ${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}`
   return fnc
