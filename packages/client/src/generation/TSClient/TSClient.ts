@@ -317,7 +317,7 @@ ${new Enum(
 class PrismaClient {
   constructor() {
     throw new Error(
-      \`PrismaClient is unable to be run \${runtimeDescription} the browser.
+      \`PrismaClient is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
     )
   }
