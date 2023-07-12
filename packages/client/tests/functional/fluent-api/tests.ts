@@ -640,11 +640,66 @@ testMatrix.setupTestSuite(() => {
       expectTypeOf(posts).toEqualTypeOf<{ likeId: string } | null>()
       expect(posts).toBeNull()
     })
+
+    test('findUniqueOrThrow with required to-one relation', () => {
+      const result = prisma.property
+        .findUniqueOrThrow({
+          where: {
+            id: '123',
+          },
+        })
+        .house()
+
+      expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<House>()
+    })
+
+    test('findFirstOrThrow with required to-one relation', () => {
+      const result = prisma.property
+        .findUniqueOrThrow({
+          where: {
+            id: '123',
+          },
+        })
+        .house()
+
+      expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<House>()
+    })
+
+    test('findUniqueOrThrow with required to-one relation circling back to optional relation', () => {
+      const result = prisma.property
+        .findUniqueOrThrow({
+          where: {
+            id: '123',
+          },
+        })
+        .house()
+        .like()
+        .user()
+        .property()
+
+      expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Property | null>()
+    })
+
+    test('findFirstOrThrow with required to-one relation circling back to optional relation', () => {
+      const result = prisma.property
+        .findUniqueOrThrow({
+          where: {
+            id: '123',
+          },
+        })
+        .house()
+        .like()
+        .user()
+        .property()
+
+      expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Property | null>()
+    })
   })
 
   test('findUniqueOrThrow with required to-one relation', () => {
-    const result = prisma.property
-      .findUniqueOrThrow({
+    const result = prisma
+      .$extends({})
+      .property.findUniqueOrThrow({
         where: {
           id: '123',
         },
@@ -655,8 +710,9 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('findFirstOrThrow with required to-one relation', () => {
-    const result = prisma.property
-      .findUniqueOrThrow({
+    const result = prisma
+      .$extends({})
+      .property.findUniqueOrThrow({
         where: {
           id: '123',
         },
@@ -667,8 +723,9 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('findUniqueOrThrow with required to-one relation circling back to optional relation', () => {
-    const result = prisma.property
-      .findUniqueOrThrow({
+    const result = prisma
+      .$extends({})
+      .property.findUniqueOrThrow({
         where: {
           id: '123',
         },
@@ -682,8 +739,9 @@ testMatrix.setupTestSuite(() => {
   })
 
   test('findFirstOrThrow with required to-one relation circling back to optional relation', () => {
-    const result = prisma.property
-      .findUniqueOrThrow({
+    const result = prisma
+      .$extends({})
+      .property.findUniqueOrThrow({
         where: {
           id: '123',
         },
