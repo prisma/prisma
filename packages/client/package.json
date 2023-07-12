@@ -85,8 +85,8 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/mini-proxy": "0.9.3",
-    "@swc-node/register": "1.6.5",
-    "@swc/core": "1.3.64",
+    "@swc-node/register": "1.6.6",
+    "@swc/core": "1.3.68",
     "@swc/jest": "0.2.26",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.8",
@@ -142,7 +142,7 @@
     "undici": "5.22.1",
     "yeoman-generator": "5.9.0",
     "yo": "4.3.1",
-    "zx": "7.2.2"
+    "zx": "7.2.3"
   },
   "peerDependencies": {
     "prisma": "*"

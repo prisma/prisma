@@ -9,7 +9,7 @@ importers:
 
   .:
     specifiers:
-      '@microsoft/api-extractor': 7.36.0
+      '@microsoft/api-extractor': 7.36.1
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
       '@types/benchmark': 2.1.2
@@ -43,7 +43,7 @@ importers:
       is-ci: 3.0.1
       jest-junit: 16.0.0
       kleur: 4.1.5
-      lint-staged: 13.2.2
+      lint-staged: 13.2.3
       node-fetch: 2.6.12
       p-map: 4.0.0
       p-reduce: 2.1.0
@@ -55,7 +55,7 @@ importers:
       regenerator-runtime: 0.13.11
       resolve: 1.22.2
       safe-buffer: 5.2.1
-      semver: 7.5.1
+      semver: 7.5.4
       spdx-exceptions: 2.3.0
       spdx-license-ids: 3.0.13
       staged-git-files: 1.3.0
@@ -64,9 +64,9 @@ importers:
       tty-browserify: 0.0.1
       typescript: 4.9.5
       util: 0.12.5
-      zx: 7.2.2
+      zx: 7.2.3
     devDependencies:
-      '@microsoft/api-extractor': 7.36.0_@types+node@18.16.19
+      '@microsoft/api-extractor': 7.36.1_@types+node@18.16.19
       '@sindresorhus/slugify': 1.1.2
       '@slack/webhook': 6.1.0
       '@types/benchmark': 2.1.2
@@ -100,7 +100,7 @@ importers:
       is-ci: 3.0.1
       jest-junit: 16.0.0
       kleur: 4.1.5
-      lint-staged: 13.2.2
+      lint-staged: 13.2.3
       node-fetch: 2.6.12
       p-map: 4.0.0
       p-reduce: 2.1.0
@@ -112,7 +112,7 @@ importers:
       regenerator-runtime: 0.13.11
       resolve: 1.22.2
       safe-buffer: 5.2.1
-      semver: 7.5.1
+      semver: 7.5.4
       spdx-exceptions: 2.3.0
       spdx-license-ids: 3.0.13
       staged-git-files: 1.3.0
@@ -121,7 +121,7 @@ importers:
       tty-browserify: 0.0.1
       typescript: 4.9.5
       util: 0.12.5
-      zx: 7.2.2
+      zx: 7.2.3
 
   packages/cli:
     specifiers:
@@ -135,7 +135,7 @@ importers:
       '@prisma/migrate': workspace:*
       '@prisma/studio': 0.487.0
       '@prisma/studio-server': 0.487.0
-      '@swc/core': 1.3.64
+      '@swc/core': 1.3.68
       '@swc/jest': 0.2.26
       '@types/debug': 4.1.8
       '@types/fs-extra': 9.0.13
@@ -177,8 +177,8 @@ importers:
       '@prisma/migrate': link:../migrate
       '@prisma/studio': 0.487.0
       '@prisma/studio-server': 0.487.0_af2arurw4njyhq5wa6w6rrkc54
-      '@swc/core': 1.3.64
-      '@swc/jest': 0.2.26_@swc+core@1.3.64
+      '@swc/core': 1.3.68
+      '@swc/jest': 0.2.26_@swc+core@1.3.68
       '@types/debug': 4.1.8
       '@types/fs-extra': 9.0.13
       '@types/jest': 29.5.3
@@ -232,8 +232,8 @@ importers:
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
       '@prisma/mini-proxy': 0.9.3
-      '@swc-node/register': 1.6.5
-      '@swc/core': 1.3.64
+      '@swc-node/register': 1.6.6
+      '@swc/core': 1.3.68
       '@swc/jest': 0.2.26
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.8
@@ -289,7 +289,7 @@ importers:
       undici: 5.22.1
       yeoman-generator: 5.9.0
       yo: 4.3.1
-      zx: 7.2.2
+      zx: 7.2.3
     dependencies:
       '@prisma/engines-version': 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
     devDependencies:
@@ -314,9 +314,9 @@ importers:
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
       '@prisma/mini-proxy': 0.9.3
-      '@swc-node/register': 1.6.5_w2a3vrbasjgrtv5bvwiyhpfbku
-      '@swc/core': 1.3.64
-      '@swc/jest': 0.2.26_@swc+core@1.3.64
+      '@swc-node/register': 1.6.6_2klr2r5hbyjbdclxjrvpourt7e
+      '@swc/core': 1.3.68
+      '@swc/jest': 0.2.26_@swc+core@1.3.68
       '@timsuchanek/copy': 1.4.5
       '@types/debug': 4.1.8
       '@types/fs-extra': 9.0.13
@@ -364,14 +364,14 @@ importers:
       stacktrace-parser: 0.1.10
       strip-ansi: 6.0.1
       strip-indent: 3.0.0
-      ts-node: 10.9.1_cw4fw6ssw3axcmzecs7frby5ke
+      ts-node: 10.9.1_p7ut7bqjltav2kzrdswzxsvsga
       ts-pattern: 4.3.0
       tsd: 0.28.1
       typescript: 4.9.5
       undici: 5.22.1
       yeoman-generator: 5.9.0
       yo: 4.3.1
-      zx: 7.2.2
+      zx: 7.2.3
 
   packages/debug:
     specifiers:
@@ -402,7 +402,7 @@ importers:
       '@prisma/engines-version': 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
       '@prisma/fetch-engine': workspace:*
       '@prisma/get-platform': workspace:*
-      '@swc/core': 1.3.64
+      '@swc/core': 1.3.68
       '@swc/jest': 0.2.26
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
@@ -414,8 +414,8 @@ importers:
       '@prisma/engines-version': 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
       '@prisma/fetch-engine': link:../fetch-engine
       '@prisma/get-platform': link:../get-platform
-      '@swc/core': 1.3.64
-      '@swc/jest': 0.2.26_@swc+core@1.3.64
+      '@swc/core': 1.3.68
+      '@swc/jest': 0.2.26_@swc+core@1.3.68
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
       execa: 5.1.1
@@ -427,7 +427,7 @@ importers:
       '@prisma/debug': workspace:*
       '@prisma/engines-version': 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
       '@prisma/get-platform': workspace:*
-      '@swc/core': 1.3.64
+      '@swc/core': 1.3.68
       '@swc/jest': 0.2.26
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
@@ -472,8 +472,8 @@ importers:
       tempy: 1.0.1
     devDependencies:
       '@prisma/engines-version': 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
-      '@swc/core': 1.3.64
-      '@swc/jest': 0.2.26_@swc+core@1.3.64
+      '@swc/core': 1.3.68
+      '@swc/jest': 0.2.26_@swc+core@1.3.68
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
       '@types/node-fetch': 2.6.4
@@ -486,8 +486,8 @@ importers:
   packages/generator-helper:
     specifiers:
       '@prisma/debug': workspace:*
-      '@swc-node/register': 1.6.5
-      '@swc/core': 1.3.64
+      '@swc-node/register': 1.6.6
+      '@swc/core': 1.3.68
       '@swc/jest': 0.2.26
       '@types/cross-spawn': 6.0.2
       '@types/jest': 29.5.3
@@ -505,22 +505,22 @@ importers:
       cross-spawn: 7.0.3
       kleur: 4.1.5
     devDependencies:
-      '@swc-node/register': 1.6.5_w2a3vrbasjgrtv5bvwiyhpfbku
-      '@swc/core': 1.3.64
-      '@swc/jest': 0.2.26_@swc+core@1.3.64
+      '@swc-node/register': 1.6.6_2klr2r5hbyjbdclxjrvpourt7e
+      '@swc/core': 1.3.68
+      '@swc/jest': 0.2.26_@swc+core@1.3.68
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
       esbuild: 0.15.13
       jest: 29.6.1_3xfgeyygb3mfenrkivee3hyw5i
       jest-junit: 16.0.0
-      ts-node: 10.9.1_cw4fw6ssw3axcmzecs7frby5ke
+      ts-node: 10.9.1_p7ut7bqjltav2kzrdswzxsvsga
       typescript: 4.9.5
 
   packages/get-platform:
     specifiers:
       '@codspeed/benchmark.js-plugin': 2.0.0
       '@prisma/debug': workspace:*
-      '@swc/core': 1.3.64
+      '@swc/core': 1.3.68
       '@swc/jest': 0.2.26
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
@@ -550,8 +550,8 @@ importers:
       ts-pattern: 4.3.0
     devDependencies:
       '@codspeed/benchmark.js-plugin': 2.0.0_benchmark@2.1.4
-      '@swc/core': 1.3.64
-      '@swc/jest': 0.2.26_@swc+core@1.3.64
+      '@swc/core': 1.3.68
+      '@swc/jest': 0.2.26_@swc+core@1.3.68
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
       benchmark: 2.1.4
@@ -565,7 +565,7 @@ importers:
       '@opentelemetry/instrumentation': 0.40.0
       '@opentelemetry/sdk-trace-base': 1.14.0
       '@prisma/internals': workspace:*
-      '@swc/core': 1.3.64
+      '@swc/core': 1.3.68
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
       jest: 29.6.1
@@ -577,7 +577,7 @@ importers:
       '@opentelemetry/sdk-trace-base': 1.14.0_@opentelemetry+api@1.4.1
     devDependencies:
       '@prisma/internals': link:../internals
-      '@swc/core': 1.3.64
+      '@swc/core': 1.3.68
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
       jest: 29.6.1_@types+node@18.16.19
@@ -590,7 +590,7 @@ importers:
       '@prisma/internals': workspace:*
       '@prisma/migrate': workspace:*
       '@sindresorhus/slugify': 1.1.2
-      '@swc/core': 1.3.64
+      '@swc/core': 1.3.68
       '@swc/jest': 0.2.26
       '@types/jest': 29.5.3
       '@types/mssql': 8.1.2
@@ -618,8 +618,8 @@ importers:
       '@prisma/internals': link:../internals
       '@prisma/migrate': link:../migrate
       '@sindresorhus/slugify': 1.1.2
-      '@swc/core': 1.3.64
-      '@swc/jest': 0.2.26_@swc+core@1.3.64
+      '@swc/core': 1.3.68
+      '@swc/jest': 0.2.26_@swc+core@1.3.68
       '@types/jest': 29.5.3
       '@types/mssql': 8.1.2
       '@types/node': 18.16.19
@@ -638,7 +638,7 @@ importers:
       string-hash: 1.1.3
       strip-ansi: 6.0.1
       tempy: 1.0.1
-      ts-node: 10.9.1_cw4fw6ssw3axcmzecs7frby5ke
+      ts-node: 10.9.1_p7ut7bqjltav2kzrdswzxsvsga
       typescript: 4.9.5
       verror: 1.10.1
 
@@ -765,7 +765,7 @@ importers:
       '@prisma/get-platform': workspace:*
       '@prisma/internals': workspace:*
       '@sindresorhus/slugify': 1.1.2
-      '@swc/core': 1.3.64
+      '@swc/core': 1.3.68
       '@swc/jest': 0.2.26
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
@@ -823,8 +823,8 @@ importers:
       '@prisma/engines-version': 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
       '@prisma/generator-helper': link:../generator-helper
       '@prisma/internals': link:../internals
-      '@swc/core': 1.3.64
-      '@swc/jest': 0.2.26_@swc+core@1.3.64
+      '@swc/core': 1.3.68
+      '@swc/jest': 0.2.26_@swc+core@1.3.68
       '@types/jest': 29.5.3
       '@types/node': 18.16.19
       '@types/pg': 8.10.2
@@ -840,9 +840,9 @@ importers:
 
   packages/nextjs-monorepo-workaround-plugin:
     specifiers:
-      webpack: 5.88.0
+      webpack: 5.88.1
     devDependencies:
-      webpack: 5.88.0
+      webpack: 5.88.1
 
   packages/react-prisma:
     specifiers:
@@ -2508,7 +2508,7 @@ packages:
       istanbul-reports: 3.1.5
       jest-message-util: 29.6.0
       jest-util: 29.6.0
-      jest-worker: 29.6.0
+      jest-worker: 29.6.1
       slash: 3.0.0
       string-length: 4.0.2
       strip-ansi: 6.0.1
@@ -2747,31 +2747,31 @@ packages:
       nopt: 5.0.0
       npmlog: 5.0.1
       rimraf: 3.0.2
-      semver: 7.5.1
+      semver: 7.5.4
       tar: 6.1.14
     transitivePeerDependencies:
       - encoding
       - supports-color
     dev: true
 
-  /@microsoft/api-extractor-model/7.27.3_@types+node@18.16.19:
-    resolution: {integrity: sha512-fSFvw7otYHduOkyshjTbapKKgwF8bgquVHvgF8VgeKtMYvqXkoaj7W6VcM7PNY7E2bbblhUgC4XNdqZLD4SJGw==}
+  /@microsoft/api-extractor-model/7.27.4_@types+node@18.16.19:
+    resolution: {integrity: sha512-HjqQFmuGPOS20rtnu+9Jj0QrqZyR59E+piUWXPMZTTn4jaZI+4UmsHSf3Id8vyueAhOBH2cgwBuRTE5R+MfSMw==}
     dependencies:
       '@microsoft/tsdoc': 0.14.2
       '@microsoft/tsdoc-config': 0.16.2
-      '@rushstack/node-core-library': 3.59.4_@types+node@18.16.19
+      '@rushstack/node-core-library': 3.59.5_@types+node@18.16.19
     transitivePeerDependencies:
       - '@types/node'
     dev: true
 
-  /@microsoft/api-extractor/7.36.0_@types+node@18.16.19:
-    resolution: {integrity: sha512-P+kYgJFDXIr+UNzhRMhlpM/dderi6ab4lxn35vdhfAIMPtGCSXIJxrrtpTOQmQW8CZtmoZX06LYoUsKCc1zjow==}
+  /@microsoft/api-extractor/7.36.1_@types+node@18.16.19:
+    resolution: {integrity: sha512-2SPp1jq6wDY5IOsRLUv/4FxngslctBZJlztAJ3uWpCAwqKQG7ESdL3DhEza+StbYLtBQmu1Pk6q1Vkhl7qD/bg==}
     hasBin: true
     dependencies:
-      '@microsoft/api-extractor-model': 7.27.3_@types+node@18.16.19
+      '@microsoft/api-extractor-model': 7.27.4_@types+node@18.16.19
       '@microsoft/tsdoc': 0.14.2
       '@microsoft/tsdoc-config': 0.16.2
-      '@rushstack/node-core-library': 3.59.4_@types+node@18.16.19
+      '@rushstack/node-core-library': 3.59.5_@types+node@18.16.19
       '@rushstack/rig-package': 0.4.0
       '@rushstack/ts-command-line': 4.15.1
       colors: 1.2.5
@@ -2848,7 +2848,7 @@ packages:
       read-package-json-fast: 2.0.3
       readdir-scoped-modules: 1.1.0
       rimraf: 3.0.2
-      semver: 7.5.1
+      semver: 7.5.4
       ssri: 8.0.1
       treeverse: 1.0.4
       walk-up-path: 1.0.0
@@ -2861,7 +2861,7 @@ packages:
     resolution: {integrity: sha512-8KG5RD0GVP4ydEzRn/I4BNDuxDtqVbOdm8675T49OIG/NGhaK0pjPX7ZcDlvKYbA+ulvVK3ztfcF4uBdOxuJbQ==}
     dependencies:
       '@gar/promisify': 1.1.3
-      semver: 7.5.1
+      semver: 7.5.4
     dev: true
 
   /@npmcli/fs/2.1.2:
@@ -2869,14 +2869,14 @@ packages:
     engines: {node: ^12.13.0 || ^14.15.0 || >=16.0.0}
     dependencies:
       '@gar/promisify': 1.1.3
-      semver: 7.5.1
+      semver: 7.5.4
     dev: true
 
   /@npmcli/fs/3.1.0:
     resolution: {integrity: sha512-7kZUAaLscfgbwBQRbvdMYaZOWyMEcPTH/tJjnyAWJ/dvvs9Ef+CERx/qJb9GExJpl1qipaDGn7KqHnFGGixd0w==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     dependencies:
-      semver: 7.5.1
+      semver: 7.5.4
     dev: true
 
   /@npmcli/git/2.1.0:
@@ -2888,7 +2888,7 @@ packages:
       npm-pick-manifest: 6.1.1
       promise-inflight: 1.0.1
       promise-retry: 2.0.1
-      semver: 7.5.1
+      semver: 7.5.4
       which: 2.0.2
     transitivePeerDependencies:
       - bluebird
@@ -2904,7 +2904,7 @@ packages:
       proc-log: 3.0.0
       promise-inflight: 1.0.1
       promise-retry: 2.0.1
-      semver: 7.5.1
+      semver: 7.5.4
       which: 3.0.0
     transitivePeerDependencies:
       - bluebird
@@ -2945,7 +2945,7 @@ packages:
       cacache: 15.3.0
       json-parse-even-better-errors: 2.3.1
       pacote: 12.0.3
-      semver: 7.5.1
+      semver: 7.5.4
     transitivePeerDependencies:
       - bluebird
       - supports-color
@@ -3275,8 +3275,8 @@ packages:
     resolution: {integrity: sha512-ESkcAgT1UGlTnGlQlostXAoS2N3VmMKKhKWQYWs0WtfBPzkM2xf2aPX6Io8tpWC/Qx4VDPmltugwRhL6BKHL9w==}
     dev: true
 
-  /@rushstack/node-core-library/3.59.4_@types+node@18.16.19:
-    resolution: {integrity: sha512-YAKJDC6Mz/KA1D7bvB88WaRX3knt/ZuLzkRu5G9QADGSjLtvTWzCNCytRF2PCSaaHOZaZsWul4F1KQdgFgUDqA==}
+  /@rushstack/node-core-library/3.59.5_@types+node@18.16.19:
+    resolution: {integrity: sha512-1IpV7LufrI1EoVO8hYsb3t6L8L+yp40Sa0OaOV2CIu1zx4e6ZeVNaVIEXFgMXBKdGXkAh21MnCaIzlDNpG6ZQw==}
     peerDependencies:
       '@types/node': '*'
     peerDependenciesMeta:
@@ -3748,24 +3748,24 @@ packages:
     dev: false
     optional: true
 
-  /@swc-node/core/1.10.3_@swc+core@1.3.64:
-    resolution: {integrity: sha512-8rpv1DXzsQjN/C8ZXuaTSmJ4M/lRr6geUlbOQ861DLC+sKWcEEvxRjK9cXQ28GserHuEcFDA3wlF9rD1YD0x+Q==}
+  /@swc-node/core/1.10.4_@swc+core@1.3.68:
+    resolution: {integrity: sha512-ixZCb4LsSUPflnOxj4a8T5yTPzKbgvP+tF0N59Rk2+68ikFRt9Qci2qy9xfuDIQbuiONzXersrNpd+p598uH0A==}
     engines: {node: '>= 10'}
     peerDependencies:
       '@swc/core': '>= 1.3'
     dependencies:
-      '@swc/core': 1.3.64
+      '@swc/core': 1.3.68
     dev: true
 
-  /@swc-node/register/1.6.5_w2a3vrbasjgrtv5bvwiyhpfbku:
-    resolution: {integrity: sha512-yMxXlzthI0aMadYYKDhx7xvtjljB1qoD8Tv0djqSJ1ttTkoDxg6MhG5A5pIahiUT2neVrkWb9lCavoUwXAe/zQ==}
+  /@swc-node/register/1.6.6_2klr2r5hbyjbdclxjrvpourt7e:
+    resolution: {integrity: sha512-KgnQrWLgtJzEgPpxvhOPUDonv1xreVumGdzXDQlDVIqU3vH+spW8ZYxxyjJVMh3G/mQG8E3bFvUMHIS+E3FL2w==}
     peerDependencies:
       '@swc/core': '>= 1.3'
       typescript: '>= 4.3'
     dependencies:
-      '@swc-node/core': 1.10.3_@swc+core@1.3.64
+      '@swc-node/core': 1.10.4_@swc+core@1.3.68
       '@swc-node/sourcemap-support': 0.3.0
-      '@swc/core': 1.3.64
+      '@swc/core': 1.3.68
       colorette: 2.0.19
       debug: 4.3.4
       pirates: 4.0.5
@@ -3809,15 +3809,6 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-darwin-arm64/1.3.64:
-    resolution: {integrity: sha512-gSPld6wxZBZoEvZXWmNfd+eJGlGvrEXmhMBCUwSccpuMa0KqK7F6AAZVu7kFkmlXPq2kS8owjk6/VXnVBmm5Vw==}
-    engines: {node: '>=10'}
-    cpu: [arm64]
-    os: [darwin]
-    requiresBuild: true
-    dev: true
-    optional: true
-
   /@swc/core-darwin-arm64/1.3.68:
     resolution: {integrity: sha512-Z5pNxeuP2NxpOHTzDQkJs0wAPLnTlglZnR3WjObijwvdwT/kw1Y5EPDKM/BVSIeG40SPMkDLBbI0aj0qyXzrBA==}
     engines: {node: '>=10'}
@@ -3829,15 +3820,6 @@ packages:
 
   /@swc/core-darwin-x64/1.2.204:
     resolution: {integrity: sha512-WvDN6tRjQ/p+4gNvT4UVU4VyJLXy6hT4nT6mGgrtftG/9pP5dDPwwtTm86ISfqGUs8/LuZvrr4Nhwdr3j+0uAA==}
-    engines: {node: '>=10'}
-    cpu: [x64]
-    os: [darwin]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@swc/core-darwin-x64/1.3.64:
-    resolution: {integrity: sha512-SJd1pr+U2pz5ZVv5BL36CN879Pn1V0014uVNlB+6yNh3e8T0fjUbtRJcbFiBB+OeYuJ1UNUeslaRJtKJNtMH7A==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [darwin]
@@ -3872,15 +3854,6 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-linux-arm-gnueabihf/1.3.64:
-    resolution: {integrity: sha512-XE60bZS+qO+d8IQYAayhn3TRqyzVmQeOsX2B1yUHuKZU3Zb/mt/cmD/HLzZZW7J3z19kYf2na7Hvmnt3amUGoA==}
-    engines: {node: '>=10'}
-    cpu: [arm]
-    os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
-
   /@swc/core-linux-arm-gnueabihf/1.3.68:
     resolution: {integrity: sha512-Mk8f6KCOQ2CNAR4PtWajIjS6XKSSR7ZYDOCf1GXRxhS3qEyQH7V8elWvqWYqHcT4foO60NUmxA/NOM/dQrdO1A==}
     engines: {node: '>=10'}
@@ -3892,15 +3865,6 @@ packages:
 
   /@swc/core-linux-arm64-gnu/1.2.204:
     resolution: {integrity: sha512-oQBahskrbU+g0uEcQM0o9O47jHrMwgQ7f6htkWhYxbyyK392nGI+eH2zapNe0zvsfx3sSCIVmjLAvgBCNP9ygw==}
-    engines: {node: '>=10'}
-    cpu: [arm64]
-    os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@swc/core-linux-arm64-gnu/1.3.64:
-    resolution: {integrity: sha512-+jcUua4cYLRMqDicv+4AaTZUGgYWXkXVI9AzaAgfkMNLU2TMXwuYXopxk1giAMop88+ovzYIqrxErRdu70CgtQ==}
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [linux]
@@ -3926,15 +3890,6 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-linux-arm64-musl/1.3.64:
-    resolution: {integrity: sha512-50MI8NFYUKhLncqY2piM/XOnNqZT6zY2ZoNOFsy63/T2gAYy1ts4mF4YUEkg4XOA2zhue1JSLZBUrHQXbgMYUQ==}
-    engines: {node: '>=10'}
-    cpu: [arm64]
-    os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
-
   /@swc/core-linux-arm64-musl/1.3.68:
     resolution: {integrity: sha512-8K3zjU+tFgn6yGDEeD343gkKaHU9dhz77NiVkI1VzwRaT/Ag5pwl5eMQ1yStm8koNFzn3zq6rGjHfI5g2yI5Wg==}
     engines: {node: '>=10'}
@@ -3946,15 +3901,6 @@ packages:
 
   /@swc/core-linux-x64-gnu/1.2.204:
     resolution: {integrity: sha512-6eco63idgYWPYrSpDeSE3tgh/4CC0hJz8cAO/M/f3azmCXvI+11isC60ic3UKeZ2QNXz3YbsX6CKAgBPSkkaVA==}
-    engines: {node: '>=10'}
-    cpu: [x64]
-    os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@swc/core-linux-x64-gnu/1.3.64:
-    resolution: {integrity: sha512-bT8seQ41Q4J2JDgn2JpFCGNehGAIilAkZ476gEaKKroEWepBhkD0K1MspSSVYSJhLSGbBVSaadUEiBPxWgu1Rw==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [linux]
@@ -3980,15 +3926,6 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-linux-x64-musl/1.3.64:
-    resolution: {integrity: sha512-sJgh3TXCDOEq/Au4XLAgNqy4rVcLeywQBoftnV3rcvX1/u9OCSRzgKLgYc5d1pEN5AMJV1l4u26kbGlQuZ+yRw==}
-    engines: {node: '>=10'}
-    cpu: [x64]
-    os: [linux]
-    requiresBuild: true
-    dev: true
-    optional: true
-
   /@swc/core-linux-x64-musl/1.3.68:
     resolution: {integrity: sha512-RCpaBo1fcpy1EFdjF+I7N4lfzOaHXVV0iMw/ABM+0PD6tp3V/9pxsguaZyeAHyEiUlDA6PZ4TfXv5zfnXEgW4Q==}
     engines: {node: '>=10'}
@@ -4000,15 +3937,6 @@ packages:
 
   /@swc/core-win32-arm64-msvc/1.2.204:
     resolution: {integrity: sha512-h2CrN7D9hA7/tePtqmK8fxPBDORBUKFoF8Ouhbyd0XgWfDOEblJdviSp9oURR9bj7KH5mL2S+nCyv2lSZCtWKw==}
-    engines: {node: '>=10'}
-    cpu: [arm64]
-    os: [win32]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@swc/core-win32-arm64-msvc/1.3.64:
-    resolution: {integrity: sha512-zWIy+mAWDjtJjl4e4mmhQL7g9KbkOwcWbeoIk4C6NT4VpjnjdX1pMml/Ez2sF5J5cGBwu7B1ePfTe/kAE6G36Q==}
     engines: {node: '>=10'}
     cpu: [arm64]
     os: [win32]
@@ -4034,15 +3962,6 @@ packages:
     dev: true
     optional: true
 
-  /@swc/core-win32-ia32-msvc/1.3.64:
-    resolution: {integrity: sha512-6HMiuUeSMpTUAimb1E+gUNjy8m211oAzw+wjU8oOdA6iihWaLBz4TOhU9IaKZPPjqEcYGwqaT3tj5b5+mxde6Q==}
-    engines: {node: '>=10'}
-    cpu: [ia32]
-    os: [win32]
-    requiresBuild: true
-    dev: true
-    optional: true
-
   /@swc/core-win32-ia32-msvc/1.3.68:
     resolution: {integrity: sha512-HH5NJrIdzkJs+1xxprie0qSCMBeL9yeEhcC1yZTzYv8bwmabOUSdtKIqS55iYP/2hLWn9CTbvKPmLOIhCopW3Q==}
     engines: {node: '>=10'}
@@ -4054,15 +3973,6 @@ packages:
 
   /@swc/core-win32-x64-msvc/1.2.204:
     resolution: {integrity: sha512-gPfLEb5SbOaaRL7yxB+qXwSxXb+rsc3hXEUaxhOk5JAv8Yfi1f8nlTMNMlxKkf6/Tc3MRkFNr973GrwTtMvN4g==}
-    engines: {node: '>=10'}
-    cpu: [x64]
-    os: [win32]
-    requiresBuild: true
-    dev: true
-    optional: true
-
-  /@swc/core-win32-x64-msvc/1.3.64:
-    resolution: {integrity: sha512-c8Al0JJfmgnO9sg6w34PICibqI4p7iXywo+wOxjY88oFwMcfV5rGaif1Fe3RqxJP/1WtUV7lYuKKZrneMXtyLA==}
     engines: {node: '>=10'}
     cpu: [x64]
     os: [win32]
@@ -4099,28 +4009,6 @@ packages:
       '@swc/core-win32-x64-msvc': 1.2.204
     dev: true
 
-  /@swc/core/1.3.64:
-    resolution: {integrity: sha512-be1dk2pfjzBjFp/+p47/wvOAm7KpEtsi7hqI3ofox6pK3hBJChHgVTLVV9xqZm7CnYdyYYw3Z78hH6lrwutxXQ==}
-    engines: {node: '>=10'}
-    requiresBuild: true
-    peerDependencies:
-      '@swc/helpers': ^0.5.0
-    peerDependenciesMeta:
-      '@swc/helpers':
-        optional: true
-    optionalDependencies:
-      '@swc/core-darwin-arm64': 1.3.64
-      '@swc/core-darwin-x64': 1.3.64
-      '@swc/core-linux-arm-gnueabihf': 1.3.64
-      '@swc/core-linux-arm64-gnu': 1.3.64
-      '@swc/core-linux-arm64-musl': 1.3.64
-      '@swc/core-linux-x64-gnu': 1.3.64
-      '@swc/core-linux-x64-musl': 1.3.64
-      '@swc/core-win32-arm64-msvc': 1.3.64
-      '@swc/core-win32-ia32-msvc': 1.3.64
-      '@swc/core-win32-x64-msvc': 1.3.64
-    dev: true
-
   /@swc/core/1.3.68:
     resolution: {integrity: sha512-njGQuJO+Wy06dEayt70cf0c/KI3HGjm4iW9LLViVLBuYNzJ4SSdNfzejludzufu6im+dsDJ0i3QjgWhAIcVHMQ==}
     engines: {node: '>=10'}
@@ -4151,17 +4039,6 @@ packages:
     dependencies:
       '@jest/create-cache-key-function': 27.5.1
       '@swc/core': 1.2.204
-      jsonc-parser: 3.2.0
-    dev: true
-
-  /@swc/jest/0.2.26_@swc+core@1.3.64:
-    resolution: {integrity: sha512-7lAi7q7ShTO3E5Gt1Xqf3pIhRbERxR1DUxvtVa9WKzIB+HGQ7wZP5sYx86zqnaEoKKGhmOoZ7gyW0IRu8Br5+A==}
-    engines: {npm: '>= 7.0.0'}
-    peerDependencies:
-      '@swc/core': '*'
-    dependencies:
-      '@jest/create-cache-key-function': 27.5.1
-      '@swc/core': 1.3.64
       jsonc-parser: 3.2.0
     dev: true
 
@@ -4689,7 +4566,7 @@ packages:
       graphemer: 1.4.0
       ignore: 5.2.4
       natural-compare-lite: 1.4.0
-      semver: 7.5.1
+      semver: 7.5.4
       tsutils: 3.21.0_typescript@4.9.5
       typescript: 4.9.5
     transitivePeerDependencies:
@@ -4776,7 +4653,7 @@ packages:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.5.1
+      semver: 7.5.4
       tsutils: 3.21.0_typescript@4.9.5
       typescript: 4.9.5
     transitivePeerDependencies:
@@ -4797,7 +4674,7 @@ packages:
       debug: 4.3.4
       globby: 11.1.0
       is-glob: 4.0.3
-      semver: 7.5.1
+      semver: 7.5.4
       tsutils: 3.21.0_typescript@4.9.5
       typescript: 4.9.5
     transitivePeerDependencies:
@@ -4818,7 +4695,7 @@ packages:
       '@typescript-eslint/typescript-estree': 5.59.6_typescript@4.9.5
       eslint: 8.44.0
       eslint-scope: 5.1.1
-      semver: 7.5.1
+      semver: 7.5.4
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -4838,7 +4715,7 @@ packages:
       '@typescript-eslint/typescript-estree': 5.61.0_typescript@4.9.5
       eslint: 8.44.0
       eslint-scope: 5.1.1
-      semver: 7.5.1
+      semver: 7.5.4
     transitivePeerDependencies:
       - supports-color
       - typescript
@@ -4986,12 +4863,12 @@ packages:
       negotiator: 0.6.3
     dev: true
 
-  /acorn-import-assertions/1.9.0_acorn@8.8.2:
+  /acorn-import-assertions/1.9.0_acorn@8.9.0:
     resolution: {integrity: sha512-cmMwop9x+8KFhxvKrKfPYmN6/pKTYYHBqLa0DfvVZcKMJWNyWLnaqND7dx/qn66R7ewM1UX5XMaDVP5wlVTaVA==}
     peerDependencies:
       acorn: ^8
     dependencies:
-      acorn: 8.8.2
+      acorn: 8.9.0
     dev: true
 
   /acorn-jsx/5.3.2_acorn@8.9.0:
@@ -5602,7 +5479,7 @@ packages:
   /builtins/5.0.1:
     resolution: {integrity: sha512-qwVpFEHNfhYJIzNRBvd2C1kyo6jz3ZSMPyyuR47OPdiKWlbYnZNyDWuyR175qDnAJLiCo5fBBqPb3RiXgWlkOQ==}
     dependencies:
-      semver: 7.5.1
+      semver: 7.5.4
     dev: true
 
   /bundle-name/3.0.0:
@@ -7976,7 +7853,7 @@ packages:
       es6-error: 4.1.1
       matcher: 3.0.0
       roarr: 2.15.4
-      semver: 7.5.1
+      semver: 7.5.4
       serialize-error: 7.0.1
     dev: true
 
@@ -7988,7 +7865,7 @@ packages:
       es6-error: 4.1.1
       matcher: 3.0.0
       roarr: 2.15.4
-      semver: 7.5.1
+      semver: 7.5.4
       serialize-error: 7.0.1
     dev: true
 
@@ -9224,7 +9101,7 @@ packages:
       pretty-format: 29.6.1
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1_cw4fw6ssw3axcmzecs7frby5ke
+      ts-node: 10.9.1_p7ut7bqjltav2kzrdswzxsvsga
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -9368,7 +9245,7 @@ packages:
       graceful-fs: 4.2.10
       jest-regex-util: 29.4.3
       jest-util: 29.6.0
-      jest-worker: 29.6.0
+      jest-worker: 29.6.1
       micromatch: 4.0.5
       walker: 1.0.8
     optionalDependencies:
@@ -9589,7 +9466,7 @@ packages:
       jest-runtime: 29.6.0
       jest-util: 29.6.0
       jest-watcher: 29.6.0
-      jest-worker: 29.6.0
+      jest-worker: 29.6.1
       p-limit: 3.1.0
       source-map-support: 0.5.13
     transitivePeerDependencies:
@@ -9800,16 +9677,6 @@ packages:
     engines: {node: '>= 10.13.0'}
     dependencies:
       '@types/node': 18.16.19
-      merge-stream: 2.0.0
-      supports-color: 8.1.1
-    dev: true
-
-  /jest-worker/29.6.0:
-    resolution: {integrity: sha512-oiQHH1SnKmZIwwPnpOrXTq4kHBk3lKGY/07DpnH0sAu+x7J8rXlbLDROZsU6vy9GwB0hPiZeZpu6YlJ48QoKcA==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      '@types/node': 18.16.19
-      jest-util: 29.6.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
     dev: true
@@ -10145,8 +10012,8 @@ packages:
   /lines-and-columns/1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
 
-  /lint-staged/13.2.2:
-    resolution: {integrity: sha512-71gSwXKy649VrSU09s10uAT0rWCcY3aewhMaHyl2N84oBk4Xs9HgxvUp3AYu+bNsK4NrOYYxvSgg7FyGJ+jGcA==}
+  /lint-staged/13.2.3:
+    resolution: {integrity: sha512-zVVEXLuQIhr1Y7R7YAWx4TZLdvuzk7DnmrsTNL0fax6Z3jrpFcas+vKbzxhhvp6TA55m1SQuWkpzI1qbfDZbAg==}
     engines: {node: ^14.13.1 || >=16.0.0}
     hasBin: true
     dependencies:
@@ -11050,7 +10917,7 @@ packages:
       nopt: 5.0.0
       npmlog: 6.0.2
       rimraf: 3.0.2
-      semver: 7.5.1
+      semver: 7.5.4
       tar: 6.1.14
       which: 2.0.2
     transitivePeerDependencies:
@@ -11070,7 +10937,7 @@ packages:
       nopt: 6.0.0
       npmlog: 6.0.2
       rimraf: 3.0.2
-      semver: 7.5.1
+      semver: 7.5.4
       tar: 6.1.14
       which: 2.0.2
     transitivePeerDependencies:
@@ -11116,7 +10983,7 @@ packages:
     dependencies:
       hosted-git-info: 4.1.0
       is-core-module: 2.11.0
-      semver: 7.5.1
+      semver: 7.5.4
       validate-npm-package-license: 3.0.4
     dev: true
 
@@ -11126,7 +10993,7 @@ packages:
     dependencies:
       hosted-git-info: 6.1.1
       is-core-module: 2.11.0
-      semver: 7.5.1
+      semver: 7.5.4
       validate-npm-package-license: 3.0.4
     dev: true
 
@@ -11184,14 +11051,14 @@ packages:
     resolution: {integrity: sha512-09OmyDkNLYwqKPOnbI8exiOZU2GVVmQp7tgez2BPi5OZC8M82elDAps7sxC4l//uSUtotWqoEIDwjRvWH4qz8w==}
     engines: {node: '>=10'}
     dependencies:
-      semver: 7.5.1
+      semver: 7.5.4
     dev: true
 
   /npm-install-checks/6.1.1:
     resolution: {integrity: sha512-dH3GmQL4vsPtld59cOn8uY0iOqRmqKvV+DLGwNXV/Q7MDgD2QfOADWd/mFXcIE5LVhYYGjA3baz6W9JneqnuCw==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
     dependencies:
-      semver: 7.5.1
+      semver: 7.5.4
     dev: true
 
   /npm-keyword/6.1.0:
@@ -11221,7 +11088,7 @@ packages:
     dependencies:
       hosted-git-info: 6.1.1
       proc-log: 3.0.0
-      semver: 7.5.1
+      semver: 7.5.4
       validate-npm-package-name: 5.0.0
     dev: true
 
@@ -11230,7 +11097,7 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       hosted-git-info: 4.1.0
-      semver: 7.5.1
+      semver: 7.5.4
       validate-npm-package-name: 3.0.0
     dev: true
 
@@ -11268,7 +11135,7 @@ packages:
       npm-install-checks: 4.0.0
       npm-normalize-package-bin: 1.0.1
       npm-package-arg: 8.1.5
-      semver: 7.5.1
+      semver: 7.5.4
     dev: true
 
   /npm-pick-manifest/8.0.1:
@@ -11278,7 +11145,7 @@ packages:
       npm-install-checks: 6.1.1
       npm-normalize-package-bin: 3.0.1
       npm-package-arg: 10.1.0
-      semver: 7.5.1
+      semver: 7.5.4
     dev: true
 
   /npm-registry-fetch/12.0.2:
@@ -11701,7 +11568,7 @@ packages:
       got: 11.8.5
       registry-auth-token: 4.2.2
       registry-url: 5.1.0
-      semver: 7.5.1
+      semver: 7.5.4
     dev: true
 
   /packet-reader/1.0.0:
@@ -12817,6 +12684,14 @@ packages:
       lru-cache: 6.0.0
     dev: true
 
+  /semver/7.5.4:
+    resolution: {integrity: sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==}
+    engines: {node: '>=10'}
+    hasBin: true
+    dependencies:
+      lru-cache: 6.0.0
+    dev: true
+
   /send/0.17.2:
     resolution: {integrity: sha512-UJYB6wFSJE3G00nEivR5rgWp8c2xXvJ3OPWPhmuteU0IKj8nKbG3DrjiOmLwpnHGYWAVwA69zmTm++YG0Hmwww==}
     engines: {node: '>= 0.8.0'}
@@ -13553,7 +13428,7 @@ packages:
       supports-hyperlinks: 2.3.0
     dev: false
 
-  /terser-webpack-plugin/5.3.8_webpack@5.88.0:
+  /terser-webpack-plugin/5.3.8_webpack@5.88.1:
     resolution: {integrity: sha512-WiHL3ElchZMsK27P8uIUh4604IgJyAW47LVXGbEoB21DbQcZ+OuMpGjVYnEUaqcWM6dO8uS2qUbA7LSCWqvsbg==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
@@ -13574,7 +13449,7 @@ packages:
       schema-utils: 3.3.0
       serialize-javascript: 6.0.1
       terser: 5.17.4
-      webpack: 5.88.0
+      webpack: 5.88.1
     dev: true
 
   /terser/5.17.4:
@@ -13695,7 +13570,7 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /ts-node/10.9.1_cw4fw6ssw3axcmzecs7frby5ke:
+  /ts-node/10.9.1_ec5exq2m2hy7dsnbgq2maqibji:
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -13710,7 +13585,6 @@ packages:
         optional: true
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
-      '@swc/core': 1.3.64
       '@tsconfig/node10': 1.0.9
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
@@ -13727,7 +13601,7 @@ packages:
       yn: 3.1.1
     dev: true
 
-  /ts-node/10.9.1_ec5exq2m2hy7dsnbgq2maqibji:
+  /ts-node/10.9.1_p7ut7bqjltav2kzrdswzxsvsga:
     resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
     hasBin: true
     peerDependencies:
@@ -13742,6 +13616,7 @@ packages:
         optional: true
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
+      '@swc/core': 1.3.68
       '@tsconfig/node10': 1.0.9
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
@@ -14082,7 +13957,7 @@ packages:
       is-yarn-global: 0.3.0
       latest-version: 5.1.0
       pupa: 2.1.1
-      semver: 7.5.1
+      semver: 7.5.4
       semver-diff: 3.1.1
       xdg-basedir: 4.0.0
     dev: true
@@ -14272,8 +14147,8 @@ packages:
     engines: {node: '>=10.13.0'}
     dev: true
 
-  /webpack/5.88.0:
-    resolution: {integrity: sha512-O3jDhG5e44qIBSi/P6KpcCcH7HD+nYIHVBhdWFxcLOcIGN8zGo5nqF3BjyNCxIh4p1vFdNnreZv2h2KkoAw3lw==}
+  /webpack/5.88.1:
+    resolution: {integrity: sha512-FROX3TxQnC/ox4N+3xQoWZzvGXSuscxR32rbzjpXgEzWudJFEJBpdlkkob2ylrv5yzzufD1zph1OoFsLtm6stQ==}
     engines: {node: '>=10.13.0'}
     hasBin: true
     peerDependencies:
@@ -14287,8 +14162,8 @@ packages:
       '@webassemblyjs/ast': 1.11.6
       '@webassemblyjs/wasm-edit': 1.11.6
       '@webassemblyjs/wasm-parser': 1.11.6
-      acorn: 8.8.2
-      acorn-import-assertions: 1.9.0_acorn@8.8.2
+      acorn: 8.9.0
+      acorn-import-assertions: 1.9.0_acorn@8.9.0
       browserslist: 4.21.4
       chrome-trace-event: 1.0.3
       enhanced-resolve: 5.15.0
@@ -14303,7 +14178,7 @@ packages:
       neo-async: 2.6.2
       schema-utils: 3.3.0
       tapable: 2.2.1
-      terser-webpack-plugin: 5.3.8_webpack@5.88.0
+      terser-webpack-plugin: 5.3.8_webpack@5.88.1
       watchpack: 2.4.0
       webpack-sources: 3.2.3
     transitivePeerDependencies:
@@ -14577,7 +14452,7 @@ packages:
       pacote: 12.0.3
       preferred-pm: 3.0.3
       pretty-bytes: 5.6.0
-      semver: 7.5.1
+      semver: 7.5.4
       slash: 3.0.0
       strip-ansi: 6.0.1
       text-table: 0.2.0
@@ -14713,8 +14588,8 @@ packages:
       readable-stream: 3.6.0
     dev: false
 
-  /zx/7.2.2:
-    resolution: {integrity: sha512-50Gjicd6ijTt7Zcz5fNX+rHrmE0uVqC+X6lYKhf2Cu8wIxDpNIzXwTmzchNdW+JY3LFsRcU43B1lHE4HBMmKgQ==}
+  /zx/7.2.3:
+    resolution: {integrity: sha512-QODu38nLlYXg/B/Gw7ZKiZrvPkEsjPN3LQ5JFXM7h0JvwhEdPNNl+4Ao1y4+o3CLNiDUNcwzQYZ4/Ko7kKzCMA==}
     engines: {node: '>= 16.0.0'}
     hasBin: true
     dependencies:
