@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['sqlite'],
+      from: ['sqlite', 'sqlserver'],
       reason: 'Enums are not supported',
     },
   },

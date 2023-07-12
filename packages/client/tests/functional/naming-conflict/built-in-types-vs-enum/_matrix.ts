@@ -15,9 +15,6 @@ export default defineMatrix(() => [
     {
       provider: 'cockroachdb',
     },
-    {
-      provider: 'sqlserver',
-    },
   ],
 
   builtInNames.map((enumName) => ({
