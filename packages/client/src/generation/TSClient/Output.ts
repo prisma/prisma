@@ -79,7 +79,10 @@ export class OutputField implements Generatable {
 export class OutputType implements Generatable {
   public name: string
   public fields: DMMF.SchemaField[]
-  constructor(protected readonly dmmf: DMMFHelper, protected readonly type: DMMF.OutputType) {
+  constructor(
+    protected readonly dmmf: DMMFHelper,
+    protected readonly type: DMMF.OutputType,
+  ) {
     this.name = type.name
     this.fields = type.fields
   }

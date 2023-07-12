@@ -445,8 +445,8 @@ ${
   availableActions.includes(DMMF.ModelAction.aggregate)
     ? `${indent(getMethodJSDoc(DMMF.ModelAction.aggregate, mapping, modelOrType), TAB_SIZE)}
   aggregate<T extends ${getAggregateArgsName(name)}>(args: Subset<T, ${getAggregateArgsName(
-        name,
-      )}>): Prisma.PrismaPromise<${getAggregateGetName(name)}<T>>
+    name,
+  )}>): Prisma.PrismaPromise<${getAggregateGetName(name)}<T>>
 `
     : ''
 }
@@ -511,8 +511,8 @@ ${
           : \`Error: Field "$\{P}" in "orderBy" needs to be provided in "by"\`
       }[OrderFields]
   >(args: SubsetIntersection<T, ${groupByArgsName}, OrderByArg> & InputErrors): {} extends InputErrors ? ${getGroupByPayloadName(
-        name,
-      )}<T> : Prisma.PrismaPromise<InputErrors>`
+    name,
+  )}<T> : Prisma.PrismaPromise<InputErrors>`
     : ''
 }
 /**

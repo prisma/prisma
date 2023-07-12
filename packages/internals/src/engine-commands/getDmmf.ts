@@ -80,7 +80,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
           reason: 'Error while trying to read the datamodel path',
           error: e as Error,
           datamodelPath: options.datamodelPath,
-        } as const),
+        }) as const,
     ),
     TE.chainW((datamodel) => {
       return pipe(
@@ -103,7 +103,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
               type: 'wasm-error' as const,
               reason: '(get-dmmf wasm)',
               error: e as Error | WasmPanic,
-            } as const),
+            }) as const,
         ),
         E.map((result) => ({ result })),
         E.chainW(({ result }) =>
