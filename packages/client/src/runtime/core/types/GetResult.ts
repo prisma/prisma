@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 
 import { Payload } from './Payload'
-import { JsonObject } from './Utils'
+import { Equals, JsonObject } from './Utils'
 
 // prettier-ignore
 export type Operation =
@@ -48,21 +48,19 @@ export type FluentOperation =
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
-export type GetFindResult<P extends Payload, A> =
-  {} extends A ? DefaultSelection<P> :
-  A extends 
-  | { select: infer S } & Record<string, unknown>
-  | { include: infer S } & Record<string, unknown>
-  ? S extends undefined ? DefaultSelection<P> :
-    {
-      [K in keyof S as S[K] extends false | undefined | null ? never : K]:
-        S[K] extends object
+export type GetFindResult<P extends Payload, _A, A = { 0: _A, 1: { select: undefined } }[Equals<_A, any>]> =
+  A extends
+  | { select: infer S extends object } & Record<string, unknown>
+  | { include: infer I extends object } & Record<string, unknown>
+  ? {
+      [K in keyof S | keyof I as (S & I)[K] extends false | undefined | null ? never : K]:
+        (S & I)[K] extends object
         ? P extends SelectablePayloadFields<K, (infer O)[]>
-          ? O extends Payload ? GetFindResult<O, S[K]>[] : never
+          ? O extends Payload ? GetFindResult<O, (S & I)[K]>[] : never
           : P extends SelectablePayloadFields<K, infer O | null>
-            ? O extends Payload ? GetFindResult<O, S[K]> | SelectField<P, K> & null : never
+            ? O extends Payload ? GetFindResult<O, (S & I)[K]> | SelectField<P, K> & null : never
             : K extends '_count'
-              ? Count<GetFindResult<P, S[K]>>
+              ? Count<GetFindResult<P, (S & I)[K]>>
               : never
         : P extends SelectablePayloadFields<K, (infer O)[]>
           ? O extends Payload ? DefaultSelection<O>[] : never
