@@ -48,7 +48,6 @@ setupTestSuite(() => {
       data: {
         country: 'France',
         contents: {
-          // @ts-expect-error
           set: null,
         },
       },
@@ -65,7 +64,6 @@ setupTestSuite(() => {
     const comment = prisma.commentRequiredList.createMany({
       data: {
         country: 'France',
-        // @ts-expect-error
         contents: null,
       },
     })

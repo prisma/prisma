@@ -98,7 +98,6 @@ setupTestSuite(() => {
       data: {
         country: 'France',
         contents: {
-          // @ts-expect-error
           set: null,
         },
       },
@@ -116,7 +115,6 @@ setupTestSuite(() => {
       where: { id },
       data: {
         country: 'France',
-        // @ts-expect-error
         contents: null,
       },
     })
@@ -333,7 +331,6 @@ setupTestSuite(() => {
       where: { id },
       data: {
         contents: {
-          // @ts-expect-error
           unset: true,
         },
       },
@@ -351,7 +348,6 @@ setupTestSuite(() => {
       where: { id },
       data: {
         contents: {
-          // @ts-expect-error
           upsert: {
             update: {},
             set: {
@@ -374,7 +370,6 @@ setupTestSuite(() => {
       where: { id },
       data: {
         contents: {
-          // @ts-expect-error
           upsert: {
             update: {
               text: 'Hello World',
