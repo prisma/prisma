@@ -133,7 +133,7 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
           targetDistro: 'musl',
           familyDistro: originalDistro,
           originalDistro,
-        }) as const,
+        } as const),
     )
     .with(
       { id: 'raspbian' },
@@ -142,7 +142,7 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
           targetDistro: 'arm',
           familyDistro: 'debian',
           originalDistro,
-        }) as const,
+        } as const),
     )
     .with(
       { id: 'nixos' },
@@ -151,7 +151,7 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
           targetDistro: 'nixos',
           originalDistro,
           familyDistro: 'nixos',
-        }) as const,
+        } as const),
     )
     .with(
       { id: 'debian' },
@@ -161,7 +161,7 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
           targetDistro: 'debian',
           familyDistro: 'debian',
           originalDistro,
-        }) as const,
+        } as const),
     )
     .with(
       { id: 'rhel' },
@@ -172,7 +172,7 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
           targetDistro: 'rhel',
           familyDistro: 'rhel',
           originalDistro,
-        }) as const,
+        } as const),
     )
     .when(
       ({ idLike }) => idLike.includes('debian') || idLike.includes('ubuntu'),
@@ -181,7 +181,7 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
           targetDistro: 'debian',
           familyDistro: 'debian',
           originalDistro,
-        }) as const,
+        } as const),
     )
     .when(
       ({ idLike }) => id === 'arch' || idLike.includes('arch'),
@@ -190,7 +190,7 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
           targetDistro: 'debian',
           familyDistro: 'arch',
           originalDistro,
-        }) as const,
+        } as const),
     )
     .when(
       ({ idLike }) =>
@@ -200,7 +200,7 @@ export function parseDistro(osReleaseInput: string): DistroInfo {
           targetDistro: 'rhel',
           familyDistro: 'rhel',
           originalDistro,
-        }) as const,
+        } as const),
     )
     .otherwise(({ id: originalDistro }) => {
       /* Generic distro info fallback */
