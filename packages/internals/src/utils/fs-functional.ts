@@ -41,5 +41,5 @@ function createTaggedSystemError<Tag extends string, Meta extends Record<string,
       type,
       error: e as Error & { code: string },
       meta,
-    } as const)
+    }) as const
 }

@@ -7,7 +7,10 @@ import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 
 export class Enum implements Generatable {
-  constructor(protected readonly type: DMMF.SchemaEnum, protected readonly useNamespace: boolean) {}
+  constructor(
+    protected readonly type: DMMF.SchemaEnum,
+    protected readonly useNamespace: boolean,
+  ) {}
 
   private isObjectEnum(): boolean {
     return this.useNamespace && objectEnumNames.includes(this.type.name)

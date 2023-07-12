@@ -130,7 +130,10 @@ function xorTypes(types: ts.TypeBuilder[]) {
 }
 
 export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {}
+  constructor(
+    protected readonly type: DMMF.InputType,
+    protected readonly genericsInfo: GenericArgsInfo,
+  ) {}
 
   public toTS(): string {
     const { type } = this
