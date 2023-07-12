@@ -3,7 +3,7 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Post, PrismaClient, Property } from './node_modules/@prisma/client'
+import type { House, Post, PrismaClient, Property } from './node_modules/@prisma/client'
 
 const email = faker.internet.email()
 const title = faker.lorem.sentence()
@@ -640,5 +640,59 @@ testMatrix.setupTestSuite(() => {
       expectTypeOf(posts).toEqualTypeOf<{ likeId: string } | null>()
       expect(posts).toBeNull()
     })
+  })
+
+  test('findUniqueOrThrow with required to-one relation', () => {
+    const result = prisma.property
+      .findUniqueOrThrow({
+        where: {
+          id: '123',
+        },
+      })
+      .house()
+
+    expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<House>()
+  })
+
+  test('findFirstOrThrow with required to-one relation', () => {
+    const result = prisma.property
+      .findUniqueOrThrow({
+        where: {
+          id: '123',
+        },
+      })
+      .house()
+
+    expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<House>()
+  })
+
+  test('findUniqueOrThrow with required to-one relation circling back to optional relation', () => {
+    const result = prisma.property
+      .findUniqueOrThrow({
+        where: {
+          id: '123',
+        },
+      })
+      .house()
+      .like()
+      .user()
+      .property()
+
+    expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Property | null>()
+  })
+
+  test('findFirstOrThrow with required to-one relation circling back to optional relation', () => {
+    const result = prisma.property
+      .findUniqueOrThrow({
+        where: {
+          id: '123',
+        },
+      })
+      .house()
+      .like()
+      .user()
+      .property()
+
+    expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Property | null>()
   })
 })
