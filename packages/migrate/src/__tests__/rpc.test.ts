@@ -515,8 +515,9 @@ describe('markMigrationApplied', () => {
 })
 
 describe('schemaPush', () => {
-  // The Prisma CLI creates the SQLite database file if it doesn't exist before calling the RPC
-  it('should throw if SQLite database file is missing', async () => {
+  // Note that the Prisma CLI creates the SQLite database file if it doesn't exist before calling the RPC
+  // Since 5.0.0 this RPC does not error anymore if the SQLite database file is missing
+  it('should succeed if SQLite database file is missing', async () => {
     ctx.fixture('schema-only-sqlite')
     const schemaPath = (await getSchemaPath())!
     const migrate = new Migrate(schemaPath)
@@ -526,12 +527,13 @@ describe('schemaPush', () => {
       schema: schema,
     })
 
-    await expect(result).rejects.toMatchInlineSnapshot(`
-          P1003
-
-          Database dev.db does not exist at dev.db
-
-      `)
+    await expect(result).resolves.toMatchInlineSnapshot(`
+      {
+        executedSteps: 1,
+        unexecutable: [],
+        warnings: [],
+      }
+    `)
     migrate.stop()
   })
 

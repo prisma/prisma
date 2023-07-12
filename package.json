@@ -4,7 +4,7 @@
   "triggerEmptyDevReleaseByIncrementingThisNumber": 0,
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=14.17",
+    "node": ">=16.13",
     "pnpm": ">=7.3.0 <8"
   },
   "scripts": {

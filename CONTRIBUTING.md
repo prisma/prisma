@@ -12,7 +12,7 @@ Welcome to the monorepo for our TypeScript code for the Prisma ORM. (for the Eng
 
 ## General Prerequisites
 
-1. Install Node.js `>=14` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
+1. Install Node.js `>=16.13` minimum, [latest LTS is recommended](https://nodejs.org/en/about/releases/)
 
    - Recommended: use [`nvm`](https://github.com/nvm-sh/nvm) for managing Node.js versions
 
@@ -26,8 +26,8 @@ https://github.com/direnv/direnv/blob/master/docs/installation.md
 Copy paste these commands to install the global dependencies:
 
 ```bash
-curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-nvm install 16
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+nvm install 18
 npm install --global pnpm@7 ts-node
 # For direnv see https://github.com/direnv/direnv/blob/master/docs/installation.md
 ```
