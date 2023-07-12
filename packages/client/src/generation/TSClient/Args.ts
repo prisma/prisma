@@ -1,10 +1,10 @@
 import indent from 'indent-string'
 
 import { DMMF } from '../dmmf-types'
-import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
+import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc } from './helpers'
 import { InputField } from './Input'
 
@@ -14,7 +14,7 @@ export class ArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
-    protected readonly genericsInfo: GenericArgsInfo,
+    protected readonly context: GenerateContext,
     protected readonly action?: DMMF.ModelAction,
   ) {}
   public setGeneratedName(name: string): this {
@@ -83,13 +83,14 @@ export class ArgsType implements Generatable {
 
     argsToGenerate.push(...args)
     const generatedName = this.generatedName ?? getModelArgName(name, action)
+    this.context.defaultArgsAliases.registerArgName(generatedName)
 
     return `
 /**
  * ${this.getGeneratedComment()}
  */
 export type ${generatedName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
+${indent(argsToGenerate.map((arg) => new InputField(arg, this.context.genericArgsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
   }
@@ -103,7 +104,7 @@ export class MinimalArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
-    protected readonly genericsInfo: GenericArgsInfo,
+    protected readonly context: GenerateContext,
     protected readonly action?: DMMF.ModelAction,
     protected readonly generatedTypeName = getModelArgName(type.name, action),
   ) {}
@@ -115,6 +116,7 @@ export class MinimalArgsType implements Generatable {
       arg.comment = getArgFieldJSDoc(this.type, action, arg)
     }
 
+    this.context.defaultArgsAliases.registerArgName(this.generatedTypeName)
     return `
 /**
  * ${name} ${action ? action : 'without action'}
@@ -123,7 +125,7 @@ export type ${this.generatedTypeName}<ExtArgs extends $Extensions.Args = $Extens
 ${indent(
   args
     .map((arg) => {
-      return new InputField(arg, this.genericsInfo).toTS()
+      return new InputField(arg, this.context.genericArgsInfo).toTS()
     })
     .join('\n'),
   TAB_SIZE,
