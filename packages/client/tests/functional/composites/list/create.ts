@@ -86,6 +86,7 @@ setupTestSuite(() => {
       data: {
         country: 'France',
         contents: {
+          // @ts-expect-error
           set: null,
         },
       },
