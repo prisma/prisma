@@ -170,6 +170,7 @@ setupTestSuite(() => {
       where: { id },
       data: {
         contents: {
+          // @ts-expect-error
           unset: true,
         },
       },
