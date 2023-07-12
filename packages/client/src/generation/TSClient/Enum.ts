@@ -1,8 +1,8 @@
 import indent from 'indent-string'
 
-import type { DMMF } from '../../runtime/dmmf-types'
 import { objectEnumNames } from '../../runtime/object-enums'
 import { strictEnumNames } from '../../runtime/strictEnum'
+import type { DMMF } from '../dmmf-types'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 

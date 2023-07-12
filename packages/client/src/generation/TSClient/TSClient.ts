@@ -1,20 +1,19 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths, getQueryEngineProtocol, pathToPosix } from '@prisma/internals'
+import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
 
-import { DMMFHelper } from '../../runtime/dmmf'
-import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { DMMFHelper } from '../dmmf'
+import type { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
-import { buildFullDMMF, buildRuntimeDataModel } from '../utils/buildDMMF'
-import { buildEdgeClientProtocol } from '../utils/buildEdgeClientProtocol'
+import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasource } from '../utils/buildInlineDatasources'
 import { buildInlineSchema } from '../utils/buildInlineSchema'
@@ -76,7 +75,6 @@ export class TSClient implements Generatable {
       dataProxy,
       deno,
     } = this.options
-    const engineProtocol = getQueryEngineProtocol(generator)
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -108,8 +106,6 @@ export class TSClient implements Generatable {
     // being moved around as long as we keep the same project dir structure.
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
-    const needsFullDMMF = dataProxy && engineProtocol === 'graphql'
-
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(edge)}
 
@@ -132,13 +128,12 @@ ${new Enum(
  */
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
-${needsFullDMMF ? buildFullDMMF(this.options.document) : buildRuntimeDataModel(this.dmmf.datamodel)}
+${buildRuntimeDataModel(this.dmmf.datamodel)}
 
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
-${buildEdgeClientProtocol(edge, generator)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
@@ -155,6 +150,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
       this.dmmf,
       this.options.datasources,
       this.options.outputDir,
+      this.options.runtimeName,
       this.options.browser,
       this.options.generator,
       this.options.sqliteDatasourceOverrides,

@@ -8,6 +8,7 @@ import {
   EventEmitter,
   Fetch,
   InteractiveTransactionOptions,
+  JsonQuery,
   TransactionOptions,
 } from '../runtime/core/engines'
 import {
@@ -19,31 +20,32 @@ import {
 import { QueryEngineResult } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
+import { NotFoundError } from './core/errors/NotFoundError'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
 import { applyResultExtensions } from './core/extensions/applyResultExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { visitQueryResult } from './core/extensions/visitQueryResult'
+import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
+import { getBatchId } from './core/jsonProtocol/getBatchId'
+import { isWrite } from './core/jsonProtocol/isWrite'
 import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
-import { ProtocolEncoder, ProtocolMessage } from './core/protocol/common'
 import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { Action, JsArgs } from './core/types/JsApi'
 import { DataLoader } from './DataLoader'
 import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
-import { NotFoundError, RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
+import { deepGet } from './utils/deep-set'
 
 const debug = Debug('prisma:client:request_handler')
 
 export type RequestParams = {
   modelName?: string
   action: Action
-  protocolMessage: ProtocolMessage
-  protocolEncoder: ProtocolEncoder
+  protocolQuery: JsonQuery
   dataPath: string[]
   clientMethod: string
   callsite?: CallSite
-  rejectOnNotFound?: RejectOnNotFound
   transaction?: PrismaPromiseTransaction
   extensions: MergedExtensionsList
   args?: any
@@ -80,14 +82,14 @@ export class RequestHandler {
 
     this.dataloader = new DataLoader({
       batchLoader: createApplyBatchExtensionsFunction(async ({ requests, customDataProxyFetch }) => {
-        const { transaction, protocolEncoder, otelParentCtx } = requests[0]
-        const queries = protocolEncoder.createBatch(requests.map((r) => r.protocolMessage))
+        const { transaction, otelParentCtx } = requests[0]
+        const queries = requests.map((r) => r.protocolQuery)
         const traceparent = this.client._tracingHelper.getTraceParent(otelParentCtx)
 
         // TODO: pass the child information to QE for it to issue links to queries
         // const links = requests.map((r) => trace.getSpanContext(r.otelChildCtx!))
 
-        const containsWrite = requests.some((r) => r.protocolMessage.isWrite())
+        const containsWrite = requests.some((r) => isWrite(r.protocolQuery.action))
 
         const results = await this.client._engine.requestBatch(queries, {
           traceparent,
@@ -113,10 +115,10 @@ export class RequestHandler {
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
-        const response = await this.client._engine.request(request.protocolMessage.toEngineQuery(), {
+        const response = await this.client._engine.request(request.protocolQuery, {
           traceparent: this.client._tracingHelper.getTraceParent(),
           interactiveTransaction,
-          isWrite: request.protocolMessage.isWrite(),
+          isWrite: isWrite(request.protocolQuery.action),
           customDataProxyFetch: request.customDataProxyFetch,
         })
         return this.mapQueryEngineResult(request, response)
@@ -127,7 +129,7 @@ export class RequestHandler {
           return `transaction-${request.transaction.id}`
         }
 
-        return request.protocolMessage.getBatchId()
+        return getBatchId(request.protocolQuery)
       },
 
       batchOrder(requestA, requestB) {
@@ -141,9 +143,7 @@ export class RequestHandler {
 
   async request(params: RequestParams) {
     try {
-      const result = await this.dataloader.request(params)
-      throwIfNotFound(result, params.clientMethod, params.modelName, params.rejectOnNotFound)
-      return result
+      return await this.dataloader.request(params)
     } catch (error) {
       const { clientMethod, callsite, transaction, args } = params
       this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
@@ -151,7 +151,7 @@ export class RequestHandler {
   }
 
   mapQueryEngineResult(
-    { protocolMessage, dataPath, unpacker, modelName, args, extensions }: RequestParams,
+    { dataPath, unpacker, modelName, args, extensions }: RequestParams,
     response: QueryEngineResult<any>,
   ) {
     const data = response?.data
@@ -160,7 +160,7 @@ export class RequestHandler {
     /**
      * Unpack
      */
-    let result = this.unpack(protocolMessage, data, dataPath, unpacker)
+    let result = this.unpack(data, dataPath, unpacker)
     if (modelName) {
       result = this.applyResultExtensions({ result, modelName, args, extensions })
     }
@@ -208,6 +208,7 @@ export class RequestHandler {
         callsite,
         errorFormat: this.client._errorFormat,
         originalMethod: clientMethod,
+        clientVersion: this.client._clientVersion,
       })
     }
 
@@ -256,7 +257,7 @@ export class RequestHandler {
     return message
   }
 
-  unpack(message: ProtocolMessage, data: unknown, dataPath: string[], unpacker?: Unpacker) {
+  unpack(data: unknown, dataPath: string[], unpacker?: Unpacker) {
     if (!data) {
       return data
     }
@@ -264,7 +265,13 @@ export class RequestHandler {
       data = data['data']
     }
 
-    const deserializeResponse = message.deserializeResponse(data, dataPath)
+    if (!data) {
+      return data
+    }
+    const response = Object.values(data)[0]
+    const pathForGet = dataPath.filter((key) => key !== 'select' && key !== 'include')
+    const deserializeResponse = deserializeJsonResponse(deepGet(response, pathForGet))
+
     return unpacker ? unpacker(deserializeResponse) : deserializeResponse
   }
 

@@ -42,8 +42,14 @@ const cliLifecyclePlugin: esbuild.Plugin = {
       const wasmResolveDir = path.join(__dirname, '..', '..', 'internals', 'node_modules')
 
       // TODO: create a glob helper for this to import all the wasm modules having pattern /^@prisma\/.*-wasm$/
-      const prismaWasmFile = path.join(wasmResolveDir, '@prisma', 'prisma-fmt-wasm', 'src', 'prisma_fmt_build_bg.wasm')
-      await fs.promises.copyFile(prismaWasmFile, './build/prisma_fmt_build_bg.wasm')
+      const prismaWasmFile = path.join(
+        wasmResolveDir,
+        '@prisma',
+        'prisma-schema-wasm',
+        'src',
+        'prisma_schema_build_bg.wasm',
+      )
+      await fs.promises.copyFile(prismaWasmFile, './build/prisma_schema_build_bg.wasm')
 
       await replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
 

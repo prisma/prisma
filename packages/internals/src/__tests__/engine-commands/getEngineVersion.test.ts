@@ -6,9 +6,9 @@ const testIf = (condition: boolean) => (condition ? test : test.skip)
 const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibrary
 
 describe('getEngineVersion', () => {
-  test('Migration Engine', async () => {
-    const migrationEngineVersion = await getEngineVersion(undefined, BinaryType.MigrationEngineBinary)
-    expect(migrationEngineVersion.split(' ')[1]).toMatch(enginesVersion)
+  test('Schema Engine', async () => {
+    const schemaEngineVersion = await getEngineVersion(undefined, BinaryType.SchemaEngineBinary)
+    expect(schemaEngineVersion.split(' ')[1]).toMatch(enginesVersion)
   })
 
   testIf(!useNodeAPI)('Query Engine', async () => {

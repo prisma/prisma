@@ -7,9 +7,9 @@ import {
 } from '../model/applyModelsAndClientExtensions'
 import { RawQueryArgs } from '../raw-query/RawQueryArgs'
 import { JsArgs } from '../types/JsApi'
-import { OptionalFlat } from '../types/Utils'
+import { Optional } from '../types/Utils'
 
-export type Args = OptionalFlat<RequiredArgs>
+export type Args = Optional<RequiredArgs>
 export type RequiredArgs = NameArgs & ResultArgs & ModelArgs & ClientArgs & QueryOptions
 
 type NameArgs = {
@@ -40,7 +40,7 @@ export type ModelArgs = {
 }
 
 export type ModelArg = {
-  [MethodName in string]: Function
+  [MethodName in string]: unknown
 }
 
 type ClientArgs = {
@@ -48,7 +48,7 @@ type ClientArgs = {
 }
 
 export type ClientArg = {
-  [MethodName in string]: Function
+  [MethodName in string]: unknown
 }
 
 type QueryOptionsCbArgs = {

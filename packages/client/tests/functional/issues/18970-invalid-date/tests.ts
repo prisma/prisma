@@ -1,5 +1,3 @@
-import { getQueryEngineProtocol } from '@prisma/internals'
-
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -8,7 +6,7 @@ declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
   () => {
-    testIf(getQueryEngineProtocol() === 'graphql')('throws on invalid date (graphql)', async () => {
+    test('throws on invalid date (json)', async () => {
       await expect(
         prisma.user.findMany({
           where: {
@@ -20,46 +18,18 @@ testMatrix.setupTestSuite(
         Invalid \`prisma.user.findMany()\` invocation in
         /client/tests/functional/issues/18970-invalid-date/tests.ts:0:0
 
-          XX () => {
-          XX   testIf(getQueryEngineProtocol() === 'graphql')('throws on invalid date (graphql)', async () => {
+           XX () => {
+           XX   test('throws on invalid date (json)', async () => {
           XX     await expect(
         → XX       prisma.user.findMany({
                      where: {
-                       date: new Date('Invalid Date')
+                       date: new Date("Invalid Date")
                              ~~~~~~~~~~~~~~~~~~~~~~~~
                      }
                    })
 
-        Argument date for where.date is not a valid Date object.
-
-
+        Invalid value for argument \`date\`: Provided Date object is invalid. Expected Date.
       `)
-    })
-
-    testIf(getQueryEngineProtocol() === 'json')('throws on invalid date (json)', async () => {
-      await expect(
-        prisma.user.findMany({
-          where: {
-            date: new Date('I am not a date'),
-          },
-        }),
-      ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-                              Invalid \`prisma.user.findMany()\` invocation in
-                              /client/tests/functional/issues/18970-invalid-date/tests.ts:0:0
-
-                                XX 
-                                XX testIf(getQueryEngineProtocol() === 'json')('throws on invalid date (json)', async () => {
-                                XX   await expect(
-                              → XX     prisma.user.findMany({
-                                         where: {
-                                           date: new Date("Invalid Date")
-                                                 ~~~~~~~~~~~~~~~~~~~~~~~~
-                                         }
-                                       })
-
-                              Invalid value for argument \`date\`: Provided Date object is invalid. Expected Date.
-                      `)
     })
   },
   {

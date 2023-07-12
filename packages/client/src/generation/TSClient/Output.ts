@@ -1,9 +1,9 @@
 import indent from 'indent-string'
 
-import type { DMMFHelper } from '../../runtime/dmmf'
-import type { DMMF } from '../../runtime/dmmf-types'
-import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../../runtime/utils/common'
+import type { DMMFHelper } from '../dmmf'
+import type { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
+import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../utils/common'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { wrapComment } from './helpers'
@@ -17,9 +17,13 @@ export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper, us
     fieldTypeName = `Prisma.${fieldTypeName}`
   }
   let fieldType: ts.TypeBuilder
-  // object and not a composite
-  if (field.kind === 'object' && !dmmf.typeMap[field.type]) {
-    fieldType = ts.namedType(`${fieldTypeName}Payload`).addGenericArgument(ts.namedType('ExtArgs'))
+  if (field.kind === 'object') {
+    const payloadType = ts.namedType(`${fieldTypeName}Payload`)
+    if (!dmmf.typeMap[field.type]) {
+      // not a composite
+      payloadType.addGenericArgument(ts.namedType('ExtArgs'))
+    }
+    fieldType = payloadType
   } else {
     fieldType = ts.namedType(fieldTypeName)
   }

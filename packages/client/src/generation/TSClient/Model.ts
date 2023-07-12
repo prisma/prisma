@@ -2,9 +2,8 @@ import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 import { klona } from 'klona'
 
-import type { DMMFHelper } from '../../runtime/dmmf'
-import { DMMF } from '../../runtime/dmmf-types'
-import { lowerCase } from '../../runtime/utils/common'
+import type { DMMFHelper } from '../dmmf'
+import { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import * as ts from '../ts-builders'
 import {
@@ -29,6 +28,7 @@ import {
   getSumAggregateName,
   Projection,
 } from '../utils'
+import { lowerCase } from '../utils/common'
 import { InputField } from './../TSClient'
 import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
@@ -126,7 +126,7 @@ ${indent(
   groupByRootField.args
     .map((arg) => {
       arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.groupBy, arg)
-      return new InputField(arg, arg.name === 'by', this.genericsInfo).toTS()
+      return new InputField(arg, this.genericsInfo).toTS()
     })
     .concat(
       groupByType.fields
@@ -151,7 +151,7 @@ ${new OutputType(this.dmmf, groupByType).toTS()}
 
 type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma.PrismaPromise<
   Array<
-    PickArray<${groupByType.name}, T['by']> &
+    PickEnumerable<${groupByType.name}, T['by']> &
       {
         [P in ((keyof T) & (keyof ${groupByType.name}))]: P extends '_count'
           ? T[P] extends boolean
@@ -242,7 +242,7 @@ ${indent(
   aggregateRootField.args
     .map((arg) => {
       arg.comment = getArgFieldJSDoc(this.type, DMMF.ModelAction.aggregate, arg)
-      return new InputField(arg, false, this.genericsInfo).toTS()
+      return new InputField(arg, this.genericsInfo).toTS()
     })
     .concat(
       aggregateType.fields.map((f) => {
@@ -272,6 +272,8 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
   }
   public toTSWithoutNamespace(): string {
     const { model } = this
+
+    const isComposite = Boolean(this.dmmf.typeMap[model.name])
     const docLines = model.documentation ?? ''
     const modelLine = `Model ${model.name}\n`
     const docs = `${modelLine}${docLines}`
@@ -291,26 +293,37 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
         scalars.add(buildModelOutputProperty(field, this.dmmf, true))
       }
     }
-    const payloadType = ts
-      .objectType()
-      .add(ts.property('objects', objects))
-      .add(
-        ts.property(
-          'scalars',
-          ts
-            .namedType('$Extensions.GetResult')
-            .addGenericArgument(scalars)
-            .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name))),
-        ),
-      )
-      .add(ts.property('composites', composites))
 
-    const payloadExport = ts.moduleExport(
-      ts.typeDeclaration(`${model.name}Payload`, payloadType).addGenericParameter(extArgsParam),
+    const scalarsType = isComposite
+      ? scalars
+      : ts
+          .namedType('$Extensions.GetResult')
+          .addGenericArgument(scalars)
+          .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name)))
+
+    const payloadName = `${model.name}Payload`
+    const payloadTypeDeclaration = ts.typeDeclaration(
+      `${model.name}Payload`,
+      ts
+        .objectType()
+        .add(ts.property('name', ts.stringLiteral(model.name)))
+        .add(ts.property('objects', objects))
+        .add(ts.property('scalars', scalarsType))
+        .add(ts.property('composites', composites)),
     )
 
+    if (!isComposite) {
+      payloadTypeDeclaration.addGenericParameter(extArgsParam)
+    }
+    const payloadExport = ts.moduleExport(payloadTypeDeclaration)
+
     const modelTypeExport = ts
-      .moduleExport(ts.typeDeclaration(model.name, ts.namedType(`${model.name}Payload`).subKey('scalars')))
+      .moduleExport(
+        ts.typeDeclaration(
+          model.name,
+          ts.namedType(`runtime.Types.DefaultSelection`).addGenericArgument(ts.namedType(payloadName)),
+        ),
+      )
       .setDocComment(ts.docComment(docs))
 
     return `${ts.stringify(payloadExport)}\n\n${ts.stringify(modelTypeExport)}`
@@ -388,15 +401,6 @@ export class ModelDelegate implements Generatable {
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
 
-    let fieldsProxy = ''
-    if (this.generator?.previewFeatures.includes('fieldReference')) {
-      fieldsProxy = `
-  /**
-   * Fields of the ${name} model
-   */
-  readonly fields: ${getFieldRefsTypeName(name)};
-`
-    }
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
@@ -407,7 +411,7 @@ ${
 `
     : ''
 }
-export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
+export interface ${name}Delegate<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
 ${indent(`[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`, TAB_SIZE)}
 ${indent(
   nonAggregateActions
@@ -459,7 +463,7 @@ ${
       ? { orderBy: ${groupByArgsName}['orderBy'] }
       : { orderBy?: ${groupByArgsName}['orderBy'] },
     OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
-    ByFields extends TupleToUnion<T['by']>,
+    ByFields extends MaybeTupleToUnion<T['by']>,
     ByValid extends Has<ByFields, OrderFields>,
     HavingFields extends GetHavingFields<T['having']>,
     HavingValid extends Has<ByFields, HavingFields>,
@@ -511,7 +515,10 @@ ${
       )}<T> : Prisma.PrismaPromise<InputErrors>`
     : ''
 }
-${fieldsProxy}
+/**
+ * Fields of the ${name} model
+ */
+readonly fields: ${getFieldRefsTypeName(name)};
 }
 
 /**

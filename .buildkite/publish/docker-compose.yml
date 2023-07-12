@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   app:
-    image: node:14-buster
+    image: node:16-buster
     volumes:
       - ../../:/app
     working_dir: /app
@@ -68,6 +68,9 @@ services:
       - PRISMA_HIDE_UPDATE_MESSAGE="true"
       - SKIP_ECOSYSTEMTESTS_CHECK
       - SLACK_RELEASE_FEED_WEBHOOK
+      # TODO find why we need NODE_OPTIONS for Buildkite (we need it since Node v16)
+      # This is to avoid OOM errors like "FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory"
+      - NODE_OPTIONS="--max-old-space-size=8096"
     depends_on:
       - postgres
       - postgres_isolated
@@ -132,7 +135,7 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:7905296e73dba0d2dd65054c0aee0f317535b768b22932011842d0c20670e7b6
+    image: vitess/vttestserver:mysql80@sha256:6dca054a413f861c50c93c144eccbb1293ac9699e924e56f7c57be94136b4c82
     restart: unless-stopped
     ports:
       - 33807:33807

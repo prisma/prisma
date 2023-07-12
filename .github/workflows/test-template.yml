@@ -26,10 +26,10 @@ on:
         type: string
         default: '-all-'
         required: false
-      testAll:
-        description: Whether or not this workflow should test all possible engine/protocol combination
-        type: boolean
-        required: true
+      queryEngine:
+        description: List of query engines to run tests on as JSON array
+        type: string
+        default: '["library", "binary"]'
     secrets:
       BUILDPULSE_ACCESS_KEY_ID:
         required: false
@@ -56,19 +56,6 @@ concurrency:
   cancel-in-progress: ${{ inputs.reason != 'buildpulse' }}
 
 jobs:
-  determineBuildMatrixParams:
-    name: Determine build matrix parameters
-    runs-on: ubuntu-latest
-    outputs:
-      queryEngine: ${{ steps.determineBuildMatrixParams.outputs.queryEngine }}
-      excludeClient: ${{ steps.determineBuildMatrixParams.outputs.excludeClient }}
-      excludeDataProxy: ${{ steps.determineBuildMatrixParams.outputs.excludeDataProxy }}
-    steps:
-      - id: checkout
-        uses: actions/checkout@v3
-      - id: determineBuildMatrixParams
-        run: ./.github/workflows/scripts/build-client-matrix.js '${{ inputs.testAll }}'
-
   #
   # Linting
   #
@@ -112,17 +99,14 @@ jobs:
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
       fail-fast: false
       matrix:
         shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
-        queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
-        engineProtocol: ['graphql', 'json']
-        node: [16, 18]
-        exclude: ${{ fromJson(needs.determineBuildMatrixParams.outputs.excludeClient) }}
+        queryEngine: ${{ fromJson(inputs.queryEngine) }}
+        node: [18, 20]
 
     env:
       CI: true
@@ -146,7 +130,7 @@ jobs:
       TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
       TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
       NODE_OPTIONS: '--max-old-space-size=8096'
-      JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}/${{ matrix.engineProtocol }}'
+      JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
       JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
     steps:
@@ -170,10 +154,6 @@ jobs:
       - name: Set Client Engine Type
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
-
-      - name: Set Engine Protocol
-        run: |
-          echo "PRISMA_ENGINE_PROTOCOL=${{ matrix.engineProtocol }}" >> $GITHUB_ENV
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
@@ -228,16 +208,13 @@ jobs:
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
       fail-fast: false
       matrix:
         shard: ['1/6', '2/6', '3/6', '4/6', '5/6', '6/6']
-        node: [14, 16, 18]
-        engineProtocol: ['graphql', 'json']
-        exclude: ${{ fromJson(needs.determineBuildMatrixParams.outputs.excludeDataProxy) }}
+        node: [16, 18, 20]
 
     steps:
       - uses: actions/checkout@v3
@@ -269,7 +246,7 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:functional --silent --data-proxy --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
@@ -284,9 +261,8 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-          PRISMA_ENGINE_PROTOCOL: '${{ matrix.engineProtocol }}'
 
-      - run: pnpm run test:functional --silent --data-proxy --edge-client --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --data-proxy --edge-client --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
@@ -301,7 +277,6 @@ jobs:
           NODE_OPTIONS: '--max-old-space-size=8096'
           JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/dataproxy'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
-          PRISMA_ENGINE_PROTOCOL: '${{ matrix.engineProtocol }}'
 
       - uses: codecov/codecov-action@v3
         with:
@@ -334,14 +309,13 @@ jobs:
     timeout-minutes: ${{ inputs.jobTimeout }}
     runs-on: ubuntu-latest
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
       fail-fast: false
       matrix:
         queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        node: [14, 16, 18]
+        node: [16, 18, 20]
     steps:
       - uses: actions/checkout@v3
 
@@ -449,7 +423,6 @@ jobs:
     timeout-minutes: 25
     runs-on: ${{ matrix.os }}
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
@@ -494,7 +467,6 @@ jobs:
     timeout-minutes: 60
     runs-on: ${{ matrix.os }}
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
@@ -596,7 +568,6 @@ jobs:
     timeout-minutes: 15
     runs-on: ubuntu-latest
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
     strategy:
@@ -642,13 +613,12 @@ jobs:
     timeout-minutes: 20
     runs-on: ubuntu-latest
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-integration-tests-') }}
 
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
+        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         node: [16]
 
     steps:
@@ -716,13 +686,12 @@ jobs:
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-internals-') }}
 
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
+        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
         node: [16, 18]
 
@@ -788,13 +757,12 @@ jobs:
     timeout-minutes: 15
     runs-on: ${{ matrix.os }}
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-migrate-') }}
 
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
+        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
         node: [16, 18]
 
@@ -870,13 +838,12 @@ jobs:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-') }}
 
     strategy:
       fail-fast: false
       matrix:
-        queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
+        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         os: [ubuntu-latest]
         node: [16, 18]
 
@@ -930,7 +897,6 @@ jobs:
     timeout-minutes: 10
     runs-on: ${{ matrix.os }}
 
-    needs: determineBuildMatrixParams
     if: ${{ contains(inputs.jobsToRun, '-all-') }}
 
     strategy:
@@ -1060,11 +1026,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        node: [14]
-        queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
+        node: [16]
+        queryEngine: ${{ fromJson(inputs.queryEngine) }}
         shard: ['1/2', '2/2']
 
-    needs: determineBuildMatrixParams
     if: |
       ${{
         contains(inputs.jobsToRun, '-all-') ||
@@ -1146,7 +1111,6 @@ jobs:
     timeout-minutes: 40
     runs-on: ${{ matrix.os }}
 
-    needs: determineBuildMatrixParams
     if: |
       ${{
         contains(inputs.jobsToRun, '-all-') ||
@@ -1160,8 +1124,8 @@ jobs:
       fail-fast: false
       matrix:
         os: [macos-latest, windows-latest]
-        node: [14]
-        queryEngine: ${{ fromJson(needs.determineBuildMatrixParams.outputs.queryEngine) }}
+        node: [16]
+        queryEngine: ${{ fromJson(inputs.queryEngine) }}
 
     steps:
       - uses: actions/checkout@v3

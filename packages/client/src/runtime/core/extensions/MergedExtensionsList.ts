@@ -62,7 +62,7 @@ class MergedExtensionsListNode {
       const newCbs: QueryOptionsCb[] = []
       const query = this.extension.query
 
-      if (!query || !(query[jsModelName] || query.$allModels || query[operation])) {
+      if (!query || !(query[jsModelName] || query['$allModels'] || query[operation] || query['$allOperations'])) {
         return prevCbs
       }
 
@@ -93,6 +93,11 @@ class MergedExtensionsListNode {
       // when the extension is not bound to a model & is a top-level operation
       if (query[operation] !== undefined) {
         newCbs.push(query[operation] as QueryOptionsCb)
+      }
+
+      // when the extension is not bound to a model & is any top-level operation
+      if (query['$allOperations'] !== undefined) {
+        newCbs.push(query['$allOperations'] as QueryOptionsCb)
       }
 
       return prevCbs.concat(newCbs)

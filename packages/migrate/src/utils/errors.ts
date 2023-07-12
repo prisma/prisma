@@ -15,28 +15,6 @@ export class NoSchemaFoundError extends Error {
   }
 }
 setClassName(NoSchemaFoundError, 'NoSchemaFoundError')
-export class OldMigrateDetectedError extends Error {
-  constructor() {
-    super(
-      `The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
-
-Read more about how to upgrade to the new version of Migrate:
-${link('https://pris.ly/d/migrate-upgrade')}`,
-    )
-  }
-}
-setClassName(OldMigrateDetectedError, 'OldMigrateDetectedError')
-
-export class DbPushForceFlagRenamedError extends Error {
-  constructor() {
-    super(
-      `The --force flag was renamed to --accept-data-loss in 2.17.0, use ${bold(
-        green(getCommandWithExecutor('prisma db push --accept-data-loss')),
-      )}`,
-    )
-  }
-}
-setClassName(DbPushForceFlagRenamedError, 'DbPushForceFlagRenamedError')
 
 export class DbPushIgnoreWarningsWithFlagError extends Error {
   constructor() {
@@ -85,7 +63,7 @@ See ${link('https://www.prisma.io/docs/reference/api-reference/command-reference
 }
 setClassName(MigrateDevEnvNonInteractiveError, 'MigrateDevEnvNonInteractiveError')
 
-export class DbNeedsForceError extends Error {
+export class DbDropNeedsForceError extends Error {
   constructor(subcommand: string) {
     super(
       `Use the --force flag to use the ${subcommand} command in an unattended environment like ${bold(
@@ -94,4 +72,4 @@ export class DbNeedsForceError extends Error {
     )
   }
 }
-setClassName(DbNeedsForceError, 'DbNeedsForceError')
+setClassName(DbDropNeedsForceError, 'DbDropNeedsForceError')

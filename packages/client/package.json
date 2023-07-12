@@ -24,7 +24,7 @@
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=14.17"
+    "node": ">=16.13"
   },
   "homepage": "https://www.prisma.io",
   "repository": {
@@ -64,18 +64,18 @@
     "extension.d.ts"
   ],
   "devDependencies": {
-    "@codspeed/benchmark.js-plugin": "1.1.0",
+    "@codspeed/benchmark.js-plugin": "2.0.0",
     "@faker-js/faker": "8.0.2",
-    "@fast-check/jest": "1.6.2",
-    "@jest/create-cache-key-function": "29.5.0",
-    "@jest/globals": "29.5.0",
-    "@jest/test-sequencer": "29.5.0",
+    "@fast-check/jest": "1.7.0",
+    "@jest/create-cache-key-function": "29.6.1",
+    "@jest/globals": "29.6.1",
+    "@jest/test-sequencer": "29.6.1",
     "@opentelemetry/api": "1.4.1",
-    "@opentelemetry/context-async-hooks": "1.13.0",
-    "@opentelemetry/instrumentation": "0.39.1",
-    "@opentelemetry/resources": "1.13.0",
-    "@opentelemetry/sdk-trace-base": "1.13.0",
-    "@opentelemetry/semantic-conventions": "1.13.0",
+    "@opentelemetry/context-async-hooks": "1.14.0",
+    "@opentelemetry/instrumentation": "0.40.0",
+    "@opentelemetry/resources": "1.14.0",
+    "@opentelemetry/sdk-trace-base": "1.14.0",
+    "@opentelemetry/semantic-conventions": "1.14.0",
     "@prisma/debug": "workspace:*",
     "@prisma/engines": "workspace:*",
     "@prisma/fetch-engine": "workspace:*",
@@ -84,17 +84,17 @@
     "@prisma/instrumentation": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
-    "@prisma/mini-proxy": "0.7.0",
-    "@swc-node/register": "1.6.5",
-    "@swc/core": "1.3.64",
+    "@prisma/mini-proxy": "0.9.3",
+    "@swc-node/register": "1.6.6",
+    "@swc/core": "1.3.68",
     "@swc/jest": "0.2.26",
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.8",
     "@types/fs-extra": "9.0.13",
-    "@types/jest": "29.5.2",
+    "@types/jest": "29.5.3",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.2",
-    "@types/node": "18.16.16",
+    "@types/node": "18.16.19",
     "@types/pg": "8.10.2",
     "@types/yeoman-generator": "5.2.11",
     "arg": "5.0.2",
@@ -107,25 +107,21 @@
     "expect-type": "0.16.0",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "11.1.1",
-    "get-own-enumerable-property-symbols": "3.0.2",
     "get-stream": "6.0.1",
     "globby": "11.1.0",
     "indent-string": "4.0.0",
-    "is-obj": "2.0.0",
-    "is-regexp": "2.1.0",
-    "jest": "29.5.0",
+    "jest": "29.6.1",
     "jest-junit": "16.0.0",
     "jest-serializer-ansi-escapes": "2.0.1",
-    "jest-snapshot": "29.5.0",
+    "jest-snapshot": "29.6.1",
     "js-levenshtein": "1.1.6",
     "kleur": "4.1.5",
     "klona": "2.0.6",
-    "lz-string": "1.5.0",
-    "mariadb": "3.1.2",
+    "mariadb": "3.2.0",
     "memfs": "3.5.3",
     "mssql": "9.1.1",
     "new-github-issue-url": "0.2.1",
-    "node-fetch": "2.6.11",
+    "node-fetch": "2.6.12",
     "p-retry": "4.6.2",
     "pg": "8.9.0",
     "pkg-up": "3.1.0",
@@ -146,7 +142,7 @@
     "undici": "5.22.1",
     "yeoman-generator": "5.9.0",
     "yo": "4.3.1",
-    "zx": "7.2.2"
+    "zx": "7.2.3"
   },
   "peerDependencies": {
     "prisma": "*"
@@ -157,7 +153,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "4.16.0-53.c15399e487c3f4e849e50cc4bbefe81c217a0450"
+    "@prisma/engines-version": "4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584"
   },
   "sideEffects": false
 }

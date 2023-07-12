@@ -14,10 +14,10 @@
   },
   "bugs": "https://github.com/prisma/prisma/issues",
   "devDependencies": {
-    "@types/jest": "29.5.2",
-    "@types/node": "18.16.16",
+    "@types/jest": "29.5.3",
+    "@types/node": "18.16.19",
     "esbuild": "0.15.13",
-    "jest": "29.5.0",
+    "jest": "29.6.1",
     "jest-junit": "16.0.0",
     "typescript": "5.1.3"
   },

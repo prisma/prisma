@@ -12,7 +12,7 @@ suite
   .add('client generation 100 models with relations', {
     defer: true,
     fn: function (deferred) {
-      generateTestClient(__dirname)
+      generateTestClient({ projectDir: __dirname })
         .then(() => {
           deferred.resolve()
         })

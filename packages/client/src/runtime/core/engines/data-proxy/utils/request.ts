@@ -43,7 +43,7 @@ export async function request(
   const jsRuntimeName = getJSRuntimeName()
 
   try {
-    if (jsRuntimeName === 'browser') {
+    if (jsRuntimeName === 'browser-like') {
       return await customFetch(fetch)(url, options)
     } else {
       return await customFetch(nodeFetch)(url, options)
@@ -87,7 +87,10 @@ function buildOptions(options: RequestOptions): Https.RequestOptions {
 function buildResponse(incomingData: Buffer[], response: IncomingMessage): RequestResponse {
   return {
     text: () => Promise.resolve(Buffer.concat(incomingData).toString()),
-    json: () => Promise.resolve(JSON.parse(Buffer.concat(incomingData).toString())),
+    // trying to emulate what real fetch would do:
+    // 1. Ensure that parsing starts in next microtask
+    // 2. Ensure that if parsing fails, we get a rejected promise, not sync exception
+    json: () => Promise.resolve().then(() => JSON.parse(Buffer.concat(incomingData).toString())),
     ok: response.statusCode! >= 200 && response.statusCode! <= 299,
     status: response.statusCode!,
     url: response.url!,
@@ -126,7 +129,9 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
       }
 
       response.on('data', (chunk: Buffer) => incomingData.push(chunk))
-      response.on('end', () => resolve(buildResponse(incomingData, response)))
+      response.on('end', () => {
+        return resolve(buildResponse(incomingData, response))
+      })
       response.on('error', reject)
     })
 

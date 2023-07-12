@@ -11,10 +11,10 @@ import type { O } from 'ts-toolbelt'
 import { promisify } from 'util'
 
 import { name as clientPackageName } from '../../package.json'
-import type { DMMF as PrismaClientDMMF } from '../runtime/dmmf-types'
-import type { Dictionary } from '../runtime/utils/common'
+import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
+import type { Dictionary } from './utils/common'
 
 const exists = promisify(fs.exists)
 
@@ -52,6 +52,7 @@ export interface GenerateClientOptions {
   activeProvider: string
   dataProxy: boolean
   postinstall?: boolean
+  overrideEngineType?: ClientEngineType
 }
 
 export interface BuildClientResult {
@@ -74,10 +75,11 @@ export async function buildClient({
   activeProvider,
   dataProxy,
   postinstall,
+  overrideEngineType,
 }: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
   // we define the basic options for the client generation
   const document = getPrismaClientDMMF(dmmf)
-  const clientEngineType = getClientEngineType(generator!)
+  const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
   const tsClientOptions = {
     document,
     datasources,
@@ -141,7 +143,7 @@ export async function buildClient({
       const denoEdgeTsClient = new TSClient({
         ...tsClientOptions,
         dataProxy: true, // edge only works w/ data proxy
-        runtimeName: 'index.d.ts',
+        runtimeName: 'library.d.ts',
         runtimeDir: '../' + runtimeDirs.edge,
         deno: true,
       })
@@ -205,9 +207,10 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     dataProxy,
     postinstall,
+    overrideEngineType,
   } = options
 
-  const clientEngineType = getClientEngineType(generator!)
+  const clientEngineType = overrideEngineType ?? getClientEngineType(generator!)
   const { runtimeDirs, finalOutputDir, projectRoot } = await getGenerationDirs(options)
 
   const { prismaClientDmmf, fileMap } = await buildClient({
@@ -226,6 +229,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     activeProvider,
     dataProxy,
     postinstall,
+    overrideEngineType,
   })
 
   const denylistsErrors = validateDmmfAgainstDenylists(prismaClientDmmf)
@@ -529,9 +533,19 @@ type CopyRuntimeOptions = {
 }
 
 async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRuntimeOptions) {
-  const files = ['index.d.ts', 'index-browser.js', 'index-browser.d.ts']
+  const files = [
+    // library.d.ts is always included, because
+    // it contains the actual runtime type definitions. Rest of
+    // the `runtime.d.ts` files just re-export everything from `library.d.ts`
+    'library.d.ts',
+    'index-browser.js',
+    'index-browser.d.ts',
+  ]
 
-  files.push(`${runtimeName}.js`, `${runtimeName}.d.ts`)
+  files.push(`${runtimeName}.js`)
+  if (runtimeName !== 'library') {
+    files.push(`${runtimeName}.d.ts`)
+  }
 
   if (runtimeName === 'data-proxy') {
     files.push('edge.js', 'edge-esm.js')

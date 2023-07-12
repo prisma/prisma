@@ -106,15 +106,40 @@ testMatrix.setupTestSuite(() => {
     expect(override).toHaveBeenCalled()
   })
 
-  test('allows to override builtin methods', async () => {
+  test('allows to override builtin methods', () => {
     const transactionOverride = jest.fn()
+    const queryRawOverride = jest.fn()
     const xprisma = prisma.$extends({
-      client: { $transaction: transactionOverride },
+      client: {
+        $transaction() {
+          transactionOverride()
+
+          return undefined
+        },
+        $queryRaw() {
+          queryRawOverride()
+
+          return undefined
+        },
+      },
     })
 
-    await xprisma.$transaction()
+    const dataTransaction = xprisma.$transaction()
+    const dataQueryRaw = xprisma.$queryRaw()
+
+    // @ts-expect-error
+    void xprisma.$transaction([])
+    // @ts-expect-error
+    void xprisma.$queryRaw('')
+
+    expect(dataTransaction).toBeUndefined()
+    expect(dataQueryRaw).toBeUndefined()
+
+    expectTypeOf(dataTransaction).toEqualTypeOf<undefined>()
+    expectTypeOf(dataQueryRaw).toEqualTypeOf<undefined>()
 
     expect(transactionOverride).toHaveBeenCalled()
+    expect(queryRawOverride).toHaveBeenCalled()
   })
 
   test('allows to call builtin methods from extensions', async () => {
@@ -188,13 +213,16 @@ testMatrix.setupTestSuite(() => {
     expect(results).toEqual([])
   })
 
-  test('only accepts methods', () => {
-    prisma.$extends({
+  test('accepts property definition', () => {
+    const xprisma = prisma.$extends({
       client: {
-        // @ts-expect-error
-        badInput: 1,
+        property: 1,
       },
     })
+
+    xprisma.property
+    expect(xprisma).toHaveProperty('property', 1)
+    expectTypeOf(xprisma).toHaveProperty('property').toEqualTypeOf<number>()
   })
 
   test('error in extension method', () => {
@@ -247,7 +275,64 @@ testMatrix.setupTestSuite(() => {
       },
     })
 
-    // @ts-test-if: provider !== 'mongodb'
     xprisma.$executeRawCustom(Prisma.sql`SELECT * FROM User`, { extra: true })
+  })
+
+  test('raw queries can override their default output types', () => {
+    ;async () => {
+      const xprisma = prisma.$extends({})
+
+      const typeDataSql = await xprisma.$transaction([
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$executeRaw<1>(Prisma.sql`...`),
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$executeRaw<2>`...`,
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$executeRawUnsafe<3>('...'),
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$queryRaw<4>(Prisma.sql`...`),
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$queryRaw<5>`...`,
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$queryRawUnsafe<6>('...'),
+      ])
+
+      // @ts-test-if: provider !== 'mongodb'
+      expectTypeOf(typeDataSql).toEqualTypeOf<[1, 2, 3, 4, 5, 6]>()
+
+      const defaultDataSql = await xprisma.$transaction([
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$executeRaw(Prisma.sql`...`),
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$executeRaw`...`,
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$executeRawUnsafe('...'),
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$queryRaw(Prisma.sql`...`),
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$queryRaw`...`,
+        // @ts-test-if: provider !== 'mongodb'
+        xprisma.$queryRawUnsafe('...'),
+      ])
+
+      // @ts-test-if: provider !== 'mongodb'
+      expectTypeOf(defaultDataSql).toEqualTypeOf<[number, number, number, unknown, unknown, unknown]>()
+
+      const typeDataMongo = await xprisma.$transaction([
+        // @ts-test-if: provider === 'mongodb'
+        xprisma.$runCommandRaw<1>({ value: '...' }),
+      ])
+
+      // @ts-test-if: provider === 'mongodb'
+      expectTypeOf(typeDataMongo).toEqualTypeOf<[1]>()
+
+      const defaultDataMongo = await xprisma.$transaction([
+        // @ts-test-if: provider === 'mongodb'
+        xprisma.$runCommandRaw({ value: '...' }),
+      ])
+
+      // @ts-test-if: provider === 'mongodb'
+      expectTypeOf(defaultDataMongo).toEqualTypeOf<[PrismaNamespace.JsonObject]>()
+    }
   })
 })

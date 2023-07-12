@@ -156,7 +156,6 @@ export namespace EngineArgs {
   export interface IntrospectResult {
     datamodel: string
     warnings: string | null
-    version: IntrospectionSchemaVersion
 
     /**
      * Views retrieved from the databases.
@@ -169,8 +168,6 @@ export namespace EngineArgs {
      */
     views: IntrospectionViewDefinition[] | null
   }
-
-  export type IntrospectionSchemaVersion = 'Prisma2' | 'Prisma1' | 'Prisma11' | 'NonPrisma'
 
   export interface DevDiagnosticInput {
     migrationsDirectoryPath: string
@@ -206,7 +203,7 @@ export namespace EngineArgs {
 
   type MigrateDiffTargetUrl = {
     // The url to a live database. Its schema will be considered.
-    // This will cause the migration engine to connect to the database and read from it. It will not write.
+    // This will cause the Schema engine to connect to the database and read from it. It will not write.
     tag: 'url'
     url: string
   }

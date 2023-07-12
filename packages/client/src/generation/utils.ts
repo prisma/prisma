@@ -2,8 +2,8 @@ import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 import path from 'path'
 
-import type { DMMFHelper } from '../runtime/dmmf'
-import { DMMF } from '../runtime/dmmf-types'
+import type { DMMFHelper } from './dmmf'
+import { DMMF } from './dmmf-types'
 
 export enum Projection {
   select = 'select',
@@ -51,7 +51,7 @@ export function getAggregateInputType(aggregateOutputType: string): string {
 }
 
 export function getGroupByArgsName(modelName: string): string {
-  return `${capitalize(modelName)}GroupByArgs`
+  return `${modelName}GroupByArgs`
 }
 
 export function getGroupByPayloadName(modelName: string): string {
@@ -247,34 +247,31 @@ export function getReturnType({
     const promiseOpen = renderPromise ? 'Prisma.PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `${promiseOpen}$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>${
+    return `${promiseOpen}$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}'>${
       isChaining ? '| Null' : ''
     }${promiseClose}`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
     return `Prisma__${name}Client<${getType(
-      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
+      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}'>`,
       isList,
     )}, never, ExtArgs>`
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     if (isField) {
       return `Prisma__${name}Client<${getType(
-        `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
+        `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}'>`,
         isList,
       )} | Null, never, ExtArgs>`
     }
-    return `HasReject<GlobalRejectSettings, LocalRejectSettings, '${actionName}', '${name}'> extends True ? Prisma__${name}Client<${getType(
-      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
-      isList,
-    )}, never, ExtArgs> : Prisma__${name}Client<${getType(
-      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
+    return `Prisma__${name}Client<${getType(
+      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}'>`,
       isList,
     )} | null, null, ExtArgs>`
   }
   return `Prisma__${name}Client<${getType(
-    `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}', never>`,
+    `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}'>`,
     isList,
   )}, never, ExtArgs>`
 }

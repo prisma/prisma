@@ -1,10 +1,10 @@
 import fs from 'fs'
 import path from 'path'
 
-import { MigrateEngine } from '../../MigrateEngine'
+import { SchemaEngine } from '../../SchemaEngine'
 
 test('introspection basic', async () => {
-  const engine = new MigrateEngine({
+  const engine = new SchemaEngine({
     projectDir: __dirname,
     schemaPath: 'schema.prisma',
   })
@@ -42,7 +42,6 @@ test('introspection basic', async () => {
       Post    Post[]
     }
     ,
-      version: NonPrisma,
       views: null,
       warnings: null,
     }
