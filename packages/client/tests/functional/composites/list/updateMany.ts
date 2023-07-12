@@ -209,6 +209,7 @@ setupTestSuite(() => {
       where: { id },
       data: {
         contents: {
+          // @ts-expect-error
           upsert: {
             update: {
               text: 'Hello World',

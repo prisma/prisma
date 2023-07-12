@@ -358,6 +358,7 @@ setupTestSuite(() => {
       create: {},
       update: {
         contents: {
+          // @ts-expect-error
           upsert: {
             update: {},
             set: {
