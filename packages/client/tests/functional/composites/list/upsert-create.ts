@@ -128,6 +128,8 @@ setupTestSuite(() => {
       update: {},
       create: {
         country: 'France',
+
+        // @ts-expect-error
         contents: null,
       },
     })
