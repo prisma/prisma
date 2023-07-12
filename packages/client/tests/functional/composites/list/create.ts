@@ -102,6 +102,7 @@ setupTestSuite(() => {
     const comment = prisma.commentRequiredList.create({
       data: {
         country: 'France',
+        // @ts-expect-error
         contents: null,
       },
     })
