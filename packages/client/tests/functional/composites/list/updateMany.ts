@@ -187,6 +187,7 @@ setupTestSuite(() => {
       where: { id },
       data: {
         contents: {
+          // @ts-expect-error
           upsert: {
             update: {},
             set: {

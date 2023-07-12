@@ -340,6 +340,7 @@ setupTestSuite(() => {
       create: {},
       update: {
         contents: {
+          // @ts-expect-error
           unset: true,
         },
       },
