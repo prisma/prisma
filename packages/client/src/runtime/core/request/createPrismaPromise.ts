@@ -1,3 +1,4 @@
+import { AsyncLocalStorage } from "node:async_hooks"
 import type { PrismaPromise, PrismaPromiseTransaction } from './PrismaPromise'
 
 export type PrismaPromiseCallback = (transaction?: PrismaPromiseTransaction) => PrismaPromise<unknown>
@@ -20,6 +21,12 @@ export type PrismaPromiseFactory = (callback: PrismaPromiseCallback) => PrismaPr
  */
 export function createPrismaPromiseFactory(transaction?: PrismaPromiseTransaction): PrismaPromiseFactory {
   return function createPrismaPromise(callback) {
+    // bind the current Async Context to the callback function
+    // to ensure any use of AsyncLocalStorage.getStore() within
+    // is not broken by the implementation of PrismaPromise as a 'thenable'
+    // => Cloudflare Workers's implementation of AsyncLocalStorage does not
+    // currently pass async context within thenables
+    callback = AsyncLocalStorage.bind(callback);
     let promise: PrismaPromise<unknown> | undefined
     const _callback = (callbackTransaction = transaction) => {
       try {
