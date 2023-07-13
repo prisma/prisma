@@ -35,7 +35,7 @@ export const builtInNames = [
   'False',
   'Not',
   'Extends',
-  // 'Has', TODO: still broken
+  'Has',
   'Or',
   'GetScalarType',
   'ModelName',
@@ -56,4 +56,8 @@ export const builtInNames = [
   'IntFilter',
   'NestedIntFilter',
   'BatchPayload',
+  'Fetcher',
+  // 'Query', TODO: still broken
+  'Check',
+  'Promise',
 ] as const

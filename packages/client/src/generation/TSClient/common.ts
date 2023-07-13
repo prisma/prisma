@@ -288,19 +288,6 @@ type SelectAndInclude = {
   select: any
   include: any
 }
-type HasSelect = {
-  select: any
-}
-type HasInclude = {
-  include: any
-}
-type CheckSelect<T, S, U> = T extends SelectAndInclude
-  ? 'Please either choose \`select\` or \`include\`'
-  : T extends HasSelect
-  ? U
-  : T extends HasInclude
-  ? U
-  : S
 
 /**
  * Get the type of the value, that the Promise holds.
@@ -310,7 +297,7 @@ export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infe
 /**
  * Get the return type of a function which returns a Promise.
  */
-export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
+export type PromiseReturnType<T extends (...args: any) => $Utils.JsPromise<any>> = PromiseType<ReturnType<T>>
 
 /**
  * From T, pick a set of properties whose keys are in the union K

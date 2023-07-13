@@ -117,3 +117,5 @@ export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayload
 }
 
 export type Select<T, U> = T extends U ? T : never
+
+export type JsPromise<T> = Promise<T>
