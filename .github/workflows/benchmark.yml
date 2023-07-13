@@ -51,23 +51,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.4
+      - name: Install & build
+        uses: ./.github/actions/setup
         with:
-          version: 7
-
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-          node-version: '16'
-
-      - run: bash .github/workflows/scripts/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      #  This is required as setup.sh can modify pnpm-lock.yml
-      - run: rm -f ./pnpm-lock.yaml
+          node-version: ${{ matrix.node }}
 
       - name: Run benchmarks
         run: pnpm run bench
