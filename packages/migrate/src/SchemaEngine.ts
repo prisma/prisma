@@ -451,7 +451,7 @@ export class SchemaEngine {
   }
 
   private async runCommand(request: RPCPayload): Promise<any> {
-    if (process.env.FORCE_PANIC_SCHEMA_ENGINE) {
+    if (process.env.FORCE_PANIC_SCHEMA_ENGINE && request.method !== 'getDatabaseVersion') {
       request = this.getRPCPayload('debugPanic', undefined)
     }
 
