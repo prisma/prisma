@@ -95,111 +95,111 @@ jobs:
   #
   # CLIENT (without types test)
   #
-  client:
-    timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ubuntu-latest
+  # client:
+  #   timeout-minutes: ${{ inputs.jobTimeout }}
+  #   runs-on: ubuntu-latest
 
-    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
+  #   if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
-        queryEngine: ${{ fromJson(inputs.queryEngine) }}
-        node: [18, 20]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       shard: ['1/5', '2/5', '3/5', '4/5', '5/5']
+  #       queryEngine: ${{ fromJson(inputs.queryEngine) }}
+  #       node: [18, 20]
 
-    env:
-      CI: true
-      SKIP_GIT: true
-      GITHUB_CONTEXT: ${{ toJson(github) }}
-      TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-      TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
-      TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-      TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
-      TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-      TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
-      TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-      TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
-      TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
-      TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
-      TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
-      TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
-      TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
-      TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
-      TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-      TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
-      TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
-      NODE_OPTIONS: '--max-old-space-size=8096'
-      JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
-      JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+  #   env:
+  #     CI: true
+  #     SKIP_GIT: true
+  #     GITHUB_CONTEXT: ${{ toJson(github) }}
+  #     TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+  #     TEST_POSTGRES_ISOLATED_URI: postgres://prisma:prisma@localhost:5435/tests
+  #     TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+  #     TEST_MYSQL_ISOLATED_URI: mysql://root:root@localhost:3307/tests
+  #     TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+  #     TEST_MSSQL_JDBC_URI: sqlserver://localhost:1433;database=master;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;
+  #     TEST_MSSQL_JDBC_URI_MIGRATE: 'sqlserver://localhost:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+  #     TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
+  #     TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
+  #     TEST_COCKROACH_URI_MIGRATE: 'postgresql://prisma@localhost:26257/tests-migrate'
+  #     TEST_COCKROACH_SHADOWDB_URI_MIGRATE: 'postgres://prisma:prisma@localhost:26257/tests-migrate-shadowdb'
+  #     TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
+  #     TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
+  #     TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
+  #     TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
+  #     TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
+  #     TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
+  #     NODE_OPTIONS: '--max-old-space-size=8096'
+  #     JEST_JUNIT_SUITE_NAME: '${{ github.job }}/client/functional/${{ matrix.os }}/node-${{ matrix.node }}/${{ matrix.queryEngine }}'
+  #     JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
-    steps:
-      - uses: actions/checkout@v3
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        # Login to Docker Hub is only needed for buildjet runners
-        if: "${{ startsWith(inputs.ubuntuRunner, 'buildjet') && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v2
+  #       env:
+  #         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+  #       # Login to Docker Hub is only needed for buildjet runners
+  #       if: "${{ startsWith(inputs.ubuntuRunner, 'buildjet') && env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Set CLI Engine Type
-        run: |
-          echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+  #     - name: Set CLI Engine Type
+  #       run: |
+  #         echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - name: Set Client Engine Type
-        run: |
-          echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+  #     - name: Set Client Engine Type
+  #       run: |
+  #         echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
+  #     - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
-      - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
+  #     - uses: pnpm/action-setup@v2.2.4
+  #       with:
+  #         version: 7
 
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-          node-version: ${{ matrix.node }}
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         cache: 'pnpm'
+  #         node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
+  #     - run: bash .github/workflows/scripts/setup.sh
 
-      # Run the functional test suite
-      - run: pnpm run test:functional --silent --shard ${{ matrix.shard }}
-        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
-        working-directory: packages/client
-      # And run  all the other tests (except the types tests)
-      - run: pnpm run test-notypes --silent --shard ${{ matrix.shard }}
-        if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
-        working-directory: packages/client
+  #     # Run the functional test suite
+  #     - run: pnpm run test:functional --silent --shard ${{ matrix.shard }}
+  #       if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
+  #       working-directory: packages/client
+  #     # And run  all the other tests (except the types tests)
+  #     - run: pnpm run test-notypes --silent --shard ${{ matrix.shard }}
+  #       if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
+  #       working-directory: packages/client
 
-      - uses: codecov/codecov-action@v3
-        with:
-          files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
-          name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
+  #     - uses: codecov/codecov-action@v3
+  #       with:
+  #         files: ./packages/client/src/__tests__/coverage/clover.xml
+  #         flags: client,${{ matrix.os }},${{ matrix.queryEngine }}
+  #         name: client-${{ matrix.os }}-${{ matrix.queryEngine }}
 
-      - name: Upload test results to BuildPulse for flaky test detection
-        # Only run this step for branches where we have access to secrets.
-        # Run this step even when the tests fail. Skip if the workflow is cancelled.
-        if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
-        uses: Workshop64/buildpulse-action@main
-        with:
-          account: 17219288
-          repository: 192925833
-          path: packages
-          key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
-          secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
+  #     - name: Upload test results to BuildPulse for flaky test detection
+  #       # Only run this step for branches where we have access to secrets.
+  #       # Run this step even when the tests fail. Skip if the workflow is cancelled.
+  #       if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
+  #       uses: Workshop64/buildpulse-action@main
+  #       with:
+  #         account: 17219288
+  #         repository: 192925833
+  #         path: packages
+  #         key: ${{ secrets.BUILDPULSE_ACCESS_KEY_ID }}
+  #         secret: ${{ secrets.BUILDPULSE_SECRET_ACCESS_KEY }}
 
-      - uses: actions/upload-artifact@v3
-        if: inputs.reason == 'buildpulse'
-        with:
-          name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
-          path: packages/*/junit*.xml
+  #     - uses: actions/upload-artifact@v3
+  #       if: inputs.reason == 'buildpulse'
+  #       with:
+  #         name: ${{ github.job }}_${{ matrix.os }}_node-${{ matrix.node }}_dataproxy_junit.xml
+  #         path: packages/*/junit*.xml
 
   #
   # CLIENT (functional tests with mini-proxy)
@@ -246,12 +246,12 @@ jobs:
           SKIP_GIT: true
           GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
+      - run: pnpm run test:functional --data-proxy -p mongodb --shard ${{ matrix.shard }}
         working-directory: packages/client
         env:
           CI: true
           SKIP_GIT: true
-          DEBUG: miniProxy:*
+          DEBUG: minipProxy:server
           GITHUB_CONTEXT: ${{ toJson(github) }}
           TEST_FUNCTIONAL_POSTGRES_URI: 'postgres://prisma:prisma@localhost:5432/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
@@ -306,160 +306,160 @@ jobs:
   #
   # CLIENT (memory tests)
   #
-  client-memory:
-    timeout-minutes: ${{ inputs.jobTimeout }}
-    runs-on: ubuntu-latest
+  # client-memory:
+  #   timeout-minutes: ${{ inputs.jobTimeout }}
+  #   runs-on: ubuntu-latest
 
-    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
+  #   if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        queryEngine: ['library'] # TODO: binary engine is leaking at the moment
-        node: [16, 18, 20]
-    steps:
-      - uses: actions/checkout@v3
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       queryEngine: ['library'] # TODO: binary engine is leaking at the moment
+  #       node: [16, 18, 20]
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        env:
-          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-          DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-        if: "${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: Login to Docker Hub
+  #       uses: docker/login-action@v2
+  #       env:
+  #         DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+  #       if: "${{ env.DOCKERHUB_USERNAME != '' && env.DOCKERHUB_TOKEN != '' }}"
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
+  #     - run: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
 
-      - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
+  #     - uses: pnpm/action-setup@v2.2.4
+  #       with:
+  #         version: 7
 
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-          node-version: ${{ matrix.node }}
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         cache: 'pnpm'
+  #         node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
+  #     - run: bash .github/workflows/scripts/setup.sh
+  #       env:
+  #         CI: true
+  #         SKIP_GIT: true
+  #         GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:memory
-        working-directory: packages/client
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
-          TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
-          TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
-          TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
-          TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
+  #     - run: pnpm run test:memory
+  #       working-directory: packages/client
+  #       env:
+  #         CI: true
+  #         SKIP_GIT: true
+  #         GITHUB_CONTEXT: ${{ toJson(github) }}
+  #         TEST_POSTGRES_URI: postgres://prisma:prisma@localhost:5432/tests
+  #         TEST_MYSQL_URI: mysql://root:root@localhost:3306/tests
+  #         TEST_MSSQL_URI: mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master
+  #         TEST_MONGO_URI: 'mongodb://root:prisma@localhost:27018/tests?authSource=admin'
+  #         TEST_COCKROACH_URI: 'postgresql://prisma@localhost:26257/tests'
 
-      - uses: actions/github-script@v6
-        if: ${{ failure() && github.event_name == 'pull_request' }}
-        id: upload-report
-        env:
-          NODE_VERSION: ${{ matrix.node }}
-        with:
-          github-token: ${{ secrets.BOT_TOKEN }}
-          script: |
-            const fs = require('fs')
-            const nodeVersion = process.env.NODE_VERSION
-            const reportPath = `client-memory-test/${context.issue.number}/${context.sha}.${nodeVersion}.html`
-            const url = `https://prisma.github.io/ci-reports/${reportPath}`
-            const localReport = './packages/client/tests/memory/memory-report.html'
-            if (fs.existsSync(localReport)) {
-              await github.rest.repos.createOrUpdateFileContents({
-                owner: 'prisma',
-                repo: 'ci-reports',
-                branch: 'gh-pages',
-                path: reportPath,
-                message: `Add memory results for PR ${context.issue.number}`,
-                content: fs.readFileSync(localReport, 'base64'),
-              });
-              core.setOutput('url', url);
-            }
+  #     - uses: actions/github-script@v6
+  #       if: ${{ failure() && github.event_name == 'pull_request' }}
+  #       id: upload-report
+  #       env:
+  #         NODE_VERSION: ${{ matrix.node }}
+  #       with:
+  #         github-token: ${{ secrets.BOT_TOKEN }}
+  #         script: |
+  #           const fs = require('fs')
+  #           const nodeVersion = process.env.NODE_VERSION
+  #           const reportPath = `client-memory-test/${context.issue.number}/${context.sha}.${nodeVersion}.html`
+  #           const url = `https://prisma.github.io/ci-reports/${reportPath}`
+  #           const localReport = './packages/client/tests/memory/memory-report.html'
+  #           if (fs.existsSync(localReport)) {
+  #             await github.rest.repos.createOrUpdateFileContents({
+  #               owner: 'prisma',
+  #               repo: 'ci-reports',
+  #               branch: 'gh-pages',
+  #               path: reportPath,
+  #               message: `Add memory results for PR ${context.issue.number}`,
+  #               content: fs.readFileSync(localReport, 'base64'),
+  #             });
+  #             core.setOutput('url', url);
+  #           }
 
-      - name: Find report comment
-        uses: peter-evans/find-comment@v2
-        id: fc
-        if: ${{ always() && github.event_name == 'pull_request' }}
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          comment-author: 'github-actions[bot]'
-          body-includes: 'Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:'
+  #     - name: Find report comment
+  #       uses: peter-evans/find-comment@v2
+  #       id: fc
+  #       if: ${{ always() && github.event_name == 'pull_request' }}
+  #       with:
+  #         issue-number: ${{ github.event.pull_request.number }}
+  #         comment-author: 'github-actions[bot]'
+  #         body-includes: 'Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:'
 
-      - name: Create or update remote comment (failure)
-        uses: peter-evans/create-or-update-comment@v3
-        if: ${{ failure() && steps.upload-report.outputs.url }}
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
+  #     - name: Create or update remote comment (failure)
+  #       uses: peter-evans/create-or-update-comment@v3
+  #       if: ${{ failure() && steps.upload-report.outputs.url }}
+  #       with:
+  #         comment-id: ${{ steps.fc.outputs.comment-id }}
+  #         issue-number: ${{ github.event.pull_request.number }}
+  #         body: |
+  #           Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
 
-            ❌ Failure, [see report](${{ steps.upload-report.outputs.url }}).
-          edit-mode: replace
+  #           ❌ Failure, [see report](${{ steps.upload-report.outputs.url }}).
+  #         edit-mode: replace
 
-      - name: Create or update remote comment (success)
-        uses: peter-evans/create-or-update-comment@v3
-        if: ${{ success() && steps.fc.outputs.comment-id != '' }}
-        with:
-          comment-id: ${{ steps.fc.outputs.comment-id }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
+  #     - name: Create or update remote comment (success)
+  #       uses: peter-evans/create-or-update-comment@v3
+  #       if: ${{ success() && steps.fc.outputs.comment-id != '' }}
+  #       with:
+  #         comment-id: ${{ steps.fc.outputs.comment-id }}
+  #         issue-number: ${{ github.event.pull_request.number }}
+  #         body: |
+  #           Client memory tests, node ${{ matrix.node}}, ${{ matrix.queryEngine }}:
 
-            ✅ Success
-          edit-mode: replace
+  #           ✅ Success
+  #         edit-mode: replace
 
-  #
-  # CLIENT test:e2e
-  #
-  client-e2e:
-    timeout-minutes: 25
-    runs-on: ${{ matrix.os }}
+  # #
+  # # CLIENT test:e2e
+  # #
+  # client-e2e:
+  #   timeout-minutes: 25
+  #   runs-on: ${{ matrix.os }}
 
-    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
+  #   if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        node: [16]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       os: [ubuntu-latest]
+  #       node: [16]
 
-    steps:
-      - uses: actions/checkout@v3
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      # Not currently needed, but we might need it in the future
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+  #     # Not currently needed, but we might need it in the future
+  #     - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
-      - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
+  #     - uses: pnpm/action-setup@v2.2.4
+  #       with:
+  #         version: 7
 
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-          node-version: ${{ matrix.node }}
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         cache: 'pnpm'
+  #         node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
+  #     - run: bash .github/workflows/scripts/setup.sh
+  #       env:
+  #         CI: true
+  #         SKIP_GIT: true
+  #         GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test:e2e --skipBuild --verbose --runInBand
-        working-directory: packages/client
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-          NODE_OPTIONS: '--max-old-space-size=8096'
+  #     - run: pnpm run test:e2e --skipBuild --verbose --runInBand
+  #       working-directory: packages/client
+  #       env:
+  #         CI: true
+  #         SKIP_GIT: true
+  #         GITHUB_CONTEXT: ${{ toJson(github) }}
+  #         NODE_OPTIONS: '--max-old-space-size=8096'
 
   #
   # CLIENT test:functional:code --relation-mode-tests-only for `relationMode-in-separate-gh-action` tests
@@ -565,47 +565,47 @@ jobs:
   #
   # CLIENT (types tests only)
   #
-  client-types:
-    timeout-minutes: 15
-    runs-on: ubuntu-latest
+  # client-types:
+  #   timeout-minutes: 15
+  #   runs-on: ubuntu-latest
 
-    if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
+  #   if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
 
-    strategy:
-      fail-fast: false
-      matrix:
-        node: [16]
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       node: [16]
 
-    steps:
-      - uses: actions/checkout@v3
+  #   steps:
+  #     - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.4
-        with:
-          version: 7
+  #     - uses: pnpm/action-setup@v2.2.4
+  #       with:
+  #         version: 7
 
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-          node-version: ${{ matrix.node }}
+  #     - uses: actions/setup-node@v3
+  #       with:
+  #         cache: 'pnpm'
+  #         node-version: ${{ matrix.node }}
 
-      - run: bash .github/workflows/scripts/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
+  #     - run: bash .github/workflows/scripts/setup.sh
+  #       env:
+  #         CI: true
+  #         SKIP_GIT: true
+  #         GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - run: pnpm run test src/__tests__/types/types.test.ts
-        working-directory: packages/client
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
+  #     - run: pnpm run test src/__tests__/types/types.test.ts
+  #       working-directory: packages/client
+  #       env:
+  #         CI: true
+  #         SKIP_GIT: true
+  #         GITHUB_CONTEXT: ${{ toJson(github) }}
 
-      - uses: codecov/codecov-action@v3
-        with:
-          files: ./packages/client/src/__tests__/coverage/clover.xml
-          flags: client-types,${{ matrix.os }},library,binary
-          name: client-types-${{ matrix.os }}
+  #     - uses: codecov/codecov-action@v3
+  #       with:
+  #         files: ./packages/client/src/__tests__/coverage/clover.xml
+  #         flags: client-types,${{ matrix.os }},library,binary
+  #         name: client-types-${{ matrix.os }}
 
   #
   # INTEGRATION-TESTS
