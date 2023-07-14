@@ -553,6 +553,10 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
         })
       }
 
+      if (attempt > 0) {
+        console.log('!!!RETRY', attempt)
+      }
+
       try {
         return await args.callback({ logHttpCall })
       } catch (e) {
