@@ -491,7 +491,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
    * WAL mode (https://github.com/prisma/prisma/issues/3303) or identified the
    * issue on our side
    */
-  test.skip('high concurrency', async () => {
+  test('high concurrency', async () => {
     jest.setTimeout(30_000)
 
     await prisma.user.create({
