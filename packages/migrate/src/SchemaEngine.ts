@@ -159,13 +159,9 @@ export class SchemaEngine {
 
   /**
    * Get the database version for error reporting.
-   * - TODO: this command currently requires the engine to be initialized with a schema path.
-   *   The IntrospectionEngine supported reading a database version from an inline schema or URL instead,
-   *   which if more flexible and fundamental for the error reporting use case. We should add that here too.
-   * - TODO: re-expose publicly once https://github.com/prisma/prisma-private/issues/203 is closed.
    */
-  private getDatabaseVersion(): Promise<string> {
-    return this.runCommand(this.getRPCPayload('getDatabaseVersion', { schema: this.schemaPath }))
+  public getDatabaseVersion(args: EngineArgs.GetDatabaseVersionParams): Promise<string> {
+    return this.runCommand(this.getRPCPayload('getDatabaseVersion', args))
   }
 
   /**
