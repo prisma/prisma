@@ -159,6 +159,8 @@ export class SchemaEngine {
 
   /**
    * Get the database version for error reporting.
+   * If no argument is given, the version of the database associated to the Prisma schema provided
+   * in the constructor will be returned.
    */
   public getDatabaseVersion(args: EngineArgs.GetDatabaseVersionParams): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', args))
@@ -528,14 +530,16 @@ export class SchemaEngine {
     })
   }
 
-  private getRPCPayload(method: string, params: any): RPCPayload {
+  private getRPCPayload(method: string, params: unknown | undefined): RPCPayload {
     return {
       id: messageId++,
       jsonrpc: '2.0',
       method,
-      params: {
-        ...params,
-      },
+      params: params
+        ? {
+            ...params,
+          }
+        : undefined,
     }
   }
 }

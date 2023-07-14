@@ -16,7 +16,9 @@ export namespace MigrateTypes {
     schema: string
   }
 
-  export interface GetDatabaseVersionParams {
-    datasource: SchemaContainer | UrlContainer | PathContainer
-  }
+  export type GetDatabaseVersionParams =
+    | {
+        datasource: SchemaContainer | UrlContainer | PathContainer
+      }
+    | undefined
 }

@@ -127,9 +127,7 @@ export namespace EngineArgs {
     script: string
   }
 
-  export interface GetDatabaseVersionParams {
-    datasource: MigrateTypes.SchemaContainer | MigrateTypes.UrlContainer | MigrateTypes.PathContainer
-  }
+  export type GetDatabaseVersionParams = MigrateTypes.GetDatabaseVersionParams
 
   export interface IntrospectParams {
     schema: string

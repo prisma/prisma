@@ -44,7 +44,7 @@ export async function sendPanic({
   let dbVersion: string | undefined
   if (error.area === ErrorArea.LIFT_CLI) {
     // For a SQLite datasource like `url = "file:dev.db"` only schema will be defined
-    const getDatabaseVersionParams: MigrateTypes.GetDatabaseVersionParams | null = match({
+    const getDatabaseVersionParams: MigrateTypes.GetDatabaseVersionParams | undefined = match({
       schema,
       introspectionUrl: error.introspectionUrl,
     })
@@ -64,9 +64,9 @@ export async function sendPanic({
           },
         } as const
       })
-      .otherwise(() => null)
+      .otherwise(() => undefined)
 
-    dbVersion = getDatabaseVersionParams ? await getDatabaseVersionSafe(getDatabaseVersionParams) : undefined
+    dbVersion = await getDatabaseVersionSafe(getDatabaseVersionParams)
   }
 
   const migrateRequest = error.request
