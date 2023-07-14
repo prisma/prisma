@@ -162,7 +162,7 @@ export class SchemaEngine {
    * If no argument is given, the version of the database associated to the Prisma schema provided
    * in the constructor will be returned.
    */
-  public getDatabaseVersion(args: EngineArgs.GetDatabaseVersionParams): Promise<string> {
+  public getDatabaseVersion(args?: EngineArgs.GetDatabaseVersionParams): Promise<string> {
     return this.runCommand(this.getRPCPayload('getDatabaseVersion', args))
   }
 
