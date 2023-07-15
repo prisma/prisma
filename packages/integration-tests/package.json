@@ -31,7 +31,7 @@
     "jest-junit": "16.0.0",
     "mariadb": "3.2.0",
     "mssql": "9.1.1",
-    "pg": "8.9.0",
+    "pg": "8.11.1",
     "sqlite-async": "1.2.0",
     "string-hash": "1.1.3",
     "strip-ansi": "6.0.1",
