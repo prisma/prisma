@@ -107,7 +107,7 @@
     "expect-type": "0.16.0",
     "flat-map-polyfill": "0.3.8",
     "fs-extra": "11.1.1",
-    "get-stream": "6.0.1",
+    "get-stream": "7.0.1",
     "globby": "11.1.0",
     "indent-string": "4.0.0",
     "jest": "29.6.1",
