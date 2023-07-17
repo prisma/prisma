@@ -241,7 +241,7 @@ function serializeArgumentsValue(
       name: context.getArgumentName(),
       typeNames: [],
     },
-    underlyingError: `Don't knows how to serialize ${Object.prototype.toString.call(jsValue)} value`,
+    underlyingError: `Does't know how to serialize ${Object.prototype.toString.call(jsValue)} value. Serialize the object to JSON or implement a ".toJSON()" method on it.`,
   })
 }
 
