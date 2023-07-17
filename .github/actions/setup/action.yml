@@ -5,13 +5,16 @@ inputs:
   node-version:
     description: Version of Node.js to use.
     required: true
+  pnpm-version:
+    description: Version of pnpm to use.
+    required: true
 
 runs:
   using: composite
   steps:
     - uses: pnpm/action-setup@v2.2.4
       with:
-        version: 7
+        version: ${{ inputs.pnpm-version }}
 
     - name: Use Node.js ${{ inputs.node-version }}
       uses: actions/setup-node@v3
