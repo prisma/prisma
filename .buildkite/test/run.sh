@@ -29,6 +29,10 @@ npm i --silent -g pnpm@8 --unsafe-perm
 echo "~~~ pnpm i"
 pnpm i
 
+echo "~~~ RAM used/free + docker stats"
+free -m
+docker stats --no-stream
+
 # JOB 0
 if [ "$BUILDKITE_PARALLEL_JOB" = "0" ]; then
   echo "~~~ Linting"
