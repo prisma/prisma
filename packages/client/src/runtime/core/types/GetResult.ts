@@ -35,6 +35,16 @@ export type Operation =
 | 'aggregateRaw'
 | '$runCommandRaw'
 
+export type FluentOperation =
+  | 'findUnique'
+  | 'findUniqueOrThrow'
+  | 'findFirst'
+  | 'findFirstOrThrow'
+  | 'create'
+  | 'update'
+  | 'upsert'
+  | 'delete'
+
 type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
@@ -43,7 +53,8 @@ export type GetFindResult<P extends Payload, A> =
   A extends 
   | { select: infer S } & Record<string, unknown>
   | { include: infer S } & Record<string, unknown>
-  ? {
+  ? S extends undefined ? DefaultSelection<P> :
+    {
       [K in keyof S as S[K] extends false | undefined | null ? never : K]:
         S[K] extends object
         ? P extends SelectablePayloadFields<K, (infer O)[]>
@@ -90,9 +101,11 @@ type UnwrapPayload<P> = {
     ? UnwrapPayload<P[K]>
     : P[K] extends Payload 
       ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> 
-      : P[K] extends (infer O extends Payload) | null
-        ? (O['scalars'] & UnwrapPayload<O['composites']>) | null
+      : P[K] extends infer O | null 
+        ? O extends Payload 
+          ? (O['scalars'] & UnwrapPayload<O['composites']>) | null
         : P[K]
+      : P[K]
 } & unknown
 
 type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
@@ -115,12 +128,11 @@ type GetGroupByResult<P extends Payload, A> =
   ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
   : never
 
-// TODO Null can be removed once rejectOnNotFound is removed
 // prettier-ignore
-export type GetResult<P extends Payload, A, O extends Operation = 'findUniqueOrThrow', Null = null> = {
-  findUnique: GetFindResult<P, A> | Null,
+export type GetResult<P extends Payload, A, O extends Operation = 'findUniqueOrThrow'> = {
+  findUnique: GetFindResult<P, A> | null,
   findUniqueOrThrow: GetFindResult<P, A>,
-  findFirst: GetFindResult<P, A> | Null,
+  findFirst: GetFindResult<P, A> | null,
   findFirstOrThrow: GetFindResult<P, A>,
   findMany: GetFindResult<P, A>[],
   create: GetFindResult<P, A>,

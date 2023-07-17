@@ -34,7 +34,8 @@ testMatrix.setupTestSuite(
     },
     skipDataProxy: {
       runtimes: ['node', 'edge'],
-      reason: 'InvalidDatasourceError: Datasource URL must use prisma:// protocol when --data-proxy is used',
+      reason:
+        'InvalidDatasourceError: Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used',
     },
   },
 )

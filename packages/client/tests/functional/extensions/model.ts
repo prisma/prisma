@@ -772,6 +772,17 @@ testMatrix.setupTestSuite(
       expect(myCustomCallB).toHaveBeenCalledTimes(1)
       expect(myCustomCallB).toHaveBeenCalledWith('Hello')
     })
+
+    test('does not allow to pass invalid properties', async () => {
+      const xprisma = prisma.$extends({})
+
+      await expect(
+        xprisma.user.findFirst({
+          // @ts-expect-error
+          invalid: true,
+        }),
+      ).rejects.toThrow()
+    })
   },
   {
     skipDefaultClientInstance: true,

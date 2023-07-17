@@ -2,6 +2,7 @@
 /declaration
 /generator-build
 /runtime
+/scripts/default-index.js
 /tests/memory/memory-report.html
 
 *.tsbuildinfo

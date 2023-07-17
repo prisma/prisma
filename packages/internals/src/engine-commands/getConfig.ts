@@ -7,7 +7,7 @@ import { bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
 import { ErrorArea, getWasmError, isWasmPanic, RustPanic, WasmPanic } from '../panic'
-import { prismaFmt } from '../wasm'
+import { prismaSchemaWasm } from '../wasm'
 import { addVersionDetailsToErrorMessage } from './errorHelpers'
 import { createDebugErrorType, parseQueryEngineError, QueryEngineErrorInit } from './queryEngineCommons'
 
@@ -70,7 +70,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
       () => {
         if (process.env.FORCE_PANIC_QUERY_ENGINE_GET_CONFIG) {
           debug('Triggering a Rust panic...')
-          prismaFmt.debug_panic()
+          prismaSchemaWasm.debug_panic()
         }
 
         const params = JSON.stringify({
@@ -80,7 +80,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
           env: process.env,
         })
 
-        const data = prismaFmt.get_config(params)
+        const data = prismaSchemaWasm.get_config(params)
         return data
       },
       (e) => ({
@@ -130,7 +130,7 @@ export async function getConfig(options: GetConfigOptions): Promise<ConfigMetaFo
         const panic = new RustPanic(
           /* message */ message,
           /* rustStack */ stack,
-          /* request */ '@prisma/prisma-fmt-wasm get_config',
+          /* request */ '@prisma/prisma-schema-wasm get_config',
           ErrorArea.FMT_CLI,
           /* schemaPath */ options.prismaPath,
           /* schema */ options.datamodel,

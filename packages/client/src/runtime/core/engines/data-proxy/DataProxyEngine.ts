@@ -173,7 +173,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       logQueries: config.logQueries,
     })
 
-    this.remoteClientVersion = P.then(() => getClientVersion(this.config))
+    this.remoteClientVersion = P.then(() => getClientVersion(host, this.config))
 
     debug('host', this.host)
   }
@@ -232,10 +232,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
-      // TODO: hook into the process
-      throw new NotImplementedYetError('beforeExit event is not yet supported', {
-        clientVersion: this.clientVersion,
-      })
+      throw new Error('"beforeExit" hook is not applicable to the remote query engine')
     } else {
       this.logEmitter.on(event, listener)
     }
@@ -467,9 +464,12 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new InvalidDatasourceError('Datasource URL must use prisma:// protocol when --data-proxy is used', {
-        clientVersion: this.clientVersion,
-      })
+      throw new InvalidDatasourceError(
+        'Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used',
+        {
+          clientVersion: this.clientVersion,
+        },
+      )
     }
 
     const apiKey = searchParams.get('api_key')

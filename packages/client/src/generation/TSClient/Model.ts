@@ -306,6 +306,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       `${model.name}Payload`,
       ts
         .objectType()
+        .add(ts.property('name', ts.stringLiteral(model.name)))
         .add(ts.property('objects', objects))
         .add(ts.property('scalars', scalarsType))
         .add(ts.property('composites', composites)),
@@ -400,15 +401,6 @@ export class ModelDelegate implements Generatable {
     const groupByArgsName = getGroupByArgsName(name)
     const countArgsName = getModelArgName(name, DMMF.ModelAction.count)
 
-    let fieldsProxy = ''
-    if (this.generator?.previewFeatures.includes('fieldReference')) {
-      fieldsProxy = `
-  /**
-   * Fields of the ${name} model
-   */
-  readonly fields: ${getFieldRefsTypeName(name)};
-`
-    }
     return `\
 ${
   availableActions.includes(DMMF.ModelAction.aggregate)
@@ -419,7 +411,7 @@ ${
 `
     : ''
 }
-export interface ${name}Delegate<GlobalRejectSettings extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
+export interface ${name}Delegate<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> {
 ${indent(`[K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['${name}'], meta: { name: '${name}' } }`, TAB_SIZE)}
 ${indent(
   nonAggregateActions
@@ -523,7 +515,10 @@ ${
       )}<T> : Prisma.PrismaPromise<InputErrors>`
     : ''
 }
-${fieldsProxy}
+/**
+ * Fields of the ${name} model
+ */
+readonly fields: ${getFieldRefsTypeName(name)};
 }
 
 /**

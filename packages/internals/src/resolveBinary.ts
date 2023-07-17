@@ -1,5 +1,5 @@
 import { getEnginesPath } from '@prisma/engines'
-import { BinaryType } from '@prisma/fetch-engine'
+import { BinaryType, engineEnvVarMap, getBinaryEnvVarPath } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import * as TE from 'fp-ts/TaskEither'
 import fs from 'fs'
@@ -7,7 +7,10 @@ import { ensureDir } from 'fs-extra'
 import path from 'path'
 import tempDir from 'temp-dir'
 
-import { plusX } from './utils/plusX'
+import { chmodPlusX } from './utils/chmodPlusX'
+import { vercelPkgPathRegex } from './utils/vercelPkgPathRegex'
+
+export { BinaryType, engineEnvVarMap }
 
 async function getBinaryName(name: BinaryType): Promise<string> {
   const platform = await getPlatform()
@@ -18,25 +21,17 @@ async function getBinaryName(name: BinaryType): Promise<string> {
   }
   return `${name}-${platform}${extension}`
 }
-export const engineEnvVarMap = {
-  [BinaryType.QueryEngineBinary]: 'PRISMA_QUERY_ENGINE_BINARY',
-  [BinaryType.QueryEngineLibrary]: 'PRISMA_QUERY_ENGINE_LIBRARY',
-  [BinaryType.MigrationEngineBinary]: 'PRISMA_MIGRATION_ENGINE_BINARY',
-}
-export { BinaryType }
+
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
   // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
-  if (proposedPath && !proposedPath.startsWith('/snapshot/') && fs.existsSync(proposedPath)) {
+  if (proposedPath && !proposedPath.match(vercelPkgPathRegex) && fs.existsSync(proposedPath)) {
     return proposedPath
   }
 
   // If engine path was provided via env var, check and use that one
-  const envVar = engineEnvVarMap[name]
-  if (process.env[envVar]) {
-    if (!fs.existsSync(process.env[envVar]!)) {
-      throw new Error(`Env var ${envVar} is provided, but provided path ${process.env[envVar]} can't be resolved.`)
-    }
-    return process.env[envVar]!
+  const pathFromEnvVar = getBinaryEnvVarPath(name)
+  if (pathFromEnvVar !== null) {
+    return pathFromEnvVar.path
   }
 
   // If still here, try different paths
@@ -85,7 +80,7 @@ export function safeResolveBinary(name: BinaryType, proposedPath?: string): TE.T
 export async function maybeCopyToTmp(file: string): Promise<string> {
   const dir = eval('__dirname')
 
-  if (dir.startsWith('/snapshot/')) {
+  if (dir.match(vercelPkgPathRegex)) {
     // In this case, we are in a "pkg" context with a simulated fs.
     // We can't execute a binary from here because it's not a real
     // file system but rather something implemented on JavaScript
@@ -101,7 +96,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     // TODO Undo when https://github.com/vercel/pkg/pull/1484 is released
     // await copyFile(file, target)
 
-    plusX(target)
+    chmodPlusX(target)
     return target
   }
 

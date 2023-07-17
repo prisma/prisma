@@ -15,7 +15,7 @@ import { bold, dim, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
-import { DbNeedsForceError } from '../utils/errors'
+import { DbDropNeedsForceError } from '../utils/errors'
 import { PreviewFlagError } from '../utils/flagErrors'
 import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
@@ -94,7 +94,7 @@ ${bold('Examples')}
 
     if (!args['--force']) {
       if (!canPrompt()) {
-        throw new DbNeedsForceError('drop')
+        throw new DbDropNeedsForceError('drop')
       }
 
       const confirmation = await prompt({

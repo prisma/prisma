@@ -2,10 +2,10 @@ import { Sql } from 'sql-template-tag'
 
 import { ITXClientDenyList } from '../../itxClientDenyList'
 import { RequiredArgs as UserArgs } from '../extensions/$extends'
-import { GetFindResult, GetResult as GetOperationResult, Operation } from './GetResult'
+import { FluentOperation, GetFindResult, GetResult as GetOperationResult, Operation } from './GetResult'
 import { Payload } from './Payload'
 import { PrismaPromise } from './Public'
-import { Call, ComputeDeep, Fn, Optional, Return, ToTuple, UnwrapTuple } from './Utils'
+import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, ToTuple, UnwrapTuple } from './Utils'
 
 /* eslint-disable prettier/prettier */
 
@@ -60,25 +60,25 @@ export type DynamicQueryExtensionArgs<Q_, TypeMap extends TypeMapDef> = {
         : never
 }
 
-export type DynamicQueryExtensionCb<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
+type DynamicQueryExtensionCb<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
   <A extends DynamicQueryExtensionCbArgs<TypeMap, _0, _1, _2>>(args: A) =>
     Promise<TypeMap[_0][_1][_2]['result']>
 
-export type DynamicQueryExtensionCbArgs<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
+type DynamicQueryExtensionCbArgs<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
   ( // we distribute over the union of models and operations to allow narrowing
     _1 extends unknown ? _2 extends unknown ? {
       args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>,
       model: _0 extends 0 ? undefined : _1,
       operation: _2,
-      query: (args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>) =>
-      PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
+      query: <A extends DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>>(args: A) =>
+        PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
     } : never : never
   ) & { // but we don't distribute for query so that the input types stay union
     query: (args: DynamicQueryExtensionCbArgsArgs<TypeMap, _0, _1, _2>) =>
       PrismaPromise<TypeMap[_0][_1]['operations'][_2]['result']>
   }
 
-export type DynamicQueryExtensionCbArgsArgs<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
+type DynamicQueryExtensionCbArgsArgs<TypeMap extends TypeMapDef, _0 extends PropertyKey, _1 extends PropertyKey, _2 extends PropertyKey> =
   _2 extends '$queryRaw' | '$executeRaw'
   ? Sql // Override args type for raw queries
   : TypeMap[_0][_1]['operations'][_2]['args']
@@ -94,14 +94,14 @@ export type DynamicResultExtensionArgs<R_, TypeMap extends TypeMapDef> = {
   }
 }
 
-export type DynamicResultExtensionNeeds<TypeMap extends TypeMapDef, M extends PropertyKey, S> = {
-  [K in keyof S]: K extends keyof TypeMap['model'][M]['operations']['findFirstOrThrow']['payload']['scalars'] ? S[K] : never
+type DynamicResultExtensionNeeds<TypeMap extends TypeMapDef, M extends PropertyKey, S> = {
+  [K in keyof S]: K extends keyof TypeMap['model'][M]['payload']['scalars'] ? S[K] : never
 } & {
-  [N in keyof TypeMap['model'][M]['operations']['findFirstOrThrow']['payload']['scalars']]?: boolean
+  [N in keyof TypeMap['model'][M]['payload']['scalars']]?: boolean
 }
 
-export type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends PropertyKey, S> =
-  GetFindResult<TypeMap['model'][M]['operations']['findFirstOrThrow']['payload'], { select: S }>
+type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends PropertyKey, S> =
+  GetFindResult<TypeMap['model'][M]['payload'], { select: S }>
 
 /** Model */
 
@@ -121,17 +121,39 @@ export type DynamicModelExtensionThis<TypeMap extends TypeMapDef, M extends Prop
     Return<ExtArgs['model'][Uncapitalize<M & string>][P]>
 } & {
   [P in Exclude<keyof TypeMap['model'][M]['operations'], keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
-    {} extends TypeMap['model'][M]['operations'][P]['args'] // will match fully optional args
-    ? <A extends TypeMap['model'][M][P]['args']>(args?: A) =>
-        PrismaPromise<GetOperationResult<TypeMap['model'][M]['operations'][P]['payload'], A, P & Operation>>
-    : <A extends TypeMap['model'][M]['operations'][P]['args']>(args: A) =>
-        PrismaPromise<GetOperationResult<TypeMap['model'][M]['operations'][P]['payload'], A, P & Operation>>
+    DynamicModelExtensionOperationFn<TypeMap, M, P>
 } & {
-  [P in Exclude<'fields' & keyof TypeMap['model'][M], keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
-    TypeMap['model'][M]['fields'] // TODO remove & keyof TypeMap['model'][M] once fieldReference is GA
+  [P in Exclude<'fields', keyof ExtArgs['model'][Uncapitalize<M & string>]>]:
+    TypeMap['model'][M]['fields'] 
 } & {
   [K: symbol]: { types: TypeMap['model'][M] }
 }
+
+type DynamicModelExtensionOperationFn<TypeMap extends TypeMapDef, M extends PropertyKey, P extends PropertyKey> =
+  {} extends TypeMap['model'][M]['operations'][P]['args'] // will match fully optional args
+  ? <A>(args?: Exact<A, TypeMap['model'][M]['operations'][P]['args']>) =>
+      DynamicModelExtensionFnResult<TypeMap, M, A, P>
+  : <A>(args: Exact<A, TypeMap['model'][M]['operations'][P]['args']>) =>
+      DynamicModelExtensionFnResult<TypeMap, M, A, P>
+
+type DynamicModelExtensionFnResult<TypeMap extends TypeMapDef, M extends PropertyKey, A, P extends PropertyKey, Null = DynamicModelExtensionFnResultNull<P>> =
+  P extends FluentOperation
+  ? & DynamicModelExtensionFluentApi<TypeMap, M, P, Null>
+    & PrismaPromise<DynamicModelExtensionFnResultBase<TypeMap, M, A, P> | Null>
+  : PrismaPromise<DynamicModelExtensionFnResultBase<TypeMap, M, A, P>>
+
+type DynamicModelExtensionFnResultBase<TypeMap extends TypeMapDef, M extends PropertyKey, A, P extends PropertyKey> =
+  GetOperationResult<TypeMap['model'][M]['payload'], A, P & Operation>
+
+type DynamicModelExtensionFluentApi<TypeMap extends TypeMapDef, M extends PropertyKey, P extends PropertyKey, Null> = {
+  [K in keyof TypeMap['model'][M]['payload']['objects']]:
+    <A>(args?: Exact<A, Path<TypeMap['model'][M]['operations'][P]['args']['select'], [K]>>) =>
+      & PrismaPromise<Path<DynamicModelExtensionFnResultBase<TypeMap, M, { select: { [P in K]: A } }, P>, [K]> | Null>
+      & DynamicModelExtensionFluentApi<TypeMap, (TypeMap['model'][M]['payload']['objects'][K] & {})['name'], P, Null>
+}
+
+type DynamicModelExtensionFnResultNull<P extends PropertyKey> =
+    P extends 'findUnique' | 'findFirst' ? null : never
 
 /** Client */
 
@@ -148,15 +170,15 @@ export type DynamicClientExtensionThis<TypeMap extends TypeMapDef, TypeMapCb ext
     DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, P>, ExtArgs>
 } & {
   [P in Exclude<keyof TypeMap['other']['operations'], keyof ExtArgs['client']>]:
-    <R = GetOperationResult<TypeMap['other']['operations'][P]['payload'], any, P & Operation>>
+    <R = GetOperationResult<TypeMap['other']['payload'], any, P & Operation>>
     (...args: ToTuple<TypeMap['other']['operations'][P]['args']>) => PrismaPromise<R>
 } & {
   [P in Exclude<ClientBuiltInProp, keyof ExtArgs['client']>]:
     DynamicClientExtensionThisBuiltin<TypeMap, TypeMapCb, ExtArgs>[P]
 }
 
-export type ClientBuiltInProp = '$connect' | '$disconnect' | '$transaction' | '$extends'
-export type DynamicClientExtensionThisBuiltin<TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
+type ClientBuiltInProp = keyof DynamicClientExtensionThisBuiltin<never, never, never>
+type DynamicClientExtensionThisBuiltin<TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
   $extends: ExtendsHook<'extends', TypeMapCb, ExtArgs>
   $transaction<P extends PrismaPromise<any>[]>(arg: [...P], options?: { isolationLevel?: TypeMap['meta']['txIsolationLevel'] }): Promise<UnwrapTuple<P>>
   $transaction<R>(fn: (client: Omit<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList>) => Promise<R>, options?: { maxWait?: number, timeout?: number, isolationLevel?: TypeMap['meta']['txIsolationLevel'] }): Promise<R>
@@ -192,7 +214,7 @@ export interface ExtendsHook<Variant extends 'extends' | 'define', TypeMapCb ext
   }[Variant]
 }
 
-export type MergeExtArgs<TypeMap extends TypeMapDef, ExtArgs extends Record<any, any>, Args extends Record<any, any>> = 
+type MergeExtArgs<TypeMap extends TypeMapDef, ExtArgs extends Record<any, any>, Args extends Record<any, any>> = 
   ComputeDeep<
     & ExtArgs
     & Args
@@ -200,7 +222,7 @@ export type MergeExtArgs<TypeMap extends TypeMapDef, ExtArgs extends Record<any,
     & AllModelsToStringIndex<TypeMap, Args, 'model'>
   >
 
-export type AllModelsToStringIndex<TypeMap extends TypeMapDef, Args extends Record<string, any>, K extends PropertyKey> =
+type AllModelsToStringIndex<TypeMap extends TypeMapDef, Args extends Record<string, any>, K extends PropertyKey> =
   Args extends { [P in K]: { $allModels: infer AllModels} }
   ? { [P in K]: Record<TypeMap['meta']['modelProps'], AllModels> }
   : {}
@@ -238,3 +260,19 @@ type ModelKey<TypeMap extends TypeMapDef, M extends PropertyKey> =
   : Capitalize<M & string>
 
 export type { UserArgs }
+
+
+// TODO snippet for replacing PrismaClient text generated definition to reuse the full-dynamic type logic
+// export class PrismaClient<
+//   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+//   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
+// > {
+//   constructor(options?: Prisma.Subset<T, Prisma.PrismaClientOptions>)
+//   $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => Promise<void> : Prisma.LogEvent) => void): void;
+//   $use(cb: Prisma.Middleware): void
+//   ${metricDefinition.bind(this)()}
+// }
+// export interface PrismaClient<
+//   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
+//   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
+// > extends $Extensions.DynamicClientExtensionThis<Prisma.TypeMap, Prisma.TypeMapCb, $Extensions.DefaultArgs> {}

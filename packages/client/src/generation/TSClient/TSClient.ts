@@ -150,6 +150,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
       this.dmmf,
       this.options.datasources,
       this.options.outputDir,
+      this.options.runtimeName,
       this.options.browser,
       this.options.generator,
       this.options.sqliteDatasourceOverrides,
