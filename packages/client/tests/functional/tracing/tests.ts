@@ -457,13 +457,6 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
 
       const tree = await waitForSpanTree()
 
-      // Since https://github.com/prisma/prisma-engines/pull/4041
-      // We skip a read when possible, on CockroachDB and PostgreSQL
-      // if (['postgresql', 'cockroachdb'].includes(provider)) {
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot('postgresql-cockroachdb')
-      // } else {
-      // expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot('other-databases')
-      // }
       expect(cleanSpanTreeForSnapshot(tree)).toMatchSnapshot()
 
       expect(tree.span.name).toEqual('prisma:client:transaction')
