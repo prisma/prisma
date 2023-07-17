@@ -152,10 +152,6 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
     let sharedEmail = faker.internet.email()
 
     test('create', async () => {
-      // if this fails with
-      // Unique constraint failed on the fields: (`email`)
-      // It most likely because of a retry, because of `jest.retryTimes(3)` above
-      // Comment it and rerun the tests to find the real cause
       await prisma.user.create({
         data: {
           email: sharedEmail,
