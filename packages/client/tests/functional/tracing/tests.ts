@@ -112,10 +112,6 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
-  // Note that this can cause some issues with the tests, like
-  // Unique constraint failed on the fields: (`email`)
-  jest.retryTimes(3)
-
   beforeEach(async () => {
     await prisma.$connect()
     inMemorySpanExporter.reset()
