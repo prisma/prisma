@@ -24,9 +24,29 @@ export function createPrismaPromiseFactory(transaction?: PrismaPromiseTransactio
     // bind the current Async Context to the callback function
     // to ensure any use of AsyncLocalStorage.getStore() within
     // is not broken by the implementation of PrismaPromise as a 'thenable'
+    //
     // => Cloudflare Workers's implementation of AsyncLocalStorage does not
-    // currently pass async context within thenables
-    callback = AsyncLocalStorage.bind(callback);
+    // currently pass async context within thenables:
+    // https://github.com/cloudflare/workerd/issues/870
+    //
+    // we only do this when we detect Vercel Edge functions or Cloudflare Workers
+    // since it has the side-effect of "locking" the async context to that set at
+    // the time the PrismaPromise is created. This alters the behaviour to prevent
+    // using AsyncLocalContext.run() to pass a new async context from within a
+    // Prisma Query Extension itself. Likely rare - but example use-case here:
+    // https://github.com/andyjy/prisma-local-proxy/blob/35494f512e9968a9bc4747e2a1614e4f3d214d1d/client.ts#L86
+    if (
+      // detect Cloudflare Workers:
+      // https://developers.cloudflare.com/workers/platform/compatibility-dates/#global-navigator
+      (globalThis.navigator?.userAgent === "Cloudflare-Workers") ||
+      
+      // detect Edge runtime, deployed to Vercel (which runs on Cloudflare Workers, but doesn't
+      // appear to set the `global_navigator` flag required to pass the test above):
+      (typeof EdgeRuntime === "string" && !!process.env.VERCEL)
+    ) {
+      callback = AsyncLocalStorage.bind(callback);
+    }
+    
     let promise: PrismaPromise<unknown> | undefined
     const _callback = (callbackTransaction = transaction) => {
       try {
