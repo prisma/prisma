@@ -55,6 +55,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: 8
 
       - name: Run benchmarks
         run: pnpm run bench

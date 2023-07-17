@@ -30,6 +30,10 @@ on:
         description: List of query engines to run tests on as JSON array
         type: string
         default: '["library", "binary"]'
+      pnpmVersion:
+        description: pnpm package manager version
+        type: string
+        default: '8'
     secrets:
       BUILDPULSE_ACCESS_KEY_ID:
         required: false
@@ -78,6 +82,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run lint && pnpm run check-engines-override
         working-directory: ./
@@ -148,6 +153,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       # Run the functional test suite
       - run: pnpm run test:functional --silent --shard ${{ matrix.shard }}
@@ -216,6 +222,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
         working-directory: packages/client
@@ -300,6 +307,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run test:memory
         working-directory: packages/client
@@ -393,6 +401,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run test:e2e --skipBuild --verbose --runInBand
         working-directory: packages/client
@@ -449,6 +458,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       # shouldn't take more than 15 minutes
       - name: 1 to 1
@@ -508,6 +518,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run test src/__tests__/types/types.test.ts
         working-directory: packages/client
@@ -560,6 +571,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run test
         working-directory: packages/integration-tests
@@ -621,6 +633,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run test
         working-directory: packages/internals
@@ -679,6 +692,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run test
         working-directory: packages/migrate
@@ -739,6 +753,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run test
         working-directory: packages/cli
@@ -771,6 +786,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run test
         name: 'debug'
@@ -884,6 +900,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - name: Test packages/client
         run: pnpm run test:functional:code --silent --shard ${{matrix.shard}}
@@ -962,6 +979,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - name: Test packages/internals
         if: ${{ contains(inputs.jobsToRun, '-all-') }} || contains(inputs.jobsToRun, '-internals-') }}
