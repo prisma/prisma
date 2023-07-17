@@ -406,6 +406,33 @@ testMatrix.setupTestSuite(
                                               Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`email\` or \`organizationId\` arguments. Available options are listed in green.
                                     `)
     })
+
+    test('non-serializable value', async () => {
+      const result = prisma.user.findMany({
+        where: {
+          // @ts-expect-error
+          name: () => 'foo',
+        },
+      })
+
+      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+        Invalid \`prisma.user.findMany()\` invocation in
+        /client/tests/functional/query-validation/tests.ts:0:0
+
+          XX })
+          XX 
+          XX test('non-serializable value', async () => {
+        → XX   const result = prisma.user.findMany({
+                  where: {
+                    name: [object Function]
+                          ~~~~~~~~~~~~~~~~~
+                  }
+                })
+
+        Invalid value for argument \`name\`: Don't knows how to serialize [object Function] value.
+      `)
+    })
   },
   {
     skipDataProxy: {

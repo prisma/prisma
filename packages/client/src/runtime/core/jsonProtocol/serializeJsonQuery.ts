@@ -1,5 +1,3 @@
-import { assertNever } from '@prisma/internals'
-
 import { ErrorFormat } from '../../getPrismaClient'
 import { ObjectEnumValue, objectEnumValues } from '../../object-enums'
 import { CallSite } from '../../utils/CallSite'
@@ -18,7 +16,7 @@ import { MergedExtensionsList } from '../extensions/MergedExtensionsList'
 import { applyComputedFieldsToSelection } from '../extensions/resultUtils'
 import { isFieldRef } from '../model/FieldRef'
 import { RuntimeDataModel, RuntimeModel } from '../runtimeDataModel'
-import { Action, JsArgs, JsInputValue, RawParameters, Selection } from '../types/JsApi'
+import { Action, JsArgs, JsInputValue, JsonConvertible, RawParameters, Selection } from '../types/JsApi'
 import { ValidationError } from '../types/ValidationError'
 
 const jsActionToProtocolAction: Record<Action, JsonQueryAction> = {
@@ -227,11 +225,24 @@ function serializeArgumentsValue(
     return { $type: 'Enum', value: jsValue._getName() }
   }
 
+  if (isJSONConvertible(jsValue)) {
+    return jsValue.toJSON() as JsonArgumentValue
+  }
+
   if (typeof jsValue === 'object') {
     return serializeArgumentsObject(jsValue, context)
   }
 
-  assertNever(jsValue, 'Unknown value type')
+  context.throwValidationError({
+    kind: 'InvalidArgumentValue',
+    selectionPath: context.getSelectionPath(),
+    argumentPath: context.getArgumentPath(),
+    argument: {
+      name: context.getArgumentName(),
+      typeNames: [],
+    },
+    underlyingError: `Don't knows how to serialize ${Object.prototype.toString.call(jsValue)} value`,
+  })
 }
 
 function serializeArgumentsObject(
@@ -264,6 +275,10 @@ function serializeArgumentsArray(array: JsInputValue[], context: SerializeContex
 
 function isRawParameters(value: JsInputValue): value is RawParameters {
   return typeof value === 'object' && value !== null && value['__prismaRawParameters__'] === true
+}
+
+function isJSONConvertible(value: JsInputValue): value is JsonConvertible {
+  return typeof value === 'object' && value !== null && typeof value['toJSON'] === 'function'
 }
 
 type ContextParams = {
