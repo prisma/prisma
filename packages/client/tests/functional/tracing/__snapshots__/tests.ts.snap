@@ -184,42 +184,6 @@ exports[`tracing (provider=cockroachdb) tracing on crud methods create 1`] = `
         {
           children: [],
           span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {},
             kind: 0,
             links: [],
@@ -680,18 +644,6 @@ exports[`tracing (provider=cockroachdb) tracing on transactions $transaction 1`]
         {
           children: [],
           span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {},
             kind: 0,
             links: [],
@@ -823,18 +775,6 @@ exports[`tracing (provider=cockroachdb) tracing on transactions interactive-tran
         },
         {
           children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
             {
               children: [],
               span: {
@@ -982,42 +922,6 @@ exports[`tracing (provider=cockroachdb) tracing with custom span 1`] = `
             {
               children: [],
               span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
                 attributes: {},
                 kind: 0,
                 links: [],
@@ -1057,81 +961,9 @@ exports[`tracing (provider=cockroachdb) tracing with custom span 1`] = `
 }
 `;
 
-exports[`tracing (provider=cockroachdb) tracing with middleware tracing with middleware 1`] = `
+exports[`tracing (provider=cockroachdb) tracing with middleware should succeed 1`] = `
 {
   children: [
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
     {
       children: [],
       span: {
@@ -1177,42 +1009,6 @@ exports[`tracing (provider=cockroachdb) tracing with middleware tracing with mid
             kind: 0,
             links: [],
             name: prisma:engine:connection,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -2032,81 +1828,9 @@ exports[`tracing (provider=mongodb) tracing with custom span 1`] = `
 }
 `;
 
-exports[`tracing (provider=mongodb) tracing with middleware tracing with middleware 1`] = `
+exports[`tracing (provider=mongodb) tracing with middleware should succeed 1`] = `
 {
   children: [
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
     {
       children: [],
       span: {
@@ -3269,81 +2993,9 @@ exports[`tracing (provider=mysql) tracing with custom span 1`] = `
 }
 `;
 
-exports[`tracing (provider=mysql) tracing with middleware tracing with middleware 1`] = `
+exports[`tracing (provider=mysql) tracing with middleware should succeed 1`] = `
 {
   children: [
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
     {
       children: [],
       span: {
@@ -3639,42 +3291,6 @@ exports[`tracing (provider=postgresql) tracing on crud methods create 1`] = `
             kind: 0,
             links: [],
             name: prisma:engine:connection,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -4153,18 +3769,6 @@ exports[`tracing (provider=postgresql) tracing on transactions $transaction 1`] 
         {
           children: [],
           span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {},
             kind: 0,
             links: [],
@@ -4296,18 +3900,6 @@ exports[`tracing (provider=postgresql) tracing on transactions interactive-trans
         },
         {
           children: [
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
             {
               children: [],
               span: {
@@ -4455,42 +4047,6 @@ exports[`tracing (provider=postgresql) tracing with custom span 1`] = `
             {
               children: [],
               span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
-                attributes: {
-                  db.statement: <dbStatement>,
-                },
-                kind: 0,
-                links: [],
-                name: prisma:engine:db_query,
-                parentSpanId: <parentSpanId>,
-              },
-            },
-            {
-              children: [],
-              span: {
                 attributes: {},
                 kind: 0,
                 links: [],
@@ -4530,81 +4086,9 @@ exports[`tracing (provider=postgresql) tracing with custom span 1`] = `
 }
 `;
 
-exports[`tracing (provider=postgresql) tracing with middleware tracing with middleware 1`] = `
+exports[`tracing (provider=postgresql) tracing with middleware should succeed 1`] = `
 {
   children: [
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
     {
       children: [],
       span: {
@@ -4650,42 +4134,6 @@ exports[`tracing (provider=postgresql) tracing with middleware tracing with midd
             kind: 0,
             links: [],
             name: prisma:engine:connection,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
             parentSpanId: <parentSpanId>,
           },
         },
@@ -5720,81 +5168,9 @@ exports[`tracing (provider=sqlite) tracing with custom span 1`] = `
 }
 `;
 
-exports[`tracing (provider=sqlite) tracing with middleware tracing with middleware 1`] = `
+exports[`tracing (provider=sqlite) tracing with middleware should succeed 1`] = `
 {
   children: [
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
     {
       children: [],
       span: {
@@ -6981,81 +6357,9 @@ exports[`tracing (provider=sqlserver) tracing with custom span 1`] = `
 }
 `;
 
-exports[`tracing (provider=sqlserver) tracing with middleware tracing with middleware 1`] = `
+exports[`tracing (provider=sqlserver) tracing with middleware should succeed 1`] = `
 {
   children: [
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
-    {
-      children: [],
-      span: {
-        attributes: {
-          method: $use,
-        },
-        kind: 0,
-        links: [],
-        name: prisma:client:middleware,
-        parentSpanId: <parentSpanId>,
-      },
-    },
     {
       children: [],
       span: {
