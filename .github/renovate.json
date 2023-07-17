@@ -8,7 +8,7 @@
   "rangeStrategy": "pin",
   "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-schema-wasm", "redis", "@types/redis"],
   "constraints": {
-    "pnpm": "7"
+    "pnpm": "8"
   },
   "packageRules": [
     {
