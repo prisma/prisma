@@ -30,7 +30,7 @@ env:
 jobs:
   release:
     timeout-minutes: 60
-    environment: 'npm-latest'
+    # environment: 'npm-latest'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
