@@ -248,7 +248,7 @@ export interface InputJsonArray extends ReadonlyArray<InputJsonValue | null> {}
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-by-null-values
  */
-export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
+export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray | { toJSON(): unknown }
 
 /**
  * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
