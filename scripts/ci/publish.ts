@@ -24,16 +24,12 @@ export type Commit = {
 const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split(',') : null
 const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
 
-async function getUnsavedChanges(dir: string): Promise<string | null> {
-  const result = await runResult(dir, `git status --porcelain`)
-  return result.trim() || null
-}
-
 async function getLatestCommit(dir: string): Promise<Commit> {
   if (process.env.GITHUB_CONTEXT) {
     const context = JSON.parse(process.env.GITHUB_CONTEXT)
     return context.sha
   }
+
   const result = await runResult(dir, 'git log --pretty=format:"%ad %H %P" --date=iso-strict -n 1')
   const [date, commit, ...parents] = result.split(' ')
 
@@ -43,32 +39,6 @@ async function getLatestCommit(dir: string): Promise<Commit> {
     hash: commit,
     isMergeCommit: parents.length > 1,
     parentCommits: parents,
-  }
-}
-
-async function commitChanges(dir: string, message: string, dry = false): Promise<void> {
-  await run(dir, `git commit -am "${message}"`, dry)
-}
-
-async function pull(dir: string, dry = false): Promise<void> {
-  const branch = await getBranch(dir)
-  if (process.env.BUILDKITE) {
-    if (!process.env.GITHUB_TOKEN) {
-      throw new Error(`Missing env var GITHUB_TOKEN`)
-    }
-  }
-  await run(dir, `git pull origin ${branch} --no-edit`, dry)
-}
-
-async function push(dir: string, dry = false, branch?: string): Promise<void> {
-  branch = branch ?? (await getBranch(dir))
-  if (process.env.BUILDKITE) {
-    if (!process.env.GITHUB_TOKEN) {
-      throw new Error(`Missing env var GITHUB_TOKEN`)
-    }
-    await run(dir, `git push --quiet --set-upstream origin ${branch}`, dry)
-  } else {
-    await run(dir, `git push origin ${branch}`, dry)
   }
 }
 
@@ -503,16 +473,10 @@ function getSemverFromPatchBranch(version: string) {
 async function publish() {
   const args = arg({
     '--publish': Boolean,
-    '--repo': String, // TODO what is repo? Can we remove this? probably
     '--dry-run': Boolean,
     '--release': String, // TODO What does that do? Can we remove this? probably
     '--test': Boolean,
   })
-
-  // TODO: can we remove this? probably
-  if (process.env.BUILDKITE && process.env.PUBLISH_BUILD && !process.env.GITHUB_TOKEN) {
-    throw new Error(`Missing env var GITHUB_TOKEN`)
-  }
 
   if (!process.env.BUILDKITE_BRANCH) {
     throw new Error(`Missing env var BUILDKITE_BRANCH`)
@@ -535,10 +499,6 @@ async function publish() {
     args['--release'] = process.env.BUILDKITE_TAG // TODO: rename this var to RELEASE_VERSION
     // TODO: put this into a global variable VERSION
     // and then replace the args['--release'] with it
-  }
-
-  if (process.env.BUILDKITE_TAG && !process.env.RELEASE_PROMOTE_DEV) {
-    throw new Error(`When BUILDKITE_TAG is provided, RELEASE_PROMOTE_DEV also needs to be provided`)
   }
 
   if (!args['--test'] && !args['--publish'] && !dryRun) {
@@ -674,7 +634,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
         console.error(e)
       }
 
-      if (!process.env.PATCH_BRANCH && !args['--dry-run']) {
+      if (!args['--dry-run']) {
         try {
           await tagEnginesRepo(prismaVersion, enginesCommit, patchBranch, dryRun)
         } catch (e) {
@@ -977,50 +937,6 @@ async function publishPackages(
       }
     }
   }
-
-  if (process.env.PATCH_BRANCH) {
-    if (process.env.CI) {
-      await run('.', `git config --global user.email "prismabots@gmail.com"`)
-      await run('.', `git config --global user.name "prisma-bot"`)
-    }
-    await run(
-      '.',
-      `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
-      dryRun,
-      true,
-    )
-  }
-
-  // TODO: remove?
-  if (!process.env.BUILDKITE || process.env.PATCH_BRANCH) {
-    const repo = path.join(__dirname, '../../../')
-    // commit and push it :)
-    // we try catch this, as this is not necessary for CI to succeed
-    await run(repo, `git status`, dryRun)
-    await pull(repo, dryRun).catch((e) => {
-      if (process.env.PATCH_BRANCH) {
-        console.error(e)
-      } else {
-        throw e
-      }
-    })
-
-    try {
-      const unsavedChanges = await getUnsavedChanges(repo)
-      if (!unsavedChanges) {
-        console.log(`\n${bold('Skipping')} committing changes, as they're already committed`)
-      } else {
-        console.log(`\nCommitting changes`)
-        const message = 'Bump versions'
-        await commitChanges(repo, `${message} [skip ci]`, dryRun)
-      }
-      const branch = process.env.PATCH_BRANCH
-      await push(repo, dryRun, branch).catch(console.error)
-    } catch (e) {
-      console.error(e)
-      console.error(`Ignoring this error, continuing`)
-    }
-  }
 }
 
 function isSkipped(pkgName) {
@@ -1088,11 +1004,6 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
   }
 }
 
-async function getBranch(dir: string) {
-  // TODO: this can probably be simplified
-  return runResult(dir, 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
-}
-
 async function getPrismaBranch(): Promise<string | undefined> {
   if (process.env.BUILDKITE_BRANCH) {
     return process.env.BUILDKITE_BRANCH
@@ -1119,11 +1030,6 @@ async function areEcosystemTestsPassing(tag: string): Promise<boolean> {
 }
 
 function getPatchBranch() {
-  // TODO: this can probably be removed
-  if (process.env.PATCH_BRANCH) {
-    return process.env.PATCH_BRANCH
-  }
-
   if (process.env.BUILDKITE_BRANCH) {
     const versions = getSemverFromPatchBranch(process.env.BUILDKITE_BRANCH)
     console.debug('versions from patch branch:', versions)
