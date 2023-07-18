@@ -309,8 +309,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
-        version: 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
+        specifier: 5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485
+        version: 5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.0.0
@@ -587,8 +587,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
-        version: 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
+        specifier: 5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485
+        version: 5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -672,8 +672,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
-        version: 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
+        specifier: 5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485
+        version: 5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485
       '@swc/core':
         specifier: 1.3.68
         version: 1.3.68
@@ -954,8 +954,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
-        version: 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
+        specifier: 5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485
+        version: 5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485
       archiver:
         specifier: 5.3.1
         version: 5.3.1
@@ -1166,8 +1166,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@prisma/engines-version':
-        specifier: 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
-        version: 4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584
+        specifier: 5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485
+        version: 5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -2854,7 +2854,7 @@ packages:
       istanbul-reports: 3.1.5
       jest-message-util: 29.6.0
       jest-util: 29.6.0
-      jest-worker: 29.6.1
+      jest-worker: 29.6.0
       slash: 3.0.0
       string-length: 4.0.2
       strip-ansi: 6.0.1
@@ -2898,6 +2898,13 @@ packages:
       v8-to-istanbul: 9.0.1
     transitivePeerDependencies:
       - supports-color
+    dev: true
+
+  /@jest/schemas@29.4.3:
+    resolution: {integrity: sha512-VLYKXQmtmuEz6IxJsrZwzG9NvtkQsWNnWMsKxqWNu3+CnfzJQhp0WDDKWLVV9hLKr0l3SLLFRqcYHjhtyuDVxg==}
+    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    dependencies:
+      '@sinclair/typebox': 0.25.21
     dev: true
 
   /@jest/schemas@29.6.0:
@@ -3549,8 +3556,8 @@ packages:
     dev: true
     optional: true
 
-  /@prisma/engines-version@4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584:
-    resolution: {integrity: sha512-HHiUF6NixsldsP3JROq07TYBLEjXFKr6PdH8H4gK/XAoTmIplOJBCgrIUMrsRAnEuGyRoRLXKXWUb943+PFoKQ==}
+  /@prisma/engines-version@5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485:
+    resolution: {integrity: sha512-8p/oRLFb9J+RS8/f6a6C0VZU6FlJ7LFoKDtT+s5zxux9fuQf7EuGxsKmwh/jfyk8ImThRu9MeA23ESjxJZm1vw==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3558,8 +3565,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@4.17.0-26.6b0aef69b7cdfc787f822ecd7cdc76d5f1991584:
-    resolution: {integrity: sha512-JFdsnSgBPN8reDTLOI9Vh/6ccCb2aD1LbY/LWQnkcIgNo6IdpzvuM+qRVbBuA6IZP2SdqQI8Lu6RL2P8EFBQUA==}
+  /@prisma/prisma-schema-wasm@5.1.0-3.0b746fef790fd12bc5b02f4f8bad292b33ddb485:
+    resolution: {integrity: sha512-004DpJvOz+GG/z5yP35j3vPYUoYX9+pyUcglm5HYCwWfJPxYbwUgMQUyRVBWnzHq6NVlqrDAt2Zz+P1yBlSpMg==}
     dev: false
 
   /@prisma/studio-common@0.487.0:
@@ -3646,6 +3653,10 @@ packages:
   /@sigstore/protobuf-specs@0.1.0:
     resolution: {integrity: sha512-a31EnjuIDSX8IXBUib3cYLDRlPMU36AWX4xS8ysLaNu4ZzUesDiPt83pgrW2X1YLMe5L2HbDyaKK5BrL4cNKaQ==}
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0}
+    dev: true
+
+  /@sinclair/typebox@0.25.21:
+    resolution: {integrity: sha512-gFukHN4t8K4+wVC+ECqeqwzBDeFeTzBXroBTqE6vcWrQGbEUpHO7LYdG0f4xnvYq4VOEwITSlHlp0JBAIFMS/g==}
     dev: true
 
   /@sinclair/typebox@0.27.8:
@@ -9387,7 +9398,7 @@ packages:
       graceful-fs: 4.2.10
       jest-regex-util: 29.4.3
       jest-util: 29.6.0
-      jest-worker: 29.6.1
+      jest-worker: 29.6.0
       micromatch: 4.0.5
       walker: 1.0.8
     optionalDependencies:
@@ -9608,7 +9619,7 @@ packages:
       jest-runtime: 29.6.0
       jest-util: 29.6.0
       jest-watcher: 29.6.0
-      jest-worker: 29.6.1
+      jest-worker: 29.6.0
       p-limit: 3.1.0
       source-map-support: 0.5.13
     transitivePeerDependencies:
@@ -9733,7 +9744,7 @@ packages:
       jest-util: 29.6.1
       natural-compare: 1.4.0
       pretty-format: 29.6.1
-      semver: 7.5.3
+      semver: 7.5.4
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -9819,6 +9830,16 @@ packages:
     engines: {node: '>= 10.13.0'}
     dependencies:
       '@types/node': 18.16.19
+      merge-stream: 2.0.0
+      supports-color: 8.1.1
+    dev: true
+
+  /jest-worker@29.6.0:
+    resolution: {integrity: sha512-oiQHH1SnKmZIwwPnpOrXTq4kHBk3lKGY/07DpnH0sAu+x7J8rXlbLDROZsU6vy9GwB0hPiZeZpu6YlJ48QoKcA==}
+    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
+    dependencies:
+      '@types/node': 18.16.19
+      jest-util: 29.6.0
       merge-stream: 2.0.0
       supports-color: 8.1.1
     dev: true
@@ -12085,7 +12106,7 @@ packages:
     resolution: {integrity: sha512-V2mGkI31qdttvTFX7Mt4efOqHXqJWMu4/r66Xh3Z3BwZaPfPJgp6/gbwoujRpPUtfEF6AUUWx3Jim3GCw5g/Qw==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
     dependencies:
-      '@jest/schemas': 29.6.0
+      '@jest/schemas': 29.4.3
       ansi-styles: 5.2.0
       react-is: 18.2.0
     dev: true
@@ -12739,14 +12760,6 @@ packages:
     hasBin: true
     dependencies:
       lru-cache: 6.0.0
-
-  /semver@7.5.3:
-    resolution: {integrity: sha512-QBlUtyVk/5EeHbi7X0fw6liDZc7BBmEaSYn01fMU1OUYbf6GPsbTtd8WmnqbI20SeycoHSeiybkE/q1Q+qlThQ==}
-    engines: {node: '>=10'}
-    hasBin: true
-    dependencies:
-      lru-cache: 6.0.0
-    dev: true
 
   /semver@7.5.4:
     resolution: {integrity: sha512-1bCSESV6Pv+i21Hvpxp3Dx+pSD8lIPt8uVjRrxAUt/nbswYc+tK6Y2btiULjd4+fnq15PX+nqQDC7Oft7WkwcA==}
