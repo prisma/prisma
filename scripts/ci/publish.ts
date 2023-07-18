@@ -973,7 +973,8 @@ async function acquireLock(branch: string): Promise<() => void> {
   const lock = promisify(require('redis-lock')(client))
 
   // get a lock of max 15 min
-  const cb = await lock(`prisma2-build-${branch}`, 15 * 60 * 1000)
+  // the lock is specific to the branch name
+  const cb = await lock(`prisma-release-${branch}`, 15 * 60 * 1000)
   return async () => {
     cb()
     console.log(`Lock removed after ${Date.now() - before}ms`)
@@ -1063,8 +1064,15 @@ type SlackMessageArgs = {
 async function sendSlackMessage({ version, enginesCommit, prismaCommit, dryRun }: SlackMessageArgs) {
   const webhook = new IncomingWebhook(process.env.SLACK_RELEASE_FEED_WEBHOOK!)
   const dryRunStr = dryRun ? 'DRYRUN: ' : ''
+
   const prismaLines = getLines(prismaCommit.message)
+  console.debug({ prismaCommit })
+  console.debug({ prismaLines })
+
   const enginesLines = getLines(enginesCommit.message)
+  console.debug({ enginesCommit })
+  console.debug({ enginesLines })
+
   await webhook.send(
     `${dryRunStr}<https://www.npmjs.com/package/prisma/v/${version}|prisma@${version}> has just been released. Install via \`npm i -g prisma@${version}\` or \`npx prisma@${version}\`
 What's shipped:
