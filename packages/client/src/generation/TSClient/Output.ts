@@ -3,6 +3,7 @@ import indent from 'indent-string'
 import type { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
+import { getPayloadName } from '../utils'
 import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../utils/common'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
@@ -18,7 +19,7 @@ export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper, us
   }
   let fieldType: ts.TypeBuilder
   if (field.kind === 'object') {
-    const payloadType = ts.namedType(`${fieldTypeName}Payload`)
+    const payloadType = ts.namedType(getPayloadName(field.type))
     if (!dmmf.typeMap[field.type]) {
       // not a composite
       payloadType.addGenericArgument(ts.namedType('ExtArgs'))

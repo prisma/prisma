@@ -23,9 +23,11 @@ import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
+import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
 import type { Generatable } from './Generatable'
+import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
@@ -146,6 +148,13 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
     // edge exports the same ts definitions as the index
     if (edge === true) return `export * from './index'`
 
+    const context: GenerateContext = {
+      dmmf: this.dmmf,
+      genericArgsInfo: this.genericsInfo,
+      generator: this.options.generator,
+      defaultArgsAliases: new DefaultArgsAliases(),
+    }
+
     const prismaClientClass = new PrismaClientClass(
       this.dmmf,
       this.options.datasources,
@@ -160,7 +169,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
     const commonCode = commonCodeTS(this.options)
     const modelAndTypes = Object.values(this.dmmf.typeAndModelMap).reduce((acc, modelOrType) => {
       if (this.dmmf.outputTypeMap[modelOrType.name]) {
-        acc.push(new Model(modelOrType, this.dmmf, this.genericsInfo, this.options.generator))
+        acc.push(new Model(modelOrType, context))
       }
       return acc
     }, [] as Model[])
@@ -175,7 +184,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 
     const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
       .filter((t) => t.name.endsWith('CountOutputType'))
-      .map((t) => new Count(t, this.dmmf, this.genericsInfo, this.options.generator))
+      .map((t) => new Count(t, context))
 
     const code = `
 /**
@@ -270,6 +279,11 @@ ${
   this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join('\n') ??
   ''
 }
+
+/**
+ * Aliases for legacy arg types
+ */
+${context.defaultArgsAliases.generateAliases(this.dmmf)}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany
