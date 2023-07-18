@@ -19,6 +19,10 @@ on:
       - '*.bench.ts'
       - 'graphs/**'
   workflow_dispatch:
+    inputs:
+      dryRun:
+        description: 'Check to do a dry run (does not publish packages)'
+        type: boolean
 
 env:
   # To hide "Update available 0.0.0 -> x.x.x"
@@ -41,13 +45,17 @@ jobs:
       - name: Publish all packages to npm
         run: pnpm run publish-all
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Inputs
+          DRY_RUN: ${{ github.event.inputs.dryRun }}
+          # Other
           BUILDKITE: true
           BUILDKITE_BRANCH: ${{ github.ref_name }}
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          # Secrets
           # Note: must use personal access token
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REDIS_URL: ${{ secrets.REDIS_URL }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # Cuurently done in `sendSlackMessage()` in publish.ts, we should move it here later
   # success:
