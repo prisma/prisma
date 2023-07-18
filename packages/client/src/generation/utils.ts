@@ -150,8 +150,9 @@ interface SelectReturnTypeOptions {
   actionName: DMMF.ModelAction
   renderPromise?: boolean
   hideCondition?: boolean
-  isField?: boolean
   isChaining?: boolean
+  fieldName?: string
+  isNullable?: boolean
 }
 
 /**
@@ -164,8 +165,8 @@ export function getReturnType({
   actionName,
   renderPromise = true,
   hideCondition = false,
-  isField = false, // eslint-disable-line @typescript-eslint/no-unused-vars
   isChaining = false,
+  isNullable = false,
 }: SelectReturnTypeOptions): string {
   if (actionName === 'count') {
     return `Promise<number>`
@@ -190,8 +191,15 @@ export function getReturnType({
     const promiseClose = renderPromise ? '>' : ''
 
     return `${promiseOpen}$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>${
-      isChaining ? '| Null' : ''
+      isChaining ? ' | Null' : ''
     }${promiseClose}`
+  }
+
+  if (isChaining && actionName === 'findUniqueOrThrow') {
+    return `Prisma__${name}Client<${getType(
+      `$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
+      isList,
+    )} | ${isNullable ? 'null' : 'Null'}, ${isNullable ? 'null' : 'Null'}, ExtArgs>`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
@@ -200,18 +208,14 @@ export function getReturnType({
       isList,
     )}, never, ExtArgs>`
   }
+
   if (actionName === 'findFirst' || actionName === 'findUnique') {
-    if (isField) {
-      return `Prisma__${name}Client<${getType(
-        `$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
-        isList,
-      )} | Null, never, ExtArgs>`
-    }
     return `Prisma__${name}Client<${getType(
       `$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
     )} | null, null, ExtArgs>`
   }
+
   return `Prisma__${name}Client<${getType(
     `$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
     isList,

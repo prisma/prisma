@@ -509,11 +509,11 @@ ${f.name}<T extends ${getFieldArgName(f, name)}<ExtArgs> = {}>(args?: Subset<T, 
         name,
       )}<ExtArgs>>): ${getReturnType({
         name: fieldTypeName,
-        actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUnique,
+        actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUniqueOrThrow,
         hideCondition: false,
-        isField: true,
         renderPromise: true,
         isChaining: true,
+        isNullable: f.isNullable,
       })};`
     })
     .join('\n'),
