@@ -49,9 +49,7 @@ services:
       - BUILDKITE
       - BUILDKITE_PARALLEL_JOB
       - BUILDKITE_PARALLEL_JOB_COUNT
-      - BUILDKITE_TAG
       - BUILDKITE_BRANCH
-      - PATCH_BRANCH
       - CI
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma test"
       # To hide "Update available 0.0.0 -> x.x.x"

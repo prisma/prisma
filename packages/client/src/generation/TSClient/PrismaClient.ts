@@ -13,6 +13,7 @@ import {
   getFieldRefsTypeName,
   getGroupByName,
   getModelArgName,
+  getPayloadName,
 } from '../utils'
 import { lowerCase } from '../utils/common'
 import { runtimeImport } from '../utils/runtimeImport'
@@ -37,7 +38,7 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
 
     return `${acc}
     ${modelName}: {
-      payload: ${modelName}Payload<ExtArgs>
+      payload: ${getPayloadName(modelName)}<ExtArgs>
       fields: Prisma.${getFieldRefsTypeName(modelName)}
       operations: {${actions.reduce((acc, action) => {
         return `${acc}
@@ -62,15 +63,15 @@ function clientTypeMapModelsResultDefinition(modelName: string, action: Exclude<
   if (action === 'deleteMany') return `Prisma.BatchPayload`
   if (action === 'createMany') return `Prisma.BatchPayload`
   if (action === 'updateMany') return `Prisma.BatchPayload`
-  if (action === 'findMany') return `$Utils.PayloadToResult<${modelName}Payload>[]`
-  if (action === 'findFirst') return `$Utils.PayloadToResult<${modelName}Payload> | null`
-  if (action === 'findUnique') return `$Utils.PayloadToResult<${modelName}Payload> | null`
-  if (action === 'findFirstOrThrow') return `$Utils.PayloadToResult<${modelName}Payload>`
-  if (action === 'findUniqueOrThrow') return `$Utils.PayloadToResult<${modelName}Payload>`
-  if (action === 'create') return `$Utils.PayloadToResult<${modelName}Payload>`
-  if (action === 'update') return `$Utils.PayloadToResult<${modelName}Payload>`
-  if (action === 'upsert') return `$Utils.PayloadToResult<${modelName}Payload>`
-  if (action === 'delete') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'findMany') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>[]`
+  if (action === 'findFirst') return `$Utils.PayloadToResult<${getPayloadName(modelName)}> | null`
+  if (action === 'findUnique') return `$Utils.PayloadToResult<${getPayloadName(modelName)}> | null`
+  if (action === 'findFirstOrThrow') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'findUniqueOrThrow') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'create') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'update') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'upsert') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'delete') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
 
   assertNever(action, 'Unknown action: ' + action)
 }
@@ -369,12 +370,12 @@ export class PrismaClient<
   /**
    * Connect with the database
    */
-  $connect(): Promise<void>;
+  $connect(): $Utils.JsPromise<void>;
 
   /**
    * Disconnect from the database
    */
-  $disconnect(): Promise<void>;
+  $disconnect(): $Utils.JsPromise<void>;
 
   /**
    * Add a middleware
@@ -497,6 +498,7 @@ export type PrismaAction =
   | 'count'
   | 'runCommandRaw'
   | 'findRaw'
+  | 'groupBy'
 
 /**
  * These options are being passed into the middleware as "params"
@@ -514,8 +516,8 @@ export type MiddlewareParams = {
  */
 export type Middleware<T = any> = (
   params: MiddlewareParams,
-  next: (params: MiddlewareParams) => Promise<T>,
-) => Promise<T>
+  next: (params: MiddlewareParams) => $Utils.JsPromise<T>,
+) => $Utils.JsPromise<T>
 
 // tested in getLogLevel.test.ts
 export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;

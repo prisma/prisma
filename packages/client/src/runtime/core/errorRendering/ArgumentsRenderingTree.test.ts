@@ -174,6 +174,20 @@ test('FieldRef', () => {
   `)
 })
 
+test('non serializable value empty list', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { something: Symbol('foo') },
+  })
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        something: [object Symbol]
+      }
+    }
+  `)
+})
+
 test('BigInt', () => {
   const tree = buildArgumentsRenderingTree({
     where: { amount: { gt: 100n } },
