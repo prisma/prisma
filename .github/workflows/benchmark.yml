@@ -54,7 +54,9 @@ jobs:
       - name: Install & build
         uses: ./.github/actions/setup
         with:
-          node-version: ${{ matrix.node }}
+          # Using v16 because v18 fails with /usr/local/bin/node: bad option: --no-randomize-hashes
+          # https://prisma-company.slack.com/archives/C04UKP1JSE7/p1689693487127009
+          node-version: 16
           pnpm-version: 8
 
       - name: Run benchmarks
