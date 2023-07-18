@@ -61,7 +61,7 @@ jobs:
           SKIP_ECOSYSTEMTESTS_CHECK: ${{ github.event.inputs.skipEcosystemTestsChecks }}
           ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
           SKIP_PACKAGES: ${{ github.event.inputs.skipPackages }}
-          DRY_RUN: ${{ github.event.inputs.dryRun }}
+          DRY_RUN: ${{ github.event.inputs.dryRun == 'true' && 'true' || '' }}
           # Other
           BUILDKITE: true
           BUILDKITE_BRANCH: ${{ github.ref_name }}
