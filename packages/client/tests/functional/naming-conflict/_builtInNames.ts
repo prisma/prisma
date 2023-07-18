@@ -16,6 +16,7 @@ export const builtInNames = [
   'TruthyKeys',
   'TrueKeys',
   'Subset',
+  'Batch',
   'SelectSubset',
   'SubsetIntersection',
   'Without',
