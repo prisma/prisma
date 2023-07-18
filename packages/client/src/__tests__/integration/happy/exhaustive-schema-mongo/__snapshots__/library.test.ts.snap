@@ -286,7 +286,7 @@ exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 };
-exports.ABeautifulEnum = {
+exports.ABeautifulEnum = exports.$Enums.ABeautifulEnum = {
   A: 'A',
   B: 'B',
   C: 'C'
@@ -425,8 +425,8 @@ export type E = runtime.Types.DefaultSelection<Prisma.$EPayload>
 /**
  * Enums
  */
-
-export const ABeautifulEnum: {
+export namespace $Enums {
+  export const ABeautifulEnum: {
   A: 'A',
   B: 'B',
   C: 'C'
@@ -434,6 +434,11 @@ export const ABeautifulEnum: {
 
 export type ABeautifulEnum = (typeof ABeautifulEnum)[keyof typeof ABeautifulEnum]
 
+}
+
+export type ABeautifulEnum = $Enums.ABeautifulEnum
+
+export const ABeautifulEnum: $Enums.ABeautifulEnum
 
 /**
  * ##  Prisma Client ʲˢ
@@ -2350,7 +2355,6 @@ export namespace Prisma {
    * Count Type UserCountOutputType
    */
 
-
   export type UserCountOutputType = {
     posts: number
   }
@@ -2384,7 +2388,6 @@ export namespace Prisma {
   /**
    * Count Type EmbedHolderCountOutputType
    */
-
 
   export type EmbedHolderCountOutputType = {
     User: number
@@ -2420,7 +2423,6 @@ export namespace Prisma {
    * Count Type MCountOutputType
    */
 
-
   export type MCountOutputType = {
     n: number
   }
@@ -2455,7 +2457,6 @@ export namespace Prisma {
    * Count Type NCountOutputType
    */
 
-
   export type NCountOutputType = {
     m: number
   }
@@ -2489,7 +2490,6 @@ export namespace Prisma {
   /**
    * Count Type OneOptionalCountOutputType
    */
-
 
   export type OneOptionalCountOutputType = {
     many: number
@@ -2664,7 +2664,6 @@ export namespace Prisma {
    * Model Post
    */
 
-
   export type AggregatePost = {
     _count: PostCountAggregateOutputType | null
     _min: PostMinAggregateOutputType | null
@@ -2799,7 +2798,6 @@ export namespace Prisma {
     _min?: PostMinAggregateInputType
     _max?: PostMaxAggregateInputType
   }
-
 
   export type PostGroupByOutputType = {
     id: string
@@ -3664,7 +3662,6 @@ export namespace Prisma {
    * Model User
    */
 
-
   export type AggregateUser = {
     _count: UserCountAggregateOutputType | null
     _avg: UserAvgAggregateOutputType | null
@@ -3696,8 +3693,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
     embedHolderId: string | null
@@ -3712,8 +3709,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
     embedHolderId: string | null
@@ -3890,7 +3887,6 @@ export namespace Prisma {
     _max?: UserMaxAggregateInputType
   }
 
-
   export type UserGroupByOutputType = {
     id: string
     email: string
@@ -3902,8 +3898,8 @@ export namespace Prisma {
     optionalString: string | null
     json: JsonValue
     optionalJson: JsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
     embedHolderId: string
@@ -3991,8 +3987,8 @@ export namespace Prisma {
       optionalString: string | null
       json: Prisma.JsonValue
       optionalJson: Prisma.JsonValue | null
-      enum: ABeautifulEnum
-      optionalEnum: ABeautifulEnum | null
+      enum: $Enums.ABeautifulEnum
+      optionalEnum: $Enums.ABeautifulEnum | null
       boolean: boolean
       optionalBoolean: boolean | null
       embedHolderId: string
@@ -4829,7 +4825,6 @@ export namespace Prisma {
    * Model EmbedHolder
    */
 
-
   export type AggregateEmbedHolder = {
     _count: EmbedHolderCountAggregateOutputType | null
     _min: EmbedHolderMinAggregateOutputType | null
@@ -4952,7 +4947,6 @@ export namespace Prisma {
     _min?: EmbedHolderMinAggregateInputType
     _max?: EmbedHolderMaxAggregateInputType
   }
-
 
   export type EmbedHolderGroupByOutputType = {
     id: string
@@ -5837,7 +5831,6 @@ export namespace Prisma {
    * Model M
    */
 
-
   export type AggregateM = {
     _count: MCountAggregateOutputType | null
     _avg: MAvgAggregateOutputType | null
@@ -5868,8 +5861,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -5882,8 +5875,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -6053,7 +6046,6 @@ export namespace Prisma {
     _max?: MMaxAggregateInputType
   }
 
-
   export type MGroupByOutputType = {
     id: string
     n_ids: string[]
@@ -6065,8 +6057,8 @@ export namespace Prisma {
     optionalString: string | null
     json: JsonValue
     optionalJson: JsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
     _count: MCountAggregateOutputType | null
@@ -6148,8 +6140,8 @@ export namespace Prisma {
       optionalString: string | null
       json: Prisma.JsonValue
       optionalJson: Prisma.JsonValue | null
-      enum: ABeautifulEnum
-      optionalEnum: ABeautifulEnum | null
+      enum: $Enums.ABeautifulEnum
+      optionalEnum: $Enums.ABeautifulEnum | null
       boolean: boolean
       optionalBoolean: boolean | null
     }, ExtArgs["result"]["m"]>
@@ -6982,7 +6974,6 @@ export namespace Prisma {
    * Model N
    */
 
-
   export type AggregateN = {
     _count: NCountAggregateOutputType | null
     _avg: NAvgAggregateOutputType | null
@@ -7013,8 +7004,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -7027,8 +7018,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -7198,7 +7189,6 @@ export namespace Prisma {
     _max?: NMaxAggregateInputType
   }
 
-
   export type NGroupByOutputType = {
     id: string
     m_ids: string[]
@@ -7210,8 +7200,8 @@ export namespace Prisma {
     optionalString: string | null
     json: JsonValue
     optionalJson: JsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
     _count: NCountAggregateOutputType | null
@@ -7293,8 +7283,8 @@ export namespace Prisma {
       optionalString: string | null
       json: Prisma.JsonValue
       optionalJson: Prisma.JsonValue | null
-      enum: ABeautifulEnum
-      optionalEnum: ABeautifulEnum | null
+      enum: $Enums.ABeautifulEnum
+      optionalEnum: $Enums.ABeautifulEnum | null
       boolean: boolean
       optionalBoolean: boolean | null
     }, ExtArgs["result"]["n"]>
@@ -8127,7 +8117,6 @@ export namespace Prisma {
    * Model OneOptional
    */
 
-
   export type AggregateOneOptional = {
     _count: OneOptionalCountAggregateOutputType | null
     _avg: OneOptionalAvgAggregateOutputType | null
@@ -8158,8 +8147,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -8172,8 +8161,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -8341,7 +8330,6 @@ export namespace Prisma {
     _max?: OneOptionalMaxAggregateInputType
   }
 
-
   export type OneOptionalGroupByOutputType = {
     id: string
     int: number
@@ -8352,8 +8340,8 @@ export namespace Prisma {
     optionalString: string | null
     json: JsonValue
     optionalJson: JsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
     _count: OneOptionalCountAggregateOutputType | null
@@ -8432,8 +8420,8 @@ export namespace Prisma {
       optionalString: string | null
       json: Prisma.JsonValue
       optionalJson: Prisma.JsonValue | null
-      enum: ABeautifulEnum
-      optionalEnum: ABeautifulEnum | null
+      enum: $Enums.ABeautifulEnum
+      optionalEnum: $Enums.ABeautifulEnum | null
       boolean: boolean
       optionalBoolean: boolean | null
     }, ExtArgs["result"]["oneOptional"]>
@@ -9265,7 +9253,6 @@ export namespace Prisma {
    * Model ManyRequired
    */
 
-
   export type AggregateManyRequired = {
     _count: ManyRequiredCountAggregateOutputType | null
     _avg: ManyRequiredAvgAggregateOutputType | null
@@ -9297,8 +9284,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -9312,8 +9299,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -9485,7 +9472,6 @@ export namespace Prisma {
     _max?: ManyRequiredMaxAggregateInputType
   }
 
-
   export type ManyRequiredGroupByOutputType = {
     id: string
     oneOptionalId: string | null
@@ -9497,8 +9483,8 @@ export namespace Prisma {
     optionalString: string | null
     json: JsonValue
     optionalJson: JsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
     _count: ManyRequiredCountAggregateOutputType | null
@@ -9578,8 +9564,8 @@ export namespace Prisma {
       optionalString: string | null
       json: Prisma.JsonValue
       optionalJson: Prisma.JsonValue | null
-      enum: ABeautifulEnum
-      optionalEnum: ABeautifulEnum | null
+      enum: $Enums.ABeautifulEnum
+      optionalEnum: $Enums.ABeautifulEnum | null
       boolean: boolean
       optionalBoolean: boolean | null
     }, ExtArgs["result"]["manyRequired"]>
@@ -10407,7 +10393,6 @@ export namespace Prisma {
    * Model OptionalSide1
    */
 
-
   export type AggregateOptionalSide1 = {
     _count: OptionalSide1CountAggregateOutputType | null
     _avg: OptionalSide1AvgAggregateOutputType | null
@@ -10439,8 +10424,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -10454,8 +10439,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -10627,7 +10612,6 @@ export namespace Prisma {
     _max?: OptionalSide1MaxAggregateInputType
   }
 
-
   export type OptionalSide1GroupByOutputType = {
     id: string
     optionalSide2Id: string | null
@@ -10639,8 +10623,8 @@ export namespace Prisma {
     optionalString: string | null
     json: JsonValue
     optionalJson: JsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
     _count: OptionalSide1CountAggregateOutputType | null
@@ -10720,8 +10704,8 @@ export namespace Prisma {
       optionalString: string | null
       json: Prisma.JsonValue
       optionalJson: Prisma.JsonValue | null
-      enum: ABeautifulEnum
-      optionalEnum: ABeautifulEnum | null
+      enum: $Enums.ABeautifulEnum
+      optionalEnum: $Enums.ABeautifulEnum | null
       boolean: boolean
       optionalBoolean: boolean | null
     }, ExtArgs["result"]["optionalSide1"]>
@@ -11549,7 +11533,6 @@ export namespace Prisma {
    * Model OptionalSide2
    */
 
-
   export type AggregateOptionalSide2 = {
     _count: OptionalSide2CountAggregateOutputType | null
     _avg: OptionalSide2AvgAggregateOutputType | null
@@ -11580,8 +11563,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -11594,8 +11577,8 @@ export namespace Prisma {
     optionalFloat: number | null
     string: string | null
     optionalString: string | null
-    enum: ABeautifulEnum | null
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum | null
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean | null
     optionalBoolean: boolean | null
   }
@@ -11763,7 +11746,6 @@ export namespace Prisma {
     _max?: OptionalSide2MaxAggregateInputType
   }
 
-
   export type OptionalSide2GroupByOutputType = {
     id: string
     int: number
@@ -11774,8 +11756,8 @@ export namespace Prisma {
     optionalString: string | null
     json: JsonValue
     optionalJson: JsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean: boolean | null
     _count: OptionalSide2CountAggregateOutputType | null
@@ -11852,8 +11834,8 @@ export namespace Prisma {
       optionalString: string | null
       json: Prisma.JsonValue
       optionalJson: Prisma.JsonValue | null
-      enum: ABeautifulEnum
-      optionalEnum: ABeautifulEnum | null
+      enum: $Enums.ABeautifulEnum
+      optionalEnum: $Enums.ABeautifulEnum | null
       boolean: boolean
       optionalBoolean: boolean | null
     }, ExtArgs["result"]["optionalSide2"]>
@@ -12680,7 +12662,6 @@ export namespace Prisma {
    * Model A
    */
 
-
   export type AggregateA = {
     _count: ACountAggregateOutputType | null
     _avg: AAvgAggregateOutputType | null
@@ -12855,7 +12836,6 @@ export namespace Prisma {
     _min?: AMinAggregateInputType
     _max?: AMaxAggregateInputType
   }
-
 
   export type AGroupByOutputType = {
     id: string
@@ -13680,7 +13660,6 @@ export namespace Prisma {
    * Model B
    */
 
-
   export type AggregateB = {
     _count: BCountAggregateOutputType | null
     _avg: BAvgAggregateOutputType | null
@@ -13833,7 +13812,6 @@ export namespace Prisma {
     _min?: BMinAggregateInputType
     _max?: BMaxAggregateInputType
   }
-
 
   export type BGroupByOutputType = {
     id: string
@@ -14637,7 +14615,6 @@ export namespace Prisma {
    * Model C
    */
 
-
   export type AggregateC = {
     _count: CCountAggregateOutputType | null
     _min: CMinAggregateOutputType | null
@@ -14778,7 +14755,6 @@ export namespace Prisma {
     _min?: CMinAggregateInputType
     _max?: CMaxAggregateInputType
   }
-
 
   export type CGroupByOutputType = {
     id: string
@@ -15600,7 +15576,6 @@ export namespace Prisma {
    * Model D
    */
 
-
   export type AggregateD = {
     _count: DCountAggregateOutputType | null
     _avg: DAvgAggregateOutputType | null
@@ -15614,7 +15589,7 @@ export namespace Prisma {
   }
 
   export type DSumAggregateOutputType = {
-    list: number[] | null
+    list: number[]
   }
 
   export type DMinAggregateOutputType = {
@@ -15761,7 +15736,6 @@ export namespace Prisma {
     _min?: DMinAggregateInputType
     _max?: DMaxAggregateInputType
   }
-
 
   export type DGroupByOutputType = {
     id: string
@@ -16585,7 +16559,6 @@ export namespace Prisma {
    * Model E
    */
 
-
   export type AggregateE = {
     _count: ECountAggregateOutputType | null
     _min: EMinAggregateOutputType | null
@@ -16708,7 +16681,6 @@ export namespace Prisma {
     _min?: EMinAggregateInputType
     _max?: EMaxAggregateInputType
   }
-
 
   export type EGroupByOutputType = {
     id: string
@@ -17943,8 +17915,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"User"> | string | null
     json?: JsonFilter<"User">
     optionalJson?: JsonNullableFilter<"User">
-    enum?: EnumABeautifulEnumFilter<"User"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"User"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"User"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"User"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"User"> | boolean
     optionalBoolean?: BoolNullableFilter<"User"> | boolean | null
     embedHolderId?: StringFilter<"User"> | string
@@ -17986,8 +17958,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"User"> | string | null
     json?: JsonFilter<"User">
     optionalJson?: JsonNullableFilter<"User">
-    enum?: EnumABeautifulEnumFilter<"User"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"User"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"User"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"User"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"User"> | boolean
     optionalBoolean?: BoolNullableFilter<"User"> | boolean | null
     embedHolderId?: StringFilter<"User"> | string
@@ -18032,8 +18004,8 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter<"User"> | string | null
     json?: JsonWithAggregatesFilter<"User">
     optionalJson?: JsonNullableWithAggregatesFilter<"User">
-    enum?: EnumABeautifulEnumWithAggregatesFilter<"User"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"User"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"User"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"User"> | $Enums.ABeautifulEnum | null
     boolean?: BoolWithAggregatesFilter<"User"> | boolean
     optionalBoolean?: BoolNullableWithAggregatesFilter<"User"> | boolean | null
     embedHolderId?: StringWithAggregatesFilter<"User"> | string
@@ -18112,8 +18084,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"M"> | string | null
     json?: JsonFilter<"M">
     optionalJson?: JsonNullableFilter<"M">
-    enum?: EnumABeautifulEnumFilter<"M"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"M"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"M"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"M"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"M"> | boolean
     optionalBoolean?: BoolNullableFilter<"M"> | boolean | null
     n?: NListRelationFilter
@@ -18151,8 +18123,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"M"> | string | null
     json?: JsonFilter<"M">
     optionalJson?: JsonNullableFilter<"M">
-    enum?: EnumABeautifulEnumFilter<"M"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"M"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"M"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"M"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"M"> | boolean
     optionalBoolean?: BoolNullableFilter<"M"> | boolean | null
     n?: NListRelationFilter
@@ -18194,8 +18166,8 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter<"M"> | string | null
     json?: JsonWithAggregatesFilter<"M">
     optionalJson?: JsonNullableWithAggregatesFilter<"M">
-    enum?: EnumABeautifulEnumWithAggregatesFilter<"M"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"M"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"M"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"M"> | $Enums.ABeautifulEnum | null
     boolean?: BoolWithAggregatesFilter<"M"> | boolean
     optionalBoolean?: BoolNullableWithAggregatesFilter<"M"> | boolean | null
   }
@@ -18214,8 +18186,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"N"> | string | null
     json?: JsonFilter<"N">
     optionalJson?: JsonNullableFilter<"N">
-    enum?: EnumABeautifulEnumFilter<"N"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"N"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"N"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"N"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"N"> | boolean
     optionalBoolean?: BoolNullableFilter<"N"> | boolean | null
     m?: MListRelationFilter
@@ -18253,8 +18225,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"N"> | string | null
     json?: JsonFilter<"N">
     optionalJson?: JsonNullableFilter<"N">
-    enum?: EnumABeautifulEnumFilter<"N"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"N"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"N"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"N"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"N"> | boolean
     optionalBoolean?: BoolNullableFilter<"N"> | boolean | null
     m?: MListRelationFilter
@@ -18296,8 +18268,8 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter<"N"> | string | null
     json?: JsonWithAggregatesFilter<"N">
     optionalJson?: JsonNullableWithAggregatesFilter<"N">
-    enum?: EnumABeautifulEnumWithAggregatesFilter<"N"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"N"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"N"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"N"> | $Enums.ABeautifulEnum | null
     boolean?: BoolWithAggregatesFilter<"N"> | boolean
     optionalBoolean?: BoolNullableWithAggregatesFilter<"N"> | boolean | null
   }
@@ -18315,8 +18287,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"OneOptional"> | string | null
     json?: JsonFilter<"OneOptional">
     optionalJson?: JsonNullableFilter<"OneOptional">
-    enum?: EnumABeautifulEnumFilter<"OneOptional"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"OneOptional"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"OneOptional"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OneOptional"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OneOptional"> | boolean
     optionalBoolean?: BoolNullableFilter<"OneOptional"> | boolean | null
     many?: ManyRequiredListRelationFilter
@@ -18352,8 +18324,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"OneOptional"> | string | null
     json?: JsonFilter<"OneOptional">
     optionalJson?: JsonNullableFilter<"OneOptional">
-    enum?: EnumABeautifulEnumFilter<"OneOptional"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"OneOptional"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"OneOptional"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OneOptional"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OneOptional"> | boolean
     optionalBoolean?: BoolNullableFilter<"OneOptional"> | boolean | null
     many?: ManyRequiredListRelationFilter
@@ -18393,8 +18365,8 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter<"OneOptional"> | string | null
     json?: JsonWithAggregatesFilter<"OneOptional">
     optionalJson?: JsonNullableWithAggregatesFilter<"OneOptional">
-    enum?: EnumABeautifulEnumWithAggregatesFilter<"OneOptional"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"OneOptional"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"OneOptional"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"OneOptional"> | $Enums.ABeautifulEnum | null
     boolean?: BoolWithAggregatesFilter<"OneOptional"> | boolean
     optionalBoolean?: BoolNullableWithAggregatesFilter<"OneOptional"> | boolean | null
   }
@@ -18413,8 +18385,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"ManyRequired"> | string | null
     json?: JsonFilter<"ManyRequired">
     optionalJson?: JsonNullableFilter<"ManyRequired">
-    enum?: EnumABeautifulEnumFilter<"ManyRequired"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"ManyRequired"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"ManyRequired"> | boolean
     optionalBoolean?: BoolNullableFilter<"ManyRequired"> | boolean | null
     one?: XOR<OneOptionalNullableRelationFilter, OneOptionalWhereInput> | null
@@ -18452,8 +18424,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"ManyRequired"> | string | null
     json?: JsonFilter<"ManyRequired">
     optionalJson?: JsonNullableFilter<"ManyRequired">
-    enum?: EnumABeautifulEnumFilter<"ManyRequired"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"ManyRequired"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"ManyRequired"> | boolean
     optionalBoolean?: BoolNullableFilter<"ManyRequired"> | boolean | null
     one?: XOR<OneOptionalNullableRelationFilter, OneOptionalWhereInput> | null
@@ -18495,8 +18467,8 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter<"ManyRequired"> | string | null
     json?: JsonWithAggregatesFilter<"ManyRequired">
     optionalJson?: JsonNullableWithAggregatesFilter<"ManyRequired">
-    enum?: EnumABeautifulEnumWithAggregatesFilter<"ManyRequired"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"ManyRequired"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"ManyRequired"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"ManyRequired"> | $Enums.ABeautifulEnum | null
     boolean?: BoolWithAggregatesFilter<"ManyRequired"> | boolean
     optionalBoolean?: BoolNullableWithAggregatesFilter<"ManyRequired"> | boolean | null
   }
@@ -18515,8 +18487,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"OptionalSide1"> | string | null
     json?: JsonFilter<"OptionalSide1">
     optionalJson?: JsonNullableFilter<"OptionalSide1">
-    enum?: EnumABeautifulEnumFilter<"OptionalSide1"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide1"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"OptionalSide1"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide1"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide1"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide1"> | boolean | null
     opti?: XOR<OptionalSide2NullableRelationFilter, OptionalSide2WhereInput> | null
@@ -18554,8 +18526,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"OptionalSide1"> | string | null
     json?: JsonFilter<"OptionalSide1">
     optionalJson?: JsonNullableFilter<"OptionalSide1">
-    enum?: EnumABeautifulEnumFilter<"OptionalSide1"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide1"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"OptionalSide1"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide1"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide1"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide1"> | boolean | null
     opti?: XOR<OptionalSide2NullableRelationFilter, OptionalSide2WhereInput> | null
@@ -18597,8 +18569,8 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter<"OptionalSide1"> | string | null
     json?: JsonWithAggregatesFilter<"OptionalSide1">
     optionalJson?: JsonNullableWithAggregatesFilter<"OptionalSide1">
-    enum?: EnumABeautifulEnumWithAggregatesFilter<"OptionalSide1"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"OptionalSide1"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"OptionalSide1"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"OptionalSide1"> | $Enums.ABeautifulEnum | null
     boolean?: BoolWithAggregatesFilter<"OptionalSide1"> | boolean
     optionalBoolean?: BoolNullableWithAggregatesFilter<"OptionalSide1"> | boolean | null
   }
@@ -18616,8 +18588,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"OptionalSide2"> | string | null
     json?: JsonFilter<"OptionalSide2">
     optionalJson?: JsonNullableFilter<"OptionalSide2">
-    enum?: EnumABeautifulEnumFilter<"OptionalSide2"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide2"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"OptionalSide2"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide2"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide2"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide2"> | boolean | null
     opti?: XOR<OptionalSide1NullableRelationFilter, OptionalSide1WhereInput> | null
@@ -18653,8 +18625,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"OptionalSide2"> | string | null
     json?: JsonFilter<"OptionalSide2">
     optionalJson?: JsonNullableFilter<"OptionalSide2">
-    enum?: EnumABeautifulEnumFilter<"OptionalSide2"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide2"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"OptionalSide2"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"OptionalSide2"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"OptionalSide2"> | boolean
     optionalBoolean?: BoolNullableFilter<"OptionalSide2"> | boolean | null
     opti?: XOR<OptionalSide1NullableRelationFilter, OptionalSide1WhereInput> | null
@@ -18694,8 +18666,8 @@ export namespace Prisma {
     optionalString?: StringNullableWithAggregatesFilter<"OptionalSide2"> | string | null
     json?: JsonWithAggregatesFilter<"OptionalSide2">
     optionalJson?: JsonNullableWithAggregatesFilter<"OptionalSide2">
-    enum?: EnumABeautifulEnumWithAggregatesFilter<"OptionalSide2"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"OptionalSide2"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumWithAggregatesFilter<"OptionalSide2"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableWithAggregatesFilter<"OptionalSide2"> | $Enums.ABeautifulEnum | null
     boolean?: BoolWithAggregatesFilter<"OptionalSide2"> | boolean
     optionalBoolean?: BoolNullableWithAggregatesFilter<"OptionalSide2"> | boolean | null
   }
@@ -19045,8 +19017,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     posts?: PostCreateNestedManyWithoutAuthorInput
@@ -19064,8 +19036,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     embedHolderId: string
@@ -19082,8 +19054,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     posts?: PostUpdateManyWithoutAuthorNestedInput
@@ -19100,8 +19072,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     embedHolderId?: StringFieldUpdateOperationsInput | string
@@ -19119,8 +19091,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     embedHolderId: string
@@ -19136,8 +19108,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19152,8 +19124,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     embedHolderId?: StringFieldUpdateOperationsInput | string
@@ -19239,8 +19211,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     n?: NCreateNestedManyWithoutMInput
@@ -19257,8 +19229,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     n?: NUncheckedCreateNestedManyWithoutMInput
@@ -19273,8 +19245,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     n?: NUpdateManyWithoutMNestedInput
@@ -19290,8 +19262,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     n?: NUncheckedUpdateManyWithoutMNestedInput
@@ -19308,8 +19280,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -19323,8 +19295,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19339,8 +19311,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19355,8 +19327,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     m?: MCreateNestedManyWithoutNInput
@@ -19373,8 +19345,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     m?: MUncheckedCreateNestedManyWithoutNInput
@@ -19389,8 +19361,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     m?: MUpdateManyWithoutNNestedInput
@@ -19406,8 +19378,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     m?: MUncheckedUpdateManyWithoutNNestedInput
@@ -19424,8 +19396,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -19439,8 +19411,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19455,8 +19427,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19471,8 +19443,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     many?: ManyRequiredCreateNestedManyWithoutOneInput
@@ -19488,8 +19460,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     many?: ManyRequiredUncheckedCreateNestedManyWithoutOneInput
@@ -19504,8 +19476,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     many?: ManyRequiredUpdateManyWithoutOneNestedInput
@@ -19520,8 +19492,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     many?: ManyRequiredUncheckedUpdateManyWithoutOneNestedInput
@@ -19537,8 +19509,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -19552,8 +19524,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19567,8 +19539,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19583,8 +19555,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     one?: OneOptionalCreateNestedOneWithoutManyInput
@@ -19601,8 +19573,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -19616,8 +19588,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     one?: OneOptionalUpdateOneWithoutManyNestedInput
@@ -19633,8 +19605,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19650,8 +19622,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -19665,8 +19637,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19681,8 +19653,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19697,8 +19669,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     opti?: OptionalSide2CreateNestedOneWithoutOptiInput
@@ -19715,8 +19687,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -19730,8 +19702,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     opti?: OptionalSide2UpdateOneWithoutOptiNestedInput
@@ -19747,8 +19719,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19764,8 +19736,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -19779,8 +19751,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19795,8 +19767,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19811,8 +19783,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     opti?: OptionalSide1CreateNestedOneWithoutOptiInput
@@ -19828,8 +19800,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     opti?: OptionalSide1UncheckedCreateNestedOneWithoutOptiInput
@@ -19844,8 +19816,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     opti?: OptionalSide1UpdateOneWithoutOptiNestedInput
@@ -19860,8 +19832,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     opti?: OptionalSide1UncheckedUpdateOneWithoutOptiNestedInput
@@ -19877,8 +19849,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -19892,8 +19864,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -19907,8 +19879,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -20395,17 +20367,17 @@ export namespace Prisma {
   }
 
   export type EnumABeautifulEnumFilter<$PrismaModel = never> = {
-    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
-    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    not?: NestedEnumABeautifulEnumFilter<$PrismaModel> | ABeautifulEnum
+    equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    not?: NestedEnumABeautifulEnumFilter<$PrismaModel> | $Enums.ABeautifulEnum
   }
 
   export type EnumABeautifulEnumNullableFilter<$PrismaModel = never> = {
-    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel> | ABeautifulEnum | null
+    equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel> | $Enums.ABeautifulEnum | null
     isSet?: boolean
   }
 
@@ -20590,20 +20562,20 @@ export namespace Prisma {
   }
 
   export type EnumABeautifulEnumWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
-    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    not?: NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel> | ABeautifulEnum
+    equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    not?: NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel> | $Enums.ABeautifulEnum
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumABeautifulEnumFilter<$PrismaModel>
     _max?: NestedEnumABeautifulEnumFilter<$PrismaModel>
   }
 
   export type EnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel> | ABeautifulEnum | null
+    equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel> | $Enums.ABeautifulEnum | null
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel>
     _max?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel>
@@ -21391,11 +21363,11 @@ export namespace Prisma {
   }
 
   export type EnumABeautifulEnumFieldUpdateOperationsInput = {
-    set?: ABeautifulEnum
+    set?: $Enums.ABeautifulEnum
   }
 
   export type NullableEnumABeautifulEnumFieldUpdateOperationsInput = {
-    set?: ABeautifulEnum | null
+    set?: $Enums.ABeautifulEnum | null
     unset?: boolean
   }
 
@@ -21891,17 +21863,17 @@ export namespace Prisma {
   }
 
   export type NestedEnumABeautifulEnumFilter<$PrismaModel = never> = {
-    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
-    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    not?: NestedEnumABeautifulEnumFilter<$PrismaModel> | ABeautifulEnum
+    equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    not?: NestedEnumABeautifulEnumFilter<$PrismaModel> | $Enums.ABeautifulEnum
   }
 
   export type NestedEnumABeautifulEnumNullableFilter<$PrismaModel = never> = {
-    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel> | ABeautifulEnum | null
+    equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel> | $Enums.ABeautifulEnum | null
     isSet?: boolean
   }
 
@@ -22001,20 +21973,20 @@ export namespace Prisma {
   }
 
   export type NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
-    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
-    not?: NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel> | ABeautifulEnum
+    equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel>
+    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel>
+    not?: NestedEnumABeautifulEnumWithAggregatesFilter<$PrismaModel> | $Enums.ABeautifulEnum
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumABeautifulEnumFilter<$PrismaModel>
     _max?: NestedEnumABeautifulEnumFilter<$PrismaModel>
   }
 
   export type NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    in?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    notIn?: ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel> | ABeautifulEnum | null
+    equals?: $Enums.ABeautifulEnum | EnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    in?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    notIn?: $Enums.ABeautifulEnum[] | ListEnumABeautifulEnumFieldRefInput<$PrismaModel> | null
+    not?: NestedEnumABeautifulEnumNullableWithAggregatesFilter<$PrismaModel> | $Enums.ABeautifulEnum | null
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel>
     _max?: NestedEnumABeautifulEnumNullableFilter<$PrismaModel>
@@ -22111,8 +22083,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     embedHolder: EmbedHolderCreateNestedOneWithoutUserInput
@@ -22129,8 +22101,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     embedHolderId: string
@@ -22162,8 +22134,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     embedHolder?: EmbedHolderUpdateOneRequiredWithoutUserNestedInput
@@ -22179,8 +22151,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     embedHolderId?: StringFieldUpdateOperationsInput | string
@@ -22313,8 +22285,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     posts?: PostCreateNestedManyWithoutAuthorInput
@@ -22331,8 +22303,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
     posts?: PostUncheckedCreateNestedManyWithoutAuthorInput
@@ -22400,8 +22372,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"User"> | string | null
     json?: JsonFilter<"User">
     optionalJson?: JsonNullableFilter<"User">
-    enum?: EnumABeautifulEnumFilter<"User"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"User"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"User"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"User"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"User"> | boolean
     optionalBoolean?: BoolNullableFilter<"User"> | boolean | null
     embedHolderId?: StringFilter<"User"> | string
@@ -22417,8 +22389,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22434,8 +22406,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22475,8 +22447,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"N"> | string | null
     json?: JsonFilter<"N">
     optionalJson?: JsonNullableFilter<"N">
-    enum?: EnumABeautifulEnumFilter<"N"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"N"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"N"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"N"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"N"> | boolean
     optionalBoolean?: BoolNullableFilter<"N"> | boolean | null
   }
@@ -22491,8 +22463,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22508,8 +22480,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22549,8 +22521,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"M"> | string | null
     json?: JsonFilter<"M">
     optionalJson?: JsonNullableFilter<"M">
-    enum?: EnumABeautifulEnumFilter<"M"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"M"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"M"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"M"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"M"> | boolean
     optionalBoolean?: BoolNullableFilter<"M"> | boolean | null
   }
@@ -22565,8 +22537,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22581,8 +22553,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22626,8 +22598,8 @@ export namespace Prisma {
     optionalString?: StringNullableFilter<"ManyRequired"> | string | null
     json?: JsonFilter<"ManyRequired">
     optionalJson?: JsonNullableFilter<"ManyRequired">
-    enum?: EnumABeautifulEnumFilter<"ManyRequired"> | ABeautifulEnum
-    optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFilter<"ManyRequired"> | $Enums.ABeautifulEnum
+    optionalEnum?: EnumABeautifulEnumNullableFilter<"ManyRequired"> | $Enums.ABeautifulEnum | null
     boolean?: BoolFilter<"ManyRequired"> | boolean
     optionalBoolean?: BoolNullableFilter<"ManyRequired"> | boolean | null
   }
@@ -22642,8 +22614,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22658,8 +22630,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22689,8 +22661,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -22704,8 +22676,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -22720,8 +22692,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22736,8 +22708,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22767,8 +22739,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -22782,8 +22754,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -22798,8 +22770,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22814,8 +22786,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22845,8 +22817,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -22860,8 +22832,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -22928,8 +22900,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -22967,8 +22939,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     posts?: PostUpdateManyWithoutAuthorNestedInput
@@ -22984,8 +22956,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
     posts?: PostUncheckedUpdateManyWithoutAuthorNestedInput
@@ -23001,8 +22973,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -23016,8 +22988,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -23032,8 +23004,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -23048,8 +23020,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -23063,8 +23035,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -23079,8 +23051,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -23095,8 +23067,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -23111,8 +23083,8 @@ export namespace Prisma {
     optionalString?: string | null
     json: InputJsonValue
     optionalJson?: InputJsonValue | null
-    enum: ABeautifulEnum
-    optionalEnum?: ABeautifulEnum | null
+    enum: $Enums.ABeautifulEnum
+    optionalEnum?: $Enums.ABeautifulEnum | null
     boolean: boolean
     optionalBoolean?: boolean | null
   }
@@ -23126,8 +23098,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -23141,8 +23113,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
@@ -23156,8 +23128,8 @@ export namespace Prisma {
     optionalString?: NullableStringFieldUpdateOperationsInput | string | null
     json?: InputJsonValue | InputJsonValue
     optionalJson?: InputJsonValue | InputJsonValue | null
-    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum
-    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | ABeautifulEnum | null
+    enum?: EnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum
+    optionalEnum?: NullableEnumABeautifulEnumFieldUpdateOperationsInput | $Enums.ABeautifulEnum | null
     boolean?: BoolFieldUpdateOperationsInput | boolean
     optionalBoolean?: NullableBoolFieldUpdateOperationsInput | boolean | null
   }
