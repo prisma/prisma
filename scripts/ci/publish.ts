@@ -25,8 +25,10 @@ const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split
 const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
 
 async function getLatestCommit(dir: string): Promise<Commit> {
+  console.debug({ GITHUB_CONTEXT: process.env.GITHUB_CONTEXT })
   if (process.env.GITHUB_CONTEXT) {
     const context = JSON.parse(process.env.GITHUB_CONTEXT)
+    console.debug({ context })
     return context.sha
   }
 
