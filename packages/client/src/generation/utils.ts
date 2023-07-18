@@ -197,7 +197,7 @@ export function getReturnType({
 
   if (isChaining && actionName === 'findUniqueOrThrow') {
     return `Prisma__${name}Client<${getType(
-      `$Types.GetResult<${name}Payload<ExtArgs>, T, '${actionName}'>`,
+      `$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
     )} | ${isNullable ? 'null' : 'Null'}, ${isNullable ? 'null' : 'Null'}, ExtArgs>`
   }
