@@ -30,7 +30,7 @@ env:
 
 jobs:
   release:
-    timeout-minutes: 60
+    timeout-minutes: 45
     # environment: 'npm-ci'
     runs-on: ubuntu-latest
     permissions:
@@ -38,6 +38,12 @@ jobs:
       # see https://docs.npmjs.com/generating-provenance-statements
       id-token: write
     steps:
+      - name: Print input
+        env:
+          THE_INPUT: '${{ toJson(github.event.inputs) }}'
+        run: |
+          echo $THE_INPUT
+
       - uses: actions/checkout@v3
 
       - name: Install & build
