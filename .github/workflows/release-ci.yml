@@ -36,6 +36,7 @@ jobs:
         uses: ./.github/actions/setup
         with:
           node-version: 16
+          pnpm-version: 8
 
       - name: Publish all packages to npm
         run: pnpm run publish-all
