@@ -53,6 +53,7 @@ jobs:
           pnpm-version: 8
 
       - name: Publish all packages to npm
+        id: publish
         run: pnpm run publish-all
         env:
           # Inputs
@@ -67,6 +68,12 @@ jobs:
           REDIS_URL: ${{ secrets.REDIS_URL }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           SLACK_RELEASE_FEED_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
+
+      - name: Print output
+        env:
+          THE_OUTPUT: '${{ toJson(steps.publish.outputs) }}'
+        run: |
+          echo $THE_OUTPUT
 
   # Cuurently done in `sendSlackMessage()` in publish.ts, we should move it here later
   # success:

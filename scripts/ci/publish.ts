@@ -587,6 +587,13 @@ async function publish() {
       prismaVersion,
     })
 
+    if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `patchBranch=${patchBranch}\n`)
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `tag=${tag}\n`)
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `tagForEcosystemTestsCheck=${tagForEcosystemTestsCheck}\n`)
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaVersion=${prismaVersion}\n`)
+    }
+
     if (!dryRun && args['--test']) {
       if (onlyPackages || skipPackages) {
         console.log(bold('\nTesting all packages was skipped because onlyPackages or skipPackages is set.'))
@@ -623,6 +630,11 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
       const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommit)
       const prismaCommit = await getLatestCommit('.')
       const prismaCommitInfo = await getCommitInfo('prisma', prismaCommit.hash)
+
+      if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `enginesCommitHash=${enginesCommit}\n`)
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommit=${prismaCommit.hash}\n`)
+      }
 
       try {
         await sendSlackMessage({
