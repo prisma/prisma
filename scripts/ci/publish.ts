@@ -714,9 +714,11 @@ async function tagEnginesRepo(
   const remotes = dryRun ? [] : (await runResult('prisma-engines', `git remote`)).trim().split('\n')
 
   if (!remotes.includes('origin-push')) {
+    const githubToken = process.env.GITHUB_ACTIONS ? process.env.BOT_TOKEN : process.env.GITHUB_TOKEN
+
     await run(
       'prisma-engines',
-      `git remote add origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma-engines.git`,
+      `git remote add origin-push https://${githubToken}@github.com/prisma/prisma-engines.git`,
       dryRun,
       true,
     )
