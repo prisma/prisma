@@ -65,6 +65,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REDIS_URL: ${{ secrets.REDIS_URL }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          SLACK_RELEASE_FEED_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
 
   # We also have `sendSlackMessage()` in publish.ts
   # It uses the #feed-prisma-releases channel and adds more information
@@ -84,6 +85,7 @@ jobs:
           SLACK_TITLE: 'prisma/prisma Release succeeded :white_check_mark:'
           SLACK_COLOR: '#55ff55'
           SLACK_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
+          # TODO rename later
           SLACK_CHANNEL: feed-buildkite-prisma-publish
 
   failure:
