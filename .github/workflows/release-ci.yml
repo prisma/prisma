@@ -22,7 +22,7 @@ on:
 
 env:
   # To hide "Update available 0.0.0 -> x.x.x"
-  - PRISMA_HIDE_UPDATE_MESSAGE="true"
+  PRISMA_HIDE_UPDATE_MESSAGE: 'true'
 
 jobs:
   release:
