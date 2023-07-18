@@ -1,11 +1,8 @@
-import { assertNever } from '@prisma/internals'
-
 import { lowerCase } from '../../../generation/utils/common'
 import { ObjectEnumValue } from '../../object-enums'
 import { isValidDate } from '../../utils/date'
 import { isDecimalJsLike } from '../../utils/decimalJsLike'
 import { isFieldRef } from '../model/FieldRef'
-import { JsArgs, JsInputValue } from '../types/JsApi'
 import { ArrayValue } from './ArrayValue'
 import { Colors, ErrorBasicBuilder, ErrorWriter } from './base'
 import { ObjectField } from './ObjectField'
@@ -44,11 +41,11 @@ export class ArgumentsRenderingTree implements ErrorBasicBuilder {
  * @param args
  * @returns
  */
-export function buildArgumentsRenderingTree(args: JsArgs): ArgumentsRenderingTree {
+export function buildArgumentsRenderingTree(args: Record<PropertyKey, unknown>): ArgumentsRenderingTree {
   return new ArgumentsRenderingTree(buildInputObject(args))
 }
 
-function buildInputObject(inputObject: Record<string, JsInputValue>) {
+function buildInputObject(inputObject: Record<PropertyKey, unknown>) {
   const object = new ObjectValue()
 
   for (const [key, value] of Object.entries(inputObject)) {
@@ -58,7 +55,7 @@ function buildInputObject(inputObject: Record<string, JsInputValue>) {
   return object
 }
 
-function buildInputValue(value: JsInputValue) {
+function buildInputValue(value: unknown) {
   if (typeof value === 'string') {
     return new ScalarValue(JSON.stringify(value))
   }
@@ -108,13 +105,13 @@ function buildInputValue(value: JsInputValue) {
   }
 
   if (typeof value === 'object') {
-    return buildInputObject(value)
+    return buildInputObject(value as Record<PropertyKey, unknown>)
   }
 
-  assertNever(value, 'Unknown value type')
+  return new ScalarValue(Object.prototype.toString.call(value))
 }
 
-function buildInputArray(array: JsInputValue[]) {
+function buildInputArray(array: unknown[]) {
   const result = new ArrayValue()
   for (const item of array) {
     result.addItem(buildInputValue(item))
