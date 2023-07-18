@@ -430,7 +430,7 @@ testMatrix.setupTestSuite(
                   }
                 })
 
-        Invalid value for argument \`name\`: Doesn't know how to serialize [object Function] value. Serialize the object to JSON or implement a ".toJSON()" method on it.
+        Invalid value for argument \`name\`: We could not serialize [object Function] value. Serialize the object to JSON or implement a ".toJSON()" method on it.
       `)
     })
   },
