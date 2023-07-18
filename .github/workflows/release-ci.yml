@@ -56,7 +56,7 @@ jobs:
         run: pnpm run publish-all
         env:
           # Inputs
-          DRY_RUN: ${{ github.event.inputs.dryRun }}
+          DRY_RUN: ${{ github.event.inputs.dryRun == 'true' && 'true' || '' }}
           # Other
           BUILDKITE: true
           BUILDKITE_BRANCH: ${{ github.ref_name }}
