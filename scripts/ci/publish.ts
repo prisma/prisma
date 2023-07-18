@@ -25,10 +25,8 @@ const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split
 const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
 
 async function getLatestCommit(dir: string): Promise<Commit> {
-  console.debug({ GITHUB_CONTEXT: process.env.GITHUB_CONTEXT })
   if (process.env.GITHUB_CONTEXT) {
     const context = JSON.parse(process.env.GITHUB_CONTEXT)
-    console.debug({ context })
     return context.sha
   }
 
@@ -1068,12 +1066,12 @@ async function sendSlackMessage({ version, enginesCommit, prismaCommit, dryRun }
   const dryRunStr = dryRun ? 'DRYRUN: ' : ''
 
   const prismaLines = getLines(prismaCommit.message)
-  console.debug({ prismaCommit })
-  console.debug({ prismaLines })
-
   const enginesLines = getLines(enginesCommit.message)
-  console.debug({ enginesCommit })
-  console.debug({ enginesLines })
+
+  const authoredByString = (author: string) => {
+    if (!author) return ''
+    return `Authored by ${prismaCommit.author}`
+  }
 
   await webhook.send(
     `${dryRunStr}<https://www.npmjs.com/package/prisma/v/${version}|prisma@${version}> has just been released. Install via \`npm i -g prisma@${version}\` or \`npx prisma@${version}\`
@@ -1083,13 +1081,13 @@ What's shipped:
       0,
       7,
     )}>
-${prismaLines.slice(1).join('\n')}${prismaLines.length > 1 ? '\n' : ''}Authored by ${prismaCommit.author}
+${prismaLines.join('\n')}${prismaLines.length > 1 ? '\n' : ''}${authoredByString(prismaCommit.author)}
 
 \`prisma/prisma-engines\`
 <https://github.com/prisma/prisma-engines/commit/${enginesCommit.hash}|${
       enginesLines[0]
     }\t\t\t\t-  ${enginesCommit.hash.slice(0, 7)}>
-${enginesLines.slice(1).join('\n')}${enginesLines.length > 1 ? '\n' : ''}Authored by ${enginesCommit.author}`,
+${enginesLines.join('\n')}${enginesLines.length > 1 ? '\n' : ''}${authoredByString(enginesCommit.author)}`,
   )
 }
 
