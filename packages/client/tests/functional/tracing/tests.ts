@@ -112,13 +112,8 @@ afterAll(() => {
 })
 
 testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
-  jest.retryTimes(3)
-
   beforeEach(async () => {
     await prisma.$connect()
-  })
-
-  beforeEach(() => {
     inMemorySpanExporter.reset()
   })
 
@@ -154,12 +149,12 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
   }
 
   describe('tracing on crud methods', () => {
-    let email = faker.internet.email()
+    let sharedEmail = faker.internet.email()
 
     test('create', async () => {
       await prisma.user.create({
         data: {
-          email: email,
+          email: sharedEmail,
         },
       })
 
@@ -197,34 +192,45 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
         expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
         return
+      } // Since https://github.com/prisma/prisma-engines/pull/4041
+      // We skip a read when possible, on CockroachDB and PostgreSQL
+      else if (['postgresql', 'cockroachdb'].includes(provider)) {
+        expect(engine.children).toHaveLength(3)
+
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toContain('INSERT')
+
+        const engineSerialize = (engine.children || [])[2]
+        expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
+      } else {
+        expect(engine.children).toHaveLength(6)
+
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
+
+        const dbQuery2 = (engine.children || [])[2]
+        expect(dbQuery2.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery2.span.attributes['db.statement']).toContain('INSERT')
+
+        const dbQuery3 = (engine.children || [])[3]
+        expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
+
+        const dbQuery4 = (engine.children || [])[4]
+        expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+
+        const engineSerialize = (engine.children || [])[5]
+        expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
       }
-
-      expect(engine.children).toHaveLength(6)
-
-      const dbQuery1 = (engine.children || [])[1]
-      expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
-      expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
-
-      const dbQuery2 = (engine.children || [])[2]
-      expect(dbQuery2.span.name).toEqual('prisma:engine:db_query')
-      expect(dbQuery2.span.attributes['db.statement']).toContain('INSERT')
-
-      const dbQuery3 = (engine.children || [])[3]
-      expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
-      expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
-
-      const dbQuery4 = (engine.children || [])[4]
-      expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
-      expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
-
-      const engineSerialize = (engine.children || [])[5]
-      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
     })
 
     test('read', async () => {
       await prisma.user.findMany({
         where: {
-          email: email,
+          email: sharedEmail,
         },
       })
 
@@ -278,11 +284,11 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
           email: newEmail,
         },
         where: {
-          email: email,
+          email: sharedEmail,
         },
       })
 
-      email = newEmail
+      sharedEmail = newEmail
 
       const tree = await waitForSpanTree()
 
@@ -353,7 +359,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
     test('delete', async () => {
       await prisma.user.delete({
         where: {
-          email: email,
+          email: sharedEmail,
         },
       })
 
@@ -464,11 +470,15 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
 
       if (provider === 'mongodb') {
         expect(queryBuilder.children).toHaveLength(6)
-
         return
       }
-
-      expect(queryBuilder.children).toHaveLength(8)
+      // Since https://github.com/prisma/prisma-engines/pull/4041
+      // We skip a read when possible, on CockroachDB and PostgreSQL
+      else if (['postgresql', 'cockroachdb'].includes(provider)) {
+        expect(queryBuilder.children).toHaveLength(7)
+      } else {
+        expect(queryBuilder.children).toHaveLength(8)
+      }
     })
 
     test('interactive-transactions', async () => {
@@ -645,28 +655,39 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
 
       return
+    } // Since https://github.com/prisma/prisma-engines/pull/4041
+    // We skip a read when possible, on CockroachDB and PostgreSQL
+    else if (['postgresql', 'cockroachdb'].includes(provider)) {
+      expect(engine.children).toHaveLength(3)
+
+      const dbQuery1 = (engine.children || [])[1]
+      expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
+      expect(dbQuery1.span.attributes['db.statement']).toContain('INSERT')
+
+      const engineSerialize = (engine.children || [])[2]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
+    } else {
+      expect(engine.children).toHaveLength(6)
+
+      const dbQuery1 = (engine.children || [])[1]
+      expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
+      expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
+
+      const dbQuery2 = (engine.children || [])[2]
+      expect(dbQuery2.span.name).toEqual('prisma:engine:db_query')
+      expect(dbQuery2.span.attributes['db.statement']).toContain('INSERT')
+
+      const dbQuery3 = (engine.children || [])[3]
+      expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
+      expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
+
+      const dbQuery4 = (engine.children || [])[4]
+      expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
+      expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+
+      const engineSerialize = (engine.children || [])[5]
+      expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
     }
-
-    expect(engine.children).toHaveLength(6)
-
-    const dbQuery1 = (engine.children || [])[1]
-    expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
-    expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
-
-    const dbQuery2 = (engine.children || [])[2]
-    expect(dbQuery2.span.name).toEqual('prisma:engine:db_query')
-    expect(dbQuery2.span.attributes['db.statement']).toContain('INSERT')
-
-    const dbQuery3 = (engine.children || [])[3]
-    expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
-    expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
-
-    const dbQuery4 = (engine.children || [])[4]
-    expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
-    expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
-
-    const engineSerialize = (engine.children || [])[5]
-    expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
   })
 
   describe('tracing with middleware', () => {
@@ -678,7 +699,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       await _prisma.$connect()
     })
 
-    test('tracing with middleware', async () => {
+    test('should succeed', async () => {
       const email = faker.internet.email()
 
       _prisma.$use(async (params, next) => {
@@ -708,7 +729,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
       expect(tree.span.attributes['method']).toEqual('create')
       expect(tree.span.attributes['model']).toEqual('User')
 
-      expect(tree.children).toHaveLength(10)
+      expect(tree.children).toHaveLength(4)
 
       const middleware1 = (tree.children || [])[0] as unknown as Tree
       expect(middleware1.span.name).toEqual('prisma:client:middleware')
@@ -739,27 +760,39 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
 
         return
       }
+      // Since https://github.com/prisma/prisma-engines/pull/4041
+      // We skip a read when possible, on CockroachDB and PostgreSQL
+      else if (['postgresql', 'cockroachdb'].includes(provider)) {
+        expect(engine.children).toHaveLength(3)
 
-      expect(engine.children).toHaveLength(6)
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toContain('INSERT')
 
-      const dbQuery1 = (engine.children || [])[1]
-      expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
-      expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
+        const serialize = (engine.children || [])[2]
+        expect(serialize.span.name).toEqual('prisma:engine:serialize')
+      } else {
+        expect(engine.children).toHaveLength(6)
 
-      const dbQuery2 = (engine.children || [])[2]
-      expect(dbQuery2.span.name).toEqual('prisma:engine:db_query')
-      expect(dbQuery2.span.attributes['db.statement']).toContain('INSERT')
+        const dbQuery1 = (engine.children || [])[1]
+        expect(dbQuery1.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery1.span.attributes['db.statement']).toContain('BEGIN')
 
-      const dbQuery3 = (engine.children || [])[3]
-      expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
-      expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
+        const dbQuery2 = (engine.children || [])[2]
+        expect(dbQuery2.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery2.span.attributes['db.statement']).toContain('INSERT')
 
-      const dbQuery4 = (engine.children || [])[4]
-      expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
-      expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+        const dbQuery3 = (engine.children || [])[3]
+        expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery3.span.attributes['db.statement']).toContain('SELECT')
 
-      const serialize = (engine.children || [])[5]
-      expect(serialize.span.name).toEqual('prisma:engine:serialize')
+        const dbQuery4 = (engine.children || [])[4]
+        expect(dbQuery4.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery4.span.attributes['db.statement']).toContain('COMMIT')
+
+        const serialize = (engine.children || [])[5]
+        expect(serialize.span.name).toEqual('prisma:engine:serialize')
+      }
     })
   })
 
