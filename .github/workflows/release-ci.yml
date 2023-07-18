@@ -60,6 +60,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REDIS_URL: ${{ secrets.REDIS_URL }}
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          SLACK_RELEASE_FEED_WEBHOOK: ${{ secrets.SLACK_RELEASE_FEED_WEBHOOK }}
 
   # Cuurently done in `sendSlackMessage()` in publish.ts, we should move it here later
   # success:
