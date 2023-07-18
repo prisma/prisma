@@ -118,4 +118,9 @@ export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayload
 
 export type Select<T, U> = T extends U ? T : never
 
-export type JsPromise<T> = Promise<T>
+// This alias is necessary to allow to use `Promise` as a model name.
+// It's used in generated client instead of global `Promise`.
+// Why conditional type instead of plain alias? With conditional type,
+// the type would still be displayed as `Promise<T>` where with an alias it would
+// be displayed as `$Utils.JsPromise<T>`.
+export type JsPromise<T> = T extends unknown ? Promise<T> : Promise<T>
