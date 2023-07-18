@@ -309,8 +309,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a
-        version: 5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a
+        specifier: 5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e
+        version: 5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.0.0
@@ -587,8 +587,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a
-        version: 5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a
+        specifier: 5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e
+        version: 5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -672,8 +672,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a
-        version: 5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a
+        specifier: 5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e
+        version: 5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e
       '@swc/core':
         specifier: 1.3.68
         version: 1.3.68
@@ -954,8 +954,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a
-        version: 5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a
+        specifier: 5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e
+        version: 5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e
       archiver:
         specifier: 5.3.1
         version: 5.3.1
@@ -1166,8 +1166,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a
-        version: 5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a
+        specifier: 5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e
+        version: 5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3557,8 +3557,8 @@ packages:
     dev: true
     optional: true
 
-  /@prisma/engines-version@5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a:
-    resolution: {integrity: sha512-CqTEQVNkKHx1oYruAyk/VDbfJH7igW/TPa/3sJeudGRHmv0u300/a47OEM8pRSvhkEs7BKYnkP4jGNfXEw/z1Q==}
+  /@prisma/engines-version@5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e:
+    resolution: {integrity: sha512-Cgd6NWgTAxN9u3MppRkBQ7z5yGvNBuu6OYLLuMIH2wlq4DcSMAn8BSWgWYfB2XIFBX5wKBUH9rdiwiKnTDAEhw==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3566,8 +3566,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.1.0-5.e06258de9546caf4a1ab746f2d424a13b67dbb5a:
-    resolution: {integrity: sha512-mBGR2IOIYK09sxiIK04zllDy3k/cusZDf9eQNKZyweL1x230xOmfbuwz7G16TX27T4dUrA6mSfZr9QMHbjQwVQ==}
+  /@prisma/prisma-schema-wasm@5.1.0-6.integration-alula-ipv6-9943d4e306ad96d7806ab1274c18621f6e5ace2e:
+    resolution: {integrity: sha512-qf8cesksDp0UzwoKCzARN4uZPae+hi8HvtYYVnuUzvkZzr1iGtdNrCyzuKiqeEOZSmwCEUIlx8EzE51o/5qC3Q==}
     dev: false
 
   /@prisma/studio-common@0.487.0:
