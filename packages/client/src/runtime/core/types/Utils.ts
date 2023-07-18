@@ -120,7 +120,7 @@ export type Select<T, U> = T extends U ? T : never
 
 // This alias is necessary to allow to use `Promise` as a model name.
 // It's used in generated client instead of global `Promise`.
-// Why conditional type instead of plain alias? With conditional type,
-// the type would still be displayed as `Promise<T>` where with an alias it would
-// be displayed as `$Utils.JsPromise<T>`.
-export type JsPromise<T> = T extends unknown ? Promise<T> : Promise<T>
+// Why conditional intersection with {}?. Without it, in the error messages
+// and editor tooltips, type would be displayed as $Utils.JsPromise<T>.
+// Intersection allows us to preserve the name `Promise`
+export type JsPromise<T> = Promise<T> & {}
