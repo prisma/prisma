@@ -27,7 +27,7 @@ env:
 jobs:
   release:
     timeout-minutes: 60
-    environment: 'npm-ci'
+    # environment: 'npm-ci'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
