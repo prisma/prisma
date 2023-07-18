@@ -9,16 +9,19 @@ on:
         type: string
         required: true
       skipEcosystemTestsChecks:
-        description: 'Skip ecosystem tests checks? (e.g. true)'
+        description: 'Check to skip ecosystem tests checks'
         type: boolean
       skipPackages:
-        description: 'Skip some packages? (e.g. `@prisma/debug,@prisma/internals`)'
+        description: 'Skip publishing some packages? (e.g. `@prisma/debug,@prisma/internals`)'
         type: string
         required: false
       onlyPackages:
         description: 'Only publish some packages? (e.g. `@prisma/debug,@prisma/internals`)'
         type: string
         required: false
+      dryRun:
+        description: 'Check to do a dry run (does not publish packages)'
+        type: boolean
 
 env:
   # To hide "Update available 0.0.0 -> x.x.x"
@@ -42,17 +45,21 @@ jobs:
           echo "SKIP_ECOSYSTEMTESTS_CHECK $SKIP_ECOSYSTEMTESTS_CHECK"
           pnpm run publish-all
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Inputs
           BUILDKITE_TAG: ${{ github.event.inputs.targetVersion }}
           SKIP_ECOSYSTEMTESTS_CHECK: ${{ github.event.inputs.skipEcosystemTestsChecks }}
-          BUILDKITE: true
-          BUILDKITE_BRANCH: ${{ github.ref_name }}
           ONLY_PACKAGES: ${{ github.event.inputs.onlyPackages }}
           SKIP_PACKAGES: ${{ github.event.inputs.skipPackages }}
+          DRY_RUN: ${{ github.event.inputs.dryRun }}
+          # Other
+          BUILDKITE: true
+          BUILDKITE_BRANCH: ${{ github.ref_name }}
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          # Secrets
           # Note: must use personal access token
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REDIS_URL: ${{ secrets.REDIS_URL }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   # We also have `sendSlackMessage()` in publish.ts
   # It uses the #feed-prisma-releases channel and adds more information

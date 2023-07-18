@@ -473,7 +473,6 @@ function getSemverFromPatchBranch(version: string) {
 async function publish() {
   const args = arg({
     '--publish': Boolean,
-    '--repo': String, // TODO what is repo? Can we remove this? probably
     '--dry-run': Boolean,
     '--release': String, // TODO What does that do? Can we remove this? probably
     '--test': Boolean,
