@@ -1,3 +1,4 @@
+// @ts-check
 const { drawBox } = require('@prisma/internals/dist/utils/drawBox')
 var { red, underline } = require('kleur/colors')
 
