@@ -20,7 +20,7 @@
     "@prisma/engines-version": "5.1.0-8.b182127de581d0bf6ec89152a6e2fb4652be0f0a",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
-    "@swc/core": "1.3.68",
+    "@swc/core": "1.3.70",
     "@swc/jest": "0.2.26",
     "@types/jest": "29.5.3",
     "@types/node": "18.16.19",
