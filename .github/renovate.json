@@ -73,7 +73,6 @@
         "string-width",
         "strip-ansi",
         "strip-indent",
-        "temp-write",
         "tempy",
         "terminal-link"
       ],
@@ -113,7 +112,6 @@
         "string-width",
         "strip-ansi",
         "strip-indent",
-        "temp-write",
         "tempy",
         "terminal-link"
       ],
