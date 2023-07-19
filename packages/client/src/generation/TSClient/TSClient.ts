@@ -11,6 +11,7 @@ import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
+import * as ts from '../ts-builders'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
@@ -114,7 +115,7 @@ ${buildRequirePath(edge)}
 /**
  * Enums
  */
-
+exports.$Enums = {}
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
@@ -178,7 +179,16 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 
     const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toTS())
 
-    const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toTS())
+    const modelEnums: string[] = []
+    const modelEnumsAliases: string[] = []
+    for (const enumType of this.dmmf.schema.enumTypes.model ?? []) {
+      const namespacedType = ts.namedType(`$Enums.${enumType.name}`)
+      modelEnums.push(new Enum(enumType, false).toTS())
+      modelEnumsAliases.push(
+        ts.stringify(ts.moduleExport(ts.typeDeclaration(enumType.name, namespacedType))),
+        ts.stringify(ts.moduleExport(ts.constDeclaration(enumType.name, namespacedType))),
+      )
+    }
 
     const fieldRefs = this.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
 
@@ -195,13 +205,16 @@ ${commonCode.tsWithoutNamespace()}
 
 ${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
 ${
-  modelEnums && modelEnums.length > 0
+  modelEnums.length > 0
     ? `
 /**
  * Enums
  */
+export namespace $Enums {
+  ${modelEnums.join('\n\n')}
+}
 
-${modelEnums.join('\n\n')}
+${modelEnumsAliases.join('\n\n')}
 `
     : ''
 }
