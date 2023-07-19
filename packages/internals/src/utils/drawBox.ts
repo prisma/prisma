@@ -25,9 +25,9 @@ function maxLineLength(str: string): number {
 }
 
 export function drawBox({ title, width, height, str, horizontalPadding }: BoxOptions): string {
-  horizontalPadding = horizontalPadding || 0
   // This avoids having NaN later
   // if these required param were not passed (in JS, for example)
+  horizontalPadding = horizontalPadding || 0
   width = width || 0
   height = height || 0
   // Make sure the width is at least as long as the string
