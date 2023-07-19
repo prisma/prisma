@@ -16,7 +16,7 @@
   "enginesOverride": {},
   "devDependencies": {
     "@prisma/engines-version": "5.1.0-7.6bdd55c4e16f8250d90a95040a04253d43f7abcd",
-    "@swc/core": "1.3.68",
+    "@swc/core": "1.3.70",
     "@swc/jest": "0.2.26",
     "@types/jest": "29.5.3",
     "@types/node": "18.16.19",
