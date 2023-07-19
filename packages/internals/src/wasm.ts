@@ -1,4 +1,4 @@
-import prismaFmt from '@prisma/prisma-fmt-wasm'
+import prismaSchemaWasm from '@prisma/prisma-schema-wasm'
 
 import { WasmPanicRegistry } from './WasmPanicRegistry'
 
@@ -6,9 +6,9 @@ import { WasmPanicRegistry } from './WasmPanicRegistry'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { dependencies } = require('../package.json')
 
-export { prismaFmt }
+export { prismaSchemaWasm }
 // e.g. 4.3.0-18.a39215673171b87177b86233206a5d65f2558857
-export const prismaFmtVersion: string = dependencies['@prisma/prisma-fmt-wasm']
+export const prismaSchemaWasmVersion: string = dependencies['@prisma/prisma-schema-wasm']
 
 /**
  * Set up a global registry for Wasm panics.

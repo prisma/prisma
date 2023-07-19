@@ -2288,7 +2288,7 @@ describe('Union', () => {
               kind: 'InvalidArgumentType',
               selectionPath: [],
               argumentPath: ['where', 'email'],
-              argument: { name: 'gt', typeNames: ['String'] },
+              argument: { name: 'email', typeNames: ['String'] },
               inferredType: 'Int',
             },
 
@@ -2316,7 +2316,7 @@ describe('Union', () => {
               }
             }
 
-            Argument \`gt\`: Invalid value provided. Expected String or StringFilter, provided Int.
+            Argument \`email\`: Invalid value provided. Expected String or StringFilter, provided Int.
 
             ------------------------------------
 
@@ -2329,9 +2329,70 @@ describe('Union', () => {
               }
             }
 
-            Argument \`<bold>gt</intensity>\`: Invalid value provided. Expected <green>String</color> or <green>StringFilter</color>, provided <red>Int</color>.
+            Argument \`<bold>email</intensity>\`: Invalid value provided. Expected <green>String</color> or <green>StringFilter</color>, provided <red>Int</color>.
 
         `)
+  })
+
+  test('same length path, different error types', () => {
+    expect(
+      renderError(
+        {
+          kind: 'Union',
+          errors: [
+            {
+              kind: 'RequiredArgumentMissing',
+              selectionPath: [],
+              argumentPath: ['data', 'profile'],
+              inputTypes: [
+                {
+                  kind: 'object',
+                  name: 'ProfileCreateInput',
+                  fields: [{ name: 'create', typeNames: ['ProfileUniqueInput'], required: true }],
+                },
+              ],
+            },
+
+            {
+              kind: 'InvalidArgumentType',
+              selectionPath: [],
+              argumentPath: ['data', 'email'],
+              argument: { name: 'email', typeNames: ['String'] },
+              inferredType: 'Int',
+            },
+          ],
+        },
+        {
+          data: { email: 123 },
+        },
+      ),
+    ).toMatchInlineSnapshot(`
+
+      Colorless:
+
+      {
+        data: {
+          email: 123
+                 ~~~
+        }
+      }
+
+      Argument \`email\`: Invalid value provided. Expected String, provided Int.
+
+      ------------------------------------
+
+      Colored:
+
+      {
+        data: {
+          email: <red>123</color>
+                 <red>~~~</color>
+        }
+      }
+
+      Argument \`<bold>email</intensity>\`: Invalid value provided. Expected <green>String</color>, provided <red>Int</color>.
+
+    `)
   })
 })
 

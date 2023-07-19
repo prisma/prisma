@@ -28,6 +28,14 @@ testMatrix.setupTestSuite(
 
       expect(result).toEqual([expect.objectContaining({ enum1: 'a', enum2: 'a' })])
     })
+
+    test('via extended client', async () => {
+      const xprisma = prisma.$extends({})
+
+      const result = await xprisma.testModel.findMany({ where: { enum1: { equals: xprisma.testModel.fields.enum2 } } })
+
+      expect(result).toEqual([expect.objectContaining({ enum1: 'a', enum2: 'a' })])
+    })
   },
   {
     optOut: { from: ['sqlserver', 'sqlite'], reason: 'Enums are not supported' },

@@ -28,14 +28,14 @@ export namespace JsonRPC {
   }
 }
 
-export type Dictionary<T> = { [key: string]: T }
+export type Dictionary<T> = { [key: string]: T | undefined }
 
 export interface GeneratorConfig {
   name: string
   output: EnvValue | null
   isCustomOutput?: boolean
   provider: EnvValue
-  config: Dictionary<string>
+  config: Dictionary<string | string[]>
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
@@ -75,7 +75,7 @@ export interface DataSource {
 }
 
 export type BinaryPaths = {
-  migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
+  schemaEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
 }
@@ -97,7 +97,7 @@ export type GeneratorOptions = {
   postinstall?: boolean
 }
 
-export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine'
+export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'
 
 export type GeneratorManifest = {
   prettyName?: string

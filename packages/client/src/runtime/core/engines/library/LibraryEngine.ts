@@ -1,5 +1,4 @@
 import Debug from '@prisma/debug'
-import { DMMF } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
 import { EngineSpanEvent } from '@prisma/internals'
@@ -14,16 +13,14 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import type {
   BatchQueryEngineResult,
   DatasourceOverwrite,
-  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
-  EngineProtocol,
-  EngineQuery,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { EventEmitter } from '../common/types/Events'
+import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
   QueryEngineEvent,
@@ -39,7 +36,6 @@ import { getBatchRequestPayload } from '../common/utils/getBatchRequestPayload'
 import { getErrorMessageWithLink } from '../common/utils/getErrorMessageWithLink'
 import { getInteractiveTransactionId } from '../common/utils/getInteractiveTransactionId'
 import { DefaultLibraryLoader } from './DefaultLibraryLoader'
-import { type BeforeExitListener, ExitHooks } from './ExitHooks'
 import type { Library, LibraryLoader, QueryEngineConstructor, QueryEngineInstance } from './types/Library'
 
 const debug = Debug('prisma:client:libraryEngine')
@@ -57,7 +53,6 @@ function isPanicEvent(event: QueryEngineEvent): event is QueryEnginePanicEvent {
 
 const knownPlatforms: Platform[] = [...platforms, 'native']
 let engineInstanceCount = 0
-const exitHooks = new ExitHooks()
 
 export class LibraryEngine extends Engine<undefined> {
   private engine?: QueryEngineInstance
@@ -71,7 +66,6 @@ export class LibraryEngine extends Engine<undefined> {
   private libraryLoader: LibraryLoader
   private library?: Library
   private logEmitter: EventEmitter
-  private engineProtocol: EngineProtocol
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
@@ -84,14 +78,6 @@ export class LibraryEngine extends Engine<undefined> {
   versionInfo?: {
     commit: string
     version: string
-  }
-
-  get beforeExitListener() {
-    return exitHooks.getListener(this)
-  }
-
-  set beforeExitListener(listener: BeforeExitListener | undefined) {
-    exitHooks.setListener(this, listener)
   }
 
   constructor(config: EngineConfig, loader: LibraryLoader = new DefaultLibraryLoader(config)) {
@@ -124,20 +110,22 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     this.logLevel = config.logLevel ?? 'error'
     this.libraryLoader = loader
     this.logEmitter = config.logEmitter
-    this.engineProtocol = config.engineProtocol
     this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
     }
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
-    exitHooks.install()
     this.checkForTooManyEngines()
   }
 
   private checkForTooManyEngines() {
     if (engineInstanceCount === 10) {
-      console.warn(`${yellow('warn(prisma-client)')} There are already 10 instances of Prisma Client actively running.`)
+      console.warn(
+        `${yellow(
+          'warn(prisma-client)',
+        )} This is the 10th instance of Prisma Client being started. Make sure this is intentional.`,
+      )
     }
   }
 
@@ -261,7 +249,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             datasourceOverrides: this.datasourceOverrides,
             logLevel: this.logLevel,
             configDir: this.config.cwd,
-            engineProtocol: this.engineProtocol,
+            engineProtocol: 'json',
           },
           (log) => {
             weakThis.deref()?.logger(log)
@@ -349,7 +337,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
-      this.beforeExitListener = listener
+      throw new Error(
+        '"beforeExit" hook is not applicable to the library engine since Prisma 5.0.0, it is only relevant and implemented for the binary engine. Please add your event listener to the `process` object directly instead.',
+      )
     } else {
       this.logEmitter.on(event, listener)
     }
@@ -436,15 +426,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return this.libraryStoppingPromise
   }
 
-  async getDmmf(): Promise<DMMF.Document> {
-    await this.start()
-
-    const traceparent = this.config.tracingHelper.getTraceParent()
-    const response = await this.engine!.dmmf(JSON.stringify({ traceparent }))
-
-    return this.config.tracingHelper.runInChildSpan({ name: 'parseDmmf', internal: true }, () => JSON.parse(response))
-  }
-
   version(): string {
     this.versionInfo = this.library?.version()
     return this.versionInfo?.version ?? 'unknown'
@@ -457,7 +438,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async request<T>(
-    query: EngineQuery,
+    query: JsonQuery,
     { traceparent, interactiveTransaction }: RequestOptions<undefined>,
   ): Promise<{ data: T; elapsed: number }> {
     debug(`sending request, this.libraryStarted: ${this.libraryStarted}`)
@@ -503,7 +484,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   async requestBatch<T>(
-    queries: EngineBatchQueries,
+    queries: JsonQuery[],
     { transaction, traceparent }: RequestBatchOptions<undefined>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     debug('requestBatch')

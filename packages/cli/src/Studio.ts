@@ -1,3 +1,4 @@
+import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
 import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
@@ -6,6 +7,8 @@ import getPort from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
 import path from 'path'
+
+const debug = Debug('prisma:studio')
 
 const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
@@ -111,12 +114,24 @@ ${bold('Examples')}
     const serverUrl = `http://localhost:${port}`
     if (!browser || browser.toLowerCase() !== 'none') {
       try {
-        await open(serverUrl, {
+        const subprocess = await open(serverUrl, {
           app: browser,
           url: true,
         })
+
+        subprocess.on('spawn', () => {
+          // We match on this string in debug logs in tests
+          debug(`requested to open the url ${serverUrl}`)
+        })
+
+        subprocess.on('error', (e) => {
+          debug(e)
+          // We match on this string in debug logs in tests
+          debug(`failed to open the url ${serverUrl} in browser`)
+        })
       } catch (e) {
         // Ignore any errors that occur when trying to open the browser, since they should not halt the process
+        debug(e)
       }
     }
 

@@ -1,6 +1,6 @@
 import { DMMF } from '@prisma/generator-helper'
 
-import { DMMFHelper } from '../../../runtime/dmmf'
+import { DMMFHelper } from '../../dmmf'
 
 export function getModelActions(dmmf: DMMFHelper, name: string) {
   const mapping = dmmf.mappingsMap[name] ?? { model: name, plural: `${name}s` }

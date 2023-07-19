@@ -1,117 +1,51 @@
-import indent from 'indent-string'
+import { DMMFHelper } from '../dmmf'
+import { DMMF } from '../dmmf-types'
+import * as ts from '../ts-builders'
+import { extArgsParam, getPayloadName } from '../utils'
+import { lowerCase } from '../utils/common'
+import { buildModelOutputProperty } from './Output'
 
-import { get } from '../../../../../helpers/blaze/get'
-import { DMMFHelper } from '../../runtime/dmmf'
-import { DMMF } from '../../runtime/dmmf-types'
-import { lowerCase } from '../../runtime/utils/common'
-import { getArgName, getModelArgName, getPayloadName, Projection } from '../utils'
-import type { Generatable } from './Generatable'
-import type { OutputType } from './Output'
-import { ifExtensions } from './utils/ifExtensions'
+export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
+  const isComposite = Boolean(dmmf.typeMap[model.name])
 
-export class PayloadType implements Generatable {
-  constructor(
-    protected readonly type: OutputType,
-    protected readonly dmmf: DMMFHelper,
-    protected readonly findMany = true,
-  ) {}
+  const objects = ts.objectType()
+  const scalars = ts.objectType()
+  const composites = ts.objectType()
 
-  public toTS(): string {
-    const { type } = this
-    const { name } = type
-
-    const argsName = getArgName(name)
-
-    const include = this.renderRelations(Projection.include)
-    const select = this.renderRelations(Projection.select)
-
-    const isModel = !this.dmmf.typeMap[name]
-    const findManyArg =
-      isModel && this.findMany ? ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}${ifExtensions('', '')}` : ''
-
-    return `\
-export type ${getPayloadName(name)}<S extends boolean | null | undefined | ${argsName}${ifExtensions(
-      `, ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs, _${name} = runtime.Types.Extensions.GetResult<${name}, ExtArgs['result']['${lowerCase(
-        name,
-      )}']>`,
-      '',
-    )}> =
-  S extends { select: any, include: any } ? 'Please either choose \`select\` or \`include\`' :
-  S extends true ? ${ifExtensions(`_${name}`, name)} :
-  S extends undefined ? never :
-  S extends { include: any } & (${argsName}${findManyArg})
-  ? ${ifExtensions(`_${name}`, name)} ${include.length > 0 ? ifExtensions(`& ${include}`, ` & ${include}`) : ''}
-  : S extends { select: any } & (${argsName}${findManyArg})
-    ? ${select}
-    : ${ifExtensions(`_${name}`, name)}
-`
+  for (const field of model.fields) {
+    if (field.kind === 'object') {
+      if (dmmf.typeMap[field.type]) {
+        composites.add(buildModelOutputProperty(field, dmmf))
+      } else {
+        objects.add(buildModelOutputProperty(field, dmmf))
+      }
+    } else if (field.kind === 'enum' || field.kind === 'scalar') {
+      scalars.add(buildModelOutputProperty(field, dmmf, true))
+    }
   }
-  private renderRelations(projection: Projection): string {
-    const { type } = this
 
-    const relationsProjectionChoice = {
-      // For select, a "relation"" can be a model or a composite
-      [Projection.select]: () => {
-        return type.fields.filter((f) => {
-          return f.outputType.location === 'outputObjectTypes'
-        })
-      },
+  const scalarsType = isComposite
+    ? scalars
+    : ts
+        .namedType('$Extensions.GetResult')
+        .addGenericArgument(scalars)
+        .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name)))
 
-      // But for include, a "relation" can only be a model
-      [Projection.include]: () => {
-        const nonCompositeRelations = type.fields.filter((f) => {
-          return (
-            f.outputType.location === 'outputObjectTypes' &&
-            typeof f.outputType.type === 'object' &&
-            !this.dmmf.typeMap[f.outputType.type.name]
-          )
-        })
+  const payloadTypeDeclaration = ts.typeDeclaration(
+    getPayloadName(model.name, false),
+    ts
+      .objectType()
+      .add(ts.property('name', ts.stringLiteral(model.name)))
+      .add(ts.property('objects', objects))
+      .add(ts.property('scalars', scalarsType))
+      .add(ts.property('composites', composites)),
+  )
 
-        return nonCompositeRelations
-      },
-    }
-
-    const relations = get(relationsProjectionChoice, projection)()
-
-    if (projection === Projection.include && relations.length === 0) return ''
-
-    const typeName = ifExtensions(`_${type.name}`, type.name)
-
-    const selectPrefix = projection === Projection.select ? ` P extends keyof ${typeName} ? ${typeName}[P] :` : ''
-
-    return `{
-  [P in TruthyKeys<S['${projection}']>]:
-${indent(
-  relations
-    .map(
-      (f) =>
-        `P extends '${f.name}' ? ${this.wrapType(
-          f,
-          `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]${ifExtensions(
-            ', ExtArgs',
-            '',
-          )}>`,
-        )} :`,
-    )
-    .join('\n'),
-  6,
-)} ${selectPrefix} never
-} `
+  const aliasGenerics: ts.GenericParameter[] = []
+  if (!isComposite) {
+    payloadTypeDeclaration.addGenericParameter(extArgsParam)
+    aliasGenerics.push(extArgsParam)
   }
-  private wrapType(field: DMMF.SchemaField, str: string): string {
-    const { outputType } = field
-    if (!field.isNullable && !outputType.isList) {
-      return str
-    }
-    if (outputType.isList) {
-      return `Array < ${str}> `
-    }
-    if (str === 'Null') {
-      return 'null'
-    }
-    if (field.isNullable) {
-      str += ' | null'
-    }
-    return str
-  }
+
+  return ts.moduleExport(payloadTypeDeclaration)
 }

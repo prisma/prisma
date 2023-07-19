@@ -6,6 +6,7 @@
   <a href="https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
   <a href="https://github.com/prisma/prisma/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
   <a href="https://slack.prisma.io/"><img src="https://img.shields.io/badge/chat-on%20slack-blue.svg" /></a>
+  <a href="https://pris.ly/discord"><img alt="Discord" src="https://img.shields.io/discord/937751382725886062?label=Discord"></a>
   <br />
   <br />
   <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
@@ -19,6 +20,8 @@
   <a href="https://www.prisma.io/blog">Blog</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://slack.prisma.io/">Slack</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://pris.ly/discord">Discord</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://twitter.com/prisma">Twitter</a>
   <br />
@@ -216,7 +219,7 @@ Note that when using TypeScript, the result of this query will be _statically ty
 
 ## Community
 
-Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io) and here on [GitHub](https://github.com/prisma/prisma/discussions).
+Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io), [Discord](https://pris.ly/discord), and here on [GitHub](https://github.com/prisma/prisma/discussions).
 
 ## Security
 
@@ -248,9 +251,9 @@ If the feature on the roadmap is linked to a GitHub issue, please make sure to l
 
 Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md) and [Code of Conduct for contributors](https://github.com/prisma/prisma/blob/main/CODE_OF_CONDUCT.md).
 
-## Build Status
+## Tests Status
 
 - Prisma Tests Status:  
-  [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg?branch=main)](https://buildkite.com/prisma/prisma2-test)
+  [![Prisma Tests Status](https://github.com/prisma/prisma/workflows/CI/badge.svg)](https://github.com/prisma/prisma/actions/workflows/test.yml?query=branch%3Amain)
 - Ecosystem Tests Status:  
-  [![Actions Status](https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg)](https://github.com/prisma/ecosystem-tests/actions)
+  [![Ecosystem Tests Status](https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg)](https://github.com/prisma/ecosystem-tests/actions/workflows/test.yaml?query=branch%3Adev)

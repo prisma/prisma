@@ -1,20 +1,19 @@
 import type { GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
-import { getClientEngineType, getEnvPaths, getQueryEngineProtocol, pathToPosix } from '@prisma/internals'
+import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
 
-import { DMMFHelper } from '../../runtime/dmmf'
-import type { DMMF } from '../../runtime/dmmf-types'
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
 import type { InternalDatasource } from '../../runtime/utils/printDatasources'
+import { DMMFHelper } from '../dmmf'
+import type { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
-import { buildFullDMMF, buildRuntimeDataModel } from '../utils/buildDMMF'
-import { buildEdgeClientProtocol } from '../utils/buildEdgeClientProtocol'
+import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
 import { buildInlineDatasource } from '../utils/buildInlineDatasources'
 import { buildInlineSchema } from '../utils/buildInlineSchema'
@@ -24,9 +23,11 @@ import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
+import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
 import type { Generatable } from './Generatable'
+import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
@@ -76,7 +77,6 @@ export class TSClient implements Generatable {
       dataProxy,
       deno,
     } = this.options
-    const engineProtocol = getQueryEngineProtocol(generator)
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -108,8 +108,6 @@ export class TSClient implements Generatable {
     // being moved around as long as we keep the same project dir structure.
     const relativeOutdir = path.relative(process.cwd(), outputDir)
 
-    const needsFullDMMF = dataProxy && engineProtocol === 'graphql'
-
     const code = `${commonCodeJS({ ...this.options, browser: false })}
 ${buildRequirePath(edge)}
 
@@ -132,13 +130,12 @@ ${new Enum(
  */
 const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
-${needsFullDMMF ? buildFullDMMF(this.options.document) : buildRuntimeDataModel(this.dmmf.datamodel)}
+${buildRuntimeDataModel(this.dmmf.datamodel)}
 
 ${await buildInlineSchema(dataProxy, schemaPath)}
 ${buildInlineDatasource(dataProxy, datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
-${buildEdgeClientProtocol(edge, generator)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
@@ -151,10 +148,18 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
     // edge exports the same ts definitions as the index
     if (edge === true) return `export * from './index'`
 
+    const context: GenerateContext = {
+      dmmf: this.dmmf,
+      genericArgsInfo: this.genericsInfo,
+      generator: this.options.generator,
+      defaultArgsAliases: new DefaultArgsAliases(),
+    }
+
     const prismaClientClass = new PrismaClientClass(
       this.dmmf,
       this.options.datasources,
       this.options.outputDir,
+      this.options.runtimeName,
       this.options.browser,
       this.options.generator,
       this.options.sqliteDatasourceOverrides,
@@ -164,7 +169,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
     const commonCode = commonCodeTS(this.options)
     const modelAndTypes = Object.values(this.dmmf.typeAndModelMap).reduce((acc, modelOrType) => {
       if (this.dmmf.outputTypeMap[modelOrType.name]) {
-        acc.push(new Model(modelOrType, this.dmmf, this.genericsInfo, this.options.generator))
+        acc.push(new Model(modelOrType, context))
       }
       return acc
     }, [] as Model[])
@@ -179,7 +184,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 
     const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
       .filter((t) => t.name.endsWith('CountOutputType'))
-      .map((t) => new Count(t, this.dmmf, this.genericsInfo, this.options.generator))
+      .map((t) => new Count(t, context))
 
     const code = `
 /**
@@ -274,6 +279,11 @@ ${
   this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join('\n') ??
   ''
 }
+
+/**
+ * Aliases for legacy arg types
+ */
+${context.defaultArgsAliases.generateAliases(this.dmmf)}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany

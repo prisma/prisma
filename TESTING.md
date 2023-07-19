@@ -158,13 +158,13 @@ To change the default Rust artifacts' type used under the hood, you can set the 
 - `mkdir artificial-panics && cd artificial-panics`
 - `npx prisma init --datasource-provider sqlite`
 
-### Trigger panic in Migration Engine
+### Trigger panic in Schema Engine
 
-- run `FORCE_PANIC_MIGRATION_ENGINE=1 npx prisma migrate dev`
+- run `FORCE_PANIC_SCHEMA_ENGINE=1 npx prisma migrate dev`
 
 ### Trigger panic in Formatter
 
-- run `FORCE_PANIC_PRISMA_FMT=1 npx prisma format`
+- run `FORCE_PANIC_PRISMA_SCHEMA=1 npx prisma format`
 
 ### Trigger panic in Query Engine - Get DMMF
 

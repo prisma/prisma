@@ -16,7 +16,7 @@ suite
   .add('client generation ~50 Models', {
     defer: true,
     fn: function (deferred) {
-      generateTestClient(__dirname)
+      generateTestClient({ projectDir: __dirname })
         .then(() => {
           deferred.resolve()
         })

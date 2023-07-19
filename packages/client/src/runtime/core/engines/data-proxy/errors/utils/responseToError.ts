@@ -47,7 +47,6 @@ async function getResponseErrorBody(response: RequestResponse): Promise<Response
   let text: string
 
   try {
-    // eslint-disable-next-line @typescript-eslint/await-thenable
     text = await response.text()
   } catch {
     return { type: 'EmptyError' }
