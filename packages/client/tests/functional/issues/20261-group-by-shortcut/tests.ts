@@ -69,4 +69,26 @@ testMatrix.setupTestSuite(() => {
       }>
     >()
   })
+
+  test('works with extended client', async () => {
+    const result = await prisma.$extends({}).round.groupBy({
+      by: 'teamName',
+      orderBy: { teamName: 'asc' },
+    })
+
+    expect(result).toEqual([
+      {
+        teamName: 'Blue',
+      },
+      {
+        teamName: 'Red',
+      },
+    ])
+
+    expectTypeOf(result).toMatchTypeOf<
+      Array<{
+        teamName: string
+      }>
+    >()
+  })
 })
