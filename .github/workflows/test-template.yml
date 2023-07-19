@@ -70,6 +70,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Install & build
+        uses: ./.github/actions/setup
+        with:
+          node-version: ${{ matrix.node }}
+          pnpm-version: ${{ inputs.pnpmVersion }}
+          
       # https://github.com/actions/toolkit/blob/master/docs/commands.md#problem-matchers
       # Matchers are added in setup-node
       # https://github.com/actions/setup-node/blob/bacd6b4b3ac3127b28a1e1920c23bf1c2cadbb85/src/main.ts#L54-L60
@@ -77,13 +83,6 @@ jobs:
         run: |
           echo "::remove-matcher owner=eslint-compact::"
           echo "::remove-matcher owner=eslint-stylish::"
-          echo "::remove-matcher owner=tsc::"
-
-      - name: Install & build
-        uses: ./.github/actions/setup
-        with:
-          node-version: ${{ matrix.node }}
-          pnpm-version: ${{ inputs.pnpmVersion }}
 
       - run: pnpm run lint && pnpm run check-engines-override
         working-directory: ./
