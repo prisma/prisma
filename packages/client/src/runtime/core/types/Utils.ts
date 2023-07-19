@@ -34,9 +34,9 @@ export type Narrow<A> = {
 } | (A extends Narrowable ? A : never)
 
 // prettier-ignore
-export type Exact<A, W> = (W extends A ? {
+export type Exact<A, W> = (A extends unknown ? (W extends A ? {
   [K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : never
-} : W) | (A extends Narrowable ? A : never)
+} : W) : never) | (A extends Narrowable ? A : never)
 
 export type Cast<A, W> = A extends W ? A : W
 
