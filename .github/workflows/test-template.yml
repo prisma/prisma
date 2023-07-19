@@ -77,6 +77,7 @@ jobs:
         run: |
           echo "::remove-matcher owner=eslint-compact::"
           echo "::remove-matcher owner=eslint-stylish::"
+          echo "::remove-matcher owner=tsc::"
 
       - name: Install & build
         uses: ./.github/actions/setup
