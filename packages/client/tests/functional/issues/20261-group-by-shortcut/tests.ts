@@ -1,3 +1,5 @@
+import { expectTypeOf } from 'expect-type'
+
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -35,6 +37,15 @@ testMatrix.setupTestSuite(() => {
         teamName: 'Red',
       },
     ])
+
+    expectTypeOf(result).toMatchTypeOf<
+      Array<{
+        _sum: {
+          points: number | null
+        }
+        teamName: string
+      }>
+    >()
   })
 
   test('works with a scalar in "by" and no other selection', async () => {
@@ -51,5 +62,11 @@ testMatrix.setupTestSuite(() => {
         teamName: 'Red',
       },
     ])
+
+    expectTypeOf(result).toMatchTypeOf<
+      Array<{
+        teamName: string
+      }>
+    >()
   })
 })
