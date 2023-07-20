@@ -11,6 +11,7 @@ import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
+import * as ts from '../ts-builders'
 import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
@@ -23,9 +24,11 @@ import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
 import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
+import { DefaultArgsAliases } from './DefaultArgsAliases'
 import { Enum } from './Enum'
 import { FieldRefInput } from './FieldRefInput'
 import type { Generatable } from './Generatable'
+import { GenerateContext } from './GenerateContext'
 import { InputType } from './Input'
 import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
@@ -112,7 +115,7 @@ ${buildRequirePath(edge)}
 /**
  * Enums
  */
-
+exports.$Enums = {}
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
@@ -146,6 +149,13 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
     // edge exports the same ts definitions as the index
     if (edge === true) return `export * from './index'`
 
+    const context: GenerateContext = {
+      dmmf: this.dmmf,
+      genericArgsInfo: this.genericsInfo,
+      generator: this.options.generator,
+      defaultArgsAliases: new DefaultArgsAliases(),
+    }
+
     const prismaClientClass = new PrismaClientClass(
       this.dmmf,
       this.options.datasources,
@@ -159,8 +169,8 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 
     const commonCode = commonCodeTS(this.options)
     const modelAndTypes = Object.values(this.dmmf.typeAndModelMap).reduce((acc, modelOrType) => {
-      if (this.dmmf.outputTypeMap[modelOrType.name]) {
-        acc.push(new Model(modelOrType, this.dmmf, this.genericsInfo, this.options.generator))
+      if (this.dmmf.outputTypeMap.model[modelOrType.name]) {
+        acc.push(new Model(modelOrType, context))
       }
       return acc
     }, [] as Model[])
@@ -169,13 +179,22 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 
     const prismaEnums = this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toTS())
 
-    const modelEnums = this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toTS())
+    const modelEnums: string[] = []
+    const modelEnumsAliases: string[] = []
+    for (const enumType of this.dmmf.schema.enumTypes.model ?? []) {
+      const namespacedType = ts.namedType(`$Enums.${enumType.name}`)
+      modelEnums.push(new Enum(enumType, false).toTS())
+      modelEnumsAliases.push(
+        ts.stringify(ts.moduleExport(ts.typeDeclaration(enumType.name, namespacedType))),
+        ts.stringify(ts.moduleExport(ts.constDeclaration(enumType.name, namespacedType))),
+      )
+    }
 
     const fieldRefs = this.dmmf.schema.fieldRefTypes.prisma?.map((type) => new FieldRefInput(type).toTS()) ?? []
 
     const countTypes: Count[] = this.dmmf.schema.outputObjectTypes.prisma
       .filter((t) => t.name.endsWith('CountOutputType'))
-      .map((t) => new Count(t, this.dmmf, this.genericsInfo, this.options.generator))
+      .map((t) => new Count(t, context))
 
     const code = `
 /**
@@ -186,13 +205,16 @@ ${commonCode.tsWithoutNamespace()}
 
 ${modelAndTypes.map((m) => m.toTSWithoutNamespace()).join('\n')}
 ${
-  modelEnums && modelEnums.length > 0
+  modelEnums.length > 0
     ? `
 /**
  * Enums
  */
+export namespace $Enums {
+  ${modelEnums.join('\n\n')}
+}
 
-${modelEnums.join('\n\n')}
+${modelEnumsAliases.join('\n\n')}
 `
     : ''
 }
@@ -270,6 +292,11 @@ ${
   this.dmmf.inputObjectTypes.model?.map((inputType) => new InputType(inputType, this.genericsInfo).toTS()).join('\n') ??
   ''
 }
+
+/**
+ * Aliases for legacy arg types
+ */
+${context.defaultArgsAliases.generateAliases(this.dmmf)}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany

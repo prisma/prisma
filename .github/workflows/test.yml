@@ -13,8 +13,6 @@ on:
       - '.devcontainer/**'
       - '.vscode/**'
       - '.github/ISSUE_TEMPLATE/**'
-      - 'docs/**'
-      - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
       - '.buildkite/**'
@@ -32,8 +30,6 @@ on:
       - '.devcontainer/**'
       - '.vscode/**'
       - '.github/ISSUE_TEMPLATE/**'
-      - 'docs/**'
-      - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
       - '.buildkite/**'
@@ -51,14 +47,15 @@ jobs:
       jobs: ${{ steps.detect.outputs.jobs }}
       queryEngine: ${{ steps.enginesOutput.outputs.queryEngine }}
     steps:
-      - id: checkout
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+
       - id: files
         uses: Ana06/get-changed-files@v2.2.0 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
         with:
           format: 'json'
       - id: detect
         run: ./.github/workflows/scripts/detect-jobs-to-run.js <<< '${{ steps.files.outputs.all }}'
+
       - name: Find "ci test all" comment
         uses: peter-evans/find-comment@v2
         id: findTestAllComment
@@ -74,6 +71,16 @@ jobs:
           else
             echo 'queryEngine=["library","binary"]' >> $GITHUB_OUTPUT
           fi
+
+      - name: Trigger npm release workflow for integration release
+        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.body, '/integration') && (github.event.pull_request.author_association == 'member' || github.event.pull_request.author_association == 'owner' || github.event.pull_request.author_association == 'collaborator') }}
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: release-ci.yml
+          token: ${{ secrets.BOT_TOKEN }}
+          inputs: '{ "forceIntegrationRelease": "true" }'
+          ref: ${{ github.event.pull_request.head.ref }}
+
   run_tests:
     needs: detect_jobs_to_run
     uses: ./.github/workflows/test-template.yml

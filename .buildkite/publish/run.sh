@@ -10,7 +10,7 @@ expand_headers_on_error() {
 trap expand_headers_on_error ERR
 
 echo "~~~ Install pnpm"
-npm i --silent -g pnpm@7 --unsafe-perm
+npm i --silent -g pnpm@8 --unsafe-perm
 # --usafe-perm to allow install scripts
 
 echo "~~~ pnpm i"

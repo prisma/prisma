@@ -5,7 +5,7 @@ import { RequiredArgs as UserArgs } from '../extensions/$extends'
 import { FluentOperation, GetFindResult, GetResult as GetOperationResult, Operation } from './GetResult'
 import { Payload } from './Payload'
 import { PrismaPromise } from './Public'
-import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, ToTuple, UnwrapTuple } from './Utils'
+import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, Select, ToTuple, UnwrapTuple } from './Utils'
 
 /* eslint-disable prettier/prettier */
 
@@ -149,7 +149,7 @@ type DynamicModelExtensionFluentApi<TypeMap extends TypeMapDef, M extends Proper
   [K in keyof TypeMap['model'][M]['payload']['objects']]:
     <A>(args?: Exact<A, Path<TypeMap['model'][M]['operations'][P]['args']['select'], [K]>>) =>
       & PrismaPromise<Path<DynamicModelExtensionFnResultBase<TypeMap, M, { select: { [P in K]: A } }, P>, [K]> | Null>
-      & DynamicModelExtensionFluentApi<TypeMap, (TypeMap['model'][M]['payload']['objects'][K] & {})['name'], P, Null>
+      & DynamicModelExtensionFluentApi<TypeMap, (TypeMap['model'][M]['payload']['objects'][K] & {})['name'], P, Null | Select<TypeMap['model'][M]['payload']['objects'][K], null>>
 }
 
 type DynamicModelExtensionFnResultNull<P extends PropertyKey> =

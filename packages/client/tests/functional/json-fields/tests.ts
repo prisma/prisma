@@ -34,6 +34,25 @@ testMatrix.setupTestSuite(
         json: {},
       })
     })
+
+    // regression test for https://github.com/prisma/prisma/issues/20192
+    test('object with .toJSON method', async () => {
+      const value = {
+        toJSON: () => 'some value',
+      }
+      const url = new URL('http://example.com/')
+
+      const result = await prisma.entry.create({
+        data: { json: { value, url } },
+      })
+
+      expect(result).toMatchObject({
+        json: {
+          value: 'some value',
+          url: 'http://example.com/',
+        },
+      })
+    })
   },
   {
     optOut: {

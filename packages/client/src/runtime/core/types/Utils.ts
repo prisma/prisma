@@ -130,3 +130,10 @@ export type Or<A extends 1 | 0, B extends 1 | 0> = {
     1: 1
   }
 }[A][B]
+
+// This alias is necessary to allow to use `Promise` as a model name.
+// It's used in generated client instead of global `Promise`.
+// Why conditional intersection with {}?. Without it, in the error messages
+// and editor tooltips, type would be displayed as $Utils.JsPromise<T>.
+// Intersection allows us to preserve the name `Promise`
+export type JsPromise<T> = Promise<T> & {}
