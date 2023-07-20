@@ -62,6 +62,8 @@ jobs:
           BUILDKITE: true
           BUILDKITE_BRANCH: ${{ github.ref_name }}
           GITHUB_CONTEXT: ${{ toJson(github) }}
+          # https://docs.npmjs.com/generating-provenance-statements
+          NPM_CONFIG_PROVENANCE: true
           # Secrets
           # Note: must use personal access token
           GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}

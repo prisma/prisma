@@ -925,9 +925,6 @@ async function publishPackages(
       }
 
       if (!isSkipped(pkgName)) {
-        // https://docs.npmjs.com/generating-provenance-statements
-        const provenance = process.env.GITHUB_ACTIONS ? '--provenance' : ''
-
         /*
          *  About `--no-git-checks`
          *  By default, `pnpm publish` will make some checks before actually publishing a new version of your package.
@@ -936,7 +933,7 @@ async function publishPackages(
          *  - Your working directory is clean (there are no uncommitted changes).
          *  - The branch is up-to-date.
          */
-        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag} ${provenance}`, dryRun)
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
       }
     }
   }
