@@ -1,3 +1,5 @@
+import { hasOwnProperty } from '@prisma/internals'
+
 import { DMMFHelper } from '../dmmf'
 import { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
@@ -6,7 +8,7 @@ import { lowerCase } from '../utils/common'
 import { buildModelOutputProperty } from './Output'
 
 export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
-  const isComposite = Boolean(dmmf.typeMap[model.name])
+  const isComposite = hasOwnProperty(dmmf.typeMap, model.name)
 
   const objects = ts.objectType()
   const scalars = ts.objectType()
