@@ -483,8 +483,10 @@ export type LogEvent = {
 
 export type PrismaAction =
   | 'findUnique'
+  | 'findUniqueOrThrow'
   | 'findMany'
   | 'findFirst'
+  | 'findFirstOrThrow'
   | 'create'
   | 'createMany'
   | 'update'
