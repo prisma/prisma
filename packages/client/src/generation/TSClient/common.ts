@@ -82,8 +82,9 @@ Prisma.prismaVersion = {
   engine: "${engineVersion}"
 }
 
-${ browser &&
-`
+${
+  browser &&
+  `
 const runtimeDescription = (() => {
   // https://edge-runtime.vercel.app/features/available-apis#addressing-the-runtime
   if ("EdgeRuntime" in globalThis && typeof globalThis.EdgeRuntime === "string") {
