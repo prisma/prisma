@@ -37,6 +37,7 @@ export { printGeneratorConfig } from './get-generators/utils/printGeneratorConfi
 export { getPackedPackage } from './getPackedPackage'
 export { highlightDatamodel, highlightSql, highlightTS } from './highlight/highlight'
 export * as logger from './logger'
+export type { MigrateTypes } from './migrateTypes'
 export { ErrorArea, isRustPanic, RustPanic } from './panic'
 export { BinaryType } from './resolveBinary'
 export { engineEnvVarMap, resolveBinary } from './resolveBinary'

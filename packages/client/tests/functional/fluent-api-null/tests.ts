@@ -3,7 +3,7 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient } from './node_modules/@prisma/client'
+import type { Child, PrismaClient, Resource } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -224,6 +224,56 @@ testMatrix.setupTestSuite(() => {
 
       expect(result).toStrictEqual([])
       expectTypeOf(result).not.toBeNullable()
+    })
+
+    test('findUniqueOrThrow with optional to-one relation', () => {
+      const result = prisma.child
+        .findUniqueOrThrow({
+          where: {
+            id: '123',
+          },
+        })
+        .parent()
+
+      expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Resource | null>()
+    })
+
+    test('findFirstOrThrow with optional to-one relation', () => {
+      const result = prisma.child
+        .findUniqueOrThrow({
+          where: {
+            id: '123',
+          },
+        })
+        .parent()
+
+      expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Resource | null>()
+    })
+
+    test('findUniqueOrThrow with optional to-one relation circling back to to-many relation', () => {
+      const result = prisma.child
+        .findUniqueOrThrow({
+          where: {
+            id: '123',
+          },
+        })
+        .parent()
+        .children()
+
+      expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Child[] | null>()
+    })
+
+    test('findFirstOrThrow with optional to-one relation circling back to to-many relation', () => {
+      const result = prisma.child
+        .findUniqueOrThrow({
+          where: {
+            id: '123',
+          },
+        })
+        .parent()
+        .children()
+
+      expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Child[] | null>()
     })
   })
 
@@ -496,5 +546,59 @@ testMatrix.setupTestSuite(() => {
       expect(result).toStrictEqual([])
       expectTypeOf(result).not.toBeNullable()
     })
+  })
+
+  test('findUniqueOrThrow with optional to-one relation', () => {
+    const result = prisma
+      .$extends({})
+      .child.findUniqueOrThrow({
+        where: {
+          id: '123',
+        },
+      })
+      .parent()
+
+    expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Resource | null>()
+  })
+
+  test('findFirstOrThrow with optional to-one relation', () => {
+    const result = prisma
+      .$extends({})
+      .child.findUniqueOrThrow({
+        where: {
+          id: '123',
+        },
+      })
+      .parent()
+
+    expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Resource | null>()
+  })
+
+  test('findUniqueOrThrow with optional to-one relation circling back to to-many relation', () => {
+    const result = prisma
+      .$extends({})
+      .child.findUniqueOrThrow({
+        where: {
+          id: '123',
+        },
+      })
+      .parent()
+      .children()
+
+    expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Child[] | null>()
+  })
+
+  test('findFirstOrThrow with optional to-one relation circling back to to-many relation', () => {
+    const result = prisma
+      .$extends({})
+      .child.findUniqueOrThrow({
+        where: {
+          id: '123',
+        },
+      })
+      .parent()
+      .children()
+
+    expectTypeOf<Awaited<typeof result>>().toEqualTypeOf<Child[] | null>()
   })
 })

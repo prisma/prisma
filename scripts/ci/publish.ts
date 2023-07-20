@@ -24,16 +24,12 @@ export type Commit = {
 const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split(',') : null
 const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
 
-async function getUnsavedChanges(dir: string): Promise<string | null> {
-  const result = await runResult(dir, `git status --porcelain`)
-  return result.trim() || null
-}
-
 async function getLatestCommit(dir: string): Promise<Commit> {
   if (process.env.GITHUB_CONTEXT) {
     const context = JSON.parse(process.env.GITHUB_CONTEXT)
     return context.sha
   }
+
   const result = await runResult(dir, 'git log --pretty=format:"%ad %H %P" --date=iso-strict -n 1')
   const [date, commit, ...parents] = result.split(' ')
 
@@ -43,32 +39,6 @@ async function getLatestCommit(dir: string): Promise<Commit> {
     hash: commit,
     isMergeCommit: parents.length > 1,
     parentCommits: parents,
-  }
-}
-
-async function commitChanges(dir: string, message: string, dry = false): Promise<void> {
-  await run(dir, `git commit -am "${message}"`, dry)
-}
-
-async function pull(dir: string, dry = false): Promise<void> {
-  const branch = await getBranch(dir)
-  if (process.env.BUILDKITE) {
-    if (!process.env.GITHUB_TOKEN) {
-      throw new Error(`Missing env var GITHUB_TOKEN`)
-    }
-  }
-  await run(dir, `git pull origin ${branch} --no-edit`, dry)
-}
-
-async function push(dir: string, dry = false, branch?: string): Promise<void> {
-  branch = branch ?? (await getBranch(dir))
-  if (process.env.BUILDKITE) {
-    if (!process.env.GITHUB_TOKEN) {
-      throw new Error(`Missing env var GITHUB_TOKEN`)
-    }
-    await run(dir, `git push --quiet --set-upstream origin ${branch}`, dry)
-  } else {
-    await run(dir, `git push origin ${branch}`, dry)
   }
 }
 
@@ -503,16 +473,10 @@ function getSemverFromPatchBranch(version: string) {
 async function publish() {
   const args = arg({
     '--publish': Boolean,
-    '--repo': String, // TODO what is repo? Can we remove this? probably
     '--dry-run': Boolean,
     '--release': String, // TODO What does that do? Can we remove this? probably
     '--test': Boolean,
   })
-
-  // TODO: can we remove this? probably
-  if (process.env.BUILDKITE && process.env.PUBLISH_BUILD && !process.env.GITHUB_TOKEN) {
-    throw new Error(`Missing env var GITHUB_TOKEN`)
-  }
 
   if (!process.env.BUILDKITE_BRANCH) {
     throw new Error(`Missing env var BUILDKITE_BRANCH`)
@@ -535,10 +499,6 @@ async function publish() {
     args['--release'] = process.env.BUILDKITE_TAG // TODO: rename this var to RELEASE_VERSION
     // TODO: put this into a global variable VERSION
     // and then replace the args['--release'] with it
-  }
-
-  if (process.env.BUILDKITE_TAG && !process.env.RELEASE_PROMOTE_DEV) {
-    throw new Error(`When BUILDKITE_TAG is provided, RELEASE_PROMOTE_DEV also needs to be provided`)
   }
 
   if (!args['--test'] && !args['--publish'] && !dryRun) {
@@ -585,7 +545,7 @@ async function publish() {
       throw new Error(`Oops, there are circular dependencies: ${circles}`)
     }
 
-    let prismaVersion
+    let prismaVersion: undefined | string
     let tag: undefined | string
     let tagForEcosystemTestsCheck: undefined | string
 
@@ -627,6 +587,13 @@ async function publish() {
       prismaVersion,
     })
 
+    if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `patchBranch=${patchBranch}\n`)
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `tag=${tag}\n`)
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `tagForEcosystemTestsCheck=${tagForEcosystemTestsCheck}\n`)
+      fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaVersion=${prismaVersion}\n`)
+    }
+
     if (!dryRun && args['--test']) {
       if (onlyPackages || skipPackages) {
         console.log(bold('\nTesting all packages was skipped because onlyPackages or skipPackages is set.'))
@@ -659,24 +626,30 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 
       await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
 
-      const enginesCommit = await getEnginesCommit()
-      const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommit)
+      const enginesCommitHash = await getEnginesCommitHash()
+      const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
       const prismaCommit = await getLatestCommit('.')
+      console.debug({ prismaCommit })
       const prismaCommitInfo = await getCommitInfo('prisma', prismaCommit.hash)
+
+      if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `enginesCommitHash=${enginesCommitHash}\n`)
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommit.hash}\n`)
+      }
 
       try {
         await sendSlackMessage({
           version: prismaVersion,
-          enginesCommit: enginesCommitInfo,
-          prismaCommit: prismaCommitInfo,
+          enginesCommitInfo,
+          prismaCommitInfo,
         })
       } catch (e) {
         console.error(e)
       }
 
-      if (!process.env.PATCH_BRANCH && !args['--dry-run']) {
+      if (!args['--dry-run']) {
         try {
-          await tagEnginesRepo(prismaVersion, enginesCommit, patchBranch, dryRun)
+          await tagEnginesRepo(prismaVersion, enginesCommitHash, patchBranch, dryRun)
         } catch (e) {
           console.error(e)
         }
@@ -696,7 +669,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
   }
 }
 
-async function getEnginesCommit(): Promise<string> {
+async function getEnginesCommitHash(): Promise<string> {
   const prismaPath = path.resolve(process.cwd(), './packages/engines/package.json')
   const pkg = JSON.parse(await fs.promises.readFile(prismaPath, 'utf-8'))
   // const engineVersion = pkg.prisma.version
@@ -754,9 +727,11 @@ async function tagEnginesRepo(
   const remotes = dryRun ? [] : (await runResult('prisma-engines', `git remote`)).trim().split('\n')
 
   if (!remotes.includes('origin-push')) {
+    const githubToken = process.env.GITHUB_TOKEN
+
     await run(
       'prisma-engines',
-      `git remote add origin-push https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma-engines.git`,
+      `git remote add origin-push https://${githubToken}@github.com/prisma/prisma-engines.git`,
       dryRun,
       true,
     )
@@ -965,6 +940,9 @@ async function publishPackages(
       }
 
       if (!isSkipped(pkgName)) {
+        // https://docs.npmjs.com/generating-provenance-statements
+        const provenance = process.env.GITHUB_ACTIONS ? '--provenance' : ''
+
         /*
          *  About `--no-git-checks`
          *  By default, `pnpm publish` will make some checks before actually publishing a new version of your package.
@@ -973,52 +951,8 @@ async function publishPackages(
          *  - Your working directory is clean (there are no uncommitted changes).
          *  - The branch is up-to-date.
          */
-        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag} ${provenance}`, dryRun)
       }
-    }
-  }
-
-  if (process.env.PATCH_BRANCH) {
-    if (process.env.CI) {
-      await run('.', `git config --global user.email "prismabots@gmail.com"`)
-      await run('.', `git config --global user.name "prisma-bot"`)
-    }
-    await run(
-      '.',
-      `git remote set-url origin https://${process.env.GITHUB_TOKEN}@github.com/prisma/prisma.git`,
-      dryRun,
-      true,
-    )
-  }
-
-  // TODO: remove?
-  if (!process.env.BUILDKITE || process.env.PATCH_BRANCH) {
-    const repo = path.join(__dirname, '../../../')
-    // commit and push it :)
-    // we try catch this, as this is not necessary for CI to succeed
-    await run(repo, `git status`, dryRun)
-    await pull(repo, dryRun).catch((e) => {
-      if (process.env.PATCH_BRANCH) {
-        console.error(e)
-      } else {
-        throw e
-      }
-    })
-
-    try {
-      const unsavedChanges = await getUnsavedChanges(repo)
-      if (!unsavedChanges) {
-        console.log(`\n${bold('Skipping')} committing changes, as they're already committed`)
-      } else {
-        console.log(`\nCommitting changes`)
-        const message = 'Bump versions'
-        await commitChanges(repo, `${message} [skip ci]`, dryRun)
-      }
-      const branch = process.env.PATCH_BRANCH
-      await push(repo, dryRun, branch).catch(console.error)
-    } catch (e) {
-      console.error(e)
-      console.error(`Ignoring this error, continuing`)
     }
   }
 }
@@ -1052,7 +986,8 @@ async function acquireLock(branch: string): Promise<() => void> {
   const lock = promisify(require('redis-lock')(client))
 
   // get a lock of max 15 min
-  const cb = await lock(`prisma2-build-${branch}`, 15 * 60 * 1000)
+  // the lock is specific to the branch name
+  const cb = await lock(`prisma-release-${branch}`, 15 * 60 * 1000)
   return async () => {
     cb()
     console.log(`Lock removed after ${Date.now() - before}ms`)
@@ -1088,11 +1023,6 @@ async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
   }
 }
 
-async function getBranch(dir: string) {
-  // TODO: this can probably be simplified
-  return runResult(dir, 'git rev-parse --symbolic-full-name --abbrev-ref HEAD')
-}
-
 async function getPrismaBranch(): Promise<string | undefined> {
   if (process.env.BUILDKITE_BRANCH) {
     return process.env.BUILDKITE_BRANCH
@@ -1119,11 +1049,6 @@ async function areEcosystemTestsPassing(tag: string): Promise<boolean> {
 }
 
 function getPatchBranch() {
-  // TODO: this can probably be removed
-  if (process.env.PATCH_BRANCH) {
-    return process.env.PATCH_BRANCH
-  }
-
   if (process.env.BUILDKITE_BRANCH) {
     const versions = getSemverFromPatchBranch(process.env.BUILDKITE_BRANCH)
     console.debug('versions from patch branch:', versions)
@@ -1144,31 +1069,37 @@ type CommitInfo = {
 
 type SlackMessageArgs = {
   version: string
-  enginesCommit: CommitInfo
-  prismaCommit: CommitInfo
+  enginesCommitInfo: CommitInfo
+  prismaCommitInfo: CommitInfo
   dryRun?: boolean
 }
 
-async function sendSlackMessage({ version, enginesCommit, prismaCommit, dryRun }: SlackMessageArgs) {
+async function sendSlackMessage({ version, enginesCommitInfo, prismaCommitInfo, dryRun }: SlackMessageArgs) {
   const webhook = new IncomingWebhook(process.env.SLACK_RELEASE_FEED_WEBHOOK!)
   const dryRunStr = dryRun ? 'DRYRUN: ' : ''
-  const prismaLines = getLines(prismaCommit.message)
-  const enginesLines = getLines(enginesCommit.message)
+
+  const prismaLines = getLines(prismaCommitInfo.message)
+  const enginesLines = getLines(enginesCommitInfo.message)
+
+  const authoredByString = (author: string) => {
+    if (!author) return ''
+    return `Authored by ${prismaCommitInfo.author}`
+  }
+
   await webhook.send(
     `${dryRunStr}<https://www.npmjs.com/package/prisma/v/${version}|prisma@${version}> has just been released. Install via \`npm i -g prisma@${version}\` or \`npx prisma@${version}\`
 What's shipped:
 \`prisma/prisma\`
-<https://github.com/prisma/prisma/commit/${prismaCommit.hash}|${prismaLines[0]}\t\t\t\t-  ${prismaCommit.hash.slice(
-      0,
-      7,
-    )}>
-${prismaLines.slice(1).join('\n')}${prismaLines.length > 1 ? '\n' : ''}Authored by ${prismaCommit.author}
+<https://github.com/prisma/prisma/commit/${prismaCommitInfo.hash}|${
+      prismaLines[0]
+    }\t\t\t\t-  ${prismaCommitInfo.hash.slice(0, 7)}>
+${prismaLines.join('\n')}${prismaLines.length > 1 ? '\n' : ''}${authoredByString(prismaCommitInfo.author)}
 
 \`prisma/prisma-engines\`
-<https://github.com/prisma/prisma-engines/commit/${enginesCommit.hash}|${
+<https://github.com/prisma/prisma-engines/commit/${enginesCommitInfo.hash}|${
       enginesLines[0]
-    }\t\t\t\t-  ${enginesCommit.hash.slice(0, 7)}>
-${enginesLines.slice(1).join('\n')}${enginesLines.length > 1 ? '\n' : ''}Authored by ${enginesCommit.author}`,
+    }\t\t\t\t-  ${enginesCommitInfo.hash.slice(0, 7)}>
+${enginesLines.join('\n')}${enginesLines.length > 1 ? '\n' : ''}${authoredByString(enginesCommitInfo.author)}`,
   )
 }
 

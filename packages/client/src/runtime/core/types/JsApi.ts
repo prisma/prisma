@@ -19,9 +19,14 @@ export type JsInputValue =
   | DecimalJsLike
   | ObjectEnumValue
   | RawParameters
+  | JsonConvertible
   | FieldRef<string, unknown>
   | JsInputValue[]
   | { [key: string]: JsInputValue }
+
+export interface JsonConvertible {
+  toJSON(): unknown
+}
 
 export type JsArgs = {
   select?: Selection

@@ -23,7 +23,7 @@ if [ "$BUILDKITE_PARALLEL_JOB" = "1" ]; then
 fi
 
 echo "~~~ Install pnpm"
-npm i --silent -g pnpm@7 --unsafe-perm
+npm i --silent -g pnpm@8 --unsafe-perm
 # --usafe-perm to allow install scripts
 
 echo "~~~ pnpm i"
