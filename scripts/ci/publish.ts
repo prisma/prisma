@@ -543,7 +543,7 @@ async function publish() {
     console.log({ branch })
 
     // For branches that are named "integration/" we publish to the integration npm tag
-    if (branch && branch.startsWith('integration/')) {
+    if (branch && (process.env.FORCE_INTEGRATION_RELEASE || branch.startsWith('integration/'))) {
       prismaVersion = await getNewIntegrationVersion(packages, branch)
       tag = 'integration'
     }
