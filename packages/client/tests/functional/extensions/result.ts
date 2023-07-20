@@ -381,7 +381,7 @@ testMatrix.setupTestSuite(() => {
     }
   })
 
-  test('when both include and select are passed and one of them is optional, result includes both', () => {
+  test('when args have both include and select and one of them is optional, result includes both', () => {
     ;async () => {
       const xprisma = prisma.$extends({})
 
