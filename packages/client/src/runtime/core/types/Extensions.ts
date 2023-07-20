@@ -26,7 +26,7 @@ export type Args = InternalArgs
 export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
 export type GetResult<Base extends Record<any, any>, R extends Args['result'][string], KR extends keyof R = string extends keyof R ? never : keyof R> =
-  { [K in KR | keyof Base]: K extends KR ? R[K] extends (() => { compute: (...args: any) => infer C }) ? C : never : Base[K] } & unknown
+  { [K in KR | keyof Base]: K extends KR ? R[K] extends (() => { compute: (...args: any) => infer C }) ? C : never : Base[K] }
 
 export type GetSelect<Base extends Record<any, any>, R extends Args['result'][string], KR extends keyof R = string extends keyof R ? never : keyof R> =
   { [K in KR | keyof Base]?: K extends KR ? boolean : Base[K] }
