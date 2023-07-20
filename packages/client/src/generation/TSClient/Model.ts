@@ -48,7 +48,7 @@ export class Model implements Generatable {
   constructor(protected readonly model: DMMF.Model, protected readonly context: GenerateContext) {
     this.dmmf = context.dmmf
     this.genericsInfo = context.genericArgsInfo
-    this.type = this.context.dmmf.outputTypeMap[model.name]
+    this.type = this.context.dmmf.outputTypeMap.model[model.name]
     this.mapping = this.context.dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
   protected get argsTypes(): Generatable[] {
@@ -96,7 +96,7 @@ export class Model implements Generatable {
   private getGroupByTypes() {
     const { model, mapping } = this
 
-    const groupByType = this.dmmf.outputTypeMap[getGroupByName(model.name)]
+    const groupByType = this.dmmf.outputTypeMap.prisma[getGroupByName(model.name)]
     if (!groupByType) {
       throw new Error(`Could not get group by type for model ${model.name}`)
     }
@@ -156,7 +156,7 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
   }
   private getAggregationTypes() {
     const { model, mapping } = this
-    let aggregateType = this.dmmf.outputTypeMap[getAggregateName(model.name)]
+    let aggregateType = this.dmmf.outputTypeMap.prisma[getAggregateName(model.name)]
     if (!aggregateType) {
       throw new Error(`Could not get aggregate type "${getAggregateName(model.name)}" for "${model.name}"`)
     }
@@ -169,11 +169,11 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
 
     const aggregateTypes = [aggregateType]
 
-    const avgType = this.dmmf.outputTypeMap[getAvgAggregateName(model.name)]
-    const sumType = this.dmmf.outputTypeMap[getSumAggregateName(model.name)]
-    const minType = this.dmmf.outputTypeMap[getMinAggregateName(model.name)]
-    const maxType = this.dmmf.outputTypeMap[getMaxAggregateName(model.name)]
-    const countType = this.dmmf.outputTypeMap[getCountAggregateOutputName(model.name)]
+    const avgType = this.dmmf.outputTypeMap.prisma[getAvgAggregateName(model.name)]
+    const sumType = this.dmmf.outputTypeMap.prisma[getSumAggregateName(model.name)]
+    const minType = this.dmmf.outputTypeMap.prisma[getMinAggregateName(model.name)]
+    const maxType = this.dmmf.outputTypeMap.prisma[getMaxAggregateName(model.name)]
+    const countType = this.dmmf.outputTypeMap.prisma[getCountAggregateOutputName(model.name)]
 
     if (avgType) {
       aggregateTypes.push(avgType)
