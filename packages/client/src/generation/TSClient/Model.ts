@@ -1,3 +1,4 @@
+import { hasOwnProperty } from '@prisma/internals'
 import indent from 'indent-string'
 import { klona } from 'klona'
 
@@ -285,7 +286,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
   }
   public toTS(): string {
     const { model } = this
-    const isComposite = this.dmmf.typeMap[model.name]
+    const isComposite = hasOwnProperty(this.dmmf.typeMap, model.name)
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
@@ -299,9 +300,9 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
  * Model ${model.name}
  */
 
-${!this.dmmf.typeMap[model.name] ? this.getAggregationTypes() : ''}
+${!hasOwnProperty(this.dmmf.typeMap, model.name) ? this.getAggregationTypes() : ''}
 
-${!this.dmmf.typeMap[model.name] ? this.getGroupByTypes() : ''}
+${!hasOwnProperty(this.dmmf.typeMap, model.name) ? this.getGroupByTypes() : ''}
 
 ${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.type.fields }))}
 ${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.type.fields }), {
@@ -478,25 +479,17 @@ readonly fields: ${getFieldRefsTypeName(name)};
  * Because we want to prevent naming conflicts as mentioned in
  * https://github.com/prisma/prisma-client-js/issues/707
  */
-export class Prisma__${name}Client<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> implements Prisma.PrismaPromise<T> {
-  private readonly _dmmf;
-  private readonly _queryType;
-  private readonly _rootField;
-  private readonly _clientMethod;
-  private readonly _args;
-  private readonly _dataPath;
-  private readonly _errorFormat;
-  private readonly _measurePerformance?;
-  private _isList;
-  private _callsite;
-  private _requestPromise?;
+export interface Prisma__${name}Client<T, Null = never, ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: 'PrismaPromise';
-  constructor(_dmmf: runtime.DMMFClass, _queryType: 'query' | 'mutation', _rootField: string, _clientMethod: string, _args: any, _dataPath: string[], _errorFormat: ErrorFormat, _measurePerformance?: boolean | undefined, _isList?: boolean);
 ${indent(
   fields
     .filter((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
-      return f.outputType.location === 'outputObjectTypes' && !dmmf.typeMap[fieldTypeName] && f.name !== '_count'
+      return (
+        f.outputType.location === 'outputObjectTypes' &&
+        !hasOwnProperty(dmmf.typeMap, fieldTypeName) &&
+        f.name !== '_count'
+      )
     })
     .map((f) => {
       const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
@@ -517,7 +510,6 @@ ${f.name}<T extends ${getFieldArgName(f, name)}<ExtArgs> = {}>(args?: Subset<T, 
   2,
 )}
 
-  private get _document();
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.

@@ -1,3 +1,5 @@
+import { hasOwnProperty } from '@prisma/internals'
+
 import { DMMFHelper } from '../dmmf'
 import { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
@@ -6,7 +8,7 @@ import { lowerCase } from '../utils/common'
 import { buildModelOutputProperty } from './Output'
 
 export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
-  const isComposite = Boolean(dmmf.typeMap[model.name])
+  const isComposite = hasOwnProperty(dmmf.typeMap, model.name)
 
   const objects = ts.objectType()
   const scalars = ts.objectType()
@@ -14,7 +16,7 @@ export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
 
   for (const field of model.fields) {
     if (field.kind === 'object') {
-      if (dmmf.typeMap[field.type]) {
+      if (hasOwnProperty(dmmf.typeMap, field.type)) {
         composites.add(buildModelOutputProperty(field, dmmf))
       } else {
         objects.add(buildModelOutputProperty(field, dmmf))
@@ -41,10 +43,8 @@ export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
       .add(ts.property('composites', composites)),
   )
 
-  const aliasGenerics: ts.GenericParameter[] = []
   if (!isComposite) {
     payloadTypeDeclaration.addGenericParameter(extArgsParam)
-    aliasGenerics.push(extArgsParam)
   }
 
   return ts.moduleExport(payloadTypeDeclaration)
