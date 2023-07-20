@@ -1,3 +1,4 @@
+// @ts-check
 let preinstall
 try {
   preinstall = require('../preinstall/index.js')
