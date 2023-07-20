@@ -77,7 +77,7 @@ jobs:
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: release-ci.yml
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.BOT_TOKEN }}
           inputs: '{ "forceIntegrationRelease": "true" }'
           ref: ${{ steps.setup_branch.outputs.branch }}
 
