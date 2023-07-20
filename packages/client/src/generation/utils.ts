@@ -71,9 +71,6 @@ export function getFieldArgName(field: DMMF.SchemaField, modelName: string): str
   if (field.args.length) {
     return getModelFieldArgsName(field, modelName)
   }
-  if ((field.outputType.type as any).name === undefined) {
-    console.log(field.outputType.type)
-  }
   return getModelArgName((field.outputType.type as DMMF.OutputType).name)
 }
 
