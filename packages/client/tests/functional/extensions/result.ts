@@ -3,7 +3,7 @@ import { expectTypeOf } from 'expect-type'
 
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { PrismaClient, User } from './node_modules/@prisma/client'
+import type { Post, Prisma as PrismaNamespace, PrismaClient, User } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 
@@ -378,6 +378,36 @@ testMatrix.setupTestSuite(() => {
 
       const data = await xprisma.user.findFirstOrThrow({} as any)
       expectTypeOf(data).toEqualTypeOf<User>()
+    }
+  })
+
+  test('when both include and select are passed and one of them is optional, result includes both', () => {
+    ;async () => {
+      const xprisma = prisma.$extends({})
+
+      const userFindMany: PrismaNamespace.UserFindManyArgs = {}
+
+      // testing for extended client
+      const usersXPrisma = await xprisma.user.findMany({
+        ...userFindMany,
+        include: {
+          posts: true,
+        },
+      })
+
+      // regular client should be the same
+      const usersPrisma = await prisma.user.findMany({
+        ...userFindMany,
+        include: {
+          posts: true,
+        },
+      })
+
+      expectTypeOf(usersXPrisma[0].email).toEqualTypeOf<string>()
+      expectTypeOf(usersXPrisma[0].posts).toEqualTypeOf<Post[]>()
+
+      expectTypeOf(usersPrisma[0].email).toEqualTypeOf<string>()
+      expectTypeOf(usersPrisma[0].posts).toEqualTypeOf<Post[]>()
     }
   })
 })
