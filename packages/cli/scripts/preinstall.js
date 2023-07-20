@@ -1,6 +1,5 @@
 // @ts-check
-const { drawBox } = require('@prisma/internals/dist/utils/drawBox')
-const { red, underline } = require('kleur/colors')
+const { drawBox, kleurColors } = require('@prisma/internals')
 
 export function main() {
   // process.version (e.g. `v16.0.0`)
@@ -16,7 +15,9 @@ export function printMessageAndExitIfUnsupportedNodeVersion(nodeVersion) {
   if (nodeMajorVersion < 16 || (nodeMajorVersion === 16 && nodeMinorVersion < 13)) {
     console.error(
       drawBox({
-        str: `${red('Prisma only supports Node.js >= 16.13.')}\n${underline('Please upgrade your Node.js version.')}`,
+        str: `${kleurColors.red('Prisma only supports Node.js >= 16.13.')}\n${kleurColors.underline(
+          'Please upgrade your Node.js version.',
+        )}`,
         height: 2,
         width: 48,
         horizontalPadding: 4,
