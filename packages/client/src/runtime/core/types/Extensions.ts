@@ -27,6 +27,7 @@ export type DefaultArgs = InternalArgs<{}, {}, {}, {}>
 
 export type GetResult<Base extends Record<any, any>, R extends Args['result'][string], KR extends keyof R = string extends keyof R ? never : keyof R> =
   { [K in KR | keyof Base]: K extends KR ? R[K] extends (() => { compute: (...args: any) => infer C }) ? C : never : Base[K] } & unknown
+  // ! the intersection with unknown is important, it prevent the result types from showing an ugly `GetResult<...> & {}` type on hover
 
 export type GetSelect<Base extends Record<any, any>, R extends Args['result'][string], KR extends keyof R = string extends keyof R ? never : keyof R> =
   { [K in KR | keyof Base]?: K extends KR ? boolean : Base[K] }
