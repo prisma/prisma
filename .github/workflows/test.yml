@@ -79,7 +79,7 @@ jobs:
           workflow: release-ci.yml
           token: ${{ secrets.BOT_TOKEN }}
           inputs: '{ "forceIntegrationRelease": "true" }'
-          ref: ${{ steps.setup_branch.outputs.branch }}
+          ref: ${{ github.event.pull_request.head.ref }}
 
   run_tests:
     needs: detect_jobs_to_run
