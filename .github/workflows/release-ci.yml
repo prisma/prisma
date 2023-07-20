@@ -23,7 +23,9 @@ on:
       dryRun:
         description: 'Check to do a dry run (does not publish packages)'
         type: boolean
-
+      forceIntegrationRelease:
+        description: 'Check to force an integration release for any given branch name'
+        type: boolean
 env:
   # To hide "Update available 0.0.0 -> x.x.x"
   PRISMA_HIDE_UPDATE_MESSAGE: 'true'
@@ -58,6 +60,7 @@ jobs:
         env:
           # Inputs
           DRY_RUN: ${{ github.event.inputs.dryRun == 'true' && 'true' || '' }}
+          FORCE_INTEGRATION_RELEASE: ${{ github.event.inputs.forceIntegrationRelease == 'true' && 'true' || '' }}
           # Other
           BUILDKITE: true
           BUILDKITE_BRANCH: ${{ github.ref_name }}
