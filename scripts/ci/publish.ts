@@ -1090,14 +1090,13 @@ async function sendSlackMessage({ version, enginesCommitInfo, prismaCommitInfo, 
     `${dryRunStr}<https://www.npmjs.com/package/prisma/v/${version}|prisma@${version}> has just been released. Install via \`npm i -g prisma@${version}\` or \`npx prisma@${version}\`
 What's shipped:
 \`prisma/prisma\`
-<https://github.com/prisma/prisma/commit/${prismaCommit.hash}|${prismaLines[0]}\t\t\t\t-  ${prismaCommitInfo.hash.slice(
-      0,
-      7,
-    )}>
+<https://github.com/prisma/prisma/commit/${prismaCommitInfo.hash}|${
+      prismaLines[0]
+    }\t\t\t\t-  ${prismaCommitInfo.hash.slice(0, 7)}>
 ${prismaLines.join('\n')}${prismaLines.length > 1 ? '\n' : ''}${authoredByString(prismaCommitInfo.author)}
 
 \`prisma/prisma-engines\`
-<https://github.com/prisma/prisma-engines/commit/${enginesCommit.hash}|${
+<https://github.com/prisma/prisma-engines/commit/${enginesCommitInfo.hash}|${
       enginesLines[0]
     }\t\t\t\t-  ${enginesCommitInfo.hash.slice(0, 7)}>
 ${enginesLines.join('\n')}${enginesLines.length > 1 ? '\n' : ''}${authoredByString(enginesCommitInfo.author)}`,
