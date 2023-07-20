@@ -35,14 +35,12 @@ import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc, getArgs, getGenericMethod, getMethodJSDoc, wrapComment } from './helpers'
 import { InputType } from './Input'
 import { ModelFieldRefs } from './ModelFieldRefs'
-import { OutputType } from './Output'
+import { buildOutputType } from './Output'
 import { buildModelPayload } from './Payload'
-import { SchemaOutputType } from './SchemaOutput'
 import { buildIncludeType, buildScalarSelectType, buildSelectType } from './SelectInclude'
 import { getModelActions } from './utils/getModelActions'
 
 export class Model implements Generatable {
-  protected outputType: OutputType
   protected type: DMMF.OutputType
   protected mapping?: DMMF.ModelMapping
   private dmmf: DMMFHelper
@@ -51,7 +49,6 @@ export class Model implements Generatable {
     this.dmmf = context.dmmf
     this.genericsInfo = context.genericArgsInfo
     this.type = this.context.dmmf.outputTypeMap[model.name]
-    this.outputType = new OutputType(this.dmmf, this.type)
     this.mapping = this.context.dmmf.mappings.modelOperations.find((m) => m.model === model.name)!
   }
   protected get argsTypes(): Generatable[] {
@@ -141,7 +138,7 @@ ${indent(
 )}
 }
 
-${new OutputType(this.dmmf, groupByType).toTS()}
+${ts.stringify(buildOutputType(groupByType))}
 
 type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma.PrismaPromise<
   Array<
@@ -199,7 +196,10 @@ type ${getGroupByPayloadName(model.name)}<T extends ${groupByArgsName}> = Prisma
 
     const aggregateName = getAggregateName(model.name)
 
-    return `${aggregateTypes.map((type) => new SchemaOutputType(type).toTS()).join('\n')}
+    return `${aggregateTypes
+      .map(buildOutputType)
+      .map((type) => ts.stringify(type))
+      .join('\n\n')}
 
 ${
   aggregateTypes.length > 1
@@ -289,12 +289,9 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
-      ? ts.stringify(
-          buildIncludeType({ modelName: this.model.name, dmmf: this.dmmf, fields: this.outputType.fields }),
-          {
-            newLine: 'both',
-          },
-        )
+      ? ts.stringify(buildIncludeType({ modelName: this.model.name, dmmf: this.dmmf, fields: this.type.fields }), {
+          newLine: 'both',
+        })
       : ''
 
     return `
@@ -306,8 +303,8 @@ ${!this.dmmf.typeMap[model.name] ? this.getAggregationTypes() : ''}
 
 ${!this.dmmf.typeMap[model.name] ? this.getGroupByTypes() : ''}
 
-${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.outputType.fields }))}
-${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.outputType.fields }), {
+${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.type.fields }))}
+${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.type.fields }), {
   newLine: 'leading',
 })}
 ${includeType}
@@ -317,9 +314,9 @@ type ${model.name}GetPayload<S extends boolean | null | undefined | ${getModelAr
       model.name,
     )}> = $Types.GetResult<${getPayloadName(model.name)}, S>
 
-${isComposite ? '' : new ModelDelegate(this.outputType, this.context).toTS()}
+${isComposite ? '' : new ModelDelegate(this.type, this.context).toTS()}
 
-${new ModelFieldRefs(this.outputType).toTS()}
+${new ModelFieldRefs(this.type).toTS()}
 
 // Custom InputTypes
 ${this.argsTypes.map((gen) => TS(gen)).join('\n')}
@@ -327,7 +324,7 @@ ${this.argsTypes.map((gen) => TS(gen)).join('\n')}
   }
 }
 export class ModelDelegate implements Generatable {
-  constructor(protected readonly outputType: OutputType, protected readonly context: GenerateContext) {}
+  constructor(protected readonly outputType: DMMF.OutputType, protected readonly context: GenerateContext) {}
 
   /**
    * Returns all available non-aggregate or group actions
