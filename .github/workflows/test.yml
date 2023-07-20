@@ -72,22 +72,8 @@ jobs:
             echo 'queryEngine=["library","binary"]' >> $GITHUB_OUTPUT
           fi
 
-      - name: Find "/integration" comment
-        uses: peter-evans/find-comment@v2
-        id: findIntegrationComment
-        if: ${{ github.event_name == 'pull_request' }}
-        with:
-          issue-number: ${{ github.event.pull_request.number }}
-          body-includes: '/integration'
-      # - uses: tspascoal/get-user-teams-membership@v2.0.0
-      #   if: ${{ github.event_name == 'pull_request' }}
-      #   id: checkUserMembershipForFindIntegrationComment
-      #   with:
-      #     username: ${{ steps.findTestAllComment.outputs.comment-author }}
-      #     GITHUB_TOKEN: ${{ secrets.BOT_TOKEN }}
       - name: Trigger npm release workflow for integration release
-        # if: ${{ steps.findIntegrationComment.outputs.comment-id && steps.checkUserMembershipForFindIntegrationComment.outputs.isTeamMember == 'true' }}
-        if: ${{ steps.findIntegrationComment.outputs.comment-id }}
+        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.body, '/integration') && (github.event.pull_request.author_association == 'member' || github.event.pull_request.author_association == 'owner' || github.event.pull_request.author_association == 'collaborator') }}
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: release-ci.yml
