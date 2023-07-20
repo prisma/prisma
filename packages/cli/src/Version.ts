@@ -88,7 +88,7 @@ export class Version implements Command {
     const rows = [
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
-      ['Current platform', platform],
+      ['Current platform - -hello-', platform],
 
       ...enginesRows,
       ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
