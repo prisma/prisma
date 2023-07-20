@@ -918,9 +918,9 @@ async function publishPackages(
       // For package `prisma`, get latest commit hash (that is being released)
       // and put into `prisma.prismaCommit` in `package.json` before publishing
       if (pkgName === 'prisma') {
-        const latestCommit = await getLatestCommit('.')
+        const latestCommitHash = await getLatestCommitHash('.')
         await writeToPkgJson(pkgDir, (pkg) => {
-          pkg.prisma.prismaCommit = latestCommit.hash
+          pkg.prisma.prismaCommit = latestCommitHash
         })
       }
 
