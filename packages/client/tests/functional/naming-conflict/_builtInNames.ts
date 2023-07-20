@@ -62,4 +62,5 @@ export const builtInNames = [
   'Mutation',
   'Check',
   'Promise',
+  'constructor',
 ] as const
