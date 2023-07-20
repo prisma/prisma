@@ -16,7 +16,7 @@ export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
 
   for (const field of model.fields) {
     if (field.kind === 'object') {
-      if (dmmf.typeMap[field.type]) {
+      if (hasOwnProperty(dmmf.typeMap, field.type)) {
         composites.add(buildModelOutputProperty(field, dmmf))
       } else {
         objects.add(buildModelOutputProperty(field, dmmf))
@@ -43,10 +43,8 @@ export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
       .add(ts.property('composites', composites)),
   )
 
-  const aliasGenerics: ts.GenericParameter[] = []
   if (!isComposite) {
     payloadTypeDeclaration.addGenericParameter(extArgsParam)
-    aliasGenerics.push(extArgsParam)
   }
 
   return ts.moduleExport(payloadTypeDeclaration)
