@@ -15,21 +15,6 @@ export const keyBy: <T>(collection: T[], prop: string) => Dictionary<T> = (colle
   return acc
 }
 
-export const ScalarTypeTable = {
-  String: true,
-  Int: true,
-  Float: true,
-  Boolean: true,
-  Long: true,
-  DateTime: true,
-  ID: true,
-  UUID: true,
-  Json: true,
-  Bytes: true,
-  Decimal: true,
-  BigInt: true,
-}
-
 export const needNamespace = {
   Json: 'JsonValue',
   Decimal: 'Decimal',
