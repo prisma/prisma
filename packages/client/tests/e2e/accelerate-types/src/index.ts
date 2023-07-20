@@ -3,7 +3,7 @@ import { withAccelerate } from '@prisma/extension-accelerate'
 import { expectTypeOf } from 'expect-type'
 
 async function main() {
-  const prisma = new PrismaClient().$extends(withAccelerate)
+  const prisma = new PrismaClient().$extends(withAccelerate())
 
   const user = await prisma.user.findFirst({
     select: {
