@@ -10,7 +10,7 @@ import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
 
-import { getConfig, getDMMF } from '..'
+import { getConfig, getDMMF, vercelPkgPathRegex } from '..'
 import { Generator } from '../Generator'
 import { resolveOutput } from '../resolveOutput'
 import { extractPreviewFeatures } from '../utils/extractPreviewFeatures'
@@ -95,7 +95,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
   if (version && !prismaPath) {
     const potentialPath = eval(`require('path').join(__dirname, '..')`)
     // for pkg we need to make an exception
-    if (!potentialPath.startsWith('/snapshot/')) {
+    if (!potentialPath.match(vercelPkgPathRegex)) {
       const downloadParams: DownloadOptions = {
         binaries: {
           [queryEngineBinaryType]: potentialPath,

@@ -8,13 +8,18 @@ import { request } from './request'
 const semverRegex = /^[1-9][0-9]*\.[0-9]+\.[0-9]+$/
 const debug = Debug('prisma:client:dataproxyEngine')
 
-async function _getClientVersion(config: EngineConfig) {
+async function _getClientVersion(host: string, config: EngineConfig) {
   const engineVersion = devDependencies['@prisma/engines-version']
   const clientVersion = config.clientVersion ?? 'unknown'
 
   // internal override for testing and manual version overrides
   if (process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION) {
     return process.env.PRISMA_CLIENT_DATA_PROXY_CLIENT_VERSION
+  }
+
+  // for data proxy v2, or accelerate, resolution isn't needed
+  if (host.includes('accelerate') && clientVersion !== '0.0.0') {
+    return clientVersion
   }
 
   const [version, suffix] = clientVersion?.split('-') ?? []
@@ -32,6 +37,15 @@ async function _getClientVersion(config: EngineConfig) {
 
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
+
+    // If the engines version is 4.17, this is for testing Prisma 5 dev versions in
+    // ecosystem-tests against a real Data Proxy. We need to test with a Data Proxy
+    // engine version deployed which includes an engine with `jsonProtocol` GA
+    // because `jsonProtocol` is GA in the client but not in the Data Proxy version
+    // that we fallback to by default, here `4.16.2`
+    if (major === '4' && minor === '17') {
+      return '5.0.0'
+    }
 
     // to ensure that the data proxy exists, we check if it's published
     // we resolve with the closest or previous version published on npm
@@ -75,8 +89,8 @@ async function _getClientVersion(config: EngineConfig) {
  * @param config
  * @returns
  */
-export async function getClientVersion(config: EngineConfig) {
-  const version = await _getClientVersion(config)
+export async function getClientVersion(host: string, config: EngineConfig) {
+  const version = await _getClientVersion(host, config)
 
   debug('version', version)
 

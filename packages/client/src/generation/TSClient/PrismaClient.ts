@@ -13,6 +13,7 @@ import {
   getFieldRefsTypeName,
   getGroupByName,
   getModelArgName,
+  getPayloadName,
 } from '../utils'
 import { lowerCase } from '../utils/common'
 import { runtimeImport } from '../utils/runtimeImport'
@@ -37,18 +38,15 @@ function clientTypeMapModelsDefinition(this: PrismaClientClass) {
 
     return `${acc}
     ${modelName}: {
-${
-  this.generator?.previewFeatures.includes('fieldReference')
-    ? `      fields: Prisma.${getFieldRefsTypeName(modelName)}\n`
-    : ''
-}      operations: {${actions.reduce((acc, action) => {
-      return `${acc}
+      payload: ${getPayloadName(modelName)}<ExtArgs>
+      fields: Prisma.${getFieldRefsTypeName(modelName)}
+      operations: {${actions.reduce((acc, action) => {
+        return `${acc}
         ${action}: {
           args: Prisma.${getModelArgName(modelName, action)}<ExtArgs>,
           result: ${clientTypeMapModelsResultDefinition(modelName, action)}
-          payload: ${modelName}Payload<ExtArgs>
         }`
-    }, '')}
+      }, '')}
       }
     }`
   }, '')}
@@ -65,15 +63,15 @@ function clientTypeMapModelsResultDefinition(modelName: string, action: Exclude<
   if (action === 'deleteMany') return `Prisma.BatchPayload`
   if (action === 'createMany') return `Prisma.BatchPayload`
   if (action === 'updateMany') return `Prisma.BatchPayload`
-  if (action === 'findMany') return `$Utils.PayloadToResult<${modelName}Payload>[]`
-  if (action === 'findFirst') return `$Utils.PayloadToResult<${modelName}Payload> | null`
-  if (action === 'findUnique') return `$Utils.PayloadToResult<${modelName}Payload> | null`
-  if (action === 'findFirstOrThrow') return `$Utils.PayloadToResult<${modelName}Payload>`
-  if (action === 'findUniqueOrThrow') return `$Utils.PayloadToResult<${modelName}Payload>`
-  if (action === 'create') return `$Utils.PayloadToResult<${modelName}Payload>`
-  if (action === 'update') return `$Utils.PayloadToResult<${modelName}Payload>`
-  if (action === 'upsert') return `$Utils.PayloadToResult<${modelName}Payload>`
-  if (action === 'delete') return `$Utils.PayloadToResult<${modelName}Payload>`
+  if (action === 'findMany') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>[]`
+  if (action === 'findFirst') return `$Utils.PayloadToResult<${getPayloadName(modelName)}> | null`
+  if (action === 'findUnique') return `$Utils.PayloadToResult<${getPayloadName(modelName)}> | null`
+  if (action === 'findFirstOrThrow') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'findUniqueOrThrow') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'create') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'update') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'upsert') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
+  if (action === 'delete') return `$Utils.PayloadToResult<${getPayloadName(modelName)}>`
 
   assertNever(action, 'Unknown action: ' + action)
 }
@@ -97,12 +95,12 @@ function clientTypeMapOthersDefinition(this: PrismaClientClass) {
 
   return `{
   other: {
+    payload: any
     operations: {${otherOperationsNames.reduce((acc, action) => {
       return `${acc}
       ${action}: {
         args: ${argsResultMap[action].args},
         result: ${argsResultMap[action].result}
-        payload: any
       }`
     }, '')}
     }
@@ -310,6 +308,14 @@ function runCommandRawDefinition(this: PrismaClientClass) {
   return ts.stringify(method, { indentLevel: 1, newLine: 'leading' })
 }
 
+function eventRegistrationMethodDeclaration(runtimeName: string) {
+  if (runtimeName === 'binary') {
+    return `$on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): void;`
+  } else {
+    return `$on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;`
+  }
+}
+
 export class PrismaClientClass implements Generatable {
   protected clientExtensionsDefinitions: {
     prismaNamespaceDefinitions: string
@@ -319,6 +325,7 @@ export class PrismaClientClass implements Generatable {
     protected readonly dmmf: DMMFHelper,
     protected readonly internalDatasources: InternalDatasource[],
     protected readonly outputDir: string,
+    protected readonly runtimeName: string,
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
     protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
@@ -351,9 +358,6 @@ export class PrismaClientClass implements Generatable {
 export class PrismaClient<
   T extends Prisma.PrismaClientOptions = Prisma.PrismaClientOptions,
   U = 'log' extends keyof T ? T['log'] extends Array<Prisma.LogLevel | Prisma.LogDefinition> ? Prisma.GetEvents<T['log']> : never : never,
-  GlobalReject extends Prisma.RejectOnNotFound | Prisma.RejectPerOperation | false | undefined = 'rejectOnNotFound' extends keyof T
-    ? T['rejectOnNotFound']
-    : false,
   ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs
 > {
   [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['other'] }
@@ -361,17 +365,17 @@ export class PrismaClient<
   ${indent(this.jsDoc, TAB_SIZE)}
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-  $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => Promise<void> : Prisma.LogEvent) => void): void;
+  ${eventRegistrationMethodDeclaration(this.runtimeName)}
 
   /**
    * Connect with the database
    */
-  $connect(): Promise<void>;
+  $connect(): $Utils.JsPromise<void>;
 
   /**
    * Disconnect from the database
    */
-  $disconnect(): Promise<void>;
+  $disconnect(): $Utils.JsPromise<void>;
 
   /**
    * Add a middleware
@@ -406,7 +410,7 @@ ${[
   * const ${lowerCase(m.plural)} = await prisma.${methodName}.findMany()
   * \`\`\`
   */
-get ${methodName}(): Prisma.${m.model}Delegate<GlobalReject, ExtArgs>;`
+get ${methodName}(): Prisma.${m.model}Delegate<ExtArgs>;`
         })
         .join('\n\n'),
       2,
@@ -417,45 +421,9 @@ get ${methodName}(): Prisma.${m.model}Delegate<GlobalReject, ExtArgs>;`
     return `${new Datasources(this.internalDatasources).toTS()}
 ${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
 export type DefaultPrismaClient = PrismaClient
-export type RejectOnNotFound = boolean | ((error: Error) => Error)
-export type RejectPerModel = { [P in ModelName]?: RejectOnNotFound }
-export type RejectPerOperation =  { [P in "findUnique" | "findFirst"]?: RejectPerModel | RejectOnNotFound } 
-type IsReject<T> = T extends true ? True : T extends (err: Error) => Error ? True : False
-export type HasReject<
-  GlobalRejectSettings extends Prisma.PrismaClientOptions['rejectOnNotFound'],
-  LocalRejectSettings,
-  Action extends PrismaAction,
-  Model extends ModelName
-> = LocalRejectSettings extends RejectOnNotFound
-  ? IsReject<LocalRejectSettings>
-  : GlobalRejectSettings extends RejectPerOperation
-  ? Action extends keyof GlobalRejectSettings
-    ? GlobalRejectSettings[Action] extends RejectOnNotFound
-      ? IsReject<GlobalRejectSettings[Action]>
-      : GlobalRejectSettings[Action] extends RejectPerModel
-      ? Model extends keyof GlobalRejectSettings[Action]
-        ? IsReject<GlobalRejectSettings[Action][Model]>
-        : False
-      : False
-    : False
-  : IsReject<GlobalRejectSettings>
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PrismaClientOptions {
-  /**
-   * Configure findUnique/findFirst to throw an error if the query returns null. 
-   * @deprecated since 4.0.0. Use \`findUniqueOrThrow\`/\`findFirstOrThrow\` methods instead.
-   * @example
-   * \`\`\`
-   * // Reject on both findUnique/findFirst
-   * rejectOnNotFound: true
-   * // Reject only on findFirst with a custom error
-   * rejectOnNotFound: { findFirst: (err) => new Error("Custom Error")}
-   * // Reject on user.findUnique with a custom error
-   * rejectOnNotFound: { findUnique: {User: (err) => new Error("User not found")}}
-   * \`\`\`
-   */
-  rejectOnNotFound?: RejectOnNotFound | RejectPerOperation
   /**
    * Overwrites the datasource url from your schema.prisma file
    */
@@ -532,6 +500,7 @@ export type PrismaAction =
   | 'count'
   | 'runCommandRaw'
   | 'findRaw'
+  | 'groupBy'
 
 /**
  * These options are being passed into the middleware as "params"
@@ -549,8 +518,8 @@ export type MiddlewareParams = {
  */
 export type Middleware<T = any> = (
   params: MiddlewareParams,
-  next: (params: MiddlewareParams) => Promise<T>,
-) => Promise<T>
+  next: (params: MiddlewareParams) => $Utils.JsPromise<T>,
+) => $Utils.JsPromise<T>
 
 // tested in getLogLevel.test.ts
 export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | undefined;

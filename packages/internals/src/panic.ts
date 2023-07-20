@@ -36,6 +36,7 @@ export enum ErrorArea {
   PHOTON_STUDIO = 'PHOTON_STUDIO',
   // Unused since 4.9.0 and now using `LIFT_CLI`
   INTROSPECTION_CLI = 'INTROSPECTION_CLI',
+  // Note: prisma-fmt-wasm was renamed to prisma-schema-wasm in 5.0.0
   FMT_CLI = 'FMT_CLI',
   QUERY_ENGINE_BINARY_CLI = 'QUERY_ENGINE_BINARY_CLI',
   QUERY_ENGINE_LIBRARY_CLI = 'QUERY_ENGINE_LIBRARY_CLI',

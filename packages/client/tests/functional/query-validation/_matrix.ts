@@ -25,9 +25,5 @@ export default defineMatrix(() => [
     {
       previewFeatures: '',
     },
-
-    {
-      previewFeatures: '"extendedWhereUnique"',
-    },
   ],
 ])

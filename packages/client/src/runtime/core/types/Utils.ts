@@ -67,11 +67,15 @@ export type UnwrapTuple<Tuple extends readonly unknown[]> = {
     : UnwrapPromise<Tuple[K]>
 }
 
-export type Path<O, P, Default = never> = P extends [infer K, ...infer R]
-  ? K extends keyof O
-    ? Path<O[K], R>
-    : Default
-  : O
+// prettier-ignore
+export type Path<O, P, Default = never> =
+  O extends unknown
+  ? P extends [infer K, ...infer R]
+    ? K extends keyof O
+      ? Path<O[K], R>
+      : Default
+    : O
+  : never
 
 export interface Fn<Params = unknown, Returns = unknown> {
   params: Params
@@ -111,3 +115,12 @@ export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayload
                      ? PayloadToResult<O[K][K]>
                     : O[K][K]
 }
+
+export type Select<T, U> = T extends U ? T : never
+
+// This alias is necessary to allow to use `Promise` as a model name.
+// It's used in generated client instead of global `Promise`.
+// Why conditional intersection with {}?. Without it, in the error messages
+// and editor tooltips, type would be displayed as $Utils.JsPromise<T>.
+// Intersection allows us to preserve the name `Promise`
+export type JsPromise<T> = Promise<T> & {}

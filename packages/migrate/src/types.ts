@@ -3,6 +3,8 @@
 //
 // https://www.jsonrpc.org/specification
 
+import type { MigrateTypes } from '@prisma/internals'
+
 import type { IntrospectionViewDefinition } from './views/handleViewsIO'
 
 // A JSON-RPC request or response.
@@ -77,21 +79,6 @@ export interface MigrationFeedback {
 
 export type DevAction = { tag: 'reset'; reason: string } | { tag: 'createMigration' }
 
-// The URL of the database to run the command on.
-type UrlContainer = {
-  tag: 'ConnectionString'
-  url: string
-}
-// Path to the Prisma schema file to take the datasource URL from.
-type PathContainer = {
-  tag: 'SchemaPath'
-  path: string
-}
-// Prisma schema as string
-type SchemaContainer = {
-  tag: 'SchemaString'
-  schema: string
-}
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace EngineArgs {
   /**
@@ -115,7 +102,7 @@ export namespace EngineArgs {
   // or the whole Prisma schema as a string,
   // or only the connection string.
   export interface CreateDatabaseInput {
-    datasource: SchemaContainer | UrlContainer | PathContainer
+    datasource: MigrateTypes.SchemaContainer | MigrateTypes.UrlContainer | MigrateTypes.PathContainer
   }
 
   export interface DropDatabase {
@@ -140,9 +127,7 @@ export namespace EngineArgs {
     script: string
   }
 
-  export interface GetDatabaseVersionParams {
-    schema: string
-  }
+  export type GetDatabaseVersionParams = MigrateTypes.GetDatabaseVersionParams
 
   export interface IntrospectParams {
     schema: string
@@ -180,7 +165,7 @@ export namespace EngineArgs {
   }
 
   export interface EnsureConnectionValidityInput {
-    datasource: SchemaContainer | UrlContainer | PathContainer
+    datasource: MigrateTypes.SchemaContainer | MigrateTypes.UrlContainer | MigrateTypes.PathContainer
   }
 
   export interface EvaluateDataLossInput {
@@ -203,7 +188,7 @@ export namespace EngineArgs {
 
   type MigrateDiffTargetUrl = {
     // The url to a live database. Its schema will be considered.
-    // This will cause the migration engine to connect to the database and read from it. It will not write.
+    // This will cause the Schema engine to connect to the database and read from it. It will not write.
     tag: 'url'
     url: string
   }
