@@ -1,6 +1,6 @@
 // @ts-check
 const { drawBox } = require('@prisma/internals/dist/utils/drawBox')
-var { red, underline } = require('kleur/colors')
+const { red, underline } = require('kleur/colors')
 
 export function main() {
   // process.version (e.g. `v16.0.0`)
