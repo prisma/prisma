@@ -354,17 +354,57 @@ describe('evaluateDataLoss', () => {
   })
 })
 
-// TODO: uncomment once https://github.com/prisma/prisma-private/issues/203 is closed.
-// describe('getDatabaseVersion', () => {
-//   it('should succeed - PostgreSQL', async () => {
-//     ctx.fixture('schema-only')
-//     const schemaPath = (await getSchemaPath())!
-//     const migrate = new Migrate(schemaPath)
-//     const result = migrate.engine.getDatabaseVersion({ schema: schemaPath })
-//     await expect(result).resolves.toContain('PostgreSQL')
-//     migrate.stop()
-//   })
-// })
+describe('getDatabaseVersion - PostgreSQL', () => {
+  it('[No params] should succeed', async () => {
+    ctx.fixture('schema-only')
+    const schemaPath = (await getSchemaPath())!
+    const migrate = new Migrate(schemaPath)
+    const result = migrate.engine.getDatabaseVersion()
+    await expect(result).resolves.toContain('PostgreSQL')
+    migrate.stop()
+  })
+
+  it('[SchemaPath] should succeed', async () => {
+    ctx.fixture('schema-only')
+    const schemaPath = (await getSchemaPath())!
+    const migrate = new Migrate()
+    const result = migrate.engine.getDatabaseVersion({
+      datasource: {
+        tag: 'SchemaPath',
+        path: schemaPath,
+      },
+    })
+    await expect(result).resolves.toContain('PostgreSQL')
+    migrate.stop()
+  })
+
+  it('[SchemaString] should succeed', async () => {
+    ctx.fixture('schema-only')
+    const schemaPath = (await getSchemaPath())!
+    const schema = (await fs.readAsync(schemaPath))!
+    const migrate = new Migrate()
+    const result = migrate.engine.getDatabaseVersion({
+      datasource: {
+        tag: 'SchemaString',
+        schema,
+      },
+    })
+    await expect(result).resolves.toContain('PostgreSQL')
+    migrate.stop()
+  })
+
+  it('[ConnectionString] should succeed', async () => {
+    const migrate = new Migrate()
+    const result = migrate.engine.getDatabaseVersion({
+      datasource: {
+        tag: 'ConnectionString',
+        url: process.env.TEST_POSTGRES_URI!,
+      },
+    })
+    await expect(result).resolves.toContain('PostgreSQL')
+    migrate.stop()
+  })
+})
 
 describe('listMigrationDirectories', () => {
   it('should succeed - existing-db-1-migration', async () => {

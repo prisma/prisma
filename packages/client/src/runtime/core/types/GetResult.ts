@@ -119,7 +119,9 @@ type GetBatchResult = { count: number }
 type GetGroupByResult<P extends Payload, A> =
   A extends { by: string[] }
   ? Array<GetAggregateResult<P, A> & { [K in A['by'][number]]: P['scalars'][K] }>
-  : never
+  : A extends { by: string } 
+    ? Array<GetAggregateResult<P, A> & { [K in A['by']]: P['scalars'][K]}>
+    : never
 
 // prettier-ignore
 export type GetResult<P extends Payload, A, O extends Operation = 'findUniqueOrThrow'> = {

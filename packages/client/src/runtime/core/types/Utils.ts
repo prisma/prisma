@@ -118,4 +118,12 @@ export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayload
 
 export type Select<T, U> = T extends U ? T : never
 
-export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? 1 : 0
+// prettier-ignore
+export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? 1 : 0
+
+// This alias is necessary to allow to use `Promise` as a model name.
+// It's used in generated client instead of global `Promise`.
+// Why conditional intersection with {}?. Without it, in the error messages
+// and editor tooltips, type would be displayed as $Utils.JsPromise<T>.
+// Intersection allows us to preserve the name `Promise`
+export type JsPromise<T> = Promise<T> & {}
