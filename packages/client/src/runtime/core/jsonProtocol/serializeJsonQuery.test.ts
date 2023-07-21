@@ -731,6 +731,7 @@ test('args - array - with undefined', () => {
           "where": {
             "favoriteNumbers": [
               1,
+              null,
               23
             ]
           }

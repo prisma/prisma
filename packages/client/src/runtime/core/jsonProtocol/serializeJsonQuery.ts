@@ -270,6 +270,9 @@ function serializeArgumentsArray(array: JsInputValue[], context: SerializeContex
     const value = array[i]
     if (value !== undefined) {
       result.push(serializeArgumentsValue(value, context.nestArgument(String(i))))
+    } else {
+      // TODO explain why this is needed
+      result.push(null)
     }
   }
   return result
