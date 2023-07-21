@@ -66,6 +66,8 @@ export class LibraryEngine extends Engine<undefined> {
   private libraryLoader: LibraryLoader
   private library?: Library
   private logEmitter: EventEmitter
+  private env: { [k in string]?: string }
+
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides: Record<string, string>
@@ -105,6 +107,8 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     }
 
     this.config = config
+    // process.env is last so it can override values from `.env` file.
+    this.env = { ...this.config.env, ...process.env }
     this.libraryStarted = false
     this.logQueries = config.logQueries ?? false
     this.logLevel = config.logLevel ?? 'error'
@@ -243,7 +247,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         this.engine = new this.QueryEngineConstructor(
           {
             datamodel: this.datamodel,
-            env: process.env,
+            env: this.env,
             logQueries: this.config.logQueries ?? false,
             ignoreEnvVarErrors: true,
             datasourceOverrides: this.datasourceOverrides,

@@ -8,6 +8,10 @@ test('blog-dot-env-root', async () => {
     errorFormat: 'colorless',
   })
 
+  if (process.env.SQLITE_URL_FROM_DOT_ENV_FILE) {
+    throw new Error('SQLITE_URL_FROM_DOT_ENV_FILE should not be set here.')
+  }
+
   try {
     await prisma.$connect()
   } finally {

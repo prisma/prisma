@@ -155,6 +155,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     super()
 
     this.config = config
+    // process.env is last so it can override values from `.env` file.
     this.env = { ...this.config.env, ...process.env }
     this.inlineSchema = config.inlineSchema ?? ''
     this.inlineDatasources = config.inlineDatasources ?? {}
