@@ -118,7 +118,8 @@ export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayload
 
 export type Select<T, U> = T extends U ? T : never
 
-export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2 ? 1 : 0
+// prettier-ignore
+export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? 1 : 0
 
 export type Or<A extends 1 | 0, B extends 1 | 0> = {
   0: {
