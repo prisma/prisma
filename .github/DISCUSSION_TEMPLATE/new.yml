@@ -1,0 +1,69 @@
+name: New Discussion
+description: Please fill out the following information to create a new discussion.
+  Make sure to provide clear and concise details to help others understand and address your concerns effectively.
+
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem description
+      description: A clear and concise description of what the problem is
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How to reproduce
+      description: Steps to reproduce the behavior
+      value: |
+        <!--
+        1. Go to '...'
+        2. Change '....'
+        3. Run '....'
+        4. See error
+        -->
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: A clear and concise description of what you expected to happen.
+  - type: textarea
+    id: prisma-info
+    attributes:
+      label: Prisma information
+      description: Your Prisma schema, Prisma Client queries, ...
+      value: |
+        <!-- Do not include your database credentials when sharing your Prisma schema! -->
+        ```prisma
+        // Add your schema.prisma
+        ```
+
+        ```ts
+        // Add your code using Prisma Client
+        ```
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment & setup
+      description: In which environment does the problem occur?
+      value: |
+        - OS: <!--[e.g. macOS, Windows, Debian, CentOS, ...]-->
+        - Database: <!--[PostgreSQL, MySQL, PlanetScale, MariaDB, SQL Server, SQLite, MongoDB or CockroachDB]-->
+        - Node.js version: <!--[Run `node -v` to see your Node.js version]-->
+    validations:
+      required: true
+  - type: textarea
+    id: prisma-version
+    attributes:
+      label: Prisma Version
+      description: Run `prisma -v` to see your Prisma version and paste it between the ´´´
+      value: |
+        ```
+
+        ```
+    validations:
+      required: true
