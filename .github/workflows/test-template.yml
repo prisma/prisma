@@ -174,7 +174,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
-        uses: Workshop64/buildpulse-action@main
+        uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
           repository: 192925833
@@ -254,7 +254,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
-        uses: Workshop64/buildpulse-action@main
+        uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
           repository: 192925833
@@ -471,7 +471,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
-        uses: Workshop64/buildpulse-action@main
+        uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
           repository: 192925833
@@ -904,7 +904,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason =='buildpulse'
-        uses: Workshop64/buildpulse-action@main
+        uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
           repository: 192925833
@@ -1100,7 +1100,7 @@ jobs:
         # Only run this step for branches where we have access to secrets.
         # Run this step even when the tests fail. Skip if the workflow is cancelled.
         if: env.HAS_BUILDPULSE_SECRETS == 'true' && !cancelled() && inputs.reason == 'buildpulse'
-        uses: Workshop64/buildpulse-action@main
+        uses: buildpulse/buildpulse-action@v0.11.0
         with:
           account: 17219288
           repository: 192925833
