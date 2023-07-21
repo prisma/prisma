@@ -309,8 +309,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720
-        version: 5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720
+        specifier: 5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203
+        version: 5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.0.0
@@ -587,8 +587,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720
-        version: 5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720
+        specifier: 5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203
+        version: 5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -672,8 +672,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720
-        version: 5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720
+        specifier: 5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203
+        version: 5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203
       '@swc/core':
         specifier: 1.3.70
         version: 1.3.70
@@ -954,8 +954,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720
-        version: 5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720
+        specifier: 5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203
+        version: 5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203
       archiver:
         specifier: 5.3.1
         version: 5.3.1
@@ -1163,8 +1163,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720
-        version: 5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720
+        specifier: 5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203
+        version: 5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3561,8 +3561,8 @@ packages:
     dev: true
     optional: true
 
-  /@prisma/engines-version@5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720:
-    resolution: {integrity: sha512-Z/dfVLKIqxzJXAf8EwRuf1XZUCqKpNaf9LVfkfIUm+3ZO8FXZ88i+M8CYs2/XXNmTREYbWIL+NJTfQ5D9ou3+g==}
+  /@prisma/engines-version@5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203:
+    resolution: {integrity: sha512-CDOgwXpwbxtCUmtDX9+Ga1+JYuUvh4q6jkIWX3ZN4ySEYyzIuKCPjUbc2WeYrpM/D2ujWahhlTnPEyNhMzeWjg==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3570,8 +3570,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.1.0-9.4a1c72356ffb884a5752157c21d8bac67afd1720:
-    resolution: {integrity: sha512-v7iAUcTEX8yXf45fpCmruf9rB85qQDQ6Sn60VFq5jve59IXRnTnPwka8M3CpJ0vYAmCQo4NE9rqJklKDc9GQwg==}
+  /@prisma/prisma-schema-wasm@5.1.0-10.integration-ipv6-with-tests-011462b5340b9d05de68e7634fb12cc681cd9203:
+    resolution: {integrity: sha512-Sz6Ia/H1v281KoUZ9S9Vd+pEs2sy1jR7Woyy70zla2s9sVYpyzk8sNz8R7++GXPLAKXyqBKHChXh+eiNPkuceA==}
     dev: false
 
   /@prisma/studio-common@0.487.0:
