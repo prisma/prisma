@@ -149,7 +149,7 @@ type DynamicModelExtensionFnResultBase<TypeMap extends TypeMapDef, M extends Pro
 type DynamicModelExtensionFluentApi<TypeMap extends TypeMapDef, M extends PropertyKey, P extends PropertyKey, Null> = {
   [K in keyof TypeMap['model'][M]['payload']['objects']]:
     <A>(args?: Exact<A, Path<TypeMap['model'][M]['operations'][P]['args']['select'], [K]>>) =>
-      & PrismaPromise<DynamicModelExtensionFnResultBase<TypeMap, M, { select: { [P in K]: A } }, P>[K] | Null>
+      & PrismaPromise<Path<DynamicModelExtensionFnResultBase<TypeMap, M, { select: { [P in K]: A } }, P>, [K]> | Null>
       & DynamicModelExtensionFluentApi<TypeMap, (TypeMap['model'][M]['payload']['objects'][K] & {})['name'], P, Null | Select<TypeMap['model'][M]['payload']['objects'][K], null>>
 }
 
