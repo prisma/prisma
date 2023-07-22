@@ -1,15 +1,14 @@
 import * as Extensions from './Extensions'
-import { DefaultSelection, GetResult } from './GetResult'
 import { Payload } from './Payload'
 import * as Public from './Public'
+import * as Result from './Result'
 import * as Utils from './Utils'
 
 /** Specific types */
+export { Result }
 export { Extensions }
 export { Utils }
 export { Public }
 
 /** General types */
-export { type GetResult }
 export { type Payload }
-export { type DefaultSelection }

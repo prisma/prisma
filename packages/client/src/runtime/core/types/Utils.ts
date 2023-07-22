@@ -34,20 +34,11 @@ export type Narrow<A> = {
 } | (A extends Narrowable ? A : never)
 
 // prettier-ignore
-export type Exact<A, W> = (W extends A ? {
+export type Exact<A, W> = (A extends unknown ? (W extends A ? {
   [K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : never
-} : W) | (A extends Narrowable ? A : never)
+} : W) : never) | (A extends Narrowable ? A : never)
 
 export type Cast<A, W> = A extends W ? A : W
-
-type LegacyNarrowable = string | number | boolean | bigint
-
-// prettier-ignore
-export type LegacyExact<A, W = unknown> = 
-  W extends unknown ? A extends LegacyNarrowable ? Cast<A, W> : Cast<
-  { [K in keyof A]: K extends keyof W ? LegacyExact<A[K], W[K]> : never },
-  { [K in keyof W]: K extends keyof A ? LegacyExact<A[K], W[K]> : W[K] }>
-  : never;
 
 export type JsonObject = { [Key in string]?: JsonValue }
 export interface JsonArray extends Array<JsonValue> {}

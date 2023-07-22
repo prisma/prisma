@@ -1,10 +1,10 @@
 import { Prisma, PrismaClient } from '@prisma/client'
 
-const ext = Prisma.defineExtension((client) => {
+export const extension = Prisma.defineExtension((client) => {
   return client.$extends({
     model: {
       $allModels: {
-        paginate<T, A>(this: T, _: Prisma.Exact<A, Prisma.Args<T, 'findMany'>>) {
+        someOperation<T, A>(this: T, _: Prisma.Exact<A, Prisma.Args<T, 'findMany'>>) {
           return {} as Prisma.Result<T, A, 'findMany'> & { prop: string }
         },
       },
@@ -12,18 +12,20 @@ const ext = Prisma.defineExtension((client) => {
   })
 })
 
-const xprismaViaDefinedExt = new PrismaClient().$extends(ext)
-const xprismaViaInlineExt = new PrismaClient().$extends({
+export const xprismaViaDefinedExt = new PrismaClient().$extends(extension)
+
+export const xprismaViaInlineExt = new PrismaClient().$extends({
   model: {
     $allModels: {
-      paginate<T, A>(this: T, _: Prisma.Exact<A, Prisma.Args<T, 'findMany'>>) {
+      someOperation<T, A>(this: T, _: Prisma.Exact<A, Prisma.Args<T, 'findMany'>>) {
         return {} as Prisma.Result<T, A, 'findMany'> & { prop: string }
       },
     },
   },
 })
 
-export class NestJSWrapper {
+export class SomeClassWrapper {
+  // eg. NestJS
   constructor(private readonly prismaService: PrismaClient) {}
 
   findMany<T extends Prisma.ModelAFindManyArgs>(findManyDto: Prisma.SelectSubset<T, Prisma.ModelAFindManyArgs>) {
@@ -47,4 +49,6 @@ export class NestJSWrapper {
   }
 }
 
-export { ext, xprismaViaDefinedExt, xprismaViaInlineExt }
+export function someFunction(data: Prisma.Args<typeof xprismaViaInlineExt.modelA, 'create'>['data']) {
+  return xprismaViaInlineExt.modelA.create({ data })
+}

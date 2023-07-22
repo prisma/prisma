@@ -92,7 +92,7 @@ type SelectField<P extends SelectablePayloadFields<any, any>, K extends Property
 export type DefaultSelection<P> = UnwrapPayload<{ default: P }>['default']
 
 // prettier-ignore
-export type UnwrapPayload<P> = {} extends P ? unknown : {
+type UnwrapPayload<P> = {} extends P ? unknown : {
   [K in keyof P]: 
     P[K] extends { scalars: infer S, composites: infer C }[]
     ? Array<S & UnwrapPayload<C>>
