@@ -9,7 +9,7 @@ import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, Select, ToTuple, 
 
 /* eslint-disable prettier/prettier */
 
-type InternalArgs<
+export type InternalArgs<
   R = { [K in string]: { [K in string]: unknown } },
   M = { [K in string]: { [K in string]: unknown } },
   Q = { [K in string]: { [K in string]: unknown } },
