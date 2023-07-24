@@ -13,33 +13,19 @@ import redis from 'redis'
 import semver from 'semver'
 import { promisify } from 'util'
 
-export type Commit = {
-  date: Date
-  dir: string
-  hash: string
-  isMergeCommit: boolean
-  parentCommits: string[]
-}
-
 const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split(',') : null
 const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
 
-async function getLatestCommit(dir: string): Promise<Commit> {
+async function getLatestCommitHash(dir: string): Promise<string> {
   if (process.env.GITHUB_CONTEXT) {
     const context = JSON.parse(process.env.GITHUB_CONTEXT)
     return context.sha
   }
 
   const result = await runResult(dir, 'git log --pretty=format:"%ad %H %P" --date=iso-strict -n 1')
-  const [date, commit, ...parents] = result.split(' ')
-
-  return {
-    date: new Date(date),
-    dir,
-    hash: commit,
-    isMergeCommit: parents.length > 1,
-    parentCommits: parents,
-  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [date, hash] = result.split(' ')
+  return hash
 }
 
 /**
@@ -557,7 +543,7 @@ async function publish() {
     console.log({ branch })
 
     // For branches that are named "integration/" we publish to the integration npm tag
-    if (branch && branch.startsWith('integration/')) {
+    if (branch && (process.env.FORCE_INTEGRATION_RELEASE || branch.startsWith('integration/'))) {
       prismaVersion = await getNewIntegrationVersion(packages, branch)
       tag = 'integration'
     }
@@ -628,13 +614,12 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 
       const enginesCommitHash = await getEnginesCommitHash()
       const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
-      const prismaCommit = await getLatestCommit('.')
-      console.debug({ prismaCommit })
-      const prismaCommitInfo = await getCommitInfo('prisma', prismaCommit.hash)
+      const prismaCommitHash = await getLatestCommitHash('.')
+      const prismaCommitInfo = await getCommitInfo('prisma', prismaCommitHash)
 
       if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
         fs.appendFileSync(process.env.GITHUB_OUTPUT, `enginesCommitHash=${enginesCommitHash}\n`)
-        fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommit.hash}\n`)
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommitHash}\n`)
       }
 
       try {
@@ -933,16 +918,13 @@ async function publishPackages(
       // For package `prisma`, get latest commit hash (that is being released)
       // and put into `prisma.prismaCommit` in `package.json` before publishing
       if (pkgName === 'prisma') {
-        const latestCommit = await getLatestCommit('.')
+        const latestCommitHash = await getLatestCommitHash('.')
         await writeToPkgJson(pkgDir, (pkg) => {
-          pkg.prisma.prismaCommit = latestCommit.hash
+          pkg.prisma.prismaCommit = latestCommitHash
         })
       }
 
       if (!isSkipped(pkgName)) {
-        // https://docs.npmjs.com/generating-provenance-statements
-        const provenance = process.env.GITHUB_ACTIONS ? '--provenance' : ''
-
         /*
          *  About `--no-git-checks`
          *  By default, `pnpm publish` will make some checks before actually publishing a new version of your package.
@@ -951,7 +933,7 @@ async function publishPackages(
          *  - Your working directory is clean (there are no uncommitted changes).
          *  - The branch is up-to-date.
          */
-        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag} ${provenance}`, dryRun)
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
       }
     }
   }

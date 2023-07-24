@@ -1,3 +1,5 @@
+import { hasOwnProperty } from '@prisma/internals'
+
 import type { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 import * as ts from '../ts-builders'
@@ -5,7 +7,9 @@ import { getPayloadName } from '../utils'
 import { GraphQLScalarToJSTypeTable, isSchemaEnum, needsNamespace } from '../utils/common'
 
 export function buildModelOutputProperty(field: DMMF.Field, dmmf: DMMFHelper, useNamespace = false) {
-  let fieldTypeName = GraphQLScalarToJSTypeTable[field.type] || field.type
+  let fieldTypeName = hasOwnProperty(GraphQLScalarToJSTypeTable, field.type)
+    ? GraphQLScalarToJSTypeTable[field.type]
+    : field.type
   if (Array.isArray(fieldTypeName)) {
     fieldTypeName = fieldTypeName[0]
   }

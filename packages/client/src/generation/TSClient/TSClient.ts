@@ -169,7 +169,7 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
 
     const commonCode = commonCodeTS(this.options)
     const modelAndTypes = Object.values(this.dmmf.typeAndModelMap).reduce((acc, modelOrType) => {
-      if (this.dmmf.outputTypeMap[modelOrType.name]) {
+      if (this.dmmf.outputTypeMap.model[modelOrType.name]) {
         acc.push(new Model(modelOrType, context))
       }
       return acc

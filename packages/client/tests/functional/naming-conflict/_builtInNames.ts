@@ -58,7 +58,9 @@ export const builtInNames = [
   'NestedIntFilter',
   'BatchPayload',
   'Fetcher',
-  // 'Query', TODO: still broken
+  'Query',
+  'Mutation',
   'Check',
   'Promise',
+  'constructor',
 ] as const
