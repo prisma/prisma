@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`exhaustive-schema (binary): generatedBrowserJS 1`] = `
+exports[`not-so-exhaustive-schema (data-proxy): generatedBrowserJS 1`] = `
 
 Object.defineProperty(exports, "__esModule", { value: true });
 
@@ -347,13 +347,13 @@ Object.assign(exports, Prisma)
 
 `;
 
-exports[`exhaustive-schema (binary): generatedTypeScript 1`] = `
+exports[`not-so-exhaustive-schema (data-proxy): generatedTypeScript 1`] = `
 
 /**
  * Client
 **/
 
-import * as runtime from '@prisma/client/runtime/binary';
+import * as runtime from '@prisma/client/runtime/data-proxy';
 import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
@@ -484,7 +484,7 @@ export class PrismaClient<
    */
 
   constructor(optionsArg ?: Prisma.Subset<T, Prisma.PrismaClientOptions>);
-  $on<V extends (U | 'beforeExit')>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : V extends 'beforeExit' ? () => $Utils.JsPromise<void> : Prisma.LogEvent) => void): void;
+  $on<V extends U>(eventType: V, callback: (event: V extends 'query' ? Prisma.QueryEvent : Prisma.LogEvent) => void): void;
 
   /**
    * Connect with the database
