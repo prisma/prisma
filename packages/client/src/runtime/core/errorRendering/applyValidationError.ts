@@ -321,15 +321,18 @@ function applyInvalidArgumentValueError(error: InvalidArgumentValueError, args: 
   }
 
   args.addErrorMessage((colors) => {
-    const expected = joinWithPreposition(
-      'or',
-      error.argument.typeNames.map((type) => colors.green(type)),
-    )
     const parts = [`Invalid value for argument \`${colors.bold(argName)}\``]
     if (error.underlyingError) {
       parts.push(`: ${error.underlyingError}`)
     }
-    parts.push(`. Expected ${expected}.`)
+    parts.push('.')
+    if (error.argument.typeNames.length > 0) {
+      const expected = joinWithPreposition(
+        'or',
+        error.argument.typeNames.map((type) => colors.green(type)),
+      )
+      parts.push(` Expected ${expected}.`)
+    }
     return parts.join('')
   })
 }

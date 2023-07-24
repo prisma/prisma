@@ -17,13 +17,11 @@ async function main() {
     },
   })
 
-  prisma.$on('query', (a) => {
+  prisma.$on('query', (a: Prisma.QueryEvent) => {
     //
   })
-  prisma.$on('beforeExit', () => {
-    //
-  })
-  Prisma.prismaVersion.client
+
+  let v: string = Prisma.prismaVersion.client
 
   const x: Prisma.Sql = Prisma.sql`SELECT * FROM ${Prisma.raw('User')} WHERE 'id' in ${Prisma.join([1, 2, 3])} ${
     Prisma.empty

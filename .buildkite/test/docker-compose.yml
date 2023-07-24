@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   app:
-    image: node:14-buster
+    image: node:16-buster
     volumes:
       - ../../:/app
     working_dir: /app
@@ -49,14 +49,15 @@ services:
       - BUILDKITE
       - BUILDKITE_PARALLEL_JOB
       - BUILDKITE_PARALLEL_JOB_COUNT
-      - BUILDKITE_TAG
       - BUILDKITE_BRANCH
-      - PATCH_BRANCH
       - CI
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma test"
       # To hide "Update available 0.0.0 -> x.x.x"
       - PRISMA_HIDE_UPDATE_MESSAGE="true"
       - SKIP_ECOSYSTEMTESTS_CHECK
+      # TODO find why we need NODE_OPTIONS for Buildkite (we need it since Node v16)
+      # This is to avoid OOM errors like "FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory"
+      - NODE_OPTIONS="--max-old-space-size=8096"
     depends_on:
       - postgres
       - postgres_isolated

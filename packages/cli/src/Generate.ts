@@ -259,7 +259,9 @@ ${highlightTS(`\
 import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'`)}
 ${dim('```')}
 
-You will need a Prisma Data Proxy connection string. See documentation: ${link('https://pris.ly/d/data-proxy')}
+You will need an Accelerate or a Prisma Data Proxy connection string. See documentation: ${link(
+                'https://pris.ly/d/data-proxy',
+              )}
 `
             : ''
         }${breakingChangesStr}${versionsWarning}`

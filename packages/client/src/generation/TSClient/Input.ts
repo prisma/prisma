@@ -62,6 +62,8 @@ function buildSingleFieldType(
     }
 
     type = namedInputType(scalarType ?? t.type)
+  } else if (t.location === 'enumTypes' && t.namespace === 'model') {
+    type = ts.namedType(`$Enums.${t.type.name}`)
   } else {
     type = namedInputType(t.type.name)
   }
