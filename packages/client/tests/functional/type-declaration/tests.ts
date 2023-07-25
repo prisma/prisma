@@ -3,7 +3,7 @@ import path from 'path'
 
 import testMatrix from './_matrix'
 
-const dtsFile = path.resolve(__dirname, '..', '..', '..', 'runtime', 'index.d.ts')
+const dtsFile = path.resolve(__dirname, '..', '..', '..', 'runtime', 'library.d.ts')
 const dtsContents = fs.readFileSync(dtsFile, 'utf8')
 
 testMatrix.setupTestSuite(

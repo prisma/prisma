@@ -1,10 +1,9 @@
-import { isError } from '@prisma/internals'
 import leven from 'js-levenshtein'
 
+import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
-import { PrismaClientConstructorValidationError } from '../query'
 
-const knownProperties = ['datasources', 'errorFormat', 'log', '__internal', 'rejectOnNotFound']
+const knownProperties = ['datasources', 'errorFormat', 'log', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -138,19 +137,6 @@ It should have this form: { url: "CONNECTION_STRING" }`,
     }
     // TODO: Add more validation here
     // but as this is an internal, non user-facing api, it's not urgent
-  },
-  rejectOnNotFound: (value) => {
-    if (!value) {
-      return
-    }
-    if (isError(value) || typeof value === 'boolean' || typeof value === 'object' || typeof value === 'function') {
-      return value
-    }
-    throw new PrismaClientConstructorValidationError(
-      `Invalid rejectOnNotFound expected a boolean/Error/{[modelName: Error | boolean]} but received ${JSON.stringify(
-        value,
-      )}`,
-    )
   },
 }
 

@@ -18,6 +18,8 @@ const args = arg(
     '--no-types': Boolean,
     // Only typecheck, don't run the code tests
     '--types-only': Boolean,
+    // Generates all the clients to run the type tests
+    '--generate-only': Boolean,
     // Restrict the list of providers
     '--provider': [String],
     '-p': '--provider',
@@ -47,7 +49,6 @@ const args = arg(
     '--changedFilesWithAncestor': Boolean,
     // Passes the same flag to Jest to shard tests between multiple machines
     '--shard': String,
-
     // Passes the same flag to Jest to silence the output
     '--silent': Boolean,
   },
@@ -58,6 +59,7 @@ const args = arg(
 async function main(): Promise<number | void> {
   let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
+  const jestArgs = ['--testPathIgnorePatterns', 'typescript']
 
   if (args['--provider']) {
     const providers = args['--provider'] as Providers[]
@@ -105,8 +107,6 @@ async function main(): Promise<number | void> {
     throw new Error('--edge-client is only available when --data-proxy is used')
   }
 
-  const jestArgs = ['--testPathIgnorePatterns', 'typescript']
-
   // See flag description above.
   // If the flag is not provided we want to ignore `relationMode` tests
   if (args['--relation-mode-tests-only']) {
@@ -136,7 +136,12 @@ async function main(): Promise<number | void> {
       snapshotUpdate.withEnv({ UPDATE_SNAPSHOTS: 'external' }).run()
     } else {
       if (!args['--types-only']) {
-        codeTestCli.withArgs(['--']).withArgs(args['_']).run()
+        codeTestCli
+          .withArgs(['--', args['_']])
+          .withEnv({
+            TEST_GENERATE_ONLY: args['--generate-only'] ? 'true' : 'false',
+          })
+          .run()
       }
 
       if (!args['--no-types']) {

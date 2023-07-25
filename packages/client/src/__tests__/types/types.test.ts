@@ -1,4 +1,4 @@
-import { getPackedPackage } from '@prisma/internals'
+import { getClientEngineType, getPackedPackage } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'
@@ -32,8 +32,10 @@ describe('valid types', () => {
       transpile: true,
       packageSource,
     })
+
     const indexPath = path.join(dir, 'test.ts')
     const tsdTestPath = path.join(dir, 'index.test-d.ts')
+    const engineSpecificTestPath = path.join(dir, `test.${getClientEngineType()}.ts`)
 
     if (fs.existsSync(tsdTestPath)) {
       await runTsd(dir)
@@ -43,6 +45,14 @@ describe('valid types', () => {
       await expect(compileFile(indexPath)).rejects.toThrow()
     } else {
       await expect(compileFile(indexPath)).resolves.not.toThrow()
+    }
+
+    if (fs.existsSync(engineSpecificTestPath)) {
+      if (testName.startsWith('unhappy')) {
+        await expect(compileFile(engineSpecificTestPath)).rejects.toThrow()
+      } else {
+        await expect(compileFile(engineSpecificTestPath)).resolves.not.toThrow()
+      }
     }
   })
 })

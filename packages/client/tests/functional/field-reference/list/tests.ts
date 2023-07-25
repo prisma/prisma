@@ -76,6 +76,29 @@ testMatrix.setupTestSuite(
 
       expect(enums).toEqual([expect.objectContaining({ title: 'Rice' }), expect.objectContaining({ title: 'Tomato' })])
     })
+
+    test('via extended client', async () => {
+      const xprisma = prisma.$extends({})
+
+      const products = await xprisma.product.findMany({
+        where: {
+          quantity: { notIn: xprisma.product.fields.forbiddenQuantities },
+        },
+      })
+
+      expect(products).toEqual([
+        expect.objectContaining({ title: 'Rice' }),
+        expect.objectContaining({ title: 'Tomato' }),
+      ])
+
+      const enums = await xprisma.product.findMany({
+        where: {
+          enum1: { notIn: xprisma.product.fields.enum2 },
+        },
+      })
+
+      expect(enums).toEqual([expect.objectContaining({ title: 'Rice' }), expect.objectContaining({ title: 'Tomato' })])
+    })
   },
   {
     optOut: {

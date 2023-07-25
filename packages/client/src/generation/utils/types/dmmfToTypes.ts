@@ -1,4 +1,4 @@
-import type { DMMF } from '../../../runtime/dmmf-types'
+import type { DMMF } from '../../dmmf-types'
 import { TSClient } from '../../TSClient/TSClient'
 
 /**

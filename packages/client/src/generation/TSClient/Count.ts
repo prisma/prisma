@@ -1,29 +1,21 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
 import indent from 'indent-string'
 
-import type { DMMFHelper } from '../../runtime/dmmf'
-import { DMMF } from '../../runtime/dmmf-types'
-import { GenericArgsInfo } from '../GenericsArgsInfo'
+import { DMMF } from '../dmmf-types'
+import * as ts from '../ts-builders'
 import { capitalize, getFieldArgName, getSelectName } from '../utils'
 import { ArgsType, MinimalArgsType } from './Args'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
 import { TS } from './Generatable'
-import { OutputType } from './Output'
-import { PayloadType } from './Payload'
-import { ifExtensions } from './utils/ifExtensions'
+import { GenerateContext } from './GenerateContext'
+import { buildOutputType } from './Output'
 
 export class Count implements Generatable {
-  constructor(
-    protected readonly type: DMMF.OutputType,
-    protected readonly dmmf: DMMFHelper,
-    protected readonly genericsInfo: GenericArgsInfo,
-    protected readonly generator?: GeneratorConfig,
-  ) {}
+  constructor(protected readonly type: DMMF.OutputType, protected readonly context: GenerateContext) {}
   protected get argsTypes(): Generatable[] {
     const argsTypes: Generatable[] = []
 
-    argsTypes.push(new ArgsType([], this.type, this.genericsInfo))
+    argsTypes.push(new ArgsType([], this.type, this.context))
 
     for (const field of this.type.fields) {
       if (field.args.length > 0) {
@@ -31,7 +23,7 @@ export class Count implements Generatable {
           new MinimalArgsType(
             field.args,
             this.type,
-            this.genericsInfo,
+            this.context,
             undefined,
             getCountArgsType(this.type.name, field.name),
           ),
@@ -44,19 +36,16 @@ export class Count implements Generatable {
   public toTS(): string {
     const { type } = this
     const { name } = type
-    const outputType = new OutputType(this.dmmf, this.type)
+    const outputType = buildOutputType(type)
 
     return `
 /**
  * Count Type ${name}
  */
 
-${outputType.toTS()}
+${ts.stringify(outputType)}
 
-export type ${getSelectName(name)}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
+export type ${getSelectName(name)}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
 ${indent(
   type.fields
     .map((field) => {
@@ -78,10 +67,6 @@ ${indent(
   TAB_SIZE,
 )}
 }
-
-${ifExtensions('', new PayloadType(outputType, this.dmmf, false).toTS())}
-
-
 
 // Custom InputTypes
 ${this.argsTypes.map((gen) => TS(gen)).join('\n')}

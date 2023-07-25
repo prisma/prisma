@@ -4,25 +4,21 @@
   "name": "Node.js & TypeScript",
   "build": {
     "dockerfile": "Dockerfile",
-    // Update 'VARIANT' to pick a Node version: 14, 16, 18
+    // Update 'VARIANT' to pick a Node version: 16, 18, 20
     "args": {
       "VARIANT": "16"
     }
   },
-
   // Set *default* container specific settings.json values on container create.
   "settings": {
     "telemetry.enableTelemetry": false,
     "redhat.telemetry.enabled": false,
     "vulnCost.sendStatistics": false,
-
     "editor.renderWhitespace": "all",
     "editor.renderControlCharacters": true,
     "editor.formatOnSave": true,
-
     "files.insertFinalNewline": true
   },
-
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
     // "dbaeumer.vscode-eslint",
@@ -31,13 +27,10 @@
     "Orta.vscode-jest",
     "GitHub.vscode-pull-request-github"
   ],
-
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
-
   // Use 'postCreateCommand' to run commands after the container is created.
   // "postCreateCommand": "pnpm install",
-
   // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
   "remoteUser": "node"
 }

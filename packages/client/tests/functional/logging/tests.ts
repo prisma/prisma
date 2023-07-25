@@ -73,7 +73,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.numeric()
+      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
       await tx.user.create({
         data: {
@@ -97,13 +97,22 @@ testMatrix.setupTestSuite((suiteConfig) => {
       expect(logs[1].query).toContain('User.aggregate')
       expect(logs[2].query).toContain('User.aggregate')
     } else {
-      expect(logs).toHaveLength(5)
-
-      expect(logs[0].query).toContain('BEGIN')
-      expect(logs[1].query).toContain('INSERT')
-      expect(logs[2].query).toContain('SELECT')
-      expect(logs[3].query).toContain('SELECT')
-      expect(logs[4].query).toContain('COMMIT')
+      // Since https://github.com/prisma/prisma-engines/pull/4041
+      // We skip a read when possible, on CockroachDB and PostgreSQL
+      if (['postgresql', 'cockroachdb'].includes(suiteConfig.provider)) {
+        expect(logs).toHaveLength(4)
+        expect(logs[0].query).toContain('BEGIN')
+        expect(logs[1].query).toContain('INSERT')
+        expect(logs[2].query).toContain('SELECT')
+        expect(logs[3].query).toContain('COMMIT')
+      } else {
+        expect(logs).toHaveLength(5)
+        expect(logs[0].query).toContain('BEGIN')
+        expect(logs[1].query).toContain('INSERT')
+        expect(logs[2].query).toContain('SELECT')
+        expect(logs[3].query).toContain('SELECT')
+        expect(logs[4].query).toContain('COMMIT')
+      }
     }
   })
 
@@ -136,7 +145,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
     })
 
     await client.$transaction(async (tx) => {
-      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.numeric()
+      const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
       await Promise.all([
         tx.user.findMany({
@@ -197,7 +206,7 @@ testMatrix.setupTestSuite((suiteConfig) => {
       })
     })
 
-    const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.random.numeric()
+    const id = suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.numeric()
 
     const q1 = client.user.findMany({
       where: {

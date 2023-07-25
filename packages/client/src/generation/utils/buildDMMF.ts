@@ -1,30 +1,7 @@
 import { DMMF } from '@prisma/generator-helper'
-import lzString from 'lz-string'
 
 import { dmmfToRuntimeDataModel } from '../../runtime/core/runtimeDataModel'
 import { escapeJson } from '../TSClient/helpers'
-
-/**
- * Embeds compressed snapshot of full DMMF document into generated client.
- * Creates `runtimeDataModel` from full document dynamically, after decompressing
- * and parsing the document.
- *
- * @param dmmf
- * @returns
- */
-export function buildFullDMMF(dmmf: DMMF.Document) {
-  const dmmfString = escapeJson(JSON.stringify(dmmf))
-  const compressedDMMF = lzString.compressToBase64(dmmfString)
-
-  return `
-const compressedDMMF = '${compressedDMMF}'
-const decompressedDMMF = decompressFromBase64(compressedDMMF)
-// We are parsing 2 times, as we want independent objects, because
-// DMMFClass introduces circular references in the dmmf object
-const dmmf = JSON.parse(decompressedDMMF)
-exports.Prisma.dmmf = JSON.parse(decompressedDMMF)
-config.document = dmmf`
-}
 
 /**
  * Given DMMF models, computes runtime datamodel from it and embeds

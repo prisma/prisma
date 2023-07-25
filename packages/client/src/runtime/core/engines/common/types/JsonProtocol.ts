@@ -57,7 +57,7 @@ export type DateTaggedValue = { $type: 'DateTime'; value: string }
 export type DecimalTaggedValue = { $type: 'Decimal'; value: string }
 export type BytesTaggedValue = { $type: 'Bytes'; value: string }
 export type BigIntTaggedValue = { $type: 'BigInt'; value: string }
-export type FieldRefTaggedValue = { $type: 'FieldRef'; value: { _ref: string } }
+export type FieldRefTaggedValue = { $type: 'FieldRef'; value: { _ref: string; _container: string } }
 export type EnumTaggedValue = { $type: 'Enum'; value: string }
 export type JsonTaggedValue = { $type: 'Json'; value: string }
 
