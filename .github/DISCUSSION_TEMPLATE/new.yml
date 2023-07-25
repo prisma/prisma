@@ -1,20 +1,20 @@
-name: New Prisma Discussion
-description: Please fill out the following information to create a new discussion related to Prisma.
-  Make sure to provide clear and concise details to help others understand and address your concerns effectively.
+name: Question
+description: Use the following template to ask your question about Prisma. Make sure to provide clear and concise details to help others understand and address your concerns effectively.
 
 body:
-  - type: textarea
-    id: description
+  - type: markdown
     attributes:
-      label: Description of the Idea / Problem
-      description: Provide a clear and concise description of the idea or problem you want to discuss.
+      value: |
+        Thanks for raising the questions you have about Prisma, we are happy to help! 🙏 Please follow the sections in the template and provide as much information as possible about your problem, e.g. by [setting the `DEBUG="*"` environment variable](https://www.prisma.io/docs/concepts/components/prisma-client/debugging) and enabling [additional logging output](https://www.prisma.io/docs/concepts/components/prisma-client/working-with-prismaclient/logging) in Prisma Client. 
+      label: Question
+      description: Provide a clear and concise description of the question you have or problem you want to discuss.
     validations:
       required: true
   - type: textarea
     id: steps
     attributes:
       label: How to reproduce
-      description: Steps to reproduce the behavior
+      description: If your question is about specific behaviour of Prisma, tell us how to reproduce it.
       value: |
         <!--
         1. Go to '...'
