@@ -63,4 +63,9 @@ export const builtInNames = [
   'Check',
   'Promise',
   'constructor',
+  'Result',
+  'Extension',
+  'Args',
+  'Payload',
+  'Exact',
 ] as const
