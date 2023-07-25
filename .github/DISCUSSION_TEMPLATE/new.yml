@@ -1,13 +1,13 @@
-name: New Discussion
-description: Please fill out the following information to create a new discussion.
+name: New Prisma Discussion
+description: Please fill out the following information to create a new discussion related to Prisma.
   Make sure to provide clear and concise details to help others understand and address your concerns effectively.
 
 body:
   - type: textarea
     id: description
     attributes:
-      label: Problem description
-      description: A clear and concise description of what the problem is
+      label: Description of the Idea / Problem
+      description: Provide a clear and concise description of the idea or problem you want to discuss.
     validations:
       required: true
   - type: textarea
@@ -22,8 +22,6 @@ body:
         3. Run '....'
         4. See error
         -->
-    validations:
-      required: true
   - type: textarea
     id: expected
     attributes:
@@ -43,8 +41,6 @@ body:
         ```ts
         // Add your code using Prisma Client
         ```
-    validations:
-      required: true
   - type: textarea
     id: environment
     attributes:
@@ -54,8 +50,6 @@ body:
         - OS: <!--[e.g. macOS, Windows, Debian, CentOS, ...]-->
         - Database: <!--[PostgreSQL, MySQL, PlanetScale, MariaDB, SQL Server, SQLite, MongoDB or CockroachDB]-->
         - Node.js version: <!--[Run `node -v` to see your Node.js version]-->
-    validations:
-      required: true
   - type: textarea
     id: prisma-version
     attributes:
@@ -65,5 +59,3 @@ body:
         ```
 
         ```
-    validations:
-      required: true
