@@ -10,6 +10,7 @@ import {
 } from '@opentelemetry/api'
 import { Span as SpanConstructor, Tracer } from '@opentelemetry/sdk-trace-base'
 import { EngineSpanEvent, ExtendedSpanOptions, SpanCallback, TracingHelper } from '@prisma/internals'
+
 import { PrismaLayerType } from './types'
 
 // If true, will publish internal spans as well
