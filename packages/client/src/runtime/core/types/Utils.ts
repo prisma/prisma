@@ -112,6 +112,17 @@ export type Select<T, U> = T extends U ? T : never
 // prettier-ignore
 export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? 1 : 0
 
+export type Or<A extends 1 | 0, B extends 1 | 0> = {
+  0: {
+    0: 0
+    1: 1
+  }
+  1: {
+    0: 1
+    1: 1
+  }
+}[A][B]
+
 // This alias is necessary to allow to use `Promise` as a model name.
 // It's used in generated client instead of global `Promise`.
 // Why conditional intersection with {}?. Without it, in the error messages
