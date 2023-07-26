@@ -152,6 +152,7 @@ import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
 import $Extensions = runtime.Types.Extensions
+import $Result = runtime.Types.Result
 
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 `,
@@ -201,12 +202,12 @@ export type MetricHistogramBucket = runtime.MetricHistogramBucket
 /**
 * Extensions
 */
-export type Extension = $Extensions.UserArgs
+export import Extension = $Extensions.UserArgs
 export import getExtensionContext = runtime.Extensions.getExtensionContext
-export type Args<T, F extends $Public.Operation> = $Public.Args<T, F>
-export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F>
-export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F>
-export type Exact<T, W> = $Public.Exact<T, W>
+export import Args = $Public.Args
+export import Payload = $Public.Payload
+export import Result = $Public.Result
+export import Exact = $Public.Exact
 
 /**
  * Prisma Client JS version: ${clientVersion}

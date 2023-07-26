@@ -277,7 +277,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
       .moduleExport(
         ts.typeDeclaration(
           model.name,
-          ts.namedType(`runtime.Types.DefaultSelection`).addGenericArgument(ts.namedType(getPayloadName(model.name))),
+          ts.namedType(`$Result.DefaultSelection`).addGenericArgument(ts.namedType(getPayloadName(model.name))),
         ),
       )
       .setDocComment(ts.docComment(docs))
@@ -313,7 +313,7 @@ ${ts.stringify(buildModelPayload(this.model, this.dmmf), { newLine: 'both' })}
 
 type ${model.name}GetPayload<S extends boolean | null | undefined | ${getModelArgName(
       model.name,
-    )}> = $Types.GetResult<${getPayloadName(model.name)}, S>
+    )}> = $Result.GetResult<${getPayloadName(model.name)}, S>
 
 ${isComposite ? '' : new ModelDelegate(this.type, this.context).toTS()}
 

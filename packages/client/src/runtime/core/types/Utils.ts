@@ -40,15 +40,6 @@ export type Exact<A, W> = (A extends unknown ? (W extends A ? {
 
 export type Cast<A, W> = A extends W ? A : W
 
-type LegacyNarrowable = string | number | boolean | bigint
-
-// prettier-ignore
-export type LegacyExact<A, W = unknown> = 
-  W extends unknown ? A extends LegacyNarrowable ? Cast<A, W> : Cast<
-  { [K in keyof A]: K extends keyof W ? LegacyExact<A[K], W[K]> : never },
-  { [K in keyof W]: K extends keyof A ? LegacyExact<A[K], W[K]> : W[K] }>
-  : never;
-
 export type JsonObject = { [Key in string]?: JsonValue }
 export interface JsonArray extends Array<JsonValue> {}
 export type JsonValue = string | number | boolean | JsonObject | JsonArray | null
