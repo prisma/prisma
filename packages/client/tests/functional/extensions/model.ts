@@ -783,6 +783,25 @@ testMatrix.setupTestSuite(
         }),
       ).rejects.toThrow()
     })
+
+    test('input type should be able to be passed to method accepting same input types', () => {
+      const xprisma = prisma.$extends({})
+
+      const args: PrismaNamespace.UserUpsertArgs = {
+        where: {
+          id: '1',
+        },
+        create: {
+          email: 'test',
+          firstName: 'test',
+          lastName: 'test',
+        },
+        update: {},
+      }
+
+      void prisma.user.upsert(args)
+      void xprisma.user.upsert(args)
+    })
   },
   {
     skipDefaultClientInstance: true,

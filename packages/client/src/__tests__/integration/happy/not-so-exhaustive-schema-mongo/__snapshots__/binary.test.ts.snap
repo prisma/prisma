@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`exhaustive-schema-mongo (binary): generatedBrowserJS 1`] = `
+exports[`not-so-exhaustive-schema-mongo (binary): generatedBrowserJS 1`] = `
 
 Object.defineProperty(exports, "__esModule", { value: true });
 
@@ -25,28 +25,43 @@ Prisma.prismaVersion = {
   engine: "local"
 }
 
+
+const runtimeDescription = (() => {
+  // https://edge-runtime.vercel.app/features/available-apis#addressing-the-runtime
+  if ("EdgeRuntime" in globalThis && typeof globalThis.EdgeRuntime === "string") {
+    return "under the Vercel Edge Runtime";
+  }
+  // Deno
+  if ("Deno" in globalThis && typeof globalThis.Deno === "object") {
+    return "under the Deno runtime";
+  }
+  // Default to assuming browser
+  return "in the browser";
+})();
+
+
 Prisma.PrismaClientKnownRequestError = () => {
-  throw new Error(\`PrismaClientKnownRequestError is unable to be run in the browser.
+  throw new Error(\`PrismaClientKnownRequestError is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )};
 Prisma.PrismaClientUnknownRequestError = () => {
-  throw new Error(\`PrismaClientUnknownRequestError is unable to be run in the browser.
+  throw new Error(\`PrismaClientUnknownRequestError is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.PrismaClientRustPanicError = () => {
-  throw new Error(\`PrismaClientRustPanicError is unable to be run in the browser.
+  throw new Error(\`PrismaClientRustPanicError is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.PrismaClientInitializationError = () => {
-  throw new Error(\`PrismaClientInitializationError is unable to be run in the browser.
+  throw new Error(\`PrismaClientInitializationError is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.PrismaClientValidationError = () => {
-  throw new Error(\`PrismaClientValidationError is unable to be run in the browser.
+  throw new Error(\`PrismaClientValidationError is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.NotFoundError = () => {
-  throw new Error(\`NotFoundError is unable to be run in the browser.
+  throw new Error(\`NotFoundError is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.Decimal = Decimal
@@ -55,19 +70,19 @@ Prisma.Decimal = Decimal
  * Re-export of sql-template-tag
  */
 Prisma.sql = () => {
-  throw new Error(\`sqltag is unable to be run in the browser.
+  throw new Error(\`sqltag is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.empty = () => {
-  throw new Error(\`empty is unable to be run in the browser.
+  throw new Error(\`empty is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.join = () => {
-  throw new Error(\`join is unable to be run in the browser.
+  throw new Error(\`join is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.raw = () => {
-  throw new Error(\`raw is unable to be run in the browser.
+  throw new Error(\`raw is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.validator = Public.validator
@@ -76,11 +91,11 @@ Prisma.validator = Public.validator
 * Extensions
 */
 Prisma.getExtensionContext = () => {
-  throw new Error(\`Extensions.getExtensionContext is unable to be run in the browser.
+  throw new Error(\`Extensions.getExtensionContext is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 Prisma.defineExtension = () => {
-  throw new Error(\`Extensions.defineExtension is unable to be run in the browser.
+  throw new Error(\`Extensions.defineExtension is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}
 
@@ -315,7 +330,7 @@ exports.Prisma.ModelName = {
 class PrismaClient {
   constructor() {
     throw new Error(
-      \`PrismaClient is unable to be run in the browser.
+      \`PrismaClient is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
     )
   }
@@ -326,7 +341,7 @@ Object.assign(exports, Prisma)
 
 `;
 
-exports[`exhaustive-schema-mongo (binary): generatedTypeScript 1`] = `
+exports[`not-so-exhaustive-schema-mongo (binary): generatedTypeScript 1`] = `
 
 /**
  * Client
