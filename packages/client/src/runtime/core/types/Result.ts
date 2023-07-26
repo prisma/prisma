@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 
 import { Payload } from './Payload'
-import { JsonObject } from './Utils'
+import { JsonObject, Select } from './Utils'
 
 // prettier-ignore
 export type Operation =
@@ -81,7 +81,7 @@ type SelectablePayloadFields<K extends PropertyKey, O> =
   | { composites: { [k in K]: O } }
 
 // prettier-ignore
-type SelectField<P extends SelectablePayloadFields<any, any>, K extends PropertyKey> = 
+type SelectField<P extends SelectablePayloadFields<any, any>, K extends PropertyKey> =
   P extends { objects: Record<K, any> } 
   ? P['objects'][K]
   : P extends { composites: Record<K, any> }
@@ -89,23 +89,17 @@ type SelectField<P extends SelectablePayloadFields<any, any>, K extends Property
     : never
 
 // prettier-ignore
-export type DefaultSelection<P> = P extends Payload 
-  ? P['scalars'] & UnwrapPayload<P['composites']>
-  : P
+export type DefaultSelection<P> = UnwrapPayload<{ default: P }>['default']
 
 // prettier-ignore
-type UnwrapPayload<P> = {
-  [K in keyof P]:
-    P[K] extends Payload[]
-    ? UnwrapPayload<P[K]>
-    : P[K] extends Payload 
-      ? P[K]['scalars'] & UnwrapPayload<P[K]['composites']> 
-      : P[K] extends infer O | null 
-        ? O extends Payload 
-          ? (O['scalars'] & UnwrapPayload<O['composites']>) | null
-        : P[K]
-      : P[K]
-} & unknown
+type UnwrapPayload<P> = {} extends P ? unknown : {
+  [K in keyof P]: 
+    P[K] extends { scalars: infer S, composites: infer C }[]
+    ? Array<S & UnwrapPayload<C>>
+    : P[K] extends { scalars: infer S, composites: infer C } | null
+      ? S & UnwrapPayload<C> | Select<P[K], null>
+      : never
+};
 
 type GetCountResult<A> = A extends { select: infer S } ? (S extends true ? number : Count<S>) : number
 
