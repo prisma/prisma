@@ -60,8 +60,6 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
 
       const datamodel = await fs.promises.readFile(argValue, 'utf-8')
       const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-      console.log("checkUnsupportedDataProxy.ts: Old Studio URL", config.datasources[0]?.url)
-      console.log("checkUnsupportedDataProxy.ts: New Studio URL", getEffectiveUrl(config.datasources[0]), config.datasources[0])
       const url = getEffectiveUrl(config.datasources[0])
       const urlFromValue = url.value
       const urlEnvVarName = url.fromEnvVar

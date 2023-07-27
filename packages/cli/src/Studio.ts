@@ -98,7 +98,6 @@ ${bold('Examples')}
     const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
     const _directUrl = getDirectUrl(config.datasources[0])
     const directUrl = _directUrl.value
-    console.log("Studio.ts: directUrl", directUrl)
 
     const studio = new StudioServer({
       schemaPath,
