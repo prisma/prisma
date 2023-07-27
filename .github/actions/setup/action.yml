@@ -12,7 +12,7 @@ inputs:
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v2.3.0
+    - uses: pnpm/action-setup@v2.4.0
       with:
         version: ${{ inputs.pnpm-version }}
 
