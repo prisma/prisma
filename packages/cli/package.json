@@ -67,7 +67,7 @@
     "@prisma/internals": "workspace:*",
     "@prisma/migrate": "workspace:*",
     "@prisma/studio": "0.487.0",
-    "@prisma/studio-server": "0.487.0",
+    "@prisma/studio-server": "0.488.0",
     "@swc/core": "1.3.70",
     "@swc/jest": "0.2.26",
     "@types/debug": "4.1.8",
