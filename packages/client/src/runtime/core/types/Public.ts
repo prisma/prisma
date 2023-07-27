@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 
-import { GetResult, Operation } from './GetResult'
+import { GetResult, Operation } from './Result'
 import { Exact } from './Utils'
 
 /*

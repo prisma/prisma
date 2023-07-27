@@ -2,9 +2,9 @@ import { Sql } from 'sql-template-tag'
 
 import { ITXClientDenyList } from '../../itxClientDenyList'
 import { RequiredArgs as UserArgs } from '../extensions/$extends'
-import { FluentOperation, GetFindResult, GetResult as GetOperationResult, Operation } from './GetResult'
 import { Payload } from './Payload'
 import { PrismaPromise } from './Public'
+import { FluentOperation, GetFindResult, GetResult as GetOperationResult, Operation } from './Result'
 import { Call, ComputeDeep, Exact, Fn, Optional, Path, Return, Select, ToTuple, UnwrapTuple } from './Utils'
 
 /* eslint-disable prettier/prettier */
@@ -34,7 +34,7 @@ export type GetSelect<Base extends Record<any, any>, R extends Args['result'][st
 
 /** Query */
 
-export type DynamicQueryExtensionArgs<Q_, TypeMap extends TypeMapDef> = {
+type DynamicQueryExtensionArgs<Q_, TypeMap extends TypeMapDef> = {
   [K in keyof Q_]:
     K extends '$allOperations'
     ? (args: { model?: string, operation: string, args: any, query: (args: any) => PrismaPromise<any> }) => Promise<any>
@@ -86,7 +86,7 @@ type DynamicQueryExtensionCbArgsArgs<TypeMap extends TypeMapDef, _0 extends Prop
 
 /** Result */
 
-export type DynamicResultExtensionArgs<R_, TypeMap extends TypeMapDef> = {
+type DynamicResultExtensionArgs<R_, TypeMap extends TypeMapDef> = {
   [K in keyof R_]: {
     [P in keyof R_[K]]?: {
       needs?: DynamicResultExtensionNeeds<TypeMap, ModelKey<TypeMap, K>, R_[K][P]> 
@@ -106,7 +106,7 @@ type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends PropertyKe
 
 /** Model */
 
-export type DynamicModelExtensionArgs<M_, TypeMap extends TypeMapDef, ExtArgs extends Record<string, any>> = {
+type DynamicModelExtensionArgs<M_, TypeMap extends TypeMapDef, ExtArgs extends Record<string, any>> = {
   [K in keyof M_]:
     K extends '$allModels'
     ? & { [P in keyof M_[K]]?: unknown }
@@ -117,7 +117,7 @@ export type DynamicModelExtensionArgs<M_, TypeMap extends TypeMapDef, ExtArgs ex
       : never
 }
 
-export type DynamicModelExtensionThis<TypeMap extends TypeMapDef, M extends PropertyKey, ExtArgs extends Record<string, any>> = {
+type DynamicModelExtensionThis<TypeMap extends TypeMapDef, M extends PropertyKey, ExtArgs extends Record<string, any>> = {
   [P in keyof ExtArgs['model'][Uncapitalize<M & string>]]:
     Return<ExtArgs['model'][Uncapitalize<M & string>][P]>
 } & {
@@ -158,13 +158,13 @@ type DynamicModelExtensionFnResultNull<P extends PropertyKey> =
 
 /** Client */
 
-export type DynamicClientExtensionArgs<C_, TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
+type DynamicClientExtensionArgs<C_, TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
   [P in keyof C_]: unknown
 } & {
   [K: symbol]: { ctx: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList> }
 }
 
-export type DynamicClientExtensionThis<TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
+type DynamicClientExtensionThis<TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
   [P in keyof ExtArgs['client']]: Return<ExtArgs['client'][P]>
 } & {
   [P in Exclude<TypeMap['meta']['modelProps'], keyof ExtArgs['client']>]:
@@ -253,7 +253,7 @@ type DevTypeMapFnDef = {
   payload: Payload
 }
 
-type TypeMapCbDef = Fn<{ extArgs: Args }, TypeMapDef>
+export type TypeMapCbDef = Fn<{ extArgs: Args }, TypeMapDef>
 
 type ModelKey<TypeMap extends TypeMapDef, M extends PropertyKey> =
   M extends keyof TypeMap['model']
