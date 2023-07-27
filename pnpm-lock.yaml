@@ -210,11 +210,11 @@ importers:
         specifier: workspace:*
         version: link:../migrate
       '@prisma/studio':
-        specifier: 0.487.0
-        version: 0.487.0
+        specifier: 0.488.0
+        version: 0.488.0
       '@prisma/studio-server':
-        specifier: 0.487.0
-        version: 0.487.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
+        specifier: 0.488.0
+        version: 0.488.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
       '@swc/core':
         specifier: 1.3.70
         version: 1.3.70
@@ -3240,6 +3240,7 @@ packages:
 
   /@npmcli/fs@1.1.1:
     resolution: {integrity: sha512-8KG5RD0GVP4ydEzRn/I4BNDuxDtqVbOdm8675T49OIG/NGhaK0pjPX7ZcDlvKYbA+ulvVK3ztfcF4uBdOxuJbQ==}
+    requiresBuild: true
     dependencies:
       '@gar/promisify': 1.1.3
       semver: 7.5.4
@@ -3597,15 +3598,15 @@ packages:
     resolution: {integrity: sha512-LSuiEX2TVC3M6cJYgIeaKTc75q1lc293IucN9SINPjCETQP4q0FtR02iRQOSp1Hl46hTuYFf0VljJ5of8dEfvg==}
     dev: false
 
-  /@prisma/studio-common@0.487.0:
-    resolution: {integrity: sha512-BCmiuDwFJe7kqZr0oG99Yr80iKTD7fIKdFUmFXoySg2TJ7qaTsp+TIxbghYFAmC0CQpuxgVQVYgsX8Xl/z2cCw==}
+  /@prisma/studio-common@0.488.0:
+    resolution: {integrity: sha512-eqn+UhRmenmSLow/vgvEKFWHd6+T1N1GT95A7XdYK7Ubp7iGBSbTNc6OokrL/mXI6cs+edjiMwtrLzMfAhc5Ow==}
     engines: {node: '>= 12'}
     dependencies:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw@0.487.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
-    resolution: {integrity: sha512-tIohMQEo2Ud5VfVsRLrb5xOyO4nvJ45USFXG54H4a8sei+Ur23Mkr/V63YY0FhzbQJyj+HIUcQivBxqkjBRSwQ==}
+  /@prisma/studio-pcw@0.488.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
+    resolution: {integrity: sha512-1bo8WkMsiGEKaGa3RjiDz99sf7VzBH733XNBW+kBb3Sf+jE6oLX3CcuIA+DRWFLqNN9AEBhh3p2V4aDZWFoplw==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/client': '*'
@@ -3619,16 +3620,16 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-server@0.487.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
-    resolution: {integrity: sha512-jpig93ZvRak7Br+JF6UoGGbtPV2x3taQE8zmmu9HP/e/0087GSysJZiv1xFZGMAas5A87clJIeA5slEbmK4Tzw==}
+  /@prisma/studio-server@0.488.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
+    resolution: {integrity: sha512-QzD7TnAkPvQbngligAER4R1I4sY0WehrAPYxb29LtEHKn6VKV6Vj19lsE9jHeOHcFYeO7xl+quG55IwxMDoLsQ==}
     engines: {node: '>= 12'}
     peerDependencies:
       '@prisma/internals': '*'
     dependencies:
       '@prisma/internals': link:packages/internals
-      '@prisma/studio': 0.487.0
-      '@prisma/studio-common': 0.487.0
-      '@prisma/studio-pcw': 0.487.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
+      '@prisma/studio': 0.488.0
+      '@prisma/studio-common': 0.488.0
+      '@prisma/studio-pcw': 0.488.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
       checkpoint-client: 1.1.24
       cors: 2.8.5
       debug: 4.3.3
@@ -3640,8 +3641,8 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio@0.487.0:
-    resolution: {integrity: sha512-ESkcAgT1UGlTnGlQlostXAoS2N3VmMKKhKWQYWs0WtfBPzkM2xf2aPX6Io8tpWC/Qx4VDPmltugwRhL6BKHL9w==}
+  /@prisma/studio@0.488.0:
+    resolution: {integrity: sha512-LMRldqPHw2iEI98T2rcL161jvtf0aaoRbm6jVLrk496XKQoKt2Pe6n4vrlEzulzma+1JJfUpo5R/e1p/0U9K+A==}
     dev: true
 
   /@rushstack/node-core-library@3.59.6(@types/node@18.17.1):
@@ -8920,6 +8921,7 @@ packages:
 
   /humanize-ms@1.2.1:
     resolution: {integrity: sha512-Fl70vYtsAFb/C06PTS9dZBo7ihau+Tu/DNCk/OyHhea07S+aeMWpFFkUaXRa8fI+ScZbEI8dfSxwY7gxZ9SAVQ==}
+    requiresBuild: true
     dependencies:
       ms: 2.1.3
     dev: true
@@ -14337,6 +14339,7 @@ packages:
 
   /unique-filename@1.1.1:
     resolution: {integrity: sha512-Vmp0jIp2ln35UTXuryvjzkjGdRyf9b2lTXuSYUiPmzRcl3FDtYqAwOnTJkAngD9SWhnoJzDbTKwaOrZ+STtxNQ==}
+    requiresBuild: true
     dependencies:
       unique-slug: 2.0.2
     dev: true
@@ -14357,6 +14360,7 @@ packages:
 
   /unique-slug@2.0.2:
     resolution: {integrity: sha512-zoWr9ObaxALD3DOPfjPSqxt4fnZiWblxHIgeWqW8x7UqDzEtHEQLzji2cuJYQFCU6KmoJikOYAZlrTHHebjx2w==}
+    requiresBuild: true
     dependencies:
       imurmurhash: 0.1.4
     dev: true
