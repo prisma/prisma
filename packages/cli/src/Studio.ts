@@ -97,7 +97,9 @@ ${bold('Examples')}
     const schema = await fs.promises.readFile(schemaPath, 'utf-8')
     const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
     const _directUrl = getDirectUrl(config.datasources[0])
-    const directUrl = _directUrl.value
+    let directUrl = null
+    if(_directUrl)
+    	directUrl = _directUrl.value
 
     const studio = new StudioServer({
       schemaPath,
