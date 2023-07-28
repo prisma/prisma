@@ -6,11 +6,34 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 const ctx = jestContext.new().assemble()
 
 describeIf(process.platform === 'linux')('computeLibSSLSpecificPaths', () => {
-  // eslint-disable-next-line jest/no-identical-title
-  it('should not return an error', () => {
+  const originalEnv = process.env
+
+  afterEach(() => {
+    process.env = originalEnv // Restore old environment
+  })
+
+  it('should return system specific search paths when LD_LIBRARY_PATH is not set', () => {
+    delete process.env.LD_LIBRARY_PATH
     const arch = 'x64'
     const archFromUname = 'x86_64'
-    computeLibSSLSpecificPaths({ familyDistro: 'debian', arch, archFromUname })
+    const paths = computeLibSSLSpecificPaths({ familyDistro: 'debian', arch, archFromUname })
+    expect(paths).toEqual(['/usr/lib/x86_64-linux-gnu', '/lib/x86_64-linux-gnu'])
+  })
+
+  it('should return system specific search paths when LD_LIBRARY_PATH is an empty string', () => {
+    process.env.LD_LIBRARY_PATH = ''
+    const arch = 'x64'
+    const archFromUname = 'x86_64'
+    const paths = computeLibSSLSpecificPaths({ familyDistro: 'debian', arch, archFromUname })
+    expect(paths).toEqual(['/usr/lib/x86_64-linux-gnu', '/lib/x86_64-linux-gnu'])
+  })
+
+  it('should respect LD_LIBRARY_PATH and fall back to system specific search paths', () => {
+    process.env.LD_LIBRARY_PATH = '/path/to/libs:/other/path'
+    const arch = 'x64'
+    const archFromUname = 'x86_64'
+    const paths = computeLibSSLSpecificPaths({ familyDistro: 'debian', arch, archFromUname })
+    expect(paths).toEqual(['/path/to/libs', '/other/path', '/usr/lib/x86_64-linux-gnu', '/lib/x86_64-linux-gnu'])
   })
 })
 
@@ -40,6 +63,13 @@ describeIf(process.platform === 'linux')('getSSLVersion', () => {
 
     it('selects the oldest libssl version, excluding libssl-0.x.x', async () => {
       ctx.fixture('libssl-specific-path/with-libssl-0')
+      const { libssl, strategy } = await getSSLVersion([ctx.tmpDir])
+      expect(strategy).toEqual(focusedStrategy)
+      expect(libssl).toEqual('1.0.x')
+    })
+
+    it('skips libssl.so without version in filename', async () => {
+      ctx.fixture('libssl-specific-path/with-versionless-libssl')
       const { libssl, strategy } = await getSSLVersion([ctx.tmpDir])
       expect(strategy).toEqual(focusedStrategy)
       expect(libssl).toEqual('1.0.x')
