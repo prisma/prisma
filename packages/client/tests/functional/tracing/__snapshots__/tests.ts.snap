@@ -448,54 +448,6 @@ exports[`tracing (provider=cockroachdb) tracing on crud methods update 1`] = `
         {
           children: [],
           span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
             attributes: {},
             kind: 0,
             links: [],
@@ -3555,54 +3507,6 @@ exports[`tracing (provider=postgresql) tracing on crud methods update 1`] = `
             kind: 0,
             links: [],
             name: prisma:engine:connection,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
-            parentSpanId: <parentSpanId>,
-          },
-        },
-        {
-          children: [],
-          span: {
-            attributes: {
-              db.statement: <dbStatement>,
-            },
-            kind: 0,
-            links: [],
-            name: prisma:engine:db_query,
             parentSpanId: <parentSpanId>,
           },
         },

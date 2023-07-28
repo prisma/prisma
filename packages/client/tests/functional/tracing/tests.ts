@@ -330,6 +330,19 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
         return
       }
 
+      if (['postgresql', 'cockroachdb'].includes(provider)) {
+        expect(engine.children).toHaveLength(3)
+
+        const dbQuery3 = (engine.children || [])[1]
+        expect(dbQuery3.span.name).toEqual('prisma:engine:db_query')
+        expect(dbQuery3.span.attributes['db.statement']).toContain('UPDATE')
+
+        const engineSerialize = (engine.children || [])[2]
+        expect(engineSerialize.span.name).toEqual('prisma:engine:serialize')
+
+        return
+      }
+
       expect(engine.children).toHaveLength(7)
 
       const dbQuery1 = (engine.children || [])[1]
