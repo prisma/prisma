@@ -1,13 +1,24 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
-import { arg, checkUnsupportedDataProxy, Command, format, HelpError, isError, loadEnvFile, getConfig, getDirectUrl } from '@prisma/internals'
+import {
+  arg,
+  checkUnsupportedDataProxy,
+  Command,
+  format,
+  getConfig,
+  getDirectUrl,
+  HelpError,
+  isError,
+  loadEnvFile,
+} from '@prisma/internals'
+import { resolveUrl } from '@prisma/internals/dist/engine-commands/getConfig'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { StudioServer } from '@prisma/studio-server'
+import fs from 'fs'
 import getPort from 'get-port'
 import { bold, dim, red } from 'kleur/colors'
 import open from 'open'
 import path from 'path'
-import fs from 'fs'
 
 const debug = Debug('prisma:studio')
 
@@ -96,10 +107,6 @@ ${bold('Examples')}
 
     const schema = await fs.promises.readFile(schemaPath, 'utf-8')
     const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
-    const _directUrl = getDirectUrl(config.datasources[0])
-    let directUrl = null
-    if(_directUrl)
-    	directUrl = _directUrl.value
 
     const studio = new StudioServer({
       schemaPath,
@@ -110,7 +117,7 @@ ${bold('Examples')}
         resolve: {
           '@prisma/client': path.resolve(__dirname, '../prisma-client/index.js'),
         },
-        directUrl: directUrl
+        directUrl: resolveUrl(getDirectUrl(config.datasources[0])),
       },
       versions: {
         prisma: packageJson.version,
