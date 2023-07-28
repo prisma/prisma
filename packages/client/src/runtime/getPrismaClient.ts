@@ -34,7 +34,9 @@ import {
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
+import { applyResultExtensions } from './core/extensions/applyResultExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
+import { visitQueryResult } from './core/extensions/visitQueryResult'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
@@ -42,6 +44,7 @@ import {
   applyModelsAndClientExtensions,
   unApplyModelsAndClientExtensions,
 } from './core/model/applyModelsAndClientExtensions'
+import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { rawCommandArgsMapper } from './core/raw-query/rawCommandArgsMapper'
 import { RawQueryArgs } from './core/raw-query/RawQueryArgs'
 import {
@@ -60,7 +63,7 @@ import { UserArgs } from './core/request/UserArgs'
 import { RuntimeDataModel } from './core/runtimeDataModel'
 import { getTracingHelper } from './core/tracing/TracingHelper'
 import { getLockCountPromise } from './core/transaction/utils/createLockCountPromise'
-import { JsInputValue } from './core/types/JsApi'
+import { JsArgs, JsInputValue } from './core/types/JsApi'
 import { getLogLevel } from './getLogLevel'
 import { itxClientDenyList } from './itxClientDenyList'
 import { mergeBy } from './mergeBy'
@@ -848,7 +851,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
       let index = -1
       // prepare recursive fn that will pipe params through middlewares
-      const consumer = (changedMiddlewareParams: QueryMiddlewareParams) => {
+      const consumer = async (changedMiddlewareParams: QueryMiddlewareParams) => {
         // if this `next` was called and there's some more middlewares
         const nextMiddleware = this._middlewares.get(++index)
 
@@ -879,7 +882,11 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           delete requestParams.transaction // client extensions check for this
         }
 
-        return applyQueryExtensions(this, requestParams) // also executes the query
+        const result = await applyQueryExtensions(this, requestParams) // also executes the query
+        if (!requestParams.model) {
+          return result
+        }
+        return this._applyResultExtensions(result, requestParams.model, requestParams.args)
       }
 
       return this._tracingHelper.runInChildSpan(spanOptions.operation, () => {
@@ -890,6 +897,29 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         }
 
         return consumer(params)
+      })
+    }
+
+    _applyResultExtensions(result: object | null, modelName: string, args: JsArgs) {
+      if (this._extensions.isEmpty() || result == null) {
+        return result
+      }
+      const model = this._runtimeDataModel.models[modelName]
+      if (!model) {
+        return result
+      }
+      return visitQueryResult({
+        result,
+        args: args ?? {},
+        modelName,
+        runtimeDataModel: this._runtimeDataModel,
+        visitor: (value, dmmfModelName, args) =>
+          applyResultExtensions({
+            result: value,
+            modelName: dmmfToJSModelName(dmmfModelName),
+            select: args.select,
+            extensions: this._extensions,
+          }),
       })
     }
 
