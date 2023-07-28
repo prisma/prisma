@@ -1,7 +1,7 @@
 import { DMMF } from '@prisma/generator-helper'
 import type { O } from 'ts-toolbelt'
 
-import type { Client, InternalRequestParams } from '../../getPrismaClient'
+import { type Client, type InternalRequestParams } from '../../getPrismaClient'
 import { getCallSite } from '../../utils/CallSite'
 import {
   addObjectProperties,
@@ -34,6 +34,9 @@ const fluentProps = [
 ] as const
 const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
 
+// used to retrieve the parent client from a model
+const MODEL_PARENT_CLIENT = Symbol.for('prisma.client.model.parent')
+
 /**
  * Dynamically creates a model interface via a proxy.
  * @param client to trigger the request execution
@@ -41,22 +44,35 @@ const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
  * @returns
  */
 export function applyModel(client: Client, dmmfModelName: string) {
-  const layers: CompositeProxyLayer[] = [
-    modelActionsLayer(client, dmmfModelName),
-    modelMetaLayer(dmmfModelName),
-    fieldsPropertyLayer(client, dmmfModelName),
+  const modelExtensions = client._extensions.getAllModelExtensions(dmmfModelName) ?? {}
+
+  const getDefaultLayers = (parent = client) => [
+    modelActionsLayer(parent, dmmfModelName),
+    fieldsPropertyLayer(parent, dmmfModelName),
+    addProperty('name', () => dmmfModelName),
+    addProperty(MODEL_PARENT_CLIENT, () => parent),
   ]
 
-  const modelExtensions = client._extensions.getAllModelExtensions(dmmfModelName)
-  if (modelExtensions) {
-    layers.push(addObjectProperties(modelExtensions))
+  const model = createCompositeProxy({}, getDefaultLayers())
+  const modelKeys = Object.keys(model)
+
+  // when a model extension override calls its own name, we refer to its parent
+  // eg. calling findUnique in accelerate's own findUnique calls client.findUnique
+  // without this, the extension would call itself recursively and stack overflow
+  for (const [key, value] of Object.entries(modelExtensions)) {
+    if (typeof value === 'function' && modelKeys.includes(key)) {
+      modelExtensions[key] = function (this: any, ...args: any[]) {
+        const defaultLayers = getDefaultLayers(this[MODEL_PARENT_CLIENT])
+
+        // the new "this" has all extended layers, but has the real builtins methods
+        return value.bind(createCompositeProxy(this, defaultLayers))(...args)
+      }
+    }
   }
 
-  return createCompositeProxy({}, layers)
-}
+  const extensionLayers = [addObjectProperties(modelExtensions)]
 
-function modelMetaLayer(dmmfModelName: string): CompositeProxyLayer {
-  return addProperty('name', () => dmmfModelName)
+  return createCompositeProxy(model, extensionLayers)
 }
 
 /**

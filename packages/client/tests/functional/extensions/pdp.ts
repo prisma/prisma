@@ -212,6 +212,68 @@ testMatrix.setupTestSuite(() => {
     },
   )
 
+  testIf(process.env.TEST_DATA_PROXY !== undefined)(
+    'an overridden method can call its own name without causing a stack overflow',
+    // (calls its parent implementation instead, only works for builtin methods)
+    async () => {
+      await prisma
+        .$extends({
+          query: {
+            $allModels: {
+              findFirst({ query, args }) {
+                expect(args).toHaveProperty('__accelerateInfo', 'info')
+                const { __accelerateInfo, ...rest } = args as any
+
+                return query(rest)
+              },
+            },
+          },
+        })
+        .$extends({
+          model: {
+            $allModels: {
+              findFirst(this: any, args: any) {
+                // before, this used to cause a stack overflow because it would
+                // call itself, but now it calls the parent implementation
+                return this.findFirst({
+                  ...args,
+                  __accelerateInfo: 'info',
+                })
+              },
+            },
+          },
+        })
+        .$transaction(async (tx) => {
+          await tx.user.create({
+            data: {
+              email: 'jane@doe.io',
+              firstName: 'Jane',
+              lastName: 'Doe',
+            },
+          })
+
+          const data = await tx.user.findFirst({
+            select: {
+              email: true,
+            },
+          })
+
+          // data is visible within the transaction
+          expect(data.email).toEqual('john@doe.io')
+
+          throw new Error('rollback') // try rollback
+        })
+        .catch(() => {})
+
+      const users = await prisma.user.findMany()
+
+      // default amount, rollback worked
+      expect(users).toHaveLength(2)
+
+      expect.assertions(3)
+    },
+  )
+
   testIf(process.env.TEST_DATA_PROXY !== undefined)('customDataProxyFetch for batches stacks', async () => {
     expect.assertions(2)
     const xprisma = prisma
