@@ -288,7 +288,7 @@ type ComputeLibSSLSpecificPathsParams = {
 }
 
 export function computeLibSSLSpecificPaths(args: ComputeLibSSLSpecificPathsParams) {
-  return match(args)
+  const platformSpecificPaths = match(args)
     .with({ familyDistro: 'musl' }, () => {
       /* Linux Alpine */
       debug('Trying platform-specific paths for "alpine"')
@@ -309,6 +309,15 @@ export function computeLibSSLSpecificPaths(args: ComputeLibSSLSpecificPathsParam
       debug(`Don't know any platform-specific paths for "${familyDistro}" on ${arch} (${archFromUname})`)
       return []
     })
+
+  if (process.env.LD_LIBRARY_PATH) {
+    debug(
+      `Found 'LD_LIBRARY_PATH' specified as env-var, these paths will take precedence over platform specific lib-dir paths`,
+    )
+    return process.env.LD_LIBRARY_PATH.split(':').concat(platformSpecificPaths)
+  }
+
+  return platformSpecificPaths
 }
 
 type GetOpenSSLVersionResult =
@@ -416,7 +425,7 @@ async function findLibSSLInLocations(directories: string[]) {
 async function findLibSSL(directory: string) {
   try {
     const dirContents = await fs.readdir(directory)
-    return dirContents.find((value) => value.startsWith('libssl.so') && !value.startsWith('libssl.so.0'))
+    return dirContents.find((value) => value.startsWith('libssl.so.') && !value.startsWith('libssl.so.0'))
   } catch (e) {
     if (e.code === 'ENOENT') {
       return undefined

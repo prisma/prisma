@@ -190,34 +190,34 @@ export function getReturnType({
     const promiseOpen = renderPromise ? 'Prisma.PrismaPromise<' : ''
     const promiseClose = renderPromise ? '>' : ''
 
-    return `${promiseOpen}$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>${
+    return `${promiseOpen}$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>${
       isChaining ? ' | Null' : ''
     }${promiseClose}`
   }
 
   if (isChaining && actionName === 'findUniqueOrThrow') {
     return `Prisma__${name}Client<${getType(
-      `$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
+      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
     )} | ${isNullable ? 'null' : 'Null'}, ${isNullable ? 'null' : 'Null'}, ExtArgs>`
   }
 
   if (actionName === 'findFirstOrThrow' || actionName === 'findUniqueOrThrow') {
     return `Prisma__${name}Client<${getType(
-      `$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
+      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
     )}, never, ExtArgs>`
   }
 
   if (actionName === 'findFirst' || actionName === 'findUnique') {
     return `Prisma__${name}Client<${getType(
-      `$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
+      `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
       isList,
     )} | null, null, ExtArgs>`
   }
 
   return `Prisma__${name}Client<${getType(
-    `$Types.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
+    `$Result.GetResult<${getPayloadName(name)}<ExtArgs>, T, '${actionName}'>`,
     isList,
   )}, never, ExtArgs>`
 }
