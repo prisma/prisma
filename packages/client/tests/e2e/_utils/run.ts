@@ -96,22 +96,22 @@ async function main() {
   await fs.writeFile(generatorHelperPkgJsonPath, JSON.stringify(generatorHelperPkgJson, null, 2))
 
   try {
-    console.log('📦 Packing package tarballs')
-
     if (args['--skipBuild'] !== true) {
+      console.log('📦 Packing package tarballs')
+
       await $`cd ${clientPkgPath} && pnpm build`
       await $`cd ${cliPkgPath} && pnpm build`
       await $`cd ${debugPkgPath} && pnpm build`
       await $`cd ${enginesPkgPath} && pnpm build`
       await $`cd ${generatorHelperPkgPath} && pnpm build`
-    }
 
-    await $`cd ${clientPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${cliPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${enginesPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${debugPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${generatorHelperPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-    await $`cd ${wpPluginPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+      await $`cd ${clientPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+      await $`cd ${cliPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+      await $`cd ${enginesPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+      await $`cd ${debugPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+      await $`cd ${generatorHelperPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+      await $`cd ${wpPluginPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+    }
   } catch (e) {
     console.log(e.message)
     console.log('🛑 Failed to pack one or more of the packages')

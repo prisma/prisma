@@ -36,7 +36,7 @@ config.dirname = __dirname
 if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
   const alternativePaths = [
     ${JSON.stringify(pathToPosix(relativeOutdir))},
-    ${JSON.stringify(pathToPosix(relativeOutdir).split('/').slice(2).join('/'))},
+    ${JSON.stringify(pathToPosix(relativeOutdir).split('/').slice(1).join('/'))},
   ]
   
   const alternativePath = alternativePaths.find((altPath) => {
