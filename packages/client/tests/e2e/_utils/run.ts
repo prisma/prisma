@@ -16,6 +16,8 @@ const args = arg(
     '--runInBand': Boolean,
     // do not fully build cli and client packages before packing
     '--skipBuild': Boolean,
+    // do not fully pack cli and client packages before packing
+    '--skipPack': Boolean,
     // a way to cleanup created files that also works on linux
     '--clean': Boolean,
   },
@@ -104,7 +106,9 @@ async function main() {
       await $`cd ${debugPkgPath} && pnpm build`
       await $`cd ${enginesPkgPath} && pnpm build`
       await $`cd ${generatorHelperPkgPath} && pnpm build`
+    }
 
+    if (args['--skipPack'] !== true) {
       await $`cd ${clientPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
       await $`cd ${cliPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
       await $`cd ${enginesPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
