@@ -182,11 +182,12 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
     const modelEnums: string[] = []
     const modelEnumsAliases: string[] = []
     for (const enumType of this.dmmf.schema.enumTypes.model ?? []) {
-      const namespacedType = ts.namedType(`$Enums.${enumType.name}`)
       modelEnums.push(new Enum(enumType, false).toTS())
       modelEnumsAliases.push(
-        ts.stringify(ts.moduleExport(ts.typeDeclaration(enumType.name, namespacedType))),
-        ts.stringify(ts.moduleExport(ts.constDeclaration(enumType.name, namespacedType))),
+        ts.stringify(ts.moduleExport(ts.typeDeclaration(enumType.name, ts.namedType(`$Enums.${enumType.name}`)))),
+        ts.stringify(
+          ts.moduleExport(ts.constDeclaration(enumType.name, ts.namedType(`typeof $Enums.${enumType.name}`))),
+        ),
       )
     }
 
