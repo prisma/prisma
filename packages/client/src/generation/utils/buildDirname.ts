@@ -39,8 +39,8 @@ if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
     ${JSON.stringify(pathToPosix(relativeOutdir).split('/').slice(2).join('/'))},
   ]
   
-  const alternativePath = alternativePaths.find((path) => {
-    return fs.existsSync(path.join(process.cwd(), path, 'schema.prisma'))
+  const alternativePath = alternativePaths.find((altPath) => {
+    return fs.existsSync(path.join(process.cwd(), altPath, 'schema.prisma'))
   }) ?? alternativePaths[0]
 
   config.dirname = path.join(process.cwd(), alternativePath)
