@@ -15,7 +15,7 @@
   "bugs": "https://github.com/prisma/prisma/issues",
   "enginesOverride": {},
   "devDependencies": {
-    "@prisma/engines-version": "5.1.0-22.4b132e0d5319952d155d8bbe2ba802464ebf8c6e",
+    "@prisma/engines-version": "5.1.0-26.integration-fix-1-1-update-relation-mode-prisma-faab4b8d871ca3dba4f060557253dc586fc4e8d0",
     "@swc/core": "1.3.70",
     "@swc/jest": "0.2.27",
     "@types/jest": "29.5.3",
