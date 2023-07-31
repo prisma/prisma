@@ -20,7 +20,7 @@ import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
 
 const { enginesOverride } = require('../package.json')
 
-const debug = Debug('prisma:download')
+const debug = Debug('prisma:fetch-engine:download')
 const exists = promisify(fs.exists)
 
 const channel = 'master'
@@ -117,6 +117,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   )
 
   if (process.env.BINARY_DOWNLOAD_VERSION) {
+    debug(`process.env.BINARY_DOWNLOAD_VERSION is set to "${process.env.BINARY_DOWNLOAD_VERSION}"`)
     opts.version = process.env.BINARY_DOWNLOAD_VERSION
   }
 
@@ -150,16 +151,26 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       setProgress = collectiveBar.setProgress
     }
 
-    await Promise.all(
-      binariesToDownload.map((job) =>
-        downloadBinary({
-          ...job,
-          version: opts.version,
-          failSilent: opts.failSilent,
-          progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
-        }),
-      ),
-    )
+    const promises = binariesToDownload.map((job) => {
+      const downloadUrl = getDownloadUrl({
+        channel: 'all_commits',
+        version: opts.version,
+        platform: job.binaryTarget,
+        binaryName: job.binaryName,
+      })
+
+      debug(`${downloadUrl} will be downloaded to ${job.targetFilePath}`)
+
+      return downloadBinary({
+        ...job,
+        downloadUrl,
+        version: opts.version,
+        failSilent: opts.failSilent,
+        progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
+      })
+    })
+
+    await Promise.all(promises)
 
     await cleanupPromise // make sure, that cleanup finished
     if (finishBar) {
@@ -380,13 +391,13 @@ async function getCachedBinaryPath({
 
 type DownloadBinaryOptions = BinaryDownloadJob & {
   version: string
+  downloadUrl: string
   progressCb?: (progress: number) => void
   failSilent?: boolean
 }
 
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
-  const { version, progressCb, targetFilePath, binaryTarget, binaryName } = options
-  const downloadUrl = getDownloadUrl('all_commits', version, binaryTarget, binaryName)
+  const { version, progressCb, targetFilePath, downloadUrl } = options
 
   const targetDir = path.dirname(targetFilePath)
 
@@ -401,7 +412,7 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     }
   }
 
-  debug(`Downloading ${downloadUrl} to ${targetFilePath}`)
+  debug(`Downloading ${downloadUrl} to ${targetFilePath} ...`)
 
   if (progressCb) {
     progressCb(0)

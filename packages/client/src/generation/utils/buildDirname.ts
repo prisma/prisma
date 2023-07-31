@@ -24,6 +24,8 @@ export function buildDirname(edge: boolean, relativeOutdir: string) {
  * moved and copied out of its original spot. It all fails, it falls-back to
  * `findSync`, when `__dirname` is not available (eg. bundle, electron) or
  * nothing has been found around `__dirname`.
+ *
+ * @see /e2e/schema-not-found-sst-electron/readme.md (tests)
  * @param relativeOutdir
  * @param runtimePath
  * @returns
@@ -34,7 +36,16 @@ const fs = require('fs')
 
 config.dirname = __dirname
 if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
-  config.dirname = path.join(process.cwd(), ${JSON.stringify(pathToPosix(relativeOutdir))})
+  const alternativePaths = [
+    ${JSON.stringify(pathToPosix(relativeOutdir))},
+    ${JSON.stringify(pathToPosix(relativeOutdir).split('/').slice(1).join('/'))},
+  ]
+  
+  const alternativePath = alternativePaths.find((altPath) => {
+    return fs.existsSync(path.join(process.cwd(), altPath, 'schema.prisma'))
+  }) ?? alternativePaths[0]
+
+  config.dirname = path.join(process.cwd(), alternativePath)
   config.isBundled = true
 }`
 }
