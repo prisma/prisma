@@ -33,6 +33,7 @@ import {
 } from './core/engines'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
+import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
@@ -848,7 +849,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
       let index = -1
       // prepare recursive fn that will pipe params through middlewares
-      const consumer = (changedMiddlewareParams: QueryMiddlewareParams) => {
+      const consumer = async (changedMiddlewareParams: QueryMiddlewareParams) => {
         // if this `next` was called and there's some more middlewares
         const nextMiddleware = this._middlewares.get(++index)
 
@@ -879,7 +880,17 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           delete requestParams.transaction // client extensions check for this
         }
 
-        return applyQueryExtensions(this, requestParams) // also executes the query
+        const result = await applyQueryExtensions(this, requestParams) // also executes the query
+        if (!requestParams.model) {
+          return result
+        }
+        return applyAllResultExtensions({
+          result,
+          modelName: requestParams.model,
+          args: requestParams.args,
+          extensions: this._extensions,
+          runtimeDataModel: this._runtimeDataModel,
+        })
       }
 
       return this._tracingHelper.runInChildSpan(spanOptions.operation, () => {
