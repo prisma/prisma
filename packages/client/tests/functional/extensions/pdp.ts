@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto'
+import { expectTypeOf } from 'expect-type'
 import https from 'https'
 
 import testMatrix from './_matrix'
@@ -213,8 +214,61 @@ testMatrix.setupTestSuite(() => {
   )
 
   testIf(process.env.TEST_DATA_PROXY !== undefined)(
-    'an overridden method can call its own name without causing a stack overflow',
-    // (calls its parent implementation instead, only works for builtin methods)
+    'an overridden method can call its parent and the itx is respected',
+    async () => {
+      await prisma
+        .$extends({
+          model: {
+            $allModels: {
+              findFirst(args: any) {
+                const ctx = Prisma.getExtensionContext(this)
+
+                expectTypeOf(ctx).toHaveProperty('parent').toEqualTypeOf<unknown | undefined>()
+                expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+
+                return ctx.parent![ctx.name!].findFirst({ ...args })
+              },
+            },
+          },
+        })
+        .$transaction(async (tx) => {
+          await tx.user.create({
+            data: {
+              email: 'jane@doe.io',
+              firstName: 'Jane',
+              lastName: 'Doe',
+            },
+          })
+
+          const data = await tx.user.findFirst({
+            where: {
+              email: 'jane@doe.io',
+            },
+            select: {
+              email: true,
+            },
+          })
+
+          // data is visible within the transaction
+          expect(data.email).toEqual('jane@doe.io')
+
+          throw new Error('rollback') // try rollback
+        })
+        .catch((e) => {
+          expect(e.message).toEqual('rollback')
+        })
+
+      const users = await prisma.user.findMany()
+
+      // default amount, rollback worked
+      expect(users).toHaveLength(2)
+
+      expect.assertions(3)
+    },
+  )
+
+  testIf(process.env.TEST_DATA_PROXY !== undefined)(
+    'an overridden method can call its parent and the itx with a query extension is respected',
     async () => {
       await prisma
         .$extends({
@@ -232,10 +286,13 @@ testMatrix.setupTestSuite(() => {
         .$extends({
           model: {
             $allModels: {
-              findFirst(this: any, args: any) {
-                // before, this used to cause a stack overflow because it would
-                // call itself, but now it calls the parent implementation
-                return this.findFirst({
+              findFirst(args: any) {
+                const ctx = Prisma.getExtensionContext(this)
+
+                expectTypeOf(ctx).toHaveProperty('parent').toEqualTypeOf<unknown | undefined>()
+                expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+
+                return ctx.parent![ctx.name!].findFirst({
                   ...args,
                   __accelerateInfo: 'info',
                 })
@@ -253,24 +310,29 @@ testMatrix.setupTestSuite(() => {
           })
 
           const data = await tx.user.findFirst({
+            where: {
+              email: 'jane@doe.io',
+            },
             select: {
               email: true,
             },
           })
 
           // data is visible within the transaction
-          expect(data.email).toEqual('john@doe.io')
+          expect(data.email).toEqual('jane@doe.io')
 
           throw new Error('rollback') // try rollback
         })
-        .catch(() => {})
+        .catch((e) => {
+          expect(e.message).toEqual('rollback')
+        })
 
       const users = await prisma.user.findMany()
 
       // default amount, rollback worked
       expect(users).toHaveLength(2)
 
-      expect.assertions(3)
+      expect.assertions(4)
     },
   )
 

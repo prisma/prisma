@@ -126,6 +126,7 @@ export function $extends(this: Client, extension: Args | ((client: Client) => Cl
     _extensions: {
       value: this._extensions.append(extension),
     },
+    parent: { value: this, configurable: true },
     $use: { value: undefined },
     $on: { value: undefined },
   }) as Client

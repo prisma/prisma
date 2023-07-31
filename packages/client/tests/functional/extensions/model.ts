@@ -802,6 +802,37 @@ testMatrix.setupTestSuite(
       void prisma.user.upsert(args)
       void xprisma.user.upsert(args)
     })
+
+    test('an extension can also reference a previous one via parent', async () => {
+      const xprisma = prisma
+        .$extends({
+          model: {
+            user: {
+              async findFirst(a: 'SomeString') {
+                return Promise.resolve(a)
+              },
+            },
+          },
+        })
+        .$extends({
+          model: {
+            user: {
+              async findFirst() {
+                const ctx = Prisma.getExtensionContext(this)
+
+                const data = await ctx.parent.user.findFirst('SomeString')
+
+                expect(data).toEqual('SomeString')
+                expectTypeOf(data).toEqualTypeOf<'SomeString'>()
+              },
+            },
+          },
+        })
+
+      await xprisma.user.findFirst()
+
+      expect.assertions(1)
+    })
   },
   {
     skipDefaultClientInstance: true,

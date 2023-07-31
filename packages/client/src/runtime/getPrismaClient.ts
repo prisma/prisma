@@ -317,6 +317,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _activeProvider: string
     _dataProxy: boolean
     _extensions: MergedExtensionsList
+    /**
+     * A fully constructed/applied Client that references the parent
+     * PrismaClient. This is used for Client extensions only.
+     */
+    parent: PrismaClient
     _createPrismaPromise = createPrismaPromiseFactory()
 
     constructor(optionsArg?: PrismaClientOptions) {
@@ -461,7 +466,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         throw e
       }
 
-      return applyModelsAndClientExtensions(this) // custom constructor return value
+      // the first client has no parent so it is its own parent client
+      // this is used for extensions to reference their parent client
+      return (this.parent = applyModelsAndClientExtensions(this))
+      // this applied client is also a custom constructor return value
     }
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
@@ -775,10 +783,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       return result
     }
 
-    _createItxClient(transaction: PrismaPromiseInteractiveTransaction) {
-      const rawClient = unApplyModelsAndClientExtensions(this)
+    _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
       return applyModelsAndClientExtensions(
-        createCompositeProxy(rawClient, [
+        createCompositeProxy(unApplyModelsAndClientExtensions(this), [
+          addProperty('parent', () => this.parent._createItxClient(transaction)),
           addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
           addProperty(TX_ID, () => transaction.id),
           removeProperties(itxClientDenyList),
