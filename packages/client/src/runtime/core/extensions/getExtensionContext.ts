@@ -8,8 +8,22 @@
 /* eslint-disable prettier/prettier */
 export type Context<T> =
   T extends { [K: symbol]: { ctx: infer C } }
-  ? C & T & { name?: string, $parent?: unknown }
-  : T & { name?: string, $parent?: unknown }
+  ? C & T & {
+    /**
+     * @deprecated Use `$name` instead.
+     */
+    name?: string,
+    $name?: string,
+    $parent?: unknown
+  }
+  : T & { 
+    /**
+     * @deprecated Use `$name` instead.
+     */
+    name?: string,
+    $name?: string,
+    $parent?: unknown
+  }
   
 export function getExtensionContext<T>(that: T) {
   return that as any as Context<T>

@@ -225,6 +225,7 @@ testMatrix.setupTestSuite(() => {
 
                 expectTypeOf(ctx).toHaveProperty('$parent').toEqualTypeOf<unknown | undefined>()
                 expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+                expectTypeOf(ctx).toHaveProperty('$name').toEqualTypeOf<string | undefined>()
 
                 return ctx.$parent![ctx.name!].findFirst({ ...args })
               },
@@ -291,6 +292,7 @@ testMatrix.setupTestSuite(() => {
 
                 expectTypeOf(ctx).toHaveProperty('$parent').toEqualTypeOf<unknown | undefined>()
                 expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+                expectTypeOf(ctx).toHaveProperty('$name').toEqualTypeOf<string | undefined>()
 
                 return ctx.$parent![ctx.name!].findFirst({
                   ...args,

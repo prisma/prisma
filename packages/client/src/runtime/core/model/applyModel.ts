@@ -48,6 +48,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
     fieldsPropertyLayer(client, dmmfModelName),
     addObjectProperties(modelExtensions),
     addProperty('name', () => dmmfModelName),
+    addProperty('$name', () => dmmfModelName),
     addProperty('$parent', () => client._appliedParent),
   ]
 

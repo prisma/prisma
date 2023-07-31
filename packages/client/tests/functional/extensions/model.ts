@@ -655,6 +655,7 @@ testMatrix.setupTestSuite(
               const ctx = Prisma.getExtensionContext(this)
 
               expect(ctx.name).toEqual('User')
+              expect(ctx.$name).toEqual('User')
 
               return ctx
             },
@@ -677,6 +678,7 @@ testMatrix.setupTestSuite(
               const ctx = Prisma.getExtensionContext(this)
 
               expect(ctx.name).toEqual('User')
+              expect(ctx.$name).toEqual('User')
 
               return ctx
             },
@@ -686,6 +688,7 @@ testMatrix.setupTestSuite(
 
       const ctx = xprisma.user.myCustomCallA()
       expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+      expectTypeOf(ctx).toHaveProperty('$name').toEqualTypeOf<string | undefined>()
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).not.toHaveProperty('update')
     })
@@ -699,6 +702,7 @@ testMatrix.setupTestSuite(
               const ctx = Prisma.getExtensionContext(this)
 
               expect(ctx.name).toEqual('User')
+              expect(ctx.$name).toEqual('User')
 
               return ctx
             },
@@ -708,6 +712,7 @@ testMatrix.setupTestSuite(
 
       const ctx = xprisma.user.myCustomCallA()
       expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+      expectTypeOf(ctx).toHaveProperty('$name').toEqualTypeOf<string | undefined>()
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
     })
@@ -721,6 +726,7 @@ testMatrix.setupTestSuite(
               const ctx = Prisma.getExtensionContext(this)
 
               expect(ctx.name).toEqual('User')
+              expect(ctx.$name).toEqual('User')
 
               return ctx
             },
@@ -730,6 +736,7 @@ testMatrix.setupTestSuite(
 
       const ctx = xprisma.user.myCustomCallA()
       expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+      expectTypeOf(ctx).toHaveProperty('$name').toEqualTypeOf<string | undefined>()
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
     })

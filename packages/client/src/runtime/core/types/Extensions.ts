@@ -117,7 +117,13 @@ type DynamicModelExtensionArgs<M_, TypeMap extends TypeMapDef, TypeMapCb extends
             [K: symbol]: {
               ctx: & DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, K>, ExtArgs>
                    & { $parent: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs> } 
-                   & { name: ModelKey<TypeMap, K> }
+                   & { $name: ModelKey<TypeMap, K> }
+                   & {
+                      /**
+                       * @deprecated Use `$name` instead.
+                       */
+                      name: ModelKey<TypeMap, K>
+                    }
             }
           }
       : never
