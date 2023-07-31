@@ -210,11 +210,11 @@ importers:
         specifier: workspace:*
         version: link:../migrate
       '@prisma/studio':
-        specifier: 0.488.0
-        version: 0.488.0
+        specifier: 0.492.0
+        version: 0.492.0
       '@prisma/studio-server':
-        specifier: 0.488.0
-        version: 0.488.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
+        specifier: 0.492.0
+        version: 0.492.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
       '@swc/core':
         specifier: 1.3.70
         version: 1.3.70
@@ -3603,16 +3603,16 @@ packages:
     resolution: {integrity: sha512-rm2mg85O/p99NhOgQfXwP78CCo+bkWNI1vNveQqmmlnra/74vYbvEj/Er+u3ML2u8Kl5tPRzuewt3RYkT36eFw==}
     dev: false
 
-  /@prisma/studio-common@0.488.0:
-    resolution: {integrity: sha512-eqn+UhRmenmSLow/vgvEKFWHd6+T1N1GT95A7XdYK7Ubp7iGBSbTNc6OokrL/mXI6cs+edjiMwtrLzMfAhc5Ow==}
-    engines: {node: '>= 12'}
+  /@prisma/studio-common@0.492.0:
+    resolution: {integrity: sha512-0/9QJaLAnqYxBkfu3FO08cuk5JIv7I2p74C5MEEeG3G26nlq+u3aj+/j5q+8EUatiVTSmv4k9LeNmFyCUgMFJA==}
+    engines: {node: '>= 16.13'}
     dependencies:
       buffer: 6.0.3
     dev: true
 
-  /@prisma/studio-pcw@0.488.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
-    resolution: {integrity: sha512-1bo8WkMsiGEKaGa3RjiDz99sf7VzBH733XNBW+kBb3Sf+jE6oLX3CcuIA+DRWFLqNN9AEBhh3p2V4aDZWFoplw==}
-    engines: {node: '>= 12'}
+  /@prisma/studio-pcw@0.492.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
+    resolution: {integrity: sha512-rQBoS5Kj+0bCJW4Xh71/vVCLuUYTh0HPN/UoyjeefyHJv4AaR5gNMbfOIcRdgJl5XaxrPAGJ+WeRGM1aeV+Vxw==}
+    engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/client': '*'
       '@prisma/internals': '*'
@@ -3625,17 +3625,17 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio-server@0.488.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
-    resolution: {integrity: sha512-QzD7TnAkPvQbngligAER4R1I4sY0WehrAPYxb29LtEHKn6VKV6Vj19lsE9jHeOHcFYeO7xl+quG55IwxMDoLsQ==}
-    engines: {node: '>= 12'}
+  /@prisma/studio-server@0.492.0(@prisma/client@packages+client)(@prisma/internals@packages+internals):
+    resolution: {integrity: sha512-0hfNZeEBhyu6XAFxPoEb1RH3x3QcxERiTvF8bR3Q5+B54sTlwwbF/QUYcw+reduQt7WV211Vx2IPPMe3HPxFzw==}
+    engines: {node: '>= 16.13'}
     peerDependencies:
       '@prisma/internals': '*'
     dependencies:
       '@prisma/internals': link:packages/internals
-      '@prisma/studio': 0.488.0
-      '@prisma/studio-common': 0.488.0
-      '@prisma/studio-pcw': 0.488.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
-      checkpoint-client: 1.1.24
+      '@prisma/studio': 0.492.0
+      '@prisma/studio-common': 0.492.0
+      '@prisma/studio-pcw': 0.492.0(@prisma/client@packages+client)(@prisma/internals@packages+internals)
+      checkpoint-client: 1.1.25
       cors: 2.8.5
       debug: 4.3.3
       express: 4.17.2
@@ -3646,8 +3646,8 @@ packages:
       - supports-color
     dev: true
 
-  /@prisma/studio@0.488.0:
-    resolution: {integrity: sha512-LMRldqPHw2iEI98T2rcL161jvtf0aaoRbm6jVLrk496XKQoKt2Pe6n4vrlEzulzma+1JJfUpo5R/e1p/0U9K+A==}
+  /@prisma/studio@0.492.0:
+    resolution: {integrity: sha512-QUpJ8nzNdQlmwueh2MC6s8EiREG5d6vufG3naLYzrTiSTDj6EZDYKlgfyBxgtOEzfwWLhyeVXMTUZ/iZtEvopQ==}
     dev: true
 
   /@rushstack/node-core-library@3.59.6(@types/node@18.17.1):
@@ -6171,15 +6171,14 @@ packages:
     resolution: {integrity: sha512-mT8iDcrh03qDGRRmoA2hmBJnxpllMR+0/0qlzjqZES6NdiWDcZkCNAk4rPFZ9Q85r27unkiNNg8ZOiwZXBHwcA==}
     dev: true
 
-  /checkpoint-client@1.1.24:
-    resolution: {integrity: sha512-nIOlLhDS7MKs4tUzS3LCm+sE1NgTCVnVrXlD0RRxaoEkkLu8LIWSUNiNWai6a+LK5unLzTyZeTCYX1Smqy0YoA==}
+  /checkpoint-client@1.1.25:
+    resolution: {integrity: sha512-7YdFt7H2L4W2NpQL4BoYFgaFIIbocpiiOZ50N9o9Ttv61REwJkyDWvI54tE0JDwymAdKN+omUebTkMIKeadViw==}
     dependencies:
       ci-info: 3.8.0
       env-paths: 2.2.1
-      fast-write-atomic: 0.2.1
-      make-dir: 3.1.0
+      make-dir: 4.0.0
       ms: 2.1.3
-      node-fetch: 2.6.11
+      node-fetch: 2.6.12(patch_hash=d2f4ywbzdgzmypej5sz7qs7qpy)
       uuid: 9.0.0
     transitivePeerDependencies:
       - encoding
@@ -7796,10 +7795,6 @@ packages:
 
   /fast-levenshtein@2.0.6:
     resolution: {integrity: sha512-DCXu6Ifhqcks7TZKY3Hxp3y6qphY5SJZmrWMDrKcERSOXWQdMhU9Ig/PYrzyw/ul9jOIyh0N4M0tbC5hodg8dw==}
-    dev: true
-
-  /fast-write-atomic@0.2.1:
-    resolution: {integrity: sha512-WvJe06IfNYlr+6cO3uQkdKdy3Cb1LlCJSF8zRs2eT8yuhdbSlR9nIt+TgQ92RUxiRrQm+/S7RARnMfCs5iuAjw==}
     dev: true
 
   /fast-xml-parser@4.2.5:
@@ -11188,18 +11183,6 @@ packages:
   /node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
-    dev: true
-
-  /node-fetch@2.6.11:
-    resolution: {integrity: sha512-4I6pdBY1EthSqDmJkiNk3JIT8cswwR9nfeW/cPdUagJYEQG7R95WRH74wpz7ma8Gh/9dI9FP+OU+0E4FvtA55w==}
-    engines: {node: 4.x || >=6.0.0}
-    peerDependencies:
-      encoding: ^0.1.0
-    peerDependenciesMeta:
-      encoding:
-        optional: true
-    dependencies:
-      whatwg-url: 5.0.0
     dev: true
 
   /node-fetch@2.6.12(patch_hash=d2f4ywbzdgzmypej5sz7qs7qpy):
