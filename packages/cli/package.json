@@ -74,7 +74,7 @@
     "@types/fs-extra": "9.0.13",
     "@types/jest": "29.5.3",
     "@types/rimraf": "3.0.2",
-    "checkpoint-client": "1.1.24",
+    "checkpoint-client": "1.1.25",
     "debug": "4.3.4",
     "dotenv": "16.0.3",
     "esbuild": "0.15.13",
