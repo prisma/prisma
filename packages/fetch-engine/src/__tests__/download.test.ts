@@ -694,7 +694,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
           version: CURRENT_ENGINES_HASH,
         }),
       ).rejects.toThrow(
-        `Failed to fetch the engine file at https://binaries.prisma.sh/all_commits/b182127de581d0bf6ec89152a6e2fb4652be0f0a/rhel-openssl-3.0.x/libquery_engine.so.node.gz. 500 KO`,
+        `Failed to fetch the engine file at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz. 500 KO`,
       )
 
       // Because we try to fetch 2 different checksum files before we even start downloading the binaries
