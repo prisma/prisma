@@ -28,10 +28,10 @@ type Options = {
 
 export class ActiveTracingHelper implements TracingHelper {
   private traceMiddleware: boolean
-  private ignoreLayersTypes: PrismaLayerType[]
+  private ignoreLayersTypes: string[]
   constructor({ traceMiddleware, ignoreLayersTypes }: Options) {
     this.traceMiddleware = traceMiddleware
-    this.ignoreLayersTypes = ignoreLayersTypes
+    this.ignoreLayersTypes = ignoreLayersTypes.map((value) => value.toString())
   }
 
   isEnabled(): boolean {
@@ -50,7 +50,7 @@ export class ActiveTracingHelper implements TracingHelper {
     const tracer = trace.getTracer('prisma') as Tracer
 
     engineSpanEvent.spans.forEach((engineSpan) => {
-      if (this.ignoreLayersTypes.map((value) => value.toString()).includes(engineSpan.name)) {
+      if (this.ignoreLayersTypes.includes(engineSpan.name)) {
         return
       }
 
@@ -110,7 +110,7 @@ export class ActiveTracingHelper implements TracingHelper {
     const context = options.context ?? this.getActiveContext()
     const name = `prisma:client:${options.name}`
 
-    if (this.ignoreLayersTypes.map((value) => value.toString()).includes(name)) {
+    if (this.ignoreLayersTypes.includes(name)) {
       return callback()
     }
 
