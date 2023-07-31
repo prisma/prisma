@@ -82,6 +82,10 @@ jobs:
         run: |
           echo $THE_OUTPUT
 
+      - uses: ./.github/actions/pdp-build-qe
+        with:
+          prisma-version: ${{ steps.publish.outputs.prismaVersion }}
+
   # We also have `sendSlackMessage()` in publish.ts
   # It uses the #feed-prisma-releases channel and adds more information
   success:

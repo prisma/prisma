@@ -1,0 +1,26 @@
+name: PDP Build QE image
+description: This will trigger a build for the Query Engine which is used by Accelerate.
+
+inputs:
+  prisma-version:
+    description: Prisma version.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - run: echo "Sending event for version ${{ inputs.prisma-version }}
+      shell: bash
+
+    - uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.ACCELERATE_DOCKER_QE_BUILD }}
+        script: |
+          await github.rest.repos.createDispatchEvent({
+            owner: 'prisma',
+            repo: 'pdp-cloudflare',
+            event_type: "engines_release",
+            client_payload: {
+              prisma_version: '${{ inputs.prisma-version }}',
+            },
+          })
