@@ -7,9 +7,8 @@ afterEach(() => {
 })
 
 test('bundled prisma client will re-use the schema.prisma via cwd', async () => {
+  // emulate https://github.com/prisma/prisma/issues/19819#issuecomment-1597138099
   process.chdir(path.join(__dirname, '..', 'dist'))
-
-  // console.log('cd', process.cwd())
 
   const { somePrismaCall } = require(path.join(__dirname, '..', 'dist', 'index.js'))
 

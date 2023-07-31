@@ -24,6 +24,8 @@ export function buildDirname(edge: boolean, relativeOutdir: string) {
  * moved and copied out of its original spot. It all fails, it falls-back to
  * `findSync`, when `__dirname` is not available (eg. bundle, electron) or
  * nothing has been found around `__dirname`.
+ *
+ * @see /e2e/schema-not-found-sst-electron/readme.md (tests)
  * @param relativeOutdir
  * @param runtimePath
  * @returns
