@@ -460,7 +460,7 @@ export type ABeautifulEnum = (typeof ABeautifulEnum)[keyof typeof ABeautifulEnum
 
 export type ABeautifulEnum = $Enums.ABeautifulEnum
 
-export const ABeautifulEnum: $Enums.ABeautifulEnum
+export const ABeautifulEnum: typeof $Enums.ABeautifulEnum
 
 /**
  * ##  Prisma Client ʲˢ
