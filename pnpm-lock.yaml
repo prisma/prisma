@@ -234,8 +234,8 @@ importers:
         specifier: 3.0.2
         version: 3.0.2
       checkpoint-client:
-        specifier: 1.1.25
-        version: 1.1.25
+        specifier: 1.1.27
+        version: 1.1.27
       debug:
         specifier: 4.3.4
         version: 4.3.4
@@ -963,8 +963,8 @@ importers:
         specifier: 5.0.2
         version: 5.0.2
       checkpoint-client:
-        specifier: 1.1.25
-        version: 1.1.25
+        specifier: 1.1.27
+        version: 1.1.27
       cli-truncate:
         specifier: 2.1.0
         version: 2.1.0
@@ -6185,8 +6185,8 @@ packages:
       - encoding
     dev: true
 
-  /checkpoint-client@1.1.25:
-    resolution: {integrity: sha512-7YdFt7H2L4W2NpQL4BoYFgaFIIbocpiiOZ50N9o9Ttv61REwJkyDWvI54tE0JDwymAdKN+omUebTkMIKeadViw==}
+  /checkpoint-client@1.1.27:
+    resolution: {integrity: sha512-xstymfUalJOv6ZvTtmkwP4ORJN36ikT4PvrIoLe3wstbYf87XIXCcZrSmbFQOjyB0v1qbBnCsAscDpfdZlCkFA==}
     dependencies:
       ci-info: 3.8.0
       env-paths: 2.2.1
