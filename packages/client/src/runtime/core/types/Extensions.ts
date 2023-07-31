@@ -116,7 +116,7 @@ type DynamicModelExtensionArgs<M_, TypeMap extends TypeMapDef, TypeMapCb extends
         & {
             [K: symbol]: {
               ctx: & DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, K>, ExtArgs>
-                   & { parent: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs> } 
+                   & { $parent: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs> } 
                    & { name: ModelKey<TypeMap, K> }
             }
           }
@@ -169,7 +169,7 @@ type DynamicClientExtensionArgs<C_, TypeMap extends TypeMapDef, TypeMapCb extend
 } & {
   [K: symbol]: {
     ctx: & Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList>
-         & { parent: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList> }
+         & { $parent: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList> }
   }
 }
 

@@ -48,7 +48,7 @@ export function applyModel(client: Client, dmmfModelName: string) {
     fieldsPropertyLayer(client, dmmfModelName),
     addObjectProperties(modelExtensions),
     addProperty('name', () => dmmfModelName),
-    addProperty('parent', () => client.parent),
+    addProperty('$parent', () => client._appliedParent),
   ]
 
   return createCompositeProxy({}, layers)

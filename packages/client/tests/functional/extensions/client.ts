@@ -350,7 +350,7 @@ testMatrix.setupTestSuite(() => {
           async someMethod() {
             const ctx = Prisma.getExtensionContext(this)
 
-            const data = await ctx.parent.someMethod('SomeString')
+            const data = await ctx.$parent.someMethod('SomeString')
 
             expect(data).toEqual('SomeString')
             expectTypeOf(data).toEqualTypeOf<'SomeString'>()

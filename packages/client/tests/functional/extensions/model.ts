@@ -820,7 +820,7 @@ testMatrix.setupTestSuite(
               async findFirst() {
                 const ctx = Prisma.getExtensionContext(this)
 
-                const data = await ctx.parent.user.findFirst('SomeString')
+                const data = await ctx.$parent.user.findFirst('SomeString')
 
                 expect(data).toEqual('SomeString')
                 expectTypeOf(data).toEqualTypeOf<'SomeString'>()
@@ -851,7 +851,7 @@ testMatrix.setupTestSuite(
               async findFirst() {
                 const ctx = Prisma.getExtensionContext(this)
 
-                const data = await ctx.parent!['user'].findFirst('SomeString')
+                const data = await ctx.$parent!['user'].findFirst('SomeString')
 
                 expect(data).toEqual('SomeString')
                 expectTypeOf(data).toEqualTypeOf<any>()
