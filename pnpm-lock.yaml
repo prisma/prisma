@@ -5,9 +5,6 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
-  node-fetch@2.6.11:
-    hash: oawau75ow7jz373yzwkw5fs4ry
-    path: patches/node-fetch@2.6.11.patch
   node-fetch@2.6.12:
     hash: d2f4ywbzdgzmypej5sz7qs7qpy
     path: patches/node-fetch@2.6.12.patch
@@ -6182,7 +6179,7 @@ packages:
       fast-write-atomic: 0.2.1
       make-dir: 3.1.0
       ms: 2.1.3
-      node-fetch: 2.6.11(patch_hash=oawau75ow7jz373yzwkw5fs4ry)
+      node-fetch: 2.6.11
       uuid: 9.0.0
     transitivePeerDependencies:
       - encoding
@@ -11193,7 +11190,7 @@ packages:
     engines: {node: '>=10.5.0'}
     dev: true
 
-  /node-fetch@2.6.11(patch_hash=oawau75ow7jz373yzwkw5fs4ry):
+  /node-fetch@2.6.11:
     resolution: {integrity: sha512-4I6pdBY1EthSqDmJkiNk3JIT8cswwR9nfeW/cPdUagJYEQG7R95WRH74wpz7ma8Gh/9dI9FP+OU+0E4FvtA55w==}
     engines: {node: 4.x || >=6.0.0}
     peerDependencies:
@@ -11204,7 +11201,6 @@ packages:
     dependencies:
       whatwg-url: 5.0.0
     dev: true
-    patched: true
 
   /node-fetch@2.6.12(patch_hash=d2f4ywbzdgzmypej5sz7qs7qpy):
     resolution: {integrity: sha512-C/fGU2E8ToujUivIO0H+tpQ6HWo4eEmchoPIoXtxCrVghxdKq+QOHqEZW7tuP3KlV3bC8FRMO5nMCC7Zm1VP6g==}
