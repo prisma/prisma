@@ -1,5 +1,5 @@
 diff --git a/lib/index.es.js b/lib/index.es.js
-index 79d717be9ae56d455f7f5c7890178bc4bb65da9c..2743edfd1347678bb4e27f986d4593466d9df68d 100644
+index ed27a4602505e3be8d5c5e6fd32b31aca7abd49d..e684e745de6df7e7ef8ad8e7b36fb663845976fb 100644
 --- a/lib/index.es.js
 +++ b/lib/index.es.js
 @@ -3,7 +3,6 @@ process.emitWarning("The .es.js file is deprecated. Use .mjs instead.");
@@ -29,7 +29,7 @@ index 79d717be9ae56d455f7f5c7890178bc4bb65da9c..2743edfd1347678bb4e27f986d459346
  // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
  const PassThrough$1 = Stream.PassThrough;
 diff --git a/lib/index.js b/lib/index.js
-index 337d6e52e5fc62c26f1f46ac115505fa8e327b5c..fb6b624fa38ee57bc50d4fc5891cb98ff3439174 100644
+index 087f2a09f85e03beaee767b2d2a8a98745e4ae5f..0f66a9e8d9df88f24404e740e30cd8eb82e2163d 100644
 --- a/lib/index.js
 +++ b/lib/index.js
 @@ -7,7 +7,6 @@ function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'defau
@@ -59,7 +59,7 @@ index 337d6e52e5fc62c26f1f46ac115505fa8e327b5c..fb6b624fa38ee57bc50d4fc5891cb98f
  // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
  const PassThrough$1 = Stream.PassThrough;
 diff --git a/lib/index.mjs b/lib/index.mjs
-index ace669fd0fee2f3a0e6ca0d34e46c60377da7c78..99c33037fff71127151906f87b004e379b4ffabf 100644
+index 4ed7fa50856b3c2ba0d32193c138f52aedb9d6f0..78b0cdeb5ba24f418a49950f0494f84779a3d5ba 100644
 --- a/lib/index.mjs
 +++ b/lib/index.mjs
 @@ -1,7 +1,6 @@
@@ -89,14 +89,17 @@ index ace669fd0fee2f3a0e6ca0d34e46c60377da7c78..99c33037fff71127151906f87b004e37
  // fix an issue where "PassThrough", "resolve" aren't a named export for node <10
  const PassThrough$1 = Stream.PassThrough;
 diff --git a/package.json b/package.json
-index fd4f67c33f867df64014fea96f9fa275cb793967..ec340331b92165b3901106c6181e8449d94c3f4d 100644
+index 0ba36fd0d4d23b4dd40528a8201fb0e8f0a6dc30..5f70d9d56109b83797d8a208ef56fe3ad2410bd3 100644
 --- a/package.json
 +++ b/package.json
-@@ -37,7 +37,6 @@
+@@ -36,9 +36,7 @@
+         "url": "https://github.com/bitinn/node-fetch/issues"
      },
      "homepage": "https://github.com/bitinn/node-fetch",
-     "dependencies": {
+-    "dependencies": {
 -        "whatwg-url": "^5.0.0"
-     },
+-    },
++    "dependencies": {},
      "peerDependencies": {
          "encoding": "^0.1.0"
+     },
