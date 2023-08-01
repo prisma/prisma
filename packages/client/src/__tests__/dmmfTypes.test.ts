@@ -1,5 +1,5 @@
 import { getDMMF } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 import sortKeys from 'sort-keys'
 

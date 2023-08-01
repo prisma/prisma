@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { getEnginesPath } from '@prisma/engines'
 import { getNodeAPIName, getPlatform, Platform } from '@prisma/get-platform'
 import { chmodPlusX } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'

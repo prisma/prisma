@@ -9,7 +9,7 @@ import {
   isError,
   loadEnvFile,
 } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import getStdin from 'get-stdin'
 import { bold, dim, green, italic } from 'kleur/colors'
 import path from 'path'
@@ -158,6 +158,7 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       datasourceType = {
         tag: 'url',
         url: args['--url'],
+        f,
       }
     }
     // Execute command(s) to url from schema

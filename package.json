@@ -33,7 +33,7 @@
     "@sindresorhus/slugify": "1.1.2",
     "@slack/webhook": "6.1.0",
     "@types/benchmark": "2.1.2",
-    "@types/fs-extra": "9.0.13",
+    "@types/fs-extra": "11.0.1",
     "@types/graphviz": "0.0.35",
     "@types/node": "18.17.1",
     "@types/node-fetch": "2.6.4",

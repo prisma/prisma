@@ -1,6 +1,6 @@
 import childProcess from 'child_process'
 import { once } from 'events'
-import fs from 'fs/promises'
+import fs from 'fs-extra'
 import { bold, green, red, white } from 'kleur/colors'
 import { linearRegression } from 'simple-statistics'
 

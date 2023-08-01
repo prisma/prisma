@@ -1,4 +1,4 @@
-import { copySync } from 'fs-extra'
+import fs from 'fs-extra'
 import packlist from 'npm-packlist'
 import path from 'path'
 
@@ -15,7 +15,7 @@ async function main() {
   for (const file of clientFiles) {
     const from = path.join(clientPath, file)
     const to = path.join(clientCopyPath, file)
-    copySync(from, to, { overwrite: true, recursive: true })
+    fs.copySync(from, to, { overwrite: true, recursive: true })
   }
 }
 

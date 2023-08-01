@@ -12,7 +12,7 @@ import {
   protocolToConnectorType,
 } from '@prisma/internals'
 import dotenv from 'dotenv'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { bold, dim, green, red, yellow } from 'kleur/colors'
 import path from 'path'
 import { match, P } from 'ts-pattern'

@@ -1,5 +1,5 @@
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
-import fs from 'fs/promises'
+import fs from 'fs-extra'
 
 import testMatrix from './_matrix'
 

@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import packlist from 'npm-packlist'
 import path from 'path'
 import readPkgUp from 'read-pkg-up'

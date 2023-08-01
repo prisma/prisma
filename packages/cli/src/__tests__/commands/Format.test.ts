@@ -1,5 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import fs from 'fs-jetpack'
+import fs from 'fs-extra'
 
 import { Format } from '../../Format'
 
@@ -18,13 +18,13 @@ describe('format', () => {
   it('should add a trailing EOL', async () => {
     ctx.fixture('example-project/prisma')
     await Format.new().parse([])
-    expect(fs.read('schema.prisma')).toMatchSnapshot()
+    expect(fs.readFileSync('schema.prisma')).toMatchSnapshot()
   })
 
   it('should add missing backrelation', async () => {
     ctx.fixture('example-project/prisma')
     await Format.new().parse(['--schema=missing-backrelation.prisma'])
-    expect(fs.read('missing-backrelation.prisma')).toMatchSnapshot()
+    expect(fs.readFileSync('missing-backrelation.prisma')).toMatchSnapshot()
   })
 
   it('should throw if schema is broken', async () => {

@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { BinaryDownloadConfiguration, BinaryType, download } from '@prisma/fetch-engine'
 import type { Platform } from '@prisma/get-platform'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 import { getCliQueryEngineBinaryType } from '..'

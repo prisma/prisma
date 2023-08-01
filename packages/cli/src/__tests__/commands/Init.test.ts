@@ -1,5 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
 

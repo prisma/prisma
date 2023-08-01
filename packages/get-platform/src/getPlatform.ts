@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import cp from 'child_process'
-import fs from 'fs/promises'
+import fs from 'fs-extra'
 import os from 'os'
 import { match } from 'ts-pattern'
 import { promisify } from 'util'

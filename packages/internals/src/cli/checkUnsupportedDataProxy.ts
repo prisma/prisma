@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import { green } from 'kleur/colors'
 import { O } from 'ts-toolbelt'
 

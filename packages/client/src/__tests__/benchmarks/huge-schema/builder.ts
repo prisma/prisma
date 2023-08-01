@@ -1,6 +1,6 @@
 // This file is used to build large schemas for benchmarking purposes
 
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 function write(location: string, data: string) {

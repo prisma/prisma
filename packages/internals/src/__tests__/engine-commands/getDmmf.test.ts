@@ -1,5 +1,5 @@
 import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 import stripAnsi from 'strip-ansi'
 

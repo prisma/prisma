@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 import { resolvePkg } from '../check-dependencies/resolve'

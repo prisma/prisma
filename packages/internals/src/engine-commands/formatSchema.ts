@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import { match } from 'ts-pattern'
 
 import { logger } from '..'

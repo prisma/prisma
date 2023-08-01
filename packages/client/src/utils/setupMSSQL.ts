@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import mssql from 'mssql'
 import path from 'path'
 import { URL } from 'url'

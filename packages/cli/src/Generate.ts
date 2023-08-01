@@ -17,7 +17,7 @@ import {
   parseEnvValue,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
 import os from 'os'

@@ -1,5 +1,4 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import fs from 'fs-jetpack'
 import prompt from 'prompts'
 
 import { DbPull } from '../commands/DbPull'
@@ -29,8 +28,8 @@ describe('Baselining', () => {
 
   it('SQLite: should succeed', async () => {
     ctx.fixture('baseline-sqlite')
-    fs.remove('prisma/migrations')
-    fs.copy('prisma/dev.db', 'prisma/prod.db')
+    ctx.fs.remove('prisma/migrations')
+    ctx.fs.copy('prisma/dev.db', 'prisma/prod.db')
 
     // Start with the dev database
     process.env.DATABASE_URL = 'file:./dev.db'
@@ -97,7 +96,7 @@ describe('Baselining', () => {
     process.env.DATABASE_URL = 'file:./prod.db'
 
     // migrate resolve --applied migration_name
-    const migrationName = fs.list('prisma/migrations')![0]
+    const migrationName = ctx.fs.list('prisma/migrations')![0]
     const migrateResolveProd = MigrateResolve.new().parse(['--applied', migrationName])
     await expect(migrateResolveProd).resolves.toMatchInlineSnapshot(`Migration 20201231000000_ marked as applied.`)
 

@@ -1,6 +1,6 @@
 import assert from 'assert'
 import crypto from 'crypto'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'

@@ -1,7 +1,7 @@
 import { enginesVersion } from '@prisma/engines-version'
 import { getPlatform, Platform } from '@prisma/get-platform'
 import del from 'del'
-import fs from 'fs'
+import fs from 'fs-extra'
 import type { Response } from 'node-fetch'
 import _mockFetch from 'node-fetch'
 import path from 'path'

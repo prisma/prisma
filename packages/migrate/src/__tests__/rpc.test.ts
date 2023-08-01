@@ -1,6 +1,6 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { getSchemaPath } from '@prisma/internals'
-import fs from 'fs-jetpack'
+import fs from 'fs-extra'
 import path from 'path'
 
 import { Migrate } from '../Migrate'
@@ -381,7 +381,7 @@ describe('getDatabaseVersion - PostgreSQL', () => {
   it('[SchemaString] should succeed', async () => {
     ctx.fixture('schema-only')
     const schemaPath = (await getSchemaPath())!
-    const schema = (await fs.readAsync(schemaPath))!
+    const schema = (await fs.readFile(schemaPath, { encoding: 'utf8' }))!
     const migrate = new Migrate()
     const result = migrate.engine.getDatabaseVersion({
       datasource: {
@@ -482,7 +482,7 @@ describe('markMigrationRolledBack', () => {
       }
     `)
 
-    fs.write(
+    fs.writeFileSync(
       path.join(migrate.migrationsDirectoryPath!, result.generatedMigrationName!, 'migration.sql'),
       'SELECT SOMETHING_THAT_DOES_NOT_WORK',
     )

@@ -3,7 +3,7 @@
 import { withCodSpeed } from '@codspeed/benchmark.js-plugin'
 import Benchmark from 'benchmark'
 import execa from 'execa'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 import { compileFile } from '../../../utils/compileFile'

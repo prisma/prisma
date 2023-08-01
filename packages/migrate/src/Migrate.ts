@@ -1,6 +1,6 @@
 import { enginesVersion } from '@prisma/engines-version'
 import { getGenerators, getGeneratorSuccessMessage, getSchemaPathSync } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { dim } from 'kleur/colors'
 import logUpdate from 'log-update'
 import path from 'path'

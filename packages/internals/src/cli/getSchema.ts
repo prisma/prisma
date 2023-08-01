@@ -1,5 +1,5 @@
 import execa from 'execa'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { bold, green } from 'kleur/colors'
 import path from 'path'
 import type { NormalizedPackageJson } from 'read-pkg-up'

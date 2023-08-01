@@ -2,8 +2,7 @@ import { getEnginesPath } from '@prisma/engines'
 import { BinaryType, engineEnvVarMap, getBinaryEnvVarPath } from '@prisma/fetch-engine'
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
 import * as TE from 'fp-ts/TaskEither'
-import fs from 'fs'
-import { ensureDir } from 'fs-extra'
+import fs from 'fs-extra'
 import path from 'path'
 import tempDir from 'temp-dir'
 
@@ -87,7 +86,7 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     // side, and the operating system cannot work with it, so we have
     // to copy the binary to /tmp and execute it from there.
     const targetDir = path.join(tempDir, 'prisma-binaries')
-    await ensureDir(targetDir)
+    await fs.ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
 
     // We have to read and write until https://github.com/zeit/pkg/issues/639 is resolved

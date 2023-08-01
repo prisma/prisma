@@ -1,14 +1,11 @@
 import Debug from '@prisma/debug'
-import fs from 'fs'
+import fs from 'fs-extra'
 import pMap from 'p-map'
 import path from 'path'
-import rimraf from 'rimraf'
-import { promisify } from 'util'
 
 import { getRootCacheDir } from './utils'
 
 const debug = Debug('cleanupCache')
-const del = promisify(rimraf)
 
 export async function cleanupCache(n = 5): Promise<void> {
   try {
@@ -19,11 +16,11 @@ export async function cleanupCache(n = 5): Promise<void> {
     }
     const channel = 'master'
     const cacheDir = path.join(rootCacheDir, channel)
-    const dirs = await fs.promises.readdir(cacheDir)
+    const dirs = await fs.readdir(cacheDir)
     const dirsWithMeta = await Promise.all(
       dirs.map(async (dirName) => {
         const dir = path.join(cacheDir, dirName)
-        const statResult = await fs.promises.stat(dir)
+        const statResult = await fs.stat(dir)
 
         return {
           dir,
@@ -33,7 +30,7 @@ export async function cleanupCache(n = 5): Promise<void> {
     )
     dirsWithMeta.sort((a, b) => (a.created < b.created ? 1 : -1))
     const dirsToRemove = dirsWithMeta.slice(n)
-    await pMap(dirsToRemove, (dir) => del(dir.dir), { concurrency: 20 })
+    await pMap(dirsToRemove, (dir) => fs.remove(dir.dir), { concurrency: 20 })
   } catch (e) {
     // fail silently
   }

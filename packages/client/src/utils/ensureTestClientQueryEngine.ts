@@ -3,7 +3,7 @@ import { download } from '@prisma/fetch-engine'
 import type { Platform } from '@prisma/get-platform'
 import { getNodeAPIName } from '@prisma/get-platform'
 import { ClientEngineType } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 /**
  * Ensures the correct Query Engine (`node-api`/`binary`) is present. This is required as

@@ -1,5 +1,5 @@
 import arg from 'arg'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { underline } from 'kleur/colors'
 import path from 'path'
 
