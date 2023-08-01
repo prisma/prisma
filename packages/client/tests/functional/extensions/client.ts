@@ -335,4 +335,31 @@ testMatrix.setupTestSuite(() => {
       expectTypeOf(defaultDataMongo).toEqualTypeOf<[PrismaNamespace.JsonObject]>()
     }
   })
+
+  test('an extension can also reference a previous one via parent', async () => {
+    const xprisma = prisma
+      .$extends({
+        client: {
+          async someMethod(a: 'SomeString') {
+            return Promise.resolve(a)
+          },
+        },
+      })
+      .$extends({
+        client: {
+          async someMethod() {
+            const ctx = Prisma.getExtensionContext(this)
+
+            const data = await ctx.$parent.someMethod('SomeString')
+
+            expect(data).toEqual('SomeString')
+            expectTypeOf(data).toEqualTypeOf<'SomeString'>()
+          },
+        },
+      })
+
+    await xprisma.someMethod()
+
+    expect.assertions(1)
+  })
 })
