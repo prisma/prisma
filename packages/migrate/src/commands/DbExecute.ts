@@ -158,7 +158,6 @@ See \`${green(getCommandWithExecutor('prisma db execute -h'))}\``,
       datasourceType = {
         tag: 'url',
         url: args['--url'],
-        f,
       }
     }
     // Execute command(s) to url from schema
