@@ -1,7 +1,7 @@
 import { DMMF } from '@prisma/generator-helper'
 import type { O } from 'ts-toolbelt'
 
-import type { Client, InternalRequestParams } from '../../getPrismaClient'
+import { type Client, type InternalRequestParams } from '../../getPrismaClient'
 import { getCallSite } from '../../utils/CallSite'
 import {
   addObjectProperties,
@@ -41,22 +41,18 @@ const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
  * @returns
  */
 export function applyModel(client: Client, dmmfModelName: string) {
-  const layers: CompositeProxyLayer[] = [
+  const modelExtensions = client._extensions.getAllModelExtensions(dmmfModelName) ?? {}
+
+  const layers = [
     modelActionsLayer(client, dmmfModelName),
-    modelMetaLayer(dmmfModelName),
     fieldsPropertyLayer(client, dmmfModelName),
+    addObjectProperties(modelExtensions),
+    addProperty('name', () => dmmfModelName),
+    addProperty('$name', () => dmmfModelName),
+    addProperty('$parent', () => client._appliedParent),
   ]
 
-  const modelExtensions = client._extensions.getAllModelExtensions(dmmfModelName)
-  if (modelExtensions) {
-    layers.push(addObjectProperties(modelExtensions))
-  }
-
   return createCompositeProxy({}, layers)
-}
-
-function modelMetaLayer(dmmfModelName: string): CompositeProxyLayer {
-  return addProperty('name', () => dmmfModelName)
 }
 
 /**

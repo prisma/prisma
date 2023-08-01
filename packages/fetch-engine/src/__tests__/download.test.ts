@@ -642,6 +642,118 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
   })
 
+  describe('retries', () => {
+    test('if fetching of checksums fails with a non 200 code it retries it 2 more times', async () => {
+      mockFetch.mockImplementation((url, opts) => {
+        if (String(url).endsWith('.sha256')) {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            statusText: 'KO',
+          } as Response)
+        }
+        return actualFetch(url, opts)
+      })
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+          },
+          binaryTargets: ['rhel-openssl-3.0.x'],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).rejects.toThrow(
+        `Failed to fetch sha256 checksum at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz.sha256. 500 KO`,
+      )
+
+      // Because we try to fetch 2 different checksum files
+      // And there are 2 retries for the checksums
+      // 2 checksums * 3 attempts = 6
+      expect(mockFetch).toHaveBeenCalledTimes(6)
+    })
+
+    test('if fetching of a binary fails with a non 200 code it retries it 2 more times', async () => {
+      mockFetch.mockImplementation((url, opts) => {
+        if (!String(url).endsWith('.sha256')) {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            statusText: 'KO',
+          } as Response)
+        }
+        return actualFetch(url, opts)
+      })
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+          },
+          binaryTargets: ['rhel-openssl-3.0.x'],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).rejects.toThrow(
+        `Failed to fetch the engine file at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz. 500 KO`,
+      )
+
+      // Because we try to fetch 2 different checksum files before we even start downloading the binaries
+      // And there are 2 retries for the binary
+      // 2 checksums + (1 engine * 3 attempts) = 5
+      expect(mockFetch).toHaveBeenCalledTimes(5)
+    })
+
+    test('if fetching of checksums fails with a timeout it retries it 2 more times', async () => {
+      mockFetch.mockImplementation((url, opts) => {
+        opts = opts || {}
+        // This makes everything fail with a timeout
+        opts.timeout = 1
+        return actualFetch(url, opts)
+      })
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+          },
+          binaryTargets: [platform],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).rejects.toThrow(`network timeout at:`)
+
+      // Because we try to fetch 2 different checksum files
+      // And there are 2 retries for the checksums
+      // 2 checksums * 3 attempts = 6
+      expect(mockFetch).toHaveBeenCalledTimes(6)
+    })
+
+    test('if fetching of a binary fails with a timeout it retries it 2 more times', async () => {
+      mockFetch.mockImplementation((url, opts) => {
+        opts = opts || {}
+        // We only make binaries fail with a timeout, not checksums
+        if (!String(url).endsWith('.sha256')) {
+          opts.timeout = 1
+        }
+        return actualFetch(url, opts)
+      })
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+          },
+          binaryTargets: [platform],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).rejects.toThrow(`network timeout at:`)
+
+      // Because we try to fetch 2 different checksum files before we even start downloading the binaries
+      // And there are 2 retries for the binary
+      // 2 checksums + (1 engine * 3 attempts) = 5
+      expect(mockFetch).toHaveBeenCalledTimes(5)
+    })
+  })
+
   describe('env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING=1', () => {
     beforeAll(() => {
       process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING = '1'

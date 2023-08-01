@@ -916,6 +916,31 @@ testMatrix.setupTestSuite(
       })
     })
 
+    test('result extensions are applied after query extension', async () => {
+      const xprisma = prisma.$extends({
+        result: {
+          user: {
+            fullName: {
+              needs: { firstName: true, lastName: true },
+              compute(user) {
+                return `${user.firstName} ${user.lastName}`
+              },
+            },
+          },
+        },
+        query: {
+          user: {
+            findFirstOrThrow() {
+              return Promise.resolve({ email: 'ext@example.com', firstName: 'From', lastName: 'Query' })
+            },
+          },
+        },
+      })
+
+      const result = await xprisma.user.findFirstOrThrow()
+      expect(result.fullName).toBe('From Query')
+    })
+
     testIf(provider !== 'sqlite')('top-level raw queries interception', async () => {
       const fnEmitter = jest.fn()
       const fnUser = jest.fn()

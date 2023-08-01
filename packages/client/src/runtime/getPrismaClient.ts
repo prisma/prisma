@@ -33,6 +33,7 @@ import {
 } from './core/engines'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
+import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
@@ -317,6 +318,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _activeProvider: string
     _dataProxy: boolean
     _extensions: MergedExtensionsList
+    /**
+     * A fully constructed/applied Client that references the parent
+     * PrismaClient. This is used for Client extensions only.
+     */
+    _appliedParent: PrismaClient
     _createPrismaPromise = createPrismaPromiseFactory()
 
     constructor(optionsArg?: PrismaClientOptions) {
@@ -461,7 +467,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         throw e
       }
 
-      return applyModelsAndClientExtensions(this) // custom constructor return value
+      // the first client has no parent so it is its own parent client
+      // this is used for extensions to reference their parent client
+      return (this._appliedParent = applyModelsAndClientExtensions(this))
+      // this applied client is also a custom constructor return value
     }
     get [Symbol.toStringTag]() {
       return 'PrismaClient'
@@ -775,10 +784,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       return result
     }
 
-    _createItxClient(transaction: PrismaPromiseInteractiveTransaction) {
-      const rawClient = unApplyModelsAndClientExtensions(this)
+    _createItxClient(transaction: PrismaPromiseInteractiveTransaction): Client {
       return applyModelsAndClientExtensions(
-        createCompositeProxy(rawClient, [
+        createCompositeProxy(unApplyModelsAndClientExtensions(this), [
+          addProperty('_appliedParent', () => this._appliedParent._createItxClient(transaction)),
           addProperty('_createPrismaPromise', () => createPrismaPromiseFactory(transaction)),
           addProperty(TX_ID, () => transaction.id),
           removeProperties(itxClientDenyList),
@@ -848,7 +857,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
 
       let index = -1
       // prepare recursive fn that will pipe params through middlewares
-      const consumer = (changedMiddlewareParams: QueryMiddlewareParams) => {
+      const consumer = async (changedMiddlewareParams: QueryMiddlewareParams) => {
         // if this `next` was called and there's some more middlewares
         const nextMiddleware = this._middlewares.get(++index)
 
@@ -879,7 +888,17 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           delete requestParams.transaction // client extensions check for this
         }
 
-        return applyQueryExtensions(this, requestParams) // also executes the query
+        const result = await applyQueryExtensions(this, requestParams) // also executes the query
+        if (!requestParams.model) {
+          return result
+        }
+        return applyAllResultExtensions({
+          result,
+          modelName: requestParams.model,
+          args: requestParams.args,
+          extensions: this._extensions,
+          runtimeDataModel: this._runtimeDataModel,
+        })
       }
 
       return this._tracingHelper.runInChildSpan(spanOptions.operation, () => {
