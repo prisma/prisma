@@ -82,6 +82,24 @@ Prisma.prismaVersion = {
   engine: "${engineVersion}"
 }
 
+${
+  browser &&
+  `
+const runtimeDescription = (() => {
+  // https://edge-runtime.vercel.app/features/available-apis#addressing-the-runtime
+  if ("EdgeRuntime" in globalThis && typeof globalThis.EdgeRuntime === "string") {
+    return "under the Vercel Edge Runtime";
+  }
+  // Deno
+  if ("Deno" in globalThis && typeof globalThis.Deno === "object") {
+    return "under the Deno runtime";
+  }
+  // Default to assuming browser
+  return "in the browser";
+})();
+`
+}
+
 Prisma.PrismaClientKnownRequestError = ${notSupportOnBrowser('PrismaClientKnownRequestError', browser)};
 Prisma.PrismaClientUnknownRequestError = ${notSupportOnBrowser('PrismaClientUnknownRequestError', browser)}
 Prisma.PrismaClientRustPanicError = ${notSupportOnBrowser('PrismaClientRustPanicError', browser)}
@@ -122,7 +140,7 @@ Prisma.NullTypes = {
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser)
     return `() => {
-  throw new Error(\`${fnc} is unable to be run in the browser.
+  throw new Error(\`${fnc} is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}`
   return fnc
@@ -134,6 +152,7 @@ import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
 import $Extensions = runtime.Types.Extensions
+import $Result = runtime.Types.Result
 
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 `,
@@ -183,12 +202,12 @@ export type MetricHistogramBucket = runtime.MetricHistogramBucket
 /**
 * Extensions
 */
-export type Extension = $Extensions.UserArgs
+export import Extension = $Extensions.UserArgs
 export import getExtensionContext = runtime.Extensions.getExtensionContext
-export type Args<T, F extends $Public.Operation> = $Public.Args<T, F>
-export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F>
-export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F>
-export type Exact<T, W> = $Public.Exact<T, W>
+export import Args = $Public.Args
+export import Payload = $Public.Payload
+export import Result = $Public.Result
+export import Exact = $Public.Exact
 
 /**
  * Prisma Client JS version: ${clientVersion}

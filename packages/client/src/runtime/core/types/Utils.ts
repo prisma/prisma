@@ -34,20 +34,11 @@ export type Narrow<A> = {
 } | (A extends Narrowable ? A : never)
 
 // prettier-ignore
-export type Exact<A, W> = (W extends A ? {
+export type Exact<A, W> = (A extends unknown ? (W extends A ? {
   [K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : never
-} : W) | (A extends Narrowable ? A : never)
+} : W) : never) | (A extends Narrowable ? A : never)
 
 export type Cast<A, W> = A extends W ? A : W
-
-type LegacyNarrowable = string | number | boolean | bigint
-
-// prettier-ignore
-export type LegacyExact<A, W = unknown> = 
-  W extends unknown ? A extends LegacyNarrowable ? Cast<A, W> : Cast<
-  { [K in keyof A]: K extends keyof W ? LegacyExact<A[K], W[K]> : never },
-  { [K in keyof W]: K extends keyof A ? LegacyExact<A[K], W[K]> : W[K] }>
-  : never;
 
 export type JsonObject = { [Key in string]?: JsonValue }
 export interface JsonArray extends Array<JsonValue> {}
@@ -117,6 +108,20 @@ export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayload
 }
 
 export type Select<T, U> = T extends U ? T : never
+
+// prettier-ignore
+export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? 1 : 0
+
+export type Or<A extends 1 | 0, B extends 1 | 0> = {
+  0: {
+    0: 0
+    1: 1
+  }
+  1: {
+    0: 1
+    1: 1
+  }
+}[A][B]
 
 // This alias is necessary to allow to use `Promise` as a model name.
 // It's used in generated client instead of global `Promise`.

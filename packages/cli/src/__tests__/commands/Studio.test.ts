@@ -4,6 +4,7 @@ import fetch from 'node-fetch'
 import path from 'path'
 import rimraf from 'rimraf'
 
+import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import { Studio } from '../../Studio'
 
 const originalEnv = { ...process.env }
@@ -24,13 +25,13 @@ function sendRequest(message: any): Promise<any> {
 
 let studio: Studio
 
-describe('Studio CLI', () => {
+describe('studio with alternative urls and prisma://', () => {
   beforeEach(() => {
     // Back to original env vars
     process.env = { ...originalEnv }
     // Update env var because it's the one that is used in the schemas tested
-    process.env.STUDIO_URL = 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY'
-    process.env.STUDIO_DIRECT_URL = 'postgres://localhost:1234'
+    process.env.PDP_URL = 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY'
+    process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_URI}/${Date.now()}-studio`
   })
 
   afterEach(() => {
@@ -38,32 +39,50 @@ describe('Studio CLI', () => {
     process.env = { ...originalEnv }
   })
 
-  it('should fail if url is prisma://', async () => {
+  test('should fail if url is prisma://', async () => {
     ctx.fixture('schema-only-data-proxy')
 
     const result = Studio.new().parse([])
 
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
+      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. Please use a direct connection to your database via the datasource 'directUrl' setting.
 
       More information about Data Proxy: https://pris.ly/d/data-proxy-cli
 
     `)
   })
 
-  it('should fail if url is prisma:// and directUrl is set', async () => {
+  test('queries work if url is prisma:// and directUrl is set', async () => {
     ctx.fixture('schema-only-data-proxy-direct-url')
 
-    const result = Studio.new().parse([])
+    const studio = Studio.new()
 
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+    await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'])
+    const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'])
 
-      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. 
+    await expect(result).resolves.not.toThrow()
 
-      More information about Data Proxy: https://pris.ly/d/data-proxy-cli
+    const res = await sendRequest({
+      requestId: 1,
+      channel: 'prisma',
+      action: 'clientRequest',
+      payload: {
+        data: {
+          modelName: 'SomeUser',
+          operation: 'findMany',
+          args: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    })
 
-    `)
+    expect(res).toMatchSnapshot()
+
+    studio.instance?.stop()
   })
 })
 

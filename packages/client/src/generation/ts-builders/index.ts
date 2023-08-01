@@ -1,6 +1,7 @@
 export * from './AnyDeclarationBuilder'
 export * from './ArraySpread'
 export * from './ArrayType'
+export * from './ConstDeclaration'
 export * from './DocComment'
 export * from './Export'
 export * from './FunctionType'

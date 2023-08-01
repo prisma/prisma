@@ -58,6 +58,18 @@ export function getEffectiveUrl(ds: DataSource): EnvValue {
   return ds.url
 }
 
+export function getDirectUrl(ds: DataSource) {
+  return ds.directUrl
+}
+
+export function resolveUrl(envValue: EnvValue | undefined) {
+  const urlFromValue = envValue?.value
+  const urlEnvVarName = envValue?.fromEnvVar
+  const urlEnvVarValue = urlEnvVarName ? process.env[urlEnvVarName] : undefined
+
+  return urlFromValue ?? urlEnvVarValue
+}
+
 /**
  * Wasm'd version of `getConfig`.
  */

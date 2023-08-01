@@ -81,6 +81,8 @@ jobs:
         with:
           run: pnpm run bench-stdout-only
           token: ${{ secrets.CODSPEED_TOKEN }}
+        env:
+          CODSPEED_BENCHMARK: true
 
       - name: 'Set current job url in SLACK_FOOTER env var'
         if: ${{ failure() && github.ref == 'refs/heads/main' }}

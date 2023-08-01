@@ -20,6 +20,8 @@ function desugarUserArgs(args: UserArgs = {}) {
         _args['select'][key] = true
       }
     }
+  } else if (typeof _args['by'] === 'string') {
+    _args['select'][_args['by']] = true
   }
 
   return _args

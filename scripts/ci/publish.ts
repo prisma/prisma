@@ -13,33 +13,19 @@ import redis from 'redis'
 import semver from 'semver'
 import { promisify } from 'util'
 
-export type Commit = {
-  date: Date
-  dir: string
-  hash: string
-  isMergeCommit: boolean
-  parentCommits: string[]
-}
-
 const onlyPackages = process.env.ONLY_PACKAGES ? process.env.ONLY_PACKAGES.split(',') : null
 const skipPackages = process.env.SKIP_PACKAGES ? process.env.SKIP_PACKAGES.split(',') : null
 
-async function getLatestCommit(dir: string): Promise<Commit> {
+async function getLatestCommitHash(dir: string): Promise<string> {
   if (process.env.GITHUB_CONTEXT) {
     const context = JSON.parse(process.env.GITHUB_CONTEXT)
     return context.sha
   }
 
   const result = await runResult(dir, 'git log --pretty=format:"%ad %H %P" --date=iso-strict -n 1')
-  const [date, commit, ...parents] = result.split(' ')
-
-  return {
-    date: new Date(date),
-    dir,
-    hash: commit,
-    isMergeCommit: parents.length > 1,
-    parentCommits: parents,
-  }
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [date, hash] = result.split(' ')
+  return hash
 }
 
 /**
@@ -545,7 +531,7 @@ async function publish() {
       throw new Error(`Oops, there are circular dependencies: ${circles}`)
     }
 
-    let prismaVersion
+    let prismaVersion: undefined | string
     let tag: undefined | string
     let tagForEcosystemTestsCheck: undefined | string
 
@@ -557,7 +543,7 @@ async function publish() {
     console.log({ branch })
 
     // For branches that are named "integration/" we publish to the integration npm tag
-    if (branch && branch.startsWith('integration/')) {
+    if (branch && (process.env.FORCE_INTEGRATION_RELEASE || branch.startsWith('integration/'))) {
       prismaVersion = await getNewIntegrationVersion(packages, branch)
       tag = 'integration'
     }
@@ -626,21 +612,21 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 
       await publishPackages(packages, publishOrder, dryRun, prismaVersion, tag, args['--release'])
 
-      const enginesCommit = await getEnginesCommit()
-      const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommit)
-      const prismaCommit = await getLatestCommit('.')
-      const prismaCommitInfo = await getCommitInfo('prisma', prismaCommit.hash)
+      const enginesCommitHash = await getEnginesCommitHash()
+      const enginesCommitInfo = await getCommitInfo('prisma-engines', enginesCommitHash)
+      const prismaCommitHash = await getLatestCommitHash('.')
+      const prismaCommitInfo = await getCommitInfo('prisma', prismaCommitHash)
 
       if (typeof process.env.GITHUB_OUTPUT == 'string' && process.env.GITHUB_OUTPUT.length > 0) {
-        fs.appendFileSync(process.env.GITHUB_OUTPUT, `enginesCommitHash=${enginesCommit}\n`)
-        fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommit=${prismaCommit.hash}\n`)
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `enginesCommitHash=${enginesCommitHash}\n`)
+        fs.appendFileSync(process.env.GITHUB_OUTPUT, `prismaCommitHash=${prismaCommitHash}\n`)
       }
 
       try {
         await sendSlackMessage({
           version: prismaVersion,
-          enginesCommit: enginesCommitInfo,
-          prismaCommit: prismaCommitInfo,
+          enginesCommitInfo,
+          prismaCommitInfo,
         })
       } catch (e) {
         console.error(e)
@@ -648,7 +634,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 
       if (!args['--dry-run']) {
         try {
-          await tagEnginesRepo(prismaVersion, enginesCommit, patchBranch, dryRun)
+          await tagEnginesRepo(prismaVersion, enginesCommitHash, patchBranch, dryRun)
         } catch (e) {
           console.error(e)
         }
@@ -668,7 +654,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
   }
 }
 
-async function getEnginesCommit(): Promise<string> {
+async function getEnginesCommitHash(): Promise<string> {
   const prismaPath = path.resolve(process.cwd(), './packages/engines/package.json')
   const pkg = JSON.parse(await fs.promises.readFile(prismaPath, 'utf-8'))
   // const engineVersion = pkg.prisma.version
@@ -932,16 +918,13 @@ async function publishPackages(
       // For package `prisma`, get latest commit hash (that is being released)
       // and put into `prisma.prismaCommit` in `package.json` before publishing
       if (pkgName === 'prisma') {
-        const latestCommit = await getLatestCommit('.')
+        const latestCommitHash = await getLatestCommitHash('.')
         await writeToPkgJson(pkgDir, (pkg) => {
-          pkg.prisma.prismaCommit = latestCommit.hash
+          pkg.prisma.prismaCommit = latestCommitHash
         })
       }
 
       if (!isSkipped(pkgName)) {
-        // https://docs.npmjs.com/generating-provenance-statements
-        const provenance = process.env.GITHUB_ACTIONS ? '--provenance' : ''
-
         /*
          *  About `--no-git-checks`
          *  By default, `pnpm publish` will make some checks before actually publishing a new version of your package.
@@ -950,7 +933,7 @@ async function publishPackages(
          *  - Your working directory is clean (there are no uncommitted changes).
          *  - The branch is up-to-date.
          */
-        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag} ${provenance}`, dryRun)
+        await run(pkgDir, `pnpm publish --no-git-checks --access public --tag ${tag}`, dryRun)
       }
     }
   }
@@ -1068,38 +1051,37 @@ type CommitInfo = {
 
 type SlackMessageArgs = {
   version: string
-  enginesCommit: CommitInfo
-  prismaCommit: CommitInfo
+  enginesCommitInfo: CommitInfo
+  prismaCommitInfo: CommitInfo
   dryRun?: boolean
 }
 
-async function sendSlackMessage({ version, enginesCommit, prismaCommit, dryRun }: SlackMessageArgs) {
+async function sendSlackMessage({ version, enginesCommitInfo, prismaCommitInfo, dryRun }: SlackMessageArgs) {
   const webhook = new IncomingWebhook(process.env.SLACK_RELEASE_FEED_WEBHOOK!)
   const dryRunStr = dryRun ? 'DRYRUN: ' : ''
 
-  const prismaLines = getLines(prismaCommit.message)
-  const enginesLines = getLines(enginesCommit.message)
+  const prismaLines = getLines(prismaCommitInfo.message)
+  const enginesLines = getLines(enginesCommitInfo.message)
 
   const authoredByString = (author: string) => {
     if (!author) return ''
-    return `Authored by ${prismaCommit.author}`
+    return `Authored by ${prismaCommitInfo.author}`
   }
 
   await webhook.send(
     `${dryRunStr}<https://www.npmjs.com/package/prisma/v/${version}|prisma@${version}> has just been released. Install via \`npm i -g prisma@${version}\` or \`npx prisma@${version}\`
 What's shipped:
 \`prisma/prisma\`
-<https://github.com/prisma/prisma/commit/${prismaCommit.hash}|${prismaLines[0]}\t\t\t\t-  ${prismaCommit.hash.slice(
-      0,
-      7,
-    )}>
-${prismaLines.join('\n')}${prismaLines.length > 1 ? '\n' : ''}${authoredByString(prismaCommit.author)}
+<https://github.com/prisma/prisma/commit/${prismaCommitInfo.hash}|${
+      prismaLines[0]
+    }\t\t\t\t-  ${prismaCommitInfo.hash.slice(0, 7)}>
+${prismaLines.join('\n')}${prismaLines.length > 1 ? '\n' : ''}${authoredByString(prismaCommitInfo.author)}
 
 \`prisma/prisma-engines\`
-<https://github.com/prisma/prisma-engines/commit/${enginesCommit.hash}|${
+<https://github.com/prisma/prisma-engines/commit/${enginesCommitInfo.hash}|${
       enginesLines[0]
-    }\t\t\t\t-  ${enginesCommit.hash.slice(0, 7)}>
-${enginesLines.join('\n')}${enginesLines.length > 1 ? '\n' : ''}${authoredByString(enginesCommit.author)}`,
+    }\t\t\t\t-  ${enginesCommitInfo.hash.slice(0, 7)}>
+${enginesLines.join('\n')}${enginesLines.length > 1 ? '\n' : ''}${authoredByString(enginesCommitInfo.author)}`,
   )
 }
 

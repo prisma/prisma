@@ -2,7 +2,7 @@ import type { GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
-import { Operation } from '../../runtime/core/types/GetResult'
+import { Operation } from '../../runtime/core/types/Result'
 import { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
@@ -24,7 +24,7 @@ import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
 
 function clientTypeMapModelsDefinition(this: PrismaClientClass) {
-  const modelNames = Object.keys(this.dmmf.getModelMap())
+  const modelNames = Object.keys(this.dmmf.modelMap)
 
   return `{
   meta: {
@@ -400,7 +400,10 @@ ${[
       dmmf.mappings.modelOperations
         .filter((m) => m.findMany)
         .map((m) => {
-          const methodName = lowerCase(m.model)
+          let methodName = lowerCase(m.model)
+          if (methodName === 'constructor') {
+            methodName = '["constructor"]'
+          }
           return `\
 /**
  * \`prisma.${methodName}\`: Exposes CRUD operations for the **${m.model}** model.
@@ -483,8 +486,10 @@ export type LogEvent = {
 
 export type PrismaAction =
   | 'findUnique'
+  | 'findUniqueOrThrow'
   | 'findMany'
   | 'findFirst'
+  | 'findFirstOrThrow'
   | 'create'
   | 'createMany'
   | 'update'

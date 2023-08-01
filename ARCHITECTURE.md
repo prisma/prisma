@@ -53,7 +53,7 @@ In the `./packages/client` dir, now open [sandbox/dmmf.ts](./packages/client/san
 4. Then just press the green play button
 5. You should now be able to go through the DMMF and have a look at the json structure ![image](https://user-images.githubusercontent.com/1094804/112352660-3cb9ee80-8ccb-11eb-940d-36850ac0db9a.png)
 
-You can always check out the test of our "exhaustive schema", where we test the fully generated client, which depends on the dmmf:
+You can always check out the test of our "not-so-exhaustive-schema", where we test the fully generated client, which depends on the dmmf:
 
 ```bash
 pnpm run test exhaustive
