@@ -15,6 +15,7 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
+      - '.github/DISCUSSION_TEMPLATE/**'
       - '.buildkite/**'
       - '.dockerignore'
       - '*.bench.ts'
