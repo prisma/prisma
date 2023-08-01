@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto'
+import { expectTypeOf } from 'expect-type'
 import https from 'https'
 
 import testMatrix from './_matrix'
@@ -209,6 +210,131 @@ testMatrix.setupTestSuite(() => {
 
       expect(user1).toHaveProperty('cacheInfo', 'hit!')
       expect(user2).toHaveProperty('cacheInfo', 'hit!')
+    },
+  )
+
+  testIf(process.env.TEST_DATA_PROXY !== undefined)(
+    'an overridden method can call its parent and the itx is respected',
+    async () => {
+      await prisma
+        .$extends({
+          model: {
+            $allModels: {
+              findFirst(args: any) {
+                const ctx = Prisma.getExtensionContext(this)
+
+                expectTypeOf(ctx).toHaveProperty('$parent').toEqualTypeOf<unknown | undefined>()
+                expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+                expectTypeOf(ctx).toHaveProperty('$name').toEqualTypeOf<string | undefined>()
+
+                return ctx.$parent![ctx.name!].findFirst({ ...args })
+              },
+            },
+          },
+        })
+        .$transaction(async (tx) => {
+          await tx.user.create({
+            data: {
+              email: 'jane@doe.io',
+              firstName: 'Jane',
+              lastName: 'Doe',
+            },
+          })
+
+          const data = await tx.user.findFirst({
+            where: {
+              email: 'jane@doe.io',
+            },
+            select: {
+              email: true,
+            },
+          })
+
+          // data is visible within the transaction
+          expect(data.email).toEqual('jane@doe.io')
+
+          throw new Error('rollback') // try rollback
+        })
+        .catch((e) => {
+          expect(e.message).toEqual('rollback')
+        })
+
+      const users = await prisma.user.findMany()
+
+      // default amount, rollback worked
+      expect(users).toHaveLength(2)
+
+      expect.assertions(3)
+    },
+  )
+
+  testIf(process.env.TEST_DATA_PROXY !== undefined)(
+    'an overridden method can call its parent and the itx with a query extension is respected',
+    async () => {
+      await prisma
+        .$extends({
+          query: {
+            $allModels: {
+              findFirst({ query, args }) {
+                expect(args).toHaveProperty('__accelerateInfo', 'info')
+                const { __accelerateInfo, ...rest } = args as any
+
+                return query(rest)
+              },
+            },
+          },
+        })
+        .$extends({
+          model: {
+            $allModels: {
+              findFirst(args: any) {
+                const ctx = Prisma.getExtensionContext(this)
+
+                expectTypeOf(ctx).toHaveProperty('$parent').toEqualTypeOf<unknown | undefined>()
+                expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+                expectTypeOf(ctx).toHaveProperty('$name').toEqualTypeOf<string | undefined>()
+
+                return ctx.$parent![ctx.name!].findFirst({
+                  ...args,
+                  __accelerateInfo: 'info',
+                })
+              },
+            },
+          },
+        })
+        .$transaction(async (tx) => {
+          await tx.user.create({
+            data: {
+              email: 'jane@doe.io',
+              firstName: 'Jane',
+              lastName: 'Doe',
+            },
+          })
+
+          const data = await tx.user.findFirst({
+            where: {
+              email: 'jane@doe.io',
+            },
+            select: {
+              email: true,
+            },
+          })
+
+          // data is visible within the transaction
+          expect(data.email).toEqual('jane@doe.io')
+
+          throw new Error('rollback') // try rollback
+        })
+        .catch((e) => {
+          expect(e.message).toEqual('rollback')
+        })
+
+      const users = await prisma.user.findMany()
+
+      // default amount, rollback worked
+      expect(users).toHaveLength(2)
+
+      expect.assertions(4)
     },
   )
 
