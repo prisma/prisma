@@ -2,7 +2,7 @@
 
 ⚠️ **Warning**: **This package is now deprecated.**
 
-When `react-prisma` package was introduced, it made it easier to use React Server Components.
+When `react-prisma` package was introduced, it made it easier to use Prisma in React Server Components.
 This approach is not needed anymore, thanks to all the changes that the React Team made in React Server Components since.
 
 Note: As of today (August 1st, 2021), RSC are:
