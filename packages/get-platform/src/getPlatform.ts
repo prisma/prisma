@@ -407,14 +407,9 @@ export async function getSSLVersion(libsslSpecificPaths: string[]): Promise<GetO
  * @param directories
  * @returns
  */
-async function findLibSSLInLocations(directories: string[]) {
-  for (const dir of directories) {
-    const libssl = await findLibSSL(dir)
-    if (libssl) {
-      return libssl
-    }
-  }
-  return undefined
+async function findLibSSLInLocations(directories: string[]): Promise<string | undefined> {
+  const allLibSSLVersions = (await Promise.all(directories.map(findLibSSL))).flat().sort()
+  return allLibSSLVersions[0]
 }
 
 /**
@@ -425,10 +420,10 @@ async function findLibSSLInLocations(directories: string[]) {
 async function findLibSSL(directory: string) {
   try {
     const dirContents = await fs.readdir(directory)
-    return dirContents.find((value) => value.startsWith('libssl.so.') && !value.startsWith('libssl.so.0'))
+    return dirContents.filter((value) => value.startsWith('libssl.so.') && !value.startsWith('libssl.so.0'))
   } catch (e) {
     if (e.code === 'ENOENT') {
-      return undefined
+      return []
     }
     throw e
   }

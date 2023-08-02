@@ -1,3 +1,6 @@
+import path from 'path'
+
+import { permutations } from '../../../../helpers/blaze/permutations'
 import { computeLibSSLSpecificPaths, getArchFromUname, getSSLVersion } from '../../src/getPlatform'
 import { jestContext } from '..'
 
@@ -73,6 +76,15 @@ describeIf(process.platform === 'linux')('getSSLVersion', () => {
       const { libssl, strategy } = await getSSLVersion([ctx.tmpDir])
       expect(strategy).toEqual(focusedStrategy)
       expect(libssl).toEqual('1.0.x')
+    })
+
+    it('prefers older version across directories', async () => {
+      ctx.fixture('libssl-specific-path/multiple-versions-across-dirs')
+      for (const dirs of permutations([path.join(ctx.tmpDir, 'with-ssl1'), path.join(ctx.tmpDir, 'with-ssl3')])) {
+        const { libssl, strategy } = await getSSLVersion(dirs)
+        expect(strategy).toEqual(focusedStrategy)
+        expect(libssl).toEqual('1.0.x')
+      }
     })
   })
 })
