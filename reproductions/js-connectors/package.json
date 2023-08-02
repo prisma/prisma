@@ -14,7 +14,8 @@
     "@jkomyno/prisma-js-connector-utils": "^0.0.1",
     "@jkomyno/prisma-neon-js-connector": "^0.0.1",
     "@jkomyno/prisma-planetscale-js-connector": "^0.0.1",
-    "@prisma/client": "../../packages/client"
+    "@prisma/client": "../../packages/client",
+    "undici": "^5.22.1"
   },
   "devDependencies": {
     "@types/node": "17.0.45",

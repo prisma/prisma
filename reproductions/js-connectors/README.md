@@ -5,6 +5,7 @@ This is a playground for testing the Prisma Client with JS Connectors (aka Node.
 ## How to setup
 
 We assume Node.js `v18.16.1`+ is installed. If not, run `nvm use` in the current directory.
+This is very important to double-check if you have multiple versions installed, as PlanetScale requires either Node.js `v18.16.1`+ or a custom `fetch` function.
 
 - Create a `.envrc` starting from `.envrc.example`, and fill in the missing values following the given template
 - Install Node.js dependencies via
