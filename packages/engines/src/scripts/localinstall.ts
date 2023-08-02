@@ -30,7 +30,7 @@ async function main() {
 
     // if the branch isn't the one we wanted or the repo hasn't been cloned
     if (currentBranch.failed === true || currentBranch.stdout !== branch) {
-      await fs.promises.rm(enginesRepoDir, { recursive: true, force: true })
+      await fs.rm(enginesRepoDir, { recursive: true, force: true })
 
       await execa('git', ['clone', enginesRepoUri, '--depth', '1', '--branch', branch], {
         cwd: path.join(baseDir, 'dist'),
@@ -66,7 +66,7 @@ async function main() {
     }
 
     for (const [binaryType, outputPath] of Object.entries(engineOutputPaths)) {
-      await fs.promises.copyFile(outputPath, engineCachePaths[binaryType])
+      await fs.copyFile(outputPath, engineCachePaths[binaryType])
     }
   }
 }

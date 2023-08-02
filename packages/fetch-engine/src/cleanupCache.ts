@@ -30,7 +30,13 @@ export async function cleanupCache(n = 5): Promise<void> {
     )
     dirsWithMeta.sort((a, b) => (a.created < b.created ? 1 : -1))
     const dirsToRemove = dirsWithMeta.slice(n)
-    await pMap(dirsToRemove, (dir) => fs.remove(dir.dir), { concurrency: 20 })
+    await pMap(
+      dirsToRemove,
+      async (dir) => {
+        return await fs.remove(dir.dir)
+      },
+      { concurrency: 20 },
+    )
   } catch (e) {
     // fail silently
   }

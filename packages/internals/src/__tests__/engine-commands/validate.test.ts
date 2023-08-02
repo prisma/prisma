@@ -282,14 +282,14 @@ describe('validate', () => {
     })
 
     test('chinook introspected schema', async () => {
-      const file = await fs.promises.readFile(path.join(fixturesPath, 'chinook.prisma'), 'utf-8')
+      const file = await fs.readFile(path.join(fixturesPath, 'chinook.prisma'), 'utf-8')
       validate({
         datamodel: file,
       })
     })
 
     test('odoo introspected schema', async () => {
-      const file = await fs.promises.readFile(path.join(fixturesPath, 'odoo.prisma'), 'utf-8')
+      const file = await fs.readFile(path.join(fixturesPath, 'odoo.prisma'), 'utf-8')
       validate({
         datamodel: file,
       })

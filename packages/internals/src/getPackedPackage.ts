@@ -38,8 +38,8 @@ export async function getPackedPackage(name: string, target?: string, packageDir
     const src = path.join(packageDir, file)
     const dest = path.join(tmpDir, file)
 
-    await fs.promises.mkdir(path.dirname(dest), { recursive: true })
-    await fs.promises.copyFile(src, dest)
+    await fs.mkdir(path.dirname(dest), { recursive: true })
+    await fs.copyFile(src, dest)
   }
 
   return path.join(tmpDir)

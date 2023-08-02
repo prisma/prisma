@@ -23,7 +23,7 @@ async function getBinaryName(name: BinaryType): Promise<string> {
 
 export async function resolveBinary(name: BinaryType, proposedPath?: string): Promise<string> {
   // if file exists at proposedPath (and does not start with `/snapshot/` (= pkg), use that one
-  if (proposedPath && !proposedPath.match(vercelPkgPathRegex) && fs.existsSync(proposedPath)) {
+  if (proposedPath && !proposedPath.match(vercelPkgPathRegex) && fs.pathExistsSync(proposedPath)) {
     return proposedPath
   }
 
@@ -37,25 +37,25 @@ export async function resolveBinary(name: BinaryType, proposedPath?: string): Pr
   const binaryName = await getBinaryName(name)
 
   const prismaPath = path.join(getEnginesPath(), binaryName)
-  if (fs.existsSync(prismaPath)) {
+  if (fs.pathExistsSync(prismaPath)) {
     return maybeCopyToTmp(prismaPath)
   }
 
   // for pkg (related: https://github.com/vercel/pkg#snapshot-filesystem)
   const prismaPath2 = path.join(__dirname, '..', binaryName)
-  if (fs.existsSync(prismaPath2)) {
+  if (fs.pathExistsSync(prismaPath2)) {
     return maybeCopyToTmp(prismaPath2)
   }
 
   // TODO for ??
   const prismaPath3 = path.join(__dirname, '../..', binaryName)
-  if (fs.existsSync(prismaPath3)) {
+  if (fs.pathExistsSync(prismaPath3)) {
     return maybeCopyToTmp(prismaPath3)
   }
 
   // TODO for ?? / needed to come from @prisma/client/generator-build to @prisma/client/runtime
   const prismaPath4 = path.join(__dirname, '../runtime', binaryName)
-  if (fs.existsSync(prismaPath4)) {
+  if (fs.pathExistsSync(prismaPath4)) {
     return maybeCopyToTmp(prismaPath4)
   }
 
@@ -90,8 +90,8 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
     const target = path.join(targetDir, path.basename(file))
 
     // We have to read and write until https://github.com/zeit/pkg/issues/639 is resolved
-    const data = await fs.promises.readFile(file)
-    await fs.promises.writeFile(target, data)
+    const data = await fs.readFile(file)
+    await fs.writeFile(target, data)
     // TODO Undo when https://github.com/vercel/pkg/pull/1484 is released
     // await copyFile(file, target)
 

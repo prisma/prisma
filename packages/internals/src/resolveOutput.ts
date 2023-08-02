@@ -1,26 +1,26 @@
 import fs from 'fs-extra'
 import path from 'path'
-import { promisify } from 'util'
-
-const exists = promisify(fs.exists)
 
 async function resolveNodeModulesBase(cwd: string): Promise<string> {
-  if (await exists(path.resolve(process.cwd(), 'prisma/schema.prisma'))) {
+  if (await fs.pathExists(path.resolve(process.cwd(), 'prisma/schema.prisma'))) {
     return process.cwd()
   }
-  if (path.relative(process.cwd(), cwd) === 'prisma' && (await exists(path.resolve(process.cwd(), 'package.json')))) {
+  if (
+    path.relative(process.cwd(), cwd) === 'prisma' &&
+    (await fs.pathExists(path.resolve(process.cwd(), 'package.json')))
+  ) {
     return process.cwd()
   }
-  if (await exists(path.resolve(cwd, 'node_modules'))) {
+  if (await fs.pathExists(path.resolve(cwd, 'node_modules'))) {
     return cwd
   }
-  if (await exists(path.resolve(cwd, '../node_modules'))) {
+  if (await fs.pathExists(path.resolve(cwd, '../node_modules'))) {
     return path.join(cwd, '../')
   }
-  if (await exists(path.resolve(cwd, 'package.json'))) {
+  if (await fs.pathExists(path.resolve(cwd, 'package.json'))) {
     return cwd
   }
-  if (await exists(path.resolve(cwd, '../package.json'))) {
+  if (await fs.pathExists(path.resolve(cwd, '../package.json'))) {
     return path.join(cwd, '../')
   }
   return cwd

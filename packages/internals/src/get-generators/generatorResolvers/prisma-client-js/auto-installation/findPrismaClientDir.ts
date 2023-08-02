@@ -5,7 +5,6 @@ import path from 'path'
 import { resolvePkg } from '../check-dependencies/resolve'
 
 const debug = Debug('prisma:generator')
-const realPath = fs.promises.realpath
 
 /**
  * Tries to find a `@prisma/client` that is next to the `prisma` CLI
@@ -16,7 +15,7 @@ export async function findPrismaClientDir(baseDir: string) {
   const resolveOpts = { basedir: baseDir, preserveSymlinks: true }
   const CLIDir = await resolvePkg('prisma', resolveOpts)
   const clientDir = await resolvePkg('@prisma/client', resolveOpts)
-  const resolvedClientDir = clientDir && (await realPath(clientDir))
+  const resolvedClientDir = clientDir && (await fs.realpath(clientDir))
 
   debug('prismaCLIDir', CLIDir)
   debug('prismaClientDir', clientDir)

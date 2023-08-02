@@ -15,10 +15,10 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 describe('schema wasm', () => {
   describe('diff', () => {
     test('2-spaces', async () => {
-      const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-2-spaces.prisma'), {
+      const schema = await fs.readFile(path.join(fixturesPath, 'format', 'schema-2-spaces.prisma'), {
         encoding: 'utf8',
       })
-      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+      const formattedSchema = await fs.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
         encoding: 'utf8',
       })
       const formattedByWasm = await formatSchema({ schema })
@@ -26,10 +26,10 @@ describe('schema wasm', () => {
     })
 
     test('2-spaces-as-tab', async () => {
-      const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-2-spaces-as-tab.prisma'), {
+      const schema = await fs.readFile(path.join(fixturesPath, 'format', 'schema-2-spaces-as-tab.prisma'), {
         encoding: 'utf8',
       })
-      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+      const formattedSchema = await fs.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
         encoding: 'utf8',
       })
       const formattedByWasm = await formatSchema({ schema })
@@ -37,10 +37,10 @@ describe('schema wasm', () => {
     })
 
     test('4-spaces', async () => {
-      const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-4-spaces.prisma'), {
+      const schema = await fs.readFile(path.join(fixturesPath, 'format', 'schema-4-spaces.prisma'), {
         encoding: 'utf8',
       })
-      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+      const formattedSchema = await fs.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
         encoding: 'utf8',
       })
       const formattedByWasm = await formatSchema({ schema })
@@ -48,10 +48,10 @@ describe('schema wasm', () => {
     })
 
     test('4-spaces-as-tab', async () => {
-      const schema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema-4-spaces-as-tab.prisma'), {
+      const schema = await fs.readFile(path.join(fixturesPath, 'format', 'schema-4-spaces-as-tab.prisma'), {
         encoding: 'utf8',
       })
-      const formattedSchema = await fs.promises.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
+      const formattedSchema = await fs.readFile(path.join(fixturesPath, 'format', 'schema.prisma'), {
         encoding: 'utf8',
       })
       const formattedByWasm = await formatSchema({ schema })

@@ -540,7 +540,7 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
     })
 
     test('auto heal corrupt engine binary', async () => {
-      const targetPath = path.join(baseDirCorruption, getBinaryName('query-engine', platform))
+      const targetPath = path.join(baseDirCorruption, getBinaryName(BinaryType.QueryEngineBinary, platform))
       if (fs.existsSync(targetPath)) {
         try {
           fs.unlinkSync(targetPath)

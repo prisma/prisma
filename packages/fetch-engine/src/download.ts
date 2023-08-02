@@ -6,7 +6,6 @@ import { bold, yellow } from 'kleur/colors'
 import pFilter from 'p-filter'
 import path from 'path'
 import tempDir from 'temp-dir'
-import { promisify } from 'util'
 
 import { BinaryType } from './BinaryType'
 import { chmodPlusX } from './chmodPlusX'
@@ -20,7 +19,6 @@ import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
 const { enginesOverride } = require('../package.json')
 
 const debug = Debug('prisma:fetch-engine:download')
-const exists = promisify(fs.exists)
 
 const channel = 'master'
 
@@ -253,11 +251,11 @@ async function binaryNeedsToBeDownloaded(
   version: string,
 ): Promise<boolean> {
   // If there is an ENV Override and the file exists then it does not need to be downloaded
-  if (job.envVarPath && fs.existsSync(job.envVarPath)) {
+  if (job.envVarPath && fs.pathExistsSync(job.envVarPath)) {
     return false
   }
   // 1. Check if file exists
-  const targetExists = await exists(job.targetFilePath)
+  const targetExists = await fs.pathExists(job.targetFilePath)
   // 2. If exists, check, if cached file exists and is up to date and has same hash as file.
   // If not, copy cached file over
   const cachedFile = await getCachedBinaryPath({
@@ -275,7 +273,7 @@ async function binaryNeedsToBeDownloaded(
     }
 
     const sha256FilePath = cachedFile + '.sha256'
-    if (await exists(sha256FilePath)) {
+    if (await fs.pathExists(sha256FilePath)) {
       const sha256File = await fs.readFile(sha256FilePath, 'utf-8')
       const sha256Cache = await getHash(cachedFile)
       if (sha256File === sha256Cache) {
@@ -381,7 +379,7 @@ async function getCachedBinaryPath({
     return cachedTargetPath
   }
 
-  if (await exists(cachedTargetPath)) {
+  if (await fs.pathExists(cachedTargetPath)) {
     return cachedTargetPath
   }
 

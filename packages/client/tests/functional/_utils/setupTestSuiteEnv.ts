@@ -135,12 +135,9 @@ export async function setupTestSuiteDatabase(
         throw new Error('DbExecute not supported with mongodb')
       }
 
-      await fs.promises.mkdir(`${prismaDir}/migrations/${timestamp}`, { recursive: true })
-      await fs.promises.writeFile(`${prismaDir}/migrations/migration_lock.toml`, `provider = "${provider}"`)
-      await fs.promises.writeFile(
-        `${prismaDir}/migrations/${timestamp}/migration.sql`,
-        alterStatementCallback(provider),
-      )
+      await fs.mkdir(`${prismaDir}/migrations/${timestamp}`, { recursive: true })
+      await fs.writeFile(`${prismaDir}/migrations/migration_lock.toml`, `provider = "${provider}"`)
+      await fs.writeFile(`${prismaDir}/migrations/${timestamp}/migration.sql`, alterStatementCallback(provider))
 
       await DbExecute.new().parse([
         '--file',

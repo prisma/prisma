@@ -81,7 +81,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     throw new Error(`schemaPath for getGenerators got invalid value ${schemaPath}`)
   }
 
-  if (!fs.existsSync(schemaPath)) {
+  if (!fs.pathExistsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
   }
   const platform = await getPlatform()
@@ -111,7 +111,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     }
   }
 
-  const datamodel = fs.readFileSync(schemaPath, 'utf-8')
+  const datamodel = await fs.readFile(schemaPath, 'utf-8')
 
   const config = await getConfig({
     datamodel,

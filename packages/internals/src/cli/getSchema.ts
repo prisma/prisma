@@ -4,9 +4,6 @@ import { bold, green } from 'kleur/colors'
 import path from 'path'
 import type { NormalizedPackageJson } from 'read-pkg-up'
 import readPkgUp from 'read-pkg-up'
-import { promisify } from 'util'
-
-const exists = promisify(fs.exists)
 
 /**
  * Async
@@ -100,7 +97,7 @@ export async function getSchemaPathFromPackageJson(cwd: string): Promise<string 
     ? schemaPathFromPkgJson
     : path.resolve(path.dirname(prismaConfig.packagePath), schemaPathFromPkgJson)
 
-  if ((await exists(absoluteSchemaPath)) === false) {
+  if ((await fs.pathExists(absoluteSchemaPath)) === false) {
     throw new Error(
       `Provided schema path \`${path.relative(cwd, absoluteSchemaPath)}\` from \`${path.relative(
         cwd,
@@ -205,7 +202,7 @@ function resolveYarnSchemaSync(cwd: string): string | null {
 }
 
 async function getAbsoluteSchemaPath(schemaPath: string): Promise<string | null> {
-  if (await exists(schemaPath)) {
+  if (await fs.pathExists(schemaPath)) {
     return schemaPath
   }
 
@@ -216,12 +213,12 @@ export async function getRelativeSchemaPath(cwd: string): Promise<string | null>
   let schemaPath: string | undefined
 
   schemaPath = path.join(cwd, 'schema.prisma')
-  if (await exists(schemaPath)) {
+  if (await fs.pathExists(schemaPath)) {
     return schemaPath
   }
 
   schemaPath = path.join(cwd, `prisma/schema.prisma`)
-  if (await exists(schemaPath)) {
+  if (await fs.pathExists(schemaPath)) {
     return schemaPath
   }
 
@@ -260,7 +257,7 @@ export async function getSchema(schemaPathFromArgs?: string): Promise<string> {
     )
   }
 
-  return fs.promises.readFile(schemaPath, 'utf-8')
+  return fs.readFile(schemaPath, 'utf-8')
 }
 
 /**

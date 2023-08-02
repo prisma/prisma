@@ -9,7 +9,7 @@ export function unlinkTempDatamodelPath(options: { datamodelPath?: string }, tem
   return TE.tryCatch(
     () => {
       if (!options.datamodelPath && tempDatamodelPath) {
-        return fs.promises.unlink(tempDatamodelPath)
+        return fs.unlink(tempDatamodelPath)
       }
 
       return Promise.resolve(undefined)
