@@ -1,3 +1,4 @@
+import type { Closeable, Connector } from '@jkomyno/prisma-js-connector-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { TracingHelper } from '@prisma/internals'
 
@@ -121,6 +122,13 @@ export interface EngineConfig {
   engineEndpoint?: string
   activeProvider?: string
   logEmitter: EventEmitter
+
+  /**
+   * Instance of a JS connector, e.g., like one provided by `@prisma/planetscale-js-connector`.
+   * If set, this is only used in the library engine, and all queries would be performed through it,
+   * rather than Prisma's Rust drivers.
+   */
+  jsConnector?: Connector & Closeable
 
   /**
    * The contents of the schema encoded into a string

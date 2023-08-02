@@ -330,6 +330,9 @@ importers:
       '@jest/test-sequencer':
         specifier: 29.6.2
         version: 29.6.2
+      '@jkomyno/prisma-js-connector-utils':
+        specifier: ^0.0.1
+        version: 0.0.1
       '@opentelemetry/api':
         specifier: 1.4.1
         version: 1.4.1
@@ -3101,6 +3104,14 @@ packages:
       '@types/node': 18.17.1
       '@types/yargs': 17.0.13
       chalk: 4.1.2
+    dev: true
+
+  /@jkomyno/prisma-js-connector-utils@0.0.1:
+    resolution: {integrity: sha512-xvhEeKC8NdaSeMAU2KIggQ5XFOEIrIn+T+e/hI3kD77OpZolFK1sgMrzH9RetvWpfwGamlsREGBYKgnCBvILWQ==}
+    dependencies:
+      debug: 4.3.4
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /@jridgewell/gen-mapping@0.1.1:
@@ -9542,7 +9553,7 @@ packages:
       pretty-format: 29.6.2
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.17.1)(typescript@4.9.5)
+      ts-node: 10.9.1(@swc/core@1.3.70)(@types/node@18.17.1)(typescript@4.9.5)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color

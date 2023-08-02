@@ -428,6 +428,11 @@ export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
 export interface PrismaClientOptions {
   /**
+   * Instance of a JS connector, e.g., like one provided by \`@prisma/planetscale-js-connector\`.
+   */
+  jsConnector?: Connector & Closeable
+
+  /**
    * Overwrites the datasource url from your schema.prisma file
    */
   datasources?: Datasources

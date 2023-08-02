@@ -1,3 +1,4 @@
+import type { Closeable, Connector } from '@jkomyno/prisma-js-connector-utils'
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
 import type { GeneratorConfig } from '@prisma/generator-helper'
@@ -93,6 +94,11 @@ export type Datasource = {
 export type Datasources = { [name in string]: Datasource }
 
 export interface PrismaClientOptions {
+  /**
+   * Instance of a JS connector, e.g., like one provided by `@prisma/planetscale-js-connector`.
+   */
+  jsConnector?: Connector & Closeable
+
   /**
    * Overwrites the datasource url from your schema.prisma file
    */
@@ -436,6 +442,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
+          jsConnector: options?.jsConnector,
         }
 
         debug('clientVersion', config.clientVersion)

@@ -240,6 +240,12 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         // `this.engine` field will prevent native instance from being GCed. Using weak ref helps
         // to avoid this cycle
         const weakThis = new WeakRef(this)
+
+        const { jsConnector } = this.config
+        if (jsConnector) {
+          debug('Using jsConnector: %O', jsConnector)
+        }
+
         this.engine = new this.QueryEngineConstructor(
           {
             datamodel: this.datamodel,
@@ -254,6 +260,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           (log) => {
             weakThis.deref()?.logger(log)
           },
+          jsConnector,
         )
         engineInstanceCount++
       } catch (_e) {
