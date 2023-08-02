@@ -24,7 +24,7 @@
   "types": "index.d.ts",
   "license": "Apache-2.0",
   "engines": {
-    "node": ">=16.13"
+    "node": "20.5.0"
   },
   "homepage": "https://www.prisma.io",
   "repository": {
@@ -145,7 +145,7 @@
     "zx": "7.2.3"
   },
   "peerDependencies": {
-    "prisma": "*"
+    "prisma": "5.1.0"
   },
   "peerDependenciesMeta": {
     "prisma": {
