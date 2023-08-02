@@ -24,7 +24,7 @@ export function applyAllResultExtensions({
   extensions,
   runtimeDataModel,
 }: ApplyAllResultExtensionsParams) {
-  if (extensions.isEmpty() || result == null) {
+  if (extensions.isEmpty() || result == null || typeof result !== 'object') {
     return result
   }
   const model = runtimeDataModel.models[modelName]
