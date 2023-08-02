@@ -72,6 +72,7 @@ const {
 const Prisma = {}
 
 exports.Prisma = Prisma
+exports.$Enums = {}
 
 /**
  * Prisma Client JS version: ${clientVersion}
