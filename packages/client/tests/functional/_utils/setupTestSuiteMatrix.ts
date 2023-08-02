@@ -118,7 +118,7 @@ function setupTestSuiteMatrix(
           const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
           const suiteNodeModuleFolderPath = path.join(suiteFolderPath, 'node_modules')
 
-          await fs.copy(suiteNodeModuleFolderPath, rootNodeModuleFolderPath, { recursive: true })
+          await fs.copy(suiteNodeModuleFolderPath, rootNodeModuleFolderPath)
         })
       })
 

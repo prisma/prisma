@@ -18,13 +18,13 @@ describe('format', () => {
   it('should add a trailing EOL', async () => {
     ctx.fixture('example-project/prisma')
     await Format.new().parse([])
-    expect(fs.readFileSync('schema.prisma')).toMatchSnapshot()
+    expect(fs.readFileSync('schema.prisma', 'utf-8')).toMatchSnapshot()
   })
 
   it('should add missing backrelation', async () => {
     ctx.fixture('example-project/prisma')
     await Format.new().parse(['--schema=missing-backrelation.prisma'])
-    expect(fs.readFileSync('missing-backrelation.prisma')).toMatchSnapshot()
+    expect(fs.readFileSync('missing-backrelation.prisma', 'utf-8')).toMatchSnapshot()
   })
 
   it('should throw if schema is broken', async () => {
