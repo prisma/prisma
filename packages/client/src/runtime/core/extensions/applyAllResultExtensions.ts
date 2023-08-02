@@ -24,6 +24,10 @@ export function applyAllResultExtensions({
   extensions,
   runtimeDataModel,
 }: ApplyAllResultExtensionsParams) {
+  // We return the result directly (not applying result extensions) if
+  // - there is no extension to apply
+  // - result is `null`
+  // - result is not an object (e.g. `.count()`)
   if (extensions.isEmpty() || result == null || typeof result !== 'object') {
     return result
   }
