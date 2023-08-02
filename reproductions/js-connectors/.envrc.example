@@ -1,0 +1,2 @@
+export JS_PLANETSCALE_DATABASE_URL="mysql://USER:PASSWORD@aws.connect.psdb.cloud/DATABASE?sslaccept=strict"
+export JS_PLANETSCALE_SHADOW_DATABASE_URL="mysql://USER:PASSWORD@aws.connect.psdb.cloud/DATABASE?sslaccept=strict"

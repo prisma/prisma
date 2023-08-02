@@ -1,0 +1,25 @@
+{
+  "name": "js-connectors",
+  "version": "1.0.0",
+  "description": "Smoke tests for Prisma JS connectors",
+  "main": "index.js",
+  "scripts": {
+    "generate:planetscale": "prisma generate --schema ./prisma/mysql-planetscale/schema.prisma",
+    "planetscale": "ts-node ./src/planetscale.ts"
+  },
+  "keywords": [],
+  "author": "Alberto Schiabel <schiabel@prisma.io>",
+  "license": "ISC",
+  "dependencies": {
+    "@jkomyno/prisma-js-connector-utils": "^0.0.1",
+    "@jkomyno/prisma-neon-js-connector": "^0.0.1",
+    "@jkomyno/prisma-planetscale-js-connector": "^0.0.1",
+    "@prisma/client": "../../packages/client"
+  },
+  "devDependencies": {
+    "@types/node": "17.0.45",
+    "prisma": "../../packages/cli",
+    "ts-node": "10.9.1",
+    "typescript": "5.1.6"
+  }
+}
