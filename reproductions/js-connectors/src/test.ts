@@ -120,7 +120,6 @@ class SmokeTest {
     return resultSet
   }
 
-  @withFlavor({ exclude: ['postgres'] })
   async testCreateAndDeleteChildParent() {
     /* Delete all child and parent records */
 
