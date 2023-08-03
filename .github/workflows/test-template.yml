@@ -733,7 +733,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres
 
       - name: Set CLI Engine Type
         run: |
