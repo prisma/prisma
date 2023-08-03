@@ -58,7 +58,7 @@ services:
       TABLET_REFRESH_INTERVAL: '1s'
 
   mysql:
-    image: mysql:8.0
+    image: mysql:8.1
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
     restart: unless-stopped
     environment:
@@ -69,7 +69,7 @@ services:
       - '3306:3306'
 
   mysql_isolated:
-    image: mysql:8.0
+    image: mysql:8.1
     command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
     restart: unless-stopped
     environment:
