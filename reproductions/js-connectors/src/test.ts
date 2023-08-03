@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { PrismaClient } from '.prisma/client'
 import { setImmediate, setTimeout } from 'node:timers/promises'
 import type { Connector, Closeable } from '@jkomyno/prisma-js-connector-utils'
