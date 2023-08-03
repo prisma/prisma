@@ -22,9 +22,10 @@ This is very important to double-check if you have multiple versions installed, 
 In the current directory:
 
 - Set the provider in [./prisma/mysql-planetscale/schema.prisma](./prisma/mysql-planetscale/schema.prisma) to `mysql`.
-- Run `npx prisma db push --schema ./prisma/mysql-planetscale/schema.prisma`
-- Run `npx prisma migrate deploy --schema ./prisma/mysql-planetscale/schema.prisma`
+- Run `pnpm prisma:planetscale` to push the Prisma schema and insert the test data.
 - Set the provider in [./prisma/mysql-planetscale/schema.prisma](./prisma/mysql-planetscale/schema.prisma) to `@prisma/planetscale`.
+- Run `pnpm prisma:generate:planetscale` to generate the Prisma Client.
+- Run `pnpm planetscale` to run smoke tests against the PlanetScale database.
 
 Note: you used to be able to run these Prisma commands without changing the provider name, but [#4074](https://github.com/prisma/prisma-engines/pull/4074) changed that (see https://github.com/prisma/prisma-engines/pull/4074#issuecomment-1649942475).
 
@@ -35,10 +36,11 @@ Note: you used to be able to run these Prisma commands without changing the prov
 
 In the current directory:
 
-- Set the provider in [./prisma/postgres-neon/schema.prisma](./prisma/postgres-neon/schema.prisma) to `postgres`.
-- Run `npx prisma db push --schema ./prisma/postgres-neon/schema.prisma`
-- Run `npx prisma migrate deploy --schema ./prisma/postgres-neon/schema.prisma`
+- Set the provider in [./prisma/postgres-neon/schema.prisma](./prisma/postgres-neon/schema.prisma) to `mysql`.
+- Run `pnpm prisma:neon` to push the Prisma schema and insert the test data.
 - Set the provider in [./prisma/postgres-neon/schema.prisma](./prisma/postgres-neon/schema.prisma) to `@prisma/neon`.
+- Run `pnpm prisma:generate:neon` to generate the Prisma Client.
+- Run `pnpm neon` to run smoke tests against the Neon database.
 
 ## How to use
 

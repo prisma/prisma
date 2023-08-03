@@ -5,8 +5,8 @@ generator client {
 }
 
 datasource db {
-  provider          = "@prisma/planetscale"
-  // provider          = "mysql"
+  provider          = "mysql"
+  // provider          = "@prisma/planetscale"
   url               = env("JS_PLANETSCALE_DATABASE_URL")
   shadowDatabaseUrl = env("JS_PLANETSCALE_SHADOW_DATABASE_URL")
 }
