@@ -19,6 +19,7 @@ export async function smokeTest(db: Connector & Closeable, prismaSchemaRelativeP
   const test = new SmokeTest(prisma, db.flavor)
 
   // Note: these tests currently trigger a panic!
+  await test.explicitTransaction()
   await test.testFindManyTypeTest()
   await test.testCreateAndDeleteChildParent()
 
@@ -48,6 +49,18 @@ export async function smokeTest(db: Connector & Closeable, prismaSchemaRelativeP
 
 class SmokeTest {
   constructor(private readonly prisma: PrismaClient, readonly flavor: Connector['flavor']) {}
+
+  async explicitTransaction() {
+    const [children, totalChildren] = await this.prisma.$transaction([
+      this.prisma.child.findMany(),
+      this.prisma.child.count(),
+    ], {
+      isolationLevel: 'Serializable',
+    })
+
+    console.log('[nodejs] children', JSON.stringify(children, null, 2))
+    console.log('[nodejs] totalChildren', totalChildren)
+  }
 
   async testFindManyTypeTest() {
     await this.testFindManyTypeTestMySQL()
