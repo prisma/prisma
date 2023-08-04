@@ -1,0 +1,22 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../node_modules/.prisma/client"
+  previewFeatures = []
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model test_table_a {
+  id           String        @id
+  test_table_b test_table_b?
+}
+
+model test_table_b {
+  id              String       @id
+  test_table_a_id String       @unique
+  time_created    DateTime     @default(now())
+  test_table_a    test_table_a @relation(fields: [test_table_a_id], references: [id], onDelete: Cascade)
+}
