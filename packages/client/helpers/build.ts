@@ -37,6 +37,8 @@ const browserBuildConfig: BuildOptions = {
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
+  minify: true,
+  sourcemap: 'linked',
 }
 
 // we define the config for edge
