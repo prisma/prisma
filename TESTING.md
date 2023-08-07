@@ -118,8 +118,6 @@ In the `prisma/prisma` repository we have a few places where you can write tests
   - Integration tests for generator interface implementation
 - **`migrate`**
   - Unit and integration tests for `migrate` and `db` commands
-- **`react-prisma`**
-  - Doesn't have tests
 - **`internals`**
   - Convert credentials to connection string and back
   - Dotenv expansion
