@@ -63,8 +63,8 @@ jobs:
         run: |
           echo "Pull Request: ${{ github.event.pull_request.number }}"
           echo "Pull Request Author: ${{ github.event.pull_request.user.login }}"
-          echo "Pull Request Body: ${{ github.event.pull_request.body }}"
           echo "Pull Request Author Association: ${{ github.event.pull_request.author_association }}"
+          echo "Pull Request Body contains /integration: ${{ contains(github.event.pull_request.body, '/integration') }}"
 
       - name: Find "ci test all" comment
         uses: peter-evans/find-comment@v2
