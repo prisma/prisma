@@ -64,7 +64,7 @@
     "extension.d.ts"
   ],
   "devDependencies": {
-    "@codspeed/benchmark.js-plugin": "2.1.0",
+    "@codspeed/benchmark.js-plugin": "2.2.0",
     "@faker-js/faker": "8.0.2",
     "@fast-check/jest": "1.7.1",
     "@jest/create-cache-key-function": "29.6.2",
@@ -140,7 +140,7 @@
     "ts-pattern": "4.3.0",
     "tsd": "0.28.1",
     "typescript": "4.9.5",
-    "undici": "5.22.1",
+    "undici": "5.23.0",
     "yeoman-generator": "5.9.0",
     "yo": "4.3.1",
     "zx": "7.2.3"
@@ -154,7 +154,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.2.0-2.8f598f60a13202cbe01e379be5c36d65d08f09b8"
+    "@prisma/engines-version": "5.2.0-4.4189690eafe0ceb8b47e5ec48c5dded56e043430"
   },
   "sideEffects": false
 }
