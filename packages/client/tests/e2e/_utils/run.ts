@@ -1,5 +1,5 @@
 import { arg } from '@prisma/internals'
-import fs from 'fs/promises'
+import fs from 'fs-extra'
 import glob from 'globby'
 import os from 'os'
 import path from 'path'

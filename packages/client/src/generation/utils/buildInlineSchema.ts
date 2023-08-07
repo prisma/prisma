@@ -1,7 +1,5 @@
 import crypto from 'crypto'
-import fs from 'fs'
-
-const readFile = fs.promises.readFile
+import fs from 'fs-extra'
 
 /**
  * Builds an inline schema for the data proxy client. This is useful because it
@@ -12,7 +10,7 @@ const readFile = fs.promises.readFile
  */
 export async function buildInlineSchema(dataProxy: boolean, schemaPath: string) {
   if (dataProxy === true) {
-    const b64Schema = (await readFile(schemaPath)).toString('base64')
+    const b64Schema = (await fs.readFile(schemaPath)).toString('base64')
     const schemaHash = crypto.createHash('sha256').update(b64Schema).digest('hex')
 
     return `

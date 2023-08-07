@@ -4,7 +4,7 @@
 import { jestContext } from '@prisma/get-platform'
 import { serializeQueryEngineName } from '@prisma/internals'
 import { DbExecute, DbPull, DbPush, MigrateDev, MigrateReset } from '@prisma/migrate'
-import fs from 'fs'
+import fs from 'fs-extra'
 import stripAnsi from 'strip-ansi'
 
 import { Format } from '../Format'

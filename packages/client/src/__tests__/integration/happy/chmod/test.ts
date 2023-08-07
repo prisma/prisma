@@ -1,6 +1,6 @@
 import { getPlatform } from '@prisma/get-platform'
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 import { generateTestClient } from '../../../../utils/getTestClient'

@@ -1,6 +1,6 @@
 import { handlePanic } from '@prisma/internals'
 import { SchemaEngine } from '@prisma/migrate'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 async function main() {

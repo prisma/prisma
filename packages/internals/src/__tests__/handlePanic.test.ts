@@ -1,5 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import { ensureDir } from 'fs-extra'
+import fs from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import { join, resolve } from 'path'
 import prompt from 'prompts'
@@ -43,7 +43,7 @@ describe('handlePanic', () => {
     jest.resetModules() // most important - it clears the cache
     process.env = { ...OLD_ENV, GITHUB_ACTIONS: 'true' } // make a copy and simulate CI environment
     process.cwd = () => testRootDir
-    await ensureDir(testRootDir)
+    await fs.ensureDir(testRootDir)
   })
   afterEach(() => {
     process.cwd = oldProcessCwd

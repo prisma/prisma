@@ -12,7 +12,7 @@ import {
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 import { RawValue, Sql } from 'sql-template-tag'
 

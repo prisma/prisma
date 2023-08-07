@@ -3,7 +3,7 @@ import { IncomingWebhook } from '@slack/webhook'
 import arg from 'arg'
 import topo from 'batching-toposort'
 import execa from 'execa'
-import fs from 'fs'
+import fs from 'fs-extra'
 import globby from 'globby'
 import { blue, bold, cyan, dim, magenta, red, underline } from 'kleur/colors'
 import fetch from 'node-fetch'
@@ -93,7 +93,7 @@ export async function getPackages(): Promise<RawPackages> {
   const packages = await Promise.all(
     packagePaths.map(async (p) => ({
       path: p,
-      packageJson: JSON.parse(await fs.promises.readFile(p, 'utf-8')),
+      packageJson: JSON.parse(await fs.readFile(p, 'utf-8')),
     })),
   )
 
@@ -656,7 +656,7 @@ Check them out at https://github.com/prisma/ecosystem-tests/actions?query=workfl
 
 async function getEnginesCommitHash(): Promise<string> {
   const prismaPath = path.resolve(process.cwd(), './packages/engines/package.json')
-  const pkg = JSON.parse(await fs.promises.readFile(prismaPath, 'utf-8'))
+  const pkg = JSON.parse(await fs.readFile(prismaPath, 'utf-8'))
   // const engineVersion = pkg.prisma.version
   const engineVersion = pkg.devDependencies['@prisma/engines-version']?.split('.').slice(-1)[0]
 
@@ -980,7 +980,7 @@ async function acquireLock(branch: string): Promise<() => void> {
 
 async function writeToPkgJson(pkgDir, cb: (pkg: any) => any, dryRun?: boolean) {
   const pkgJsonPath = path.join(pkgDir, 'package.json')
-  const file = await fs.promises.readFile(pkgJsonPath, 'utf-8')
+  const file = await fs.readFile(pkgJsonPath, 'utf-8')
   let packageJson = JSON.parse(file)
   if (dryRun) {
     console.log(`Would write to ${pkgJsonPath} from ${packageJson.version} now`)
@@ -989,19 +989,19 @@ async function writeToPkgJson(pkgDir, cb: (pkg: any) => any, dryRun?: boolean) {
     if (result) {
       packageJson = result
     }
-    await fs.promises.writeFile(pkgJsonPath, JSON.stringify(packageJson, null, 2))
+    await fs.writeFile(pkgJsonPath, JSON.stringify(packageJson, null, 2))
   }
 }
 
 async function writeVersion(pkgDir: string, version: string, dryRun?: boolean) {
   const pkgJsonPath = path.join(pkgDir, 'package.json')
-  const file = await fs.promises.readFile(pkgJsonPath, 'utf-8')
+  const file = await fs.readFile(pkgJsonPath, 'utf-8')
   const packageJson = JSON.parse(file)
   if (dryRun) {
     console.log(`Would update ${pkgJsonPath} from ${packageJson.version} to ${version} now ${dim('(dry)')}`)
   } else {
     packageJson.version = version
-    await fs.promises.writeFile(pkgJsonPath, JSON.stringify(packageJson, null, 2))
+    await fs.writeFile(pkgJsonPath, JSON.stringify(packageJson, null, 2))
   }
 }
 

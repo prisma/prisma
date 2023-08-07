@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 export function getFiles(dir: string): Array<{ name: string; size: number }> {

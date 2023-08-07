@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import type { Platform } from '@prisma/get-platform'
 import { assertNodeAPISupported, getPlatform, platforms } from '@prisma/get-platform'
 import { EngineSpanEvent } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { bold, green, red, yellow } from 'kleur/colors'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'

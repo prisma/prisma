@@ -14,7 +14,7 @@ import {
   loadEnvFile,
   protocolToConnectorType,
 } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { bold, dim, green, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 import { match } from 'ts-pattern'

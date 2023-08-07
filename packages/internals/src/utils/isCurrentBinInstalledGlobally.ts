@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import globalDirectories from 'global-dirs'
 
 // returns if current prisma bin is installed globally

@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import Module from 'module'
 import pkgUp from 'pkg-up'
 
@@ -20,7 +20,7 @@ async function getPrismaClientVersionFromNodeModules(cwd: string = process.cwd()
       return null
     }
 
-    const pkgJsonString = await fs.promises.readFile(pkgJsonPath, 'utf-8')
+    const pkgJsonString = await fs.readFile(pkgJsonPath, 'utf-8')
     const pkgJson = JSON.parse(pkgJsonString)
 
     if (!pkgJson.version) {
@@ -44,7 +44,7 @@ async function getPrismaClientVersionFromLocalPackageJson(cwd: string = process.
       return null
     }
 
-    const pkgJsonString = await fs.promises.readFile(pkgJsonPath, 'utf-8')
+    const pkgJsonString = await fs.readFile(pkgJsonPath, 'utf-8')
     const pkgJson = JSON.parse(pkgJsonString)
     const clientVersion = pkgJson.dependencies?.['@prisma/client'] ?? pkgJson.devDependencies?.['@prisma/client']
 

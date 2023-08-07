@@ -1,6 +1,5 @@
 import { handlePanic, isCi, RustPanic } from '@prisma/internals'
-import fs from 'fs'
-import { ensureDir } from 'fs-extra'
+import fs from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import { dirname, join } from 'path'
 import prompt from 'prompts'
@@ -38,8 +37,8 @@ async function writeFiles(
 ): Promise<string> {
   for (const name in files) {
     const filepath = join(root, name)
-    await ensureDir(dirname(filepath))
-    await fs.promises.writeFile(filepath, dedent(files[name]))
+    await fs.ensureDir(dirname(filepath))
+    await fs.writeFile(filepath, dedent(files[name]))
   }
   // return the test path
   return root
@@ -54,7 +53,7 @@ describe('handlePanic migrate', () => {
     jest.resetModules() // most important - it clears the cache
     process.env = { ...OLD_ENV } // make a copy
     process.cwd = () => testRootDir
-    await ensureDir(testRootDir)
+    await fs.ensureDir(testRootDir)
   })
   afterEach(() => {
     process.cwd = oldProcessCwd

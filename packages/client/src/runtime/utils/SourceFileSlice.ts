@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 
 import { highlightTS } from '../highlight/highlight'
 import { dedent } from './dedent'

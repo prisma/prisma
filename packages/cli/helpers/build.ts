@@ -1,6 +1,5 @@
 import type * as esbuild from 'esbuild'
-import fs from 'fs'
-import { copy } from 'fs-extra'
+import fs from 'fs-extra'
 import lineReplace from 'line-replace'
 import path from 'path'
 
@@ -24,19 +23,19 @@ const cliLifecyclePlugin: esbuild.Plugin = {
 
     build.onEnd(async () => {
       // we copy the contents from @prisma/studio to build
-      await copy(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
+      await fs.copy(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
         recursive: true,
         overwrite: true,
       })
 
       // we copy the contents from checkpoint-client to build
-      await fs.promises.copyFile(
+      await fs.copyFile(
         path.join(require.resolve('checkpoint-client/package.json'), '../dist/child.js'),
         './build/child.js',
       )
 
       // we copy the contents from xdg-open to build
-      await fs.promises.copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
+      await fs.copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
 
       // as a convention, we install all Prisma's Wasm modules in the internals package
       const wasmResolveDir = path.join(__dirname, '..', '..', 'internals', 'node_modules')
@@ -49,7 +48,7 @@ const cliLifecyclePlugin: esbuild.Plugin = {
         'src',
         'prisma_schema_build_bg.wasm',
       )
-      await fs.promises.copyFile(prismaWasmFile, './build/prisma_schema_build_bg.wasm')
+      await fs.copyFile(prismaWasmFile, './build/prisma_schema_build_bg.wasm')
 
       await replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
 

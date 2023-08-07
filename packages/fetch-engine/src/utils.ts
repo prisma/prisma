@@ -1,8 +1,7 @@
 import Debug from '@prisma/debug'
 import { getNodeAPIName, Platform } from '@prisma/get-platform'
 import findCacheDir from 'find-cache-dir'
-import fs from 'fs'
-import { ensureDir } from 'fs-extra'
+import fs from 'fs-extra'
 import os from 'os'
 import path from 'path'
 
@@ -23,7 +22,7 @@ export async function getRootCacheDir(): Promise<string | null> {
   // if this is lambda, nope
   if (process.env.AWS_LAMBDA_FUNCTION_VERSION) {
     try {
-      await ensureDir(`/tmp/prisma-download`)
+      await fs.ensureDir(`/tmp/prisma-download`)
       return `/tmp/prisma-download`
     } catch (e) {
       return null
@@ -40,7 +39,7 @@ export async function getCacheDir(channel: string, version: string, platform: st
   const cacheDir = path.join(rootCacheDir, channel, version, platform)
   try {
     if (!fs.existsSync(cacheDir)) {
-      await ensureDir(cacheDir)
+      await fs.ensureDir(cacheDir)
     }
   } catch (e) {
     debug('The following error is being caught and just there for debugging:')
@@ -82,13 +81,14 @@ export async function overwriteFile(sourcePath: string, targetPath: string) {
   // about incorrect binary signature and kill node process
   // https://openradar.appspot.com/FB8914243
   await removeFileIfExists(targetPath)
-  await fs.promises.copyFile(sourcePath, targetPath)
+  await fs.copyFile(sourcePath, targetPath)
 }
 
 async function removeFileIfExists(filePath: string) {
   try {
-    await fs.promises.unlink(filePath)
+    await fs.unlink(filePath)
   } catch (e) {
+    // Ignore if the file doesn't exist
     if (e.code !== 'ENOENT') {
       throw e
     }

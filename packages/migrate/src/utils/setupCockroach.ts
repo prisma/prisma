@@ -1,5 +1,5 @@
 import { credentialsToUri, uriToCredentials } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 import { Client } from 'pg'
 

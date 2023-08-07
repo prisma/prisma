@@ -1,7 +1,7 @@
 import { arg, BinaryType, getPlatform } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
 import execa, { ExecaChildProcess } from 'execa'
-import fs from 'fs'
+import fs from 'fs-extra'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { Providers } from '../../tests/functional/_utils/providers'

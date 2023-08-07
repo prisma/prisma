@@ -1,7 +1,7 @@
 import * as E from 'fp-ts/Either'
 import { identity, pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { bold, red } from 'kleur/colors'
 import { match, P } from 'ts-pattern'
 
@@ -9,7 +9,7 @@ export function unlinkTempDatamodelPath(options: { datamodelPath?: string }, tem
   return TE.tryCatch(
     () => {
       if (!options.datamodelPath && tempDatamodelPath) {
-        return fs.promises.unlink(tempDatamodelPath)
+        return fs.unlink(tempDatamodelPath)
       }
 
       return Promise.resolve(undefined)

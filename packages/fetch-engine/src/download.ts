@@ -1,13 +1,11 @@
 import Debug from '@prisma/debug'
 import { assertNodeAPISupported, getNodeAPIName, getos, getPlatform, Platform, platforms } from '@prisma/get-platform'
 import execa from 'execa'
-import fs from 'fs'
-import { ensureDir } from 'fs-extra'
+import fs from 'fs-extra'
 import { bold, yellow } from 'kleur/colors'
 import pFilter from 'p-filter'
 import path from 'path'
 import tempDir from 'temp-dir'
-import { promisify } from 'util'
 
 import { BinaryType } from './BinaryType'
 import { chmodPlusX } from './chmodPlusX'
@@ -21,7 +19,6 @@ import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
 const { enginesOverride } = require('../package.json')
 
 const debug = Debug('prisma:fetch-engine:download')
-const exists = promisify(fs.exists)
 
 const channel = 'master'
 
@@ -254,11 +251,11 @@ async function binaryNeedsToBeDownloaded(
   version: string,
 ): Promise<boolean> {
   // If there is an ENV Override and the file exists then it does not need to be downloaded
-  if (job.envVarPath && fs.existsSync(job.envVarPath)) {
+  if (job.envVarPath && fs.pathExistsSync(job.envVarPath)) {
     return false
   }
   // 1. Check if file exists
-  const targetExists = await exists(job.targetFilePath)
+  const targetExists = await fs.pathExists(job.targetFilePath)
   // 2. If exists, check, if cached file exists and is up to date and has same hash as file.
   // If not, copy cached file over
   const cachedFile = await getCachedBinaryPath({
@@ -276,8 +273,8 @@ async function binaryNeedsToBeDownloaded(
     }
 
     const sha256FilePath = cachedFile + '.sha256'
-    if (await exists(sha256FilePath)) {
-      const sha256File = await fs.promises.readFile(sha256FilePath, 'utf-8')
+    if (await fs.pathExists(sha256FilePath)) {
+      const sha256File = await fs.readFile(sha256FilePath, 'utf-8')
       const sha256Cache = await getHash(cachedFile)
       if (sha256File === sha256Cache) {
         if (!targetExists) {
@@ -285,7 +282,7 @@ async function binaryNeedsToBeDownloaded(
 
           // TODO Remove when https://github.com/docker/for-linux/issues/1015 is fixed
           // Workaround for https://github.com/prisma/prisma/issues/7037
-          await fs.promises.utimes(cachedFile, new Date(), new Date())
+          await fs.utimes(cachedFile, new Date(), new Date())
 
           await overwriteFile(cachedFile, job.targetFilePath)
         }
@@ -382,7 +379,7 @@ async function getCachedBinaryPath({
     return cachedTargetPath
   }
 
-  if (await exists(cachedTargetPath)) {
+  if (await fs.pathExists(cachedTargetPath)) {
     return cachedTargetPath
   }
 
@@ -403,7 +400,7 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
 
   try {
     fs.accessSync(targetDir, fs.constants.W_OK)
-    await ensureDir(targetDir)
+    await fs.ensureDir(targetDir)
   } catch (e) {
     if (options.failSilent || (e as NodeJS.ErrnoException).code !== 'EACCES') {
       return
@@ -448,10 +445,10 @@ async function saveFileToCache(
   try {
     await overwriteFile(job.targetFilePath, cachedTargetPath)
     if (sha256 != null) {
-      await fs.promises.writeFile(cachedSha256Path, sha256)
+      await fs.writeFile(cachedSha256Path, sha256)
     }
     if (zippedSha256 != null) {
-      await fs.promises.writeFile(cachedSha256ZippedPath, zippedSha256)
+      await fs.writeFile(cachedSha256ZippedPath, zippedSha256)
     }
   } catch (e) {
     debug(e)
@@ -466,10 +463,10 @@ export async function maybeCopyToTmp(file: string): Promise<string> {
   const dir = eval('__dirname')
   if (dir.match(vercelPkgPathRegex)) {
     const targetDir = path.join(tempDir, 'prisma-binaries')
-    await ensureDir(targetDir)
+    await fs.ensureDir(targetDir)
     const target = path.join(targetDir, path.basename(file))
-    const data = await fs.promises.readFile(file)
-    await fs.promises.writeFile(target, data)
+    const data = await fs.readFile(file)
+    await fs.writeFile(target, data)
     // We have to read and write until https://github.com/zeit/pkg/issues/639
     // is resolved
     // await copyFile(file, target)

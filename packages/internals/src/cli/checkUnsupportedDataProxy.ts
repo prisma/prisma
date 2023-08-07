@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import { green } from 'kleur/colors'
 import { O } from 'ts-toolbelt'
 
@@ -61,7 +61,7 @@ async function checkUnsupportedDataProxyMessage(command: string, args: Args, imp
     if (argName.includes('schema')) {
       loadEnvFile(argValue, false)
 
-      const datamodel = await fs.promises.readFile(argValue, 'utf-8')
+      const datamodel = await fs.readFile(argValue, 'utf-8')
       const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
       const url = resolveUrl(getEffectiveUrl(config.datasources[0]))
 

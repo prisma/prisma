@@ -5,7 +5,7 @@ import { download } from '@prisma/fetch-engine'
 import type { BinaryTargetsEnvValue, EngineType, GeneratorConfig, GeneratorOptions } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { bold, gray, green, red, underline, yellow } from 'kleur/colors'
 import pMap from 'p-map'
 import path from 'path'
@@ -81,7 +81,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     throw new Error(`schemaPath for getGenerators got invalid value ${schemaPath}`)
   }
 
-  if (!fs.existsSync(schemaPath)) {
+  if (!fs.pathExistsSync(schemaPath)) {
     throw new Error(`${schemaPath} does not exist`)
   }
   const platform = await getPlatform()
@@ -111,7 +111,7 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     }
   }
 
-  const datamodel = fs.readFileSync(schemaPath, 'utf-8')
+  const datamodel = await fs.readFile(schemaPath, 'utf-8')
 
   const config = await getConfig({
     datamodel,

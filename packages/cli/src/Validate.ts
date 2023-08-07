@@ -12,7 +12,7 @@ import {
   validate,
 } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { bold, dim, red, underline } from 'kleur/colors'
 
 /**

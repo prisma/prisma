@@ -1,6 +1,6 @@
 import Debug from '@prisma/debug'
 import dotenv from 'dotenv'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { bold, dim, red, underline, yellow } from 'kleur/colors'
 import path from 'path'
 

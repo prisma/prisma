@@ -1,5 +1,5 @@
 import { existsSync } from 'fs'
-import fs from 'fs/promises'
+import fs from 'fs-extra'
 import { bold, white } from 'kleur/colors'
 import path from 'path'
 

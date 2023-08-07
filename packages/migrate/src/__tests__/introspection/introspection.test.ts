@@ -1,4 +1,4 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 import { SchemaEngine } from '../../SchemaEngine'
@@ -9,7 +9,7 @@ test('introspection basic', async () => {
     schemaPath: 'schema.prisma',
   })
 
-  const schema = await fs.promises.readFile(path.join(__dirname, 'schema.prisma'), { encoding: 'utf-8' })
+  const schema = await fs.readFile(path.join(__dirname, 'schema.prisma'), { encoding: 'utf-8' })
 
   const dbVersion = await engine.getDatabaseVersion({
     datasource: {

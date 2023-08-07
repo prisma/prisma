@@ -2,7 +2,7 @@ import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { BinaryType, download } from '@prisma/fetch-engine'
 import { getPlatform, jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { engineEnvVarMap } from '@prisma/internals'
-import { ensureDir } from 'fs-extra'
+import fs from 'fs-extra'
 import path from 'path'
 
 import packageJson from '../../../package.json'
@@ -23,7 +23,7 @@ describe('version', () => {
     'version with custom binaries (Node-API)',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
-      await ensureDir(enginesDir)
+      await fs.ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
           'schema-engine': enginesDir,
@@ -70,7 +70,7 @@ describe('version', () => {
     'version with custom binaries',
     async () => {
       const enginesDir = path.join(__dirname, 'version-test-engines')
-      await ensureDir(enginesDir)
+      await fs.ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
           'schema-engine': enginesDir,

@@ -1,5 +1,5 @@
 import { getConfig, getDMMF, parseEnvValue } from '@prisma/internals'
-import fs from 'fs/promises'
+import fs from 'fs-extra'
 import path from 'path'
 
 import { generateClient } from '../../../src/generation/generateClient'

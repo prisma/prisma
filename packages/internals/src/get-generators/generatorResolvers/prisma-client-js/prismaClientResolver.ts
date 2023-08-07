@@ -1,5 +1,5 @@
 import Debug from '@prisma/debug'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { bold, dim, green, yellow } from 'kleur/colors'
 import path from 'path'
 

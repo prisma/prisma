@@ -1,8 +1,7 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import fs from 'fs'
+import fs from 'fs-extra'
 import fetch from 'node-fetch'
 import path from 'path'
-import rimraf from 'rimraf'
 
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import { Studio } from '../../Studio'
@@ -92,14 +91,14 @@ describe('studio with default schema.prisma filename', () => {
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
-    rimraf.sync(path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'))
+    fs.removeSync(path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'))
     fs.copyFileSync(
       path.join(__dirname, '../fixtures/studio-test-project/dev.db'),
       path.join(__dirname, '../fixtures/studio-test-project/dev_tmp.db'),
     )
 
     // Clean up Client generation directory
-    rimraf.sync(path.join(__dirname, '../prisma-client'))
+    fs.removeSync(path.join(__dirname, '../prisma-client'))
     studio = Studio.new()
 
     await studio.parse([
@@ -275,14 +274,14 @@ describe('studio with custom schema.prisma filename', () => {
   beforeAll(async () => {
     // Before every test, we'd like to reset the DB.
     // We do this by duplicating the original SQLite DB file, and using the duplicate as the datasource in our schema
-    rimraf.sync(path.join(__dirname, '../fixtures/studio-test-project-custom-filename/dev_tmp.db'))
+    fs.removeSync(path.join(__dirname, '../fixtures/studio-test-project-custom-filename/dev_tmp.db'))
     fs.copyFileSync(
       path.join(__dirname, '../fixtures/studio-test-project-custom-filename/dev.db'),
       path.join(__dirname, '../fixtures/studio-test-project-custom-filename/dev_tmp.db'),
     )
 
     // Clean up Client generation directory
-    rimraf.sync(path.join(__dirname, '../prisma-client'))
+    fs.removeSync(path.join(__dirname, '../prisma-client'))
     studio = Studio.new()
 
     await studio.parse([

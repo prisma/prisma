@@ -13,7 +13,7 @@ import {
   loadEnvFile,
   validate,
 } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
 

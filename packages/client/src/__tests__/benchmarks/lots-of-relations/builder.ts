@@ -1,4 +1,4 @@
-import fs from 'fs/promises'
+import fs from 'fs-extra'
 
 const MODELS_COUNT = 100
 const fieldsCount = 5

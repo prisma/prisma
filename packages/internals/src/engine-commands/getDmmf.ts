@@ -3,7 +3,7 @@ import type { DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper
 import * as E from 'fp-ts/Either'
 import { pipe } from 'fp-ts/lib/function'
 import * as TE from 'fp-ts/TaskEither'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { blue, bold, red } from 'kleur/colors'
 import { match } from 'ts-pattern'
 
@@ -72,7 +72,7 @@ export async function getDMMF(options: GetDMMFOptions): Promise<DMMF.Document> {
         }
 
         debug(`Reading datamodel from the given datamodel path ${options.datamodelPath!}`)
-        return fs.promises.readFile(options.datamodelPath!, { encoding: 'utf-8' })
+        return fs.readFile(options.datamodelPath!, { encoding: 'utf-8' })
       },
       (e) =>
         ({

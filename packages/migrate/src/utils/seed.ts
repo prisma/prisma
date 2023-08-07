@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { getPrismaConfigFromPackageJson, link, logger } from '@prisma/internals'
 import execa from 'execa'
-import fs from 'fs'
+import fs from 'fs-extra'
 import hasYarn from 'has-yarn'
 import { bold, green, italic, red, yellow } from 'kleur/colors'
 import path from 'path'
@@ -238,7 +238,7 @@ async function getScriptsFromPackageJson(cwd: string = process.cwd()) {
       return null
     }
 
-    const pkgJsonString = await fs.promises.readFile(pkgJsonPath, 'utf-8')
+    const pkgJsonString = await fs.readFile(pkgJsonPath, 'utf-8')
 
     const pkgJson: PkgJSON = JSON.parse(pkgJsonString)
 

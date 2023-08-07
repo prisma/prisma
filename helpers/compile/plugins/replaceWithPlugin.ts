@@ -1,5 +1,5 @@
 import type * as esbuild from 'esbuild'
-import fs from 'fs'
+import fs from 'fs-extra'
 import { builtinModules } from 'module'
 
 type Replacement = [RegExp, string | ((regex: RegExp, contents: string) => string | Promise<string>)]
@@ -30,7 +30,7 @@ export const replaceWithPlugin = (replacements: Replacement[]): esbuild.Plugin =
         if (builtinModules.includes(args.path)) return {}
         if (!/.*?(.js|.mjs)$/.exec(args.path)) return {}
 
-        const contents = await fs.promises.readFile(args.path, 'utf8')
+        const contents = await fs.readFile(args.path, 'utf8')
 
         return { contents: await applyReplacements(contents, replacements) }
       })
@@ -51,7 +51,7 @@ export const replaceWithPlugin = (replacements: Replacement[]): esbuild.Plugin =
 //           const engineCoreDir = resolve.sync('@prisma/engine-core')
 //           const undiciPackage = resolve.sync('undici/package.json', { basedir: engineCoreDir })
 //           const lhttpWasmPath = path.join(path.dirname(undiciPackage), 'lib', match[2])
-//           const wasmContents = (await fs.promises.readFile(lhttpWasmPath)).toString('base64')
+//           const wasmContents = (await fs.readFile(lhttpWasmPath)).toString('base64')
 //           const inlineWasm = `${match[1]}(Buffer.from("${wasmContents}", "base64")))`
 
 //           contents = contents.replace(match[0], inlineWasm)

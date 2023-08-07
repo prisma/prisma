@@ -2,8 +2,7 @@ import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever, ClientEngineType, getClientEngineType, Platform, setClassName } from '@prisma/internals'
 import paths from 'env-paths'
-import fs from 'fs'
-import { ensureDir } from 'fs-extra'
+import fs from 'fs-extra'
 import { bold, dim, green, red } from 'kleur/colors'
 import path from 'path'
 import pkgUp from 'pkg-up'
@@ -248,10 +247,10 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     throw new DenylistError(message)
   }
 
-  await ensureDir(finalOutputDir)
-  await ensureDir(path.join(outputDir, 'runtime'))
+  await fs.ensureDir(finalOutputDir)
+  await fs.ensureDir(path.join(outputDir, 'runtime'))
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
-    await ensureDir(path.join(outputDir, 'deno'))
+    await fs.ensureDir(path.join(outputDir, 'deno'))
   }
   // TODO: why do we sometimes use outputDir and sometimes finalOutputDir?
   // outputDir:       /home/millsp/Work/prisma/packages/client
@@ -263,9 +262,9 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
       // The deletion of the file is necessary, so VSCode
       // picks up the changes.
       if (await exists(filePath)) {
-        await fs.promises.unlink(filePath)
+        await fs.unlink(filePath)
       }
-      await fs.promises.writeFile(filePath, file)
+      await fs.writeFile(filePath, file)
     }),
   )
   const runtimeSourceDir = testMode
@@ -275,7 +274,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
   // if users use a custom output dir
   if (copyRuntime || !path.resolve(outputDir).endsWith(`@prisma${path.sep}client`)) {
     const copyTarget = path.join(outputDir, 'runtime')
-    await ensureDir(copyTarget)
+    await fs.ensureDir(copyTarget)
     if (runtimeSourceDir !== copyTarget) {
       await copyRuntimeFiles({
         from: runtimeSourceDir,
@@ -298,7 +297,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   if (transpile === true && dataProxy !== true) {
     if (process.env.NETLIFY) {
-      await ensureDir('/tmp/prisma-engines')
+      await fs.ensureDir('/tmp/prisma-engines')
     }
 
     for (const [binaryTarget, filePath] of Object.entries(enginePath)) {
@@ -313,30 +312,30 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
 
   const schemaTargetPath = path.join(finalOutputDir, 'schema.prisma')
   if (schemaPath !== schemaTargetPath) {
-    await fs.promises.copyFile(schemaPath, schemaTargetPath)
+    await fs.copyFile(schemaPath, schemaTargetPath)
   }
 
   const proxyIndexJsPath = path.join(outputDir, 'index.js')
   const proxyIndexBrowserJsPath = path.join(outputDir, 'index-browser.js')
   const proxyIndexDTSPath = path.join(outputDir, 'index.d.ts')
   if (!fs.existsSync(proxyIndexJsPath)) {
-    await fs.promises.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
+    await fs.copyFile(path.join(__dirname, '../../index.js'), proxyIndexJsPath)
   }
 
   if (!fs.existsSync(proxyIndexDTSPath)) {
-    await fs.promises.copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
+    await fs.copyFile(path.join(__dirname, '../../index.d.ts'), proxyIndexDTSPath)
   }
 
   if (!fs.existsSync(proxyIndexBrowserJsPath)) {
-    await fs.promises.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
+    await fs.copyFile(path.join(__dirname, '../../index-browser.js'), proxyIndexBrowserJsPath)
   }
 
   try {
     // we tell our vscode extension to reload the types by modifying this file
     const prismaCache = paths('prisma').cache
     const signalsPath = path.join(prismaCache, 'last-generate')
-    await fs.promises.mkdir(prismaCache, { recursive: true })
-    await fs.promises.writeFile(signalsPath, Date.now().toString())
+    await fs.mkdir(prismaCache, { recursive: true })
+    await fs.writeFile(signalsPath, Date.now().toString())
   } catch {}
 }
 
@@ -460,7 +459,7 @@ async function getGenerationDirs({
 async function verifyOutputDirectory(directory: string, datamodel: string, schemaPath: string) {
   let content: string
   try {
-    content = await fs.promises.readFile(path.join(directory, 'package.json'), 'utf8')
+    content = await fs.readFile(path.join(directory, 'package.json'), 'utf8')
   } catch (e) {
     if (e.code === 'ENOENT') {
       // no package.json exists, we are good
@@ -555,5 +554,5 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     files.push(...files.filter((file) => file.endsWith('.js')).map((file) => `${file}.map`))
   }
 
-  await Promise.all(files.map((file) => fs.promises.copyFile(path.join(from, file), path.join(to, file))))
+  await Promise.all(files.map((file) => fs.copyFile(path.join(from, file), path.join(to, file))))
 }

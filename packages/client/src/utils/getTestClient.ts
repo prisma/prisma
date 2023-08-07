@@ -9,7 +9,7 @@ import {
   parseEnvValue,
   printConfigWarnings,
 } from '@prisma/internals'
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 import { parse } from 'stacktrace-parser'
 
@@ -28,7 +28,7 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
   const callSite = path.dirname(require.main?.filename ?? '')
   const absSchemaDir = path.resolve(callSite, schemaDir ?? '')
   const schemaPath = await getRelativeSchemaPath(absSchemaDir)
-  const datamodel = await fs.promises.readFile(schemaPath!, 'utf-8')
+  const datamodel = await fs.readFile(schemaPath!, 'utf-8')
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
   if (printWarnings) {
     printConfigWarnings(config.warnings)

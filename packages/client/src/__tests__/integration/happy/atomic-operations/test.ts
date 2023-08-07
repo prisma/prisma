@@ -1,11 +1,11 @@
-import fs from 'fs'
+import fs from 'fs-extra'
 import path from 'path'
 
 import { getTestClient } from '../../../../utils/getTestClient'
 
 test('atomic-operations', async () => {
   // start with a fresh db
-  await fs.promises.copyFile(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev-tmp.db'))
+  await fs.copyFile(path.join(__dirname, 'dev.db'), path.join(__dirname, 'dev-tmp.db'))
 
   const PrismaClient = await getTestClient()
   const prisma = new PrismaClient()

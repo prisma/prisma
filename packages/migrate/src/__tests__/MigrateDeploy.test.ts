@@ -1,5 +1,4 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
-import fs from 'fs-jetpack'
 
 import { MigrateDeploy } from '../commands/MigrateDeploy'
 import type { SetupParams } from '../utils/setupPostgres'
@@ -41,7 +40,7 @@ describe('sqlite', () => {
 
   it('1 unapplied migration', async () => {
     ctx.fixture('existing-db-1-migration')
-    fs.remove('prisma/dev.db')
+    ctx.fs.remove('prisma/dev.db')
 
     const result = MigrateDeploy.new().parse([])
     await expect(result).resolves.toMatchInlineSnapshot(`
