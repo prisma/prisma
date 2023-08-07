@@ -7,7 +7,6 @@ generator client {
 datasource db {
   provider          = "@prisma/neon"
   url               = env("JS_NEON_DATABASE_URL")
-  shadowDatabaseUrl = env("JS_NEON_SHADOW_DATABASE_URL")
 }
 
 model type_test {
