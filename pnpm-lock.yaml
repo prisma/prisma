@@ -313,8 +313,8 @@ importers:
         version: 5.2.0-4.4189690eafe0ceb8b47e5ec48c5dded56e043430
     devDependencies:
       '@codspeed/benchmark.js-plugin':
-        specifier: 2.1.0
-        version: 2.1.0(benchmark@2.1.4)
+        specifier: 2.2.0
+        version: 2.2.0(benchmark@2.1.4)
       '@faker-js/faker':
         specifier: 8.0.2
         version: 8.0.2
@@ -785,8 +785,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@codspeed/benchmark.js-plugin':
-        specifier: 2.1.0
-        version: 2.1.0(benchmark@2.1.4)
+        specifier: 2.2.0
+        version: 2.2.0(benchmark@2.1.4)
       '@swc/core':
         specifier: 1.3.70
         version: 1.3.70
@@ -2287,20 +2287,20 @@ packages:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
     dev: true
 
-  /@codspeed/benchmark.js-plugin@2.1.0(benchmark@2.1.4):
-    resolution: {integrity: sha512-KnnnllElEDnwUsf2ExUqYcChS6iqg45ZbH5ViSx7MYC/R93zUsiFn81QIBc9tEIYGxIYNp96RDKqw19/DhNR8w==}
+  /@codspeed/benchmark.js-plugin@2.2.0(benchmark@2.1.4):
+    resolution: {integrity: sha512-tAnf4QGylkCLtIC/1olNcPEWoLokZ5/u8a5sNK1ry/jGSgxV4bfNqEEnzw3ncHklGhSdh7egVEgLdyjQftTZzQ==}
     peerDependencies:
       benchmark: ^2.1.0
     dependencies:
-      '@codspeed/core': 2.1.0
+      '@codspeed/core': 2.2.0
       benchmark: 2.1.4
       find-up: 6.3.0
       lodash: 4.17.21
       stack-trace: 1.0.0-pre2
     dev: true
 
-  /@codspeed/core@2.1.0:
-    resolution: {integrity: sha512-ThRoWRzlNJ46erSIK8K0BqSfvL+WyIspPCGlWCq3jMFl82ttAHBtj3zF7ZFUoukHypYVXC53t2cijP0i5kcjXQ==}
+  /@codspeed/core@2.2.0:
+    resolution: {integrity: sha512-GSbTPA5Vt7rsrTenP/08zC55Ob2ag8AmqH9BfnoJqDv5RyHDv6tIHkJMLPuqatcKGFbuxbpE/FSYFE2xKkvqRQ==}
     dependencies:
       node-gyp-build: 4.6.0
     dev: true
