@@ -21,10 +21,7 @@ This is very important to double-check if you have multiple versions installed, 
 
 In the current directory:
 
-- Set the provider in [./prisma/mysql-planetscale/schema.prisma](./prisma/mysql-planetscale/schema.prisma) to `mysql`.
-- Run `pnpm prisma:planetscale` to push the Prisma schema and insert the test data.
-- Set the provider in [./prisma/mysql-planetscale/schema.prisma](./prisma/mysql-planetscale/schema.prisma) to `@prisma/planetscale`.
-- Run `pnpm prisma:generate:planetscale` to generate the Prisma Client.
+- Run `pnpm prisma:planetscale` to push the Prisma schema, insert the test data, and generate the Prisma Client.
 - Run `pnpm planetscale` to run smoke tests against the PlanetScale database.
 
 The latest command should display a similar output:
@@ -176,10 +173,7 @@ Note: you used to be able to run these Prisma commands without changing the prov
 
 In the current directory:
 
-- Set the provider in [./prisma/postgres-neon/schema.prisma](./prisma/postgres-neon/schema.prisma) to `mysql`.
-- Run `pnpm prisma:neon` to push the Prisma schema and insert the test data.
-- Set the provider in [./prisma/postgres-neon/schema.prisma](./prisma/postgres-neon/schema.prisma) to `@prisma/neon`.
-- Run `pnpm prisma:generate:neon` to generate the Prisma Client.
+- Run `pnpm prisma:neon` to push the Prisma schema, insert the test data, and generate the Prisma Client.
 - Run `pnpm neon` to run smoke tests against the Neon database.
 
 The latest command should display a similar output:

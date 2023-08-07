@@ -6,11 +6,9 @@
   "scripts": {
     "prisma:db:push:planetscale": "prisma db push --schema ./prisma/mysql-planetscale/schema.prisma --force-reset",
     "prisma:db:execute:planetscale": "prisma db execute --schema ./prisma/mysql-planetscale/schema.prisma --file ./prisma/mysql-planetscale/commands/type_test/insert.sql",
-    "prisma:generate:planetscale": "prisma generate --schema ./prisma/mysql-planetscale/schema.prisma",
     "prisma:planetscale": "pnpm prisma:db:push:planetscale && pnpm prisma:db:execute:planetscale",
     "prisma:db:push:neon": "prisma db push --schema ./prisma/postgres-neon/schema.prisma --force-reset",
     "prisma:db:execute:neon": "prisma db execute --schema ./prisma/postgres-neon/schema.prisma --file ./prisma/postgres-neon/commands/type_test/insert.sql",
-    "prisma:generate:neon": "prisma generate --schema ./prisma/postgres-neon/schema.prisma",
     "prisma:neon": "pnpm prisma:db:push:neon && pnpm prisma:db:execute:neon",
     "neon": "ts-node ./src/neon.ts",
     "planetscale": "ts-node ./src/planetscale.ts"
