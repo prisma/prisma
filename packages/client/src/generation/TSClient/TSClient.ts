@@ -115,7 +115,6 @@ ${buildRequirePath(edge)}
 /**
  * Enums
  */
-exports.$Enums = {}
 ${this.dmmf.schema.enumTypes.prisma.map((type) => new Enum(type, true).toJS()).join('\n\n')}
 ${this.dmmf.schema.enumTypes.model?.map((type) => new Enum(type, false).toJS()).join('\n\n') ?? ''}
 
