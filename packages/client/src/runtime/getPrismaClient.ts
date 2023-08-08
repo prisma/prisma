@@ -522,7 +522,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     async _runDisconnect() {
       await this._engine.stop()
       delete this._connectionPromise
-      _cachedEngine = undefined
+      this._cachedEngine = undefined
       delete this._disconnectionPromise
     }
 
