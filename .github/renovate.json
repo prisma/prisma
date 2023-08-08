@@ -169,20 +169,6 @@
       "schedule": ["before 7am on Wednesday"]
     },
     {
-      "groupName": "react-prisma",
-      "automerge": "true",
-      "paths": ["packages/react-prisma/**"],
-      "rangeStrategy": "replace",
-      "schedule": ["before 7am on Wednesday"]
-    },
-    {
-      "groupName": "react-prisma peerDependencies: react >=17",
-      "paths": ["packages/react-prisma/**"],
-      "matchDepTypes": ["peerDependencies"],
-      "rangeStrategy": "widen",
-      "schedule": ["before 7am on Wednesday"]
-    },
-    {
       "groupName": "Weekly vitess docker image version update",
       "packageNames": ["vitess/vttestserver"],
       "schedule": ["before 7am on Wednesday"]
