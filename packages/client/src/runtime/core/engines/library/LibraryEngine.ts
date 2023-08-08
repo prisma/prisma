@@ -67,7 +67,7 @@ export class LibraryEngine extends Engine<undefined> {
   private logEmitter: EventEmitter
   libQueryEnginePath?: string
   platform?: Platform
-  datasourceOverride?: Record<string, string>
+  datasourceOverrides?: Record<string, string>
   datamodel: string
   logQueries: boolean
   logLevel: QueryEngineLogLevel
@@ -114,13 +114,10 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     }
 
     // compute the datasource override for library engine
-    if (config.overrideDatasources !== undefined) {
-      const name = Object.keys(config.overrideDatasources)[0]
-      const url = config.overrideDatasources[name].url
-
-      if (name !== undefined && url !== undefined) {
-        this.datasourceOverride = { [name]: url }
-      }
+    const dsOverrideName = Object.keys(config.overrideDatasources)[0]
+    const dsOverrideUrl = config.overrideDatasources[dsOverrideName]?.url
+    if (dsOverrideName !== undefined && dsOverrideUrl !== undefined) {
+      this.datasourceOverrides = { [dsOverrideName]: dsOverrideUrl }
     }
 
     this.libraryInstantiationPromise = this.instantiateLibrary()
@@ -247,7 +244,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             env: process.env,
             logQueries: this.config.logQueries ?? false,
             ignoreEnvVarErrors: true,
-            datasourceOverrides: this.datasourceOverride,
+            datasourceOverrides: this.datasourceOverrides ?? {},
             logLevel: this.logLevel,
             configDir: this.config.cwd,
             engineProtocol: 'json',

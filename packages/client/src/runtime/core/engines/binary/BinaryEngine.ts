@@ -87,7 +87,7 @@ export class BinaryEngine extends Engine<undefined> {
   private currentRequestPromise?: any
   private platformPromise?: Promise<Platform>
   private platform?: Platform | string
-  private datasourceOverride?: { name: string; url: string }[]
+  private datasourceOverrides?: { name: string; url: string }[]
   private startPromise?: Promise<void>
   private versionPromise?: Promise<string>
   private engineStartDeferred?: Deferred
@@ -123,13 +123,10 @@ export class BinaryEngine extends Engine<undefined> {
     this.connection = new Connection()
 
     // compute the datasource override for binary engine
-    if (config.overrideDatasources !== undefined) {
-      const name = Object.keys(config.overrideDatasources)[0]
-      const url = config.overrideDatasources[name].url
-
-      if (name !== undefined && url !== undefined) {
-        this.datasourceOverride = [{ name, url }]
-      }
+    const dsOverrideName = Object.keys(config.overrideDatasources)[0]
+    const dsOverrideUrl = config.overrideDatasources[dsOverrideName]?.url
+    if (dsOverrideName !== undefined && dsOverrideUrl !== undefined) {
+      this.datasourceOverrides = [{ name: dsOverrideName, url: dsOverrideUrl }]
     }
 
     initHooks()
@@ -258,8 +255,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private printDatasources(): string {
-    if (this.datasourceOverride) {
-      return JSON.stringify(this.datasourceOverride)
+    if (this.datasourceOverrides) {
+      return JSON.stringify(this.datasourceOverrides)
     }
 
     return '[]'
@@ -319,7 +316,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       env.LOG_QUERIES = 'true'
     }
 
-    if (this.datasourceOverride) {
+    if (this.datasourceOverrides) {
       env.OVERWRITE_DATASOURCES = this.printDatasources()
     }
 

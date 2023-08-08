@@ -388,7 +388,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
-          overrideDatasources: options.datasources || {},
           generator: config.generator,
           showColors: this._errorFormat === 'pretty',
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
@@ -406,6 +405,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
+          overrideDatasources: options.datasources ?? {},
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
@@ -454,7 +454,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         clientVersion: this._clientVersion,
       })
 
-      if (url?.startsWith('prisma:')) {
+      if (url?.startsWith('prisma://')) {
         return new DataProxyEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Library && TARGET_ENGINE_TYPE === 'library') {
         return new LibraryEngine(this._engineConfig)

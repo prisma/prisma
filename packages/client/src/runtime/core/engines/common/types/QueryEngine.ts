@@ -45,7 +45,7 @@ export type QueryEngineConfig = {
   configDir: string
   logQueries: boolean
   ignoreEnvVarErrors: boolean
-  datasourceOverrides?: Record<string, string>
+  datasourceOverrides: Record<string, string>
   env: Record<string, string | undefined>
   logLevel: QueryEngineLogLevel
   telemetry?: QueryEngineTelemetry
