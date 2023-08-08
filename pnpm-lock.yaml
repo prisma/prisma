@@ -143,8 +143,8 @@ importers:
         specifier: 0.1.4
         version: 0.1.4
       regenerator-runtime:
-        specifier: 0.13.11
-        version: 0.13.11
+        specifier: 0.14.0
+        version: 0.14.0
       resolve:
         specifier: 1.22.2
         version: 1.22.2
@@ -11850,6 +11850,10 @@ packages:
 
   /regenerator-runtime@0.13.11:
     resolution: {integrity: sha512-kY1AZVr2Ra+t+piVaJ4gxaFaReZVH40AKNo7UCX6W+dEwBo/2oZJzqfuN1qLq1oL45o56cPaTXELwrTh8Fpggg==}
+    dev: true
+
+  /regenerator-runtime@0.14.0:
+    resolution: {integrity: sha512-srw17NI0TUWHuGa5CFGGmhfNIeja30WMBfbslPNhf6JrqQlLN5gcrvig1oqPxiVaXb0oW0XRKtH6Nngs5lKCIA==}
     dev: true
 
   /regexp.prototype.flags@1.4.3:
