@@ -40,6 +40,10 @@ function setupMockLibraryEngine() {
       tracingHelper: disabledTracingHelper,
       env: {},
       cwd: process.cwd(),
+      inlineSchema: '',
+      inlineSchemaHash: '',
+      inlineDatasources: {},
+      overrideDatasources: {},
     },
     loader,
   )
@@ -110,6 +114,10 @@ test('responds to initialization error with PrismaClientInitializationError', as
       tracingHelper: disabledTracingHelper,
       env: {},
       cwd: process.cwd(),
+      inlineSchema: '',
+      inlineSchemaHash: '',
+      inlineDatasources: {},
+      overrideDatasources: {},
     },
     loader,
   )
