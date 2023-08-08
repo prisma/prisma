@@ -292,11 +292,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               printDownloadProgress: !watchMode,
               version: enginesVersion,
               cliVersion: pkg.version,
-              dataProxy:
-                !!args['--data-proxy'] ||
-                !!args['--accelerate'] ||
-                !!process.env.PRISMA_GENERATE_DATAPROXY ||
-                !!process.env.PRISMA_GENERATE_ACCELERATE,
+              dataProxy: !!args['--data-proxy'] || !!args['--accelerate'],
               generatorNames: args['--generator'],
             })
 
