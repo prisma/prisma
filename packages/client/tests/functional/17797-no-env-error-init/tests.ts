@@ -14,7 +14,7 @@ testMatrix.setupTestSuite(
   {
     skipDefaultClientInstance: true,
     skipDb: true,
-    skipDataProxy: {
+    skipRemoteEngine: {
       runtimes: ['node', 'edge'],
       reason: `
         Fails with Data Proxy: error is an instance of InvalidDatasourceError

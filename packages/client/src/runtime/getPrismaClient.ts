@@ -23,7 +23,6 @@ import {
   BatchTransactionOptions,
   BinaryEngine,
   DataProxyEngine,
-  DatasourceOverwrite,
   Engine,
   EngineConfig,
   EngineEventType,
@@ -37,6 +36,7 @@ import { applyAllResultExtensions } from './core/extensions/applyAllResultExtens
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
+import { getDatasourceUrl } from './core/init/getDatasourceUrl'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
@@ -64,7 +64,6 @@ import { getLockCountPromise } from './core/transaction/utils/createLockCountPro
 import { JsInputValue } from './core/types/JsApi'
 import { getLogLevel } from './getLogLevel'
 import { itxClientDenyList } from './itxClientDenyList'
-import { mergeBy } from './mergeBy'
 import type { QueryMiddleware, QueryMiddlewareParams } from './MiddlewareHandler'
 import { MiddlewareHandler } from './MiddlewareHandler'
 import { RequestHandler } from './RequestHandler'
@@ -217,7 +216,6 @@ export type GetPrismaClientConfig = {
   // full DMMF document is not
   runtimeDataModel: RuntimeDataModel
   generator?: GeneratorConfig
-  sqliteDatasourceOverrides?: DatasourceOverwrite[]
   relativeEnvPaths: {
     rootEnvPath?: string | null
     schemaEnvPath?: string | null
@@ -231,17 +229,10 @@ export type GetPrismaClientConfig = {
   activeProvider: string
 
   /**
-   * True when `--data-proxy` is passed to `prisma generate`
-   * If enabled, we disregard the generator config engineType.
-   * It means that `--data-proxy` binds you to the Data Proxy.
-   */
-  dataProxy: boolean
-
-  /**
    * The contents of the schema encoded into a string
    * @remarks only used for the purpose of data proxy
    */
-  inlineSchema?: string
+  inlineSchema: string
 
   /**
    * A special env object just for the data proxy edge runtime.
@@ -249,7 +240,7 @@ export type GetPrismaClientConfig = {
    * Allows platforms to declare global variables as env (Workers).
    * @remarks only used for the purpose of data proxy
    */
-  injectableEdgeEnv?: LoadedEnv
+  injectableEdgeEnv: LoadedEnv
 
   /**
    * The contents of the datasource url saved in a string.
@@ -257,13 +248,13 @@ export type GetPrismaClientConfig = {
    * It is needed by the client to connect to the Data Proxy.
    * @remarks only used for the purpose of data proxy
    */
-  inlineDatasources?: InlineDatasources
+  inlineDatasources: InlineDatasources
 
   /**
    * The string hash that was produced for a given schema
    * @remarks only used for the purpose of data proxy
    */
-  inlineSchemaHash?: string
+  inlineSchemaHash: string
 
   /**
    * A marker to indicate that the client was not generated via `prisma
@@ -316,7 +307,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
-    _dataProxy: boolean
     _extensions: MergedExtensionsList
     /**
      * A fully constructed/applied Client that references the parent
@@ -345,7 +335,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._previewFeatures = config.generator?.previewFeatures ?? []
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
-      this._dataProxy = config.dataProxy
       this._tracingHelper = getTracingHelper(this._previewFeatures)
       this._clientEngineType = getClientEngineType(config.generator!)
       const envPaths = {
@@ -377,20 +366,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         debug('relativePath', config.relativePath)
         debug('cwd', cwd)
 
-        const thedatasources = options.datasources || {}
-        const inputDatasources = Object.entries(thedatasources)
-          /* eslint-disable-next-line @typescript-eslint/no-unused-vars */
-          .filter(([_, source]) => {
-            return source && source.url
-          })
-          .map(([name, { url }]: any) => ({
-            name,
-            url,
-          }))
-
-        // TODO: isn't it equivalent to just `inputDatasources` if the first argument is `[]`?
-        const datasources = mergeBy([], inputDatasources, (source: any) => source.name)
-
         const engineConfig = internal.engine || {}
 
         if (options.errorFormat) {
@@ -413,7 +388,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           datamodelPath: path.join(config.dirname, config.filename ?? 'schema.prisma'),
           prismaPath: engineConfig.binaryPath ?? undefined,
           engineEndpoint: engineConfig.endpoint,
-          datasources,
+          overrideDatasources: options.datasources || {},
           generator: config.generator,
           showColors: this._errorFormat === 'pretty',
           logLevel: options.log && (getLogLevel(options.log) as any), // TODO
@@ -439,12 +414,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         }
 
         debug('clientVersion', config.clientVersion)
-        debug('clientEngineType', this._dataProxy ? 'dataproxy' : this._clientEngineType)
-
-        if (this._dataProxy) {
-          const runtime = NODE_CLIENT ? 'Node.js' : 'edge'
-          debug(`using Data Proxy with ${runtime} runtime`)
-        }
+        debug('clientEngineType', this._clientEngineType)
 
         this._engine = this.getEngine()
 
@@ -477,7 +447,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     }
 
     getEngine(): Engine {
-      if (this._dataProxy === true && TARGET_ENGINE_TYPE === 'data-proxy') {
+      const url = getDatasourceUrl({
+        inlineDatasources: this._engineConfig.inlineDatasources,
+        overrideDatasources: this._engineConfig.overrideDatasources,
+        env: { ...this._engineConfig.env, ...process.env },
+        clientVersion: this._clientVersion,
+      })
+
+      if (url?.startsWith('prisma:')) {
         return new DataProxyEngine(this._engineConfig)
       } else if (this._clientEngineType === ClientEngineType.Library && TARGET_ENGINE_TYPE === 'library') {
         return new LibraryEngine(this._engineConfig)

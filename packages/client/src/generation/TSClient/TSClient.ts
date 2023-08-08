@@ -21,7 +21,6 @@ import { buildInlineSchema } from '../utils/buildInlineSchema'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
-import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { commonCodeJS, commonCodeTS } from './common'
 import { Count } from './Count'
 import { DefaultArgsAliases } from './DefaultArgsAliases'
@@ -44,11 +43,9 @@ export interface TSClientOptions {
   datasources: InternalDatasource[]
   generator?: GeneratorConfig
   platforms?: Platform[] // TODO: consider making it non-nullable
-  sqliteDatasourceOverrides?: DatasourceOverwrite[]
   schemaPath: string
   outputDir: string
   activeProvider: string
-  dataProxy: boolean
   deno?: boolean
   postinstall?: boolean
 }
@@ -66,18 +63,7 @@ export class TSClient implements Generatable {
   }
 
   public async toJS(edge = false): Promise<string> {
-    const {
-      platforms,
-      generator,
-      sqliteDatasourceOverrides,
-      outputDir,
-      schemaPath,
-      runtimeDir,
-      runtimeName,
-      datasources,
-      dataProxy,
-      deno,
-    } = this.options
+    const { platforms, generator, outputDir, schemaPath, runtimeDir, runtimeName, datasources, deno } = this.options
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -94,13 +80,11 @@ export class TSClient implements Generatable {
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
-      sqliteDatasourceOverrides,
       relativePath: pathToPosix(path.relative(outputDir, path.dirname(schemaPath))),
       clientVersion: this.options.clientVersion,
       engineVersion: this.options.engineVersion,
       datasourceNames: datasources.map((d) => d.name),
       activeProvider: this.options.activeProvider,
-      dataProxy: this.options.dataProxy,
       postinstall: this.options.postinstall,
       ciName: ciInfo.name ?? undefined,
     }
@@ -132,15 +116,20 @@ const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel)}
 
-${await buildInlineSchema(dataProxy, schemaPath)}
-${buildInlineDatasource(dataProxy, datasources)}
+${await buildInlineSchema(schemaPath)}
+${buildInlineDatasource(datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
-${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
+${buildNFTAnnotations(
+  false /** TODO after removal of dataProxy, do if --no-engine or edge */,
+  engineType,
+  platforms,
+  relativeOutdir,
+)}
 `
     return code
   }
@@ -162,7 +151,6 @@ ${buildNFTAnnotations(dataProxy, engineType, platforms, relativeOutdir)}
       this.options.runtimeName,
       this.options.browser,
       this.options.generator,
-      this.options.sqliteDatasourceOverrides,
       path.dirname(this.options.schemaPath),
     )
 

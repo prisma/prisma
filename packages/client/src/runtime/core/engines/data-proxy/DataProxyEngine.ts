@@ -1,13 +1,14 @@
 import Debug from '@prisma/debug'
 import { EngineSpan, TracingHelper } from '@prisma/internals'
 
+import { InlineDatasources } from '../../../../generation/utils/buildInlineDatasources'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
+import { getDatasourceUrl } from '../../init/getDatasourceUrl'
 import type {
   BatchQueryEngineResult,
   EngineConfig,
   EngineEventType,
-  InlineDatasource,
   InteractiveTransactionOptions,
   RequestBatchOptions,
   RequestOptions,
@@ -140,7 +141,7 @@ class DataProxyHeaderBuilder {
 export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   private inlineSchema: string
   readonly inlineSchemaHash: string
-  private inlineDatasources: Record<string, InlineDatasource>
+  private inlineDatasources: InlineDatasources
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k in string]?: string }
@@ -447,30 +448,23 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   private extractHostAndApiKey() {
-    const datasources = this.mergeOverriddenDatasources()
-    const mainDatasourceName = Object.keys(datasources)[0]
-    const mainDatasource = datasources[mainDatasourceName]
-    const dataProxyURL = this.resolveDatasourceURL(mainDatasourceName, mainDatasource)
+    const serviceURL = getDatasourceUrl({
+      inlineDatasources: this.inlineDatasources,
+      overrideDatasources: this.config.overrideDatasources,
+      clientVersion: this.clientVersion,
+      env: this.env,
+    })
 
     let url: URL
     try {
-      url = new URL(dataProxyURL)
+      url = new URL(serviceURL)
     } catch {
       throw new InvalidDatasourceError('Could not parse URL of the datasource', {
         clientVersion: this.clientVersion,
       })
     }
 
-    const { protocol, host, searchParams } = url
-
-    if (protocol !== 'prisma:') {
-      throw new InvalidDatasourceError(
-        'Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used',
-        {
-          clientVersion: this.clientVersion,
-        },
-      )
-    }
+    const { host, searchParams } = url
 
     const apiKey = searchParams.get('api_key')
     if (apiKey === null || apiKey.length < 1) {
@@ -480,58 +474,6 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     }
 
     return [host, apiKey]
-  }
-
-  private mergeOverriddenDatasources(): Record<string, InlineDatasource> {
-    if (this.config.datasources === undefined) {
-      return this.inlineDatasources
-    }
-
-    const finalDatasources = { ...this.inlineDatasources }
-
-    for (const override of this.config.datasources) {
-      if (!this.inlineDatasources[override.name]) {
-        throw new Error(`Unknown datasource: ${override.name}`)
-      }
-
-      finalDatasources[override.name] = {
-        url: {
-          fromEnvVar: null,
-          value: override.url,
-        },
-      }
-    }
-
-    return finalDatasources
-  }
-
-  private resolveDatasourceURL(name: string, datasource: InlineDatasource): string {
-    if (datasource.url.value) {
-      return datasource.url.value
-    }
-
-    if (datasource.url.fromEnvVar) {
-      const envVar = datasource.url.fromEnvVar
-      const loadedEnvURL = this.env[envVar]
-
-      if (loadedEnvURL === undefined) {
-        throw new InvalidDatasourceError(
-          `Datasource "${name}" references an environment variable "${envVar}" that is not set`,
-          {
-            clientVersion: this.clientVersion,
-          },
-        )
-      }
-
-      return loadedEnvURL
-    }
-
-    throw new InvalidDatasourceError(
-      `Datasource "${name}" specification is invalid: both value and fromEnvVar are null`,
-      {
-        clientVersion: this.clientVersion,
-      },
-    )
   }
 
   metrics(options: MetricsOptionsJson): Promise<Metrics>

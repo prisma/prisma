@@ -50,7 +50,6 @@ export interface GenerateClientOptions {
   engineVersion: string
   clientVersion: string
   activeProvider: string
-  dataProxy: boolean
   postinstall?: boolean
   overrideEngineType?: ClientEngineType
 }
@@ -73,7 +72,6 @@ export async function buildClient({
   clientVersion,
   projectRoot,
   activeProvider,
-  dataProxy,
   postinstall,
   overrideEngineType,
 }: O.Required<GenerateClientOptions, 'runtimeDirs'>): Promise<BuildClientResult> {
@@ -94,21 +92,19 @@ export async function buildClient({
     engineVersion,
     projectRoot: projectRoot!,
     activeProvider,
-    dataProxy,
     postinstall,
   }
 
   // we create a regular client that is fit for Node.js
   const nodeTsClient = new TSClient({
     ...tsClientOptions,
-    runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
+    runtimeName: getNodeRuntimeName(clientEngineType),
     runtimeDir: runtimeDirs.node,
   })
 
   // we create a client that is fit for edge runtimes
   const edgeTsClient = new TSClient({
     ...tsClientOptions,
-    dataProxy: true, // edge only works w/ data proxy
     runtimeName: 'edge',
     runtimeDir: runtimeDirs.edge,
   })
@@ -132,30 +128,25 @@ export async function buildClient({
   )
 
   // we only generate the edge client if `--data-proxy` is passed
-  if (dataProxy === true) {
-    fileMap['edge.js'] = await JS(edgeTsClient, true)
-    fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
-  }
+  fileMap['edge.js'] = await JS(edgeTsClient, true)
+  fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
 
   if (generator?.previewFeatures.includes('deno') && !!globalThis.Deno) {
-    if (dataProxy === true) {
-      // we create a client that is fit for edge runtimes
-      const denoEdgeTsClient = new TSClient({
-        ...tsClientOptions,
-        dataProxy: true, // edge only works w/ data proxy
-        runtimeName: 'library.d.ts',
-        runtimeDir: '../' + runtimeDirs.edge,
-        deno: true,
-      })
+    // we create a client that is fit for edge runtimes
+    const denoEdgeTsClient = new TSClient({
+      ...tsClientOptions,
+      runtimeName: 'library.d.ts',
+      runtimeDir: '../' + runtimeDirs.edge,
+      deno: true,
+    })
 
-      fileMap['deno/edge.js'] = await JS(denoEdgeTsClient, true)
-      fileMap['deno/index.d.ts'] = await TS(denoEdgeTsClient)
-      fileMap['deno/edge.ts'] = `
+    fileMap['deno/edge.js'] = await JS(denoEdgeTsClient, true)
+    fileMap['deno/index.d.ts'] = await TS(denoEdgeTsClient)
+    fileMap['deno/edge.ts'] = `
 import './polyfill.js'
 // @deno-types="./index.d.ts"
 export * from './edge.js'`
-      fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
-    }
+    fileMap['deno/polyfill.js'] = 'globalThis.process = { env: Deno.env.toObject() }; globalThis.global = globalThis'
   }
 
   return {
@@ -205,7 +196,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     clientVersion,
     engineVersion,
     activeProvider,
-    dataProxy,
     postinstall,
     overrideEngineType,
   } = options
@@ -227,7 +217,6 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     engineVersion,
     projectRoot,
     activeProvider,
-    dataProxy,
     postinstall,
     overrideEngineType,
   })
@@ -281,7 +270,7 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
         from: runtimeSourceDir,
         to: copyTarget,
         sourceMaps: copyRuntimeSourceMaps,
-        runtimeName: getNodeRuntimeName(clientEngineType, dataProxy),
+        runtimeName: getNodeRuntimeName(clientEngineType),
       })
     }
   }
@@ -296,7 +285,8 @@ export async function generateClient(options: GenerateClientOptions): Promise<vo
     )
   }
 
-  if (transpile === true && dataProxy !== true) {
+  if (transpile === true) {
+    // TODO after removal of dataProxy, do if --no-engine
     if (process.env.NETLIFY) {
       await ensureDir('/tmp/prisma-engines')
     }
@@ -511,10 +501,7 @@ function findOutputPathDeclaration(datamodel: string): OutputDeclaration | null 
   return null
 }
 
-function getNodeRuntimeName(engineType: ClientEngineType, dataProxy: boolean): string {
-  if (dataProxy) {
-    return 'data-proxy'
-  }
+function getNodeRuntimeName(engineType: ClientEngineType): string {
   if (engineType === ClientEngineType.Binary) {
     return 'binary'
   }

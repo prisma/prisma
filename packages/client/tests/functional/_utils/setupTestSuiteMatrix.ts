@@ -128,7 +128,7 @@ function setupTestSuiteMatrix(
             // sometimes we test connection errors. In that case,
             // disconnect might also fail, so ignoring the error here
           })
-          if (clientMeta.dataProxy) {
+          if (clientMeta.remoteEngine) {
             await stopMiniProxyQueryEngine(client)
           }
         }

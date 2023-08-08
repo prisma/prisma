@@ -13,7 +13,7 @@ test('assert node data proxy runtime can be used', async () => {
     })
   } catch (e) {
     expect(e.message).toMatchInlineSnapshot(
-      `"Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used"`,
+      `"Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used"`, // TODO after removal of dataProxy
     )
   }
 })
@@ -33,7 +33,7 @@ test('assert edge data proxy runtime can be used', async () => {
     })
   } catch (e) {
     expect(e.message).toMatchInlineSnapshot(
-      `"Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used"`,
+      `"Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used"`, // TODO after removal of dataProxy
     )
   }
 })

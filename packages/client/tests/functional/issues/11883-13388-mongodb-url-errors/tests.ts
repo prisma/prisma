@@ -46,7 +46,7 @@ testMatrix.setupTestSuite(
       from: ['cockroachdb', 'mysql', 'postgresql', 'sqlite', 'sqlserver'],
       reason: 'Test for MongoDB-specific errors',
     },
-    skipDataProxy: {
+    skipRemoteEngine: {
       runtimes: ['node', 'edge'],
       reason: `
         The test is not relevant for the Data Proxy. It is not possible to

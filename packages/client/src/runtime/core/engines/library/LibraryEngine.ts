@@ -12,7 +12,6 @@ import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknow
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type {
   BatchQueryEngineResult,
-  DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
   RequestBatchOptions,
@@ -68,7 +67,7 @@ export class LibraryEngine extends Engine<undefined> {
   private logEmitter: EventEmitter
   libQueryEnginePath?: string
   platform?: Platform
-  datasourceOverrides: Record<string, string>
+  datasourceOverride?: Record<string, string>
   datamodel: string
   logQueries: boolean
   logLevel: QueryEngineLogLevel
@@ -110,10 +109,20 @@ Please help us by answering a few questions: https://pris.ly/bundler-investigati
     this.logLevel = config.logLevel ?? 'error'
     this.libraryLoader = loader
     this.logEmitter = config.logEmitter
-    this.datasourceOverrides = config.datasources ? this.convertDatasources(config.datasources) : {}
     if (config.enableDebugLogs) {
       this.logLevel = 'debug'
     }
+
+    // compute the datasource override for library engine
+    if (config.overrideDatasources !== undefined) {
+      const name = Object.keys(config.overrideDatasources)[0]
+      const url = config.overrideDatasources[name].url
+
+      if (name !== undefined && url !== undefined) {
+        this.datasourceOverride = { [name]: url }
+      }
+    }
+
     this.libraryInstantiationPromise = this.instantiateLibrary()
 
     this.checkForTooManyEngines()
@@ -220,14 +229,6 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     }
   }
 
-  private convertDatasources(datasources: DatasourceOverwrite[]): Record<string, string> {
-    const obj = Object.create(null)
-    for (const { name, url } of datasources) {
-      obj[name] = url
-    }
-    return obj
-  }
-
   private async loadEngine(): Promise<void> {
     if (!this.engine) {
       if (!this.QueryEngineConstructor) {
@@ -246,7 +247,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
             env: process.env,
             logQueries: this.config.logQueries ?? false,
             ignoreEnvVarErrors: true,
-            datasourceOverrides: this.datasourceOverrides,
+            datasourceOverrides: this.datasourceOverride,
             logLevel: this.logLevel,
             configDir: this.config.cwd,
             engineProtocol: 'json',

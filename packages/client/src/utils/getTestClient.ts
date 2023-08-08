@@ -59,7 +59,6 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
-    dataProxy: Boolean(process.env.TEST_DATA_PROXY),
   }
 
   return getPrismaClient(options)
@@ -79,22 +78,12 @@ type GenerateTestClientOptions = {
    * the `PRISMA_CLIENT_ENGINE_TYPE` environment variable and `engineType` schema field.
    */
   engineType?: ClientEngineType
-
-  /**
-   * Forces generating the Data Proxy client, overrides the `TEST_DATA_PROXY`
-   * environment variable.
-   */
-  dataProxy?: boolean
 }
 
 /**
  * Actually generates a test client with its own query-engine into ./@prisma/client
  */
-export async function generateTestClient({
-  projectDir,
-  engineType,
-  dataProxy,
-}: GenerateTestClientOptions = {}): Promise<any> {
+export async function generateTestClient({ projectDir, engineType }: GenerateTestClientOptions = {}): Promise<any> {
   if (!projectDir) {
     const callsite = parse(new Error('').stack!)
     projectDir = path.dirname(callsite[1].file!)
@@ -106,6 +95,5 @@ export async function generateTestClient({
     transpile: true,
     useBuiltRuntime: false,
     overrideEngineType: engineType,
-    overrideDataProxy: dataProxy,
   })
 }

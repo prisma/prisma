@@ -13,7 +13,7 @@ testMatrix.setupTestSuite(
   {
     skipDb: true,
     skipDefaultClientInstance: true,
-    skipDataProxy: {
+    skipRemoteEngine: {
       runtimes: ['edge', 'node'],
       reason: 'Data proxy embeds full DMMF',
     },

@@ -1941,7 +1941,7 @@ testMatrix.setupTestSuite(
   },
   {
     skipDefaultClientInstance: true,
-    skipDataProxy: {
+    skipRemoteEngine: {
       // TODO: investigate this
       reason: 'some tests fail with edge client and take a lot of time to run',
       runtimes: ['edge'],

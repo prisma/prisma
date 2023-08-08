@@ -19,7 +19,6 @@ import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknow
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type {
   BatchQueryEngineResult,
-  DatasourceOverwrite,
   EngineConfig,
   EngineEventType,
   RequestBatchOptions,
@@ -88,7 +87,7 @@ export class BinaryEngine extends Engine<undefined> {
   private currentRequestPromise?: any
   private platformPromise?: Promise<Platform>
   private platform?: Platform | string
-  private datasources?: DatasourceOverwrite[]
+  private datasourceOverride?: { name: string; url: string }[]
   private startPromise?: Promise<void>
   private versionPromise?: Promise<string>
   private engineStartDeferred?: Deferred
@@ -113,7 +112,6 @@ export class BinaryEngine extends Engine<undefined> {
     this.enableDebugLogs = config.enableDebugLogs ?? false
     this.allowTriggerPanic = config.allowTriggerPanic ?? false
     this.datamodelPath = config.datamodelPath
-    this.datasources = config.datasources
     this.tracingHelper = config.tracingHelper
     this.logEmitter = config.logEmitter
     this.showColors = config.showColors ?? false
@@ -123,6 +121,16 @@ export class BinaryEngine extends Engine<undefined> {
     this.previewFeatures = config.previewFeatures ?? []
     this.activeProvider = config.activeProvider
     this.connection = new Connection()
+
+    // compute the datasource override for binary engine
+    if (config.overrideDatasources !== undefined) {
+      const name = Object.keys(config.overrideDatasources)[0]
+      const url = config.overrideDatasources[name].url
+
+      if (name !== undefined && url !== undefined) {
+        this.datasourceOverride = [{ name, url }]
+      }
+    }
 
     initHooks()
 
@@ -250,8 +258,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
   }
 
   private printDatasources(): string {
-    if (this.datasources) {
-      return JSON.stringify(this.datasources)
+    if (this.datasourceOverride) {
+      return JSON.stringify(this.datasourceOverride)
     }
 
     return '[]'
@@ -311,7 +319,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       env.LOG_QUERIES = 'true'
     }
 
-    if (this.datasources) {
+    if (this.datasourceOverride) {
       env.OVERWRITE_DATASOURCES = this.printDatasources()
     }
 

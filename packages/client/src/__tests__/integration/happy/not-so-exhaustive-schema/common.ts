@@ -9,7 +9,7 @@ if (isMacOrWindowsCI) {
   jest.setTimeout(80_000)
 }
 
-export const testGeneratedClient = (runtimeName: 'binary' | 'library' | 'dataProxy') => async () => {
+export const testGeneratedClient = (runtimeName: 'binary' | 'library') => async () => {
   const clientDir = path.join(__dirname, 'test-clients', runtimeName)
   await fs.promises.mkdir(clientDir, { recursive: true })
   await fs.promises.copyFile(path.join(__dirname, 'schema.prisma'), path.join(clientDir, 'schema.prisma'))
@@ -17,7 +17,6 @@ export const testGeneratedClient = (runtimeName: 'binary' | 'library' | 'dataPro
   const generatorOpts = {
     library: { engineType: ClientEngineType.Library },
     binary: { engineType: ClientEngineType.Binary },
-    dataProxy: { dataProxy: true },
   }[runtimeName]
 
   await generateTestClient({

@@ -51,7 +51,7 @@ export async function setupTestSuiteClient({
     await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
   }
 
-  process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl ?? datasourceInfo.databaseUrl
+  process.env[datasourceInfo.envVarName] = datasourceInfo.remoteEngineUrl ?? datasourceInfo.databaseUrl
 
   await generateClient({
     datamodel: schema,
@@ -73,7 +73,6 @@ export async function setupTestSuiteClient({
       edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
     },
     projectRoot: suiteFolderPath,
-    dataProxy: clientMeta.dataProxy,
   })
 
   const clientPathForRuntime: Record<ClientRuntime, string> = {
@@ -88,15 +87,15 @@ export async function setupTestSuiteClient({
  * Get `ClientMeta` from the environment variables
  */
 export function getClientMeta(): ClientMeta {
-  const dataProxy = Boolean(process.env.TEST_DATA_PROXY)
+  const remoteEngine = Boolean(process.env.TEST_DATA_PROXY)
   const edge = Boolean(process.env.TEST_DATA_PROXY_EDGE_CLIENT)
 
-  if (edge && !dataProxy) {
+  if (edge && !remoteEngine) {
     throw new Error('Edge client requires Data Proxy')
   }
 
   return {
-    dataProxy,
+    remoteEngine,
     runtime: edge ? 'edge' : 'node',
   }
 }

@@ -810,7 +810,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
   })
 
   // $connect is a no-op with Data Proxy
-  describeIf(!clientMeta.dataProxy)('tracing connect', () => {
+  describeIf(!clientMeta.remoteEngine)('tracing connect', () => {
     let _prisma: PrismaClient
 
     beforeEach(() => {
@@ -878,7 +878,7 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
   })
 
   // $disconnect is a no-op with Data Proxy
-  describeIf(!clientMeta.dataProxy)('tracing disconnect', () => {
+  describeIf(!clientMeta.remoteEngine)('tracing disconnect', () => {
     let _prisma: PrismaClient
 
     beforeAll(async () => {

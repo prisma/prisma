@@ -1,6 +1,8 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { TracingHelper } from '@prisma/internals'
 
+import { InlineDatasources } from '../../../../generation/utils/buildInlineDatasources'
+import { Datasources } from '../../../getPrismaClient'
 import { Fetch } from '../data-proxy/utils/request'
 import { EventEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
@@ -96,12 +98,6 @@ export abstract class Engine<InteractiveTransactionPayload = unknown> {
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
 
-export interface DatasourceOverwrite {
-  name: string
-  url?: string
-  env?: string
-}
-
 export interface EngineConfig {
   cwd: string
   dirname: string
@@ -110,7 +106,7 @@ export interface EngineConfig {
   allowTriggerPanic?: boolean // dangerous! https://github.com/prisma/prisma-engines/issues/764
   prismaPath?: string
   generator?: GeneratorConfig
-  datasources?: DatasourceOverwrite[]
+  overrideDatasources: Datasources
   showColors?: boolean
   logQueries?: boolean
   logLevel?: 'info' | 'warn'
@@ -126,19 +122,19 @@ export interface EngineConfig {
    * The contents of the schema encoded into a string
    * @remarks only used for the purpose of data proxy
    */
-  inlineSchema?: string
+  inlineSchema: string
 
   /**
    * The contents of the datasource url saved in a string
    * @remarks only used for the purpose of data proxy
    */
-  inlineDatasources?: Record<string, InlineDatasource>
+  inlineDatasources: InlineDatasources
 
   /**
    * The string hash that was produced for a given schema
    * @remarks only used for the purpose of data proxy
    */
-  inlineSchemaHash?: string
+  inlineSchemaHash: string
 
   /**
    * The helper for interaction with OTEL tracing

@@ -6,7 +6,7 @@ export type MatrixOptions = {
     reason: string
   }
   skipDefaultClientInstance?: boolean
-  skipDataProxy?: {
+  skipRemoteEngine?: {
     runtimes: ClientRuntime[]
     reason: string
   }
@@ -22,7 +22,7 @@ export type NewPrismaClient<T extends new (...args: any) => any> = (
 export type ClientRuntime = 'node' | 'edge'
 
 export type ClientMeta = {
-  dataProxy: boolean
+  remoteEngine: boolean
   runtime: 'node' | 'edge'
 }
 

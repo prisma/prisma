@@ -10,19 +10,14 @@ export type InlineDatasources = {
 /**
  * Builds the important datasource information for the data proxy. Essentially,
  * it saves the URL or env var name for the data proxy engine to read later.
- * @param dataProxy
  * @param internalDatasources
  * @returns
  */
-export function buildInlineDatasource(dataProxy: boolean, internalDatasources: InternalDatasource[]) {
-  if (dataProxy === true) {
-    const datasources = internalToInlineDatasources(internalDatasources)
+export function buildInlineDatasource(internalDatasources: InternalDatasource[]) {
+  const datasources = internalToInlineDatasources(internalDatasources)
 
-    return `
+  return `
 config.inlineDatasources = ${JSON.stringify(datasources, null, 2)}`
-  }
-
-  return ``
 }
 
 /**

@@ -39,10 +39,10 @@ export function getTestSuitePlan(
 }
 
 function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
-  if (!clientMeta.dataProxy || !options?.skipDataProxy) {
+  if (!clientMeta.remoteEngine || !options?.skipRemoteEngine) {
     return false
   }
-  return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
+  return options.skipRemoteEngine.runtimes.includes(clientMeta.runtime)
 }
 
 function shouldSkipProvider(
@@ -68,7 +68,7 @@ function shouldSkipProvider(
     return true
   }
 
-  if (clientMeta.dataProxy && provider === 'sqlite') {
+  if (clientMeta.remoteEngine && provider === 'sqlite') {
     return true
   }
 

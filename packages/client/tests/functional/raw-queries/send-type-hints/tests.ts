@@ -80,7 +80,7 @@ testMatrix.setupTestSuite(
       from: ['mongodb'],
       reason: '$queryRaw only works on SQL based providers',
     },
-    skipDataProxy: {
+    skipRemoteEngine: {
       runtimes: ['edge'],
       reason: `
         This test is broken with the edge client. It needs to be updated to

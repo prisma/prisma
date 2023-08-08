@@ -55,7 +55,7 @@ testMatrix.setupTestSuite(
         mySql You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '"TestModel"'
       `,
     },
-    skipDataProxy: {
+    skipRemoteEngine: {
       runtimes: ['edge'],
       reason: `
         This test is broken with the edge client. It needs to be updated to

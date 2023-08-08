@@ -48,8 +48,6 @@ ${bold('Options')}
 
     -h, --help   Display this help message
       --schema   Custom path to your Prisma schema
-  --accelerate   Enable Accelerate in the Prisma Client
-  --data-proxy   Enable the Data Proxy in the Prisma Client
        --watch   Watch the Prisma schema and rerun after a change
    --generator   Generator to use (may be provided multiple times)
 
@@ -98,8 +96,8 @@ ${bold('Examples')}
       '-h': '--help',
       '--watch': Boolean,
       '--schema': String,
-      '--data-proxy': Boolean,
-      '--accelerate': Boolean,
+      '--data-proxy': Boolean, // remove in Prisma 6
+      '--accelerate': Boolean, // remove in Prisma 6
       '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
@@ -136,11 +134,6 @@ ${bold('Examples')}
         printDownloadProgress: !watchMode,
         version: enginesVersion,
         cliVersion: pkg.version,
-        dataProxy:
-          !!args['--data-proxy'] ||
-          !!args['--accelerate'] ||
-          !!process.env.PRISMA_GENERATE_DATAPROXY ||
-          !!process.env.PRISMA_GENERATE_ACCELERATE,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
       })
@@ -245,9 +238,7 @@ ${dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
-${dim('```')}${
-          prismaClientJSGenerator.options?.dataProxy
-            ? `
+${dim('```')}
 
 ${
   isDeno
@@ -260,11 +251,10 @@ import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno
 ${dim('```')}
 
 You will need an Accelerate or a Prisma Data Proxy connection string. See documentation: ${link(
-                'https://pris.ly/d/data-proxy',
-              )}
-`
-            : ''
-        }${breakingChangesStr}${versionsWarning}`
+          'https://pris.ly/d/data-proxy',
+        )}
+
+        ${breakingChangesStr}${versionsWarning}`
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
@@ -292,11 +282,6 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               printDownloadProgress: !watchMode,
               version: enginesVersion,
               cliVersion: pkg.version,
-              dataProxy:
-                !!args['--data-proxy'] ||
-                !!args['--accelerate'] ||
-                !!process.env.PRISMA_GENERATE_DATAPROXY ||
-                !!process.env.PRISMA_GENERATE_ACCELERATE,
               generatorNames: args['--generator'],
             })
 

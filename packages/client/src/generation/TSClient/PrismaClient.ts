@@ -17,7 +17,6 @@ import {
 } from '../utils'
 import { lowerCase } from '../utils/common'
 import { runtimeImport } from '../utils/runtimeImport'
-import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
@@ -328,7 +327,6 @@ export class PrismaClientClass implements Generatable {
     protected readonly runtimeName: string,
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
-    protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
     protected readonly cwd?: string,
   ) {
     this.clientExtensionsDefinitions = clientExtensionsDefinitions.bind(this)()
