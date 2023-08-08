@@ -292,10 +292,9 @@ const BatchTxIdCounter = {
 export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
-  /** @remarks do not use directly, use `this._engine` instead */
-  let _cachedEngine: Engine | undefined
-
   class PrismaClient {
+    /** @remarks do not use directly, use `this._engine` instead */
+    _cachedEngine: Engine | undefined
     _runtimeDataModel: RuntimeDataModel
     _fetcher: RequestHandler
     _connectionPromise?: Promise<any>
@@ -451,8 +450,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      * initialization errors only when the client has actually been used.
      */
     get _engine(): Engine {
-      if (_cachedEngine !== undefined) {
-        return _cachedEngine
+      if (this._cachedEngine !== undefined) {
+        return this._cachedEngine
       }
 
       const url = resolveDatasourceUrl({
@@ -463,11 +462,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       })
 
       if (url?.startsWith('prisma://')) {
-        return (_cachedEngine = new DataProxyEngine(this._engineConfig))
+        return (this._cachedEngine = new DataProxyEngine(this._engineConfig))
       } else if (this._clientEngineType === ClientEngineType.Library && TARGET_ENGINE_TYPE === 'library') {
-        return (_cachedEngine = new LibraryEngine(this._engineConfig))
+        return (this._cachedEngine = new LibraryEngine(this._engineConfig))
       } else if (this._clientEngineType === ClientEngineType.Binary && TARGET_ENGINE_TYPE === 'binary') {
-        return (_cachedEngine = new BinaryEngine(this._engineConfig))
+        return (this._cachedEngine = new BinaryEngine(this._engineConfig))
       }
 
       throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`', {

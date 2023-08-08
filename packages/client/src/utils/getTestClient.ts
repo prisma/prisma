@@ -59,6 +59,10 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     relativeEnvPaths,
     datasourceNames: config.datasources.map((d) => d.name),
     activeProvider,
+    inlineDatasources: { db: { url: config.datasources[0].url } },
+    inlineSchema: '',
+    inlineSchemaHash: '',
+    injectableEdgeEnv: { parsed: {} },
   }
 
   return getPrismaClient(options)
