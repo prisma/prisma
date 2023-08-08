@@ -4,7 +4,7 @@ import { EngineSpan, TracingHelper } from '@prisma/internals'
 import { InlineDatasources } from '../../../../generation/utils/buildInlineDatasources'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import { getDatasourceUrl } from '../../init/getDatasourceUrl'
+import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import type {
   BatchQueryEngineResult,
   EngineConfig,
@@ -448,7 +448,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   private extractHostAndApiKey() {
-    const serviceURL = getDatasourceUrl({
+    const serviceURL = resolveDatasourceUrl({
       inlineDatasources: this.inlineDatasources,
       overrideDatasources: this.config.overrideDatasources,
       clientVersion: this.clientVersion,

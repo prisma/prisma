@@ -36,7 +36,7 @@ import { applyAllResultExtensions } from './core/extensions/applyAllResultExtens
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
-import { getDatasourceUrl } from './core/init/getDatasourceUrl'
+import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
@@ -292,9 +292,11 @@ const BatchTxIdCounter = {
 export type Client = ReturnType<typeof getPrismaClient> extends new () => infer T ? T : never
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
+  /** @remarks do not use directly, use `this._engine` instead */
+  let _cachedEngine: Engine | undefined
+
   class PrismaClient {
     _runtimeDataModel: RuntimeDataModel
-    _engine: Engine
     _fetcher: RequestHandler
     _connectionPromise?: Promise<any>
     _disconnectionPromise?: Promise<any>
@@ -416,8 +418,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         debug('clientVersion', config.clientVersion)
         debug('clientEngineType', this._clientEngineType)
 
-        this._engine = this.getEngine()
-
         this._fetcher = new RequestHandler(this, logEmitter) as any
 
         if (options.log) {
@@ -431,7 +431,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           }
         }
 
-        this._metrics = new MetricsClient(this._engine)
+        this._metrics = new MetricsClient(this)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -446,8 +446,16 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       return 'PrismaClient'
     }
 
-    getEngine(): Engine {
-      const url = getDatasourceUrl({
+    /**
+     * An engine getter that lazily inits the engine. This allows us to emit
+     * initialization errors only when the client has actually been used.
+     */
+    get _engine(): Engine {
+      if (_cachedEngine !== undefined) {
+        return _cachedEngine
+      }
+
+      const url = resolveDatasourceUrl({
         inlineDatasources: this._engineConfig.inlineDatasources,
         overrideDatasources: this._engineConfig.overrideDatasources,
         env: { ...this._engineConfig.env, ...process.env },
@@ -455,11 +463,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       })
 
       if (url?.startsWith('prisma://')) {
-        return new DataProxyEngine(this._engineConfig)
+        return (_cachedEngine = new DataProxyEngine(this._engineConfig))
       } else if (this._clientEngineType === ClientEngineType.Library && TARGET_ENGINE_TYPE === 'library') {
-        return new LibraryEngine(this._engineConfig)
+        return (_cachedEngine = new LibraryEngine(this._engineConfig))
       } else if (this._clientEngineType === ClientEngineType.Binary && TARGET_ENGINE_TYPE === 'binary') {
-        return new BinaryEngine(this._engineConfig)
+        return (_cachedEngine = new BinaryEngine(this._engineConfig))
       }
 
       throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`', {
@@ -501,7 +509,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
     }
 
-    $connect() {
+    async $connect() {
       try {
         return this._engine.start()
       } catch (e: any) {
@@ -515,7 +523,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     async _runDisconnect() {
       await this._engine.stop()
       delete this._connectionPromise
-      this._engine = this.getEngine()
+      _cachedEngine = undefined
       delete this._disconnectionPromise
     }
 

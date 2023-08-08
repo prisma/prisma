@@ -1,8 +1,8 @@
 import { InlineDatasources } from '../../../generation/utils/buildInlineDatasources'
 import { Datasources } from '../../getPrismaClient'
-import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
+import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 
-export function getDatasourceUrl({
+export function resolveDatasourceUrl({
   inlineDatasources,
   overrideDatasources,
   env,
@@ -30,27 +30,28 @@ export function getDatasourceUrl({
     resolvedUrl = env[datasourceUrl.fromEnvVar]
   }
 
-  const errorInfo = { clientVersion }
-
   // override is set in constructor but url is undefined
-  if (resolvedUrl === undefined && overrideDatasources[datasourceName] !== undefined) {
-    throw new PrismaClientValidationError(
+  if (overrideDatasources[datasourceName] !== undefined && resolvedUrl === undefined) {
+    throw new PrismaClientInitializationError(
       `Datasource "${datasourceName}" was overridden in the constructor but the URL is "undefined".`,
-      errorInfo,
+      clientVersion,
     )
   }
 
   // env var is set for use but url is undefined
-  if (resolvedUrl === undefined && datasourceUrl.fromEnvVar !== undefined) {
-    throw new PrismaClientValidationError(
+  if (datasourceUrl.fromEnvVar !== undefined && resolvedUrl === undefined) {
+    throw new PrismaClientInitializationError(
       `Datasource "${datasourceName}" references an environment variable "${datasourceUrl.fromEnvVar}" that is not set`,
-      errorInfo,
+      clientVersion,
     )
   }
 
   // should not happen: no override, no env, no direct value
   if (resolvedUrl === undefined) {
-    throw new PrismaClientValidationError('Internal error: Datasource URL is undefined', errorInfo)
+    throw new PrismaClientInitializationError(
+      `Datasource "${datasourceName}" has no defined URL environment variable, value, or override.`,
+      clientVersion,
+    )
   }
 
   return resolvedUrl

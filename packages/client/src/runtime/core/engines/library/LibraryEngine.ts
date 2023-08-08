@@ -234,9 +234,9 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       }
       try {
         // Using strong reference to `this` inside of log callback will prevent
-        // this instance from being GCed while native engine is alive. At the same time,
-        // `this.engine` field will prevent native instance from being GCed. Using weak ref helps
-        // to avoid this cycle
+        // this instance from being GCed while native engine is alive. At the
+        // same time, `this.engine` field will prevent native instance from
+        // being GCed. Using weak ref helps to avoid this cycle
         const weakThis = new WeakRef(this)
         this.engine = new this.QueryEngineConstructor(
           {
