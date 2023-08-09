@@ -53,6 +53,9 @@ describe('--schema from project directory', () => {
       import { PrismaClient } from './@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
+
+      See other options for edge runtimes and more: http://pris.ly/d/importing-client
+
     `)
     // Check that the client path in the import statement actually contains
     // forward slashes regardless of the platform (a snapshot test wouldn't
@@ -81,6 +84,9 @@ describe('--schema from project directory', () => {
       import { PrismaClient } from './@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
+
+      See other options for edge runtimes and more: http://pris.ly/d/importing-client
+
     `)
   })
 
@@ -106,6 +112,9 @@ describe('--schema from parent directory', () => {
       import { PrismaClient } from './subdirectory/@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
+
+      See other options for edge runtimes and more: http://pris.ly/d/importing-client
+
     `)
     // Check that the client path in the import statement actually contains
     // forward slashes regardless of the platform (a snapshot test wouldn't
@@ -137,6 +146,9 @@ describe('--schema from parent directory', () => {
       import { PrismaClient } from './subdirectory/@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
+
+      See other options for edge runtimes and more: http://pris.ly/d/importing-client
+
     `)
     // Check that the client path in the import statement actually contains
     // forward slashes regardless of the platform (a snapshot test wouldn't

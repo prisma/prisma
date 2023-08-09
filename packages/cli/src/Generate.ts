@@ -240,21 +240,8 @@ import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
 ${dim('```')}
 
-${
-  isDeno
-    ? 'To use Prisma Client with Deno and the Data Proxy, import it like this:'
-    : 'To use Prisma Client in edge runtimes like Cloudflare Workers or Vercel Edge Functions, import it like this:'
-}
-${dim('```')} 
-${highlightTS(`\
-import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'`)}
-${dim('```')}
-
-You will need an Accelerate or a Prisma Data Proxy connection string. See documentation: ${link(
-          'https://pris.ly/d/data-proxy',
-        )}
-
-        ${breakingChangesStr}${versionsWarning}`
+See other options for edge runtimes and more: ${link('http://pris.ly/d/importing-client') /** TODO create link */}
+${breakingChangesStr}${versionsWarning}`
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
