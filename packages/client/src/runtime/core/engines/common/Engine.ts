@@ -1,4 +1,4 @@
-import type { Closeable, Connector } from '@jkomyno/prisma-js-connector-utils'
+import type { Connector } from '@jkomyno/prisma-js-connector-utils'
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { TracingHelper } from '@prisma/internals'
 
@@ -128,7 +128,7 @@ export interface EngineConfig {
    * If set, this is only used in the library engine, and all queries would be performed through it,
    * rather than Prisma's Rust drivers.
    */
-  jsConnector?: Connector & Closeable
+  jsConnector?: Connector
 
   /**
    * The contents of the schema encoded into a string

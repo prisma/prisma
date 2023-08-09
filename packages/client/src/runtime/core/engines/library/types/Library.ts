@@ -1,4 +1,4 @@
-import type { Closeable, Connector } from '@jkomyno/prisma-js-connector-utils'
+import type { Connector } from '@jkomyno/prisma-js-connector-utils'
 
 import type { QueryEngineConfig } from '../../common/types/QueryEngine'
 
@@ -19,7 +19,7 @@ export type QueryEngineInstance = {
 }
 
 export interface QueryEngineConstructor {
-  new (config: QueryEngineConfig, logger: (log: string) => void, connector?: Connector & Closeable): QueryEngineInstance
+  new (config: QueryEngineConfig, logger: (log: string) => void, connector?: Connector): QueryEngineInstance
 }
 
 export interface LibraryLoader {

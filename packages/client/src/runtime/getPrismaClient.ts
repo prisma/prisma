@@ -1,4 +1,4 @@
-import type { Closeable, Connector } from '@jkomyno/prisma-js-connector-utils'
+import type { Connector } from '@jkomyno/prisma-js-connector-utils'
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
 import type { GeneratorConfig } from '@prisma/generator-helper'
@@ -97,7 +97,7 @@ export interface PrismaClientOptions {
   /**
    * Instance of a JS connector, e.g., like one provided by `@prisma/planetscale-js-connector`.
    */
-  jsConnector?: Connector & Closeable
+  jsConnector?: Connector
 
   /**
    * Overwrites the datasource url from your schema.prisma file

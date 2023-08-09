@@ -426,11 +426,32 @@ ${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
+type ResultSet = {
+  columnTypes: Array<ColumnType>
+  columnNames: Array<string>
+  rows: Array<Array<unknown>>
+  lastInsertId?: string
+}
+
+type Query = {
+  sql: string
+  args: Array<unknown>
+}
+
+type Connector = {
+  readonly flavour: 'mysql' | 'postgres'
+  queryRaw: (params: Query) => Promise<ResultSet>
+  executeRaw: (params: Query) => Promise<number>
+  version: () => Promise<string | undefined>
+  isHealthy: () => boolean
+  close: () => Promise<void>
+};
+
 export interface PrismaClientOptions {
   /**
    * Instance of a JS connector, e.g., like one provided by \`@prisma/planetscale-js-connector\`.
    */
-  jsConnector?: Connector & Closeable
+  jsConnector?: Connector
 
   /**
    * Overwrites the datasource url from your schema.prisma file
