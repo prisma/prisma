@@ -29,7 +29,7 @@
     "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /reproductions"
   },
   "devDependencies": {
-    "@microsoft/api-extractor": "7.36.3",
+    "@microsoft/api-extractor": "7.36.4",
     "@sindresorhus/slugify": "1.1.2",
     "@slack/webhook": "6.1.0",
     "@types/benchmark": "2.1.2",
@@ -73,7 +73,7 @@
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
     "regenerator-runtime": "0.14.0",
-    "resolve": "1.22.2",
+    "resolve": "1.22.4",
     "safe-buffer": "5.2.1",
     "semver": "7.5.4",
     "spdx-exceptions": "2.3.0",
