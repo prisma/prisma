@@ -17,9 +17,9 @@
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "license": "ISC",
   "dependencies": {
-    "@jkomyno/prisma-js-connector-utils": "0.0.3",
-    "@jkomyno/prisma-neon-js-connector": "0.0.3",
-    "@jkomyno/prisma-planetscale-js-connector": "0.0.3",
+    "@jkomyno/prisma-js-connector-utils": "0.0.5",
+    "@jkomyno/prisma-neon-js-connector": "0.0.5",
+    "@jkomyno/prisma-planetscale-js-connector": "0.0.5",
     "@prisma/client": "../../packages/client",
     "undici": "^5.22.1"
   },
