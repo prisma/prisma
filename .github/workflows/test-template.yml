@@ -155,7 +155,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
-          skip-tsc: true
+          # Fails if set to true
+          skip-tsc: false
 
       # Run the functional test suite
       - run: pnpm run test:functional --silent --shard ${{ matrix.shard }}
@@ -219,7 +220,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
-          skip-tsc: true
+          # Fails if set to true
+          skip-tsc: false
 
       - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
         working-directory: packages/client
@@ -394,7 +396,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
-          skip-tsc: true
+          # Fails if set to true
+          skip-tsc: false
 
       - run: pnpm run test:e2e --skipBuild --verbose --runInBand
         working-directory: packages/client
@@ -507,7 +510,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
-          skip-tsc: true
+          # Fails if set to true
+          skip-tsc: false
 
       - run: pnpm run test src/__tests__/types/types.test.ts
         working-directory: packages/client
@@ -981,7 +985,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
-          skip-tsc: true
+          # Fails if set to true
+          skip-tsc: false
 
       - name: Test packages/internals
         if: ${{ contains(inputs.jobsToRun, '-all-') }} || contains(inputs.jobsToRun, '-internals-') }}
