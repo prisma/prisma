@@ -5,8 +5,8 @@ generator client {
 }
 
 datasource db {
-  provider          = "@prisma/planetscale"
-  url               = env("JS_PLANETSCALE_DATABASE_URL")
+  provider = "@prisma/planetscale"
+  url      = env("JS_PLANETSCALE_DATABASE_URL")
 }
 
 model type_test {
@@ -80,6 +80,7 @@ model Child {
   parentId   String? @unique
   non_unique String?
   id         String  @id
+
   @@unique([c_1, c_2])
 }
 
@@ -89,5 +90,22 @@ model Parent {
   p_2        String
   non_unique String?
   id         String  @id
+
   @@unique([p_1, p_2])
+}
+
+model Author {
+  id    Int  @id @default(autoincrement())
+  name  String?
+  posts Post[]
+}
+
+model Post {
+  id        Int  @id @default(autoincrement())
+  title     String?
+  published Boolean @default(false)
+  authorId  Int?
+  author    Author? @relation(fields: [authorId], references: [id])
+
+  @@index([authorId], name: "author_id")
 }

@@ -9,7 +9,7 @@ export async function smokeTest(db: Connector & Closeable, prismaSchemaRelativeP
   // wait for the database pool to be initialized
   await setImmediate(0)
 
-  // DEBUG="prisma:client:libraryEngine"
+  // DEBUG='prisma:client:libraryEngine'
   const prisma = new PrismaClient({ jsConnector: db })
 
   console.log('[nodejs] connecting...')
@@ -19,6 +19,7 @@ export async function smokeTest(db: Connector & Closeable, prismaSchemaRelativeP
   const test = new SmokeTest(prisma, db.flavor)
 
   // Note: these tests currently trigger a panic!
+  await test.interactiveTransactions()
   await test.explicitTransaction()
   await test.testFindManyTypeTest()
   await test.testCreateAndDeleteChildParent()
@@ -62,6 +63,40 @@ class SmokeTest {
     console.log('[nodejs] totalChildren', totalChildren)
   }
 
+  async interactiveTransactions() {
+    const author = await this.prisma.author.create({
+      data: {
+        name: 'Name 1',
+      },
+    })
+    console.log('[nodejs] author', JSON.stringify(author, null, 2))
+
+    const result = await this.prisma.$transaction(async tx => {
+      await tx.author.deleteMany()
+      await tx.post.deleteMany()
+
+      const author = await tx.author.create({
+        data: {
+          name: 'Name 2 from transaction',
+        },
+      })
+      const post = await tx.post.create({
+        data: {
+          title: 'Title from transaction',
+          published: false,
+          author: {
+            connect: {
+              id: author.id,
+            }
+          },
+        },
+      })
+      return { author, post }
+    })
+
+    console.log('[nodejs] result', JSON.stringify(result, null, 2))
+  }
+
   async testFindManyTypeTest() {
     await this.testFindManyTypeTestMySQL()
     await this.testFindManyTypeTestPostgres()
@@ -71,34 +106,34 @@ class SmokeTest {
   private async testFindManyTypeTestMySQL() {
     const resultSet = await this.prisma.type_test.findMany({
       select: {
-        "tinyint_column": true,
-        "smallint_column": true,
-        "mediumint_column": true,
-        "int_column": true,
+        'tinyint_column': true,
+        'smallint_column': true,
+        'mediumint_column': true,
+        'int_column': true,
 
         /**
          * Prisma Client fails to parse the `bigint` type with:
          * `TypeError: Do not know how to serialize a BigInt`.
          * Note that libquery is able to parse it correctly.
          */
-        // "bigint_column": true,
+        // 'bigint_column': true,
         
-        "float_column": true,
-        "double_column": true,
-        "decimal_column": true,
-        "boolean_column": true,
-        "char_column": true,
-        "varchar_column": true,
-        "text_column": true,
-        "date_column": true,
-        "time_column": true,
-        "datetime_column": true,
-        "timestamp_column": true,
-        "json_column": true,
-        "enum_column": true,
-        "binary_column": true,
-        "varbinary_column": true,
-        "blob_column": true
+        'float_column': true,
+        'double_column': true,
+        'decimal_column': true,
+        'boolean_column': true,
+        'char_column': true,
+        'varchar_column': true,
+        'text_column': true,
+        'date_column': true,
+        'time_column': true,
+        'datetime_column': true,
+        'timestamp_column': true,
+        'json_column': true,
+        'enum_column': true,
+        'binary_column': true,
+        'varbinary_column': true,
+        'blob_column': true
       }
     })
     console.log('[nodejs] findMany resultSet', JSON.stringify(resultSet, null, 2))
@@ -110,22 +145,22 @@ class SmokeTest {
   private async testFindManyTypeTestPostgres() {
     const resultSet = await this.prisma.type_test.findMany({
       select: {
-        "smallint_column": true,
-        "int_column": true,
-        "bigint_column": true,
-        "float_column": true,
-        "double_column": true,
-        "decimal_column": true,
-        "boolean_column": true,
-        "char_column": true,
-        "varchar_column": true,
-        "text_column": true,
-        "date_column": true,
-        "time_column": true,
-        "datetime_column": true,
-        "timestamp_column": true,
-        "json_column": true,
-        "enum_column": true
+        'smallint_column': true,
+        'int_column': true,
+        'bigint_column': true,
+        'float_column': true,
+        'double_column': true,
+        'decimal_column': true,
+        'boolean_column': true,
+        'char_column': true,
+        'varchar_column': true,
+        'text_column': true,
+        'date_column': true,
+        'time_column': true,
+        'datetime_column': true,
+        'timestamp_column': true,
+        'json_column': true,
+        'enum_column': true
       }
     })
     console.log('[nodejs] findMany resultSet', JSON.stringify(resultSet, null, 2))
@@ -178,12 +213,12 @@ function withFlavor({ only, exclude }: WithFlavorInput) {
   return function decorator(originalMethod: () => any, _ctx: ClassMethodDecoratorContext<SmokeTest, () => unknown>) {
     return function replacement(this: SmokeTest) {
       if ((exclude || []).includes(this.flavor)) {
-        console.log(`[nodejs::exclude] Skipping test "${originalMethod.name}" with flavor: ${this.flavor}`)
+        console.log(`[nodejs::exclude] Skipping test '${originalMethod.name}' with flavor: ${this.flavor}`)
         return
       }
 
       if ((only || []).length > 0 && !(only || []).includes(this.flavor)) {
-        console.log(`[nodejs::only] Skipping test "${originalMethod.name}" with flavor: ${this.flavor}`)
+        console.log(`[nodejs::only] Skipping test '${originalMethod.name}' with flavor: ${this.flavor}`)
         return
       }
 
