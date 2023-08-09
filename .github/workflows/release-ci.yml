@@ -54,6 +54,7 @@ jobs:
         with:
           node-version: 16
           pnpm-version: 8
+          skip-tsc: false
 
       - name: Publish all packages to npm
         id: publish

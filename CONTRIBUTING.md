@@ -40,7 +40,7 @@ To set up and build all the packages, follow these steps:
 git clone https://github.com/prisma/prisma.git
 cd prisma
 pnpm i
-pnpm run setup
+pnpm -r run dev
 ```
 
 > 💡 For Windows users: use the latest version of [Git Bash](https://gitforwindows.org/).
