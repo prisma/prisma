@@ -11,7 +11,7 @@ const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
-function nodeRuntimeBuildConfig(targetEngineType: 'binary' | 'library' | 'data-proxy'): BuildOptions {
+function nodeRuntimeBuildConfig(targetEngineType: 'binary' | 'library'): BuildOptions {
   return {
     name: targetEngineType,
     entryPoints: ['src/runtime/index.ts'],
@@ -55,7 +55,8 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
-    TARGET_ENGINE_TYPE: '"data-proxy"',
+    // tree shake the Library and Binary engines out
+    TARGET_ENGINE_TYPE: '"undefined"',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
@@ -112,12 +113,10 @@ void build([
   generatorBuildConfig,
   nodeRuntimeBuildConfig('binary'),
   nodeRuntimeBuildConfig('library'),
-  nodeRuntimeBuildConfig('data-proxy'),
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
   defaultIndexConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
-  writeDtsRexport('data-proxy.d.ts')
 })

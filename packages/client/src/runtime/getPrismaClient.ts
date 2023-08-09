@@ -78,7 +78,7 @@ const debug = Debug('prisma:client')
 declare global {
   // eslint-disable-next-line no-var
   var NODE_CLIENT: true
-  const TARGET_ENGINE_TYPE: 'binary' | 'library' | 'data-proxy'
+  const TARGET_ENGINE_TYPE: 'binary' | 'library'
 }
 
 // used by esbuild for tree-shaking
