@@ -1,0 +1,581 @@
+version: 2
+updates:
+  - package-ecosystem: docker
+    directory: /.devcontainer
+    schedule:
+      interval: daily
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /docker/mongodb_migrate_seed
+    schedule:
+      interval: daily
+
+  - package-ecosystem: docker
+    directory: /docker/mongodb_replica
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/cli
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/cli/src/__tests__/fixtures/dotenv-1-custom-schema-path
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/cli/src/__tests__/fixtures/dotenv-3-conflict
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/cli/src/__tests__/fixtures/dotenv-5-only-root
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/generation/__fixture__/@prisma/client
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/errors/can-not-connect-to-database
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/errors/invalid-url
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/async-hooks
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/blog-dot-env-both-conflict
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/blog-dot-env-both
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/blog-dot-env-prisma
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/blog-dot-env-root
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/blog
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/browser
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/middlewares-manipulation
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/middlewares-transaction
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/middlewares
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/src/__tests__/integration/happy/validator
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/accelerate-types
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/browser-enum
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/bundler-detection-error
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/default-version
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/engine-not-found-error/binary-targets-incorrectly-pinned
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/engine-not-found-error/bundler-tampered-with-engine-copy
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/engine-not-found-error/native-generated-different-platform
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/engine-not-found-error/tooling-tampered-with-engine-copy
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/example
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/generator-config-types
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/issues/16600-tsc-crash-extensions
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/issues/19866-ts-composite-declaration
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/issues/19999-tsc-extensions-oom
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/issues/studio-1128-spawn-enoent
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/10_monorepo-serverComponents-customOutput-noReExport/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/11_monorepo-noServerComponents-noCustomOutput-reExportIndirect
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/11_monorepo-noServerComponents-noCustomOutput-reExportIndirect/packages/db
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/11_monorepo-noServerComponents-noCustomOutput-reExportIndirect/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/12_monorepo-serverComponents-noCustomOutput-reExportIndirect/packages/db
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/12_monorepo-serverComponents-noCustomOutput-reExportIndirect/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/13_monorepo-noServerComponents-customOutput-reExportDirect
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/13_monorepo-noServerComponents-customOutput-reExportDirect/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/14_monorepo-serverComponents-customOutput-reExportDirect
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/14_monorepo-serverComponents-customOutput-reExportDirect/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/15_monorepo-noServerComponents-customOutput-reExportIndirect
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/15_monorepo-noServerComponents-customOutput-reExportIndirect/packages/db
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/15_monorepo-noServerComponents-customOutput-reExportIndirect/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/16_monorepo-serverComponents-customOutput-reExportIndirect/packages/db
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/16_monorepo-serverComponents-customOutput-reExportIndirect/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/17_monorepo-noServerComponents-customOutput-reExportIndirect-ts
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/17_monorepo-noServerComponents-customOutput-reExportIndirect-ts/packages/db
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/17_monorepo-noServerComponents-customOutput-reExportIndirect-ts/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/18_monorepo-serverComponents-customOutput-reExportIndirect-ts/packages/db
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/18_monorepo-serverComponents-customOutput-reExportIndirect-ts/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/3_simplerepo-noServerComponents-noCustomOutput-noReExport
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/4_simplerepo-serverComponents-noCustomOutput-noReExport
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/5_simplerepo-noServerComponents-customOutput-noReExport
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/6_simplerepo-serverComponents-customOutput-noReExport
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/7_monorepo-noServerComponents-noCustomOutput-noReExport/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/8_monorepo-serverComponents-noCustomOutput-noReExport/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/nextjs-schema-not-found/9_monorepo-noServerComponents-customOutput-noReExport/packages/service
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/platform-caching-error
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/publish-extensions
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/publish-extensions/simple-ext
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/runtimes/data-proxy-custom-output
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/schema-not-found-sst-electron
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/ts-version/4.7
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/ts-version/4.8
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/ts-version/4.9
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/ts-version/5.0
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/ts-version/5.1
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/client/tests/e2e/ts-version/next
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/debug
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/engines
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/fetch-engine
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/generator-helper
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/get-platform
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/instrumentation
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/integration-tests
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/conventional-path-workspaces
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/conventional-path-workspaces/packages/a
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/conventional-path-workspaces/packages/b
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-invalid-path-not-string
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-invalid-path
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-nearest/packages/a
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-nearest/packages/b
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-nearest/packages
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-valid-relative-path
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-with-schema-args
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-workspace-parent
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-workspace-parent/packages/a
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-workspace-parent/packages/b
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-workspaces
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-workspaces/packages/a
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/internals/src/__tests__/__fixtures__/getSchema/pkg-json-workspaces/packages/b
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/fixtures/blog
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite-custom-ts-node
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite-js-extra-args
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite-js
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite-legacy-custom-ts-node
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite-legacy-schema-from-package-json
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite-legacy
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite-schema-from-package-json
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite-sh
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite-ts-esm
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite-ts
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/migrate/src/__tests__/fixtures/seed-sqlite
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /packages/nextjs-monorepo-workaround-plugin
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /reproductions/basic-sqlite
+    schedule:
+      interval: daily
+
+  - package-ecosystem: npm
+    directory: /reproductions/tracing
+    schedule:
+      interval: daily

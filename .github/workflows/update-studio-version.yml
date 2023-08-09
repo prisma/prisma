@@ -13,13 +13,18 @@ jobs:
     name: 'Check and update Studio to ${{ github.event.inputs.version }}'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - name: Harden Runner
+        uses: step-security/harden-runner@cba0d00b1fc9a034e1e642ea0f1103c282990604 # v2.5.0
+        with:
+          egress-policy: audit
 
-      - uses: pnpm/action-setup@v2.4.0
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
+
+      - uses: pnpm/action-setup@d882d12c64e032187b2edb46d3a0d003b7a43598 # v2.4.0
         with:
           version: 8
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@e33196f7422957bea03ed53f6fbb155025ffc7b8 # v3.7.0
         with:
           cache: 'pnpm'
           node-version: '16'
@@ -40,7 +45,7 @@ jobs:
 
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v5
+        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38 # v5.0.2
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: 'chore(deps): update studio to ${{ github.event.inputs.version }}'
@@ -71,7 +76,7 @@ jobs:
 
       - name: Auto approve Pull Request (to trigger automerge if tests passing)
         if: steps.cpr.outputs.pull-request-operation == 'created'
-        uses: juliangruber/approve-pull-request-action@v2
+        uses: juliangruber/approve-pull-request-action@6b8b2f82d50cea1e4329bcdfe940a6ceccbe528e # v2.0.3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.cpr.outputs.pull-request-number }}
@@ -82,7 +87,7 @@ jobs:
 
       - name: Slack Notification on Failure
         if: ${{ failure() }}
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # v2.2.0
         env:
           SLACK_TITLE: 'Update Studio Version failed :x:'
           SLACK_COLOR: '#FF0000'

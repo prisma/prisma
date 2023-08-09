@@ -27,6 +27,9 @@ env:
   # To hide "Update available 0.0.0 -> x.x.x"
   PRISMA_HIDE_UPDATE_MESSAGE: 'true'
 
+permissions:
+  contents: read
+
 jobs:
   release:
     timeout-minutes: 45
@@ -37,13 +40,18 @@ jobs:
       # see https://docs.npmjs.com/generating-provenance-statements
       id-token: write
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@cba0d00b1fc9a034e1e642ea0f1103c282990604 # v2.5.0
+        with:
+          egress-policy: audit
+
       - name: Print input
         env:
           THE_INPUT: '${{ toJson(github.event.inputs) }}'
         run: |
           echo $THE_INPUT
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
 
       - uses: ./.github/actions/setup
         with:
@@ -91,11 +99,16 @@ jobs:
     name: Communicate success
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@cba0d00b1fc9a034e1e642ea0f1103c282990604 # v2.5.0
+        with:
+          egress-policy: audit
+
       - name: Set current job url in SLACK_FOOTER env var
         run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
 
       - name: Slack Notification on Success
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # v2.2.0
         env:
           SLACK_TITLE: 'prisma/prisma Release ${{ steps.publish.outputs.prismaVersion }} succeeded :white_check_mark:'
           SLACK_COLOR: '#55ff55'
@@ -109,11 +122,16 @@ jobs:
     name: Communicate failure
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@cba0d00b1fc9a034e1e642ea0f1103c282990604 # v2.5.0
+        with:
+          egress-policy: audit
+
       - name: Set current job url in SLACK_FOOTER env var
         run: echo "SLACK_FOOTER=<$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID|Click here to go to the job logs>" >> $GITHUB_ENV
 
       - name: Slack Notification on Failure
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@12e36fc18b0689399306c2e0b3e0f2978b7f1ee7 # v2.2.0
         env:
           SLACK_TITLE: 'prisma/prisma Release ${{ github.event.inputs.targetVersion }} from ${{ github.ref_name }} on latest tag failed :x:'
           SLACK_COLOR: '#FF0000'
