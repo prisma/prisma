@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "5.2.0-9.72e483371c97d235868eb0cffe89118c47c96bb4",
+    "@prisma/engines-version": "5.2.0-10.integration-mongo-relation-mode-prisma-skip-integrity-ed91a7b2497b937965f670a81b14ad3b5b2318cc",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.70",
