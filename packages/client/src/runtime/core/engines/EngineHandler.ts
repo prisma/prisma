@@ -1,4 +1,4 @@
-import { ClientEngineType } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 import { resolveDatasourceUrl } from '../init/resolveDatasourceUrl'
@@ -47,11 +47,13 @@ export class EngineHandler extends Engine {
       clientVersion: this._engineConfig.clientVersion,
     })
 
+    const engineType = getClientEngineType(this._engineConfig.generator!)
+
     if (url.startsWith('prisma://')) {
       return (this._engineFlavor = new DataProxyEngine(this._engineConfig))
-    } else if (this._engineConfig.engineType === ClientEngineType.Library && TARGET_ENGINE_TYPE === 'library') {
+    } else if (engineType === ClientEngineType.Library && TARGET_ENGINE_TYPE === 'library') {
       return (this._engineFlavor = new LibraryEngine(this._engineConfig))
-    } else if (this._engineConfig.engineType === ClientEngineType.Binary && TARGET_ENGINE_TYPE === 'binary') {
+    } else if (engineType === ClientEngineType.Binary && TARGET_ENGINE_TYPE === 'binary') {
       return (this._engineFlavor = new BinaryEngine(this._engineConfig))
     }
 

@@ -14,18 +14,16 @@ export function resolveDatasourceUrl({
 }) {
   let resolvedUrl: string | undefined
   const datasourceName = Object.keys(inlineDatasources)[0]
-  const datasourceUrl = inlineDatasources[datasourceName].url
+  const datasourceUrl = inlineDatasources[datasourceName]?.url
   const overrideUrl = overrideDatasources[datasourceName]?.url
 
-  if (overrideUrl !== undefined) {
+  if (datasourceName === undefined) {
+    resolvedUrl = undefined
+  } else if (overrideUrl) {
     resolvedUrl = overrideUrl
-  }
-
-  if (datasourceUrl.value !== null) {
+  } else if (datasourceUrl?.value) {
     resolvedUrl = datasourceUrl.value
-  }
-
-  if (datasourceUrl.fromEnvVar !== null) {
+  } else if (datasourceUrl?.fromEnvVar) {
     resolvedUrl = env[datasourceUrl.fromEnvVar]
   }
 
@@ -38,7 +36,7 @@ export function resolveDatasourceUrl({
   }
 
   // env var is set for use but url is undefined
-  if (datasourceUrl.fromEnvVar !== undefined && resolvedUrl === undefined) {
+  if (datasourceUrl?.fromEnvVar !== undefined && resolvedUrl === undefined) {
     throw new PrismaClientInitializationError(
       `Datasource "${datasourceName}" references an environment variable "${datasourceUrl.fromEnvVar}" that is not set`,
       clientVersion,

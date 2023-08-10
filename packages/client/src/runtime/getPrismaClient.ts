@@ -1,7 +1,7 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
 import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
-import { ExtendedSpanOptions, getClientEngineType, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
+import { ExtendedSpanOptions, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
@@ -384,18 +384,16 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           clientVersion: config.clientVersion,
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
-          inlineSchema: config.inlineSchema,
+          inlineSchema: config.inlineSchema ?? '',
           overrideDatasources: options.datasources ?? {},
-          inlineDatasources: config.inlineDatasources,
-          inlineSchemaHash: config.inlineSchemaHash,
+          inlineDatasources: config.inlineDatasources ?? {},
+          inlineSchemaHash: config.inlineSchemaHash ?? '',
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
-          engineType: getClientEngineType(config.generator!),
         }
 
         debug('clientVersion', config.clientVersion)
-        debug('clientEngineType', this._engineConfig.engineType)
 
         this._engineHandler = new EngineHandler(this._engineConfig)
         this._requestHandler = new RequestHandler(this, logEmitter)
