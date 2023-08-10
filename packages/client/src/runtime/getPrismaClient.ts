@@ -1,14 +1,7 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
 import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
-import {
-  ClientEngineType,
-  ExtendedSpanOptions,
-  getClientEngineType,
-  logger,
-  TracingHelper,
-  tryLoadEnvs,
-} from '@prisma/internals'
+import { ExtendedSpanOptions, getClientEngineType, logger, TracingHelper, tryLoadEnvs } from '@prisma/internals'
 import type { LoadedEnv } from '@prisma/internals/dist/utils/tryLoadEnvs'
 import { AsyncResource } from 'async_hooks'
 import { EventEmitter } from 'events'
@@ -18,24 +11,14 @@ import { RawValue, Sql } from 'sql-template-tag'
 
 import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import {
-  BatchTransactionOptions,
-  BinaryEngine,
-  DataProxyEngine,
-  Engine,
-  EngineConfig,
-  EngineEventType,
-  Fetch,
-  LibraryEngine,
-  Options,
-} from './core/engines'
+import { BatchTransactionOptions, Engine, EngineConfig, EngineEventType, Fetch, Options } from './core/engines'
+import { EngineHandler } from './core/engines/EngineHandler'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
-import { resolveDatasourceUrl } from './core/init/resolveDatasourceUrl'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
@@ -292,22 +275,20 @@ export type Client = ReturnType<typeof getPrismaClient> extends new () => infer 
 
 export function getPrismaClient(config: GetPrismaClientConfig) {
   class PrismaClient {
-    /** @remarks do not use directly, use `this._engine` instead */
-    _cachedEngine: Engine | undefined
     _runtimeDataModel: RuntimeDataModel
-    _fetcher: RequestHandler
+    _requestHandler: RequestHandler
     _connectionPromise?: Promise<any>
     _disconnectionPromise?: Promise<any>
     _engineConfig: EngineConfig
     _clientVersion: string
     _errorFormat: ErrorFormat
-    _clientEngineType: ClientEngineType
     _tracingHelper: TracingHelper
     _metrics: MetricsClient
     _middlewares = new MiddlewareHandler<QueryMiddleware>()
     _previewFeatures: string[]
     _activeProvider: string
     _extensions: MergedExtensionsList
+    _engineHandler: Engine
     /**
      * A fully constructed/applied Client that references the parent
      * PrismaClient. This is used for Client extensions only.
@@ -336,7 +317,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._clientVersion = config.clientVersion ?? clientVersion
       this._activeProvider = config.activeProvider
       this._tracingHelper = getTracingHelper(this._previewFeatures)
-      this._clientEngineType = getClientEngineType(config.generator!)
       const envPaths = {
         rootEnvPath:
           config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
@@ -411,12 +391,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
+          engineType: getClientEngineType(config.generator!),
         }
 
         debug('clientVersion', config.clientVersion)
-        debug('clientEngineType', this._clientEngineType)
+        debug('clientEngineType', this._engineConfig.engineType)
 
-        this._fetcher = new RequestHandler(this, logEmitter) as any
+        this._engineHandler = new EngineHandler(this._engineConfig)
+        this._requestHandler = new RequestHandler(this, logEmitter)
 
         if (options.log) {
           for (const log of options.log) {
@@ -429,7 +411,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           }
         }
 
-        this._metrics = new MetricsClient(this)
+        this._metrics = new MetricsClient(this._engineHandler)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -445,35 +427,6 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     }
 
     /**
-     * An engine getter that lazily inits the engine. This allows us to emit
-     * initialization errors only when the client has actually been used.
-     */
-    get _engine(): Engine {
-      if (this._cachedEngine !== undefined) {
-        return this._cachedEngine
-      }
-
-      const url = resolveDatasourceUrl({
-        inlineDatasources: this._engineConfig.inlineDatasources,
-        overrideDatasources: this._engineConfig.overrideDatasources,
-        env: { ...this._engineConfig.env, ...process.env },
-        clientVersion: this._clientVersion,
-      })
-
-      if (url?.startsWith('prisma://')) {
-        return (this._cachedEngine = new DataProxyEngine(this._engineConfig))
-      } else if (this._clientEngineType === ClientEngineType.Library && TARGET_ENGINE_TYPE === 'library') {
-        return (this._cachedEngine = new LibraryEngine(this._engineConfig))
-      } else if (this._clientEngineType === ClientEngineType.Binary && TARGET_ENGINE_TYPE === 'binary') {
-        return (this._cachedEngine = new BinaryEngine(this._engineConfig))
-      }
-
-      throw new PrismaClientValidationError('Invalid client engine type, please use `library` or `binary`', {
-        clientVersion: this._clientVersion,
-      })
-    }
-
-    /**
      * Hook a middleware into the client
      * @param middleware to hook
      */
@@ -483,9 +436,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
     $on(eventType: EngineEventType, callback: (event: any) => void) {
       if (eventType === 'beforeExit') {
-        this._engine.on('beforeExit', callback)
+        this._engineHandler.on('beforeExit', callback)
       } else {
-        this._engine.on(eventType, (event) => {
+        this._engineHandler.on(eventType, (event) => {
           const fields = event.fields
           if (eventType === 'query') {
             return callback({
@@ -509,20 +462,11 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
     async $connect() {
       try {
-        return this._engine.start()
+        return this._engineHandler.start()
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
       }
-    }
-    /**
-     * @private
-     */
-    async _runDisconnect() {
-      await this._engine.stop()
-      delete this._connectionPromise
-      this._cachedEngine = undefined
-      delete this._disconnectionPromise
     }
 
     /**
@@ -530,7 +474,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     async $disconnect() {
       try {
-        await this._engine.stop()
+        await this._engineHandler.stop()
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -746,7 +690,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       options?: Options
     }) {
       const headers = { traceparent: this._tracingHelper.getTraceParent() }
-      const info = await this._engine.transaction('start', headers, options as Options)
+      const info = await this._engineHandler.transaction('start', headers, options as Options)
 
       let result: unknown
       try {
@@ -756,10 +700,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         result = await callback(this._createItxClient(transaction))
 
         // it went well, then we commit the transaction
-        await this._engine.transaction('commit', headers, info)
+        await this._engineHandler.transaction('commit', headers, info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engine.transaction('rollback', headers, info).catch(() => {})
+        await this._engineHandler.transaction('rollback', headers, info).catch(() => {})
 
         throw e // silent rollback, throw original error
       }
@@ -944,7 +888,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           await transaction.lock
         }
 
-        return this._fetcher.request({
+        return this._requestHandler.request({
           protocolQuery: message,
           modelName: model,
           action,

@@ -1,5 +1,4 @@
-import { Client } from '../../getPrismaClient'
-import type { Metric, MetricHistogram, MetricHistogramBucket, Metrics } from '../engines'
+import type { Engine, Metric, MetricHistogram, MetricHistogramBucket, Metrics } from '../engines'
 
 export type MetricsOptions = {
   /**
@@ -9,10 +8,10 @@ export type MetricsOptions = {
 }
 
 export class MetricsClient {
-  private client: Client
+  private _engine: Engine
 
-  constructor(client: Client) {
-    this.client = client
+  constructor(engine: Engine) {
+    this._engine = engine
   }
 
   /**
@@ -23,7 +22,7 @@ export class MetricsClient {
    * @returns
    */
   prometheus(options?: MetricsOptions): Promise<string> {
-    return this.client._engine.metrics({ format: 'prometheus', ...options })
+    return this._engine.metrics({ format: 'prometheus', ...options })
   }
 
   /**
@@ -33,7 +32,7 @@ export class MetricsClient {
    * @returns
    */
   json(options?: MetricsOptions): Promise<Metrics> {
-    return this.client._engine.metrics({ format: 'json', ...options })
+    return this._engine.metrics({ format: 'json', ...options })
   }
 }
 

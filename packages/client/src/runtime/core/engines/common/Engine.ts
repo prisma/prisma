@@ -1,5 +1,5 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
-import { TracingHelper } from '@prisma/internals'
+import { ClientEngineType, TracingHelper } from '@prisma/internals'
 
 import { Datasources, GetPrismaClientConfig } from '../../../getPrismaClient'
 import { Fetch } from '../data-proxy/utils/request'
@@ -102,11 +102,12 @@ export interface EngineConfig {
   logLevel?: 'info' | 'warn'
   env: Record<string, string>
   flags?: string[]
-  clientVersion?: string
+  clientVersion: string
   previewFeatures?: string[]
   engineEndpoint?: string
   activeProvider?: string
   logEmitter: EventEmitter
+  engineType: ClientEngineType
 
   /**
    * The contents of the schema encoded into a string

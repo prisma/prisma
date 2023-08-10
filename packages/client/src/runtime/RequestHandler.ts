@@ -81,7 +81,7 @@ export class RequestHandler {
 
         const containsWrite = requests.some((r) => isWrite(r.protocolQuery.action))
 
-        const results = await this.client._engine.requestBatch(queries, {
+        const results = await this.client._engineHandler.requestBatch(queries, {
           traceparent,
           transaction: getTransactionOptions(transaction),
           containsWrite,
@@ -105,7 +105,7 @@ export class RequestHandler {
         const interactiveTransaction =
           request.transaction?.kind === 'itx' ? getItxTransactionOptions(request.transaction) : undefined
 
-        const response = await this.client._engine.request(request.protocolQuery, {
+        const response = await this.client._engineHandler.request(request.protocolQuery, {
           traceparent: this.client._tracingHelper.getTraceParent(),
           interactiveTransaction,
           isWrite: isWrite(request.protocolQuery.action),
