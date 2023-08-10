@@ -45,6 +45,7 @@ function setupMockLibraryEngine() {
       inlineDatasources: {},
       overrideDatasources: {},
       clientVersion: '0.0.0',
+      engineVersion: '0000000000000000000000000000000000000000',
     },
     loader,
   )
@@ -120,6 +121,7 @@ test('responds to initialization error with PrismaClientInitializationError', as
       inlineDatasources: {},
       overrideDatasources: {},
       clientVersion: '0.0.0',
+      engineVersion: '0000000000000000000000000000000000000000',
     },
     loader,
   )
