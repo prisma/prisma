@@ -250,7 +250,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
     directEnvVarName,
     envVarName,
     databaseUrl,
-    remoteEngineUrl: remoteEngineUrl,
+    remoteEngineUrl,
   }
 }
 

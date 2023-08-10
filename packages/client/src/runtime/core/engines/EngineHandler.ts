@@ -66,8 +66,8 @@ export class EngineHandler extends Engine {
   start(): Promise<void> {
     return this._getEngine().start()
   }
-  stop(): Promise<void> {
-    return this._getEngine().stop()
+  async stop(): Promise<void> {
+    await this._engineFlavor?.stop()
   }
   version(forceRun?: boolean | undefined): string | Promise<string> {
     return this._getEngine().version(forceRun)

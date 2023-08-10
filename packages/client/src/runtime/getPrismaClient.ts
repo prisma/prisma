@@ -11,7 +11,7 @@ import { RawValue, Sql } from 'sql-template-tag'
 
 import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, Engine, EngineConfig, EngineEventType, Fetch, Options } from './core/engines'
+import { BatchTransactionOptions, EngineConfig, EngineEventType, Fetch, Options } from './core/engines'
 import { EngineHandler } from './core/engines/EngineHandler'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
@@ -288,7 +288,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _previewFeatures: string[]
     _activeProvider: string
     _extensions: MergedExtensionsList
-    _engineHandler: Engine
+    _engineHandler: EngineHandler
     /**
      * A fully constructed/applied Client that references the parent
      * PrismaClient. This is used for Client extensions only.
