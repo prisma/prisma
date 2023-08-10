@@ -130,7 +130,7 @@ const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
 ${buildNFTAnnotations(
-  false /** TODO after removal of dataProxy, do if --no-engine or edge */,
+  edge || false /** TODO after removal of dataProxy, do if --no-engine or edge */,
   engineType,
   platforms,
   relativeOutdir,
