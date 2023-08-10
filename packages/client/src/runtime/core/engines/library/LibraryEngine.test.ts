@@ -1,4 +1,3 @@
-import { ClientEngineType } from '@prisma/internals'
 import { EventEmitter } from 'events'
 
 import { PrismaClientInitializationError } from '../../errors/PrismaClientInitializationError'
@@ -46,7 +45,6 @@ function setupMockLibraryEngine() {
       inlineDatasources: {},
       overrideDatasources: {},
       clientVersion: '0.0.0',
-      engineType: ClientEngineType.Library,
     },
     loader,
   )
@@ -122,7 +120,6 @@ test('responds to initialization error with PrismaClientInitializationError', as
       inlineDatasources: {},
       overrideDatasources: {},
       clientVersion: '0.0.0',
-      engineType: ClientEngineType.Library,
     },
     loader,
   )
