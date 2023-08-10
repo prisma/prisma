@@ -19,6 +19,7 @@ function bundleTypeDefinitions(filename: string, outfile: string) {
       bundledPackages: [
         'decimal.js',
         'sql-template-tag',
+        '@jkomyno/prisma-js-connector-utils',
         '@opentelemetry/api',
         '@prisma/internals',
         '@prisma/generator-helper',
