@@ -421,11 +421,7 @@ get ${methodName}(): Prisma.${m.model}Delegate<ExtArgs>;`
 }`
   }
   public toTS(): string {
-    return `${new Datasources(this.internalDatasources).toTS()}
-${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
-export type DefaultPrismaClient = PrismaClient
-export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
-
+    const libraryOnly = /* typescript */ `
 type IntRange<T extends number> = number extends T ? number : _IntRange<T, []>
 type _IntRange<T extends number, R extends unknown[]> = R['length'] extends T ? R[number] : _IntRange<T, [R['length'], ...R]>
 
@@ -450,14 +446,22 @@ type Connector = {
   version: () => Promise<string | undefined>
   isHealthy: () => boolean
   close: () => Promise<void>
-};
+}
+`
 
-export interface PrismaClientOptions {
-  /**
+    const jsConnectorOption = /* typescript */ `/**
    * Instance of a JS connector, e.g., like one provided by \`@prisma/planetscale-js-connector\`.
    */
   jsConnector?: Connector
+`
 
+    return `${new Datasources(this.internalDatasources).toTS()}
+${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
+export type DefaultPrismaClient = PrismaClient
+export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
+${this.runtimeName === 'library' ? libraryOnly : ''}
+export interface PrismaClientOptions {
+  ${this.runtimeName === 'library' ? jsConnectorOption : ''}
   /**
    * Overwrites the datasource url from your schema.prisma file
    */
