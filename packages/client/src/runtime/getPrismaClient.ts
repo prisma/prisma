@@ -206,7 +206,7 @@ export type GetPrismaClientConfig = {
   dirname: string
   filename?: string
   clientVersion: string
-  engineVersion?: string
+  engineVersion: string
   datasourceNames: string[]
   activeProvider: string
 
@@ -382,6 +382,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           env: loadedEnv?.parsed ?? config.injectableEdgeEnv?.parsed ?? {},
           flags: [],
           clientVersion: config.clientVersion,
+          engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema ?? '',
