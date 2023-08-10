@@ -426,6 +426,25 @@ ${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
+declare const ColumnTypeEnum: {
+  readonly Int32: 0
+  readonly Int64: 1
+  readonly Float: 2
+  readonly Double: 3
+  readonly Numeric: 4
+  readonly Boolean: 5
+  readonly Char: 6
+  readonly Text: 7
+  readonly Date: 8
+  readonly Time: 9
+  readonly DateTime: 10
+  readonly Json: 11
+  readonly Enum: 12
+  readonly Bytes: 13
+}
+
+type ColumnType = typeof ColumnTypeEnum[keyof typeof ColumnTypeEnum]
+
 type ResultSet = {
   columnTypes: Array<ColumnType>
   columnNames: Array<string>
