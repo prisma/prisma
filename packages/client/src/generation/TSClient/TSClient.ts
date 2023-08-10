@@ -93,7 +93,6 @@ export class TSClient implements Generatable {
       }, {} as GetPrismaClientConfig['inlineDatasources']),
       inlineSchema,
       inlineSchemaHash,
-      injectableEdgeEnv: { parsed: {} },
     }
 
     // get relative output dir for it to be preserved even after bundling, or

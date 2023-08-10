@@ -222,7 +222,7 @@ export type GetPrismaClientConfig = {
    * Allows platforms to declare global variables as env (Workers).
    * @remarks only used for the purpose of data proxy
    */
-  injectableEdgeEnv: LoadedEnv
+  injectableEdgeEnv?: LoadedEnv
 
   /**
    * The contents of the datasource url saved in a string.

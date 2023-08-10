@@ -62,7 +62,6 @@ export async function getTestClient(schemaDir?: string, printWarnings?: boolean)
     inlineDatasources: { db: { url: config.datasources[0].url } },
     inlineSchema: '',
     inlineSchemaHash: '',
-    injectableEdgeEnv: { parsed: {} },
   }
 
   return getPrismaClient(options)
