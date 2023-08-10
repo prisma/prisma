@@ -21,7 +21,7 @@ export function buildNFTAnnotations(
   platforms: Platform[] | undefined,
   relativeOutdir: string,
 ) {
-  // We don't want to bundle engines when `--data-proxy` is enabled
+  // We don't want to bundle engines when `--no-engine is enabled
   if (noEngine === true) return ''
 
   if (platforms === undefined) {

@@ -9,15 +9,6 @@ import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './ty
 import type { QueryEngineResult } from './types/QueryEngine'
 import type * as Transaction from './types/Transaction'
 
-export type NullableEnvValue = {
-  fromEnvVar: string | null
-  value?: string | null
-}
-
-export type InlineDatasource = {
-  url: NullableEnvValue
-}
-
 export type BatchTransactionOptions = {
   isolationLevel?: Transaction.IsolationLevel
 }

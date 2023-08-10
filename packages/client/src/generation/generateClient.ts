@@ -127,7 +127,6 @@ export async function buildClient({
     2,
   )
 
-  // we only generate the edge client if `--data-proxy` is passed
   fileMap['edge.js'] = await JS(edgeTsClient, true)
   fileMap['edge.d.ts'] = await TS(edgeTsClient, true)
 
@@ -527,15 +526,13 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
     'library.d.ts',
     'index-browser.js',
     'index-browser.d.ts',
+    'edge.js',
+    'edge-esm.js',
   ]
 
   files.push(`${runtimeName}.js`)
   if (runtimeName !== 'library') {
     files.push(`${runtimeName}.d.ts`)
-  }
-
-  if (runtimeName === 'data-proxy') {
-    files.push('edge.js', 'edge-esm.js')
   }
 
   if (sourceMaps) {
