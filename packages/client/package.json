@@ -153,7 +153,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.2.0-12.13663010eb768a16c965c83f98b9b563d4866a14"
+    "@prisma/engines-version": "5.2.0-14.joel-basedon-vitess-docker-image-version-update-5a2d26a26c5f7f7ca0deb9908246abfafd259a65"
   },
   "sideEffects": false
 }
