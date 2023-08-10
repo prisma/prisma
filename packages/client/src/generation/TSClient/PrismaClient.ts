@@ -1,9 +1,8 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
 import { Operation } from '../../runtime/core/types/Result'
-import { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
 import {
@@ -322,7 +321,7 @@ export class PrismaClientClass implements Generatable {
   }
   constructor(
     protected readonly dmmf: DMMFHelper,
-    protected readonly internalDatasources: InternalDatasource[],
+    protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
     protected readonly runtimeName: string,
     protected readonly browser?: boolean,

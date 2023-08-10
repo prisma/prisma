@@ -1,13 +1,14 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getClientEngineType, getEnvPaths, pathToPosix } from '@prisma/internals'
 import ciInfo from 'ci-info'
+import crypto from 'crypto'
+import { readFile } from 'fs/promises'
 import indent from 'indent-string'
 import { klona } from 'klona'
 import path from 'path'
 
 import type { GetPrismaClientConfig } from '../../runtime/getPrismaClient'
-import type { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { DMMFHelper } from '../dmmf'
 import type { DMMF } from '../dmmf-types'
 import { GenericArgsInfo } from '../GenericsArgsInfo'
@@ -16,8 +17,6 @@ import { buildDebugInitialization } from '../utils/buildDebugInitialization'
 import { buildDirname } from '../utils/buildDirname'
 import { buildRuntimeDataModel } from '../utils/buildDMMF'
 import { buildInjectableEdgeEnv } from '../utils/buildInjectableEdgeEnv'
-import { buildInlineDatasource } from '../utils/buildInlineDatasources'
-import { buildInlineSchema } from '../utils/buildInlineSchema'
 import { buildNFTAnnotations } from '../utils/buildNFTAnnotations'
 import { buildRequirePath } from '../utils/buildRequirePath'
 import { buildWarnEnvConflicts } from '../utils/buildWarnEnvConflicts'
@@ -40,7 +39,7 @@ export interface TSClientOptions {
   runtimeDir: string
   runtimeName: string
   browser?: boolean
-  datasources: InternalDatasource[]
+  datasources: DataSource[]
   generator?: GeneratorConfig
   platforms?: Platform[] // TODO: consider making it non-nullable
   schemaPath: string
@@ -77,6 +76,8 @@ export class TSClient implements Generatable {
       generator.config.engineType = engineType
     }
 
+    const inlineSchema = (await readFile(schemaPath)).toString('base64')
+    const inlineSchemaHash = crypto.createHash('sha256').update(inlineSchema).digest('hex')
     const config: Omit<GetPrismaClientConfig, 'runtimeDataModel' | 'dirname'> = {
       generator,
       relativeEnvPaths,
@@ -87,6 +88,12 @@ export class TSClient implements Generatable {
       activeProvider: this.options.activeProvider,
       postinstall: this.options.postinstall,
       ciName: ciInfo.name ?? undefined,
+      inlineDatasources: datasources.reduce((acc, ds) => {
+        return (acc[ds.name] = { url: ds.url }), acc
+      }, {} as GetPrismaClientConfig['inlineDatasources']),
+      inlineSchema,
+      inlineSchemaHash,
+      injectableEdgeEnv: { parsed: {} },
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -116,8 +123,6 @@ const config = ${JSON.stringify(config, null, 2)}
 ${buildDirname(edge, relativeOutdir)}
 ${buildRuntimeDataModel(this.dmmf.datamodel)}
 
-${await buildInlineSchema(schemaPath)}
-${buildInlineDatasource(datasources)}
 ${buildInjectableEdgeEnv(edge, datasources)}
 ${buildWarnEnvConflicts(edge, runtimeDir, runtimeName)}
 ${buildDebugInitialization(edge)}

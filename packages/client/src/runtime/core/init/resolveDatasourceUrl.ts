@@ -1,5 +1,4 @@
-import { InlineDatasources } from '../../../generation/utils/buildInlineDatasources'
-import { Datasources } from '../../getPrismaClient'
+import { Datasources, GetPrismaClientConfig } from '../../getPrismaClient'
 import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
 
 export function resolveDatasourceUrl({
@@ -8,7 +7,7 @@ export function resolveDatasourceUrl({
   env,
   clientVersion,
 }: {
-  inlineDatasources: InlineDatasources
+  inlineDatasources: GetPrismaClientConfig['inlineDatasources']
   overrideDatasources: Datasources
   env: Record<string, string | undefined>
   clientVersion: string

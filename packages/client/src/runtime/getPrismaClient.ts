@@ -1,6 +1,6 @@
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
 import {
   ClientEngineType,
   ExtendedSpanOptions,
@@ -16,7 +16,6 @@ import fs from 'fs'
 import path from 'path'
 import { RawValue, Sql } from 'sql-template-tag'
 
-import type { InlineDatasources } from '../generation/utils/buildInlineDatasources'
 import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import {
@@ -248,7 +247,7 @@ export type GetPrismaClientConfig = {
    * It is needed by the client to connect to the Data Proxy.
    * @remarks only used for the purpose of data proxy
    */
-  inlineDatasources: InlineDatasources
+  inlineDatasources: { [name in string]: { url: EnvValue } }
 
   /**
    * The string hash that was produced for a given schema

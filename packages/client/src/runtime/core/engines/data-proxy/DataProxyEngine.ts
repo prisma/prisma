@@ -1,7 +1,7 @@
 import Debug from '@prisma/debug'
 import { EngineSpan, TracingHelper } from '@prisma/internals'
 
-import { InlineDatasources } from '../../../../generation/utils/buildInlineDatasources'
+import { GetPrismaClientConfig } from '../../../getPrismaClient'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
@@ -141,7 +141,7 @@ class DataProxyHeaderBuilder {
 export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   private inlineSchema: string
   readonly inlineSchemaHash: string
-  private inlineDatasources: InlineDatasources
+  private inlineDatasources: GetPrismaClientConfig['inlineDatasources']
   private config: EngineConfig
   private logEmitter: EventEmitter
   private env: { [k in string]?: string }

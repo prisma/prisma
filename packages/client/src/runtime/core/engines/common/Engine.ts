@@ -1,8 +1,7 @@
 import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { TracingHelper } from '@prisma/internals'
 
-import { InlineDatasources } from '../../../../generation/utils/buildInlineDatasources'
-import { Datasources } from '../../../getPrismaClient'
+import { Datasources, GetPrismaClientConfig } from '../../../getPrismaClient'
 import { Fetch } from '../data-proxy/utils/request'
 import { EventEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
@@ -128,7 +127,7 @@ export interface EngineConfig {
    * The contents of the datasource url saved in a string
    * @remarks only used for the purpose of data proxy
    */
-  inlineDatasources: InlineDatasources
+  inlineDatasources: GetPrismaClientConfig['inlineDatasources']
 
   /**
    * The string hash that was produced for a given schema
