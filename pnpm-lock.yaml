@@ -309,8 +309,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0
-        version: 5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0
+        specifier: 5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce
+        version: 5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -587,8 +587,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0
-        version: 5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0
+        specifier: 5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce
+        version: 5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -672,8 +672,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0
-        version: 5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0
+        specifier: 5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce
+        version: 5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce
       '@swc/core':
         specifier: 1.3.75
         version: 1.3.75
@@ -954,8 +954,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0
-        version: 5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0
+        specifier: 5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce
+        version: 5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce
       archiver:
         specifier: 5.3.1
         version: 5.3.1
@@ -1163,8 +1163,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0
-        version: 5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0
+        specifier: 5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce
+        version: 5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -1547,8 +1547,8 @@ packages:
     dev: false
     optional: true
 
-  /@aws-sdk/credential-providers@3.388.0:
-    resolution: {integrity: sha512-5opHLYjj6rHrw2OaxE+IcLhC9JfiopPH7hRknzKjFnSrJ+HjzcHCML5xghwHLJOLGcoWU40CCSlwJVPLlJluMw==}
+  /@aws-sdk/credential-providers@3.389.0:
+    resolution: {integrity: sha512-BwGDVg4o/GO7Ql1OeiPThfrG4Y8AYNNYznxepOs3972gvTCOW8mmrmeCkpMi50g3LEDz2emny2kWqEjCaXly+w==}
     engines: {node: '>=14.0.0'}
     requiresBuild: true
     dependencies:
@@ -3171,8 +3171,8 @@ packages:
     dev: true
     optional: true
 
-  /@prisma/engines-version@5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0:
-    resolution: {integrity: sha512-PpRiqqOlIxUiP8m6/JNuJuO0YEG2gJfo5vUbrU4zepcP6oFxv6rpn4tEEGv2KrSRHs3PLe14EweXMS1HEfORDA==}
+  /@prisma/engines-version@5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce:
+    resolution: {integrity: sha512-0UgdkX70FIDu73e2J27AO7jciYH1StBvPpXNII54NqJzxUs+HYei0ItTRhPvz8IyaboTMHvUum39VgbxmgDC1Q==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3180,8 +3180,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.2.0-13.9fe3fe474102fcbb680f0079a028fe304b7bf3f0:
-    resolution: {integrity: sha512-+8J39FlyI6QwWJgiEbBPw867guPpNenkiVVq9Qwl07p2ryCURbK1AcNL8qYLkmWGo3uJAabYRqx13WimhB1LRw==}
+  /@prisma/prisma-schema-wasm@5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce:
+    resolution: {integrity: sha512-M55GBmO+0piYCcL897SXPwY3+0FEra/rvDQym1ZdL7OVR2dWlPUm1bmaYiheczFiuPLw2qgWJYW2hlUQLv9IyA==}
     dev: false
 
   /@prisma/studio-common@0.492.0:
@@ -10281,7 +10281,7 @@ packages:
       mongodb-connection-string-url: 2.5.4
       socks: 2.7.1
     optionalDependencies:
-      '@aws-sdk/credential-providers': 3.388.0
+      '@aws-sdk/credential-providers': 3.389.0
       saslprep: 1.0.3
     transitivePeerDependencies:
       - aws-crt
