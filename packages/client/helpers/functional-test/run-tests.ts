@@ -2,6 +2,7 @@ import { arg, BinaryType, getPlatform } from '@prisma/internals'
 import * as miniProxy from '@prisma/mini-proxy'
 import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
+import os from 'os'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
 import { Providers } from '../../tests/functional/_utils/providers'
@@ -57,6 +58,8 @@ const args = arg(
 )
 
 async function main(): Promise<number | void> {
+  console.log(os.cpus())
+
   let jestCli = new JestCli(['--config', 'tests/functional/jest.config.js'])
   let miniProxyProcess: ExecaChildProcess | undefined
   const jestArgs = ['--testPathIgnorePatterns', 'typescript']
