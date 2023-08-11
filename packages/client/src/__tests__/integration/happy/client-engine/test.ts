@@ -1,4 +1,4 @@
-import { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE } from '@prisma/sdk'
+import { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE } from '@prisma/internals'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -76,15 +76,15 @@ function buildTests() {
           process.env[envVar] = value
 
           // Generate Client to tmp dir
-          await generateTestClient(projectDir)
+          await generateTestClient({ projectDir })
 
           // Run Tests
           const { PrismaClient } = require(path.join(projectDir, 'node_modules/@prisma/client'))
           const prisma = new PrismaClient()
           const users = await prisma.user.findMany()
           expect(users).toMatchInlineSnapshot(`
-            Array [
-              Object {
+            [
+              {
                 email: a@a.de,
                 id: 576eddf9-2434-421f-9a86-58bede16fd95,
                 name: Alice,

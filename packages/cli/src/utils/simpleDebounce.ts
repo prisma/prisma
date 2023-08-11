@@ -15,7 +15,7 @@ export function simpleDebounce<T extends Function>(fn: T): T {
     executing = true
     await fn(...args).catch((e) => console.error(e))
     if (pendingExecution) {
-      await fn(...args).catch((e) => console.error(e))
+      await fn(...pendingExecution).catch((e) => console.error(e))
       pendingExecution = null
     }
     executing = false

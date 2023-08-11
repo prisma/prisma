@@ -46,5 +46,5 @@
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
   // Use 'postCreateCommand' to run commands after the container is created.
-  // "postCreateCommand": "npm install -g pnpm@6 ts-node && pnpm install && pnpm -r run dev",
+  // "postCreateCommand": "npm install -g pnpm@8 ts-node && pnpm install && pnpm -r run dev",
 }

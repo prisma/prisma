@@ -105,8 +105,8 @@ describe('groupBy', () => {
     })
 
     expect(user).toMatchInlineSnapshot(`
-      Array [
-        Object {
+      [
+        {
           _count: 10,
           name: Bobby Brown,
         },

@@ -1,19 +1,18 @@
-import { ClientEngineType } from '@prisma/sdk'
-import path from 'path'
+import { pathToPosix } from '@prisma/internals'
 
 /**
  * Builds a `dirname` variable that holds the location of the generated client.
- * @param clientEngineType
+ * @param edge
  * @param relativeOutdir
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir: string, runtimeDir: string) {
-  if (clientEngineType !== ClientEngineType.DataProxy) {
-    return buildDirnameFind(relativeOutdir, runtimeDir)
+export function buildDirname(edge: boolean, relativeOutdir: string) {
+  if (edge === true) {
+    return buildDirnameDefault()
   }
 
-  return buildDirnameDefault()
+  return buildDirnameFind(relativeOutdir)
 }
 
 /**
@@ -25,38 +24,36 @@ export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir:
  * moved and copied out of its original spot. It all fails, it falls-back to
  * `findSync`, when `__dirname` is not available (eg. bundle, electron) or
  * nothing has been found around `__dirname`.
- * @param defaultRelativeOutdir
+ *
+ * @see /e2e/schema-not-found-sst-electron/readme.md (tests)
+ * @param relativeOutdir
  * @param runtimePath
  * @returns
  */
-function buildDirnameFind(defaultRelativeOutdir: string, runtimePath: string) {
-  // potential client location on serverless envs
-  const serverlessRelativeOutdir = defaultRelativeOutdir.split(path.sep).slice(1).join(path.sep)
-
+function buildDirnameFind(relativeOutdir: string) {
   return `
-const { findSync } = require('${runtimePath}')
 const fs = require('fs')
 
-// some frameworks or bundlers replace or totally remove __dirname
-const hasDirname = typeof __dirname !== 'undefined' && __dirname !== '/'
+config.dirname = __dirname
+if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
+  const alternativePaths = [
+    ${JSON.stringify(pathToPosix(relativeOutdir))},
+    ${JSON.stringify(pathToPosix(relativeOutdir).split('/').slice(1).join('/'))},
+  ]
+  
+  const alternativePath = alternativePaths.find((altPath) => {
+    return fs.existsSync(path.join(process.cwd(), altPath, 'schema.prisma'))
+  }) ?? alternativePaths[0]
 
-// will work in most cases, ie. if the client has not been bundled
-const regularDirname = hasDirname && fs.existsSync(path.join(__dirname, 'schema.prisma')) && __dirname
-
-// if the client has been bundled, we need to look for the folders
-const foundDirname = !regularDirname && findSync(process.cwd(), [
-    ${defaultRelativeOutdir ? `${JSON.stringify(defaultRelativeOutdir)},` : ''}
-    ${serverlessRelativeOutdir ? `${JSON.stringify(serverlessRelativeOutdir)},` : ''}
-], ['d'], ['d'], 1)[0]
-
-const dirname = regularDirname || foundDirname || __dirname`
+  config.dirname = path.join(process.cwd(), alternativePath)
+  config.isBundled = true
+}`
 }
-// TODO: 👆 all this complexity could fade away if we embed the schema
 
 /**
  * Builds a simple `dirname` for when it is not important to have one.
  * @returns
  */
 function buildDirnameDefault() {
-  return `const dirname = '/'`
+  return `config.dirname = '/'`
 }

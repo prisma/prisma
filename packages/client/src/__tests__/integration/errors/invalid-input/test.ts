@@ -26,19 +26,17 @@ test('invalid-input', async () => {
          9 try {
       → 10   await prisma.user.create({
                data: {
-                 email: 'a@a.de',
+                 email: "a@a.de",
                  posts: {
                    connect: {
                      id: []
-                     ~~
+                         ~~
                    }
                  }
                }
              })
 
-      Argument id: Got invalid value [] on prisma.createOneUser. Provided List<>, expected String.
-
-
+      Argument \`id\`: Invalid value provided. Expected String, provided ().
     `)
   }
 

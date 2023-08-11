@@ -1,18 +1,19 @@
 import type { ConnectorType } from '@prisma/generator-helper'
-import type { Command } from '@prisma/sdk'
 import {
   arg,
   canConnectToDatabase,
+  checkUnsupportedDataProxy,
+  Command,
   format,
   getCommandWithExecutor,
   HelpError,
   link,
   logger,
   protocolToConnectorType,
-} from '@prisma/sdk'
-import chalk from 'chalk'
+} from '@prisma/internals'
 import dotenv from 'dotenv'
 import fs from 'fs'
+import { bold, dim, green, red, yellow } from 'kleur/colors'
 import path from 'path'
 import { match, P } from 'ts-pattern'
 import { isError } from 'util'
@@ -20,23 +21,6 @@ import { isError } from 'util'
 import { printError } from './utils/prompt/utils/print'
 
 export const defaultSchema = (provider: ConnectorType = 'postgresql') => {
-  // add preview flag
-  if (provider === 'cockroachdb') {
-    return `// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["${provider}"]
-}
-
-datasource db {
-  provider = "${provider}"
-  url      = env("DATABASE_URL")
-}
-`
-  }
-
   return `// This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
@@ -59,7 +43,7 @@ export const defaultEnv = (
     ? `# Environment variables declared in this file are automatically made available to Prisma.
 # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+# Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
 # See the documentation for all the connection string options: https://pris.ly/d/connection-strings\n\n`
     : ''
   env += `DATABASE_URL="${url}"`
@@ -117,25 +101,25 @@ export class Init implements Command {
   private static help = format(`
   Set up a new Prisma project
     
-  ${chalk.bold('Usage')}
+  ${bold('Usage')}
 
-    ${chalk.dim('$')} prisma init [options]
-  ${chalk.bold('Options')}
+    ${dim('$')} prisma init [options]
+  ${bold('Options')}
     
              -h, --help   Display this help message
-  --datasource-provider   Define the datasource provider to use: PostgreSQL, MySQL, SQLite, SQL Server or MongoDB
+  --datasource-provider   Define the datasource provider to use: postgresql, mysql, sqlite, sqlserver, mongodb or cockroachdb
                   --url   Define a custom datasource url
 
-  ${chalk.bold('Examples')}
+  ${bold('Examples')}
 
   Set up a new Prisma project with PostgreSQL (default)
-    ${chalk.dim('$')} prisma init
+    ${dim('$')} prisma init
 
   Set up a new Prisma project and specify MySQL as the datasource provider to use
-    ${chalk.dim('$')} prisma init --datasource-provider mysql
+    ${dim('$')} prisma init --datasource-provider mysql
   
   Set up a new Prisma project and specify the url that will be used
-    ${chalk.dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
+    ${dim('$')} prisma init --url mysql://user:password@localhost:3306/mydb
   `)
 
   // eslint-disable-next-line @typescript-eslint/require-await
@@ -151,6 +135,8 @@ export class Init implements Command {
       return this.help()
     }
 
+    await checkUnsupportedDataProxy('init', args, false)
+
     /**
      * Validation
      */
@@ -165,7 +151,7 @@ export class Init implements Command {
 
     if (fs.existsSync(path.join(outputDir, 'schema.prisma'))) {
       console.log(
-        printError(`File ${chalk.bold('schema.prisma')} already exists in your project.
+        printError(`File ${bold('schema.prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
       `),
       )
@@ -174,7 +160,7 @@ export class Init implements Command {
 
     if (fs.existsSync(prismaFolder)) {
       console.log(
-        printError(`A folder called ${chalk.bold('prisma')} already exists in your project.
+        printError(`A folder called ${bold('prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
       `),
       )
@@ -183,7 +169,7 @@ export class Init implements Command {
 
     if (fs.existsSync(path.join(prismaFolder, 'schema.prisma'))) {
       console.log(
-        printError(`File ${chalk.bold('prisma/schema.prisma')} already exists in your project.
+        printError(`File ${bold('prisma/schema.prisma')} already exists in your project.
         Please try again in a project that is not yet using Prisma.
       `),
       )
@@ -259,7 +245,7 @@ export class Init implements Command {
       const config = dotenv.parse(envFile) // will return an object
       if (Object.keys(config).includes('DATABASE_URL')) {
         warnings.push(
-          `${chalk.yellow('warn')} Prisma would have added DATABASE_URL but it already exists in ${chalk.bold(
+          `${yellow('warn')} Prisma would have added DATABASE_URL but it already exists in ${bold(
             path.relative(outputDir, envPath),
           )}`,
         )
@@ -274,9 +260,9 @@ export class Init implements Command {
     } catch (e) {
       if ((e as NodeJS.ErrnoException).code === 'EEXIST') {
         warnings.push(
-          `${chalk.yellow(
+          `${yellow(
             'warn',
-          )} You already have a .gitignore. Don't forget to exclude .env to not commit any secret.`,
+          )} You already have a .gitignore file. Don't forget to add \`.env\` in it to not commit any private information.`,
         )
       } else {
         console.error('Failed to write .gitignore file, reason: ', e)
@@ -286,17 +272,15 @@ export class Init implements Command {
     const steps: string[] = []
 
     if (provider === 'mongodb') {
-      steps.push(`Define models in the prisma.schema file.`)
+      steps.push(`Define models in the schema.prisma file.`)
     } else {
       steps.push(
-        `Run ${chalk.green(
-          getCommandWithExecutor('prisma db pull'),
-        )} to turn your database schema into a Prisma schema.`,
+        `Run ${green(getCommandWithExecutor('prisma db pull'))} to turn your database schema into a Prisma schema.`,
       )
     }
 
     steps.push(
-      `Run ${chalk.green(
+      `Run ${green(
         getCommandWithExecutor('prisma generate'),
       )} to generate the Prisma Client. You can then start querying your database.`,
     )
@@ -304,25 +288,25 @@ export class Init implements Command {
     if (!url || args['--datasource-provider']) {
       if (!args['--datasource-provider']) {
         steps.unshift(
-          `Set the ${chalk.green('provider')} of the ${chalk.green('datasource')} block in ${chalk.green(
+          `Set the ${green('provider')} of the ${green('datasource')} block in ${green(
             'schema.prisma',
-          )} to match your database: ${chalk.green('postgresql')}, ${chalk.green('mysql')}, ${chalk.green(
-            'sqlite',
-          )}, ${chalk.green('sqlserver')}, ${chalk.green('mongodb')} or ${chalk.green('cockroachdb')} (Preview).`,
+          )} to match your database: ${green('postgresql')}, ${green('mysql')}, ${green('sqlite')}, ${green(
+            'sqlserver',
+          )}, ${green('mongodb')} or ${green('cockroachdb')}.`,
         )
       }
 
       steps.unshift(
-        `Set the ${chalk.green('DATABASE_URL')} in the ${chalk.green(
+        `Set the ${green('DATABASE_URL')} in the ${green(
           '.env',
         )} file to point to your existing database. If your database has no tables yet, read https://pris.ly/d/getting-started`,
       )
     }
 
     return `
-✔ Your Prisma schema was created at ${chalk.green('prisma/schema.prisma')}
+✔ Your Prisma schema was created at ${green('prisma/schema.prisma')}
   You can now open it in your favorite editor.
-${warnings.length > 0 && logger.should.warn ? `\n${warnings.join('\n')}\n` : ''}
+${warnings.length > 0 && logger.should.warn() ? `\n${warnings.join('\n')}\n` : ''}
 Next steps:
 ${steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}
 
@@ -334,7 +318,7 @@ ${link('https://pris.ly/d/getting-started')}
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Init.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Init.help}`)
     }
     return Init.help
   }

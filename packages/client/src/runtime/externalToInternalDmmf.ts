@@ -1,8 +1,8 @@
 import type { DMMF as ExternalDMMF } from '@prisma/generator-helper'
 import pluralize from 'pluralize'
 
-import type { DMMF } from './dmmf-types'
-import { capitalize, lowerCase } from './utils/common'
+import type { DMMF } from '../generation/dmmf-types'
+import { capitalize, lowerCase } from '../generation/utils/common'
 
 export function getCountAggregateOutputName(modelName: string): string {
   return `${capitalize(modelName)}CountAggregateOutputType`
@@ -33,7 +33,9 @@ function getMappings(mappings: ExternalDMMF.Mappings, datamodel: DMMF.Datamodel)
       model: mapping.model,
       plural: pluralize(lowerCase(mapping.model)), // TODO not needed anymore
       findUnique: mapping.findUnique || mapping.findSingle,
+      findUniqueOrThrow: mapping.findUniqueOrThrow,
       findFirst: mapping.findFirst,
+      findFirstOrThrow: mapping.findFirstOrThrow,
       findMany: mapping.findMany,
       create: mapping.createOne || mapping.createSingle || mapping.create,
       createMany: mapping.createMany,

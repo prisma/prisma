@@ -1,8 +1,18 @@
-import { getTestSuiteMeta, getTestSuiteTable, TestSuiteConfig } from './getTestSuiteInfo'
-import { setupTestSuiteClient } from './setupTestSuiteClient'
-import { dropTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { afterAll, beforeAll, test } from '@jest/globals'
+import fs from 'fs-extra'
+import path from 'path'
+
+import { checkMissingProviders } from './checkMissingProviders'
+import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
+import { getTestSuitePlan } from './getTestSuitePlan'
+import { ProviderFlavors } from './relationMode/ProviderFlavor'
+import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
+import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
+import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
+import { ClientMeta, MatrixOptions } from './types'
 
 export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
+export type TestCallbackSuiteMeta = TestSuiteMeta & { generatedFolder: string }
 
 /**
  * How does this work from a high level? What steps?
@@ -35,40 +45,128 @@ export type TestSuiteMeta = ReturnType<typeof getTestSuiteMeta>
  *
  * @param tests where you write your tests
  */
-function setupTestSuiteMatrix(tests: (suiteConfig: TestSuiteConfig, suiteMeta: TestSuiteMeta) => void) {
+function setupTestSuiteMatrix(
+  tests: (
+    suiteConfig: Record<string, string>,
+    suiteMeta: TestCallbackSuiteMeta,
+    clientMeta: ClientMeta,
+    setupDatabase: () => Promise<void>,
+  ) => void,
+  options?: MatrixOptions,
+) {
   const originalEnv = process.env
   const suiteMeta = getTestSuiteMeta()
-  const suiteTable = getTestSuiteTable(suiteMeta)
-  const forceInlineSnapshot = process.argv.includes('-u')
+  const clientMeta = getClientMeta()
+  const suiteConfigs = getTestSuiteConfigs(suiteMeta)
+  const testPlan = getTestSuitePlan(suiteMeta, suiteConfigs, clientMeta, options)
 
-  ;(forceInlineSnapshot ? [suiteTable[0]] : suiteTable).forEach((suiteEntry) => {
-    const [suiteName, suiteConfig] = suiteEntry
+  if (originalEnv.TEST_GENERATE_ONLY === 'true') {
+    options = options ?? {}
+    options.skipDefaultClientInstance = true
+    options.skipDb = true
+  }
 
-    // we don't run tests for some providers that we want to skip on the CI
-    if (suiteConfig['provider']?.toLowerCase() === 'mongodb' && process.env.TEST_SKIP_MONGODB) return
-    if (suiteConfig['provider']?.toLowerCase() === 'sqlserver' && process.env.TEST_SKIP_MSSQL) return
-    if (suiteConfig['provider']?.toLowerCase() === 'cockroachdb' && process.env.TEST_SKIP_COCKROACHDB) return
-
-    describe(suiteName, () => {
-      // we inject modified env vars, and make the client available as globals
-      beforeAll(() => (process.env = { ...setupTestSuiteDbURI(suiteConfig), ...originalEnv }))
-      beforeAll(async () => (globalThis['loaded'] = await setupTestSuiteClient(suiteMeta, suiteConfig)))
-      beforeAll(async () => (globalThis['prisma'] = new (await global['loaded'])['PrismaClient']()))
-      beforeAll(async () => (globalThis['PrismaClient'] = (await global['loaded'])['PrismaClient']))
-      beforeAll(async () => (globalThis['Prisma'] = (await global['loaded'])['Prisma']))
-
-      // we disconnect and drop the database, clean up the env, and global vars
-      afterAll(async () => await globalThis['prisma']?.$disconnect())
-      afterAll(async () => await dropTestSuiteDatabase(suiteMeta, suiteConfig))
-      afterAll(() => (process.env = originalEnv))
-      afterAll(() => delete globalThis['loaded'])
-      afterAll(() => delete globalThis['prisma'])
-      afterAll(() => delete globalThis['Prisma'])
-      afterAll(() => delete globalThis['PrismaClient'])
-
-      tests(suiteConfig, suiteMeta)
-    })
+  checkMissingProviders({
+    suiteConfigs,
+    suiteMeta,
+    options,
   })
+
+  for (const { name, suiteConfig, skip } of testPlan) {
+    const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+    const describeFn = skip ? describe.skip : describe
+
+    describeFn(name, () => {
+      const clients = [] as any[]
+
+      // we inject modified env vars, and make the client available as globals
+      beforeAll(async () => {
+        const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
+
+        globalThis['datasourceInfo'] = datasourceInfo
+
+        globalThis['loaded'] = await setupTestSuiteClient({
+          suiteMeta,
+          suiteConfig,
+          datasourceInfo,
+          clientMeta,
+          skipDb: options?.skipDb,
+          alterStatementCallback: options?.alterStatementCallback,
+        })
+
+        globalThis['newPrismaClient'] = (...args) => {
+          const client = new globalThis['loaded']['PrismaClient'](...args)
+          clients.push(client)
+          return client
+        }
+        if (!options?.skipDefaultClientInstance) {
+          globalThis['prisma'] = globalThis['newPrismaClient']()
+        }
+        globalThis['Prisma'] = (await global['loaded'])['Prisma']
+      })
+
+      // for better type dx, copy a client into the test suite root node_modules
+      // this is so that we can have intellisense for the client in the test suite
+      beforeAll(() => {
+        const rootNodeModuleFolderPath = path.join(suiteMeta.testRoot, 'node_modules')
+
+        // reserve the node_modules so that parallel tests suites don't conflict
+        fs.mkdir(rootNodeModuleFolderPath, async (error) => {
+          if (error !== null && error.code !== 'EEXIST') throw error // unknown error
+          if (error !== null && error.code === 'EEXIST') return // already reserved
+
+          const suiteFolderPath = getTestSuiteFolderPath(suiteMeta, suiteConfig)
+          const suiteNodeModuleFolderPath = path.join(suiteFolderPath, 'node_modules')
+
+          await fs.copy(suiteNodeModuleFolderPath, rootNodeModuleFolderPath, { recursive: true })
+        })
+      })
+
+      afterAll(async () => {
+        for (const client of clients) {
+          await client.$disconnect().catch(() => {
+            // sometimes we test connection errors. In that case,
+            // disconnect might also fail, so ignoring the error here
+          })
+          if (clientMeta.dataProxy) {
+            await stopMiniProxyQueryEngine(client)
+          }
+        }
+        clients.length = 0
+        if (!options?.skipDb && suiteConfig.matrixOptions['providerFlavor'] !== ProviderFlavors.VITESS_8) {
+          const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
+          process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
+          process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
+          await dropTestSuiteDatabase(suiteMeta, suiteConfig)
+        }
+        process.env = originalEnv
+        delete globalThis['datasourceInfo']
+        delete globalThis['loaded']
+        delete globalThis['prisma']
+        delete globalThis['Prisma']
+        delete globalThis['newPrismaClient']
+      }, 180_000)
+
+      const setupDatabase = async () => {
+        if (!options?.skipDb) {
+          throw new Error(
+            'Pass skipDb: true in the matrix options if you want to manually setup the database in your test.',
+          )
+        }
+
+        return setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback)
+      }
+
+      if (originalEnv.TEST_GENERATE_ONLY === 'true') {
+        // because we have our own custom `test` global call defined that reacts
+        // to this env var already, we import the original jest `test` and call
+        // it because we need to run at least one test to generate the client
+        test('generate only', () => {})
+      }
+
+      tests(suiteConfig.matrixOptions, { ...suiteMeta, generatedFolder }, clientMeta, setupDatabase)
+    })
+  }
 }
 
 export { setupTestSuiteMatrix }

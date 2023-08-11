@@ -1,28 +1,49 @@
-module.exports = {
-  testMatch: [
-    '**/*.ts',
-    '!(**/*.d.ts)',
-    '!(**/_utils/**)',
-    '!(**/_matrix.ts)',
-    '!(**/_schema.ts)',
-    '!(**/.generated/**)',
-  ],
-  transform: { '^.+\\.(t|j)sx?$': '@swc/jest' },
-  reporters: [
-    'default',
-    [
+'use strict'
+
+const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
+const isBuildkiteCI = Boolean(process.env.BUILDKITE)
+
+module.exports = () => {
+  // Default
+  let testTimeout = 30_000
+  if (isMacOrWindowsCI) {
+    testTimeout = 100_000
+  } else if (isBuildkiteCI) {
+    testTimeout = 50_000
+  }
+
+  const configCommon = {
+    testMatch: ['**/*.ts', '!(**/*.d.ts)', '!(**/_utils/**)', '!(**/_*.ts)', '!(**/.generated/**)'],
+    transformIgnorePatterns: [],
+    reporters: ['default'],
+    globalSetup: './_utils/globalSetup.js',
+    snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
+    setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
+    testTimeout,
+    collectCoverage: process.env.CI ? true : false,
+  }
+
+  if (process.env['JEST_JUNIT_DISABLE'] !== 'true') {
+    configCommon.reporters.push([
       'jest-junit',
       {
         addFileAttribute: 'true',
         ancestorSeparator: ' › ',
-        classNameTemplate: '{classname}',
+        classNameTemplate: (vars) => {
+          return vars.classname
+            .replace(/(\(.*)provider=\w+,? ?(.*\))/, '$1$2')
+            .replace(/(\(.*)providerFlavor=\w+,? ?(.*\))/, '$1$2')
+            .replace(' ()', '')
+        },
         titleTemplate: '{title}',
       },
-    ],
-  ],
-  globalSetup: './_utils/globalSetup.js',
-  snapshotSerializers: ['@prisma/sdk/src/utils/jestSnapshotSerializer'],
-  setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
-  testTimeout: 10000,
-  collectCoverage: process.env.CI ? true : false,
+    ])
+  }
+
+  return {
+    ...configCommon,
+    transform: {
+      '^.+\\.(m?j|t)s$': ['./esbuild-transformer', {}],
+    },
+  }
 }

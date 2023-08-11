@@ -1,20 +1,32 @@
 import indent from 'indent-string'
 
-import { DMMF } from '../../runtime/dmmf-types'
+import { DMMF } from '../dmmf-types'
 import { getIncludeName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
-import type { ExportCollector } from './helpers'
+import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc } from './helpers'
 import { InputField } from './Input'
 
 export class ArgsType implements Generatable {
+  private generatedName: string | null = null
+  private comment: string | null = null
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
+    protected readonly context: GenerateContext,
     protected readonly action?: DMMF.ModelAction,
-    protected readonly collector?: ExportCollector,
   ) {}
+  public setGeneratedName(name: string): this {
+    this.generatedName = name
+    return this
+  }
+
+  public setComment(comment: string): this {
+    this.comment = comment
+    return this
+  }
+
   public toTS(): string {
     const { action, args } = this
     const { name } = this.type
@@ -23,9 +35,8 @@ export class ArgsType implements Generatable {
     }
 
     const selectName = getSelectName(name)
-    this.collector?.addSymbol(selectName)
 
-    const bothArgsOptional: DMMF.SchemaArg[] = [
+    const argsToGenerate: DMMF.SchemaArg[] = [
       {
         name: 'select',
         isRequired: false,
@@ -50,8 +61,7 @@ export class ArgsType implements Generatable {
 
     if (hasRelationField) {
       const includeName = getIncludeName(name)
-      this.collector?.addSymbol(includeName)
-      bothArgsOptional.push({
+      argsToGenerate.push({
         name: 'include',
         isRequired: false,
         isNullable: true,
@@ -70,35 +80,23 @@ export class ArgsType implements Generatable {
         comment: `Choose, which related nodes to fetch as well.`,
       })
     }
-    const addRejectOnNotFound = action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findFirst
-    if (addRejectOnNotFound) {
-      bothArgsOptional.push({
-        name: 'rejectOnNotFound',
-        isRequired: false,
-        isNullable: true,
-        inputTypes: [
-          {
-            type: 'RejectOnNotFound',
-            location: 'scalar',
-            isList: false,
-          },
-        ],
-        comment: `Throw an Error if a ${name} can't be found`,
-      })
-    }
-    bothArgsOptional.push(...args)
 
-    const modelArgName = getModelArgName(name, action)
-    this.collector?.addSymbol(modelArgName)
+    argsToGenerate.push(...args)
+    const generatedName = this.generatedName ?? getModelArgName(name, action)
+    this.context.defaultArgsAliases.registerArgName(generatedName)
 
     return `
 /**
- * ${name} ${action ? action : 'without action'}
+ * ${this.getGeneratedComment()}
  */
-export type ${modelArgName} = {
-${indent(bothArgsOptional.map((arg) => new InputField(arg).toTS()).join('\n'), TAB_SIZE)}
+export type ${generatedName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+${indent(argsToGenerate.map((arg) => new InputField(arg, this.context.genericArgsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
+  }
+
+  private getGeneratedComment() {
+    return this.comment ?? `${this.type.name} ${this.action ?? 'without action'}`
   }
 }
 
@@ -106,8 +104,9 @@ export class MinimalArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
+    protected readonly context: GenerateContext,
     protected readonly action?: DMMF.ModelAction,
-    protected readonly collector?: ExportCollector,
+    protected readonly generatedTypeName = getModelArgName(type.name, action),
   ) {}
   public toTS(): string {
     const { action, args } = this
@@ -117,20 +116,16 @@ export class MinimalArgsType implements Generatable {
       arg.comment = getArgFieldJSDoc(this.type, action, arg)
     }
 
-    const typeName = getModelArgName(name, action)
-
-    this.collector?.addSymbol(typeName)
-
+    this.context.defaultArgsAliases.registerArgName(this.generatedTypeName)
     return `
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${typeName} = {
+export type ${this.generatedTypeName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
 ${indent(
   args
     .map((arg) => {
-      const noEnumerable = arg.inputTypes.some((input) => input.type === 'Json') && arg.name === 'pipeline'
-      return new InputField(arg, false, noEnumerable).toTS()
+      return new InputField(arg, this.context.genericArgsInfo).toTS()
     })
     .join('\n'),
   TAB_SIZE,

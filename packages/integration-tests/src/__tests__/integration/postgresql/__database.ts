@@ -19,12 +19,13 @@ export const database = {
     create schema ${ctx.id};
     set search_path to ${ctx.id};`
     await db.query(sqlUp + sqlScenario)
+    await db.end()
   },
   close: (db) => db.end(),
 } as Input<PG.Client>['database']
 
 function getConnectionString(ctx: Context) {
-  const serviceConnectionString = process.env.TEST_POSTGRES_BASE_URI || 'postgres://prisma:prisma@localhost:5432'
+  const serviceConnectionString = process.env.TEST_POSTGRES_BASE_URI!
   const connectionString = `${serviceConnectionString}/tests?schema=${ctx.id}&connection_limit=1`
   return connectionString
 }

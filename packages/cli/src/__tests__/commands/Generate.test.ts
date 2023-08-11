@@ -1,7 +1,10 @@
-import { getClientEngineType, jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { getClientEngineType } from '@prisma/internals'
 import path from 'path'
 
 import { Generate } from '../../Generate'
+
+const stripAnsi = require('strip-ansi')
 
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
@@ -38,9 +41,11 @@ describe('using cli', () => {
 
 describe('--schema from project directory', () => {
   it('--schema relative path: should work', async () => {
+    expect.assertions(2)
     ctx.fixture('generate-from-project-dir')
     const result = await Generate.new().parse(['--schema=./schema.prisma'])
-    expect(replaceEngineType(result)).toMatchInlineSnapshot(`
+    const output = stripAnsi(replaceEngineType(result))
+    expect(output).toMatchInlineSnapshot(`
 
       ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./@prisma/client in XXXms
       You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
@@ -49,6 +54,11 @@ describe('--schema from project directory', () => {
       const prisma = new PrismaClient()
       \`\`\`
     `)
+    // Check that the client path in the import statement actually contains
+    // forward slashes regardless of the platform (a snapshot test wouldn't
+    // detect the difference because backward slashes are replaced with forward
+    // slashes by the snapshot serializer).
+    expect(output).toContain("import { PrismaClient } from './@prisma/client'")
   })
 
   it('--schema relative path: should fail - invalid path', async () => {
@@ -78,15 +88,17 @@ describe('--schema from project directory', () => {
     ctx.fixture('generate-from-project-dir')
     const absoluteSchemaPath = path.resolve('./doesnotexists.prisma')
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    await expect(result).rejects.toThrowError(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
+    await expect(result).rejects.toThrow(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
   })
 })
 
 describe('--schema from parent directory', () => {
   it('--schema relative path: should work', async () => {
+    expect.assertions(2)
     ctx.fixture('generate-from-parent-dir')
     const result = await Generate.new().parse(['--schema=./subdirectory/schema.prisma'])
-    expect(replaceEngineType(result)).toMatchInlineSnapshot(`
+    const output = stripAnsi(replaceEngineType(result))
+    expect(output).toMatchInlineSnapshot(`
 
       ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
       You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
@@ -95,6 +107,11 @@ describe('--schema from parent directory', () => {
       const prisma = new PrismaClient()
       \`\`\`
     `)
+    // Check that the client path in the import statement actually contains
+    // forward slashes regardless of the platform (a snapshot test wouldn't
+    // detect the difference because backward slashes are replaced with forward
+    // slashes by the snapshot serializer).
+    expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
   })
 
   it('--schema relative path: should fail - invalid path', async () => {
@@ -107,11 +124,12 @@ describe('--schema from parent directory', () => {
   })
 
   it('--schema absolute path: should work', async () => {
+    expect.assertions(2)
     ctx.fixture('generate-from-parent-dir')
-
     const absoluteSchemaPath = path.resolve('./subdirectory/schema.prisma')
     const result = await Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    expect(replaceEngineType(result)).toMatchInlineSnapshot(`
+    const output = stripAnsi(replaceEngineType(result))
+    expect(output).toMatchInlineSnapshot(`
 
       ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
       You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
@@ -120,6 +138,11 @@ describe('--schema from parent directory', () => {
       const prisma = new PrismaClient()
       \`\`\`
     `)
+    // Check that the client path in the import statement actually contains
+    // forward slashes regardless of the platform (a snapshot test wouldn't
+    // detect the difference because backward slashes are replaced with forward
+    // slashes by the snapshot serializer).
+    expect(output).toContain("import { PrismaClient } from './subdirectory/@prisma/client'")
   })
 
   it('--schema absolute path: should fail - invalid path', async () => {
@@ -127,7 +150,44 @@ describe('--schema from parent directory', () => {
 
     const absoluteSchemaPath = path.resolve('./subdirectory/doesnotexists.prisma')
     const result = Generate.new().parse([`--schema=${absoluteSchemaPath}`])
-    await expect(result).rejects.toThrowError(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
+    await expect(result).rejects.toThrow(`Provided --schema at ${absoluteSchemaPath} doesn't exist.`)
+  })
+
+  it('--generator: should work - valid generator names', async () => {
+    ctx.fixture('example-project')
+    const result = await Generate.new().parse([
+      '--schema=./prisma/multiple-generator.prisma',
+      '--generator=client',
+      '--generator=client_3',
+    ])
+    const output = stripAnsi(replaceEngineType(result))
+
+    expect(output).toMatchSnapshot()
+  })
+
+  it('--generator: should fail - single invalid generator name', async () => {
+    ctx.fixture('example-project')
+
+    await expect(
+      Generate.new().parse([
+        '--schema=./prisma/multiple-generator.prisma',
+        '--generator=client',
+        '--generator=invalid_client',
+      ]),
+    ).rejects.toMatchSnapshot()
+  })
+
+  it('--generator: should fail - multiple invalid generator names', async () => {
+    ctx.fixture('example-project')
+
+    await expect(
+      Generate.new().parse([
+        '--schema=./prisma/multiple-generator.prisma',
+        '--generator=client',
+        '--generator=invalid_client',
+        '--generator=invalid_client_2',
+      ]),
+    ).rejects.toMatchSnapshot()
   })
 })
 

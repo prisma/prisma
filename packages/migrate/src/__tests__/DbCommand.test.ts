@@ -1,5 +1,4 @@
 import { DbCommand } from '../commands/DbCommand'
-import { DbSeed } from '../commands/DbSeed'
 
 it('no params should return help', async () => {
   const commandInstance = DbCommand.new({})
@@ -29,21 +28,5 @@ it('help flag', async () => {
 })
 
 it('unknown command', async () => {
-  await expect(DbCommand.new({}).parse(['doesnotexist'])).resolves.toThrowError()
-})
-
-it('db seed with --preview-feature flag', async () => {
-  await expect(
-    DbCommand.new({
-      dev: DbSeed.new(),
-    }).parse(['dev', '--preview-feature']),
-  ).rejects.toThrowError()
-})
-
-it('db seed without --preview-feature flag', async () => {
-  await expect(
-    DbCommand.new({
-      dev: DbSeed.new(),
-    }).parse(['dev']),
-  ).rejects.toThrowError()
+  await expect(DbCommand.new({}).parse(['doesnotexist'])).resolves.toThrow()
 })

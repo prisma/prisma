@@ -1,7 +1,7 @@
 import type { DMMF } from '@prisma/generator-helper'
 
-import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getGroupByArgsName, getModelArgName } from '../utils'
+import { capitalize, lowerCase } from '../utils/common'
 
 export interface JSDocMethodBodyCtx {
   singular: string
@@ -121,9 +121,47 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
       where: (singular) => `Filter, which ${singular} to fetch.`,
     },
   },
+  findUniqueOrThrow: {
+    body: (ctx) =>
+      `Find one ${ctx.singular} that matches the filter or throw an error  with \`error.code='P2025'\` 
+    if no matches were found.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
+@example
+// Get one ${ctx.singular}
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  where: {
+    // ... provide filter here
+  }
+})`,
+    fields: {
+      where: (singular) => `Filter, which ${singular} to fetch.`,
+    },
+  },
   findFirst: {
     body: (ctx) =>
       `Find the first ${ctx.singular} that matches the filter.
+${undefinedNote}
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
+@example
+// Get one ${ctx.singular}
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  where: {
+    // ... provide filter here
+  }
+})`,
+    fields: {
+      where: (singular) => `Filter, which ${singular} to fetch.`,
+      orderBy: JSDocFields.orderBy,
+      cursor: (singular, plural) => addLinkToDocs(`Sets the position for searching for ${plural}.`, 'cursor'),
+      take: JSDocFields.take,
+      skip: JSDocFields.skip,
+      distinct: JSDocFields.distinct,
+    },
+  },
+  findFirstOrThrow: {
+    body: (ctx) =>
+      `Find the first ${ctx.singular} that matches the filter or
+throw \`PrismaKnownClientError\` with \`P2025\` code if no matches were found.
 ${undefinedNote}
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example

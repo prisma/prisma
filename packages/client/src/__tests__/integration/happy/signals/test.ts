@@ -3,6 +3,7 @@ import type { ExecaChildProcess } from 'execa'
 import execa from 'execa'
 import path from 'path'
 
+import { generateTestClient } from '../../../../utils/getTestClient'
 import { EXIT_MESSAGE, READY_MESSAGE } from './__helpers__/constants'
 
 const testIf = (condition: boolean) => (condition ? test : test.skip)
@@ -11,7 +12,7 @@ const userSignalsSupportedByOperatingSystem = process.platform !== 'win32'
 
 function spawnChild() {
   const childPath = path.join(__dirname, '__helpers__', 'client.ts')
-  return execa('node', ['-r', 'esbuild-register', childPath], {
+  return execa('node', ['-r', '@swc-node/register', childPath], {
     // Don't reject the promise if the process exits on signal.
     reject: false,
   })
@@ -23,6 +24,10 @@ async function waitMessageOnStdout(child: ExecaChildProcess): Promise<string> {
 }
 
 describe('signals that should terminate the process', () => {
+  beforeAll(async () => {
+    await generateTestClient()
+  })
+
   test('SIGINT', async () => {
     const child = spawnChild()
     expect(await waitMessageOnStdout(child)).toBe(READY_MESSAGE)

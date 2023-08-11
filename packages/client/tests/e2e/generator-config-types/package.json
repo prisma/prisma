@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "version": "0.0.0",
+  "main": "index.js",
+  "scripts": {},
+  "dependencies": {
+    "@prisma/generator-helper": "../prisma-generator-helper-0.0.0.tgz"
+  },
+  "devDependencies": {
+    "@types/node": "16.18.11",
+    "expect-type": "0.16.0",
+    "prisma": "../prisma-0.0.0.tgz"
+  }
+}

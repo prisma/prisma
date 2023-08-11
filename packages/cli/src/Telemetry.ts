@@ -1,5 +1,5 @@
-import type { Command } from '@prisma/sdk'
-import { getCLIPathHash, getProjectHash } from '@prisma/sdk'
+import type { Command } from '@prisma/internals'
+import { getCLIPathHash, getProjectHash } from '@prisma/internals'
 import * as checkpoint from 'checkpoint-client'
 
 /**

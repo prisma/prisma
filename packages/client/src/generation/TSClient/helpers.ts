@@ -1,8 +1,8 @@
 import pluralize from 'pluralize'
 
-import { DMMF } from '../../runtime/dmmf-types'
-import { capitalize, lowerCase } from '../../runtime/utils/common'
-import { getAggregateArgsName, getModelArgName, unique } from '../utils'
+import { DMMF } from '../dmmf-types'
+import { getAggregateArgsName, getModelArgName } from '../utils'
+import { capitalize, lowerCase } from '../utils/common'
 import type { JSDocMethodBodyCtx } from './jsdoc'
 import { JSDocs } from './jsdoc'
 
@@ -35,17 +35,14 @@ export function getGenericMethod(name: string, actionName: DMMF.ModelAction) {
     return ''
   }
   if (actionName === 'findFirst' || actionName === 'findUnique') {
-    return `<T extends ${getModelArgName(
-      name,
-      actionName,
-    )},  LocalRejectSettings = T["rejectOnNotFound"] extends RejectOnNotFound ? T['rejectOnNotFound'] : undefined>`
+    return `<T extends ${getModelArgName(name, actionName)}<ExtArgs>>`
   }
   const modelArgName = getModelArgName(name, actionName)
 
   if (!modelArgName) {
     console.log({ name, actionName })
   }
-  return `<T extends ${modelArgName}>`
+  return `<T extends ${modelArgName}<ExtArgs>>`
 }
 export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
   if (actionName === 'count') {
@@ -61,10 +58,12 @@ export function getArgs(modelName: string, actionName: DMMF.ModelAction) {
     actionName === DMMF.ModelAction.findMany ||
     actionName === DMMF.ModelAction.findFirst ||
     actionName === DMMF.ModelAction.deleteMany ||
-    actionName === DMMF.ModelAction.createMany
+    actionName === DMMF.ModelAction.createMany ||
+    actionName === DMMF.ModelAction.findUniqueOrThrow ||
+    actionName === DMMF.ModelAction.findFirstOrThrow
       ? '?'
       : ''
-  }: SelectSubset<T, ${getModelArgName(modelName, actionName)}>`
+  }: SelectSubset<T, ${getModelArgName(modelName, actionName)}<ExtArgs>>`
 }
 export function wrapComment(str: string): string {
   return `/**\n${str
@@ -91,14 +90,4 @@ export function getArgFieldJSDoc(
 
 export function escapeJson(str: string): string {
   return str.replace(/\\n/g, '\\\\n').replace(/\\r/g, '\\\\r').replace(/\\t/g, '\\\\t')
-}
-
-export class ExportCollector {
-  symbols: string[] = []
-  addSymbol(symbol: string) {
-    this.symbols.push(symbol)
-  }
-  getSymbols() {
-    return unique(this.symbols)
-  }
 }

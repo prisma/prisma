@@ -9,7 +9,10 @@ sandbox
 .DS_Store
 
 query-engine*
+migration-engine*
+schema-engine*
 libquery_engine*
+libquery-engine*
 query_engine-windows.dll.node
 
 *tmp.db
@@ -25,11 +28,6 @@ coverage
 
 .eslintcache
 
-node_modules
-.pnpm-store/
-yarn-error.log
-.DS_Store
-pnpm-debug.log
 .pnpm-debug.log
 
 .envrc
@@ -37,4 +35,9 @@ pnpm-debug.log
 esm
 reproductions/*
 !reproductions/basic-sqlite
+!reproductions/tracing
 !reproductions/pnpm-workspace.yaml
+
+dev.db
+junit.xml
+/output.txt

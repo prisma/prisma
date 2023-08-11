@@ -31,20 +31,20 @@ describe('aggregations', () => {
     })
 
     expect(result).toMatchInlineSnapshot(`
-      Object {
-        _avg: Object {
+      {
+        _avg: {
           age: 80,
         },
         _count: 10,
-        _max: Object {
+        _max: {
           age: 163,
           email: bob+9@hey.com,
         },
-        _min: Object {
+        _min: {
           age: 5,
           email: bob+0@hey.com,
         },
-        _sum: Object {
+        _sum: {
           age: 800,
         },
       }
@@ -78,23 +78,23 @@ describe('aggregations', () => {
       },
     })
     expect(result2).toMatchInlineSnapshot(`
-      Object {
-        _avg: Object {
+      {
+        _avg: {
           age: 80,
         },
-        _count: Object {
+        _count: {
           _all: 10,
           name: 10,
         },
-        _max: Object {
+        _max: {
           age: 163,
           email: bob+9@hey.com,
         },
-        _min: Object {
+        _min: {
           age: 5,
           email: bob+0@hey.com,
         },
-        _sum: Object {
+        _sum: {
           age: 800,
         },
       }
@@ -117,26 +117,32 @@ describe('aggregations', () => {
     } catch (err) {
       expect(err.message).toMatchInlineSnapshot(`
 
-        Invalid \`prisma.user.aggregate()\` invocation:
+        Invalid \`prisma.user.aggregate()\` invocation in
+        /client/src/__tests__/integration/happy/aggregations/test.ts:0:0
 
-        {
-          _avg: {
-        ?   age?: true,
-            email: true
-            ~~~~~
-          },
-          where: {
-            age: {
-              gt: -1
-            }
-          },
-          skip: 0,
-          take: 10000
-        }
+          101 \`)
+          102 
+          103 try {
+        → 104   await prisma.user.aggregate({
+                  select: {
+                    _avg: {
+                      select: {
+                        age: true,
+                        email: true
+                        ~~~~~
+                      }
+                    }
+                  },
+                  where: {
+                    age: {
+                      gt: -1
+                    }
+                  },
+                  skip: 0,
+                  take: 10000
+                })
 
-
-        Unknown field \`email\` for select statement on model UserAvgAggregateOutputType. Available options are listed in green. Did you mean \`age\`?
-
+        Unknown field \`email\` for select statement on model \`UserAvgAggregateOutputType\`. Available options are listed in green.
       `)
     }
 

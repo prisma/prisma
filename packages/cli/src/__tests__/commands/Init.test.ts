@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import { join } from 'path'
 import stripAnsi from 'strip-ansi'
@@ -33,7 +33,7 @@ test('works with url param', async () => {
     # Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
     DATABASE_URL="file:dev.db"
@@ -54,7 +54,7 @@ test('works with provider param - postgresql', async () => {
     # Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
     DATABASE_URL="postgresql://johndoe:randompassword@localhost:5432/mydb?schema=public"
@@ -75,7 +75,7 @@ test('works with provider param - cockroachdb', async () => {
     # Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
     DATABASE_URL="postgresql://johndoe:randompassword@localhost:26257/mydb?schema=public"
@@ -102,7 +102,7 @@ test('works with provider and url params - cockroachdb', async () => {
     # Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
     DATABASE_URL="postgresql://johndoe:randompassword@localhost:26257/mydb?schema=public"
@@ -123,7 +123,7 @@ test('works with provider param - mysql', async () => {
     # Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
     DATABASE_URL="mysql://johndoe:randompassword@localhost:3306/mydb"
@@ -144,7 +144,7 @@ test('works with provider param - SQLITE', async () => {
     # Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
     DATABASE_URL="file:./dev.db"
@@ -165,7 +165,7 @@ test('works with provider param - SqlServer', async () => {
     # Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
     DATABASE_URL="sqlserver://localhost:1433;database=mydb;user=SA;password=randompassword;"
@@ -186,7 +186,7 @@ test('works with provider param - MongoDB', async () => {
     # Environment variables declared in this file are automatically made available to Prisma.
     # See the documentation for more detail: https://pris.ly/d/prisma-schema#accessing-environment-variables-from-the-schema
 
-    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB (Preview).
+    # Prisma supports the native connection string format for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB and CockroachDB.
     # See the documentation for all the connection string options: https://pris.ly/d/connection-strings
 
     DATABASE_URL="mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority"
@@ -196,7 +196,7 @@ test('works with provider param - MongoDB', async () => {
 test('errors with invalid provider param', async () => {
   ctx.fixture('init')
   const result = ctx.cli('init', '--datasource-provider', 'INVALID')
-  await expect(result).rejects.toThrowError()
+  await expect(result).rejects.toThrow()
 })
 
 test('warns when DATABASE_URL present in .env ', async () => {
@@ -213,7 +213,7 @@ test('warns when DATABASE_URL present in .env ', async () => {
 })
 
 test('appends when .env present', async () => {
-  fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMTHING="is here"`)
+  fs.writeFileSync(join(ctx.tmpDir, '.env'), `SOMETHING="is here"`)
   const result = await ctx.cli('init')
   expect(stripAnsi(result.stdout)).toMatchSnapshot()
 
@@ -237,7 +237,7 @@ test('writes a minimal .gitignore file', async () => {
 test('ignore .gitignore file if already present (do not override)', async () => {
   ctx.fixture('init')
   const gitignorePath = join(ctx.tmpDir, '.gitignore')
-  fs.writeFileSync(gitignorePath, `# This should not be overriden`)
+  fs.writeFileSync(gitignorePath, `# This should not be overridden`)
   const gitignoreBefore = fs.readFileSync(gitignorePath, 'utf-8')
   await ctx.cli('init')
   const gitignoreAfter = fs.readFileSync(gitignorePath, 'utf-8')

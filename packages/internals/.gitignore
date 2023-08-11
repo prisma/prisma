@@ -1,0 +1,9 @@
+node_modules
+/engines
+/debug.d.ts
+/debug.js
+/debug.js.map
+pnpm-lock.yaml
+yarn-error.log
+.DS_Store
+

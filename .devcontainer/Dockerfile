@@ -15,8 +15,8 @@ USER codespace
 
 # RUN npm install -g pnpm@6 ts-node
 
-# From https://pnpm.io/6.x/installation
-RUN curl -f https://get.pnpm.io/v6.16.js | node - add --global pnpm@latest-6
+# From https://pnpm.io/installation
+RUN curl -fsSL https://get.pnpm.io/install.sh | sh -
 
 # To install npm global packages as non root user
 RUN pnpm install -g ts-node

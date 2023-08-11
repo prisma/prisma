@@ -54,18 +54,17 @@ export namespace DMMF {
     name: string
     dbName: string | null
     fields: Field[]
-    fieldMap?: Record<string, Field>
     uniqueFields: string[][]
     uniqueIndexes: uniqueIndex[]
     documentation?: string
     primaryKey: PrimaryKey | null
-    [key: string]: any // safe net for additional new props // TODO: remove this and the others, not safe
+    isGenerated?: boolean
   }
 
   export type FieldKind = 'scalar' | 'object' | 'enum' | 'unsupported'
 
   export type FieldNamespace = 'model' | 'prisma'
-  export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes'
+  export type FieldLocation = 'scalar' | 'inputObjectTypes' | 'outputObjectTypes' | 'enumTypes' | 'fieldRefTypes'
 
   export interface Field {
     kind: FieldKind
@@ -78,13 +77,13 @@ export namespace DMMF {
     isGenerated?: boolean // does not exist on 'type' but does on 'model'
     isUpdatedAt?: boolean // does not exist on 'type' but does on 'model'
     /**
-     * Describes the data type in the same the way is is defined in the Prisma schema:
+     * Describes the data type in the same the way it is defined in the Prisma schema:
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
      */
     type: string
-    dbNames?: string[] | null
+    dbName?: string | null
     hasDefaultValue: boolean
-    default?: FieldDefault | string | boolean | number
+    default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
     relationFromFields?: string[]
     relationToFields?: any[]
     relationOnDelete?: string
@@ -97,6 +96,8 @@ export namespace DMMF {
     name: string
     args: any[]
   }
+
+  export type FieldDefaultScalar = string | boolean | number
 
   export interface Schema {
     rootQueryType?: string
@@ -113,6 +114,10 @@ export namespace DMMF {
     enumTypes: {
       model?: SchemaEnum[]
       prisma: SchemaEnum[]
+    }
+    fieldRefTypes: {
+      // model?: FieldRefType[]
+      prisma?: FieldRefType[]
     }
   }
 
@@ -155,16 +160,33 @@ export namespace DMMF {
   export interface SchemaField {
     name: string
     isNullable?: boolean
-    outputType: {
-      type: string | OutputType | SchemaEnum // note that in the serialized state we don't have the reference to MergedOutputTypes
-      isList: boolean
-      location: FieldLocation
-      namespace?: FieldNamespace
-    }
+    outputType: OutputTypeRef
     args: SchemaArg[]
     deprecation?: Deprecation
     documentation?: string
   }
+
+  export type TypeRefCommon = {
+    isList: boolean
+    namespace?: FieldNamespace
+  }
+
+  export type TypeRefScalar = TypeRefCommon & {
+    location: 'scalar'
+    type: string
+  }
+
+  export type TypeRefOutputObject = TypeRefCommon & {
+    location: 'outputObjectTypes'
+    type: OutputType | string
+  }
+
+  export type TypeRefEnum = TypeRefCommon & {
+    location: 'enumTypes'
+    type: SchemaEnum | string
+  }
+
+  export type OutputTypeRef = TypeRefScalar | TypeRefOutputObject | TypeRefEnum
 
   export interface Deprecation {
     sinceVersion: string
@@ -177,16 +199,30 @@ export namespace DMMF {
     constraints: {
       maxNumFields: number | null
       minNumFields: number | null
+      fields?: string[]
+    }
+    meta?: {
+      source?: string
     }
     fields: SchemaArg[]
     fieldMap?: Record<string, SchemaArg>
   }
 
+  export interface FieldRefType {
+    name: string
+    allowTypes: FieldRefAllowType[]
+    fields: SchemaArg[]
+  }
+
+  export type FieldRefAllowType = TypeRefScalar | TypeRefEnum
+
   export interface ModelMapping {
     model: string
     plural: string
     findUnique?: string | null
+    findUniqueOrThrow?: string | null
     findFirst?: string | null
+    findFirstOrThrow?: string | null
     findMany?: string | null
     create?: string | null
     createMany?: string | null
@@ -204,7 +240,9 @@ export namespace DMMF {
 
   export enum ModelAction {
     findUnique = 'findUnique',
+    findUniqueOrThrow = 'findUniqueOrThrow',
     findFirst = 'findFirst',
+    findFirstOrThrow = 'findFirstOrThrow',
     findMany = 'findMany',
     create = 'create',
     createMany = 'createMany',

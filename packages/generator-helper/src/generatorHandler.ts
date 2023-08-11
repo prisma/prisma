@@ -24,8 +24,10 @@ export function generatorHandler(handler: Handler): void {
           jsonrpc: '2.0',
           error: {
             code: -32000,
-            message: e.stack || e.message,
-            data: null,
+            message: e.message,
+            data: {
+              stack: e.stack,
+            },
           },
           id: json.id,
         })
@@ -49,8 +51,10 @@ export function generatorHandler(handler: Handler): void {
             jsonrpc: '2.0',
             error: {
               code: -32000,
-              message: e.stack || e.message,
-              data: null,
+              message: e.message,
+              data: {
+                stack: e.stack,
+              },
             },
             id: json.id,
           })

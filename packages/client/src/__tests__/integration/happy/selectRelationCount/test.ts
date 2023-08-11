@@ -10,9 +10,9 @@ test('selectRelationCount', async () => {
   })
   await prisma.$disconnect()
   expect(users).toMatchInlineSnapshot(`
-    Array [
-      Object {
-        _count: Object {
+    [
+      {
+        _count: {
           posts: 0,
         },
         email: a@a.de,

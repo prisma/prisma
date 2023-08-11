@@ -17,6 +17,8 @@
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://slack.prisma.io/">Slack</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
+  <a href="https://pris.ly/discord">Discord</a>
+  <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://twitter.com/prisma">Twitter</a>
 </div>
 
@@ -25,6 +27,13 @@
 **Prisma Migrate** is an imperative database schema migration tool that enables you to make changes to your database schema. Migrations are auto-generated based on the Prisma schema changes but are fully customizable.
 
 > Please help us improve Prisma Migrate by creating [issues](https://github.com/prisma/prisma/issues/new/choose) and sharing your [feedback](https://slack.prisma.io/) with us.
+
+---
+
+⚠️ **Warning**: This package is intended for Prisma's internal use.
+Its release cycle does not follow SemVer, which means we might release breaking changes (change APIs, remove functionality) without any prior warning.
+
+If you are using this package, it would be helpful if you could help us gain an understanding where, how and why you are using it. Your feedback will be valuable to us to define a better API. Please share this information at https://github.com/prisma/prisma/discussions/13877 - Thanks!
 
 ## Documentation
 

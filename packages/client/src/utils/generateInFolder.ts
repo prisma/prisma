@@ -8,8 +8,7 @@ import {
   getConfig,
   getDMMF,
   getPackedPackage,
-  mapPreviewFeatures,
-} from '@prisma/sdk'
+} from '@prisma/internals'
 import copy from '@timsuchanek/copy'
 import fs from 'fs'
 import path from 'path'
@@ -29,6 +28,8 @@ export interface GenerateInFolderOptions {
   transpile?: boolean
   packageSource?: string
   useBuiltRuntime?: boolean
+  overrideEngineType?: ClientEngineType
+  overrideDataProxy?: boolean
 }
 
 export async function generateInFolder({
@@ -37,6 +38,8 @@ export async function generateInFolder({
   transpile = true,
   packageSource,
   useBuiltRuntime,
+  overrideEngineType,
+  overrideDataProxy,
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
@@ -50,14 +53,9 @@ export async function generateInFolder({
   const datamodel = fs.readFileSync(schemaPath, 'utf-8')
 
   const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
-  const previewFeatures = mapPreviewFeatures(extractPreviewFeatures(config))
+  const previewFeatures = extractPreviewFeatures(config)
   const clientGenerator = config.generators[0]
-  const clientEngineType = getClientEngineType(clientGenerator)
-
-  const dmmf = await getDMMF({
-    datamodel,
-    previewFeatures,
-  })
+  const clientEngineType = overrideEngineType ?? getClientEngineType(clientGenerator)
 
   const outputDir = transpile
     ? path.join(projectDir, 'node_modules/@prisma/client')
@@ -85,12 +83,18 @@ export async function generateInFolder({
 
   const platform = await getPlatform()
 
-  let runtimeDir
+  let runtimeDirs
   if (useLocalRuntime) {
     if (useBuiltRuntime) {
-      runtimeDir = path.relative(outputDir, path.join(__dirname, '../../runtime'))
+      runtimeDirs = {
+        node: path.relative(outputDir, path.join(__dirname, '../../runtime')),
+        edge: path.relative(outputDir, path.join(__dirname, '../../runtime/edge')),
+      }
     } else {
-      runtimeDir = path.relative(outputDir, path.join(__dirname, '../runtime'))
+      runtimeDirs = {
+        node: path.relative(outputDir, path.join(__dirname, '../runtime')),
+        edge: path.relative(outputDir, path.join(__dirname, '../runtime/edge')),
+      }
     }
   } else if (useBuiltRuntime) {
     throw new Error(`Please provide useBuiltRuntime and useLocalRuntime at the same time or just useLocalRuntime`)
@@ -117,9 +121,11 @@ export async function generateInFolder({
           },
         }
 
-  // we make sure that we are in the project root
-  // this only applies to generated test clients
-  process.chdir(projectDir)
+  // TODO: use engine.getDmmf()
+  const dmmf = await getDMMF({
+    datamodel,
+    previewFeatures,
+  })
 
   await generateClient({
     binaryPaths,
@@ -127,17 +133,19 @@ export async function generateInFolder({
     dmmf,
     ...config,
     outputDir,
-    schemaDir: path.dirname(schemaPath),
-    runtimeDir,
+    runtimeDirs,
     transpile,
     testMode: true,
-    datamodelPath: schemaPath,
+    schemaPath,
     copyRuntime: false,
     generator: config.generators[0],
     clientVersion: 'local',
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
+    dataProxy: overrideDataProxy ?? !!process.env.TEST_DATA_PROXY,
+    overrideEngineType,
   })
+
   const time = performance.now() - before
   debug(`Done generating client in ${time}`)
 

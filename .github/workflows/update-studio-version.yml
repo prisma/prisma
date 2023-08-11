@@ -1,4 +1,6 @@
 name: Update Studio Version
+run-name: Update Studio - version ${{ inputs.version }}
+
 on:
   workflow_dispatch:
     inputs:
@@ -8,14 +10,14 @@ on:
 
 jobs:
   update_studio:
-    name: 'Check and update @prisma/studio-server@${{ github.event.inputs.version }}'
+    name: 'Check and update Studio to ${{ github.event.inputs.version }}'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.1
+      - uses: pnpm/action-setup@v2.4.0
         with:
-          version: 6
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -25,18 +27,20 @@ jobs:
       # This step uses `@prisma/ensure-npm-release` (abbv. `enr`) https://github.com/prisma/ensure-npm-release
       - name: Check if version is available on npm
         run: |
-          echo 'Checking that package @prisma/studio-server have the published version @${{ github.event.inputs.version }}'
-          pnpx -y -p @prisma/ensure-npm-release enr update -p @prisma/studio-server -u ${{ github.event.inputs.version }}
+          echo 'Checking that all packages [@prisma/studio, @prisma/studio-server] have the published version @${{ github.event.inputs.version }}'
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/studio -u ${{ github.event.inputs.version }}
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/studio-server -u ${{ github.event.inputs.version }}
           echo 'Awesome - proceeding to make the PR'
 
       - name: Update the studio dependencies
         run: |
-          echo 'Updating @prisma/studio-server to ${{ github.event.inputs.version }} using pnpm'
-          pnpm update -r @prisma/studio-server@${{ github.event.inputs.version }}
+          echo 'Updating @prisma/studio, @prisma/studio-server to ${{ github.event.inputs.version }} using pnpm'
+          pnpm update -r @prisma/studio@${{ github.event.inputs.version }} @prisma/studio-server@${{ github.event.inputs.version }}
+          echo 'Awesome - proceeding to make the PR'
 
       - name: Create Pull Request
         id: cpr
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: 'chore(deps): update studio to ${{ github.event.inputs.version }}'
@@ -51,7 +55,11 @@ jobs:
             ## Packages:
             | Package | NPM URL |
             |---------|---------|
+            |`@prisma/studio`| https://npmjs.com/package/@prisma/studio/v/${{ github.event.inputs.version }}|
             |`@prisma/studio-server`| https://npmjs.com/package/@prisma/studio-server/v/${{ github.event.inputs.version }}|
+
+            ## Studio repository for tag provided
+            [`${{ github.event.inputs.version }}`](https://github.com/prisma/studio-code/tree/v${{ github.event.inputs.version }})
 
       - name: PR url
         run: |
@@ -63,7 +71,7 @@ jobs:
 
       - name: Auto approve Pull Request (to trigger automerge if tests passing)
         if: steps.cpr.outputs.pull-request-operation == 'created'
-        uses: juliangruber/approve-pull-request-action@v1
+        uses: juliangruber/approve-pull-request-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           number: ${{ steps.cpr.outputs.pull-request-number }}

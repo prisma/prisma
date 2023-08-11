@@ -1,4 +1,4 @@
-import { credentialsToUri, uriToCredentials } from '@prisma/sdk'
+import { credentialsToUri, uriToCredentials } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 import { Client } from 'pg'
@@ -52,4 +52,22 @@ export async function tearDownPostgres(options: SetupParams) {
     DROP DATABASE IF EXISTS "${credentials.database}";
   `)
   await db.end()
+}
+
+/**
+ * Run an arbitrary query against a Postgres database.
+ * Procedural `plpgsql` queries are also supported.
+ * This function should be called after `setupPostgres` and before `tearDownPostgres`.
+ * The given `options.connectionString` is used as is.
+ */
+export async function runQueryPostgres(options: SetupParams, query: string): Promise<void> {
+  const { connectionString } = options
+
+  // Connect to default db
+  const dbDefault = new Client({
+    connectionString,
+  })
+  await dbDefault.connect()
+  await dbDefault.query(query)
+  await dbDefault.end()
 }

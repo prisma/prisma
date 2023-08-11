@@ -6,9 +6,6 @@ const path = require('path')
 const c = require('./colors')
 
 const exec = promisify(childProcess.exec)
-const copyFile = promisify(fs.copyFile)
-const mkdir = promisify(fs.mkdir)
-const stat = promisify(fs.stat)
 
 function debug(message, ...optionalParams) {
   if (process.env.DEBUG && process.env.DEBUG === 'prisma:postinstall') {
@@ -67,10 +64,7 @@ async function main() {
     // in the postinstall hook
   }
 
-  // initializes the ./node_modules/.prisma/client folder with the default index(-browser).js/index.d.ts,
-  // which define a `PrismaClient` class stub that throws an error if instantiated before the `prisma generate`
-  // command is successfully executed.
-  await ensureEmptyDotPrisma()
+  await createDefaultGeneratedThrowFiles()
 
   // TODO: consider using the `which` package
   const localPath = getLocalPackagePath()
@@ -197,33 +191,61 @@ function run(cmd, params, cwd = process.cwd()) {
   })
 }
 
-async function ensureEmptyDotPrisma() {
+/**
+ * Copies our default "throw" files into the default generation folder. These
+ * files are dummy and informative because they just throw an error to let the
+ * user know that they have forgotten to run `prisma generate` or that they
+ * don't have a a schema file yet. We only add these files at the default
+ * location `node_modules/.prisma/client`.
+ */
+async function createDefaultGeneratedThrowFiles() {
   try {
     const dotPrismaClientDir = path.join(__dirname, '../../../.prisma/client')
+    const defaultNodeIndexPath = path.join(dotPrismaClientDir, 'index.js')
+    const defaultNodeIndexDtsPath = path.join(dotPrismaClientDir, 'index.d.ts')
+    const defaultBrowserIndexPath = path.join(dotPrismaClientDir, 'index-browser.js')
+    const defaultEdgeIndexPath = path.join(dotPrismaClientDir, 'edge.js')
+    const defaultEdgeIndexDtsPath = path.join(dotPrismaClientDir, 'edge.d.ts')
+    const defaultDenoClientDir = path.join(dotPrismaClientDir, 'deno')
+    const defaultDenoEdgeIndexPath = path.join(defaultDenoClientDir, 'edge.ts')
     await makeDir(dotPrismaClientDir)
-    const defaultIndexJsPath = path.join(dotPrismaClientDir, 'index.js')
-    const defaultIndexBrowserJSPath = path.join(dotPrismaClientDir, 'index-browser.js')
-    const defaultIndexDTSPath = path.join(dotPrismaClientDir, 'index.d.ts')
+    await makeDir(defaultDenoClientDir)
 
-    if (!fs.existsSync(defaultIndexJsPath)) {
-      await copyFile(path.join(__dirname, 'default-index.js'), defaultIndexJsPath)
-    }
-    if (!fs.existsSync(defaultIndexBrowserJSPath)) {
-      await copyFile(path.join(__dirname, 'default-index-browser.js'), defaultIndexBrowserJSPath)
+    // `default-index.js` may not exist in scripts yet when the postinstall script is running
+    // in Prisma repo itself. It will always exist in the published package.
+    if (!fs.existsSync(defaultNodeIndexPath) && fs.existsSync(path.join(__dirname, 'default-index.js'))) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-index.js'), defaultNodeIndexPath)
     }
 
-    if (!fs.existsSync(defaultIndexDTSPath)) {
-      await copyFile(path.join(__dirname, 'default-index.d.ts'), defaultIndexDTSPath)
+    if (!fs.existsSync(defaultBrowserIndexPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-index-browser.js'), defaultBrowserIndexPath)
+    }
+
+    if (!fs.existsSync(defaultNodeIndexDtsPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-index.d.ts'), defaultNodeIndexDtsPath)
+    }
+
+    if (!fs.existsSync(defaultEdgeIndexPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-edge.js'), defaultEdgeIndexPath)
+    }
+
+    if (!fs.existsSync(defaultEdgeIndexDtsPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-index.d.ts'), defaultEdgeIndexDtsPath)
+    }
+
+    if (!fs.existsSync(defaultDenoEdgeIndexPath)) {
+      await fs.promises.copyFile(path.join(__dirname, 'default-deno-edge.ts'), defaultDenoEdgeIndexPath)
     }
   } catch (e) {
     console.error(e)
   }
 }
 
-async function makeDir(input) {
+// TODO: can this be replaced some utility eg. mkdir
+function makeDir(input) {
   const make = async (pth) => {
     try {
-      await mkdir(pth)
+      await fs.promises.mkdir(pth)
 
       return pth
     } catch (error) {
@@ -246,7 +268,7 @@ async function makeDir(input) {
       }
 
       try {
-        const stats = await stat(pth)
+        const stats = await fs.promises.stat(pth)
         if (!stats.isDirectory()) {
           throw new Error('The path is not a directory')
         }
@@ -266,7 +288,7 @@ async function makeDir(input) {
  * an error while attempting to get this value then the string constant
  * 'ERROR_WHILE_FINDING_POSTINSTALL_TRIGGER' is returned.
  * This information is just necessary for telemetry.
- * This get's passed in to Generate, which then automatically get's propagated to telemetry.
+ * This is passed to `prisma generate` as a string like `--postinstall value`.
  */
 function getPostInstallTrigger() {
   /*
@@ -310,18 +332,18 @@ function getPostInstallTrigger() {
     return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: ${maybe_npm_config_argv_string}`
   }
 
-  const npm_config_arv_original_arr = npm_config_argv.original
+  const npm_config_argv_original_arr = npm_config_argv.original
 
-  if (!Array.isArray(npm_config_arv_original_arr)) {
+  if (!Array.isArray(npm_config_argv_original_arr)) {
     return `${UNABLE_TO_FIND_POSTINSTALL_TRIGGER_JSON_SCHEMA_ERROR}: ${maybe_npm_config_argv_string}`
   }
 
-  const npm_config_arv_original = npm_config_arv_original_arr.filter((arg) => arg !== '').join(' ')
+  const npm_config_argv_original = npm_config_argv_original_arr.filter((arg) => arg !== '').join(' ')
 
   const command =
-    npm_config_arv_original === ''
+    npm_config_argv_original === ''
       ? getPackageManagerName()
-      : [getPackageManagerName(), npm_config_arv_original].join(' ')
+      : [getPackageManagerName(), npm_config_argv_original].join(' ')
 
   return command
 }

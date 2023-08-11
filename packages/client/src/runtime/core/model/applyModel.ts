@@ -1,20 +1,37 @@
-import type { F, O } from 'ts-toolbelt'
+import { DMMF } from '@prisma/generator-helper'
+import type { O } from 'ts-toolbelt'
 
-import type { Action, Client, InternalRequestParams } from '../../getPrismaClient'
-import { createPrismaPromise } from '../request/createPrismaPromise'
+import { type Client, type InternalRequestParams } from '../../getPrismaClient'
+import { getCallSite } from '../../utils/CallSite'
+import {
+  addObjectProperties,
+  addProperty,
+  cacheProperties,
+  CompositeProxyLayer,
+  createCompositeProxy,
+} from '../compositeProxy'
 import type { PrismaPromise } from '../request/PrismaPromise'
-import { getCallSite } from '../utils/getCallSite'
+import type { UserArgs } from '../request/UserArgs'
 import { applyAggregates } from './applyAggregates'
+import { applyFieldsProxy } from './applyFieldsProxy'
 import { applyFluent } from './applyFluent'
-import type { UserArgs } from './UserArgs'
-import { defaultProxyHandlers } from './utils/defaultProxyHandlers'
+import { adaptErrors } from './applyOrThrowErrorAdapter'
 import { dmmfToJSModelName } from './utils/dmmfToJSModelName'
 
 export type ModelAction = (
   paramOverrides: O.Optional<InternalRequestParams>,
 ) => (userArgs?: UserArgs) => PrismaPromise<unknown>
 
-const fluentProps = ['findUnique', 'findFirst', 'create', 'update', 'upsert', 'delete'] as const
+const fluentProps = [
+  'findUnique',
+  'findUniqueOrThrow',
+  'findFirst',
+  'findFirstOrThrow',
+  'create',
+  'update',
+  'upsert',
+  'delete',
+] as const
 const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
 
 /**
@@ -24,59 +41,96 @@ const aggregateProps = ['aggregate', 'count', 'groupBy'] as const
  * @returns
  */
 export function applyModel(client: Client, dmmfModelName: string) {
+  const modelExtensions = client._extensions.getAllModelExtensions(dmmfModelName) ?? {}
+
+  const layers = [
+    modelActionsLayer(client, dmmfModelName),
+    fieldsPropertyLayer(client, dmmfModelName),
+    addObjectProperties(modelExtensions),
+    addProperty('name', () => dmmfModelName),
+    addProperty('$name', () => dmmfModelName),
+    addProperty('$parent', () => client._appliedParent),
+  ]
+
+  return createCompositeProxy({}, layers)
+}
+
+/**
+ * Dynamically creates a model interface via a proxy.
+ * @param client to trigger the request execution
+ * @param dmmfModelName the dmmf name of the model
+ * @returns
+ */
+function modelActionsLayer(client: Client, dmmfModelName: string): CompositeProxyLayer<string> {
   // we use the javascript model name for display purposes
   const jsModelName = dmmfToJSModelName(dmmfModelName)
-  const ownKeys = getOwnKeys(client, dmmfModelName)
-  const baseObject = {} // <-- user mutations go in there
+  const ownKeys = Object.keys(DMMF.ModelAction).concat('count')
 
-  // we construct a proxy that acts as the model interface
-  return new Proxy(baseObject, {
-    get(target, prop: string): F.Return<ModelAction> | undefined {
-      // only allow actions that are valid and available for this model
-      if (prop in target || typeof prop === 'symbol') return target[prop]
-      if (!isValidActionName(client, dmmfModelName, prop)) return undefined
+  return {
+    getKeys() {
+      return ownKeys
+    },
+
+    getPropertyValue(key) {
+      const dmmfActionName = key as DMMF.ModelAction
+
+      let requestFn = (params: InternalRequestParams) => client._request(params)
+      requestFn = adaptErrors(dmmfActionName, dmmfModelName, client._clientVersion, requestFn)
 
       // we return a function as the model action that we want to expose
       // it takes user args and executes the request in a Prisma Promise
       const action = (paramOverrides: O.Optional<InternalRequestParams>) => (userArgs?: UserArgs) => {
         const callSite = getCallSite(client._errorFormat) // used for showing better errors
 
-        return createPrismaPromise((txId, lock, otelCtx) => {
-          const data = { args: userArgs, dataPath: [] } // data and its dataPath for nested results
-          const action = { action: prop, model: dmmfModelName } // action name and its related model
-          const method = { clientMethod: `${jsModelName}.${prop}` } // method name for display only
-          const tx = { runInTransaction: !!txId, transactionId: txId, lock } // transaction information
-          const trace = { callsite: callSite, otelCtx: otelCtx } // stack trace and opentelemetry
-          const params = { ...data, ...action, ...method, ...tx, ...trace }
+        return client._createPrismaPromise((transaction) => {
+          const params: InternalRequestParams = {
+            // data and its dataPath for nested results
+            args: userArgs,
+            dataPath: [],
 
-          return client._request({ ...params, ...paramOverrides })
+            // action name and its related model
+            action: dmmfActionName,
+            model: dmmfModelName,
+
+            // method name for display only
+            clientMethod: `${jsModelName}.${key}`,
+            jsModelName,
+
+            // transaction information
+            transaction,
+
+            // stack trace
+            callsite: callSite,
+          }
+
+          return requestFn({ ...params, ...paramOverrides })
         })
       }
 
       // we give the control over action for building the fluent api
-      if (fluentProps.includes(prop as typeof fluentProps[number])) {
+      if ((fluentProps as readonly string[]).includes(dmmfActionName)) {
         return applyFluent(client, dmmfModelName, action)
       }
 
       // we handle the edge case of aggregates that need extra steps
-      if (aggregateProps.includes(prop as typeof aggregateProps[number])) {
-        return applyAggregates(client, prop, action)
+      if (isValidAggregateName(key)) {
+        return applyAggregates(client, key, action)
       }
 
       return action({}) // and by default, don't override any params
     },
-    ...defaultProxyHandlers(ownKeys),
-  })
+  }
 }
 
-// the only accessible fields are the ones that are actions
-function getOwnKeys(client: Client, dmmfModelName: string) {
-  return [...Object.keys(client._dmmf.mappingsMap[dmmfModelName]), 'count'].filter(
-    (key) => !['model', 'plural'].includes(key),
+function isValidAggregateName(action: string): action is (typeof aggregateProps)[number] {
+  return (aggregateProps as readonly string[]).includes(action)
+}
+
+function fieldsPropertyLayer(client: Client, dmmfModelName: string) {
+  return cacheProperties(
+    addProperty('fields', () => {
+      const model = client._runtimeDataModel.models[dmmfModelName]
+      return applyFieldsProxy(dmmfModelName, model)
+    }),
   )
-}
-
-// tells if a given `action` is valid & available for a `model`
-function isValidActionName(client: Client, dmmfModelName: string, action: string): action is Action {
-  return getOwnKeys(client, dmmfModelName).includes(action)
 }

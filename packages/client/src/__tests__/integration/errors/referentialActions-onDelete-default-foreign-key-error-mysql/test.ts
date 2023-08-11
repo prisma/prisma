@@ -9,10 +9,9 @@ const baseUri = process.env.TEST_MYSQL_URI
 
 describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
   beforeAll(async () => {
-    process.env.TEST_MYSQL_URI += '-default-onDelete-Cascade'
+    process.env.TEST_MYSQL_URI += '-referentialActions-onDelete-default'
     await tearDownMysql(process.env.TEST_MYSQL_URI!)
     await migrateDb({
-      connectionString: process.env.TEST_MYSQL_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
@@ -37,7 +36,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like pinguins' },
+          create: { bio: 'I like penguins' },
         },
       },
     })
@@ -58,11 +57,11 @@ describe('referentialActions-onDelete-default-foreign-key-error(mysql)', () => {
         Invalid \`prisma.user.delete()\` invocation in
         /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-mysql/test.ts:0:0
 
-          47 expect(await prisma.post.findMany()).toHaveLength(1)
-          48 
-          49 try {
-        → 50   await prisma.user.delete(
-          Foreign key constraint failed on the field: \`authorId\`
+          46 expect(await prisma.post.findMany()).toHaveLength(1)
+          47 
+          48 try {
+        → 49   await prisma.user.delete(
+        Foreign key constraint failed on the field: \`authorId\`
       `)
       expect(await prisma.user.findMany()).toHaveLength(1)
       expect(await prisma.profile.findMany()).toHaveLength(1)

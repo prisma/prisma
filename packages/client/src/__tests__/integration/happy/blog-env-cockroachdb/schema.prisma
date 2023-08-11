@@ -4,8 +4,7 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["cockroachdb"]
+  provider = "prisma-client-js"
 }
 
 // / User model comment

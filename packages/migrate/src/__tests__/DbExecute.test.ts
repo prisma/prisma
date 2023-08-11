@@ -1,9 +1,12 @@
-import { jestConsoleContext, jestContext } from '@prisma/sdk'
+// describeIf is making eslint unhappy about the test names
+/* eslint-disable jest/no-identical-title */
+
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs'
 import path from 'path'
-import stripAnsi from 'strip-ansi'
 
 import { DbExecute } from '../commands/DbExecute'
+import { setupCockroach, tearDownCockroach } from '../utils/setupCockroach'
 import { setupMSSQL, tearDownMSSQL } from '../utils/setupMSSQL'
 import { setupMysql, tearDownMysql } from '../utils/setupMysql'
 import type { SetupParams } from '../utils/setupPostgres'
@@ -16,25 +19,10 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 
+const originalEnv = { ...process.env }
+
 describe('db execute', () => {
   describe('generic', () => {
-    it('should trigger a warning if --preview-feature is provided', async () => {
-      ctx.fixture('empty')
-      expect.assertions(3)
-
-      try {
-        await DbExecute.new().parse(['--preview-feature', '--file=./doesnotexists.sql', '--schema=1'])
-      } catch (e) {
-        expect(e.code).toEqual(undefined)
-        expect(e.message).toMatchInlineSnapshot(`Provided --file at ./doesnotexists.sql doesn't exist.`)
-      }
-
-      expect(stripAnsi(ctx.mocked['console.warn'].mock.calls.join('\n'))).toMatchInlineSnapshot(`
-        prisma:warn "prisma db execute" was in Preview and is now Generally Available.
-        You can now remove the --preview-feature flag.
-      `)
-    })
-
     it('should fail if missing --file and --stdin', async () => {
       ctx.fixture('empty')
 
@@ -144,8 +132,9 @@ DROP TABLE 'test-dbexecute';`
                   Script executed successfully.
 
               `)
+        // This is a slow test and macOS machine can be even slower and fail the test
       },
-      20_000,
+      30_000,
     )
 
     it('should pass with --file --schema', async () => {
@@ -216,19 +205,19 @@ COMMIT;`,
       await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
     })
 
-    it('should fail with P1014 error with --file --schema', async () => {
+    // TODO we could have a generic error code in prisma-engines for a "SQL error"
+    it('should fail with --file --schema if there is a database error', async () => {
       ctx.fixture('schema-only-sqlite')
-      expect.assertions(2)
+      expect.assertions(1)
 
       fs.writeFileSync('script.sql', 'DROP TABLE "test-doesnotexists";')
       try {
         await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       } catch (e) {
-        expect(e.code).toEqual('P1014')
         expect(e.message).toMatchInlineSnapshot(`
-          P1014
+          SQLite database error
+          no such table: test-doesnotexists
 
-          The underlying table for model \`test-doesnotexists\` does not exist.
 
         `)
       }
@@ -244,7 +233,8 @@ COMMIT;`,
       } catch (e) {
         expect(e.code).toEqual(undefined)
         expect(e.message).toMatchInlineSnapshot(`
-          near "ThisisnotSQL": syntax error
+          SQLite database error
+          near "ThisisnotSQL": syntax error in ThisisnotSQL,itshouldfail at offset 0
 
 
         `)
@@ -253,12 +243,7 @@ COMMIT;`,
   })
 
   describe('postgresql', () => {
-    const connectionString = (
-      process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
-
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-execute')
 
     const setupParams: SetupParams = {
       connectionString,
@@ -266,12 +251,24 @@ COMMIT;`,
     }
 
     beforeAll(async () => {
-      await setupPostgres(setupParams).catch((e) => {
+      await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
     })
 
-    afterAll(async () => {
+    beforeEach(async () => {
+      await setupPostgres(setupParams).catch((e) => {
+        console.error(e)
+      })
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      // Update env var because it's the one that is used in the schemas tested
+      process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    })
+
+    afterEach(async () => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
       await tearDownPostgres(setupParams).catch((e) => {
         console.error(e)
       })
@@ -453,13 +450,207 @@ COMMIT;`,
     })
   })
 
-  describe('mysql', () => {
-    const connectionString = (
-      process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+  describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
+    if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
+      throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
+    }
+    // Without `|| ''`, the conditional test would return
+    // a Type Error on `undefined.replace()` even though the test is skipped
+    const connectionString = (process.env.TEST_COCKROACH_URI_MIGRATE || '').replace(
+      'tests-migrate',
+      'tests-migrate-db-execute',
+    )
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MYSQL_URI_MIGRATE = connectionString
+    const setupParams = {
+      connectionString,
+      dirname: '',
+    }
+
+    beforeAll(async () => {
+      await tearDownCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
+    beforeEach(async () => {
+      await setupCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      // Update env var because it's the one that is used in the schemas tested
+      process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
+    })
+
+    afterEach(async () => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      await tearDownCockroach(setupParams).catch((e) => {
+        console.error(e)
+      })
+    })
+
+    const sqlScript = `-- Drop & Create & Drop
+DROP SCHEMA IF EXISTS "test-dbexecute";
+CREATE SCHEMA "test-dbexecute";
+DROP SCHEMA "test-dbexecute";`
+
+    it('should pass with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    }, 10000)
+
+    it('should use env var from .env file', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--schema=./prisma/using-dotenv.prisma', '--file=./script.sql'])
+      await expect(result).rejects.toMatchInlineSnapshot(`
+              P1001
+
+              Can't reach database server at \`fromdotenvdoesnotexist\`:\`26257\`
+
+              Please make sure your database server is running at \`fromdotenvdoesnotexist\`:\`26257\`.
+
+            `)
+    }, 10000)
+
+    it('should pass using a transaction with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync(
+        'script.sql',
+        `-- start a transaction
+BEGIN;
+
+${sqlScript}
+      
+-- commit changes    
+COMMIT;`,
+      )
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    }, 10000)
+
+    it('should pass with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', sqlScript)
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
+    it('should pass with empty --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', '')
+      const result = DbExecute.new().parse(['--url', connectionString, '--file=./script.sql'])
+      await expect(result).resolves.toMatchInlineSnapshot(`Script executed successfully.`)
+    })
+
+    // Cockroachdb doesn't have the same limitation as Postgres, as it can drop and create a database
+    // with a single SQL script.
+    it('should succeed if DROP DATABASE with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(0)
+
+      fs.writeFileSync(
+        'script.sql',
+        `-- Drop & Create & Drop
+      DROP DATABASE IF EXISTS "test-dbexecute";
+      CREATE DATABASE "test-dbexecute";
+      DROP DATABASE "test-dbexecute";`,
+      )
+      try {
+        await DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual(undefined)
+      }
+    })
+
+    it('should fail with P1013 error with invalid url with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse([
+          '--url=postgresql://johndoe::::////::randompassword@doesnotexist/mydb',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
+
+          The provided database string is invalid. invalid port number in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+
+    it('should fail with P1013 error with invalid url provider with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse(['--url=invalidurl', '--file=./script.sql'])
+      } catch (e) {
+        expect(e.code).toEqual('P1013')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1013
+
+          The provided database string is invalid. \`invalidurl\` is not a known connection URL scheme. Prisma cannot determine the connector. in database URL. Please refer to the documentation in https://www.prisma.io/docs/reference/database-reference/connection-urls for constructing a correct connection string. In some cases, certain characters must be escaped. Please check the string for any illegal characters.
+
+        `)
+      }
+    })
+
+    it('should fail with P1001 error with unreachable url with --file --url', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+      expect.assertions(2)
+
+      fs.writeFileSync('script.sql', '-- empty')
+      try {
+        await DbExecute.new().parse([
+          '--url=postgresql://johndoe:randompassword@doesnotexist:5432/mydb?schema=public',
+          '--file=./script.sql',
+        ])
+      } catch (e) {
+        expect(e.code).toEqual('P1001')
+        expect(e.message).toMatchInlineSnapshot(`
+          P1001
+
+          Can't reach database server at \`doesnotexist\`:\`5432\`
+
+          Please make sure your database server is running at \`doesnotexist\`:\`5432\`.
+
+        `)
+      }
+    })
+
+    it('should fail with invalid SQL error from database with --file --schema', async () => {
+      ctx.fixture('schema-only-cockroachdb')
+
+      fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
+      const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
+      await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
+        db error: ERROR: at or near "thisisnotsqlitshouldfail": syntax error
+        DETAIL: source SQL:
+        ThisisnotSQLitshouldfail
+        ^
+
+
+      `)
+    })
+  })
+
+  describe('mysql', () => {
+    const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-db-execute')
 
     const setupParams: SetupParams = {
       connectionString,
@@ -467,12 +658,24 @@ COMMIT;`,
     }
 
     beforeAll(async () => {
-      await setupMysql(setupParams).catch((e) => {
+      await tearDownMysql(setupParams).catch((e) => {
         console.error(e)
       })
     })
 
-    afterAll(async () => {
+    beforeEach(async () => {
+      await setupMysql(setupParams).catch((e) => {
+        console.error(e)
+      })
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      // Update env var because it's the one that is used in the schemas tested
+      process.env.TEST_MYSQL_URI_MIGRATE = connectionString
+    })
+
+    afterEach(async () => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
       await tearDownMysql(setupParams).catch((e) => {
         console.error(e)
       })
@@ -498,10 +701,10 @@ DROP DATABASE \`test-dbexecute\`;`
       fs.writeFileSync('script.sql', '')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Query was empty
+        Query was empty
 
 
-            `)
+      `)
     })
 
     it('should pass using a transaction with --file --schema', async () => {
@@ -596,10 +799,10 @@ COMMIT;`,
       fs.writeFileSync('script.sql', 'DROP DATABASE `test-doesnotexists`;')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Can't drop database 'test-doesnotexists'; database doesn't exist
+        Can't drop database 'test-doesnotexists'; database doesn't exist
 
 
-            `)
+      `)
     })
 
     it('should fail with invalid SQL error from database with --file --schema', async () => {
@@ -608,35 +811,56 @@ COMMIT;`,
       fs.writeFileSync('script.sql', 'This is not SQL, it should fail')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'This is not SQL, it should fail' at line 1
+        You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'This is not SQL, it should fail' at line 1
 
 
-            `)
+      `)
     })
   })
 
   describeIf(!process.env.TEST_SKIP_MSSQL)('sqlserver', () => {
-    const jdbcConnectionString = (
-      process.env.TEST_MSSQL_JDBC_URI_MIGRATE ||
-      'sqlserver://mssql:1433;database=tests-migrate;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
-    ).replace('tests-migrate', 'tests-migrate-db-execute')
+    if (!process.env.TEST_SKIP_MSSQL && !process.env.TEST_MSSQL_JDBC_URI_MIGRATE) {
+      throw new Error('You must set a value for process.env.TEST_MSSQL_JDBC_URI_MIGRATE. See TESTING.md')
+    }
 
-    // Update env var because it's the one that is used in the schemas tested
-    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = jdbcConnectionString
+    const jdbcConnectionString = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
+      'tests-migrate',
+      'tests-migrate-db-execute',
+    )
 
+    const databaseName = 'tests-migrate-db-execute'
     const setupParams: SetupParams = {
       connectionString: process.env.TEST_MSSQL_URI!,
       dirname: '',
     }
 
     beforeAll(async () => {
-      await setupMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
+      await tearDownMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })
     })
 
-    afterAll(async () => {
-      await tearDownMSSQL(setupParams, 'tests-migrate-db-execute').catch((e) => {
+    beforeEach(async () => {
+      await setupMSSQL(setupParams, databaseName).catch((e) => {
+        console.error(e)
+      })
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      // Update env var because it's the one that is used in the schemas tested
+      process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
+        'tests-migrate',
+        databaseName,
+      )
+      process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
+        'tests-migrate-shadowdb',
+        `${databaseName}-shadowdb`,
+      )
+    })
+
+    afterEach(async () => {
+      // Back to original env vars
+      process.env = { ...originalEnv }
+      await tearDownMSSQL(setupParams, databaseName).catch((e) => {
         console.error(e)
       })
     })
@@ -704,10 +928,10 @@ COMMIT;`,
       )
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              DROP DATABASE statement cannot be used inside a user transaction.
+        DROP DATABASE statement cannot be used inside a user transaction.
 
 
-            `)
+      `)
     })
 
     it('should fail with P1013 error with invalid url with --file --url', async () => {
@@ -730,6 +954,7 @@ COMMIT;`,
         `)
       }
     })
+
     it('should fail with P1013 error with invalid url provider with --file --url', async () => {
       ctx.fixture('schema-only-sqlserver')
       expect.assertions(2)
@@ -777,10 +1002,10 @@ COMMIT;`,
       fs.writeFileSync('script.sql', 'DROP DATABASE "test-doesnotexists";')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Cannot drop the database 'test-doesnotexists', because it does not exist or you do not have permission.
+        Cannot drop the database 'test-doesnotexists', because it does not exist or you do not have permission.
 
 
-            `)
+      `)
     })
 
     it('should fail with invalid SQL error from database with --file --schema', async () => {
@@ -789,10 +1014,10 @@ COMMIT;`,
       fs.writeFileSync('script.sql', 'ThisisnotSQLitshouldfail')
       const result = DbExecute.new().parse(['--schema=./prisma/schema.prisma', '--file=./script.sql'])
       await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-              Could not find stored procedure 'ThisisnotSQLitshouldfail'.
+        Could not find stored procedure 'ThisisnotSQLitshouldfail'.
 
 
-            `)
+      `)
     })
   })
 })
