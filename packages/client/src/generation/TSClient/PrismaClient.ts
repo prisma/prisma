@@ -449,7 +449,8 @@ type Connector = {
 }
 `
 
-    const jsConnectorOption = /* typescript */ `/**
+    const jsConnectorOption = /* typescript */ `
+  /**
    * Instance of a JS connector, e.g., like one provided by \`@prisma/planetscale-js-connector\`.
    */
   jsConnector?: Connector
@@ -460,8 +461,7 @@ ${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 ${this.runtimeName === 'library' ? libraryOnly : ''}
-export interface PrismaClientOptions {
-  ${this.runtimeName === 'library' ? jsConnectorOption : ''}
+export interface PrismaClientOptions {${this.runtimeName === 'library' ? jsConnectorOption : '\n'}
   /**
    * Overwrites the datasource url from your schema.prisma file
    */
