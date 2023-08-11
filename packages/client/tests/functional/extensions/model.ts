@@ -655,6 +655,7 @@ testMatrix.setupTestSuite(
               const ctx = Prisma.getExtensionContext(this)
 
               expect(ctx.name).toEqual('User')
+              expect(ctx.$name).toEqual('User')
 
               return ctx
             },
@@ -677,6 +678,7 @@ testMatrix.setupTestSuite(
               const ctx = Prisma.getExtensionContext(this)
 
               expect(ctx.name).toEqual('User')
+              expect(ctx.$name).toEqual('User')
 
               return ctx
             },
@@ -686,6 +688,7 @@ testMatrix.setupTestSuite(
 
       const ctx = xprisma.user.myCustomCallA()
       expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+      expectTypeOf(ctx).toHaveProperty('$name').toEqualTypeOf<string | undefined>()
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).not.toHaveProperty('update')
     })
@@ -699,6 +702,7 @@ testMatrix.setupTestSuite(
               const ctx = Prisma.getExtensionContext(this)
 
               expect(ctx.name).toEqual('User')
+              expect(ctx.$name).toEqual('User')
 
               return ctx
             },
@@ -708,6 +712,7 @@ testMatrix.setupTestSuite(
 
       const ctx = xprisma.user.myCustomCallA()
       expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+      expectTypeOf(ctx).toHaveProperty('$name').toEqualTypeOf<string | undefined>()
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
     })
@@ -721,6 +726,7 @@ testMatrix.setupTestSuite(
               const ctx = Prisma.getExtensionContext(this)
 
               expect(ctx.name).toEqual('User')
+              expect(ctx.$name).toEqual('User')
 
               return ctx
             },
@@ -730,6 +736,7 @@ testMatrix.setupTestSuite(
 
       const ctx = xprisma.user.myCustomCallA()
       expectTypeOf(ctx).toHaveProperty('name').toEqualTypeOf<string | undefined>()
+      expectTypeOf(ctx).toHaveProperty('$name').toEqualTypeOf<string | undefined>()
       expectTypeOf(ctx).toHaveProperty('myCustomCallB').toEqualTypeOf<() => void>()
       expectTypeOf(ctx).toHaveProperty('update').toMatchTypeOf<Function>()
     })
@@ -771,6 +778,98 @@ testMatrix.setupTestSuite(
       expect(myCustomCallA).toHaveBeenCalledWith(42)
       expect(myCustomCallB).toHaveBeenCalledTimes(1)
       expect(myCustomCallB).toHaveBeenCalledWith('Hello')
+    })
+
+    test('does not allow to pass invalid properties', async () => {
+      const xprisma = prisma.$extends({})
+
+      await expect(
+        xprisma.user.findFirst({
+          // @ts-expect-error
+          invalid: true,
+        }),
+      ).rejects.toThrow()
+    })
+
+    test('input type should be able to be passed to method accepting same input types', () => {
+      const xprisma = prisma.$extends({})
+
+      const args: PrismaNamespace.UserUpsertArgs = {
+        where: {
+          id: '1',
+        },
+        create: {
+          email: 'test',
+          firstName: 'test',
+          lastName: 'test',
+        },
+        update: {},
+      }
+
+      void prisma.user.upsert(args)
+      void xprisma.user.upsert(args)
+    })
+
+    test('an extension can also reference a previous one via parent on a specific model', async () => {
+      const xprisma = prisma
+        .$extends({
+          model: {
+            user: {
+              async findFirst(a: 'SomeString') {
+                return Promise.resolve(a)
+              },
+            },
+          },
+        })
+        .$extends({
+          model: {
+            user: {
+              async findFirst() {
+                const ctx = Prisma.getExtensionContext(this)
+
+                const data = await ctx.$parent.user.findFirst('SomeString')
+
+                expect(data).toEqual('SomeString')
+                expectTypeOf(data).toEqualTypeOf<'SomeString'>()
+              },
+            },
+          },
+        })
+
+      await xprisma.user.findFirst()
+
+      expect.assertions(1)
+    })
+
+    test('an extension can also reference a previous one via parent on $allModels', async () => {
+      const xprisma = prisma
+        .$extends({
+          model: {
+            user: {
+              async findFirst(a: 'SomeString') {
+                return Promise.resolve(a)
+              },
+            },
+          },
+        })
+        .$extends({
+          model: {
+            $allModels: {
+              async findFirst() {
+                const ctx = Prisma.getExtensionContext(this)
+
+                const data = await ctx.$parent!['user'].findFirst('SomeString')
+
+                expect(data).toEqual('SomeString')
+                expectTypeOf(data).toEqualTypeOf<any>()
+              },
+            },
+          },
+        })
+
+      await xprisma.user.findFirst()
+
+      expect.assertions(1)
     })
   },
   {

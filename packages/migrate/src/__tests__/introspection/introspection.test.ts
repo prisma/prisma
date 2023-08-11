@@ -1,15 +1,23 @@
 import fs from 'fs'
 import path from 'path'
 
-import { MigrateEngine } from '../../MigrateEngine'
+import { SchemaEngine } from '../../SchemaEngine'
 
 test('introspection basic', async () => {
-  const engine = new MigrateEngine({
+  const engine = new SchemaEngine({
     projectDir: __dirname,
     schemaPath: 'schema.prisma',
   })
 
   const schema = await fs.promises.readFile(path.join(__dirname, 'schema.prisma'), { encoding: 'utf-8' })
+
+  const dbVersion = await engine.getDatabaseVersion({
+    datasource: {
+      tag: 'SchemaString',
+      schema,
+    },
+  })
+  expect(dbVersion.length > 0).toBe(true)
 
   const result = await engine.introspect({ schema })
   expect(result).toMatchInlineSnapshot(`
@@ -46,8 +54,4 @@ test('introspection basic', async () => {
       warnings: null,
     }
   `)
-
-  // TODO: uncomment once https://github.com/prisma/prisma-private/issues/203 is closed.
-  // const dbVersion = await engine.getDatabaseVersion({ schema })
-  // expect(dbVersion.length > 0).toBe(true)
 })

@@ -511,6 +511,38 @@ test('args - FieldRef', () => {
   `)
 })
 
+test('args - object with toJSON method', () => {
+  const name = {
+    toJSON() {
+      return 'Horsey McHorseface'
+    },
+  }
+
+  expect(
+    serialize({
+      modelName: 'User',
+      action: 'findMany',
+      args: { where: { name } },
+    }),
+  ).toMatchInlineSnapshot(`
+    {
+      "modelName": "User",
+      "action": "findMany",
+      "query": {
+        "arguments": {
+          "where": {
+            "name": "Horsey McHorseface"
+          }
+        },
+        "selection": {
+          "$composites": true,
+          "$scalars": true
+        }
+      }
+    }
+  `)
+})
+
 test('args - object with undefined values', () => {
   expect(
     serialize({

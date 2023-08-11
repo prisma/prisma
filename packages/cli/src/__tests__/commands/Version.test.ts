@@ -10,7 +10,6 @@ import packageJson from '../../../package.json'
 const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 const testIf = (condition: boolean) => (condition ? test : test.skip)
 const useNodeAPI = getCliQueryEngineBinaryType() === BinaryType.QueryEngineLibrary
-const version = '39190b250ebc338586e25e6da45e5e783bc8a635'
 
 describe('version', () => {
   // Node-API Tests
@@ -27,10 +26,10 @@ describe('version', () => {
       await ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
-          'migration-engine': enginesDir,
+          'schema-engine': enginesDir,
           'libquery-engine': enginesDir,
         },
-        version,
+        version: enginesVersion,
         failSilent: false,
       })
       // This Omits query-engine from the map
@@ -45,7 +44,7 @@ describe('version', () => {
       }
 
       const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout, version)).toMatchSnapshot()
+      expect(cleanSnapshot(data.stdout, enginesVersion)).toMatchSnapshot()
 
       // cleanup
       for (const engine in envVarMap) {
@@ -74,10 +73,10 @@ describe('version', () => {
       await ensureDir(enginesDir)
       const binaryPaths = await download({
         binaries: {
-          'migration-engine': enginesDir,
+          'schema-engine': enginesDir,
           'query-engine': enginesDir,
         },
-        version,
+        version: enginesVersion,
         failSilent: false,
       })
 
@@ -90,7 +89,7 @@ describe('version', () => {
       }
 
       const data = await ctx.cli('--version')
-      expect(cleanSnapshot(data.stdout, version)).toMatchSnapshot()
+      expect(cleanSnapshot(data.stdout, enginesVersion)).toMatchSnapshot()
 
       // cleanup
       for (const engine in envVarMap) {
@@ -113,7 +112,7 @@ function cleanSnapshot(str: string, versionOverride?: string): string {
   str = str.replace(/\(at (.*engines)(\/|\\)/g, '(at sanitized_path/')
 
   // TODO: replace '[a-z0-9]{40}' with 'ENGINE_VERSION'.
-  // Currently, the engine version of @prisma/prisma-fmt-wasm isn't necessarily the same as the enginesVersion
+  // Currently, the engine version of @prisma/prisma-schema-wasm isn't necessarily the same as the enginesVersion
   str = str.replace(/([0-9]+\.[0-9]+\.[0-9]+-[0-9]+\.)([a-z0-9-]+)/g, 'CLI_VERSION.ENGINE_VERSION')
 
   // replace engine version hash

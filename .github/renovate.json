@@ -1,14 +1,14 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", ":disableRateLimiting", ":noUnscheduledUpdates"],
+  "extends": ["config:base", ":disableRateLimiting", ":noUnscheduledUpdates", ":pinAllExceptPeerDependencies"],
   "schedule": ["before 7am every weekday", "every weekend"],
   "semanticCommits": "enabled",
   "reviewers": ["@Jolg42", "@millsp", "@aqrln", "@SevInf", "@jkomyno"],
   "rebaseWhen": "conflicted",
   "rangeStrategy": "pin",
-  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-fmt-wasm", "redis", "@types/redis"],
+  "ignoreDeps": ["sqlite3", "@prisma/engines-version", "@prisma/prisma-schema-wasm", "redis", "@types/redis"],
   "constraints": {
-    "pnpm": "7"
+    "pnpm": "8"
   },
   "packageRules": [
     {
@@ -73,7 +73,6 @@
         "string-width",
         "strip-ansi",
         "strip-indent",
-        "temp-write",
         "tempy",
         "terminal-link"
       ],
@@ -113,7 +112,6 @@
         "string-width",
         "strip-ansi",
         "strip-indent",
-        "temp-write",
         "tempy",
         "terminal-link"
       ],
@@ -168,20 +166,6 @@
     {
       "groupName": "esbuild packages",
       "packagePatterns": ["^esbuild"],
-      "schedule": ["before 7am on Wednesday"]
-    },
-    {
-      "groupName": "react-prisma",
-      "automerge": "true",
-      "paths": ["packages/react-prisma/**"],
-      "rangeStrategy": "replace",
-      "schedule": ["before 7am on Wednesday"]
-    },
-    {
-      "groupName": "react-prisma peerDependencies: react >=17",
-      "paths": ["packages/react-prisma/**"],
-      "matchDepTypes": ["peerDependencies"],
-      "rangeStrategy": "widen",
       "schedule": ["before 7am on Wednesday"]
     },
     {

@@ -6,9 +6,9 @@ import { ensureDir } from 'fs-extra'
 import os from 'os'
 import path from 'path'
 
-import { BinaryType } from './download'
+import { BinaryType } from './BinaryType'
 
-const debug = Debug('prisma:cache-dir')
+const debug = Debug('prisma:fetch-engine:cache-dir')
 
 export async function getRootCacheDir(): Promise<string | null> {
   if (os.platform() === 'win32') {
@@ -50,13 +50,19 @@ export async function getCacheDir(channel: string, version: string, platform: st
   return cacheDir
 }
 
-export function getDownloadUrl(
-  channel: string,
-  version: string,
-  platform: Platform,
-  binaryName: string,
+export function getDownloadUrl({
+  channel,
+  version,
+  platform,
+  binaryName,
   extension = '.gz',
-): string {
+}: {
+  channel: string
+  version: string
+  platform: Platform
+  binaryName: string
+  extension?: string
+}): string {
   const baseUrl =
     process.env.PRISMA_BINARIES_MIRROR || // TODO: remove this
     process.env.PRISMA_ENGINES_MIRROR ||

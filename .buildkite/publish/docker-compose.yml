@@ -1,7 +1,7 @@
 version: '3.7'
 services:
   app:
-    image: node:14-buster
+    image: node:16-buster
     volumes:
       - ../../:/app
     working_dir: /app
@@ -46,7 +46,6 @@ services:
       - TEST_FUNCTIONAL_MONGO_URI=mongodb://root:prisma@mongo:27018/PRISMA_DB_NAME?authSource=admin
       - TEST_FUNCTIONAL_COCKROACH_URI=postgresql://prisma@cockroachdb:26257/PRISMA_DB_NAME
       # Other vars !\ If not defined, they cannot be accessed
-      # TODO: do an env var cleanup?
       - NPM_TOKEN
       # Used to create a tag the prisma-engines repository
       # After packages are published on npm
@@ -54,13 +53,8 @@ services:
       - BUILDKITE
       - BUILDKITE_TAG
       - BUILDKITE_BRANCH
-      - RELEASE_PROMOTE_DEV
       - ONLY_PACKAGES
-      - PUBLISH_BUILD=true
       - REDIS_URL
-      - MIGRATE_COMMIT
-      - PRISMA_CLIENT_JS_COMMIT
-      - PATCH_BRANCH
       - DRY_RUN
       - CI
       - PRISMA_TELEMETRY_INFORMATION="buildkite prisma publish"
@@ -68,6 +62,9 @@ services:
       - PRISMA_HIDE_UPDATE_MESSAGE="true"
       - SKIP_ECOSYSTEMTESTS_CHECK
       - SLACK_RELEASE_FEED_WEBHOOK
+      # TODO find why we need NODE_OPTIONS for Buildkite (we need it since Node v16)
+      # This is to avoid OOM errors like "FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory"
+      - NODE_OPTIONS="--max-old-space-size=8096"
     depends_on:
       - postgres
       - postgres_isolated
@@ -132,7 +129,7 @@ services:
       - '3307:3306'
 
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:d7486215316e352aecc6f34d4a3024017d79377e2a09545a7990b6aa4ea8d6a2
+    image: vitess/vttestserver:mysql80@sha256:5ec3cf0d8e1a96dc983ac4f2963340c9fed85e5b5181c16c6bc855febe5a6696
     restart: unless-stopped
     ports:
       - 33807:33807

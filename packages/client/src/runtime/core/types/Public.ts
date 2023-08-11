@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 
-import { GetResult, Operation } from './GetResult'
+import { GetResult, Operation } from './Result'
 import { Exact } from './Utils'
 
 /*
@@ -15,13 +15,14 @@ export type Args<T, F extends Operation> =
   : never
 
 export type Result<T, A, F extends Operation> =
-  T extends { [K: symbol]: { types: { operations: { [K in F]: { payload: any } } } } }
-  ? GetResult<T[symbol]['types']['operations'][F]['payload'], A, F>
+  T extends { [K: symbol]: { types: { payload: any } } }
+  ? GetResult<T[symbol]['types']['payload'], A, F>
   : never
 
-export type Payload<T, F extends Operation> =
-T extends { [K: symbol]: { types: { operations: { [K in F]: { payload: any } } } } }
-  ? T[symbol]['types']['operations'][F]['payload']
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export type Payload<T, F extends Operation = never> =
+  T extends { [K: symbol]: { types: { payload: any } } }
+  ? T[symbol]['types']['payload']
   : never
 
 // we don't expose our internal types to keep the API secret

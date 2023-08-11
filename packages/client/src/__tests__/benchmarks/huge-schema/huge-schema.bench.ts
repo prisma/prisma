@@ -9,24 +9,22 @@ import path from 'path'
 import { compileFile } from '../../../utils/compileFile'
 import { generateTestClient } from '../../../utils/getTestClient'
 
-const suite = withCodSpeed(new Benchmark.Suite('typescript'))
-// @ts-ignore
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-suite
-  .add('client generation ~50 Models', {
-    defer: true,
-    fn: function (deferred) {
-      generateTestClient(__dirname)
-        .then(() => {
-          deferred.resolve()
-        })
-        .catch((err) => {
-          console.error(err)
-          process.exit(1)
-        })
-    },
-  })
-  .add('typescript compilation ~50 Models', {
+let suite = withCodSpeed(new Benchmark.Suite('typescript')).add('client generation ~50 Models', {
+  defer: true,
+  fn: function (deferred) {
+    generateTestClient({ projectDir: __dirname })
+      .then(() => {
+        deferred.resolve()
+      })
+      .catch((err) => {
+        console.error(err)
+        process.exit(1)
+      })
+  },
+})
+
+if (!process.env.CODSPEED_BENCHMARK) {
+  suite = suite.add('typescript compilation ~50 Models', {
     defer: true,
     fn: function (deferred) {
       compileFile(path.join(__dirname, './compile.ts'))
@@ -39,6 +37,10 @@ suite
         })
     },
   })
+}
+
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
+suite
   .on('cycle', (event) => {
     // Output benchmark result by converting benchmark result to string
     console.log(String(event.target))

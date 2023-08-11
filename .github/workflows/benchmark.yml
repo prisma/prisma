@@ -15,6 +15,8 @@ on:
       - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.github/ISSUE_TEMPLATE/**'
       - '.buildkite/**'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
@@ -28,6 +30,8 @@ on:
       - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.github/ISSUE_TEMPLATE/**'
       - '.buildkite/**'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
@@ -51,23 +55,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.4
+      - name: Install & build
+        uses: ./.github/actions/setup
         with:
-          version: 7
-
-      - uses: actions/setup-node@v3
-        with:
-          cache: 'pnpm'
-          node-version: '16'
-
-      - run: bash .github/workflows/scripts/setup.sh
-        env:
-          CI: true
-          SKIP_GIT: true
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-
-      #  This is required as setup.sh can modify pnpm-lock.yml
-      - run: rm -f ./pnpm-lock.yaml
+          node-version: ${{ matrix.node }}
+          pnpm-version: 8
 
       - name: Run benchmarks
         run: pnpm run bench
@@ -93,6 +85,8 @@ jobs:
         with:
           run: pnpm run bench-stdout-only
           token: ${{ secrets.CODSPEED_TOKEN }}
+        env:
+          CODSPEED_BENCHMARK: true
 
       - name: 'Set current job url in SLACK_FOOTER env var'
         if: ${{ failure() && github.ref == 'refs/heads/main' }}

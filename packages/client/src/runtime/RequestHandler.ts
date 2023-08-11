@@ -20,14 +20,12 @@ import {
 import { QueryEngineResult } from './core/engines/common/types/QueryEngine'
 import { throwValidationException } from './core/errorRendering/throwValidationException'
 import { hasBatchIndex } from './core/errors/ErrorWithBatchIndex'
+import { NotFoundError } from './core/errors/NotFoundError'
 import { createApplyBatchExtensionsFunction } from './core/extensions/applyQueryExtensions'
-import { applyResultExtensions } from './core/extensions/applyResultExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
-import { visitQueryResult } from './core/extensions/visitQueryResult'
 import { deserializeJsonResponse } from './core/jsonProtocol/deserializeJsonResponse'
 import { getBatchId } from './core/jsonProtocol/getBatchId'
 import { isWrite } from './core/jsonProtocol/isWrite'
-import { dmmfToJSModelName } from './core/model/utils/dmmfToJSModelName'
 import { PrismaPromiseInteractiveTransaction, PrismaPromiseTransaction } from './core/request/PrismaPromise'
 import { Action, JsArgs } from './core/types/JsApi'
 import { DataLoader } from './DataLoader'
@@ -35,7 +33,6 @@ import type { Client, Unpacker } from './getPrismaClient'
 import { CallSite } from './utils/CallSite'
 import { createErrorMessageWithContext } from './utils/createErrorMessageWithContext'
 import { deepGet } from './utils/deep-set'
-import { NotFoundError, RejectOnNotFound, throwIfNotFound } from './utils/rejectOnNotFound'
 
 const debug = Debug('prisma:client:request_handler')
 
@@ -46,7 +43,6 @@ export type RequestParams = {
   dataPath: string[]
   clientMethod: string
   callsite?: CallSite
-  rejectOnNotFound?: RejectOnNotFound
   transaction?: PrismaPromiseTransaction
   extensions: MergedExtensionsList
   args?: any
@@ -63,13 +59,6 @@ export type HandleErrorParams = {
   clientMethod: string
   callsite?: CallSite
   transaction?: PrismaPromiseTransaction
-}
-
-type ApplyExtensionsParams = {
-  result: object
-  modelName: string
-  args: JsArgs
-  extensions: MergedExtensionsList
 }
 
 export class RequestHandler {
@@ -144,29 +133,21 @@ export class RequestHandler {
 
   async request(params: RequestParams) {
     try {
-      const result = await this.dataloader.request(params)
-      throwIfNotFound(result, params.clientMethod, params.modelName, params.rejectOnNotFound)
-      return result
+      return await this.dataloader.request(params)
     } catch (error) {
       const { clientMethod, callsite, transaction, args } = params
       this.handleAndLogRequestError({ error, clientMethod, callsite, transaction, args })
     }
   }
 
-  mapQueryEngineResult(
-    { dataPath, unpacker, modelName, args, extensions }: RequestParams,
-    response: QueryEngineResult<any>,
-  ) {
+  mapQueryEngineResult({ dataPath, unpacker }: RequestParams, response: QueryEngineResult<any>) {
     const data = response?.data
     const elapsed = response?.elapsed
 
     /**
      * Unpack
      */
-    let result = this.unpack(data, dataPath, unpacker)
-    if (modelName) {
-      result = this.applyResultExtensions({ result, modelName, args, extensions })
-    }
+    const result = this.unpack(data, dataPath, unpacker)
     if (process.env.PRISMA_CLIENT_GET_TIME) {
       return { data: result, elapsed }
     }
@@ -276,26 +257,6 @@ export class RequestHandler {
     const deserializeResponse = deserializeJsonResponse(deepGet(response, pathForGet))
 
     return unpacker ? unpacker(deserializeResponse) : deserializeResponse
-  }
-
-  applyResultExtensions({ result, modelName, args, extensions }: ApplyExtensionsParams) {
-    if (extensions.isEmpty() || result == null) {
-      return result
-    }
-    const model = this.client._runtimeDataModel.models[modelName]
-    if (!model) {
-      return result
-    }
-    return visitQueryResult({
-      result,
-      args: args ?? {},
-      modelName,
-      runtimeDataModel: this.client._runtimeDataModel,
-      visitor(value, dmmfModelName, args) {
-        const modelName = dmmfToJSModelName(dmmfModelName)
-        return applyResultExtensions({ result: value, modelName, select: args.select, extensions })
-      },
-    })
   }
 
   get [Symbol.toStringTag]() {
