@@ -108,14 +108,26 @@ type DynamicResultExtensionData<TypeMap extends TypeMapDef, M extends PropertyKe
 
 /** Model */
 
-type DynamicModelExtensionArgs<M_, TypeMap extends TypeMapDef, ExtArgs extends Record<string, any>> = {
+type DynamicModelExtensionArgs<M_, TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
   [K in keyof M_]:
     K extends '$allModels'
     ? & { [P in keyof M_[K]]?: unknown }
       & { [K: symbol]: {} }
     : K extends TypeMap['meta']['modelProps']
       ? & { [P in keyof M_[K]]?: unknown }
-        & { [K: symbol]: { ctx: DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, K>, ExtArgs> & { name: ModelKey<TypeMap, K> } } }
+        & {
+            [K: symbol]: {
+              ctx: & DynamicModelExtensionThis<TypeMap, ModelKey<TypeMap, K>, ExtArgs>
+                   & { $parent: DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs> } 
+                   & { $name: ModelKey<TypeMap, K> }
+                   & {
+                      /**
+                       * @deprecated Use `$name` instead.
+                       */
+                      name: ModelKey<TypeMap, K>
+                    }
+            }
+          }
       : never
 }
 
@@ -163,7 +175,10 @@ type DynamicModelExtensionFnResultNull<P extends PropertyKey> =
 type DynamicClientExtensionArgs<C_, TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
   [P in keyof C_]: unknown
 } & {
-  [K: symbol]: { ctx: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList> }
+  [K: symbol]: {
+    ctx: & Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList>
+         & { $parent: Optional<DynamicClientExtensionThis<TypeMap, TypeMapCb, ExtArgs>, ITXClientDenyList> }
+  }
 }
 
 type DynamicClientExtensionThis<TypeMap extends TypeMapDef, TypeMapCb extends TypeMapCbDef, ExtArgs extends Record<string, any>> = {
@@ -208,7 +223,7 @@ export interface ExtendsHook<Variant extends 'extends' | 'define', TypeMapCb ext
         name?: string
         query?: DynamicQueryExtensionArgs<Q_, TypeMap>
         result?: DynamicResultExtensionArgs<R_, TypeMap> & R
-        model?: DynamicModelExtensionArgs<M_, TypeMap, ExtArgs> & M
+        model?: DynamicModelExtensionArgs<M_, TypeMap, TypeMapCb, ExtArgs> & M
         client?: DynamicClientExtensionArgs<C_, TypeMap, TypeMapCb, ExtArgs> & C
       }
   ): {

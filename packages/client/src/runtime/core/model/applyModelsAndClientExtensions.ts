@@ -23,7 +23,11 @@ const rawClient = Symbol()
  * @returns a proxy to access models
  */
 export function applyModelsAndClientExtensions(client: Client) {
-  const layers = [modelsLayer(client), addProperty(rawClient, () => client)]
+  const layers = [
+    modelsLayer(client),
+    addProperty(rawClient, () => client),
+    addProperty('$parent', () => client._appliedParent),
+  ]
   const clientExtensions = client._extensions.getAllClientExtensions()
   if (clientExtensions) {
     layers.push(addObjectProperties(clientExtensions))

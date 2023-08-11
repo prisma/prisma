@@ -268,7 +268,6 @@ List of directories in the monorepo
 - integration-tests
 - internals
 - migrate
-- react-prisma
 
 ## Legal
 

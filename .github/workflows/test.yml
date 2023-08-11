@@ -15,6 +15,7 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
+      - '.github/DISCUSSION_TEMPLATE/**'
       - '.buildkite/**'
       - '.dockerignore'
       - '*.bench.ts'
@@ -32,6 +33,7 @@ on:
       - '.github/ISSUE_TEMPLATE/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
+      - '.github/DISCUSSION_TEMPLATE/**'
       - '.buildkite/**'
       - '.dockerignore'
       - '*.bench.ts'
@@ -56,6 +58,14 @@ jobs:
       - id: detect
         run: ./.github/workflows/scripts/detect-jobs-to-run.js <<< '${{ steps.files.outputs.all }}'
 
+      - name: Debug Pull Request Event
+        if: ${{ github.event_name == 'pull_request' }}
+        run: |
+          echo "Pull Request: ${{ github.event.pull_request.number }}"
+          echo "Pull Request Author: ${{ github.event.pull_request.user.login }}"
+          echo "Pull Request Author Association: ${{ github.event.pull_request.author_association }}"
+          echo "Pull Request Body contains /integration: ${{ contains(github.event.pull_request.body, '/integration') }}"
+
       - name: Find "ci test all" comment
         uses: peter-evans/find-comment@v2
         id: findTestAllComment
@@ -73,7 +83,20 @@ jobs:
           fi
 
       - name: Trigger npm release workflow for integration release
-        if: ${{ github.event_name == 'pull_request' && contains(github.event.pull_request.body, '/integration') && (github.event.pull_request.author_association == 'member' || github.event.pull_request.author_association == 'owner' || github.event.pull_request.author_association == 'collaborator') }}
+        # See https://docs.github.com/en/graphql/reference/enums
+        # https://michaelheap.com/github-actions-check-permission/
+        # Check if
+        # - the PR body contains `/integration`
+        # - the PR author has permissions to trigger the workflow (must be part of the org or a collaborator)
+        if: |
+          github.event_name == 'pull_request' &&
+          contains(github.event.pull_request.body, '/integration') && 
+          (
+            github.event.pull_request.author_association == 'OWNER' ||
+            github.event.pull_request.author_association == 'MEMBER' ||
+            github.event.pull_request.author_association == 'COLLABORATOR' ||
+            github.event.pull_request.author_association == 'CONTRIBUTOR'
+          )
         uses: benc-uk/workflow-dispatch@v1
         with:
           workflow: release-ci.yml
