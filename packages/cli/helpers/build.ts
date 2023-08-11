@@ -63,7 +63,7 @@ const cliBuildConfig: BuildOptions = {
   name: 'cli',
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
-  external: ['@prisma/engines'],
+  external: ['@prisma/engines', 'npm:@prisma/client'],
   plugins: [cliLifecyclePlugin],
   bundle: true,
   emitTypes: false,
