@@ -65,18 +65,20 @@ services:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
       - MYSQL_USER=prisma
+      - LIBMYSQL_ENABLE_CLEARTEXT_PLUGIN=1
     ports:
       - '3306:3306'
 
   mysql_isolated:
     image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1
+    command: --default-authentication-plugin=mysql_native_password --lower_case_table_names=1 --enable-cleartext-plugin
     restart: unless-stopped
     environment:
       - MYSQL_ROOT_PASSWORD=root
       - MYSQL_DATABASE=tests
       - MYSQL_USER=prisma
       - MYSQL_PASSWORD=prisma
+      - LIBMYSQL_ENABLE_CLEARTEXT_PLUGIN=1
     ports:
       - '3307:3306'
 
