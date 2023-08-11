@@ -38,7 +38,7 @@ body:
         // Add your schema.prisma
         ```
 
-        <!-- Paste your Prisma Cloent queries below. -->
+        <!-- Paste your Prisma Client queries below. -->
         ```ts
         // Add any relevant Prisma Client queries here
         ```
