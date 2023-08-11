@@ -9,7 +9,7 @@ import { SchemaEngine } from './SchemaEngine'
 import type { EngineArgs, EngineResults } from './types'
 import { NoSchemaFoundError } from './utils/errors'
 
-const packageJson = eval(`require('../package.json')`)
+import packageJson from '../package.json'
 
 export class Migrate {
   public engine: SchemaEngine
