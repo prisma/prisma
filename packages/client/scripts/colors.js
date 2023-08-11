@@ -1,11 +1,11 @@
 'use strict'
 
-const isObject = (val) =>
-  val !== null && typeof val === 'object' && !Array.isArray(val)
+const isObject = (val) => val !== null && typeof val === 'object' && !Array.isArray(val)
 
 // this is a modified version of https://github.com/chalk/ansi-regex (MIT License)
-/* eslint-disable-next-line no-control-regex */
-const ANSI_REGEX = /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g
+const ANSI_REGEX =
+  /* eslint-disable-next-line no-control-regex */
+  /[\u001b\u009b][[\]#;?()]*(?:(?:(?:[^\W_]*;?[^\W_]*)\u0007)|(?:(?:[0-9]{1,4}(;[0-9]{0,4})*)?[~0-9=<>cf-nqrtyA-PRZ]))/g
 
 const create = () => {
   const colors = { enabled: true, visible: true, styles: {}, keys: {} }
@@ -30,9 +30,7 @@ const create = () => {
   }
 
   const wrap = (style, input, newline) => {
-    return typeof style === 'function'
-      ? style(input)
-      : style.wrap(input, newline)
+    return typeof style === 'function' ? style(input) : style.wrap(input, newline)
   }
 
   const style = (input, stack) => {
@@ -126,9 +124,7 @@ const create = () => {
     let fn = typeof color === 'string' ? colors[color] : color
 
     if (typeof fn !== 'function') {
-      throw new TypeError(
-        'Expected alias to be the name of an existing color (string) or a function',
-      )
+      throw new TypeError('Expected alias to be the name of an existing color (string) or a function')
     }
 
     if (!fn.stack) {

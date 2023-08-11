@@ -1,10 +1,10 @@
 import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
 import { migrateDb } from '../../__helpers__/migrateDb'
-
 // @ts-ignore trick to get typings at dev time
-import type { PrismaClient, Prisma } from './node_modules/.prisma/client'
+import type { Prisma, PrismaClient } from './node_modules/.prisma/client'
 
 let prisma: PrismaClient
 let PrismaUtil: typeof Prisma
@@ -14,7 +14,6 @@ describe('json-filtering(mysql)', () => {
     process.env.TEST_MYSQL_URI += '-json-filtering'
     await tearDownMysql(process.env.TEST_MYSQL_URI!)
     await migrateDb({
-      connectionString: process.env.TEST_MYSQL_URI!,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()

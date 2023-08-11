@@ -1,8 +1,9 @@
-import fs from 'fs'
-import { generateInFolder } from '../src/utils/generateInFolder'
 import arg from 'arg'
-import chalk from 'chalk'
+import fs from 'fs'
+import { underline } from 'kleur/colors'
 import path from 'path'
+
+import { generateInFolder } from '../src/utils/generateInFolder'
 
 async function main() {
   const args = arg({
@@ -34,9 +35,7 @@ async function main() {
   })
 
   console.log(
-    `Generated Prisma Client ${chalk.underline(useLocalRuntime ? 'with' : 'without')} local runtime in ${time.toFixed(
-      3,
-    )}ms`,
+    `Generated Prisma Client ${underline(useLocalRuntime ? 'with' : 'without')} local runtime in ${time.toFixed(3)}ms`,
   )
 }
 

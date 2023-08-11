@@ -1,19 +1,18 @@
-import { ClientEngineType } from '@prisma/sdk'
-import path from 'path'
+import { pathToPosix } from '@prisma/internals'
 
 /**
  * Builds a `dirname` variable that holds the location of the generated client.
- * @param clientEngineType
+ * @param edge
  * @param relativeOutdir
  * @param runtimeDir
  * @returns
  */
-export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir: string, runtimeDir: string) {
-  if (clientEngineType !== ClientEngineType.DataProxy) {
-    return buildDirnameFind(relativeOutdir, runtimeDir)
+export function buildDirname(edge: boolean, relativeOutdir: string) {
+  if (edge === true) {
+    return buildDirnameDefault()
   }
 
-  return buildDirnameDefault()
+  return buildDirnameFind(relativeOutdir)
 }
 
 /**
@@ -23,22 +22,32 @@ export function buildDirname(clientEngineType: ClientEngineType, relativeOutdir:
  * a build step for platforms like Vercel or Netlify. On top of that, the
  * feature is especially useful for Next.js/Webpack users since the client gets
  * moved and copied out of its original spot. It all fails, it falls-back to
- * `__dirname`, which is never available on bundles.
+ * `findSync`, when `__dirname` is not available (eg. bundle, electron) or
+ * nothing has been found around `__dirname`.
+ *
+ * @see /e2e/schema-not-found-sst-electron/readme.md (tests)
  * @param relativeOutdir
  * @param runtimePath
  * @returns
  */
-function buildDirnameFind(relativeOutdir: string, runtimePath: string) {
-  // potential client location on serverless envs
-  const slsRelativeOutputDir = relativeOutdir.split(path.sep).slice(1).join(path.sep)
-
+function buildDirnameFind(relativeOutdir: string) {
   return `
-const { findSync } = require('${runtimePath}')
+const fs = require('fs')
 
-const dirname = findSync(process.cwd(), [
-    ${JSON.stringify(relativeOutdir)},
-    ${JSON.stringify(slsRelativeOutputDir)},
-], ['d'], ['d'], 1)[0] || __dirname`
+config.dirname = __dirname
+if (!fs.existsSync(path.join(__dirname, 'schema.prisma'))) {
+  const alternativePaths = [
+    ${JSON.stringify(pathToPosix(relativeOutdir))},
+    ${JSON.stringify(pathToPosix(relativeOutdir).split('/').slice(1).join('/'))},
+  ]
+  
+  const alternativePath = alternativePaths.find((altPath) => {
+    return fs.existsSync(path.join(process.cwd(), altPath, 'schema.prisma'))
+  }) ?? alternativePaths[0]
+
+  config.dirname = path.join(process.cwd(), alternativePath)
+  config.isBundled = true
+}`
 }
 
 /**
@@ -46,5 +55,5 @@ const dirname = findSync(process.cwd(), [
  * @returns
  */
 function buildDirnameDefault() {
-  return `const dirname = '/'`
+  return `config.dirname = '/'`
 }

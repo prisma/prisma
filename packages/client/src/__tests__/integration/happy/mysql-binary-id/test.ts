@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownMysql } from '../../../../utils/setupMysql'
 import { migrateDb } from '../../__helpers__/migrateDb'
@@ -7,7 +8,6 @@ beforeAll(async () => {
   process.env.TEST_MYSQL_URI += '-mysql-binary-id'
   await tearDownMysql(process.env.TEST_MYSQL_URI!)
   await migrateDb({
-    connectionString: process.env.TEST_MYSQL_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
 })

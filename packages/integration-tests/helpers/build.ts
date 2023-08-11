@@ -1,3 +1,3 @@
 import { build } from '../../../helpers/compile/build'
 
-void build([{}])
+void build([{ name: 'default' }])

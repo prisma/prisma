@@ -1,20 +1,24 @@
-process.env.DEBUG = ''
-
-import Debug, { getLogs } from '..'
 import stripAnsi from 'strip-ansi'
+
 import { sanitizeTestLogs } from '../util'
 
 describe('debug', () => {
-  test('* works as expected', () => {
+  test('empty env var works as expected', async () => {
+    process.env.DEBUG = ''
+
+    const { Debug, getLogs } = await import('../index')
+
     const debug = Debug('my-namespace')
     const logs: string[] = []
+
     debug.log = (...args) => {
-      logs.push(stripAnsi(args[0]).trimStart())
+      logs.push(stripAnsi(`${args[0]}${args[1]}`).trim())
     }
+
     debug('Does it even log?')
     debug('I dont know')
 
-    expect(logs).toMatchInlineSnapshot(`Array []`)
+    expect(logs).toMatchInlineSnapshot(`[]`)
 
     expect(sanitizeTestLogs(getLogs())).toMatchInlineSnapshot(`
       "my-namespace Does it even log?

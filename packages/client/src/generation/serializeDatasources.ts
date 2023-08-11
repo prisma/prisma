@@ -1,4 +1,5 @@
 import type { DataSource } from '@prisma/generator-helper'
+
 import type { DatasourceOverwrite } from './extractSqliteSources'
 
 // this is NOT printing datasources, but just serializing the data source
@@ -19,9 +20,10 @@ export function serializeDatasources(datasources: DatasourceOverwrite[]): string
     .join('\n')
 }
 
+// only used in one test
 export function datasourceToDatasourceOverwrite(datasource: DataSource): DatasourceOverwrite {
   return {
     name: datasource.name,
-    url: datasource.url.fromEnvVar ? `env("${datasource.url.fromEnvVar}")` : datasource.url.value,
+    url: datasource.url.fromEnvVar ? `env("${datasource.url.fromEnvVar}")` : datasource.url.value!,
   }
 }

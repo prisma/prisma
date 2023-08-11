@@ -7,7 +7,7 @@ test('float-node-api', async () => {
   const db = new PrismaClient()
   await db.user.deleteMany()
   const users = await db.user.findMany()
-  expect(users).toMatchInlineSnapshot(`Array []`)
+  expect(users).toMatchInlineSnapshot(`[]`)
   // 0.9215686321258545
   const test1 = 0.9215686321258545
   const create = await db.user.create({

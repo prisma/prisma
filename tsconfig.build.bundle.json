@@ -1,0 +1,20 @@
+{
+  // useful for bundling because esbuild can then tree-shake via the paths
+  "extends": "./tsconfig.build.regular.json",
+  "compilerOptions": {
+    "paths": {
+      "@prisma/client": ["./packages/client/src"],
+      "@prisma/client/runtime/library": ["./packages/client/src/runtime"],
+      "@prisma/internals": ["./packages/internals/src"],
+      "@prisma/internals/dist/*": ["./packages/internals/src/*"],
+      "@prisma/migrate": ["./packages/migrate/src"],
+      "@prisma/generator-helper": ["./packages/generator-helper/src"],
+      "@prisma/debug": ["./packages/debug/src"],
+      "prisma": ["./packages/cli/src"],
+      "@prisma/get-platform": ["./packages/get-platform/src"],
+      "@prisma/fetch-engine": ["./packages/fetch-engine/src"],
+      "@prisma/engines": ["./packages/engines/src"],
+      "@prisma/instrumentation": ["./packages/instrumentation/src"]
+    }
+  }
+}

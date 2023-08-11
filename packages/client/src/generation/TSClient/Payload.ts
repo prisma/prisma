@@ -1,80 +1,51 @@
-import type { OutputType } from './Output'
-import indent from 'indent-string'
-import { DMMF } from '../../runtime/dmmf-types'
+import { hasOwnProperty } from '@prisma/internals'
 
-import { getModelArgName, getPayloadName, Projection, getArgName } from '../utils'
-import type { Generatable } from './Generatable'
+import { DMMFHelper } from '../dmmf'
+import { DMMF } from '../dmmf-types'
+import * as ts from '../ts-builders'
+import { extArgsParam, getPayloadName } from '../utils'
+import { lowerCase } from '../utils/common'
+import { buildModelOutputProperty } from './Output'
 
-export class PayloadType implements Generatable {
-  constructor(protected readonly type: OutputType, protected readonly skipFindMany = false) {}
+export function buildModelPayload(model: DMMF.Model, dmmf: DMMFHelper) {
+  const isComposite = hasOwnProperty(dmmf.typeMap, model.name)
 
-  public toTS(): string {
-    const { type } = this
-    const { name } = type
+  const objects = ts.objectType()
+  const scalars = ts.objectType()
+  const composites = ts.objectType()
 
-    const argsName = getArgName(name, false)
-
-    const include = this.renderRelations(Projection.include)
-    const select = this.renderRelations(Projection.select)
-
-    const findManyArg = this.skipFindMany ? '' : ` | ${getModelArgName(name, DMMF.ModelAction.findMany)}`
-
-    return `\
-export type ${getPayloadName(name)}<
-  S extends boolean | null | undefined | ${argsName},
-  U = keyof S
-    > = S extends true
-      ? ${name}
-  : S extends undefined
-  ? never
-  : S extends ${argsName}${findManyArg}
-  ?'include' extends U
-  ? ${name} ${include.length > 0 ? ` & ${include}` : ''}
-  : 'select' extends U
-  ? ${select}
-  : ${name}
-: ${name}
-`
+  for (const field of model.fields) {
+    if (field.kind === 'object') {
+      if (hasOwnProperty(dmmf.typeMap, field.type)) {
+        composites.add(buildModelOutputProperty(field, dmmf))
+      } else {
+        objects.add(buildModelOutputProperty(field, dmmf))
+      }
+    } else if (field.kind === 'enum' || field.kind === 'scalar') {
+      scalars.add(buildModelOutputProperty(field, dmmf, true))
+    }
   }
-  private renderRelations(projection: Projection): string {
-    const { type } = this
-    // TODO: can be optimized, we're calling the filter two times
-    const relations = type.fields.filter((f) => f.outputType.location === 'outputObjectTypes')
-    if (relations.length === 0 && projection === Projection.include) {
-      return ''
-    }
-    const selectPrefix =
-      projection === Projection.select
-        ? `P extends keyof ${type.name} ?${type.name} [P]
-: `
-        : ''
-    return `{
-  [P in TrueKeys<S['${projection}']>]: ${selectPrefix}
-  ${indent(
-    relations
-      .map(
-        (f) => `P extends '${f.name}'
-? ${this.wrapType(f, `${getPayloadName((f.outputType.type as DMMF.OutputType).name)}<S['${projection}'][P]>`)} :`,
-      )
-      .join('\n'),
-    6,
-  )} never
-} `
+
+  const scalarsType = isComposite
+    ? scalars
+    : ts
+        .namedType('$Extensions.GetResult')
+        .addGenericArgument(scalars)
+        .addGenericArgument(ts.namedType('ExtArgs').subKey('result').subKey(lowerCase(model.name)))
+
+  const payloadTypeDeclaration = ts.typeDeclaration(
+    getPayloadName(model.name, false),
+    ts
+      .objectType()
+      .add(ts.property('name', ts.stringLiteral(model.name)))
+      .add(ts.property('objects', objects))
+      .add(ts.property('scalars', scalarsType))
+      .add(ts.property('composites', composites)),
+  )
+
+  if (!isComposite) {
+    payloadTypeDeclaration.addGenericParameter(extArgsParam)
   }
-  private wrapType(field: DMMF.SchemaField, str: string): string {
-    const { outputType } = field
-    if (!field.isNullable && !outputType.isList) {
-      return str
-    }
-    if (outputType.isList) {
-      return `Array < ${str}> `
-    }
-    if (str === 'Null') {
-      return 'null'
-    }
-    if (field.isNullable) {
-      str += ' | null'
-    }
-    return str
-  }
+
+  return ts.moduleExport(payloadTypeDeclaration)
 }

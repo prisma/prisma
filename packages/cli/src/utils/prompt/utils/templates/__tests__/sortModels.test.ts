@@ -1,5 +1,6 @@
-import { sortModels } from '../sortModels'
 import type { DMMF } from '@prisma/generator-helper'
+
+import { sortModels } from '../sortModels'
 
 test('sortModels', () => {
   const models: DMMF.Model[] = [

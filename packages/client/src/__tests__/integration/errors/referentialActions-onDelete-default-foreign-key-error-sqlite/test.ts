@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
@@ -6,7 +7,6 @@ let prisma
 describe('referentialActions-onDelete-default-foreign-key-error(sqlite)', () => {
   beforeAll(async () => {
     await migrateDb({
-      connectionString: `file:./dev.db`,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
@@ -30,7 +30,7 @@ describe('referentialActions-onDelete-default-foreign-key-error(sqlite)', () => 
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like pinguins' },
+          create: { bio: 'I like penguins' },
         },
       },
     })
@@ -46,15 +46,15 @@ describe('referentialActions-onDelete-default-foreign-key-error(sqlite)', () => 
     } catch (e) {
       expect(e.message).toMatchInlineSnapshot(`
 
-Invalid \`prisma.user.delete()\` invocation in
-/client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-sqlite/test.ts:0:0
+        Invalid \`prisma.user.delete()\` invocation in
+        /client/src/__tests__/integration/errors/referentialActions-onDelete-default-foreign-key-error-sqlite/test.ts:0:0
 
-  38 expect(await prisma.user.findMany()).toHaveLength(1)
-  39 
-  40 try {
-→ 41   await prisma.user.delete(
-  Foreign key constraint failed on the field: \`foreign key\`
-`)
+          38 expect(await prisma.user.findMany()).toHaveLength(1)
+          39 
+          40 try {
+        → 41   await prisma.user.delete(
+        Foreign key constraint failed on the field: \`foreign key\`
+      `)
     }
   })
 })

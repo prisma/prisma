@@ -1,4 +1,5 @@
 import { generateTestClient } from '../../../../utils/getTestClient'
+
 test('blog-dot-env-root', async () => {
   await generateTestClient()
 

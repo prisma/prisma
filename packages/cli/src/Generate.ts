@@ -1,28 +1,32 @@
-/* eslint-disable eslint-comments/disable-enable-pair, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-assignment, @typescript-eslint/restrict-template-expressions */
 import { enginesVersion } from '@prisma/engines'
-import type { Command, Generator } from '@prisma/sdk'
 import {
   arg,
+  Command,
   format,
+  Generator,
   getCommandWithExecutor,
   getGenerators,
   getGeneratorSuccessMessage,
-  getSchemaPath,
   HelpError,
   highlightTS,
   isError,
   link,
+  loadEnvFile,
   logger,
   missingGeneratorMessage,
   parseEnvValue,
-} from '@prisma/sdk'
-import chalk from 'chalk'
+} from '@prisma/internals'
+import { getSchemaPathAndPrint } from '@prisma/migrate'
 import fs from 'fs'
+import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
+import os from 'os'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
+
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { simpleDebounce } from './utils/simpleDebounce'
+
 const pkg = eval(`require('../package.json')`)
 
 /**
@@ -36,26 +40,32 @@ export class Generate implements Command {
   private static help = format(`
 Generate artifacts (e.g. Prisma Client)
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma generate [options]
+  ${dim('$')} prisma generate [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
-  -h, --help   Display this help message
-    --schema   Custom path to your Prisma schema
-     --watch   Watch the Prisma schema and rerun after a change
+    -h, --help   Display this help message
+      --schema   Custom path to your Prisma schema
+  --accelerate   Enable Accelerate in the Prisma Client
+  --data-proxy   Enable the Data Proxy in the Prisma Client
+       --watch   Watch the Prisma schema and rerun after a change
+   --generator   Generator to use (may be provided multiple times)
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   With an existing Prisma schema
-    ${chalk.dim('$')} prisma generate
+    ${dim('$')} prisma generate
 
   Or specify a schema
-    ${chalk.dim('$')} prisma generate --schema=./schema.prisma
+    ${dim('$')} prisma generate --schema=./schema.prisma
+
+  Run the command with multiple specific generators
+    ${dim('$')} prisma generate --generator client1 --generator client2
 
   Watch Prisma schema file and rerun after each change
-    ${chalk.dim('$')} prisma generate --watch
+    ${dim('$')} prisma generate --watch
 
 `)
 
@@ -75,14 +85,7 @@ ${chalk.bold('Examples')}
       } catch (err) {
         this.hasGeneratorErrored = true
         generator.stop()
-        // This is an error received when the the client < 2.20 and the cli  >= 2.20, This was caused by a breaking change in the generators
-        if (err.message.includes('outputDir.endsWith is not a function')) {
-          message.push(
-            `This combination of Prisma CLI (>= 2.20) and Prisma Client (< 2.20) is not supported. Please update \`@prisma/client\` to ${pkg.version}   \n\n`,
-          )
-        } else {
-          message.push(`${err.message}\n\n`)
-        }
+        message.push(`${err.message}\n\n`)
       }
     }
 
@@ -95,6 +98,9 @@ ${chalk.bold('Examples')}
       '-h': '--help',
       '--watch': Boolean,
       '--schema': String,
+      '--data-proxy': Boolean,
+      '--accelerate': Boolean,
+      '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
       '--telemetry-information': String,
@@ -115,27 +121,10 @@ ${chalk.bold('Examples')}
 
     const watchMode = args['--watch'] || false
 
-    const schemaPath = await getSchemaPath(args['--schema'], { cwd })
-    if (!schemaPath) {
-      if (isPostinstall) {
-        logger.warn(`The postinstall script automatically ran \`prisma generate\` and did not find your \`prisma/schema.prisma\`.
-If you have a Prisma schema file in a custom path, you will need to run
-\`prisma generate --schema=./path/to/your/schema.prisma\` to generate Prisma Client.
-If you do not have a Prisma schema file yet, you can ignore this message.`)
-        return ''
-      }
-      throw new Error(
-        `Could not find a ${chalk.bold(
-          'schema.prisma',
-        )} file that is required for this command.\nYou can either provide it with ${chalk.greenBright(
-          '--schema',
-        )}, set it as \`prisma.schema\` in your package.json or put it into the default location ${chalk.greenBright(
-          './prisma/schema.prisma',
-        )} https://pris.ly/d/prisma-schema-location`,
-      )
-    }
+    loadEnvFile(args['--schema'], true)
 
-    logger.log(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
+    if (!schemaPath) return ''
 
     // TODO Extract logic from here
     let hasJsClient
@@ -147,6 +136,13 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
         printDownloadProgress: !watchMode,
         version: enginesVersion,
         cliVersion: pkg.version,
+        dataProxy:
+          !!args['--data-proxy'] ||
+          !!args['--accelerate'] ||
+          !!process.env.PRISMA_GENERATE_DATAPROXY ||
+          !!process.env.PRISMA_GENERATE_ACCELERATE,
+        generatorNames: args['--generator'],
+        postinstall: Boolean(args['--postinstall']),
       })
 
       if (!generators || generators.length === 0) {
@@ -169,9 +165,7 @@ If you do not have a Prisma schema file yet, you can ignore this message.`)
       }
     } catch (errGetGenerators) {
       if (isPostinstall) {
-        console.error(`${chalk.blueBright(
-          'info',
-        )} The postinstall script automatically ran \`prisma generate\`, which failed.
+        console.error(`${blue('info')} The postinstall script automatically ran \`prisma generate\`, which failed.
 The postinstall script still succeeds but won't generate the Prisma Client.
 Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
         return ''
@@ -200,13 +194,13 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
       }
     }
 
-    if (isPostinstall && printBreakingChangesMessage && logger.should.warn) {
+    if (isPostinstall && printBreakingChangesMessage && logger.should.warn()) {
       // skipping generate
       return `There have been breaking changes in Prisma Client since you updated last time.
 Please run \`prisma generate\` manually.`
     }
 
-    const watchingText = `\n${chalk.green('Watching...')} ${chalk.dim(schemaPath)}\n`
+    const watchingText = `\n${green('Watching...')} ${dim(schemaPath)}\n`
 
     if (!watchMode) {
       const prismaClientJSGenerator = generators?.find(
@@ -214,9 +208,20 @@ Please run \`prisma generate\` manually.`
       )
       let hint = ''
       if (prismaClientJSGenerator) {
+        const generator = prismaClientJSGenerator.options?.generator
+        const isDeno = generator?.previewFeatures.includes('deno') && !!globalThis.Deno
+        if (isDeno && !generator?.isCustomOutput) {
+          throw new Error(`Can't find output dir for generator ${bold(generator!.name)} with provider ${bold(
+            generator!.provider.value!,
+          )}.
+When using Deno, you need to define \`output\` in the client generator section of your schema.prisma file.`)
+        }
+
         const importPath = prismaClientJSGenerator.options?.generator?.isCustomOutput
           ? prefixRelativePathIfNecessary(
-              path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
+              replacePathSeparatorsIfNecessary(
+                path.relative(process.cwd(), parseEnvValue(prismaClientJSGenerator.options.generator.output!)),
+              ),
             )
           : '@prisma/client'
         const breakingChangesStr = printBreakingChangesMessage
@@ -227,8 +232,8 @@ ${breakingChangesMessage}`
 
         const versionsOutOfSync = clientGeneratorVersion && pkg.version !== clientGeneratorVersion
         const versionsWarning =
-          versionsOutOfSync && logger.should.warn
-            ? `\n\n${chalk.yellow.bold('warn')} Versions of ${chalk.bold(`prisma@${pkg.version}`)} and ${chalk.bold(
+          versionsOutOfSync && logger.should.warn()
+            ? `\n\n${yellow(bold('warn'))} Versions of ${bold(`prisma@${pkg.version}`)} and ${bold(
                 `@prisma/client@${clientGeneratorVersion}`,
               )} don't match.
 This might lead to unexpected behavior.
@@ -236,12 +241,32 @@ Please make sure they have the same version.`
             : ''
 
         hint = `You can now start using Prisma Client in your code. Reference: ${link('https://pris.ly/d/client')}
-${chalk.dim('```')}
+${dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
-${chalk.dim('```')}${breakingChangesStr}${versionsWarning}`
+${dim('```')}${
+          prismaClientJSGenerator.options?.dataProxy
+            ? `
+
+${
+  isDeno
+    ? 'To use Prisma Client with Deno and the Data Proxy, import it like this:'
+    : 'To use Prisma Client in edge runtimes like Cloudflare Workers or Vercel Edge Functions, import it like this:'
+}
+${dim('```')} 
+${highlightTS(`\
+import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'`)}
+${dim('```')}
+
+You will need an Accelerate or a Prisma Data Proxy connection string. See documentation: ${link(
+                'https://pris.ly/d/data-proxy',
+              )}
+`
+            : ''
+        }${breakingChangesStr}${versionsWarning}`
       }
+
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
 
       if (this.hasGeneratorErrored) {
@@ -267,12 +292,18 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               printDownloadProgress: !watchMode,
               version: enginesVersion,
               cliVersion: pkg.version,
+              dataProxy:
+                !!args['--data-proxy'] ||
+                !!args['--accelerate'] ||
+                !!process.env.PRISMA_GENERATE_DATAPROXY ||
+                !!process.env.PRISMA_GENERATE_ACCELERATE,
+              generatorNames: args['--generator'],
             })
 
             if (!generatorsWatch || generatorsWatch.length === 0) {
               this.logText += `${missingGeneratorMessage}\n`
             } else {
-              logUpdate(`\n${chalk.green('Building...')}\n\n${this.logText}`)
+              logUpdate(`\n${green('Building...')}\n\n${this.logText}`)
               try {
                 await this.runGenerate({
                   generators: generatorsWatch,
@@ -299,7 +330,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
   // help message
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Generate.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Generate.help}`)
     }
     return Generate.help
   }
@@ -335,4 +366,12 @@ function getCurrentClientVersion(): string | null {
   }
 
   return null
+}
+
+function replacePathSeparatorsIfNecessary(path: string): string {
+  const isWindows = os.platform() === 'win32'
+  if (isWindows) {
+    return path.replace(/\\/g, '/')
+  }
+  return path
 }

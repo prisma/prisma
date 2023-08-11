@@ -1,0 +1,9 @@
+datasource db {
+  provider = "cockroachdb"
+  url      = env("TEST_COCKROACH_URI_MIGRATE")
+}
+
+model Blog {
+  id          Int @id
+  viewCount20 Int
+}

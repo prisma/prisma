@@ -1,35 +1,12 @@
-import type { BuildOptions } from '../../../helpers/compile/build'
-import { run } from '../../../helpers/compile/build'
-import { build } from '../../../helpers/compile/build'
-import { copySync } from 'fs-extra'
-import path from 'path'
 import type * as esbuild from 'esbuild'
 import fs from 'fs'
-import { promisify } from 'util'
+import { copy } from 'fs-extra'
 import lineReplace from 'line-replace'
+import path from 'path'
 
-const copyFile = promisify(fs.copyFile)
-
-/**
- * The CLI wants to bundle everything, including @prisma/sdk and @prisma/studio.
- * For that reason, it sets all its dependencies as devDependencies.
- *
- * Problem: @prisma/studio has a peerDependency to @prisma/sdk. Because the CLI
- * doesn't have @prisma/sdk as dependency, but rather a devDependency, esbuild
- * will bundle @prisma/studio but mark its imports to @prisma/sdk as external.
- *
- * Solution: Since that is not our intent, and we want @prisma/studio to share
- * the same @prisma/sdk version that is bundled in the CLI, we have this plugin.
- */
-const resolveHelperPlugin: esbuild.Plugin = {
-  name: 'resolveHelperPlugin',
-  setup(build) {
-    // for any import of @prisma/sdk, resolve to this one
-    build.onResolve({ filter: /^@prisma\/sdk$/ }, () => {
-      return { path: require.resolve('@prisma/sdk') }
-    })
-  },
-}
+import type { BuildOptions } from '../../../helpers/compile/build'
+import { build } from '../../../helpers/compile/build'
+import { run } from '../../../helpers/compile/run'
 
 /**
  * Manages the extra actions that are needed for the CLI to work
@@ -37,7 +14,7 @@ const resolveHelperPlugin: esbuild.Plugin = {
 const cliLifecyclePlugin: esbuild.Plugin = {
   name: 'cliLifecyclePlugin',
   setup(build) {
-    // we only do this for the first oen of the builds
+    // we only do this for the first one of the builds
     if (build.initialOptions?.format === 'esm') return
 
     build.onStart(async () => {
@@ -47,19 +24,32 @@ const cliLifecyclePlugin: esbuild.Plugin = {
 
     build.onEnd(async () => {
       // we copy the contents from @prisma/studio to build
-      copySync(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
+      await copy(path.join(require.resolve('@prisma/studio/package.json'), '../dist'), './build/public', {
         recursive: true,
         overwrite: true,
       })
 
       // we copy the contents from checkpoint-client to build
-      await copyFile(
+      await fs.promises.copyFile(
         path.join(require.resolve('checkpoint-client/package.json'), '../dist/child.js'),
         './build/child.js',
       )
 
       // we copy the contents from xdg-open to build
-      await copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
+      await fs.promises.copyFile(path.join(require.resolve('open/package.json'), '../xdg-open'), './build/xdg-open')
+
+      // as a convention, we install all Prisma's Wasm modules in the internals package
+      const wasmResolveDir = path.join(__dirname, '..', '..', 'internals', 'node_modules')
+
+      // TODO: create a glob helper for this to import all the wasm modules having pattern /^@prisma\/.*-wasm$/
+      const prismaWasmFile = path.join(
+        wasmResolveDir,
+        '@prisma',
+        'prisma-schema-wasm',
+        'src',
+        'prisma_schema_build_bg.wasm',
+      )
+      await fs.promises.copyFile(prismaWasmFile, './build/prisma_schema_build_bg.wasm')
 
       await replaceFirstLine('./build/index.js', '#!/usr/bin/env node\n')
 
@@ -70,29 +60,25 @@ const cliLifecyclePlugin: esbuild.Plugin = {
 
 // we define the config for cli
 const cliBuildConfig: BuildOptions = {
+  name: 'cli',
   entryPoints: ['src/bin.ts'],
   outfile: 'build/index',
-  external: ['@prisma/engines', '_http_common'],
-  plugins: [resolveHelperPlugin, cliLifecyclePlugin],
+  external: ['@prisma/engines'],
+  plugins: [cliLifecyclePlugin],
   bundle: true,
+  emitTypes: false,
 }
 
 // we define the config for preinstall
 const preinstallBuildConfig: BuildOptions = {
+  name: 'preinstall',
   entryPoints: ['scripts/preinstall.js'],
   outfile: 'preinstall/index',
   bundle: true,
+  emitTypes: false,
 }
 
-// we define the config for install
-const installBuildConfig: BuildOptions = {
-  entryPoints: ['scripts/install.js'],
-  outfile: 'install/index',
-  bundle: true,
-  minify: true,
-}
-
-void build([cliBuildConfig, preinstallBuildConfig, installBuildConfig])
+void build([cliBuildConfig, preinstallBuildConfig])
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
 

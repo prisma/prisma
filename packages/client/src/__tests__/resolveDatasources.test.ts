@@ -1,4 +1,5 @@
 import type { DataSource } from '@prisma/generator-helper'
+
 import { datasourceToDatasourceOverwrite, serializeDatasources } from '../generation/serializeDatasources'
 import { absolutizeRelativePath } from '../utils/resolveDatasources'
 
@@ -37,7 +38,7 @@ const datasources: DataSource[] = [
     },
     activeProvider: 'sqlite',
     provider: 'sqlite',
-    config: {},
+    schemas: [],
   },
   {
     name: 'db2',
@@ -47,7 +48,7 @@ const datasources: DataSource[] = [
     },
     activeProvider: 'sqlite',
     provider: 'sqlite',
-    config: {},
+    schemas: [],
   },
   {
     name: 'db3',
@@ -57,7 +58,7 @@ const datasources: DataSource[] = [
     },
     activeProvider: 'mysql',
     provider: 'mysql',
-    config: {},
+    schemas: [],
   },
   {
     name: 'db4',
@@ -67,7 +68,7 @@ const datasources: DataSource[] = [
     },
     activeProvider: 'postgresql',
     provider: 'postgresql',
-    config: {},
+    schemas: [],
   },
 ]
 

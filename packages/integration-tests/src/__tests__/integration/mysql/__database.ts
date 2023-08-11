@@ -1,5 +1,6 @@
-import { uriToCredentials } from '@prisma/sdk'
+import { uriToCredentials } from '@prisma/internals'
 import mariadb from 'mariadb'
+
 import type { Context, Input } from '../../__helpers__/integrationTest'
 
 export const database = {
@@ -23,12 +24,13 @@ export const database = {
     CREATE DATABASE ${ctx.id};
     USE ${ctx.id};`
     await db.query(sqlUp + sqlScenario)
+    await db.end()
   },
   close: (db) => db.end(),
 } as Input<mariadb.Connection>['database']
 
 function getConnectionInfo(ctx: Context) {
-  const serviceConnectionString = process.env.TEST_MYSQL_BASE_URI || 'mysql://root:root@localhost:3306'
+  const serviceConnectionString = process.env.TEST_MYSQL_BASE_URI!
   const connectionString = `${serviceConnectionString}/${ctx.id}`
   const credentials = uriToCredentials(connectionString)
 

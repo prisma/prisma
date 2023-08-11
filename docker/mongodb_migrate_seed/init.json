@@ -1,0 +1,46 @@
+[
+  {
+    "name": "Jane Smith",
+    "email": "1@prisma.io",
+    "admin": true,
+    "numberOrString1": 1234,
+    "hobbies": [
+      {
+        "name": "Swimming",
+        "tags": ["tag"],
+        "numberOrString2": 1234,
+        "objects": [
+          {
+            "name": "Object 1",
+            "tags": ["tag"],
+            "numberOrString3": 1234
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "John Smith",
+    "email": "2@prisma.io",
+    "admin": false,
+    "numberOrString1": "567",
+    "hobbies": [
+      {
+        "name": "Running",
+        "tags": ["tag"],
+        "numberOrString2": "567",
+        "objects": [
+          {
+            "name": "Object 1",
+            "tags": ["tag"],
+            "numberOrString3": "567"
+          }
+        ]
+      },
+      {
+        "name": "Coding",
+        "tags": ["tag"]
+      }
+    ]
+  }
+]

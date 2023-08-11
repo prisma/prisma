@@ -1,6 +1,5 @@
-import { Post, Prisma, PrismaClient, User } from '@prisma/client'
-
-// tslint:disable
+import type { Post, User } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 
 // This file will not be executed, just compiled to check if the typings are valid
 async function main() {
@@ -24,36 +23,21 @@ async function main() {
 
   Prisma.prismaVersion.client
 
-  const x: Prisma.Sql = Prisma.sql`SELECT * FROM ${Prisma.raw(
-    'User',
-  )} WHERE 'id' in ${Prisma.join([1, 2, 3])} ${Prisma.empty} `
+  const x: Prisma.Sql = Prisma.sql`SELECT * FROM ${Prisma.raw('User')} WHERE 'id' in ${Prisma.join([1, 2, 3])} ${
+    Prisma.empty
+  } `
 
   const queryRaw1 = await prisma.$queryRaw`SELECT * FROM User WHERE id = 1`
   const queryRaw2 = await prisma.$queryRaw`SELECT * FROM User WHERE id = ${1}`
-  const queryRaw3 = await prisma.$queryRawUnsafe(
-    `SELECT * FROM User WHERE id = $1`,
-    2,
-  )
-  const queryRaw4 = await prisma.$queryRaw(
-    Prisma.sql`SELECT * FROM User WHERE id = ${1}`,
-  )
-  const queryRaw5 = await prisma.$queryRaw(
-    Prisma.sql`SELECT * FROM User ${Prisma.sql`WHERE id = ${1}`}`,
-  )
+  const queryRaw3 = await prisma.$queryRawUnsafe(`SELECT * FROM User WHERE id = $1`, 2)
+  const queryRaw4 = await prisma.$queryRaw(Prisma.sql`SELECT * FROM User WHERE id = ${1}`)
+  const queryRaw5 = await prisma.$queryRaw(Prisma.sql`SELECT * FROM User ${Prisma.sql`WHERE id = ${1}`}`)
 
   const executeRaw1 = await prisma.$executeRaw`SELECT * FROM User WHERE id = 1`
-  const executeRaw2 =
-    await prisma.$executeRaw`SELECT * FROM User WHERE id = ${1}`
-  const executeRaw3 = await prisma.$executeRawUnsafe(
-    `SELECT * FROM User WHERE id = $1`,
-    2,
-  )
-  const executeRaw4 = await prisma.$executeRaw(
-    Prisma.sql`SELECT * FROM User WHERE id = ${1}`,
-  )
-  const executeRaw5 = await prisma.$executeRaw(
-    Prisma.sql`SELECT * FROM User ${Prisma.sql`WHERE id = ${1}`}`,
-  )
+  const executeRaw2 = await prisma.$executeRaw`SELECT * FROM User WHERE id = ${1}`
+  const executeRaw3 = await prisma.$executeRawUnsafe(`SELECT * FROM User WHERE id = $1`, 2)
+  const executeRaw4 = await prisma.$executeRaw(Prisma.sql`SELECT * FROM User WHERE id = ${1}`)
+  const executeRaw5 = await prisma.$executeRaw(Prisma.sql`SELECT * FROM User ${Prisma.sql`WHERE id = ${1}`}`)
 
   const result1 = await prisma.user.findMany({
     where: {

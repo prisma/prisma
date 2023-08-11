@@ -1,15 +1,11 @@
-import { ClientEngineType } from '@prisma/sdk'
-
 /**
  * Builds a require statement for `path`.
- * @param clientEngineType
+ * @param edge
  * @returns
  */
-export function buildRequirePath(clientEngineType: ClientEngineType) {
-  if (clientEngineType !== ClientEngineType.DataProxy) {
-    return `
-const path = require('path')`
-  }
+export function buildRequirePath(edge: boolean) {
+  if (edge === true) return ''
 
-  return ''
+  return `
+  const path = require('path')`
 }

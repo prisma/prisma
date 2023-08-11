@@ -1,6 +1,6 @@
+import { createDatabase, credentialsToUri, uriToCredentials } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
-import { createDatabase, uriToCredentials, credentialsToUri } from '@prisma/sdk'
 import { Client } from 'pg'
 
 export type SetupParams = {

@@ -21,7 +21,7 @@ describe('middleware', () => {
 
     expect(allResults).toEqual([[], []])
 
-    db.$disconnect()
+    await db.$disconnect()
   })
 
   test('order', async () => {
@@ -48,39 +48,7 @@ describe('middleware', () => {
 
     expect(order).toEqual([1, 2, 3, 4, 1, 2, 3, 4])
 
-    db.$disconnect()
-  })
-
-  test('engine middleware', async () => {
-    const PrismaClient = await getTestClient()
-    const db = new PrismaClient()
-
-    const engineResults: any[] = []
-
-    db.$use('engine', async (params, next) => {
-      const result = await next(params)
-      engineResults.push(result)
-      return result
-    })
-
-    await db.user.findMany()
-    await db.post.findMany()
-    expect(engineResults.map((r) => r.data)).toEqual([
-      {
-        data: {
-          findManyUser: [],
-        },
-      },
-      {
-        data: {
-          findManyPost: [],
-        },
-      },
-    ])
-    expect(typeof engineResults[0].elapsed).toEqual('number')
-    expect(typeof engineResults[1].elapsed).toEqual('number')
-
-    db.$disconnect()
+    await db.$disconnect()
   })
 
   test('modify params', async () => {
@@ -101,8 +69,6 @@ describe('middleware', () => {
       return result
     })
 
-    const users = await db.user.findMany()
-    console.warn(users)
     // The name should be overwritten by the middleware
     const u = await db.user.findFirst({
       where: {
@@ -112,7 +78,42 @@ describe('middleware', () => {
     expect(u.id).toBe(user.id)
     await db.user.deleteMany()
 
-    db.$disconnect()
+    await db.$disconnect()
+  })
+
+  test('pass new params', async () => {
+    const PrismaClient = await getTestClient()
+    const db = new PrismaClient()
+
+    db.$use((params, next) => {
+      if (params.action === 'create' && params.model === 'User') {
+        return next({
+          ...params,
+          args: {
+            data: {
+              ...params.args.data,
+              name: 'set from middleware',
+            },
+          },
+        })
+      }
+      return next(params)
+    })
+
+    const { id } = await db.user.create({
+      data: {
+        email: 'test@test.com',
+      },
+    })
+
+    const user = await db.user.findFirst({
+      where: { id },
+    })
+
+    expect(user.name).toBe('set from middleware')
+
+    await db.user.deleteMany()
+    await db.$disconnect()
   })
 
   test('count unpack', async () => {
@@ -122,6 +123,22 @@ describe('middleware', () => {
     const result = await db.user.count()
     expect(typeof result).toBe('number')
 
-    db.$disconnect()
+    await db.$disconnect()
+  })
+
+  test('count action', async () => {
+    const PrismaClient = await getTestClient()
+    const db = new PrismaClient()
+
+    let action: string | undefined
+    db.$use((params, next) => {
+      action = params.action
+      return next(params)
+    })
+
+    await db.user.count()
+    expect(action).toBe('count')
+
+    await db.$disconnect()
   })
 })

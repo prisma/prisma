@@ -3,30 +3,30 @@ datasource my_db {
   url      = "file:dev.db"
 }
 
+model Location {
+  city String @default("")
+  id   Int    @id @default(autoincrement())
+  User User[]
+}
+
+model Post {
+  createdAt DateTime @default(dbgenerated("'1970-01-01 00:00:00'"))
+  email     String   @unique(map: "Post.email") @default("")
+  id        String   @id
+  name      String   @default("")
+  updatedAt DateTime @default(dbgenerated("'1970-01-01 00:00:00'"))
+  user      String?
+  User      User?    @relation(fields: [user], references: [id], onUpdate: NoAction)
+}
+
 model User {
-  email        String    @default("") @unique
+  email        String    @unique(map: "User.email") @default("")
   favoriteTree String    @default("ARBORVITAE")
   id           String    @id
   location     Int?
   name         String    @default("")
   permissions  String    @default("ADMIN")
   status       String    @default("")
-  Location     Location? @relation(fields: [location], references: [id])
   Post         Post[]
-}
-
-model Post {
-  createdAt DateTime @default(dbgenerated())
-  email     String   @default("") @unique
-  id        String   @id
-  name      String   @default("")
-  updatedAt DateTime @default(dbgenerated())
-  user      String?
-  User      User?    @relation(fields: [user], references: [id])
-}
-
-model Location {
-  city String @default("")
-  id   Int    @default(autoincrement()) @id
-  User User[]
+  Location     Location? @relation(fields: [location], references: [id], onUpdate: NoAction)
 }

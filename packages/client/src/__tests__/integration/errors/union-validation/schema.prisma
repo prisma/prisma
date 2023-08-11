@@ -19,7 +19,7 @@ model Organization {
 model Operator {
   id             String       @id @default(uuid())
   prefix         String       @unique
-  organizationId String
+  organizationId String       @unique
   organization   Organization @relation(fields: [organizationId], references: [id])
   accounts       Account[]
 }

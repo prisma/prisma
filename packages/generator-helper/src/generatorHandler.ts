@@ -1,5 +1,5 @@
-import type { GeneratorOptions, GeneratorManifest, JsonRPC, GeneratorConfig } from './types'
 import byline from './byline'
+import type { GeneratorConfig, GeneratorManifest, GeneratorOptions, JsonRPC } from './types'
 
 export interface Handler {
   onGenerate(options: GeneratorOptions): Promise<any>
@@ -24,8 +24,10 @@ export function generatorHandler(handler: Handler): void {
           jsonrpc: '2.0',
           error: {
             code: -32000,
-            message: e.stack || e.message,
-            data: null,
+            message: e.message,
+            data: {
+              stack: e.stack,
+            },
           },
           id: json.id,
         })
@@ -49,8 +51,10 @@ export function generatorHandler(handler: Handler): void {
             jsonrpc: '2.0',
             error: {
               code: -32000,
-              message: e.stack || e.message,
-              data: null,
+              message: e.message,
+              data: {
+                stack: e.stack,
+              },
             },
             id: json.id,
           })

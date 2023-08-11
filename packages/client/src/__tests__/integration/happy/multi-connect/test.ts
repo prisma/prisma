@@ -16,5 +16,5 @@ test('multi-connect', async () => {
   const result = await prisma.user.findMany()
 
   await prisma.$disconnect()
-  expect(result).toMatchInlineSnapshot(`Array []`)
+  expect(result).toMatchInlineSnapshot(`[]`)
 })

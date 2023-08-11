@@ -1,7 +1,6 @@
-import { PrismaClient } from '.'
 import { expectError } from 'tsd'
 
-// tslint:disable
+import { PrismaClient } from '.'
 
 const prisma = new PrismaClient({
   datasources: {
@@ -16,7 +15,7 @@ const prisma = new PrismaClient({
     await prisma.user.create({
       data: {
         info: {
-          x: new Date(),
+          x: () => '123',
         },
         email: '',
       },

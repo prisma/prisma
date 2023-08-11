@@ -1,46 +1,25 @@
-import { ClientEngineType } from '@prisma/sdk'
-import lzString from 'lz-string'
+import { DMMF } from '@prisma/generator-helper'
+
+import { dmmfToRuntimeDataModel } from '../../runtime/core/runtimeDataModel'
+import { escapeJson } from '../TSClient/helpers'
 
 /**
- * Creates the necessary declarations to embed the generated DMMF into the
- * generated client. It compresses the DMMF for the data proxy engine.
- * @param engineType
- * @param dmmf
+ * Given DMMF models, computes runtime datamodel from it and embeds
+ * it into generated client. Creates lazy `Prisma.dmmf` property for backward
+ * compatibility, which will dynamically compute DMMF.Datamodel from runtime
+ * datamodel when accessed.
+ * Note: Prisma client itself never uses `Prisma.dmmf` and uses runtime datamodel
+ * instead. We are preserving it only for backward compatibility with third party tools.
+ * If we remove it in a future major version, we can further optimize the format — client
+ * needs way less information that is present there at the moment
+ *
+ * @param datamodel
  * @returns
  */
-export function buildDMMF(engineType: ClientEngineType, dmmf: string) {
-  if (engineType === ClientEngineType.DataProxy) {
-    return buildCompressedDMMF(dmmf)
-  }
-
-  return buildUncompressedDMMF(dmmf)
-}
-
-/**
- * Build declarations for compressed DMMF exports
- * @param dmmf
- * @returns
- */
-function buildCompressedDMMF(dmmf: string) {
-  const compressedDMMF = lzString.compressToBase64(dmmf)
-
+export function buildRuntimeDataModel(datamodel: DMMF.Datamodel) {
+  const runtimeDataModel = dmmfToRuntimeDataModel(datamodel)
+  const datamodelString = escapeJson(JSON.stringify(runtimeDataModel))
   return `
-const compressedDMMF = '${compressedDMMF}'
-const decompressedDMMF = decompressFromBase64(compressedDMMF)
-// We are parsing 2 times, as we want independent objects, because
-// DMMFClass introduces circular references in the dmmf object
-const dmmf = JSON.parse(decompressedDMMF)
-exports.Prisma.dmmf = JSON.parse(decompressedDMMF)`
-}
-
-/**
- * Build declaration for regular DMMF exports
- * @param dmmf
- * @returns
- */
-function buildUncompressedDMMF(dmmf: string) {
-  return `
-const dmmfString = ${JSON.stringify(dmmf)}
-const dmmf = JSON.parse(dmmfString)
-exports.Prisma.dmmf = JSON.parse(dmmfString)`
+config.runtimeDataModel = JSON.parse(${JSON.stringify(datamodelString)})
+defineDmmfProperty(exports.Prisma, config.runtimeDataModel)`
 }

@@ -16,8 +16,6 @@ model Post {
   published Boolean  @default(false)
   author    User     @relation(fields: [authorId], references: [id])
   authorId  Int
-
-  @@map("PostDefaultOnDelete")
 }
 
 model Profile {
@@ -25,8 +23,6 @@ model Profile {
   bio    String?
   user   User    @relation(fields: [userId], references: [id])
   userId Int     @unique
-
-  @@map("ProfileDefaultOnDelete")
 }
 
 model User {
@@ -35,6 +31,4 @@ model User {
   name    String?
   posts   Post[]
   profile Profile?
-
-  @@map("UserDefaultOnDelete")
 }

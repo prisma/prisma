@@ -1,11 +1,8 @@
 import { DbCommand } from '../commands/DbCommand'
-import { DbSeed } from '../commands/DbSeed'
 
 it('no params should return help', async () => {
   const commandInstance = DbCommand.new({})
-  const spy = jest
-    .spyOn(commandInstance, 'help')
-    .mockImplementation(() => 'Help Me')
+  const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
   await commandInstance.parse([])
   expect(spy).toHaveBeenCalledTimes(1)
@@ -14,9 +11,7 @@ it('no params should return help', async () => {
 
 it('wrong flag', async () => {
   const commandInstance = DbCommand.new({})
-  const spy = jest
-    .spyOn(commandInstance, 'help')
-    .mockImplementation(() => 'Help Me')
+  const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
   await commandInstance.parse(['--something'])
   expect(spy).toHaveBeenCalledTimes(1)
@@ -25,9 +20,7 @@ it('wrong flag', async () => {
 
 it('help flag', async () => {
   const commandInstance = DbCommand.new({})
-  const spy = jest
-    .spyOn(commandInstance, 'help')
-    .mockImplementation(() => 'Help Me')
+  const spy = jest.spyOn(commandInstance, 'help').mockImplementation(() => 'Help Me')
 
   await commandInstance.parse(['--help'])
   expect(spy).toHaveBeenCalledTimes(1)
@@ -35,23 +28,5 @@ it('help flag', async () => {
 })
 
 it('unknown command', async () => {
-  await expect(
-    DbCommand.new({}).parse(['doesnotexist']),
-  ).resolves.toThrowError()
-})
-
-it('db seed with --preview-feature flag', async () => {
-  await expect(
-    DbCommand.new({
-      dev: DbSeed.new(),
-    }).parse(['dev', '--preview-feature']),
-  ).rejects.toThrowError()
-})
-
-it('db seed without --preview-feature flag', async () => {
-  await expect(
-    DbCommand.new({
-      dev: DbSeed.new(),
-    }).parse(['dev']),
-  ).rejects.toThrowError()
+  await expect(DbCommand.new({}).parse(['doesnotexist'])).resolves.toThrow()
 })

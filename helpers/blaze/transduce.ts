@@ -1,15 +1,17 @@
+/* eslint-disable @typescript-eslint/no-unsafe-argument */
+
 import type { L } from 'ts-toolbelt'
 
 const skip = Symbol('skip')
 
-function transduceSync<L extends L.List<I>, I, R>(
-  list: L & L.List<I>,
-  transformer: (item: I) => R | typeof skip,
-) {
+type SyncTransformer<I, R> = (item: I, key: number) => R | typeof skip
+type ASyncTransformer<I, R> = (item: I, key: number) => Promise<R | typeof skip>
+
+function transduceSync<I, R>(list: L.List<I>, transformer: SyncTransformer<I, R>) {
   const transduced = [] as R[]
 
   for (let i = 0; i < list.length; ++i) {
-    const transformed = transformer(list[i])
+    const transformed = transformer(list[i], i)
 
     if (transformed !== skip) {
       transduced[transduced.length] = transformed
@@ -19,14 +21,11 @@ function transduceSync<L extends L.List<I>, I, R>(
   return transduced
 }
 
-async function transduceAsync<L extends L.List<I>, I, R>(
-  list: L & L.List<I>,
-  transformer: (item: I) => Promise<R | typeof skip>,
-) {
+async function transduceAsync<I, R>(list: L.List<I>, transformer: ASyncTransformer<I, R>) {
   const transduced = [] as R[]
 
   for (let i = 0; i < list.length; ++i) {
-    const transformed = await transformer(list[i])
+    const transformed = await transformer(list[i], i)
 
     if (transformed !== skip) {
       transduced[transduced.length] = transformed
@@ -56,7 +55,6 @@ const Mapper =
  * (does not reduce at the same time)
  *
  * @see https://medium.com/javascript-scene/7985330fe73d
- *
  * @param list to transform
  * @param transformer to apply
  * @returns
@@ -82,4 +80,4 @@ const transduce = transduceSync as typeof transduceSync & {
 
 transduce.async = transduceAsync
 
-export { transduce, Filter, Mapper, skip }
+export { Filter, Mapper, skip, transduce }

@@ -15,7 +15,7 @@ test('disconnect-finally', async () => {
     return new Promise((resolve) => {
       main().finally(async () => {
         await prisma.$disconnect()
-        await res
+        await res // re-wakes the engine
         prisma.$disconnect()
         resolve(await res)
       })
@@ -24,4 +24,6 @@ test('disconnect-finally', async () => {
 
   const data = await run()
   expect(data).toMatchSnapshot()
+
+  await prisma.$disconnect()
 })

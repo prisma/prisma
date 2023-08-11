@@ -1,9 +1,11 @@
 import 'source-map-support/register'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 
 /* eslint-disable */
 // X is here to have a different line count in the transpiled js and ts
 type X = {}
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 test('source-map-support', async () => {
   const PrismaClient = await getTestClient()

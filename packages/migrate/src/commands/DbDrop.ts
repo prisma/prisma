@@ -1,11 +1,23 @@
-import type { Command } from '@prisma/sdk'
-import { arg, format, getSchemaPath, getSchemaDir, HelpError, isError, isCi, dropDatabase, link } from '@prisma/sdk'
-import path from 'path'
-import chalk from 'chalk'
+import {
+  arg,
+  canPrompt,
+  checkUnsupportedDataProxy,
+  Command,
+  dropDatabase,
+  format,
+  getSchemaDir,
+  HelpError,
+  isError,
+  link,
+  loadEnvFile,
+} from '@prisma/internals'
+import { bold, dim, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
-import { getDbInfo } from '../utils/ensureDatabaseExists'
+
+import { getDatasourceInfo } from '../utils/ensureDatabaseExists'
+import { DbDropNeedsForceError } from '../utils/errors'
 import { PreviewFlagError } from '../utils/flagErrors'
-import { NoSchemaFoundError, DbNeedsForceError } from '../utils/errors'
+import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
 
 export class DbDrop implements Command {
@@ -14,34 +26,34 @@ export class DbDrop implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : chalk.bold('💣  ')}Drop the database
+${process.platform === 'win32' ? '' : '💣  '}Drop the database
 
-${chalk.bold.yellow('WARNING')} ${chalk.bold(
+${bold(yellow('WARNING'))} ${bold(
     `Prisma db drop is currently in Preview (${link('https://pris.ly/d/preview')}).
 There may be bugs and it's not recommended to use it in production environments.`,
   )}
-${chalk.dim('When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.')}
+${dim('When using any of the subcommands below you need to explicitly opt-in via the --preview-feature flag.')}
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma db drop [options] --preview-feature
+  ${dim('$')} prisma db drop [options] --preview-feature
 
-${chalk.bold('Options')}
+${bold('Options')}
 
    -h, --help   Display this help message
      --schema   Custom path to your Prisma schema
   -f, --force   Skip the confirmation prompt
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   Drop the database
-  ${chalk.dim('$')} prisma db drop --preview-feature
+  ${dim('$')} prisma db drop --preview-feature
 
   Specify a schema
-  ${chalk.dim('$')} prisma db drop --preview-feature --schema=./schema.prisma
+  ${dim('$')} prisma db drop --preview-feature --schema=./schema.prisma
 
   Use --force to skip the confirmation prompt
-  ${chalk.dim('$')} prisma db drop --preview-feature --force
+  ${dim('$')} prisma db drop --preview-feature --force
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -59,6 +71,8 @@ ${chalk.bold('Examples')}
       return this.help(args.message)
     }
 
+    await checkUnsupportedDataProxy('db drop', args, true)
+
     if (args['--help']) {
       return this.help()
     }
@@ -67,49 +81,45 @@ ${chalk.bold('Examples')}
       throw new PreviewFlagError()
     }
 
-    const schemaPath = await getSchemaPath(args['--schema'])
+    loadEnvFile(args['--schema'], true)
 
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
+    const datasourceInfo = await getDatasourceInfo({ schemaPath, throwIfEnvError: true })
+    printDatasource({ datasourceInfo })
 
-    await printDatasource(schemaPath)
-
-    const dbInfo = await getDbInfo(schemaPath)
     const schemaDir = (await getSchemaDir(schemaPath))!
 
     console.info() // empty line
 
     if (!args['--force']) {
-      // We use prompts.inject() for testing in our CI
-      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
-        throw new DbNeedsForceError('drop')
+      if (!canPrompt()) {
+        throw new DbDropNeedsForceError('drop')
       }
 
-      // TODO for mssql
       const confirmation = await prompt({
         type: 'text',
         name: 'value',
-        message: `Enter the ${dbInfo.dbType} ${dbInfo.schemaWord} name "${dbInfo.dbName}" to drop it.\nLocation: "${
-          dbInfo.dbLocation
-        }".\n${chalk.red('All data will be lost')}.`,
+        message: `Enter the ${datasourceInfo.prettyProvider} database name "${
+          datasourceInfo.dbName
+        }" to drop it.\nLocation: "${datasourceInfo.dbLocation}".\n${red('All data will be lost')}.`,
       })
       console.info() // empty line
 
       if (!confirmation.value) {
         console.info('Drop cancelled.')
-        process.exit(0)
-      } else if (confirmation.value !== dbInfo.dbName) {
-        throw Error(`The ${dbInfo.schemaWord} name entered "${confirmation.value}" doesn't match "${dbInfo.dbName}".`)
+        // Return SIGINT exit code to signal that the process was cancelled.
+        process.exit(130)
+      } else if (confirmation.value !== datasourceInfo.dbName) {
+        throw Error(`The database name entered "${confirmation.value}" doesn't match "${datasourceInfo.dbName}".`)
       }
     }
 
-    if (await dropDatabase(dbInfo.url, schemaDir)) {
-      return `${process.platform === 'win32' ? '' : '🚀  '}The ${dbInfo.dbType} ${dbInfo.schemaWord} "${
-        dbInfo.dbName
-      }" from "${dbInfo.dbLocation}" was successfully dropped.\n`
+    // Url exists because we set `throwIfEnvErrors: true` in `getDatasourceInfo`
+    if (await dropDatabase(datasourceInfo.url!, schemaDir)) {
+      return `${process.platform === 'win32' ? '' : '🚀  '}The ${datasourceInfo.prettyProvider} database "${
+        datasourceInfo.dbName
+      }" from "${datasourceInfo.dbLocation}" was successfully dropped.\n`
     } else {
       return ''
     }
@@ -117,7 +127,7 @@ ${chalk.bold('Examples')}
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbDrop.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbDrop.help}`)
     }
     return DbDrop.help
   }

@@ -1,0 +1,10 @@
+datasource db {
+  provider = "postgres"
+  url      = env("TEST_POSTGRES_URI_MIGRATE")
+  schemas  = ["does-not-exist"]
+}
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["multiSchema"]
+}

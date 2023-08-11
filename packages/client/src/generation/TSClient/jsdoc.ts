@@ -1,6 +1,7 @@
 import type { DMMF } from '@prisma/generator-helper'
-import { capitalize, lowerCase } from '../../runtime/utils/common'
+
 import { getGroupByArgsName, getModelArgName } from '../utils'
+import { capitalize, lowerCase } from '../utils/common'
 
 export interface JSDocMethodBodyCtx {
   singular: string
@@ -120,9 +121,47 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
       where: (singular) => `Filter, which ${singular} to fetch.`,
     },
   },
+  findUniqueOrThrow: {
+    body: (ctx) =>
+      `Find one ${ctx.singular} that matches the filter or throw an error  with \`error.code='P2025'\` 
+    if no matches were found.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
+@example
+// Get one ${ctx.singular}
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  where: {
+    // ... provide filter here
+  }
+})`,
+    fields: {
+      where: (singular) => `Filter, which ${singular} to fetch.`,
+    },
+  },
   findFirst: {
     body: (ctx) =>
       `Find the first ${ctx.singular} that matches the filter.
+${undefinedNote}
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
+@example
+// Get one ${ctx.singular}
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  where: {
+    // ... provide filter here
+  }
+})`,
+    fields: {
+      where: (singular) => `Filter, which ${singular} to fetch.`,
+      orderBy: JSDocFields.orderBy,
+      cursor: (singular, plural) => addLinkToDocs(`Sets the position for searching for ${plural}.`, 'cursor'),
+      take: JSDocFields.take,
+      skip: JSDocFields.skip,
+      distinct: JSDocFields.distinct,
+    },
+  },
+  findFirstOrThrow: {
+    body: (ctx) =>
+      `Find the first ${ctx.singular} that matches the filter or
+throw \`PrismaKnownClientError\` with \`P2025\` code if no matches were found.
 ${undefinedNote}
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example
@@ -324,6 +363,39 @@ const { count } = await ${ctx.method}({
 `,
     fields: {
       where: (singular, plural) => `Filter which ${plural} to delete`,
+    },
+  },
+  aggregateRaw: {
+    body: (ctx) =>
+      `Perform aggregation operations on a ${ctx.singular}.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which aggregations you would like to apply.
+@example
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  pipeline: [
+    { $match: { status: "registered" } },
+    { $group: { _id: "$country", total: { $sum: 1 } } }
+  ]
+})`,
+    fields: {
+      pipeline: () =>
+        'An array of aggregation stages to process and transform the document stream via the aggregation pipeline. ${@link https://docs.mongodb.com/manual/reference/operator/aggregation-pipeline MongoDB Docs}.',
+      options: () =>
+        'Additional options to pass to the `aggregate` command ${@link https://docs.mongodb.com/manual/reference/command/aggregate/#command-fields MongoDB Docs}.',
+    },
+  },
+  findRaw: {
+    body: (ctx) =>
+      `Find zero or more ${ctx.plural} that matches the filter.
+@param {${getModelArgName(ctx.model.name, ctx.action)}} args - Select which filters you would like to apply.
+@example
+const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
+  filter: { age: { $gt: 25 } } 
+})`,
+    fields: {
+      filter: () =>
+        'The query predicate filter. If unspecified, then all documents in the collection will match the predicate. ${@link https://docs.mongodb.com/manual/reference/operator/query MongoDB Docs}.',
+      options: () =>
+        'Additional options to pass to the `find` command ${@link https://docs.mongodb.com/manual/reference/command/find/#command-fields MongoDB Docs}.',
     },
   },
 }

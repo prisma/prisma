@@ -45,12 +45,12 @@ describe('invalid options', () => {
     expect(() =>
       validatePrismaClientOptions(
         {
-          errorrFormat: 'minimal',
+          errorsFormat: 'minimal',
         } as any,
         ['db'],
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      Unknown property errorrFormat provided to PrismaClient constructor. Did you mean "errorFormat"?
+      Unknown property errorsFormat provided to PrismaClient constructor. Did you mean "errorFormat"?
       Read more at https://pris.ly/d/client-constructor
     `)
     expect(() =>
@@ -64,7 +64,7 @@ describe('invalid options', () => {
         ['db'],
       ),
     ).toThrowErrorMatchingInlineSnapshot(`
-      Unknown datasource asd provided to PrismaClient constructor.Available datasources: db
+      Unknown datasource asd provided to PrismaClient constructor. Available datasources: db
       Read more at https://pris.ly/d/client-constructor
     `)
     expect(() =>

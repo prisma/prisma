@@ -1,26 +1,30 @@
-import execa from 'execa'
-import * as esbuild from 'esbuild'
-import { flatten } from '../blaze/flatten'
-import { pipe } from '../blaze/pipe'
-import { map } from '../blaze/map'
-import { transduce } from '../blaze/transduce'
-import glob from 'glob'
-import path from 'path'
 import { watch as createWatcher } from 'chokidar'
-import { tscPlugin } from './plugins/tscPlugin'
-import { onErrorPlugin } from './plugins/onErrorPlugin'
-import { fixImportsPlugin } from './plugins/fixImportsPlugin'
+import * as esbuild from 'esbuild'
+import glob from 'globby'
+import path from 'path'
+
+import { debounce } from '../blaze/debounce'
+import { flatten } from '../blaze/flatten'
 import { handle } from '../blaze/handle'
-import { replaceWithPlugin } from './plugins/replaceWithPlugin'
+import { map } from '../blaze/map'
+import { omit } from '../blaze/omit'
+import { pipe } from '../blaze/pipe'
+import { transduce } from '../blaze/transduce'
+import { depCheckPlugin } from './plugins/depCheckPlugin'
+import { fixImportsPlugin } from './plugins/fixImportsPlugin'
+import { onErrorPlugin } from './plugins/onErrorPlugin'
+import { tscPlugin } from './plugins/tscPlugin'
 
 export type BuildResult = esbuild.BuildResult
 export type BuildOptions = esbuild.BuildOptions & {
+  name?: string
+  emitTypes?: boolean
   outbase?: never // we don't support this
 }
 
 const DEFAULT_BUILD_OPTIONS = {
   platform: 'node',
-  keepNames: true,
+  target: 'ES2020',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
   incremental: process.env.WATCH === 'true',
@@ -31,50 +35,21 @@ const DEFAULT_BUILD_OPTIONS = {
  * Apply defaults to allow us to build tree-shaken esm
  * @param options the original build options
  */
-const applyEsmDefaults = (options: BuildOptions): BuildOptions => ({
+const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
   ...DEFAULT_BUILD_OPTIONS,
-  format: 'esm',
-  target: 'esnext',
-  outExtension: { '.js': '.mjs' },
-  resolveExtensions: ['.ts', '.js', '.mjs', '.node'],
+  format: 'cjs',
+  outExtension: { '.js': '.js' },
+  resolveExtensions: ['.ts', '.js', '.node'],
   entryPoints: glob.sync('./src/**/*.{j,t}s', {
     ignore: ['./src/__tests__/**/*'],
   }),
   mainFields: ['module', 'main'],
   ...options,
   // outfile has precedence over outdir, hence these ternaries
-  outfile: options.outfile ? getEsmOutFile(options) : undefined,
-  outdir: options.outfile ? undefined : getEsmOutDir(options),
-  plugins: [...(options.plugins ?? []), fixImportsPlugin, onErrorPlugin],
-})
-
-/**
- * Apply defaults to allow compiling tree-shaken esm to cjs
- * @param options the original build options
- */
-const applyCjsDefaults = (options: BuildOptions): BuildOptions => ({
-  ...DEFAULT_BUILD_OPTIONS,
-  format: 'cjs',
-  target: 'es2018',
-  outExtension: { '.js': '.js' },
-  resolveExtensions: ['.mjs'],
-  mainFields: ['module'],
-  ...options,
-  // override the path to point it to the previously built esm
-  entryPoints: options.outfile
-    ? glob.sync(`./${getEsmOutFile(options)}.mjs`)
-    : glob.sync(`./${getEsmOutDir(options)}/**/*.mjs`),
-  // outfile has precedence over outdir, hence these ternaries
+  outfile: options.outfile ? getOutFile(options) : undefined,
   outdir: options.outfile ? undefined : getOutDir(options),
-  // we only produce typescript types on the second run (cjs)
-  plugins: [replacePlugin, ...(options.plugins ?? []), tscPlugin, onErrorPlugin],
+  plugins: [...(options.plugins ?? []), fixImportsPlugin, tscPlugin(options.emitTypes), onErrorPlugin],
 })
-
-// because we compile tree-shaken esm to cjs, we need to replace __require
-const replacePlugin = replaceWithPlugin([
-  [/var __require =.*?(?=var)/gs, ''], // remove the utility
-  [/__require(?!\w)/gs, 'require'], // replace calls to util
-])
 
 /**
  * Create two deferred builds for esm and cjs. The one follows the other:
@@ -87,8 +62,8 @@ function createBuildOptions(options: BuildOptions[]) {
   return flatten(
     map(options, (options) => [
       // we defer it so that we don't trigger glob immediately
-      () => applyEsmDefaults(options),
       () => applyCjsDefaults(options),
+      // ... here can go more steps
     ]),
   )
 }
@@ -130,7 +105,38 @@ function addDefaultOutDir(options: BuildOptions) {
  * Execute esbuild with all the configurations we pass
  */
 async function executeEsBuild(options: BuildOptions) {
-  return esbuild.build(options)
+  return [options, await esbuild.build(omit(options, ['name', 'emitTypes']))] as const
+}
+
+/**
+ * A blank esbuild run to do an analysis of our deps
+ */
+async function dependencyCheck(options: BuildOptions) {
+  // we only check our dependencies for a full build
+  if (process.env.DEV === 'true') return undefined
+  // Only run on test and publish pipelines on Buildkite
+  // Meaning we skip on GitHub Actions
+  // Because it's slow and runs for each job, during setup, making each job slower
+  if (process.env.CI && !process.env.BUILDKITE) return undefined
+
+  // we need to bundle everything to do the analysis
+  const buildPromise = esbuild.build({
+    entryPoints: glob.sync('**/*.{j,t}s', {
+      // We don't check dependencies in ecosystem tests because tests are isolated from the build.
+      ignore: ['./src/__tests__/**/*', './tests/e2e/**/*', './dist/**/*'],
+      gitignore: true,
+    }),
+    logLevel: 'silent', // there will be errors
+    bundle: true, // we bundle to get everything
+    write: false, // no need to write for analysis
+    outdir: 'out',
+    plugins: [depCheckPlugin(options.bundle)],
+  })
+
+  // we absolutely don't care if it has any errors
+  await buildPromise.catch(() => {})
+
+  return undefined
 }
 
 /**
@@ -138,9 +144,11 @@ async function executeEsBuild(options: BuildOptions) {
  * @param options
  */
 export async function build(options: BuildOptions[]) {
+  void transduce.async(options, dependencyCheck)
+
   return transduce.async(
     createBuildOptions(options),
-    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild, watch),
+    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild, watch(options)),
   )
 }
 
@@ -148,39 +156,59 @@ export async function build(options: BuildOptions[]) {
  * Executes the build and rebuilds what is necessary
  * @param builds
  */
-function watch(build: esbuild.BuildResult | esbuild.BuildIncremental | undefined) {
-  if (process.env.WATCH !== 'true') return build
+const watch =
+  (allOptions: BuildOptions[]) =>
+  ([options, result]: readonly [BuildOptions, esbuild.BuildResult | esbuild.BuildIncremental]) => {
+    if (process.env.WATCH !== 'true') return result
 
-  // prepare the incremental builds watcher
-  const watched = getWatchedFiles(build)
-  const watcher = createWatcher(watched, {
-    ignoreInitial: true,
-    useFsEvents: true,
-  })
+    // common chokidar options for the watchers
+    const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*', './package.json'] }
 
-  watcher.once('all', async () => {
-    const timeBefore = Date.now()
+    // prepare the incremental builds watcher
+    const watched = getWatchedFiles(result)
+    const changeWatcher = createWatcher(watched, config)
 
-    // we handle possible rebuild exceptions
-    const result = await handle.async(() => {
-      return build?.rebuild?.()
-    })
+    // watcher for restarting a full rebuild
+    const restartWatcher = createWatcher(['./src/**/*'], config)
 
-    if (result instanceof Error) {
-      console.error(result.message)
-      watch(build) // re-watch original build
-    } else {
-      watch(result) // watch incremented build
-    }
+    // triggers quick rebuild on file change
+    const fastRebuild = debounce(async () => {
+      const timeBefore = Date.now()
 
-    const timeAfter = Date.now()
-    console.log(`${timeAfter - timeBefore}ms`)
-  })
+      // we handle possible rebuild exceptions
+      const rebuildResult = await handle.async(() => {
+        return result?.rebuild?.()
+      })
 
-  return undefined
-}
+      if (rebuildResult instanceof Error) {
+        console.error(rebuildResult.message)
+      }
+
+      console.log(`${Date.now() - timeBefore}ms [${options.name ?? ''}]`)
+    }, 10)
+
+    // triggers a full rebuild on added file
+    const fullRebuild = debounce(async () => {
+      void changeWatcher.close() // stop all
+
+      // only one watcher will do this task
+      if (watchLock === false) {
+        watchLock = true
+        await build(allOptions)
+      }
+    }, 10)
+
+    changeWatcher.on('change', fastRebuild)
+    restartWatcher.once('add', fullRebuild)
+    restartWatcher.once('unlink', fullRebuild)
+
+    return undefined
+  }
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
+
+// so that only one watcher restarts a full build
+let watchLock = false
 
 // get a default directory if needed (no outfile)
 function getOutDir(options: BuildOptions) {
@@ -191,30 +219,16 @@ function getOutDir(options: BuildOptions) {
   return options.outdir ?? 'dist'
 }
 
-// get the esm output path from an original path
-function getEsmOutDir(options: BuildOptions) {
-  return `${getOutDir(options)}/esm`
-}
-
-// get the esm output file from an original path
-function getEsmOutFile(options: BuildOptions) {
+// get the output file from an original path
+function getOutFile(options: BuildOptions) {
   if (options.outfile !== undefined) {
     const dirname = getOutDir(options)
     const filename = path.basename(options.outfile)
 
-    return `${dirname}/esm/${filename}`
+    return `${dirname}/${filename}`
   }
 
   return undefined
-}
-
-// wrapper around execa to run our build cmds
-export function run(command: string) {
-  return execa.command(command, {
-    preferLocal: true,
-    shell: true,
-    stdio: 'inherit',
-  })
 }
 
 // gets the files to be watched from esbuild

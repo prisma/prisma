@@ -1,7 +1,5 @@
 import { PrismaClient } from '@prisma/client'
 
-// tslint:disable
-
 // just make sure the client types compile
 async function main() {
   const prisma = new PrismaClient({

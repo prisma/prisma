@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { getTestClient } from '../../../../utils/getTestClient'
 import { tearDownPostgres } from '../../../../utils/setupPostgres'
 import { migrateDb } from '../../__helpers__/migrateDb'
@@ -7,7 +8,6 @@ beforeAll(async () => {
   process.env.TEST_POSTGRES_URI += '-json-postgres'
   await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
   await migrateDb({
-    connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
 })

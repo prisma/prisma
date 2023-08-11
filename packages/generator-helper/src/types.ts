@@ -28,14 +28,14 @@ export namespace JsonRPC {
   }
 }
 
-export type Dictionary<T> = { [key: string]: T }
+export type Dictionary<T> = { [key: string]: T | undefined }
 
 export interface GeneratorConfig {
   name: string
   output: EnvValue | null
   isCustomOutput?: boolean
   provider: EnvValue
-  config: Dictionary<string>
+  config: Dictionary<string | string[]>
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
   previewFeatures: string[]
@@ -43,32 +43,44 @@ export interface GeneratorConfig {
 
 export interface EnvValue {
   fromEnvVar: null | string
-  value: string
+  value: null | string
 }
 
 export interface BinaryTargetsEnvValue {
-  fromEnvVar: null | string
+  fromEnvVar: string | null
   value: string
+  native?: boolean
 }
 
-export type ConnectorType = 'mysql' | 'mongodb' | 'sqlite' | 'postgresql' | 'sqlserver'
+export type ConnectorType =
+  | 'mysql'
+  | 'mongodb'
+  | 'sqlite'
+  | 'postgresql'
+  | 'postgres' // TODO: we could normalize postgres to postgresql this in engines to reduce the complexity?
+  | 'sqlserver'
+  | 'cockroachdb'
+
+  // TODO: this should be removed in favor of `'sqlserver'`, as per `getConfig({ ... }).datasources[0]?.provider` from a schema with `provider = "sqlserver"`
+  // 'jdbc:sqlserver' has been removed in https://github.com/prisma/prisma-engines/pull/2830
+  | 'jdbc:sqlserver'
 
 export interface DataSource {
   name: string
-  activeProvider: ConnectorType
   provider: ConnectorType
+  activeProvider: ConnectorType
   url: EnvValue
-  config: { [key: string]: string }
+  directUrl?: EnvValue
+  schemas: string[] | []
 }
 
 export type BinaryPaths = {
-  migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
+  schemaEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
-  introspectionEngine?: { [binaryTarget: string]: string }
-  prismaFmt?: { [binaryTarget: string]: string }
 }
 
+/** The options passed to the generator implementations */
 export type GeneratorOptions = {
   generator: GeneratorConfig
   // TODO: what is otherGenerators for?
@@ -81,9 +93,11 @@ export type GeneratorOptions = {
   // TODO is it really always version hash? Feature is unclear.
   version: string // version hash
   binaryPaths?: BinaryPaths
+  dataProxy: boolean
+  postinstall?: boolean
 }
 
-export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
+export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'
 
 export type GeneratorManifest = {
   prettyName?: string

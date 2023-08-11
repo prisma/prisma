@@ -1,4 +1,5 @@
 import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 import { migrateDb } from '../../__helpers__/migrateDb'
 
@@ -6,7 +7,6 @@ let prisma
 describe('referentialActions(postgresql)', () => {
   beforeAll(async () => {
     await migrateDb({
-      connectionString: `file:./dev.db`,
       schemaPath: path.join(__dirname, 'schema.prisma'),
     })
     await generateTestClient()
@@ -40,7 +40,7 @@ describe('referentialActions(postgresql)', () => {
           create: { title: 'Hello Earth' },
         },
         profile: {
-          create: { bio: 'I like pinguins' },
+          create: { bio: 'I like penguins' },
         },
       },
     })
@@ -49,7 +49,7 @@ describe('referentialActions(postgresql)', () => {
     expect(await prisma.profile.findMany()).toHaveLength(2)
     expect(await prisma.post.findMany()).toHaveLength(2)
 
-    const deleteBob = await prisma.user.delete({
+    await prisma.user.delete({
       where: {
         email: 'bob@prisma.io',
       },

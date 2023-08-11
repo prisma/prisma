@@ -11,7 +11,7 @@ model Person {
   id        String  @id @default(cuid())
   name      String
   canBeNull String?
-  sales     Sale[]  @relation("PersonsOnSale", references: [id])
+  sales     Sale[]  @relation("PersonsOnSale")
 }
 
 model Sale {
@@ -19,12 +19,12 @@ model Sale {
   date         DateTime
   dateOptional DateTime?
   canBeNull    String?
-  persons      Person[]  @relation("PersonsOnSale", references: [id])
+  persons      Person[]  @relation("PersonsOnSale")
 }
 
 model Location {
   id        Int     @id
-  companyId Int
+  companyId Int     @unique
   company   Company @relation(fields: companyId, references: id)
 }
 

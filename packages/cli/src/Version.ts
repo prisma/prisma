@@ -1,30 +1,26 @@
-import { getCliQueryEngineBinaryType } from '@prisma/engines'
+import { enginesVersion, getCliQueryEngineBinaryType } from '@prisma/engines'
 import { getPlatform } from '@prisma/get-platform'
-import type { Command } from '@prisma/sdk'
+import type { Command } from '@prisma/internals'
 import {
   arg,
   BinaryType,
-  engineEnvVarMap,
   format,
+  formatTable,
   getConfig,
+  getEnginesMetaInfo,
   getSchema,
   getSchemaPath,
-  getVersion,
   HelpError,
   isError,
-  resolveBinary,
-} from '@prisma/sdk'
-import chalk from 'chalk'
-import fs from 'fs'
-import path from 'path'
-import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
-const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
+  loadEnvFile,
+  wasm,
+} from '@prisma/internals'
+import { bold, dim, red } from 'kleur/colors'
+import { match, P } from 'ts-pattern'
 
-interface BinaryInfo {
-  path: string
-  version: string
-  fromEnvVar?: string
-}
+import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
+
+const packageJson = require('../package.json') // eslint-disable-line @typescript-eslint/no-var-requires
 
 /**
  * $ prisma version
@@ -37,12 +33,12 @@ export class Version implements Command {
   private static help = format(`
   Print current version of Prisma components
 
-  ${chalk.bold('Usage')}
+  ${bold('Usage')}
 
-    ${chalk.dim('$')} prisma -v [options]
-    ${chalk.dim('$')} prisma version [options]
+    ${dim('$')} prisma -v [options]
+    ${dim('$')} prisma version [options]
 
-  ${chalk.bold('Options')}
+  ${bold('Options')}
 
     -h, --help     Display this help message
         --json     Output JSON
@@ -66,13 +62,26 @@ export class Version implements Command {
       return this.help()
     }
 
+    loadEnvFile(undefined, true)
+
     const platform = await getPlatform()
     const cliQueryEngineBinaryType = getCliQueryEngineBinaryType()
-    const introspectionEngine = await this.resolveEngine(BinaryType.introspectionEngine)
-    const migrationEngine = await this.resolveEngine(BinaryType.migrationEngine)
-    // TODO This conditional does not really belong here, CLI should be able to tell you which engine it is _actually_ using
-    const queryEngine = await this.resolveEngine(cliQueryEngineBinaryType)
-    const fmtBinary = await this.resolveEngine(BinaryType.prismaFmt)
+
+    const [enginesMetaInfo, enginesMetaInfoErrors] = await getEnginesMetaInfo()
+
+    const enginesRows = enginesMetaInfo.map((engineMetaInfo) => {
+      return match(engineMetaInfo)
+        .with({ 'query-engine': P.select() }, (currEngineInfo) => {
+          return [
+            `Query Engine${cliQueryEngineBinaryType === BinaryType.QueryEngineLibrary ? ' (Node-API)' : ' (Binary)'}`,
+            currEngineInfo,
+          ]
+        })
+        .with({ 'schema-engine': P.select() }, (currEngineInfo) => {
+          return ['Schema Engine', currEngineInfo]
+        })
+        .exhaustive()
+    })
 
     const prismaClientVersion = await getInstalledPrismaClientVersion()
 
@@ -80,16 +89,22 @@ export class Version implements Command {
       [packageJson.name, packageJson.version],
       ['@prisma/client', prismaClientVersion ?? 'Not found'],
       ['Current platform', platform],
-      [
-        `Query Engine${cliQueryEngineBinaryType === BinaryType.libqueryEngine ? ' (Node-API)' : ' (Binary)'}`,
-        this.printBinaryInfo(queryEngine),
-      ],
-      ['Migration Engine', this.printBinaryInfo(migrationEngine)],
-      ['Introspection Engine', this.printBinaryInfo(introspectionEngine)],
-      ['Format Binary', this.printBinaryInfo(fmtBinary)],
-      ['Default Engines Hash', packageJson.dependencies['@prisma/engines'].split('.').pop()],
+
+      ...enginesRows,
+      ['Schema Wasm', `@prisma/prisma-schema-wasm ${wasm.prismaSchemaWasmVersion}`],
+
+      ['Default Engines Hash', enginesVersion],
       ['Studio', packageJson.devDependencies['@prisma/studio-server']],
     ]
+
+    /**
+     * If reading Rust engines metainfo (like their git hash) failed, display the errors to stderr,
+     * and let Node.js exit naturally, but with error code 1.
+     */
+    if (enginesMetaInfoErrors.length > 0) {
+      process.exitCode = 1
+      enginesMetaInfoErrors.forEach((e) => console.error(e))
+    }
 
     const schemaPath = await getSchemaPath()
     const featureFlags = await this.getFeatureFlags(schemaPath)
@@ -98,7 +113,7 @@ export class Version implements Command {
       rows.push(['Preview Features', featureFlags.join(', ')])
     }
 
-    return this.printTable(rows, args['--json'])
+    return formatTable(rows, { json: args['--json'] })
   }
 
   private async getFeatureFlags(schemaPath: string | null): Promise<string[]> {
@@ -110,6 +125,7 @@ export class Version implements Command {
       const datamodel = await getSchema()
       const config = await getConfig({
         datamodel,
+        ignoreEnvVarErrors: true,
       })
       const generator = config.generators.find((g) => g.previewFeatures.length > 0)
       if (generator) {
@@ -121,45 +137,11 @@ export class Version implements Command {
     return []
   }
 
-  private printBinaryInfo({ path: absolutePath, version, fromEnvVar }: BinaryInfo): string {
-    const resolved = fromEnvVar ? `, resolved by ${fromEnvVar}` : ''
-    return `${version} (at ${path.relative(process.cwd(), absolutePath)}${resolved})`
-  }
-
-  private async resolveEngine(binaryName: BinaryType): Promise<BinaryInfo> {
-    const envVar = engineEnvVarMap[binaryName]
-    const pathFromEnv = process.env[envVar]
-    if (pathFromEnv && fs.existsSync(pathFromEnv)) {
-      const version = await getVersion(pathFromEnv, binaryName)
-      return { version, path: pathFromEnv, fromEnvVar: envVar }
-    }
-
-    const binaryPath = await resolveBinary(binaryName)
-    const version = await getVersion(binaryPath, binaryName)
-    return { path: binaryPath, version }
-  }
-
-  private printTable(rows: string[][], json = false): string {
-    if (json) {
-      const result = rows.reduce((acc, [name, value]) => {
-        acc[slugify(name)] = value
-        return acc
-      }, {})
-      return JSON.stringify(result, null, 2)
-    }
-    const maxPad = rows.reduce((acc, curr) => Math.max(acc, curr[0].length), 0)
-    return rows.map(([left, right]) => `${left.padEnd(maxPad)} : ${right}`).join('\n')
-  }
-
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Version.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Version.help}`)
     }
 
     return Version.help
   }
-}
-
-function slugify(str: string): string {
-  return str.toString().toLowerCase().replace(/\s+/g, '-')
 }

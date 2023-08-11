@@ -1,7 +1,5 @@
 import { PrismaClient } from '@prisma/client'
 
-// tslint:disable
-
 // This file will not be executed, just compiled to check if the typings are valid
 async function main() {
   const prisma = new PrismaClient({
@@ -14,6 +12,14 @@ async function main() {
 
   await prisma.user.findMany({
     distinct: ['id', 'email', 'age', 'followerCount', 'name'],
+  })
+
+  await prisma.user.findMany({
+    distinct: 'id',
+  })
+
+  await prisma.user.findMany({
+    distinct: 'email',
   })
 }
 

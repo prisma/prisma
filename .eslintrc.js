@@ -1,38 +1,16 @@
-const globby = require('globby')
-const fs = require('fs')
-const path = require('path')
-
-const ignoreFiles = globby.sync('packages/*/.eslintignore')
-
-const ignorePatterns = flatten(
-  flatten(
-    ignoreFiles.map((f) => {
-      const dir = path.dirname(f)
-      return fs
-        .readFileSync(f, 'utf-8')
-        .split('\n')
-        .filter((l) => l.trim().length > 0)
-        .map((l) => [l, `/${path.join(dir, l)}`])
-    }),
-  ),
-)
-
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
-  plugins: ['@typescript-eslint', 'jest'],
+  plugins: ['@typescript-eslint', 'jest', 'simple-import-sort', 'import'],
   env: {
     node: true,
     es6: true,
   },
-  extends: ['eslint:recommended', 'plugin:eslint-comments/recommended', 'plugin:jest/recommended'],
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: ['./packages/*/tsconfig.eslint.json'],
-    // debugLevel: true,
+    project: ['./tsconfig.json'],
   },
-  ignorePatterns,
   overrides: [
     {
       files: ['*.ts'],
@@ -90,26 +68,75 @@ module.exports = {
       },
     },
   ],
+  extends: [
+    'eslint:recommended',
+    'plugin:@typescript-eslint/eslint-recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    'plugin:prettier/recommended',
+    'plugin:jest/recommended',
+  ],
+  rules: {
+    'prettier/prettier': 'warn',
+    '@typescript-eslint/no-use-before-define': 'off',
+    '@typescript-eslint/no-non-null-assertion': 'off',
+    'no-useless-escape': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
+    '@typescript-eslint/no-var-requires': 'off',
+    '@typescript-eslint/no-unsafe-return': 'off',
+    // added at 2020/11/26
+    '@typescript-eslint/no-unsafe-call': 'off',
+    '@typescript-eslint/no-unsafe-member-access': 'off',
+    '@typescript-eslint/no-unsafe-assignment': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    '@typescript-eslint/ban-ts-comment': 'off',
+    '@typescript-eslint/no-empty-function': 'off',
+    '@typescript-eslint/no-unused-vars': [
+      'error',
+      {
+        // don't complain if we are omitting properties using spread operator, i.e. const { ignored, ...rest } = someObject
+        ignoreRestSiblings: true,
+        // for functions, allow to have unused arguments if they start with _. We need to do this from time to time to test type inference within the tests
+        argsIgnorePattern: '^_',
+      },
+    ],
+    'eslint-comments/no-unlimited-disable': 'off',
+    'eslint-comments/disable-enable-pair': 'off',
+    '@typescript-eslint/no-misused-promises': 'off',
+    'jest/expect-expect': 'off',
+    'no-empty': 'off',
+    'no-restricted-properties': [
+      'error',
+      {
+        property: 'substr',
+        message: 'Deprecated: Use .slice() instead of .substr().',
+      },
+    ],
+    'jest/valid-title': 'off',
+    '@typescript-eslint/no-unnecessary-type-assertion': 'off',
+    // low hanging fruits:
+    // to unblock eslint dep update in https://github.com/prisma/prisma/pull/9692
+    '@typescript-eslint/no-unsafe-argument': 'warn',
+    '@typescript-eslint/ban-types': 'off',
+    '@typescript-eslint/restrict-plus-operands': 'off',
+    '@typescript-eslint/restrict-template-expressions': 'off',
+    'jest/no-conditional-expect': 'off',
+    'jest/no-export': 'off',
+    'jest/no-standalone-expect': 'off',
+    '@typescript-eslint/no-empty-interface': 'off',
+    // https://github.com/lydell/eslint-plugin-simple-import-sort
+    'simple-import-sort/imports': 'error',
+    'simple-import-sort/exports': 'error',
+    'import/first': 'error',
+    'import/newline-after-import': 'error',
+    'import/no-duplicates': 'error',
+  },
   settings: {
     jest: {
-      version: 26,
+      version: 27,
+      globalAliases: {
+        describe: 'describeIf',
+      },
     },
   },
-}
-
-function flatten(input) {
-  const stack = [...input]
-  const res = []
-  while (stack.length) {
-    // pop value from stack
-    const next = stack.pop()
-    if (Array.isArray(next)) {
-      // push back array items, won't modify the original input
-      stack.push(...next)
-    } else {
-      res.push(next)
-    }
-  }
-  // reverse to restore input order
-  return res.reverse()
 }

@@ -1,14 +1,17 @@
-import Debug, { getLogs } from '..'
 import stripAnsi from 'strip-ansi'
+
+import { Debug, getLogs } from '../index'
 import { removeISODate, sanitizeTestLogs } from '../util'
 
 describe('debug', () => {
-  test('shouldnt log if its not enabled', () => {
+  test('should not log if it is not enabled', () => {
     const debug = Debug('my-namespace')
     const logs: string[] = []
+
     debug.log = (...args) => {
-      logs.push(stripAnsi(args[0]).trimStart())
+      logs.push(stripAnsi(`${args[0]}${args[1]}`).trim())
     }
+
     debug('Does it even log?')
     debug('I dont know')
 
@@ -19,20 +22,24 @@ describe('debug', () => {
       my-namespace I dont know"
     `)
   })
+
   test('should log if its enabled', () => {
     const debug = Debug('a-namespace')
-    Debug.enable('a-namespace')
     const logs: string[] = []
+
+    Debug.enable('a-namespace')
+
     debug.log = (...args) => {
-      logs.push(stripAnsi(args[0]).trimStart())
+      logs.push(stripAnsi(`${args[0]}${args[1]}`).trim())
     }
+
     debug('Does it even log?')
     debug('I dont know')
 
     expect(removeISODate(JSON.stringify(logs, null, 2))).toMatchInlineSnapshot(`
       "[
-        \\" a-namespace Does it even log?\\",
-        \\" a-namespace I dont know\\"
+        " a-namespace Does it even log?",
+        " a-namespace I dont know"
       ]"
     `)
 

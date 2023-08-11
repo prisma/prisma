@@ -1,12 +1,8 @@
-import type { Command } from '@prisma/sdk'
-import { arg, format, HelpError, isError, getSchemaPath, logger } from '@prisma/sdk'
-import chalk from 'chalk'
-import {
-  getSeedCommandFromPackageJson,
-  executeSeedCommand,
-  verifySeedConfigAndReturnMessage,
-  legacyTsNodeScriptWarning,
-} from '../utils/seed'
+import { arg, Command, format, getSchemaPath, HelpError, isError, loadEnvFile } from '@prisma/internals'
+import { ArgError } from 'arg'
+import { bold, dim, red } from 'kleur/colors'
+
+import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
 
 export class DbSeed implements Command {
   public static new(): DbSeed {
@@ -14,15 +10,20 @@ export class DbSeed implements Command {
   }
 
   private static help = format(`
-${process.platform === 'win32' ? '' : chalk.bold('🙌  ')}Seed your database
+${process.platform === 'win32' ? '' : '🙌  '}Seed your database
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma db seed [options]
+  ${dim('$')} prisma db seed [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help   Display this help message
+
+${bold('Examples')}
+
+  Passing extra arguments to the seed command
+    ${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2
 `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -31,7 +32,6 @@ ${chalk.bold('Options')}
       {
         '--help': Boolean,
         '-h': '--help',
-        '--preview-feature': Boolean,
         '--schema': String,
         '--telemetry-information': String,
       },
@@ -39,6 +39,11 @@ ${chalk.bold('Options')}
     )
 
     if (isError(args)) {
+      if (args instanceof ArgError && args.code === 'ARG_UNKNOWN_OPTION') {
+        throw new Error(`${args.message}
+Did you mean to pass these as arguments to your seed script? If so, add a -- separator before them:
+${dim('$')} prisma db seed -- --arg1 value1 --arg2 value2`)
+      }
       return this.help(args.message)
     }
 
@@ -46,27 +51,12 @@ ${chalk.bold('Options')}
       return this.help()
     }
 
-    if (args['--preview-feature']) {
-      logger.warn(`Prisma "db seed" was in Preview and is now Generally Available.
-You can now remove the ${chalk.red('--preview-feature')} flag.`)
-
-      // Print warning if user has a "ts-node" script in their package.json, not supported anymore
-      await legacyTsNodeScriptWarning()
-    }
-
-    // Print warning if user is using --schema
-    if (args['--schema']) {
-      logger.warn(
-        chalk.yellow(
-          `The "--schema" parameter is not used anymore by "prisma db seed" since version 3.0 and can now be removed.`,
-        ),
-      )
-    }
+    loadEnvFile(args['--schema'], true)
 
     const seedCommandFromPkgJson = await getSeedCommandFromPackageJson(process.cwd())
 
     if (!seedCommandFromPkgJson) {
-      // Only used to help users to setup their seeds from old way to new package.json config
+      // Only used to help users to set up their seeds from old way to new package.json config
       const schemaPath = await getSchemaPath(args['--schema'])
 
       const message = await verifySeedConfigAndReturnMessage(schemaPath)
@@ -78,21 +68,24 @@ You can now remove the ${chalk.red('--preview-feature')} flag.`)
       return ``
     }
 
+    // We pass the extra params after a -- separator
+    // Example: db seed -- --custom-param
+    // Then args._ will be ['--custom-param']
+    const extraArgs = args._.join(' ')
+
     // Seed command is set
     // Execute user seed command
-    const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+    const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson, extraArgs })
     if (successfulSeeding) {
       return `\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`
     } else {
       process.exit(1)
-      // For snapshot test, because exit() is mocked
-      return ``
     }
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${DbSeed.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${DbSeed.help}`)
     }
     return DbSeed.help
   }

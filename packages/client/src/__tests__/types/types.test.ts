@@ -1,12 +1,13 @@
+import { getClientEngineType, getPackedPackage } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
-import { generateInFolder } from '../../utils/generateInFolder'
 import rimraf from 'rimraf'
+import tsd, { formatter } from 'tsd'
 import { promisify } from 'util'
-import { getPackedPackage } from '@prisma/sdk'
+
 import { compileFile } from '../../utils/compileFile'
-import tsd from 'tsd'
-import formatter from 'tsd/dist/lib/formatter'
+import { generateInFolder } from '../../utils/generateInFolder'
+
 const del = promisify(rimraf)
 
 jest.setTimeout(300_000)
@@ -31,8 +32,10 @@ describe('valid types', () => {
       transpile: true,
       packageSource,
     })
+
     const indexPath = path.join(dir, 'test.ts')
     const tsdTestPath = path.join(dir, 'index.test-d.ts')
+    const engineSpecificTestPath = path.join(dir, `test.${getClientEngineType()}.ts`)
 
     if (fs.existsSync(tsdTestPath)) {
       await runTsd(dir)
@@ -42,6 +45,14 @@ describe('valid types', () => {
       await expect(compileFile(indexPath)).rejects.toThrow()
     } else {
       await expect(compileFile(indexPath)).resolves.not.toThrow()
+    }
+
+    if (fs.existsSync(engineSpecificTestPath)) {
+      if (testName.startsWith('unhappy')) {
+        await expect(compileFile(engineSpecificTestPath)).rejects.toThrow()
+      } else {
+        await expect(compileFile(engineSpecificTestPath)).resolves.not.toThrow()
+      }
     }
   })
 })
@@ -57,7 +68,5 @@ async function runTsd(dir: string) {
 
 function getSubDirs(dir: string): string[] {
   const files = fs.readdirSync(dir)
-  return files
-    .map((file) => path.join(dir, file))
-    .filter((file) => fs.lstatSync(file).isDirectory())
+  return files.map((file) => path.join(dir, file)).filter((file) => fs.lstatSync(file).isDirectory())
 }

@@ -1,7 +1,8 @@
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
-import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('corruption of query engine binary', async () => {
@@ -32,5 +33,5 @@ test('corruption of query engine binary', async () => {
     errorFormat: 'minimal',
   })
 
-  await expect(prisma.user.findMany()).rejects.toThrowError()
+  await expect(prisma.user.findMany()).rejects.toThrow()
 })

@@ -1,7 +1,8 @@
 import { getNodeAPIName, getPlatform } from '@prisma/get-platform'
-import { ClientEngineType, getClientEngineType } from '@prisma/sdk'
+import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
+
 import { generateTestClient } from '../../../../utils/getTestClient'
 
 test('binary', async () => {

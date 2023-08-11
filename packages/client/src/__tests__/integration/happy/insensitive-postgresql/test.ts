@@ -4,7 +4,7 @@ import { setupPostgres, tearDownPostgres } from '../../../../utils/setupPostgres
 
 test('insensitive-postgresql', async () => {
   const PrismaClient = await getTestClient()
-  let originalConnectionString = process.env.TEST_POSTGRES_URI || 'postgres://prisma:prisma@localhost:5432/tests'
+  let originalConnectionString = process.env.TEST_POSTGRES_URI!
 
   originalConnectionString += '-insensitive-postgresql'
 

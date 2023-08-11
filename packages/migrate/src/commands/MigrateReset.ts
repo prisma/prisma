@@ -1,16 +1,24 @@
-import type { Command } from '@prisma/sdk'
-import { arg, format, getSchemaPath, HelpError, isError, isCi, logger } from '@prisma/sdk'
-import chalk from 'chalk'
-import path from 'path'
+import {
+  arg,
+  canPrompt,
+  checkUnsupportedDataProxy,
+  Command,
+  format,
+  getSchemaPath,
+  HelpError,
+  isError,
+  loadEnvFile,
+} from '@prisma/internals'
+import { bold, dim, green, red } from 'kleur/colors'
 import prompt from 'prompts'
+
 import { Migrate } from '../Migrate'
-import { ExperimentalFlagWithNewMigrateError, EarlyAccessFeatureFlagWithNewMigrateError } from '../utils/flagErrors'
-import { NoSchemaFoundError, MigrateResetEnvNonInteractiveError } from '../utils/errors'
-import { printFilesFromMigrationIds } from '../utils/printFiles'
-import { throwUpgradeErrorIfOldMigrate } from '../utils/detectOldMigrate'
-import { ensureDatabaseExists } from '../utils/ensureDatabaseExists'
+import { ensureDatabaseExists, getDatasourceInfo } from '../utils/ensureDatabaseExists'
+import { MigrateResetEnvNonInteractiveError } from '../utils/errors'
+import { getSchemaPathAndPrint } from '../utils/getSchemaPathAndPrint'
 import { printDatasource } from '../utils/printDatasource'
-import { executeSeedCommand, verifySeedConfigAndReturnMessage, getSeedCommandFromPackageJson } from '../utils/seed'
+import { printFilesFromMigrationIds } from '../utils/printFiles'
+import { executeSeedCommand, getSeedCommandFromPackageJson, verifySeedConfigAndReturnMessage } from '../utils/seed'
 
 export class MigrateReset implements Command {
   public static new(): MigrateReset {
@@ -20,11 +28,11 @@ export class MigrateReset implements Command {
   private static help = format(`
 Reset your database and apply all migrations, all data will be lost
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma migrate reset [options]
+  ${dim('$')} prisma migrate reset [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
        -h, --help   Display this help message
          --schema   Custom path to your Prisma schema
@@ -32,16 +40,16 @@ ${chalk.bold('Options')}
       --skip-seed   Skip triggering seed
       -f, --force   Skip the confirmation prompt
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
   Reset your database and apply all migrations, all data will be lost
-  ${chalk.dim('$')} prisma migrate reset
+  ${dim('$')} prisma migrate reset
 
   Specify a schema
-  ${chalk.dim('$')} prisma migrate reset --schema=./schema.prisma 
+  ${dim('$')} prisma migrate reset --schema=./schema.prisma 
 
   Use --force to skip the confirmation prompt
-  ${chalk.dim('$')} prisma migrate reset --force
+  ${dim('$')} prisma migrate reset --force
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
@@ -52,8 +60,6 @@ ${chalk.bold('Examples')}
       '-f': '--force',
       '--skip-generate': Boolean,
       '--skip-seed': Boolean,
-      '--experimental': Boolean,
-      '--early-access-feature': Boolean,
       '--schema': String,
       '--telemetry-information': String,
     })
@@ -62,32 +68,20 @@ ${chalk.bold('Examples')}
       return this.help(args.message)
     }
 
+    await checkUnsupportedDataProxy('migrate reset', args, true)
+
     if (args['--help']) {
       return this.help()
     }
 
-    if (args['--experimental']) {
-      throw new ExperimentalFlagWithNewMigrateError()
-    }
+    loadEnvFile(args['--schema'], true)
 
-    if (args['--early-access-feature']) {
-      throw new EarlyAccessFeatureFlagWithNewMigrateError()
-    }
+    const schemaPath = await getSchemaPathAndPrint(args['--schema'])
 
-    const schemaPath = await getSchemaPath(args['--schema'])
-
-    if (!schemaPath) {
-      throw new NoSchemaFoundError()
-    }
-
-    console.info(chalk.dim(`Prisma schema loaded from ${path.relative(process.cwd(), schemaPath)}`))
-
-    await printDatasource(schemaPath)
-
-    throwUpgradeErrorIfOldMigrate(schemaPath)
+    printDatasource({ datasourceInfo: await getDatasourceInfo({ schemaPath }) })
 
     // Automatically create the database if it doesn't exist
-    const wasDbCreated = await ensureDatabaseExists('create', true, schemaPath)
+    const wasDbCreated = await ensureDatabaseExists('create', schemaPath)
     if (wasDbCreated) {
       console.info() // empty line
       console.info(wasDbCreated)
@@ -95,24 +89,22 @@ ${chalk.bold('Examples')}
 
     console.info() // empty line
     if (!args['--force']) {
-      // We use prompts.inject() for testing in our CI
-      if (isCi() && Boolean((prompt as any)._injected?.length) === false) {
+      if (!canPrompt()) {
         throw new MigrateResetEnvNonInteractiveError()
       }
 
       const confirmation = await prompt({
         type: 'confirm',
         name: 'value',
-        message: `Are you sure you want to reset your database? ${chalk.red('All data will be lost')}.`,
+        message: `Are you sure you want to reset your database? ${red('All data will be lost')}.`,
       })
 
       console.info() // empty line
 
       if (!confirmation.value) {
         console.info('Reset cancelled.')
-        process.exit(0)
-        // For snapshot test, because exit() is mocked
-        return ``
+        // Return SIGINT exit code to signal that the process was cancelled
+        process.exit(130)
       }
     }
 
@@ -125,21 +117,20 @@ ${chalk.bold('Examples')}
       const { appliedMigrationNames } = await migrate.applyMigrations()
       migrationIds = appliedMigrationNames
     } finally {
+      // Stop engine
       migrate.stop()
     }
 
     if (migrationIds.length === 0) {
-      console.info(`${chalk.green('Database reset successful\n')}`)
+      console.info(`${green('Database reset successful\n')}`)
     } else {
       console.info() // empty line
       console.info(
-        `${chalk.green('Database reset successful')}
+        `${green('Database reset successful')}
 
-The following migration(s) have been applied:\n\n${chalk(
-          printFilesFromMigrationIds('migrations', migrationIds, {
-            'migration.sql': '',
-          }),
-        )}`,
+The following migration(s) have been applied:\n\n${printFilesFromMigrationIds('migrations', migrationIds, {
+          'migration.sql': '',
+        })}`,
       )
     }
 
@@ -154,12 +145,14 @@ The following migration(s) have been applied:\n\n${chalk(
 
       if (seedCommandFromPkgJson) {
         console.info() // empty line
-        const successfulSeeding = await executeSeedCommand(seedCommandFromPkgJson)
+        const successfulSeeding = await executeSeedCommand({ commandFromConfig: seedCommandFromPkgJson })
         if (successfulSeeding) {
           console.info(`\n${process.platform === 'win32' ? '' : '🌱  '}The seed command has been executed.`)
+        } else {
+          process.exit(1)
         }
       } else {
-        // Only used to help users to setup their seeds from old way to new package.json config
+        // Only used to help users to set up their seeds from old way to new package.json config
         const schemaPath = await getSchemaPath(args['--schema'])
         // we don't want to output the returned warning message
         // but we still want to run it for `legacyTsNodeScriptWarning()`
@@ -172,7 +165,7 @@ The following migration(s) have been applied:\n\n${chalk(
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${MigrateReset.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${MigrateReset.help}`)
     }
     return MigrateReset.help
   }

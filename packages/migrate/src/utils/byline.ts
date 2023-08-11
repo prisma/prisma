@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-this-alias */
 // Copyright (C) 2011-2015 John Hewson
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -23,13 +24,13 @@
 import stream from 'stream'
 import util from 'util'
 
-// convinience API
+// convenience API
 export default function byline(readStream, options?: any) {
-  return module.exports.createStream(readStream, options)
+  return createStream(readStream, options)
 }
 
 // basic API
-module.exports.createStream = function (readStream, options) {
+export function createStream(readStream, options) {
   if (readStream) {
     return createLineStream(readStream, options)
   } else {
@@ -44,7 +45,7 @@ export function createLineStream(readStream, options) {
   if (!readStream.readable) {
     throw new Error('readStream must be readable')
   }
-  var ls = new LineStream(options)
+  const ls = new LineStream(options)
   readStream.pipe(ls)
   return ls
 }
@@ -53,14 +54,12 @@ export function createLineStream(readStream, options) {
 // using the new node v0.10 "streams2" API
 //
 
-module.exports.LineStream = LineStream
-
-function LineStream(this: any, options) {
+export function LineStream(this: any, options) {
   stream.Transform.call(this, options)
   options = options || {}
 
   // use objectMode to stop the output from being buffered
-  // which re-concatanates the lines, just without newlines.
+  // which re-concatenates the lines, just without newlines.
   this._readableState.objectMode = true
   this._lineBuffer = []
   this._keepEmptyLines = options.keepEmptyLines || false
@@ -92,7 +91,7 @@ LineStream.prototype._transform = function (chunk, encoding, done) {
   }
   this._chunkEncoding = encoding
 
-  var lines = chunk.split(/\r\n|\r|\n/g)
+  const lines = chunk.split(/\r\n|\r|\n/g)
 
   // don't split CRLF which spans chunks
   if (this._lastChunkEndedWithCR && chunk[0] == '\n') {
@@ -112,12 +111,12 @@ LineStream.prototype._transform = function (chunk, encoding, done) {
 LineStream.prototype._pushBuffer = function (encoding, keep, done) {
   // always buffer the last (possibly partial) line
   while (this._lineBuffer.length > keep) {
-    var line = this._lineBuffer.shift()
+    const line = this._lineBuffer.shift()
     // skip empty lines
     if (this._keepEmptyLines || line.length > 0) {
       if (!this.push(this._reencode(line, encoding))) {
         // when the high-water mark is reached, defer pushes until the next tick
-        var self = this
+        const self = this
         setImmediate(function () {
           self._pushBuffer(encoding, keep, done)
         })

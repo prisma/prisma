@@ -1,46 +1,58 @@
 #!/usr/bin/env ts-node
 
-// hides ExperimentalWarning: The fs.promises API is experimental
-process.env.NODE_NO_WARNINGS = '1'
-
+import Debug from '@prisma/debug'
+import { enginesVersion } from '@prisma/engines'
+import { arg, handlePanic, HelpError, isCurrentBinInstalledGlobally, isError, isRustPanic } from '@prisma/internals'
 import {
-  arg,
-  getCLIPathHash,
-  getProjectHash,
-  getSchema,
-  getConfig,
-  tryLoadEnvs,
-  getEnvPaths,
-  parseEnvValue,
-} from '@prisma/sdk'
-import chalk from 'chalk'
+  DbCommand,
+  DbExecute,
+  DbPull,
+  DbPush,
+  // DbDrop,
+  DbSeed,
+  getDatabaseVersionSafe,
+  MigrateCommand,
+  MigrateDeploy,
+  MigrateDev,
+  MigrateDiff,
+  MigrateReset,
+  MigrateResolve,
+  MigrateStatus,
+} from '@prisma/migrate'
+import { bold, red } from 'kleur/colors'
+import path from 'path'
+
+import { CLI } from './CLI'
+import { Format } from './Format'
+import { Generate } from './Generate'
+import { Init } from './Init'
+/*
+  When running bin.ts with ts-node with DEBUG="*"
+  This error shows and blocks the execution
+  Quick hack is to comment the Studio import and usage to use the CLI without building it...
+  prisma:cli Error: Cannot find module '@prisma/internals'
+  prisma:cli Require stack:
+  prisma:cli - /Users/j42/Dev/prisma-meow/node_modules/.pnpm/@prisma+studio-pcw@0.456.0/node_modules/@prisma/studio-pcw/dist/index.js
+*/
+import { Studio } from './Studio'
+import { Telemetry } from './Telemetry'
+import { redactCommandArray, runCheckpointClientCheck } from './utils/checkpoint'
+import { detectPrisma1 } from './utils/detectPrisma1'
+import { printUpdateMessage } from './utils/printUpdateMessage'
+import { Validate } from './Validate'
+import { Version } from './Version'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-unsafe-assignment
 const packageJson = require('../package.json')
-const commandArray = process.argv.slice(2)
 
-import Debug from '@prisma/debug'
+const commandArray = process.argv.slice(2)
 
 process.removeAllListeners('warning')
 
-const debug = Debug('prisma:cli')
-process.on('uncaughtException', (e) => {
-  debug(e)
+// Listen to Ctr + C and exit
+process.once('SIGINT', () => {
+  process.exit(130)
 })
-process.on('unhandledRejection', (e) => {
-  debug(e)
-})
-
-if (process.argv.length > 1 && process.argv[1].endsWith('prisma2')) {
-  console.log(
-    chalk.yellow('deprecated') +
-      `  The ${chalk.redBright('prisma2')} command is deprecated and has been renamed to ${chalk.greenBright(
-        'prisma',
-      )}.\nPlease execute ${chalk.bold.greenBright(
-        'prisma' + (commandArray.length ? ' ' + commandArray.join(' ') : ''),
-      )} instead.\n`,
-  )
-}
 
 // Parse CLI arguments
 const args = arg(
@@ -53,60 +65,8 @@ const args = arg(
   true,
 )
 
-//
-// Read .env file only if next to schema.prisma
-//
-// if the CLI is called without any command like `prisma` we can ignore .env loading
-if (commandArray.length) {
-  try {
-    const envPaths = getEnvPaths(args['--schema'])
-    const envData = tryLoadEnvs(envPaths, { conflictCheck: 'error' })
-    envData && envData.message && console.log(envData.message)
-  } catch (e) {
-    handleIndividualError(e)
-  }
-}
-
-/**
- * Dependencies
- */
-import * as checkpoint from 'checkpoint-client'
-import { isError, HelpError } from '@prisma/sdk'
-import {
-  MigrateCommand,
-  MigrateDev,
-  MigrateResolve,
-  MigrateStatus,
-  MigrateReset,
-  MigrateDeploy,
-  DbPush,
-  DbPull,
-  // DbDrop,
-  DbSeed,
-  DbCommand,
-  handlePanic,
-} from '@prisma/migrate'
-
-import { CLI } from './CLI'
-import { Init } from './Init'
-import { Dev } from './Dev'
-import { Version } from './Version'
-import { Generate } from './Generate'
-import { isCurrentBinInstalledGlobally } from '@prisma/sdk'
-import { Validate } from './Validate'
-import { Format } from './Format'
-import { Doctor } from './Doctor'
-import { Studio } from './Studio'
-import { Telemetry } from './Telemetry'
-import { printUpdateMessage } from './utils/printUpdateMessage'
-import { enginesVersion } from '@prisma/engines'
-import path from 'path'
-import { detectPrisma1 } from './utils/detectPrisma1'
-
-// because chalk ...
-if (process.env.NO_COLOR) {
-  chalk.level = 0
-}
+// Redact the command options and make it a string
+const redactedCommandAsString = redactCommandArray([...commandArray]).join(' ')
 
 const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
 
@@ -127,8 +87,10 @@ async function main(): Promise<number> {
         resolve: MigrateResolve.new(),
         reset: MigrateReset.new(),
         deploy: MigrateDeploy.new(),
+        diff: MigrateDiff.new(),
       }),
       db: DbCommand.new({
+        execute: DbExecute.new(),
         pull: DbPull.new(),
         push: DbPush.new(),
         // drop: DbDrop.new(),
@@ -138,13 +100,11 @@ async function main(): Promise<number> {
        * @deprecated since version 2.30.0, use `db pull` instead (renamed)
        */
       introspect: DbPull.new(),
-      dev: Dev.new(),
       studio: Studio.new(),
       generate: Generate.new(),
       version: Version.new(),
       validate: Validate.new(),
       format: Format.new(),
-      doctor: Doctor.new(),
       telemetry: Telemetry.new(),
     },
     [
@@ -153,7 +113,6 @@ async function main(): Promise<number> {
       'migrate',
       'db',
       'introspect',
-      'dev',
       'studio',
       'generate',
       'validate',
@@ -162,83 +121,43 @@ async function main(): Promise<number> {
       'telemetry',
     ],
   )
-  // parse the arguments
-  const result = await cli.parse(commandArray)
 
+  // Execute the command
+  const result = await cli.parse(commandArray)
+  // Did it error?
   if (result instanceof HelpError) {
     console.error(result.message)
+    // TODO: We could do like Bash (and other)
+    // = return an exit status of 2 to indicate incorrect usage like invalid options or missing arguments.
+    // https://tldp.org/LDP/abs/html/exitcodes.html
     return 1
   } else if (isError(result)) {
     console.error(result)
     return 1
   }
+
+  // Success
   console.log(result)
 
-  try {
-    // SHA256 identifier for the project based on the Prisma schema path
-    const projectPathHash = await getProjectHash()
-    // SHA256 of the cli path
-    const cliPathHash = getCLIPathHash()
-
-    let schemaProvider: string | undefined
-    let schemaPreviewFeatures: string[] | undefined
-    let schemaGeneratorsProviders: string[] | undefined
-    try {
-      const schema = await getSchema(args['--schema'])
-      const config = await getConfig({
-        datamodel: schema,
-        ignoreEnvVarErrors: true,
-      })
-
-      if (config.datasources.length > 0) {
-        schemaProvider = config.datasources[0].provider
-      }
-
-      // restrict the search to previewFeatures of `provider = 'prisma-client-js'`
-      // (this was not scoped to `prisma-client-js` before Prisma 3.0)
-      const generator = config.generators.find(
-        (generator) => parseEnvValue(generator.provider) === 'prisma-client-js' && generator.previewFeatures.length > 0,
-      )
-      if (generator) {
-        schemaPreviewFeatures = generator.previewFeatures
-      }
-
-      // Example 'prisma-client-js'
-      schemaGeneratorsProviders = config.generators.map((generator) => parseEnvValue(generator.provider))
-    } catch (e) {
-      debug('Error from cli/src/bin.ts')
-      debug(e)
-    }
-
-    // check prisma for updates
-    const checkResult = await checkpoint.check({
-      product: 'prisma',
-      cli_path_hash: cliPathHash,
-      project_hash: projectPathHash,
-      version: packageJson.version,
-      schema_providers: schemaProvider ? [schemaProvider] : undefined,
-      schema_preview_features: schemaPreviewFeatures,
-      schema_generators_providers: schemaGeneratorsProviders,
-      cli_path: process.argv[1],
-      cli_install_type: isPrismaInstalledGlobally ? 'global' : 'local',
-      command: commandArray.join(' '),
-      information: args['--telemetry-information'] || process.env.PRISMA_TELEMETRY_INFORMATION,
-    })
-    // if the result is cached and we're outdated, show this prompt
-    const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
-    if (checkResult.status === 'ok' && checkResult.data.outdated && !shouldHide) {
-      printUpdateMessage(checkResult)
-    }
-  } catch (e) {
-    debug(e)
+  /**
+   * Prepare data and run the Checkpoint Client
+   * See function for more info
+   */
+  const checkResult = await runCheckpointClientCheck({
+    command: redactedCommandAsString,
+    isPrismaInstalledGlobally,
+    schemaPath: args['--schema'],
+    telemetryInformation: args['--telemetry-information'],
+    version: packageJson.version,
+  })
+  // if the result is cached and CLI outdated, show the `Update available` message
+  const shouldHide = process.env.PRISMA_HIDE_UPDATE_MESSAGE
+  if (checkResult && checkResult.status === 'ok' && checkResult.data.outdated && !shouldHide) {
+    printUpdateMessage(checkResult)
   }
 
   return 0
 }
-
-process.on('SIGINT', () => {
-  process.exit(0) // now the "exit" event will fire
-})
 
 /**
  * Run our program
@@ -262,14 +181,20 @@ if (eval('require.main === module')) {
     })
 }
 
-function handleIndividualError(error): void {
-  if (error.rustStack) {
-    handlePanic(error, packageJson.version, enginesVersion, commandArray.join(' '))
+function handleIndividualError(error: Error): void {
+  if (isRustPanic(error)) {
+    handlePanic({
+      error,
+      cliVersion: packageJson.version,
+      enginesVersion,
+      command: redactedCommandAsString,
+      getDatabaseVersionSafe,
+    })
       .catch((e) => {
         if (Debug.enabled('prisma')) {
-          console.error(chalk.redBright.bold('Error: ') + e.stack)
+          console.error(bold(red('Error: ')) + e.stack)
         } else {
-          console.error(chalk.redBright.bold('Error: ') + e.message)
+          console.error(bold(red('Error: ')) + e.message)
         }
       })
       .finally(() => {
@@ -277,9 +202,9 @@ function handleIndividualError(error): void {
       })
   } else {
     if (Debug.enabled('prisma')) {
-      console.error(chalk.redBright.bold('Error: ') + error.stack)
+      console.error(bold(red('Error: ')) + error.stack)
     } else {
-      console.error(chalk.redBright.bold('Error: ') + error.message)
+      console.error(bold(red('Error: ')) + error.message)
     }
     process.exit(1)
   }
@@ -291,22 +216,29 @@ function handleIndividualError(error): void {
  * `node_modules/@prisma/engines`
  */
 
+// macOS
 path.join(__dirname, '../../engines/query-engine-darwin')
-path.join(__dirname, '../../engines/introspection-engine-darwin')
-path.join(__dirname, '../../engines/prisma-fmt-darwin')
+path.join(__dirname, '../../engines/schema-engine-darwin')
+// Windows
+path.join(__dirname, '../../engines/query-engine-windows.exe')
+path.join(__dirname, '../../engines/schema-engine-windows.exe')
 
+// Debian openssl-1.0.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.0.x')
-path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.0.x')
-
+path.join(__dirname, '../../engines/schema-engine-debian-openssl-1.0.x')
+// Debian openssl-1.1.x
 path.join(__dirname, '../../engines/query-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../../engines/introspection-engine-debian-openssl-1.1.x')
-path.join(__dirname, '../../engines/prisma-fmt-debian-openssl-1.1.x')
+path.join(__dirname, '../../engines/schema-engine-debian-openssl-1.1.x')
+// Debian openssl-3.0.x
+path.join(__dirname, '../../engines/query-engine-debian-openssl-3.0.x')
+path.join(__dirname, '../../engines/schema-engine-debian-openssl-3.0.x')
 
+// Red Hat Enterprise Linux openssl-1.0.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.0.x')
-path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.0.x')
-
+path.join(__dirname, '../../engines/schema-engine-rhel-openssl-1.0.x')
+// Red Hat Enterprise Linux openssl-1.1.x
 path.join(__dirname, '../../engines/query-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../../engines/introspection-engine-rhel-openssl-1.1.x')
-path.join(__dirname, '../../engines/prisma-fmt-rhel-openssl-1.1.x')
+path.join(__dirname, '../../engines/schema-engine-rhel-openssl-1.1.x')
+// Red Hat Enterprise Linux openssl-3.0.x
+path.join(__dirname, '../../engines/query-engine-rhel-openssl-3.0.x')
+path.join(__dirname, '../../engines/schema-engine-rhel-openssl-3.0.x')
