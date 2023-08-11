@@ -39,7 +39,7 @@ body:
         ```
 
         <!-- Paste your Prisma Cloent queries below. -->
-        ```js
+        ```ts
         // Add any relevant Prisma Client queries here
         ```
       
