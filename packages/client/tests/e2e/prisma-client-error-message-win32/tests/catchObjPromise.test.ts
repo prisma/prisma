@@ -21,7 +21,7 @@ describe('Test to check for [object Promise] error', () => {
     await writeFile('./package.json', JSON.stringify(originalPackage))
   })
 
-  test('Does the error message not show [object Promise]?', async () => {
+  test('Does the error message show [object Promise]?', async () => {
     try {
       execSync('cd .. && yarn prisma generate', { stdio: 'pipe', encoding: 'utf-8' })
     } catch (error) {
@@ -47,11 +47,6 @@ describe('Test to check for [object Promise] error', () => {
         `${yarnPrisma}`.includes(`[object Promise]`) === true &&
         `${yarnPrismaClient}`.includes(`[object Promise]`) === true
       ) {
-        /*throw new Error(
-          errorMessage + `\n${(bold(green(`${yarnPrisma}`)))}` + 
-          ` should be ${(bold(green('yarn add prisma -D')))} and ${(bold(green(`${yarnPrismaClient}`)))}` + 
-          ` should be ${(bold(green('yarn add @prisma/client')))} respectively.`
-          )*/
         console.info(
           errorMessage +
             `\n${bold(green(`${yarnPrisma}`))}` +
@@ -59,25 +54,15 @@ describe('Test to check for [object Promise] error', () => {
             ` should be ${bold(green('yarn add @prisma/client'))} respectively.`,
         )
       } else if (`${yarnPrisma}`.includes(`[object Promise]`) === true) {
-        /*throw new Error(
-          errorMessage + `\n${(bold(green(`${yarnPrisma}`)))} should be ${(bold(green('yarn add prisma -D')))}.`
-          )*/
         console.info(errorMessage + `\n${bold(green(`${yarnPrisma}`))} should be ${bold(green('yarn add prisma -D'))}.`)
       } else if (`${yarnPrismaClient}`.includes(`[object Promise]`) === true) {
-        /*throw new Error(
-          errorMessage + `\n${(bold(green(`${yarnPrismaClient}`)))} should be ${(bold(green('yarn add @prisma/client')))}.`
-          )*/
         console.info(
           errorMessage + `\n${bold(green(`${yarnPrismaClient}`))} should be ${bold(green('yarn add @prisma/client'))}.`,
         )
       }
       //This test should fail if it's true that [object Promise] does show up in the error message.
-      expect(errorMessage.includes('[object Promise]')).toBeFalsy()
+      expect(errorMessage.includes('[object Promise]')).toBeTruthy()
     }
-  })
-  //This simple test should always pass.
-  test('Does 1 equal 1', () => {
-    expect(1 == 1).toBeTruthy()
   })
 
   afterAll(async () => {

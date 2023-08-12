@@ -66,39 +66,15 @@ export async function prismaClientResolver(baseDir: string, version?: string) {
       const hasCli = (s: string) => (prismaCliDir !== undefined ? s : '')
       const missingCli = (s: string) => (prismaCliDir === undefined ? s : '')
 
-      const yarnPrisma = await getPackageCmd(baseDir, 'add', 'prisma', '-D')
-      const yarnPrismaClient = await getPackageCmd(baseDir, 'add', '@prisma/client')
-
-      const errorMessage = `Could not resolve ${missingCli(`${bold('prisma')} and `)}${bold(
-        '@prisma/client',
-      )} in the current project. Please install ${hasCli('it')}${missingCli('them')} with ${missingCli(
-        `${bold(green(`${yarnPrisma}`))} and `,
-      )}${bold(green(`${yarnPrismaClient}`))}, and rerun ${bold(
-        await getPackageCmd(baseDir, 'execute', 'prisma generate'),
-      )} 🙏.`
-
-      //Details '[object Promise]' if displayed in the error message when prisma and/or @prisma/client is not resolved.
-      if (
-        `${yarnPrisma}`.includes(`[object Promise]`) === true &&
-        `${yarnPrismaClient}`.includes(`[object Promise]`) === true
-      ) {
-        throw new Error(
-          errorMessage +
-            `\n${bold(green(`${yarnPrisma}`))}` +
-            ` should be ${bold(green('yarn add prisma -D'))} and ${bold(green(`${yarnPrismaClient}`))}` +
-            ` should be ${bold(green('yarn add @prisma/client'))} respectively.`,
-        )
-      } else if (`${yarnPrisma}`.includes(`[object Promise]`) === true) {
-        throw new Error(
-          errorMessage + `\n${bold(green(`${yarnPrisma}`))} should be ${bold(green('yarn add prisma -D'))}.`,
-        )
-      } else if (`${yarnPrismaClient}`.includes(`[object Promise]`) === true) {
-        throw new Error(
-          errorMessage + `\n${bold(green(`${yarnPrismaClient}`))} should be ${bold(green('yarn add @prisma/client'))}.`,
-        )
-      } else {
-        throw new Error(errorMessage)
-      }
+      throw new Error(
+        `Could not resolve ${missingCli(`${bold('prisma')} and `)}${bold(
+          '@prisma/client',
+        )} in the current project. Please install ${hasCli('it')}${missingCli('them')} with ${missingCli(
+          `${bold(green(`${await getPackageCmd(baseDir, 'add', 'prisma', '-D')}`))} and `,
+        )}${bold(green(`${await getPackageCmd(baseDir, 'add', '@prisma/client')}`))}, and rerun ${bold(
+          await getPackageCmd(baseDir, 'execute', 'prisma generate'),
+        )} 🙏.`,
+      )
     }
 
     if (!prismaCliDir) {

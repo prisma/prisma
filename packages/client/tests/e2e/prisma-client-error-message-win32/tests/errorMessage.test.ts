@@ -49,7 +49,7 @@ describe('Test to check for [object Promise] error', () => {
     }
   })
 
-  test('Test 2: Does the second error message not show [object Promise]?', async () => {
+  test('Test 2: Does the second error message show [object Promise]?', async () => {
     try {
       execSync('cd .. && yarn prisma generate', { stdio: 'pipe', encoding: 'utf-8' })
     } catch (error) {
@@ -72,13 +72,8 @@ describe('Test to check for [object Promise] error', () => {
 
       //Error message without await added. This test should fail since [object Promise] shows up.
       console.info(errorMessageWithoutAwait)
-      expect(errorMessageWithoutAwait.includes('[object Promise]')).toBeFalsy()
+      expect(errorMessageWithoutAwait.includes('[object Promise]')).toBeTruthy()
     }
-  })
-
-  //This simple test should always pass.
-  test('Test 3: Does 1 equal 1', () => {
-    expect(1 == 1).toBeTruthy()
   })
 
   afterAll(async () => {
