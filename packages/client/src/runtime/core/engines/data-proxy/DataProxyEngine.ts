@@ -148,6 +148,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   private remoteClientVersion!: string
   private host!: string
   private headerBuilder!: DataProxyHeaderBuilder
+  private startPromise?: Promise<void>
 
   constructor(config: EngineConfig) {
     super()
@@ -244,8 +245,11 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   private async url(s: string) {
-    if (this.host === undefined) {
-      await this.start()
+    if (this.startPromise !== undefined) {
+      await this.startPromise
+    } else {
+      this.startPromise = this.start()
+      await this.startPromise
     }
 
     return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`

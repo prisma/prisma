@@ -18,7 +18,7 @@ async function _getClientVersion(host: string, config: EngineConfig) {
   }
 
   // for data proxy v2, or accelerate, resolution isn't needed
-  if (host.includes('accelerate') && clientVersion !== '0.0.0') {
+  if (host.includes('accelerate') && clientVersion !== '0.0.0' && clientVersion !== 'in-memory') {
     return clientVersion
   }
 
@@ -31,7 +31,7 @@ async function _getClientVersion(host: string, config: EngineConfig) {
 
   // if it is an integration or dev version, we resolve its dataproxy
   // for this we infer the data proxy version from the engine version
-  if (suffix !== undefined || clientVersion === '0.0.0') {
+  if (suffix !== undefined || clientVersion === '0.0.0' || clientVersion === 'in-memory') {
     // we use the generated engine version to infer if we're in a test
     if (config.engineVersion === '0000000000000000000000000000000000000000') {
       return '0.0.0' // when we are running in tests, we use mini proxy
