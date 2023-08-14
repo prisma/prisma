@@ -37,8 +37,9 @@ export function resolveDatasourceUrl({
 
   // env var is set for use but url is undefined
   if (datasourceUrl?.fromEnvVar !== undefined && resolvedUrl === undefined) {
+    // error matches as much as possible the usual engine error
     throw new PrismaClientInitializationError(
-      `Datasource "${datasourceName}" references an environment variable "${datasourceUrl.fromEnvVar}" that is not set`,
+      `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.`,
       clientVersion,
     )
   }
@@ -46,7 +47,7 @@ export function resolveDatasourceUrl({
   // should not happen: no override, no env, no direct value
   if (resolvedUrl === undefined) {
     throw new PrismaClientInitializationError(
-      `Datasource "${datasourceName}" has no defined URL environment variable, value, or override.`,
+      `error: Missing URL environment variable, value, or override.`,
       clientVersion,
     )
   }

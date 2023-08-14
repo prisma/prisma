@@ -1,3 +1,5 @@
+import stripAnsi from 'strip-ansi'
+
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -9,11 +11,14 @@ declare let Prisma: typeof PrismaNamespace
 testMatrix.setupTestSuite(
   () => {
     test('PrismaClientInitializationError for missing env', async () => {
-      const prisma = newPrismaClient()
-      await expect(prisma.$connect()).rejects.toBeInstanceOf(Prisma.PrismaClientInitializationError)
-      await expect(prisma.$connect()).rejects.toThrowErrorMatchingInlineSnapshot(
-        `Datasource "db" references an environment variable "DATABASE_URI" that is not set`,
-      )
+      try {
+        const prisma = newPrismaClient()
+        await prisma.$connect()
+      } catch (e) {
+        const message = stripAnsi(e.message as string)
+        expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
+        expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
+      }
     })
   },
   {

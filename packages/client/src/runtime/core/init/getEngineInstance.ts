@@ -21,7 +21,7 @@ export function getEngineInstance(_engineConfig: EngineConfig) {
 
   const engineType = getClientEngineType(_engineConfig.generator!)
 
-  if (url?.startsWith('prisma://')) {
+  if (url?.startsWith('prisma://') || TARGET_ENGINE_TYPE === 'edge') {
     return new DataProxyEngine(_engineConfig)
   } else if (engineType === ClientEngineType.Library && TARGET_ENGINE_TYPE === 'library') {
     return new LibraryEngine(_engineConfig)

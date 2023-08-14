@@ -56,7 +56,7 @@ const edgeRuntimeBuildConfig: BuildOptions = {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
     // tree shake the Library and Binary engines out
-    TARGET_ENGINE_TYPE: '"undefined"',
+    TARGET_ENGINE_TYPE: '"edge"',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
