@@ -33,11 +33,15 @@ body:
       label: Information about Prisma Schema, Client Queries and Environment (optional)
       description: Your Prisma schema, Prisma Client queries, Environment & setup, Prisma Version
       value: |
-        <!-- Do not include your database credentials when sharing your Prisma schema! -->
-        ```js
-        // Add your schema.prisma and relevant query code
+        <!-- Paste your Prisma schema below. Do not include your database credentials when sharing your Prisma schema! -->
+        ```prisma
+        // Add your schema.prisma
         ```
 
+        <!-- Paste your Prisma Client queries below. -->
+        ```ts
+        // Add any relevant Prisma Client queries here
+        ```
       
         - OS: <!--[e.g. macOS, Windows, Debian, CentOS, ...]-->
         - Database: <!--[PostgreSQL, MySQL, PlanetScale, MariaDB, SQL Server, SQLite, MongoDB or CockroachDB]-->
