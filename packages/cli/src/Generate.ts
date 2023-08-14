@@ -233,14 +233,20 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        hint = `You can now start using Prisma Client in your code. Reference: ${link('https://pris.ly/d/client')}
+        hint = `Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
 ${dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
 ${dim('```')}
+or start using Prisma Client at the edge (See: ${link('https://pris.ly/d/data-proxy')})
+${dim('```')}
+${highlightTS(`\
+import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'
+const prisma = new PrismaClient()`)}
+${dim('```')}
 
-See other options for edge runtimes and more: ${link('http://pris.ly/d/importing-client') /** TODO create link */}
+See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
 ${breakingChangesStr}${versionsWarning}`
       }
 
