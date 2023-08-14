@@ -449,9 +449,10 @@ type Connector = {
 }
 `
 
+    const prismaPlanetScaleJsConnectorRef = '`@prisma/planetscale-js-connector`'
     const jsConnectorOption = /* typescript */ `
   /**
-   * Instance of a JS connector, e.g., like one provided by \`@prisma/planetscale-js-connector\`.
+   * Instance of a JS connector, e.g., like one provided by ${prismaPlanetScaleJsConnectorRef}.
    */
   jsConnector?: Connector
 `
