@@ -2131,7 +2131,7 @@ export namespace Prisma {
 
   export interface PrismaClientOptions {
     /**
-     * Instance of a JS connector, e.g., like one provided by `@prisma/planetscale-js-connector`.
+     * Instance of a JS connector, e.g., like one provided by \`@prisma/planetscale-js-connector\`.
      */
     jsConnector?: Connector
 
