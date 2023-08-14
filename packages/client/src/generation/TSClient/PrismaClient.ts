@@ -441,11 +441,11 @@ type Query = {
 
 type Connector = {
   readonly flavour: 'mysql' | 'postgres'
-  queryRaw: (params: Query) => Promise<ResultSet>
-  executeRaw: (params: Query) => Promise<number>
-  version: () => Promise<string | undefined>
+  queryRaw: (params: Query) => $Utils.JsPromise<ResultSet>
+  executeRaw: (params: Query) => $Utils.JsPromise<number>
+  version: () => $Utils.JsPromise<string | undefined>
   isHealthy: () => boolean
-  close: () => Promise<void>
+  close: () => $Utils.JsPromise<void>
 }
 `
 
