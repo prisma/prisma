@@ -103,7 +103,7 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skipRemoteEngine: {
+    skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason: 'Metrics are not supported with Data Proxy yet',
     },

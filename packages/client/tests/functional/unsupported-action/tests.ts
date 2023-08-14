@@ -23,7 +23,7 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skipRemoteEngine: {
+    skipDataProxy: {
       runtimes: ['edge'],
       reason: 'Error rendering is different for edge client',
     },

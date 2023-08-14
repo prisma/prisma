@@ -39,10 +39,10 @@ export function getTestSuitePlan(
 }
 
 function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): boolean {
-  if (!clientMeta.remoteEngine || !options?.skipRemoteEngine) {
+  if (!clientMeta.remoteEngine || !options?.skipDataProxy) {
     return false
   }
-  return options.skipRemoteEngine.runtimes.includes(clientMeta.runtime)
+  return options.skipDataProxy.runtimes.includes(clientMeta.runtime)
 }
 
 function shouldSkipProvider(

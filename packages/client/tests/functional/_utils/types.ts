@@ -6,7 +6,7 @@ export type MatrixOptions = {
     reason: string
   }
   skipDefaultClientInstance?: boolean
-  skipRemoteEngine?: {
+  skipDataProxy?: {
     runtimes: ClientRuntime[]
     reason: string
   }

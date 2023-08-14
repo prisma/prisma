@@ -361,7 +361,7 @@ testMatrix.setupTestSuite(
       from: ['mongodb'],
       reason: 'The test is for SQL databases only',
     },
-    skipRemoteEngine: {
+    skipDataProxy: {
       // similarly, you can opt out of testing with the Data Proxy
       // client (either completely or for certain runtimes) and
       // specify the reason

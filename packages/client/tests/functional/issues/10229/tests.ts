@@ -32,7 +32,7 @@ testMatrix.setupTestSuite(
         sqlserver: returns undefined
       `,
     },
-    skipRemoteEngine: {
+    skipDataProxy: {
       runtimes: ['node', 'edge'],
       reason:
         'InvalidDatasourceError: Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used', // TODO after removal of dataProxy

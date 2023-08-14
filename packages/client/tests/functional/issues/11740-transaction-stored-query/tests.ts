@@ -50,7 +50,7 @@ testMatrix.setupTestSuite(
     })
   },
   {
-    skipRemoteEngine: {
+    skipDataProxy: {
       runtimes: ['edge'],
       reason: 'Skipped because of the error snapshots on edge client',
     },
