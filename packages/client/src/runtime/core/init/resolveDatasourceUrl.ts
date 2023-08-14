@@ -27,14 +27,6 @@ export function resolveDatasourceUrl({
     resolvedUrl = env[datasourceUrl.fromEnvVar]
   }
 
-  // override is set in constructor but url is undefined
-  if (overrideDatasources[datasourceName] !== undefined && resolvedUrl === undefined) {
-    throw new PrismaClientInitializationError(
-      `Datasource "${datasourceName}" was overridden in the constructor but the URL is "undefined".`,
-      clientVersion,
-    )
-  }
-
   // env var is set for use but url is undefined
   if (datasourceUrl?.fromEnvVar !== undefined && resolvedUrl === undefined) {
     // error matches as much as possible the usual engine error

@@ -20,6 +20,21 @@ testMatrix.setupTestSuite(
         expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
       }
     })
+
+    test('PrismaClientInitializationError for missing env and empty override', async () => {
+      try {
+        const prisma = newPrismaClient({
+          datasources: {
+            db: {},
+          },
+        })
+        await prisma.$connect()
+      } catch (e) {
+        const message = stripAnsi(e.message as string)
+        expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
+        expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
+      }
+    })
   },
   {
     skipDb: true,
