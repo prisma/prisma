@@ -11,8 +11,9 @@ declare let Prisma: typeof PrismaNamespace
 testMatrix.setupTestSuite(
   () => {
     test('PrismaClientInitializationError for missing env', async () => {
+      const prisma = newPrismaClient()
+
       try {
-        const prisma = newPrismaClient()
         await prisma.$connect()
       } catch (e) {
         const message = stripAnsi(e.message as string)
@@ -22,12 +23,13 @@ testMatrix.setupTestSuite(
     })
 
     test('PrismaClientInitializationError for missing env and empty override', async () => {
+      const prisma = newPrismaClient({
+        datasources: {
+          db: {},
+        },
+      })
+
       try {
-        const prisma = newPrismaClient({
-          datasources: {
-            db: {},
-          },
-        })
         await prisma.$connect()
       } catch (e) {
         const message = stripAnsi(e.message as string)
