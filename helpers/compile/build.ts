@@ -173,7 +173,7 @@ const watch =
 
     // triggers quick rebuild on file change
     const fastRebuild = debounce(async () => {
-      const timeBefore = Date.now()
+      const timeBefore = Math.round(performance.now())
 
       // we handle possible rebuild exceptions
       const rebuildResult = await handle.async(() => {
@@ -184,7 +184,8 @@ const watch =
         console.error(rebuildResult.message)
       }
 
-      console.log(`${Date.now() - timeBefore}ms [${options.name ?? ''}]`)
+      const timeAfter = Math.round(performance.now())
+      console.log(`${timeAfter - timeBefore}ms [${options.name ?? ''}]`)
     }, 10)
 
     // triggers a full rebuild on added file
