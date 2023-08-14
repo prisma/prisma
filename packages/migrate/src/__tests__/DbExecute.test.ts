@@ -400,6 +400,11 @@ COMMIT;`,
       ctx.fixture('schema-only-postgresql')
       expect.assertions(2)
 
+      // In CI, sometimes 5s is not enough
+      if (process.env.CI) {
+        jest.setTimeout(10_000)
+      }
+
       fs.writeFileSync('script.sql', '-- empty')
       try {
         await DbExecute.new().parse([
