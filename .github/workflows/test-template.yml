@@ -75,6 +75,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          skip-tsc: false
 
       # https://github.com/actions/toolkit/blob/master/docs/commands.md#problem-matchers
       # Matchers are added in setup-node
@@ -154,6 +155,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          # Fails if set to true
+          skip-tsc: false
 
       # Run the functional test suite
       - run: pnpm run test:functional --silent --shard ${{ matrix.shard }}
@@ -217,6 +220,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          # Fails if set to true
+          skip-tsc: false
 
       - run: pnpm run test:functional --data-proxy --shard ${{ matrix.shard }}
         working-directory: packages/client
@@ -296,6 +301,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          skip-tsc: true
 
       - run: pnpm run test:memory
         working-directory: packages/client
@@ -390,6 +396,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          # Fails if set to true
+          skip-tsc: false
 
       - run: pnpm run test:e2e --skipBuild --verbose --runInBand
         working-directory: packages/client
@@ -447,6 +455,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          skip-tsc: true
 
       # shouldn't take more than 15 minutes
       - name: 1 to 1
@@ -501,6 +510,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          # Fails if set to true
+          skip-tsc: false
 
       - run: pnpm run test src/__tests__/types/types.test.ts
         working-directory: packages/client
@@ -554,6 +565,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          skip-tsc: true
 
       - run: pnpm run test
         working-directory: packages/integration-tests
@@ -616,6 +628,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          skip-tsc: true
 
       - run: pnpm run test
         working-directory: packages/internals
@@ -675,6 +688,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          skip-tsc: true
 
       - run: pnpm run test
         working-directory: packages/migrate
@@ -748,6 +762,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          skip-tsc: true
 
       - run: pnpm run test
         working-directory: packages/cli
@@ -781,6 +796,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          skip-tsc: true
 
       - run: pnpm run test
         name: 'debug'
@@ -860,7 +876,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-13, windows-latest]
         node: [16]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
         shard: ['1/2', '2/2']
@@ -895,6 +911,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          skip-tsc: true
 
       - name: Test packages/client
         run: pnpm run test:functional:code --silent --shard ${{matrix.shard}}
@@ -902,7 +919,7 @@ jobs:
         env:
           # allow Node.js to allocate at most 14GB of heap on macOS and 7GB on Windows
           # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
-          NODE_OPTIONS: "${{ matrix.os == 'macos-latest' && '--max-old-space-size=14336' || '--max-old-space-size=7168' }}"
+          NODE_OPTIONS: "${{ matrix.os == 'macos-13' && '--max-old-space-size=14336' || '--max-old-space-size=7168' }}"
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
@@ -940,7 +957,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest]
+        os: [macos-13, windows-latest]
         node: [16]
         queryEngine: ${{ fromJson(inputs.queryEngine) }}
 
@@ -968,6 +985,8 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
+          # Fails if set to true
+          skip-tsc: false
 
       - name: Test packages/internals
         if: ${{ contains(inputs.jobsToRun, '-all-') }} || contains(inputs.jobsToRun, '-internals-') }}
@@ -992,7 +1011,7 @@ jobs:
           # Allow Node.js to allocate at most a certain amount heap on macOS and a different amount on Windows
           # Note that this value should be lower than the total amount of RAM available
           # https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#supported-runners-and-hardware-resources
-          NODE_OPTIONS: "${{ matrix.os == 'macos-latest' && '--max-old-space-size=14336' || '--max-old-space-size=3072' }}"
+          NODE_OPTIONS: "${{ matrix.os == 'macos-13' && '--max-old-space-size=14336' || '--max-old-space-size=3072' }}"
           JEST_JUNIT_SUITE_NAME: 'client/old'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
 
