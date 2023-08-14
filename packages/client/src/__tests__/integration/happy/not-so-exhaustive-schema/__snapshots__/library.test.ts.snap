@@ -2103,7 +2103,38 @@ export namespace Prisma {
   export type DefaultPrismaClient = PrismaClient
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 
+  type IntRange<T extends number> = number extends T ? number : _IntRange<T, []>
+  type _IntRange<T extends number, R extends unknown[]> = R['length'] extends T ? R[number] : _IntRange<T, [R['length'], ...R]>
+
+  type ColumnType = IntRange<13>
+
+  type ResultSet = {
+    columnTypes: Array<ColumnType>
+    columnNames: Array<string>
+    rows: Array<Array<unknown>>
+    lastInsertId?: string
+  }
+
+  type Query = {
+    sql: string
+    args: Array<unknown>
+  }
+
+  type Connector = {
+    readonly flavour: 'mysql' | 'postgres'
+    queryRaw: (params: Query) => $Utils.JsPromise<ResultSet>
+    executeRaw: (params: Query) => $Utils.JsPromise<number>
+    version: () => $Utils.JsPromise<string | undefined>
+    isHealthy: () => boolean
+    close: () => $Utils.JsPromise<void>
+  }
+
   export interface PrismaClientOptions {
+    /**
+     * Instance of a JS connector, e.g., like one provided by `@prisma/planetscale-js-connector`.
+     */
+    jsConnector?: Connector
+
     /**
      * Overwrites the datasource url from your schema.prisma file
      */
