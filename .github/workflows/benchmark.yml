@@ -56,6 +56,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: 8
+          skip-tsc: true
 
       - name: Run benchmarks
         run: pnpm run bench
