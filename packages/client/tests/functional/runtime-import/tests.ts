@@ -17,11 +17,11 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
       expect(generatedClientContents).toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
-    } else if (clientMeta.remoteEngine && getClientEngineType() === ClientEngineType.Library) {
+    } else if (clientMeta.dataProxy && getClientEngineType() === ClientEngineType.Library) {
       expect(generatedClientContents).toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
-    } else if (clientMeta.remoteEngine && getClientEngineType() === ClientEngineType.Binary) {
+    } else if (clientMeta.dataProxy && getClientEngineType() === ClientEngineType.Binary) {
       expect(generatedClientContents).toContain(binaryRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)

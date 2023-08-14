@@ -114,7 +114,7 @@ testMatrix.setupTestSuite((suiteConfig, _suiteMeta, clientMeta) => {
   // with other databases. Investigate why it happens and check if it still
   // reproducible after Mini-Proxy starts using the Query Engine server instead
   // of the Query Engine CLI.
-  testIf(!clientMeta.remoteEngine || suiteConfig.provider !== 'mongodb')('nested relation', async () => {
+  testIf(!clientMeta.dataProxy || suiteConfig.provider !== 'mongodb')('nested relation', async () => {
     const group = await prisma.group.findFirst({
       where: { title },
       select: {
