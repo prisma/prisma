@@ -33,9 +33,6 @@ import { Fetch, request } from './utils/request'
 
 const MAX_RETRIES = 3
 
-// to defer the execution of promises in the constructor
-const P = Promise.resolve()
-
 const debug = Debug('prisma:client:dataproxyEngine')
 
 type DataProxyTxInfoPayload = {
@@ -148,9 +145,9 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
   private clientVersion: string
   private tracingHelper: TracingHelper
-  readonly remoteClientVersion: Promise<string>
-  readonly host: string
-  readonly headerBuilder: DataProxyHeaderBuilder
+  private remoteClientVersion!: string
+  private host!: string
+  private headerBuilder!: DataProxyHeaderBuilder
 
   constructor(config: EngineConfig) {
     super()
@@ -163,20 +160,6 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     this.clientVersion = config.clientVersion ?? 'unknown'
     this.logEmitter = config.logEmitter
     this.tracingHelper = this.config.tracingHelper
-
-    const [host, apiKey] = this.extractHostAndApiKey()
-    this.host = host
-
-    this.headerBuilder = new DataProxyHeaderBuilder({
-      apiKey,
-      tracingHelper: this.tracingHelper,
-      logLevel: config.logLevel,
-      logQueries: config.logQueries,
-    })
-
-    this.remoteClientVersion = P.then(() => getClientVersion(host, this.config))
-
-    debug('host', this.host)
   }
 
   apiKey(): string {
@@ -188,7 +171,28 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     return 'unknown'
   }
 
-  async start() {}
+  /**
+   * This is not a real "start" method, but rather a deferred initialization. We
+   * will only parse the URL on the first request to match the behavior of other
+   * engines, they will only throw errors on their very first request. This is
+   * needed in case the URL is misconfigured.
+   */
+  async start() {
+    const [host, apiKey] = this.extractHostAndApiKey()
+
+    this.host = host
+    this.headerBuilder = new DataProxyHeaderBuilder({
+      apiKey,
+      tracingHelper: this.tracingHelper,
+      logLevel: this.config.logLevel,
+      logQueries: this.config.logQueries,
+    })
+
+    this.remoteClientVersion = await getClientVersion(host, this.config)
+
+    debug('host', this.host)
+  }
+
   async stop() {}
 
   private propagateResponseExtensions(extensions: DataProxyExtensions): void {
@@ -240,7 +244,11 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   private async url(s: string) {
-    return `https://${this.host}/${await this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
+    if (this.host === undefined) {
+      await this.start()
+    }
+
+    return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
   }
 
   private async uploadSchema() {
@@ -479,7 +487,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   metrics(options: MetricsOptionsJson): Promise<Metrics>
   metrics(options: MetricsOptionsPrometheus): Promise<string>
   metrics(): Promise<Metrics> | Promise<string> {
-    throw new NotImplementedYetError('Metric are not yet supported for Data Proxy', {
+    throw new NotImplementedYetError('Metrics are not yet supported for Data Proxy', {
       clientVersion: this.clientVersion,
     })
   }
