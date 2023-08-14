@@ -29,5 +29,9 @@ testMatrix.setupTestSuite(
   {
     skipDb: true,
     skipDefaultClientInstance: true, // So we can manually call connect for this test
+    skipDataProxy: {
+      runtimes: ['edge'],
+      reason: 'InvalidDatasourceError will be shown on edge runtime, we should fix this in Prisma 6',
+    },
   },
 )
