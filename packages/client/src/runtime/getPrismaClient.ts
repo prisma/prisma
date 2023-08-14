@@ -11,14 +11,14 @@ import { RawValue, Sql } from 'sql-template-tag'
 
 import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
-import { BatchTransactionOptions, EngineConfig, EngineEventType, Fetch, Options } from './core/engines'
-import { EngineHandler } from './core/engines/EngineHandler'
+import { BatchTransactionOptions, Engine, EngineConfig, EngineEventType, Fetch, Options } from './core/engines'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
+import { getEngineInstance } from './core/init/getEngineInstance'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
 import {
@@ -288,7 +288,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
     _previewFeatures: string[]
     _activeProvider: string
     _extensions: MergedExtensionsList
-    _engineHandler: EngineHandler
+    _engine: Engine
     /**
      * A fully constructed/applied Client that references the parent
      * PrismaClient. This is used for Client extensions only.
@@ -396,7 +396,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
         debug('clientVersion', config.clientVersion)
 
-        this._engineHandler = new EngineHandler(this._engineConfig)
+        this._engine = getEngineInstance(this._engineConfig)
         this._requestHandler = new RequestHandler(this, logEmitter)
 
         if (options.log) {
@@ -410,7 +410,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           }
         }
 
-        this._metrics = new MetricsClient(this._engineHandler)
+        this._metrics = new MetricsClient(this._engine)
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -435,9 +435,9 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
     $on(eventType: EngineEventType, callback: (event: any) => void) {
       if (eventType === 'beforeExit') {
-        this._engineHandler.on('beforeExit', callback)
+        this._engine.on('beforeExit', callback)
       } else {
-        this._engineHandler.on(eventType, (event) => {
+        this._engine.on(eventType, (event) => {
           const fields = event.fields
           if (eventType === 'query') {
             return callback({
@@ -461,7 +461,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
     async $connect() {
       try {
-        return this._engineHandler.start()
+        return this._engine.start()
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -473,7 +473,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
      */
     async $disconnect() {
       try {
-        await this._engineHandler.stop()
+        await this._engine.stop()
       } catch (e: any) {
         e.clientVersion = this._clientVersion
         throw e
@@ -689,7 +689,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       options?: Options
     }) {
       const headers = { traceparent: this._tracingHelper.getTraceParent() }
-      const info = await this._engineHandler.transaction('start', headers, options as Options)
+      const info = await this._engine.transaction('start', headers, options as Options)
 
       let result: unknown
       try {
@@ -699,10 +699,10 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
         result = await callback(this._createItxClient(transaction))
 
         // it went well, then we commit the transaction
-        await this._engineHandler.transaction('commit', headers, info)
+        await this._engine.transaction('commit', headers, info)
       } catch (e: any) {
         // it went bad, then we rollback the transaction
-        await this._engineHandler.transaction('rollback', headers, info).catch(() => {})
+        await this._engine.transaction('rollback', headers, info).catch(() => {})
 
         throw e // silent rollback, throw original error
       }
