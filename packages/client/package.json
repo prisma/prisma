@@ -102,7 +102,7 @@
     "ci-info": "3.8.0",
     "decimal.js": "10.4.3",
     "env-paths": "2.2.1",
-    "esbuild": "0.15.13",
+    "esbuild": "0.19.1",
     "execa": "5.1.1",
     "expect-type": "0.16.0",
     "flat-map-polyfill": "0.3.8",
@@ -153,7 +153,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.2.0-12.13663010eb768a16c965c83f98b9b563d4866a14"
+    "@prisma/engines-version": "5.2.0-17.aec118af56046cbc736387cdd4903097906c4255"
   },
   "sideEffects": false
 }
