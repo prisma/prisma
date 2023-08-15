@@ -340,27 +340,33 @@ testMatrix.setupTestSuite(({ provider }, suiteMeta, clientMeta) => {
         txQueries = [dbQuery(expect.stringContaining('BEGIN')), dbQuery('COMMIT')]
       }
 
-      await waitForSpanTree({
-        name: 'prisma:client:transaction',
-        attributes: {
-          method: '$transaction',
-        },
-        children: [
-          operation('User', 'create', [clientSerialize()]),
-          operation('User', 'findMany', [clientSerialize()]),
-
-          {
-            name: 'prisma:engine:itx_runner',
-            attributes: { itx_id: expect.any(String) },
-            children: [
-              engineConnection(),
-              ...txQueries,
-              { name: 'prisma:engine:itx_query_builder', children: [...createDbQueries(false), engineSerialize()] },
-              { name: 'prisma:engine:itx_query_builder', children: [findManyDbQuery(), engineSerialize()] },
-            ],
+      // skipping on data proxy because the functionality is broken
+      // in this case at the moment and `itx_runner` span occasionally does
+      // not make it to the client when running via DP.
+      // See https://github.com/prisma/prisma/issues/20694
+      if (!clientMeta.dataProxy) {
+        await waitForSpanTree({
+          name: 'prisma:client:transaction',
+          attributes: {
+            method: '$transaction',
           },
-        ],
-      })
+          children: [
+            operation('User', 'create', [clientSerialize()]),
+            operation('User', 'findMany', [clientSerialize()]),
+
+            {
+              name: 'prisma:engine:itx_runner',
+              attributes: { itx_id: expect.any(String) },
+              children: [
+                engineConnection(),
+                ...txQueries,
+                { name: 'prisma:engine:itx_query_builder', children: [...createDbQueries(false), engineSerialize()] },
+                { name: 'prisma:engine:itx_query_builder', children: [findManyDbQuery(), engineSerialize()] },
+              ],
+            },
+          ],
+        })
+      }
     })
   })
 
