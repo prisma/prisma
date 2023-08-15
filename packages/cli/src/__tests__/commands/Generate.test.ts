@@ -38,14 +38,17 @@ describe('using cli', () => {
     expect(data.stdout).toContain(`I am a minimal generator`)
   }, 75_000) // timeout
 
-  it('should work with nested ', async () => {
+  it("doesn't work with nested unsupported in composite type", async () => {
     ctx.fixture('composite-panic')
-    await ctx.cli('generate').catch((e) => {
-      // This points to: fn map_scalar_input_type()
-      expect(e.stderr).toMatchInlineSnapshot(
-        `Error: RuntimeError: panicked at 'internal error: entered unreachable code: No unsupported field should reach that path', query-engine/schema/src/build/input_types/mod.rs:0:0`,
-      )
-    })
+    const result = ctx.cli('generate')
+    // This points to: fn map_scalar_input_type()
+    await expect(result).rejects.toThrow(
+      expect.objectContaining({
+        message: expect.stringContaining(
+          `panicked at 'internal error: entered unreachable code: No unsupported field should reach that path', query-engine/schema/src/build/input_types/mod.rs:26:40`,
+        ),
+      }),
+    )
   })
 })
 
@@ -57,13 +60,13 @@ describe('--schema from project directory', () => {
     const output = stripAnsi(replaceEngineType(result))
     expect(output).toMatchInlineSnapshot(`
 
-                                          ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./@prisma/client in XXXms
-                                          You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
-                                          \`\`\`
-                                          import { PrismaClient } from './@prisma/client'
-                                          const prisma = new PrismaClient()
-                                          \`\`\`
-                            `)
+      ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./@prisma/client in XXXms
+      You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+      \`\`\`
+      import { PrismaClient } from './@prisma/client'
+      const prisma = new PrismaClient()
+      \`\`\`
+    `)
     // Check that the client path in the import statement actually contains
     // forward slashes regardless of the platform (a snapshot test wouldn't
     // detect the difference because backward slashes are replaced with forward
@@ -85,13 +88,13 @@ describe('--schema from project directory', () => {
     const result = await Generate.new().parse([`--schema=${absoluteSchemaPath}`])
     expect(replaceEngineType(result)).toMatchInlineSnapshot(`
 
-                                          ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./@prisma/client in XXXms
-                                          You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
-                                          \`\`\`
-                                          import { PrismaClient } from './@prisma/client'
-                                          const prisma = new PrismaClient()
-                                          \`\`\`
-                            `)
+                                                ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./@prisma/client in XXXms
+                                                You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+                                                \`\`\`
+                                                import { PrismaClient } from './@prisma/client'
+                                                const prisma = new PrismaClient()
+                                                \`\`\`
+                                `)
   })
 
   it('--schema absolute path: should fail - invalid path', async () => {
@@ -110,13 +113,13 @@ describe('--schema from parent directory', () => {
     const output = stripAnsi(replaceEngineType(result))
     expect(output).toMatchInlineSnapshot(`
 
-                                          ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
-                                          You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
-                                          \`\`\`
-                                          import { PrismaClient } from './subdirectory/@prisma/client'
-                                          const prisma = new PrismaClient()
-                                          \`\`\`
-                            `)
+                                                ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
+                                                You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+                                                \`\`\`
+                                                import { PrismaClient } from './subdirectory/@prisma/client'
+                                                const prisma = new PrismaClient()
+                                                \`\`\`
+                                `)
     // Check that the client path in the import statement actually contains
     // forward slashes regardless of the platform (a snapshot test wouldn't
     // detect the difference because backward slashes are replaced with forward
@@ -141,13 +144,13 @@ describe('--schema from parent directory', () => {
     const output = stripAnsi(replaceEngineType(result))
     expect(output).toMatchInlineSnapshot(`
 
-                                          ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
-                                          You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
-                                          \`\`\`
-                                          import { PrismaClient } from './subdirectory/@prisma/client'
-                                          const prisma = new PrismaClient()
-                                          \`\`\`
-                            `)
+                                                ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
+                                                You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+                                                \`\`\`
+                                                import { PrismaClient } from './subdirectory/@prisma/client'
+                                                const prisma = new PrismaClient()
+                                                \`\`\`
+                                `)
     // Check that the client path in the import statement actually contains
     // forward slashes regardless of the platform (a snapshot test wouldn't
     // detect the difference because backward slashes are replaced with forward
