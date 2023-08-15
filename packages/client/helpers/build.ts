@@ -112,8 +112,8 @@ function writeDtsRexport(fileName: string) {
 
 void build([
   generatorBuildConfig,
-  nodeRuntimeBuildConfig('binary'),
-  nodeRuntimeBuildConfig('library'),
+  nodeRuntimeBuildConfig(ClientEngineType.Binary),
+  nodeRuntimeBuildConfig(ClientEngineType.Library),
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,

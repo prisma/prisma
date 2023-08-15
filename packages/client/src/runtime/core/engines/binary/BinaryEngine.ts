@@ -2,7 +2,7 @@ import Debug from '@prisma/debug'
 import type { ConnectorType } from '@prisma/generator-helper'
 import type { Platform } from '@prisma/get-platform'
 import { getPlatform, platforms } from '@prisma/get-platform'
-import { byline, EngineSpanEvent, TracingHelper } from '@prisma/internals'
+import { byline, ClientEngineType, EngineSpanEvent, TracingHelper } from '@prisma/internals'
 import type { ChildProcess, ChildProcessByStdio } from 'child_process'
 import { spawn } from 'child_process'
 import execa from 'execa'
@@ -364,7 +364,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
 
         debug({ cwd: this.cwd })
 
-        const prismaPath = await resolveEnginePath('binary', this.config)
+        const prismaPath = await resolveEnginePath(ClientEngineType.Binary, this.config)
 
         const additionalFlag = this.allowTriggerPanic ? ['--debug'] : []
 
@@ -661,7 +661,7 @@ You very likely have the wrong "binaryTarget" defined in the schema.prisma file.
   }
 
   async internalVersion() {
-    const enginePath = await resolveEnginePath('binary', this.config)
+    const enginePath = await resolveEnginePath(ClientEngineType.Binary, this.config)
 
     const result = await execa(enginePath, ['--version'])
 
