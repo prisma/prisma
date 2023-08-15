@@ -4,6 +4,13 @@ import { BinaryEngine, DataProxyEngine, EngineConfig, LibraryEngine } from '../e
 import { PrismaClientValidationError } from '../errors/PrismaClientValidationError'
 import { resolveDatasourceUrl } from './resolveDatasourceUrl'
 
+/**
+ * Get the engine instance based on the engine type and the target engine type
+ * (binary, library, data proxy). If the URL is a prisma:// URL, it will always
+ * use the DataProxyEngine. Basically decides which engine to load.
+ * @param _engineConfig
+ * @returns
+ */
 export function getEngineInstance(_engineConfig: EngineConfig) {
   let url: string | undefined
 

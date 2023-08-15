@@ -9,7 +9,7 @@ if (isMacOrWindowsCI) {
   jest.setTimeout(80_000)
 }
 
-export const testGeneratedClient = (runtimeName: 'binary' | 'library') => async () => {
+export const testGeneratedClient = (runtimeName: ClientEngineType) => async () => {
   const clientDir = path.join(__dirname, 'test-clients', runtimeName)
   await fs.promises.mkdir(clientDir, { recursive: true })
   await fs.promises.copyFile(path.join(__dirname, 'schema.prisma'), path.join(clientDir, 'schema.prisma'))

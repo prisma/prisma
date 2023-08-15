@@ -179,19 +179,27 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
    * needed in case the URL is misconfigured.
    */
   async start() {
-    const [host, apiKey] = this.extractHostAndApiKey()
+    if (this.startPromise !== undefined) {
+      await this.startPromise
+    }
 
-    this.host = host
-    this.headerBuilder = new DataProxyHeaderBuilder({
-      apiKey,
-      tracingHelper: this.tracingHelper,
-      logLevel: this.config.logLevel,
-      logQueries: this.config.logQueries,
-    })
+    this.startPromise = (async () => {
+      const [host, apiKey] = this.extractHostAndApiKey()
 
-    this.remoteClientVersion = await getClientVersion(host, this.config)
+      this.host = host
+      this.headerBuilder = new DataProxyHeaderBuilder({
+        apiKey,
+        tracingHelper: this.tracingHelper,
+        logLevel: this.config.logLevel,
+        logQueries: this.config.logQueries,
+      })
 
-    debug('host', this.host)
+      this.remoteClientVersion = await getClientVersion(host, this.config)
+
+      debug('host', this.host)
+    })()
+
+    await this.startPromise
   }
 
   async stop() {}
@@ -245,12 +253,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   private async url(s: string) {
-    if (this.startPromise !== undefined) {
-      await this.startPromise
-    } else {
-      this.startPromise = this.start()
-      await this.startPromise
-    }
+    await this.start()
 
     return `https://${this.host}/${this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
   }

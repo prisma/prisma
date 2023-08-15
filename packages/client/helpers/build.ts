@@ -1,3 +1,4 @@
+import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
@@ -11,7 +12,7 @@ const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
-function nodeRuntimeBuildConfig(targetEngineType: 'binary' | 'library'): BuildOptions {
+function nodeRuntimeBuildConfig(targetEngineType: ClientEngineType): BuildOptions {
   return {
     name: targetEngineType,
     entryPoints: ['src/runtime/index.ts'],

@@ -385,10 +385,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
-          inlineSchema: config.inlineSchema ?? '',
+          inlineSchema: config.inlineSchema,
           overrideDatasources: options.datasources ?? {},
-          inlineDatasources: config.inlineDatasources ?? {},
-          inlineSchemaHash: config.inlineSchemaHash ?? '',
+          inlineDatasources: config.inlineDatasources,
+          inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
@@ -459,7 +459,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       }
     }
 
-    async $connect() {
+    $connect() {
       try {
         return this._engine.start()
       } catch (e: any) {
