@@ -34,19 +34,11 @@ export type Narrow<A> = {
 } | (A extends Narrowable ? A : never)
 
 // prettier-ignore
-export type Exact<A, W> = (W extends A ? {
+export type Exact<A, W> = (A extends unknown ? (W extends A ? {
   [K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : never
-} : W) | (A extends Narrowable ? A : never)
+} : W) : never) | (A extends Narrowable ? A : never)
 
 export type Cast<A, W> = A extends W ? A : W
-
-type LegacyNarrowable = string | number | boolean | bigint
-// prettier-ignore
-export type LegacyExact<A, W = unknown> = 
-  W extends unknown ? A extends LegacyNarrowable ? Cast<A, W> : Cast<
-  { [K in keyof A]: K extends keyof W ? LegacyExact<A[K], W[K]> : never },
-  { [K in keyof W]: K extends keyof A ? LegacyExact<A[K], W[K]> : W[K] }>
-  : never;
 
 export type JsonObject = { [Key in string]?: JsonValue }
 export interface JsonArray extends Array<JsonValue> {}
@@ -66,11 +58,15 @@ export type UnwrapTuple<Tuple extends readonly unknown[]> = {
     : UnwrapPromise<Tuple[K]>
 }
 
-export type Path<O, P, Default = never> = P extends [infer K, ...infer R]
-  ? K extends keyof O
-    ? Path<O[K], R>
-    : Default
-  : O
+// prettier-ignore
+export type Path<O, P, Default = never> =
+  O extends unknown
+  ? P extends [infer K, ...infer R]
+    ? K extends keyof O
+      ? Path<O[K], R>
+      : Default
+    : O
+  : never
 
 export interface Fn<Params = unknown, Returns = unknown> {
   params: Params
@@ -96,3 +92,40 @@ export type Optional<O, K extends keyof any = keyof O> = {
 export type Return<T> = T extends (...args: any[]) => infer R ? R : T
 
 export type ToTuple<T> = T extends any[] ? T : [T]
+// prettier-ignore
+export type RenameAndNestPayloadKeys<P> = {
+  [K in keyof P as K extends 'scalars' | 'objects' | 'composites' ? keyof P[K] : never]:
+    P[K] // we lift the value up with the same key name so we can flatten it later
+}
+
+// prettier-ignore
+export type PayloadToResult<P, O extends Record<any, any> = RenameAndNestPayloadKeys<P>> = {
+  [K in keyof O]?: O[K][K] extends any[]
+                   ? PayloadToResult<O[K][K][number]>[]
+                   : O[K][K] extends object
+                     ? PayloadToResult<O[K][K]>
+                    : O[K][K]
+}
+
+export type Select<T, U> = T extends U ? T : never
+
+// prettier-ignore
+export type Equals<A, B> = (<T>() => T extends A ? 1 : 2) extends (<T>() => T extends B ? 1 : 2) ? 1 : 0
+
+export type Or<A extends 1 | 0, B extends 1 | 0> = {
+  0: {
+    0: 0
+    1: 1
+  }
+  1: {
+    0: 1
+    1: 1
+  }
+}[A][B]
+
+// This alias is necessary to allow to use `Promise` as a model name.
+// It's used in generated client instead of global `Promise`.
+// Why conditional intersection with {}?. Without it, in the error messages
+// and editor tooltips, type would be displayed as $Utils.JsPromise<T>.
+// Intersection allows us to preserve the name `Promise`
+export type JsPromise<T> = Promise<T> & {}

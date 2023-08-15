@@ -190,24 +190,24 @@ testMatrix.setupTestSuite(
     test('should only use ON CONFLICT when there is only 1 unique field in the where clause', async () => {
       const name = faker.person.firstName()
 
-      await expect(() =>
-        // This will fail
-        client.user.upsert({
-          where: {
-            // Because two unique fields are used
-            id: '1',
-            name,
-          },
-          create: {
-            name,
-          },
-          update: {
-            name,
-          },
-        }),
-      ).rejects.toThrow('needs exactly one argument')
-
       const checker = new UpsertChecker(client)
+
+      // This was previously failing before extendedWhereUnique went GA
+      // Now it doesn't use ON CONFLICT like expected.
+      await client.user.upsert({
+        where: {
+          // Because two unique fields are used
+          id: '1',
+          name,
+        },
+        create: {
+          name,
+        },
+        update: {
+          name,
+        },
+      })
+      expect(checker.notUsedNative()).toBeTruthy()
 
       // This 'will' use ON CONFLICT
       await client.user.upsert({
@@ -222,7 +222,6 @@ testMatrix.setupTestSuite(
           name,
         },
       })
-
       expect(checker.usedNative()).toBeTruthy()
     })
 

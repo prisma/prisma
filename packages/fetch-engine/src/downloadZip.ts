@@ -12,7 +12,7 @@ import zlib from 'zlib'
 import { getProxyAgent } from './getProxyAgent'
 import { overwriteFile } from './utils'
 
-const debug = Debug('prisma:downloadZip')
+const debug = Debug('prisma:fetch-engine:downloadZip')
 const del = promisify(rimraf)
 
 export type DownloadResult = {
@@ -25,8 +25,9 @@ async function fetchChecksum(url: string): Promise<string | null> {
   try {
     const checksumUrl = `${url}.sha256`
     const response = await fetch(checksumUrl, {
-      agent: getProxyAgent(url) as any,
+      agent: getProxyAgent(url),
     })
+
     if (!response.ok) {
       let errorMessage = `Failed to fetch sha256 checksum at ${checksumUrl}. ${response.status} ${response.statusText}`
       if (!process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
@@ -34,6 +35,7 @@ async function fetchChecksum(url: string): Promise<string | null> {
       }
       throw new Error(errorMessage)
     }
+
     const body = await response.text()
     // We get a string like this:
     // "3c82ee6cd9fedaec18a5e7cd3fc41f8c6b3dd32575dc13443d96aab4bd018411  query-engine.gz\n"
@@ -42,6 +44,7 @@ async function fetchChecksum(url: string): Promise<string | null> {
     if (!/^[a-f0-9]{64}$/gi.test(checksum)) {
       throw new Error(`Unable to parse checksum from ${checksumUrl} - response body: ${body}`)
     }
+
     return checksum
   } catch (error) {
     if (process.env.PRISMA_ENGINES_CHECKSUM_IGNORE_MISSING) {
@@ -61,72 +64,79 @@ export async function downloadZip(
 ): Promise<DownloadResult> {
   const tmpDir = tempy.directory()
   const partial = path.join(tmpDir, 'partial')
-  const [zippedSha256, sha256] = await Promise.all([fetchChecksum(url), fetchChecksum(url.slice(0, url.length - 3))])
-  const result = await retry(
+
+  // We try 3 times,
+  // Once + 2 retries
+  const RETRIES_COUNT = 2
+
+  const [zippedSha256, sha256] = await retry(
     async () => {
-      try {
-        const resp = await fetch(url, {
-          compress: false,
-          agent: getProxyAgent(url) as any,
-        })
-
-        if (resp.status !== 200) {
-          throw new Error(resp.statusText + ' ' + url)
-        }
-
-        const lastModified = resp.headers.get('last-modified')!
-        const size = parseFloat(resp.headers.get('content-length') as string)
-        const ws = fs.createWriteStream(partial)
-
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
-        return await new Promise(async (resolve, reject) => {
-          let bytesRead = 0
-
-          resp.body.on('error', reject).on('data', (chunk) => {
-            bytesRead += chunk.length
-
-            if (size && progressCb) {
-              progressCb(bytesRead / size)
-            }
-          })
-
-          const gunzip = zlib.createGunzip()
-
-          gunzip.on('error', reject)
-
-          const zipStream = resp.body.pipe(gunzip)
-          const zippedHashPromise = hasha.fromStream(resp.body, {
-            algorithm: 'sha256',
-          })
-          const hashPromise = hasha.fromStream(zipStream, {
-            algorithm: 'sha256',
-          })
-          zipStream.pipe(ws)
-
-          ws.on('error', reject).on('close', () => {
-            resolve({ lastModified, sha256, zippedSha256 })
-          })
-
-          const hash = await hashPromise
-          const zippedHash = await zippedHashPromise
-
-          if (zippedSha256 !== null && zippedSha256 !== zippedHash) {
-            return reject(
-              new Error(`sha256 checksum of ${url} (zipped) should be ${zippedSha256} but is ${zippedHash}`),
-            )
-          }
-
-          if (sha256 !== null && sha256 !== hash) {
-            return reject(new Error(`sha256 checksum of ${url} (unzipped) should be ${sha256} but is ${hash}`))
-          }
-        })
-      } finally {
-        //
-      }
+      return await Promise.all([fetchChecksum(url), fetchChecksum(url.slice(0, url.length - 3))])
     },
     {
-      retries: 2,
-      onFailedAttempt: (err) => debug(err),
+      retries: RETRIES_COUNT,
+      onFailedAttempt: (err) => debug('An error occurred while downloading the checksums files', err),
+    },
+  )
+
+  const result = await retry(
+    async () => {
+      const response = await fetch(url, {
+        compress: false,
+        agent: getProxyAgent(url),
+      })
+      if (!response.ok) {
+        throw new Error(`Failed to fetch the engine file at ${url}. ${response.status} ${response.statusText}`)
+      }
+
+      const lastModified = response.headers.get('last-modified')!
+      const size = parseFloat(response.headers.get('content-length') as string)
+      const ws = fs.createWriteStream(partial)
+
+      // eslint-disable-next-line @typescript-eslint/no-misused-promises, no-async-promise-executor
+      return await new Promise(async (resolve, reject) => {
+        let bytesRead = 0
+
+        response.body.on('error', reject).on('data', (chunk) => {
+          bytesRead += chunk.length
+
+          if (size && progressCb) {
+            progressCb(bytesRead / size)
+          }
+        })
+
+        const gunzip = zlib.createGunzip()
+        gunzip.on('error', reject)
+
+        const zipStream = response.body.pipe(gunzip)
+        const zippedHashPromise = hasha.fromStream(response.body, {
+          algorithm: 'sha256',
+        })
+        const hashPromise = hasha.fromStream(zipStream, {
+          algorithm: 'sha256',
+        })
+
+        zipStream.pipe(ws)
+
+        ws.on('error', reject).on('close', () => {
+          resolve({ lastModified, sha256, zippedSha256 })
+        })
+
+        const hash = await hashPromise
+        const zippedHash = await zippedHashPromise
+
+        if (zippedSha256 !== null && zippedSha256 !== zippedHash) {
+          return reject(new Error(`sha256 checksum of ${url} (zipped) should be ${zippedSha256} but is ${zippedHash}`))
+        }
+
+        if (sha256 !== null && sha256 !== hash) {
+          return reject(new Error(`sha256 checksum of ${url} (unzipped) should be ${sha256} but is ${hash}`))
+        }
+      })
+    },
+    {
+      retries: RETRIES_COUNT,
+      onFailedAttempt: (err) => debug('An error occurred while downloading the engine file', err),
     },
   )
 

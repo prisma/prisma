@@ -1,7 +1,7 @@
 import type { DMMF } from '@prisma/generator-helper'
 
-import { capitalize, lowerCase } from '../../runtime/utils/common'
 import { getGroupByArgsName, getModelArgName } from '../utils'
+import { capitalize, lowerCase } from '../utils/common'
 
 export interface JSDocMethodBodyCtx {
   singular: string
@@ -161,7 +161,7 @@ const ${lowerCase(ctx.mapping.model)} = await ${ctx.method}({
   findFirstOrThrow: {
     body: (ctx) =>
       `Find the first ${ctx.singular} that matches the filter or
-throw \`NotFoundError\` if no matches were found.
+throw \`PrismaKnownClientError\` with \`P2025\` code if no matches were found.
 ${undefinedNote}
 @param {${getModelArgName(ctx.model.name, ctx.action)}} args - Arguments to find a ${ctx.singular}
 @example

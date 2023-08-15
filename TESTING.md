@@ -118,8 +118,6 @@ In the `prisma/prisma` repository we have a few places where you can write tests
   - Integration tests for generator interface implementation
 - **`migrate`**
   - Unit and integration tests for `migrate` and `db` commands
-- **`react-prisma`**
-  - Doesn't have tests
 - **`internals`**
   - Convert credentials to connection string and back
   - Dotenv expansion
@@ -158,13 +156,13 @@ To change the default Rust artifacts' type used under the hood, you can set the 
 - `mkdir artificial-panics && cd artificial-panics`
 - `npx prisma init --datasource-provider sqlite`
 
-### Trigger panic in Migration Engine
+### Trigger panic in Schema Engine
 
-- run `FORCE_PANIC_MIGRATION_ENGINE=1 npx prisma migrate dev`
+- run `FORCE_PANIC_SCHEMA_ENGINE=1 npx prisma migrate dev`
 
 ### Trigger panic in Formatter
 
-- run `FORCE_PANIC_PRISMA_FMT=1 npx prisma format`
+- run `FORCE_PANIC_PRISMA_SCHEMA=1 npx prisma format`
 
 ### Trigger panic in Query Engine - Get DMMF
 

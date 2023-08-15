@@ -1,6 +1,6 @@
 import Decimal from 'decimal.js'
 
-import { DMMF } from '../../dmmf-types'
+import { DMMF } from '../../../generation/dmmf-types'
 import { ObjectEnumValue } from '../../object-enums'
 import { DecimalJsLike } from '../../utils/decimalJsLike'
 import { FieldRef } from '../model/FieldRef'
@@ -19,9 +19,14 @@ export type JsInputValue =
   | DecimalJsLike
   | ObjectEnumValue
   | RawParameters
+  | JsonConvertible
   | FieldRef<string, unknown>
   | JsInputValue[]
   | { [key: string]: JsInputValue }
+
+export interface JsonConvertible {
+  toJSON(): unknown
+}
 
 export type JsArgs = {
   select?: Selection

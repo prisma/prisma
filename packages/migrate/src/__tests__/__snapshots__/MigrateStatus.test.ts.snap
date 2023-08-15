@@ -18,10 +18,6 @@ exports[`sqlite existing-db-histories-diverge 3`] = ``;
 
 exports[`sqlite existing-db-warnings 3`] = ``;
 
-exports[`sqlite old-migrate 3`] = ``;
-
-exports[`sqlite old-migrate 4`] = ``;
-
 exports[`sqlite reset 3`] = ``;
 
 exports[`sqlite reset 4`] = ``;

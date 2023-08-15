@@ -8,6 +8,9 @@ services:
   postgres:
     image: postgres:10
     restart: unless-stopped
+    # Uncomment the following line to enable query logging
+    # Then restart the container.
+    # command: ['postgres', '-c', 'log_statement=all']
     environment:
       - POSTGRES_DB=tests
       - POSTGRES_USER=prisma
@@ -35,7 +38,7 @@ services:
   # Planetscale
   # From https://github.com/prisma/prisma-engines/blob/976a00ae3c30ab9507fa742986c9c6f5327ba10f/docker-compose.yml
   vitess-8:
-    image: vitess/vttestserver:mysql80@sha256:d7486215316e352aecc6f34d4a3024017d79377e2a09545a7990b6aa4ea8d6a2
+    image: vitess/vttestserver:mysql80@sha256:5ec3cf0d8e1a96dc983ac4f2963340c9fed85e5b5181c16c6bc855febe5a6696
     restart: unless-stopped
     ports:
       - 33807:33807

@@ -95,7 +95,7 @@ function setupTestSuiteMatrix(
         })
 
         globalThis['newPrismaClient'] = (...args) => {
-          const client = new global['loaded']['PrismaClient'](...args)
+          const client = new globalThis['loaded']['PrismaClient'](...args)
           clients.push(client)
           return client
         }

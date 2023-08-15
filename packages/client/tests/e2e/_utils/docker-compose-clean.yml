@@ -9,7 +9,6 @@ services:
       - /bin/sh
       - -c
       - |
-        rm -fr /e2e/*.tgz
         find /e2e -name "LOGS*.txt" -type f -exec rm -fr {} +
     volumes:
       - ../:/e2e

@@ -6,7 +6,7 @@ export function omit(type: TypeBuilder, keyType: TypeBuilder): NamedType {
 }
 
 export function promise(resultType: TypeBuilder): NamedType {
-  return new NamedType('Promise').addGenericArgument(resultType)
+  return new NamedType('$Utils.JsPromise').addGenericArgument(resultType)
 }
 
 export function prismaPromise(resultType: TypeBuilder): NamedType {

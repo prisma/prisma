@@ -6,7 +6,7 @@ import { getSchema, pathToPosix } from '@prisma/internals'
 import path from 'path'
 
 import { DbPull } from '../../commands/DbPull'
-import { MigrateEngine } from '../../MigrateEngine'
+import { SchemaEngine } from '../../SchemaEngine'
 import { runQueryPostgres, SetupParams, setupPostgres, tearDownPostgres } from '../../utils/setupPostgres'
 
 const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
@@ -79,7 +79,7 @@ describe('postgresql-views', () => {
       it('`views` is null', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const engine = new MigrateEngine({
+        const engine = new SchemaEngine({
           projectDir: process.cwd(),
           schemaPath: undefined,
         })
@@ -102,7 +102,7 @@ describe('postgresql-views', () => {
       it('`views` is [] and no views folder is created', async () => {
         ctx.fixture(path.join(fixturePath))
 
-        const engine = new MigrateEngine({
+        const engine = new SchemaEngine({
           projectDir: process.cwd(),
           schemaPath: undefined,
         })
@@ -130,7 +130,7 @@ describe('postgresql-views', () => {
         expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
         expect(await ctx.fs.listAsync('views')).toEqual(['empty-dir'])
 
-        const engine = new MigrateEngine({
+        const engine = new SchemaEngine({
           projectDir: process.cwd(),
           schemaPath: undefined,
         })
@@ -158,7 +158,7 @@ describe('postgresql-views', () => {
         expect(await ctx.fs.listAsync()).toEqual(['node_modules', 'schema.prisma', 'setup.sql', 'views'])
         expect(await ctx.fs.listAsync('views')).toEqual(['README.md'])
 
-        const engine = new MigrateEngine({
+        const engine = new SchemaEngine({
           projectDir: process.cwd(),
           schemaPath: undefined,
         })

@@ -117,32 +117,6 @@ describe('common', () => {
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
           `)
   })
-  it('should fail if old migrate', async () => {
-    ctx.fixture('old-migrate')
-    const result = MigrateDev.new().parse([])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
-
-            Read more about how to upgrade to the new version of Migrate:
-            https://pris.ly/d/migrate-upgrade
-          `)
-  })
-  it('should fail if experimental flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateDev.new().parse(['--experimental'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was Experimental and is now Generally Available.
-            WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
-          `)
-  })
-  it('should fail if early access flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateDev.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now Generally Available.
-            Remove the --early-access-feature flag.
-          `)
-  })
   it('dev should error in unattended environment', async () => {
     ctx.fixture('transition-db-push-migrate')
     const result = MigrateDev.new().parse([])
@@ -208,7 +182,7 @@ describe('sqlite', () => {
   // [Error: Failed to create a new migration directory.
   //    0: migration_core::api::CreateMigration
   //            with migration_name="xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end" draft=false
-  //              at migration-engine\core\src\api.rs:94
+  //              at schema-engine\core\src\api.rs:94
   // ]
   //
   // Probably the file name is too long for Windows?
@@ -1188,7 +1162,7 @@ describe('postgresql', () => {
   // Failed with
   // Snapshot: db error: ERROR: relation "_prisma_migrations" already exists
   // 0: migration_core::state::ApplyMigrations
-  // at migration-engine/core/src/state.rs:199
+  // at schema-engine/core/src/state.rs:199
   // Probably needs to run on an isolated db (currently in a git stash)
   it.skip('need to reset prompt: (no) should succeed', async () => {
     ctx.fixture('schema-only-postgresql')
@@ -1216,7 +1190,7 @@ describe('postgresql', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
       db error: ERROR: relation "_prisma_migrations" already exists
          0: migration_core::state::ApplyMigrations
-                   at migration-engine/core/src/state.rs:199
+                   at schema-engine/core/src/state.rs:199
 
     `)
     expect(mockExit).toHaveBeenCalledWith(130)

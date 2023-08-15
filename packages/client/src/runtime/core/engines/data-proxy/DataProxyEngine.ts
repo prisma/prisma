@@ -1,15 +1,12 @@
 import Debug from '@prisma/debug'
-import { DMMF } from '@prisma/generator-helper'
 import { EngineSpan, TracingHelper } from '@prisma/internals'
 
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
 import type {
   BatchQueryEngineResult,
-  EngineBatchQueries,
   EngineConfig,
   EngineEventType,
-  EngineQuery,
   InlineDatasource,
   InteractiveTransactionOptions,
   RequestBatchOptions,
@@ -17,6 +14,7 @@ import type {
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
 import { EventEmitter } from '../common/types/Events'
+import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
 import type * as Tx from '../common/types/Transaction'
@@ -175,7 +173,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       logQueries: config.logQueries,
     })
 
-    this.remoteClientVersion = P.then(() => getClientVersion(this.config))
+    this.remoteClientVersion = P.then(() => getClientVersion(host, this.config))
 
     debug('host', this.host)
   }
@@ -234,10 +232,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
   on(event: EngineEventType, listener: (args?: any) => any): void {
     if (event === 'beforeExit') {
-      // TODO: hook into the process
-      throw new NotImplementedYetError('beforeExit event is not yet supported', {
-        clientVersion: this.clientVersion,
-      })
+      throw new Error('"beforeExit" hook is not applicable to the remote query engine')
     } else {
       this.logEmitter.on(event, listener)
     }
@@ -245,13 +240,6 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
   private async url(s: string) {
     return `https://${this.host}/${await this.remoteClientVersion}/${this.inlineSchemaHash}/${s}`
-  }
-
-  getDmmf(): Promise<DMMF.Document> {
-    // This code path should not be reachable, as it is handled upstream in `getPrismaClient`.
-    throw new NotImplementedYetError('getDmmf is not yet supported', {
-      clientVersion: this.clientVersion,
-    })
   }
 
   private async uploadSchema() {
@@ -286,7 +274,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   request<T>(
-    query: EngineQuery,
+    query: JsonQuery,
     { traceparent, interactiveTransaction, customDataProxyFetch }: RequestOptions<DataProxyTxInfoPayload>,
   ) {
     // TODO: `elapsed`?
@@ -299,7 +287,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   async requestBatch<T>(
-    queries: EngineBatchQueries,
+    queries: JsonQuery[],
     { traceparent, transaction, customDataProxyFetch }: RequestBatchOptions<DataProxyTxInfoPayload>,
   ): Promise<BatchQueryEngineResult<T>[]> {
     const interactiveTransaction = transaction?.kind === 'itx' ? transaction.options : undefined
@@ -476,9 +464,12 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     const { protocol, host, searchParams } = url
 
     if (protocol !== 'prisma:') {
-      throw new InvalidDatasourceError('Datasource URL must use prisma:// protocol when --data-proxy is used', {
-        clientVersion: this.clientVersion,
-      })
+      throw new InvalidDatasourceError(
+        'Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used',
+        {
+          clientVersion: this.clientVersion,
+        },
+      )
     }
 
     const apiKey = searchParams.get('api_key')
