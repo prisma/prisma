@@ -34,7 +34,7 @@ Or specify a Prisma schema path
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
-    const before = Date.now()
+    const before = Math.round(performance.now())
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -60,7 +60,7 @@ Or specify a Prisma schema path
     })
 
     fs.writeFileSync(schemaPath, output)
-    const after = Date.now()
+    const after = Math.round(performance.now())
 
     return `Formatted ${underline(schemaPath)} in ${formatms(after - before)} 🚀`
   }
