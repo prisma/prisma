@@ -30,8 +30,8 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
       expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
     } else if (getClientEngineType() === ClientEngineType.Binary) {
-      expect(generatedClientContents).toContain(edgeRuntime)
       expect(generatedClientContents).toContain(binaryRuntime)
+      expect(generatedClientContents).not.toContain(edgeRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
     }
   })
