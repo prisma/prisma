@@ -850,7 +850,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
           attributes: {
             method: params.action,
             model: params.model,
-            name: `${params.model}.${params.action}`,
+            name: params.model ? `${params.model}.${params.action}` : params.action,
           },
         } as ExtendedSpanOptions,
       }
