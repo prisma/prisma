@@ -45,7 +45,7 @@ describe('using cli', () => {
     await expect(result).rejects.toThrow(
       expect.objectContaining({
         message: expect.stringContaining(
-          `panicked at 'internal error: entered unreachable code: No unsupported field should reach that path', query-engine/schema/src/build/input_types/mod.rs:26:40`,
+          `panicked at 'internal error: entered unreachable code: No unsupported field should reach that path'`,
         ),
       }),
     )
