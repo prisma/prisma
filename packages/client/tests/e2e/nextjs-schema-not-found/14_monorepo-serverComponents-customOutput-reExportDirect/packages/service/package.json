@@ -14,10 +14,10 @@
   "devDependencies": {
     "@types/node": "18.11.18",
     "@types/react": "18.0.26",
-    "@prisma/nextjs-monorepo-workaround-plugin": "../../../../prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz"
+    "@prisma/nextjs-monorepo-workaround-plugin": "/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz"
   },
   "dependencies": {
-    "db": "workspace:../db",
+    "db": "workspace:/tmp/db",
     "next": "13.1.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",

@@ -88,8 +88,8 @@ async function main() {
     const dependencies = pkgJsonWithRuntimeDeps.dependencies as Record<string, string>
 
     // replace references to unbundled local packages with built and packaged tarballs
-    if (dependencies['@prisma/engines']) dependencies['@prisma/engines'] = '/test/prisma-engines-0.0.0.tgz'
-    if (dependencies['@prisma/debug']) dependencies['@prisma/debug'] = '/test/prisma-debug-0.0.0.tgz'
+    if (dependencies['@prisma/engines']) dependencies['@prisma/engines'] = '/tmp/prisma-engines-0.0.0.tgz'
+    if (dependencies['@prisma/debug']) dependencies['@prisma/debug'] = '/tmp/prisma-debug-0.0.0.tgz'
   }
 
   // write the modified package.json to overwrite the original package.json
@@ -109,12 +109,12 @@ async function main() {
     }
 
     if (args['--skipPack'] !== true) {
-      await $`cd ${clientPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-      await $`cd ${cliPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-      await $`cd ${enginesPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-      await $`cd ${debugPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-      await $`cd ${generatorHelperPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
-      await $`cd ${wpPluginPkgPath} && pnpm pack --pack-destination ${__dirname}/../`
+      await $`cd ${clientPkgPath} && pnpm pack --pack-destination /tmp/`
+      await $`cd ${cliPkgPath} && pnpm pack --pack-destination /tmp/`
+      await $`cd ${enginesPkgPath} && pnpm pack --pack-destination /tmp/`
+      await $`cd ${debugPkgPath} && pnpm pack --pack-destination /tmp/`
+      await $`cd ${generatorHelperPkgPath} && pnpm pack --pack-destination /tmp/`
+      await $`cd ${wpPluginPkgPath} && pnpm pack --pack-destination /tmp/`
     }
   } catch (e) {
     console.log(e.message)
@@ -135,6 +135,14 @@ async function main() {
   }
 
   const dockerVolumes = [
+    `/tmp/prisma-0.0.0.tgz:/tmp/prisma-0.0.0.tgz`,
+    `/tmp/prisma-debug-0.0.0.tgz:/tmp/prisma-debug-0.0.0.tgz`,
+    `/tmp/prisma-client-0.0.0.tgz:/tmp/prisma-client-0.0.0.tgz`,
+    `/tmp/prisma-engines-0.0.0.tgz:/tmp/prisma-engines-0.0.0.tgz`,
+    `/tmp/prisma-generator-helper-0.0.0.tgz:/tmp/prisma-generator-helper-0.0.0.tgz`,
+    `/tmp/nextjs-monorepo-workaround-plugin-0.0.0.tgz:/tmp/nextjs-monorepo-workaround-plugin-0.0.0.tgz`,
+    `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
+
     `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
     `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')}:/e2e`,
     `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e', '.cache')}:/root/.cache`,
