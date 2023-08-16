@@ -463,6 +463,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   }
 
   private extractHostAndApiKey() {
+    const errorInfo = { clientVersion: this.clientVersion }
     const serviceURL = resolveDatasourceUrl({
       inlineDatasources: this.inlineDatasources,
       overrideDatasources: this.config.overrideDatasources,
@@ -474,18 +475,18 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     try {
       url = new URL(serviceURL)
     } catch {
-      throw new InvalidDatasourceError('Could not parse URL of the datasource', {
-        clientVersion: this.clientVersion,
-      })
+      throw new InvalidDatasourceError('Could not parse URL of the datasource', errorInfo)
     }
 
-    const { host, searchParams } = url
+    const { protocol, host, searchParams } = url
+
+    if (protocol !== 'prisma:') {
+      throw new InvalidDatasourceError('Datasource URL must use prisma:// protocol', errorInfo)
+    }
 
     const apiKey = searchParams.get('api_key')
     if (apiKey === null || apiKey.length < 1) {
-      throw new InvalidDatasourceError('No valid API key found in the datasource URL', {
-        clientVersion: this.clientVersion,
-      })
+      throw new InvalidDatasourceError('No valid API key found in the datasource URL', errorInfo)
     }
 
     return [host, apiKey]

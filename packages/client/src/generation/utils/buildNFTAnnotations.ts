@@ -21,7 +21,7 @@ export function buildNFTAnnotations(
   platforms: Platform[] | undefined,
   relativeOutdir: string,
 ) {
-  // We don't want to bundle engines when `--no-engine is enabled
+  // We don't want to bundle engines when `--no-engine is enabled or for the edge runtime
   if (noEngine === true) return ''
 
   if (platforms === undefined) {
@@ -74,6 +74,7 @@ function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
   const relativeFilePath = path.join(relativeOutdir, fileName)
 
   return `
+// file annotations for bundling tools to include these files
 path.join(__dirname, ${JSON.stringify(pathToPosix(fileName))});
 path.join(process.cwd(), ${JSON.stringify(pathToPosix(relativeFilePath))})`
 }

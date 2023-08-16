@@ -32,9 +32,5 @@ testMatrix.setupTestSuite(
         sqlserver: returns undefined
       `,
     },
-    skipDataProxy: {
-      runtimes: ['edge'],
-      reason: 'InvalidDatasourceError will be shown on edge runtime, we should fix this in Prisma 6',
-    },
   },
 )

@@ -50,6 +50,7 @@ ${bold('Options')}
       --schema   Custom path to your Prisma schema
        --watch   Watch the Prisma schema and rerun after a change
    --generator   Generator to use (may be provided multiple times)
+   --no-engine   Generate a client for use with Accelerate only
 
 ${bold('Examples')}
 
@@ -96,8 +97,9 @@ ${bold('Examples')}
       '-h': '--help',
       '--watch': Boolean,
       '--schema': String,
-      '--data-proxy': Boolean, // remove in Prisma 6
-      '--accelerate': Boolean, // remove in Prisma 6
+      '--data-proxy': Boolean,
+      '--accelerate': Boolean,
+      '--no-engine': Boolean,
       '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
@@ -136,6 +138,12 @@ ${bold('Examples')}
         cliVersion: pkg.version,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
+        noEngine:
+          Boolean(args['--no-engine']) ||
+          Boolean(args['--data-proxy']) || // legacy
+          Boolean(args['--accelerate']) || // legacy
+          Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy
+          Boolean(process.env.PRISMA_GENERATE_ACCELERATE), // legacy
       })
 
       if (!generators || generators.length === 0) {
