@@ -230,10 +230,12 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   // So we can reuse the same database for all tests
   // It has a significant impact on the test runtime
   // Example: 60s -> 3s
-  if (process.env.TEST_JS_PLANETSCALE) {
-    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'tests')
-  } else if (providerFlavor === ProviderFlavors.VITESS_8) {
+  if (providerFlavor === ProviderFlavors.VITESS_8) {
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
+  } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+    // TODO
+    // Hardcoded for now
+    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'tests')
   } else {
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
   }
