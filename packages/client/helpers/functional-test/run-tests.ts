@@ -71,6 +71,13 @@ async function main(): Promise<number | void> {
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDERS: providers.join(',') })
   }
 
+  // const planetscaleProxyProcess = execa('sh ../../tests/functional/_utils/proxy-planetscale', {
+  //   preferLocal: true,
+  //   stdio: 'inherit',
+  //   env: {},
+  // })
+  // console.debug('planetscaleProxyProcess should start soon...')
+
   if (args['--data-proxy']) {
     if (!fs.existsSync(miniProxy.defaultServerConfig.cert)) {
       await miniProxy.generateCertificates(miniProxy.defaultCertificatesConfig)
@@ -161,6 +168,9 @@ async function main(): Promise<number | void> {
     if (miniProxyProcess) {
       miniProxyProcess.kill()
     }
+    // if (planetscaleProxyProcess) {
+    //   planetscaleProxyProcess.kill()
+    // }
   }
 }
 

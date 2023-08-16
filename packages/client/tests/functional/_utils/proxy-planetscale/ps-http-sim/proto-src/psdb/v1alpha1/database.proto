@@ -1,0 +1,41 @@
+// Note that this doesn't truly reflect PlanetScale service, but is intended
+// to be an approximation, and enough to satisfy the APIs used by database-js
+
+syntax = "proto3";
+
+package psdb.v1alpha1;
+
+import "query.proto";
+import "vtrpc.proto";
+
+option go_package = "github.com/mattrobenolt/ps-http-sim/types/psdb/v1alpha1;psdbv1alpha1";
+
+message User {
+  string username = 1;
+  string psid = 2;
+}
+
+message CreateSessionRequest {}
+
+message CreateSessionResponse {
+  string branch = 1;
+  User user = 2;
+  string session = 3;
+}
+
+message ExecuteRequest {
+  string session = 1;
+  string query = 2;
+}
+
+message ExecuteResponse {
+  string session = 1;
+
+  query.QueryResult result = 2;
+  vtrpc.RPCError error = 3;
+}
+
+service Database {
+  rpc CreateSession(CreateSessionRequest) returns (CreateSessionResponse) {}
+  rpc Execute(ExecuteRequest) returns (ExecuteResponse) {}
+}

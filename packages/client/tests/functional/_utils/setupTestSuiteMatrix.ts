@@ -100,10 +100,15 @@ function setupTestSuiteMatrix(
         globalThis['newPrismaClient'] = (...args) => {
           let client
           if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-            const connectionString = `${process.env.TEST_FUNCTIONAL_JS_PLANETSCALE_URI as string}`
+            // When using a remote database
+            // const connectionString = `${process.env.TEST_FUNCTIONAL_JS_PLANETSCALE_URI as string}`
 
+            // Ignoring the type error, `url` is actually not required
+            // `host` only works and is pointing to the local proxy
+            // @ts-ignore
             const jsConnector = createPlanetScaleConnector({
-              url: connectionString,
+              // url: connectionString,
+              host: '127.0.0.1:8085',
               /**
                * Custom `fetch` implementation is only necessary on Node.js < v18.x.x.
                */

@@ -123,7 +123,10 @@ jobs:
       TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
       DEBUG: 'prisma:js-connector*'
-      TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
+      # Remote
+      # TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
+      # Local - using Vitess (MySQL 8)
+      TEST_FUNCTIONAL_JS_PLANETSCALE_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
       TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
       TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -235,7 +238,10 @@ jobs:
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
           DEBUG: 'prisma:js-connector*'
-          TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
+          # Remote
+          # TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
+          # Local - using Vitess (MySQL 8)
+          TEST_FUNCTIONAL_JS_PLANETSCALE_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
           TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -250,7 +256,10 @@ jobs:
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
           DEBUG: 'prisma:js-connector*'
-          TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
+          # Remote
+          # TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
+          # Local - using Vitess (MySQL 8)
+          TEST_FUNCTIONAL_JS_PLANETSCALE_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
           TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
           TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -443,7 +452,10 @@ jobs:
       TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
       DEBUG: 'prisma:js-connector*'
-      TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
+      # Remote
+      # TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
+      # Local - using Vitess (MySQL 8)
+      TEST_FUNCTIONAL_JS_PLANETSCALE_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_MSSQL_URI: 'sqlserver://localhost:1433;database=PRISMA_DB_NAME;user=SA;password=Pr1sm4_Pr1sm4;trustServerCertificate=true;'
       TEST_FUNCTIONAL_MONGO_URI: 'mongodb://root:prisma@localhost:27018/PRISMA_DB_NAME?authSource=admin'
       TEST_FUNCTIONAL_COCKROACH_URI: 'postgresql://prisma@localhost:26257/PRISMA_DB_NAME'
@@ -467,6 +479,11 @@ jobs:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
+
+      - name: Start PlanetScale Proxy in background
+        working-directory: packages/client/tests/functional/_utils/proxy-planetscale
+        run: |
+          sh start.sh &
 
       # shouldn't take more than 15 minutes
       - name: 1 to 1

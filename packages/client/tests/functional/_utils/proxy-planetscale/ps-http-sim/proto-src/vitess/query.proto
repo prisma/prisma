@@ -1,0 +1,923 @@
+/*
+Copyright 2019 The Vitess Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// This file contains all the types necessary to make
+// RPC calls to Vttablet.
+
+syntax = "proto3";
+option go_package = "vitess.io/vitess/go/vt/proto/query";
+
+package query;
+
+option java_package = "io.vitess.proto";
+
+import "topodata.proto";
+import "vtrpc.proto";
+
+// Target describes what the client expects the tablet is.
+// If the tablet does not match, an error is returned.
+message Target {
+  string keyspace = 1;
+  string shard = 2;
+  topodata.TabletType tablet_type = 3;
+  // cell is used for routing queries between vtgate and vttablets. It
+  // is not used when Target is part of the Session sent by the client.
+  string cell = 4;
+}
+
+// VTGateCallerID is sent by VTGate to VTTablet to describe the
+// caller. If possible, this information is secure. For instance,
+// if using unique certificates that guarantee that VTGate->VTTablet
+// traffic cannot be spoofed, then VTTablet can trust this information,
+// and VTTablet will use it for tablet ACLs, for instance.
+// Because of this security guarantee, this is different than the CallerID
+// structure, which is not secure at all, because it is provided
+// by the Vitess client.
+message VTGateCallerID {
+  string username = 1;
+  repeated string groups = 2;
+}
+
+// EventToken is a structure that describes a point in time in a
+// replication stream on one shard. The most recent known replication
+// position can be retrieved from vttablet when executing a query. It
+// is also sent with the replication streams from the binlog service.
+message EventToken {
+  // timestamp is the MySQL timestamp of the statements. Seconds since Epoch.
+  int64 timestamp = 1;
+
+  // The shard name that applied the statements. Note this is not set when
+  // streaming from a vttablet. It is only used on the client -> vtgate link.
+  string shard = 2;
+
+  // The position on the replication stream after this statement was applied.
+  // It is not the transaction ID / GTID, but the position / GTIDSet.
+  string position = 3;
+}
+
+// Flags sent from the MySQL C API
+enum MySqlFlag {
+  option allow_alias = true;
+  
+  EMPTY = 0;
+  NOT_NULL_FLAG = 1;
+  PRI_KEY_FLAG = 2;
+  UNIQUE_KEY_FLAG = 4;
+  MULTIPLE_KEY_FLAG = 8;
+  BLOB_FLAG = 16;
+  UNSIGNED_FLAG = 32;
+  ZEROFILL_FLAG = 64;
+  BINARY_FLAG = 128;
+  ENUM_FLAG = 256;
+  AUTO_INCREMENT_FLAG = 512;
+  TIMESTAMP_FLAG = 1024;
+  SET_FLAG = 2048;
+  NO_DEFAULT_VALUE_FLAG = 4096;
+  ON_UPDATE_NOW_FLAG = 8192;
+  NUM_FLAG = 32768;
+  PART_KEY_FLAG = 16384;
+  GROUP_FLAG = 32768;
+  UNIQUE_FLAG = 65536;
+  BINCMP_FLAG = 131072;
+}
+
+// Flag allows us to qualify types by their common properties.
+enum Flag {
+  NONE = 0;
+  ISINTEGRAL = 256;
+  ISUNSIGNED = 512;
+  ISFLOAT = 1024;
+  ISQUOTED = 2048;
+  ISTEXT = 4096;
+  ISBINARY = 8192;
+}
+
+// Type defines the various supported data types in bind vars
+// and query results.
+enum Type {
+  // NULL_TYPE specifies a NULL type.
+  NULL_TYPE = 0;
+  // INT8 specifies a TINYINT type.
+  // Properties: 1, IsNumber.
+  INT8 = 257;
+  // UINT8 specifies a TINYINT UNSIGNED type.
+  // Properties: 2, IsNumber, IsUnsigned.
+  UINT8 = 770;
+  // INT16 specifies a SMALLINT type.
+  // Properties: 3, IsNumber.
+  INT16 = 259;
+  // UINT16 specifies a SMALLINT UNSIGNED type.
+  // Properties: 4, IsNumber, IsUnsigned.
+  UINT16 = 772;
+  // INT24 specifies a MEDIUMINT type.
+  // Properties: 5, IsNumber.
+  INT24 = 261;
+  // UINT24 specifies a MEDIUMINT UNSIGNED type.
+  // Properties: 6, IsNumber, IsUnsigned.
+  UINT24 = 774;
+  // INT32 specifies a INTEGER type.
+  // Properties: 7, IsNumber.
+  INT32 = 263;
+  // UINT32 specifies a INTEGER UNSIGNED type.
+  // Properties: 8, IsNumber, IsUnsigned.
+  UINT32 = 776;
+  // INT64 specifies a BIGINT type.
+  // Properties: 9, IsNumber.
+  INT64 = 265;
+  // UINT64 specifies a BIGINT UNSIGNED type.
+  // Properties: 10, IsNumber, IsUnsigned.
+  UINT64 = 778;
+  // FLOAT32 specifies a FLOAT type.
+  // Properties: 11, IsFloat.
+  FLOAT32 = 1035;
+  // FLOAT64 specifies a DOUBLE or REAL type.
+  // Properties: 12, IsFloat.
+  FLOAT64 = 1036;
+  // TIMESTAMP specifies a TIMESTAMP type.
+  // Properties: 13, IsQuoted.
+  TIMESTAMP = 2061;
+  // DATE specifies a DATE type.
+  // Properties: 14, IsQuoted.
+  DATE = 2062;
+  // TIME specifies a TIME type.
+  // Properties: 15, IsQuoted.
+  TIME = 2063;
+  // DATETIME specifies a DATETIME type.
+  // Properties: 16, IsQuoted.
+  DATETIME = 2064;
+  // YEAR specifies a YEAR type.
+  // Properties: 17, IsNumber, IsUnsigned.
+  YEAR = 785;
+  // DECIMAL specifies a DECIMAL or NUMERIC type.
+  // Properties: 18, None.
+  DECIMAL = 18;
+  // TEXT specifies a TEXT type.
+  // Properties: 19, IsQuoted, IsText.
+  TEXT = 6163;
+  // BLOB specifies a BLOB type.
+  // Properties: 20, IsQuoted, IsBinary.
+  BLOB = 10260;
+  // VARCHAR specifies a VARCHAR type.
+  // Properties: 21, IsQuoted, IsText.
+  VARCHAR = 6165;
+  // VARBINARY specifies a VARBINARY type.
+  // Properties: 22, IsQuoted, IsBinary.
+  VARBINARY = 10262;
+  // CHAR specifies a CHAR type.
+  // Properties: 23, IsQuoted, IsText.
+  CHAR = 6167;
+  // BINARY specifies a BINARY type.
+  // Properties: 24, IsQuoted, IsBinary.
+  BINARY = 10264;
+  // BIT specifies a BIT type.
+  // Properties: 25, IsQuoted.
+  BIT = 2073;
+  // ENUM specifies an ENUM type.
+  // Properties: 26, IsQuoted.
+  ENUM = 2074;
+  // SET specifies a SET type.
+  // Properties: 27, IsQuoted.
+  SET = 2075;
+  // TUPLE specifies a tuple. This cannot
+  // be returned in a QueryResult, but it can
+  // be sent as a bind var.
+  // Properties: 28, None.
+  TUPLE = 28;
+  // GEOMETRY specifies a GEOMETRY type.
+  // Properties: 29, IsQuoted.
+  GEOMETRY = 2077;
+  // JSON specifies a JSON type.
+  // Properties: 30, IsQuoted.
+  JSON = 2078;
+  // EXPRESSION specifies a SQL expression.
+  // This type is for internal use only.
+  // Properties: 31, None.
+  EXPRESSION = 31;
+  // HEXNUM specifies a HEXNUM type (unquoted varbinary).
+  // Properties: 32, IsText.
+  HEXNUM = 4128;
+  // HEXVAL specifies a HEXVAL type (unquoted varbinary).
+  // Properties: 33, IsText.
+  HEXVAL = 4129;
+}
+
+// Value represents a typed value.
+message Value {
+  Type type = 1;
+  bytes value = 2;
+}
+
+// BindVariable represents a single bind variable in a Query.
+message BindVariable {
+  Type type = 1;
+  bytes value = 2;
+  // values are set if type is TUPLE.
+  repeated Value values = 3;
+}
+
+// BoundQuery is a query with its bind variables
+message BoundQuery {
+  // sql is the SQL query to execute
+  string sql = 1;
+
+  // bind_variables is a map of all bind variables to expand in the query.
+  // nil values are not allowed. Use NULL_TYPE to express a NULL value.
+  map<string, BindVariable> bind_variables = 2;
+}
+
+// ExecuteOptions is passed around for all Execute calls.
+message ExecuteOptions {
+  // 1 used to be exclude_field_names, which was replaced by
+  // IncludedFields enum below
+  // 2 used to be include_event_token
+  // 3 used to be compare_event_token
+  reserved 1, 2, 3;
+
+  enum IncludedFields {
+    TYPE_AND_NAME = 0;
+    TYPE_ONLY = 1;
+    ALL = 2;
+  }
+
+  // Controls what fields are returned in Field message responses from mysql, i.e.
+  // field name, table name, etc. This is an optimization for high-QPS queries where
+  // the client knows what it's getting
+  IncludedFields included_fields = 4;
+
+  // client_rows_found specifies if rows_affected should return
+  // rows found instead of rows affected. Behavior is defined
+  // by MySQL's CLIENT_FOUND_ROWS flag.
+  bool client_found_rows = 5;
+
+  enum Workload {
+    UNSPECIFIED = 0;
+    OLTP = 1;
+    OLAP = 2;
+    DBA = 3;
+  }
+
+  // workload specifies the type of workload:
+  // OLTP: DMLs allowed, results have row count limit, and
+  // query timeouts are shorter.
+  // OLAP: DMLS not allowed, no limit on row count, timeouts
+  // can be as high as desired.
+  // DBA: no limit on rowcount or timeout, all queries allowed 
+  // but intended for long DMLs and DDLs.
+  Workload workload = 6;
+
+  // sql_select_limit sets an implicit limit on all select statements. Since
+  // vitess also sets a rowcount limit on queries, the smallest value wins.
+  int64 sql_select_limit = 8;
+
+  enum TransactionIsolation {
+    DEFAULT = 0;
+    REPEATABLE_READ = 1;
+    READ_COMMITTED = 2;
+    READ_UNCOMMITTED = 3;
+    SERIALIZABLE = 4;
+
+    // This is not an "official" transaction level but it will do a
+    // START TRANSACTION WITH CONSISTENT SNAPSHOT, READ ONLY
+    CONSISTENT_SNAPSHOT_READ_ONLY = 5;
+
+    // This not an "official" transaction level, it will send queries to mysql
+    // without wrapping them in a transaction
+    AUTOCOMMIT = 6;
+  }
+
+  TransactionIsolation transaction_isolation = 9;
+
+  // skip_query_plan_cache specifies if the query plan should be cached by vitess.
+  // By default all query plans are cached.
+  bool skip_query_plan_cache = 10;
+
+  enum PlannerVersion {
+    DEFAULT_PLANNER = 0;
+    V3 = 1;
+    Gen4 = 2;
+    Gen4Greedy = 3;
+    Gen4Left2Right = 4;
+    Gen4WithFallback = 5;
+    Gen4CompareV3 = 6;
+  }
+  
+  // PlannerVersion specifies which planner to use. 
+  // If DEFAULT is chosen, whatever vtgate was started with will be used
+  PlannerVersion planner_version = 11;
+
+  // has_created_temp_tables signals whether plans created in this session should be cached or not
+  // if the user has created temp tables, Vitess will not reuse plans created for this session in other sessions.
+  // The current session can still use other sessions cached plans.
+  bool has_created_temp_tables = 12;
+}
+
+// Field describes a single column returned by a query
+message Field {
+  // name of the field as returned by mysql C API
+  string name = 1;
+
+  // vitess-defined type. Conversion function is in sqltypes package.
+  Type type = 2;
+
+  // Remaining fields from mysql C API.
+  // These fields are only populated when ExecuteOptions.included_fields
+  // is set to IncludedFields.ALL.
+  string table = 3;
+  string org_table = 4;
+  string database = 5;
+  string org_name = 6;
+
+  // column_length is really a uint32. All 32 bits can be used.
+  uint32 column_length = 7;
+
+  // charset is actually a uint16. Only the lower 16 bits are used.
+  uint32 charset = 8;
+
+  // decimals is actually a uint8. Only the lower 8 bits are used.
+  uint32 decimals = 9;
+
+  // flags is actually a uint16. Only the lower 16 bits are used.
+  uint32 flags = 10;
+
+  // column_type is optionally populated from information_schema.columns
+  string column_type = 11;
+}
+
+// Row is a database row.
+message Row {
+  // lengths contains the length of each value in values.
+  // A length of -1 means that the field is NULL. While
+  // reading values, you have to accummulate the length
+  // to know the offset where the next value begins in values.
+  repeated sint64 lengths = 1;
+  // values contains a concatenation of all values in the row.
+  bytes values = 2;
+}
+
+// QueryResult is returned by Execute and ExecuteStream.
+//
+// As returned by Execute, len(fields) is always equal to len(row)
+// (for each row in rows).
+//
+// As returned by StreamExecute, the first QueryResult has the fields
+// set, and subsequent QueryResult have rows set. And as Execute,
+// len(QueryResult[0].fields) is always equal to len(row) (for each
+// row in rows for each QueryResult in QueryResult[1:]).
+message QueryResult {
+  // This used to be ResultExtras.
+  reserved 5;
+
+  repeated Field fields = 1;
+  uint64 rows_affected = 2;
+  uint64 insert_id = 3;
+  repeated Row rows = 4;
+}
+
+// QueryWarning is used to convey out of band query execution warnings
+// by storing in the vtgate.Session
+message QueryWarning {
+  uint32 code = 1;
+  string message = 2;
+}
+
+// StreamEvent describes a set of transformations that happened as a
+// single transactional unit on a server. It is streamed back by the
+// Update Stream calls.
+message StreamEvent {
+  // One individual Statement in a transaction.
+  message Statement {
+    // The category of one statement.
+    enum Category {
+      Error = 0;
+      DML = 1;
+      DDL = 2;
+    }
+    Category category = 1;
+
+    // table_name, primary_key_fields and primary_key_values are set for DML.
+    string table_name = 2;
+    repeated Field primary_key_fields = 3;
+    repeated Row primary_key_values = 4;
+
+    // sql is set for all queries.
+    // FIXME(alainjobart) we may not need it for DMLs.
+    bytes sql = 5;
+  }
+
+  // The statements in this transaction.
+  repeated Statement statements = 1;
+
+  // The Event Token for this event.
+  EventToken event_token = 2;
+}
+
+// ExecuteRequest is the payload to Execute
+message ExecuteRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  BoundQuery query = 4;
+  int64 transaction_id = 5;
+  ExecuteOptions options = 6;
+  int64 reserved_id = 7;
+}
+
+// ExecuteResponse is the returned value from Execute
+message ExecuteResponse {
+  QueryResult result = 1;
+}
+
+// ResultWithError represents a query response
+// in the form of result or error but not both.
+// TODO: To be used in ExecuteBatchResponse and BeginExecuteBatchResponse.
+message ResultWithError {
+  // error contains an query level error, only set if result is unset.
+  vtrpc.RPCError error = 1;
+
+  // result contains the query result, only set if error is unset.
+  query.QueryResult result = 2;
+}
+
+// ExecuteBatchRequest is the payload to ExecuteBatch
+message ExecuteBatchRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  repeated BoundQuery queries = 4;
+  bool as_transaction = 5;
+  int64 transaction_id = 6;
+  ExecuteOptions options = 7;
+}
+
+// ExecuteBatchResponse is the returned value from ExecuteBatch
+message ExecuteBatchResponse {
+  repeated QueryResult results = 1;
+}
+
+// StreamExecuteRequest is the payload to StreamExecute
+message StreamExecuteRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  BoundQuery query = 4;
+  ExecuteOptions options = 5;
+  int64 transaction_id = 6;
+}
+
+// StreamExecuteResponse is the returned value from StreamExecute
+message StreamExecuteResponse {
+  QueryResult result = 1;
+}
+
+// BeginRequest is the payload to Begin
+message BeginRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  ExecuteOptions options = 4;
+}
+
+// BeginResponse is the returned value from Begin
+message BeginResponse {
+  int64 transaction_id = 1;
+  topodata.TabletAlias tablet_alias = 2;
+}
+
+// CommitRequest is the payload to Commit
+message CommitRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  int64 transaction_id = 4;
+}
+
+// CommitResponse is the returned value from Commit
+message CommitResponse {
+  int64 reserved_id = 1;
+}
+
+// RollbackRequest is the payload to Rollback
+message RollbackRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  int64 transaction_id = 4;
+}
+
+// RollbackResponse is the returned value from Rollback
+message RollbackResponse {
+  int64 reserved_id = 1;
+}
+
+// PrepareRequest is the payload to Prepare
+message PrepareRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  int64 transaction_id = 4;
+  string dtid = 5;
+}
+
+// PrepareResponse is the returned value from Prepare
+message PrepareResponse {}
+
+// CommitPreparedRequest is the payload to CommitPrepared
+message CommitPreparedRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  string dtid = 4;
+}
+
+// CommitPreparedResponse is the returned value from CommitPrepared
+message CommitPreparedResponse {}
+
+// RollbackPreparedRequest is the payload to RollbackPrepared
+message RollbackPreparedRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  int64 transaction_id = 4;
+  string dtid = 5;
+}
+
+// RollbackPreparedResponse is the returned value from RollbackPrepared
+message RollbackPreparedResponse {}
+
+// CreateTransactionRequest is the payload to CreateTransaction
+message CreateTransactionRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  string dtid = 4;
+  repeated Target participants = 5;
+}
+
+// CreateTransactionResponse is the returned value from CreateTransaction
+message CreateTransactionResponse {}
+
+// StartCommitRequest is the payload to StartCommit
+message StartCommitRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  int64 transaction_id = 4;
+  string dtid = 5;
+}
+
+// StartCommitResponse is the returned value from StartCommit
+message StartCommitResponse {}
+
+// SetRollbackRequest is the payload to SetRollback
+message SetRollbackRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  int64 transaction_id = 4;
+  string dtid = 5;
+}
+
+// SetRollbackResponse is the returned value from SetRollback
+message SetRollbackResponse {}
+
+// ConcludeTransactionRequest is the payload to ConcludeTransaction
+message ConcludeTransactionRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  string dtid = 4;
+}
+
+// ConcludeTransactionResponse is the returned value from ConcludeTransaction
+message ConcludeTransactionResponse {}
+
+// ReadTransactionRequest is the payload to ReadTransaction
+message ReadTransactionRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  string dtid = 4;
+}
+
+// ReadTransactionResponse is the returned value from ReadTransaction
+message ReadTransactionResponse {
+  TransactionMetadata metadata = 1;
+}
+
+// BeginExecuteRequest is the payload to BeginExecute
+message BeginExecuteRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  BoundQuery query = 4;
+  ExecuteOptions options = 5;
+  int64 reserved_id = 6;
+  repeated string pre_queries = 7;
+}
+
+// BeginExecuteResponse is the returned value from BeginExecute
+message BeginExecuteResponse {
+  // error contains an application level error if necessary. Note the
+  // transaction_id may be set, even when an error is returned, if the begin
+  // worked but the execute failed.
+  vtrpc.RPCError error = 1;
+
+  QueryResult result = 2;
+
+  // transaction_id might be non-zero even if an error is present.
+  int64 transaction_id = 3;
+  topodata.TabletAlias tablet_alias = 4;
+}
+
+// BeginExecuteBatchRequest is the payload to BeginExecuteBatch
+message BeginExecuteBatchRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  repeated BoundQuery queries = 4;
+  bool as_transaction = 5;
+  ExecuteOptions options = 6;
+}
+
+// BeginExecuteBatchResponse is the returned value from BeginExecuteBatch
+message BeginExecuteBatchResponse {
+  // error contains an application level error if necessary. Note the
+  // transaction_id may be set, even when an error is returned, if the begin
+  // worked but the execute failed.
+  vtrpc.RPCError error = 1;
+
+  repeated QueryResult results = 2;
+
+  // transaction_id might be non-zero even if an error is present.
+  int64 transaction_id = 3;
+  topodata.TabletAlias tablet_alias = 4;
+}
+
+// BeginStreamExecuteRequest is the payload to BeginStreamExecute
+message BeginStreamExecuteRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  BoundQuery query = 4;
+  ExecuteOptions options = 5;
+  repeated string pre_queries = 6;
+}
+
+// BeginStreamExecuteResponse is the returned value from BeginStreamExecute
+message BeginStreamExecuteResponse {
+  // error contains an application level error if necessary. Note the
+  // transaction_id may be set, even when an error is returned, if the begin
+  // worked but the stream execute failed.
+  vtrpc.RPCError error = 1;
+
+  QueryResult result = 2;
+
+  // transaction_id might be non-zero even if an error is present.
+  int64 transaction_id = 3;
+  topodata.TabletAlias tablet_alias = 4;
+}
+
+// MessageStreamRequest is the request payload for MessageStream.
+message MessageStreamRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  // name is the message table name.
+  string name = 4;
+}
+
+// MessageStreamResponse is a response for MessageStream.
+message MessageStreamResponse {
+  QueryResult result = 1;
+}
+
+// MessageAckRequest is the request payload for MessageAck.
+message MessageAckRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  // name is the message table name.
+  string name = 4;
+  repeated Value ids = 5;
+}
+
+// MessageAckResponse is the response for MessageAck.
+message MessageAckResponse {
+  // result contains the result of the ack operation.
+  // Since this acts like a DML, only
+  // RowsAffected is returned in the result.
+  QueryResult result = 1;
+}
+
+// ReserveExecuteRequest is the payload to ReserveExecute
+message ReserveExecuteRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  BoundQuery query = 4;
+  int64 transaction_id = 5;
+  ExecuteOptions options = 6;
+  repeated string pre_queries = 7;
+}
+
+// ReserveExecuteResponse is the returned value from ReserveExecute
+message ReserveExecuteResponse {
+  vtrpc.RPCError error = 1;
+  QueryResult result = 2;
+
+  // The following fields might be non-zero even if an error is present.
+  int64 reserved_id = 3;
+  topodata.TabletAlias tablet_alias = 4;
+}
+
+// ReserveBeginExecuteRequest is the payload to ReserveBeginExecute
+message ReserveBeginExecuteRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  BoundQuery query = 4;
+  ExecuteOptions options = 5;
+  repeated string pre_queries = 6;
+  repeated string post_begin_queries = 7;
+}
+
+// ReserveBeginExecuteResponse is the returned value from ReserveBeginExecute
+message ReserveBeginExecuteResponse {
+  // error contains an application level error if necessary. Note the
+  // transaction_id may be set, even when an error is returned, if the begin
+  // worked but the execute failed.
+  vtrpc.RPCError error = 1;
+  QueryResult result = 2;
+  // The following fields might be non-zero even if an error is present.
+  int64 transaction_id = 3;
+  int64 reserved_id = 4;
+  topodata.TabletAlias tablet_alias = 5;
+}
+
+// ReleaseRequest is the payload to Release
+message ReleaseRequest {
+  vtrpc.CallerID effective_caller_id = 1;
+  VTGateCallerID immediate_caller_id = 2;
+  Target target = 3;
+  int64 transaction_id = 4;
+  int64 reserved_id = 5;
+}
+
+// ReleaseResponse is the returned value from Release
+message ReleaseResponse {
+}
+
+// StreamHealthRequest is the payload for StreamHealth
+message StreamHealthRequest {
+}
+
+// RealtimeStats contains information about the tablet status.
+// It is only valid for a single tablet.
+message RealtimeStats {
+  // health_error is the last error we got from health check,
+  // or empty is the server is healthy. This is used for subset selection,
+  // we do not send queries to servers that are not healthy.
+  string health_error = 1;
+
+  // replication_lag_seconds is populated for replicas only. It indicates
+  // how far behind on (MySQL) replication a replica currently is.  It is used
+  // by clients for subset selection (so we don't try to send traffic
+  // to tablets that are too far behind).
+  // NOTE: This field must not be evaluated if "health_error" is not empty.
+  // TODO(mberlin): Let's switch it to int64 instead?
+  uint32 replication_lag_seconds = 2;
+
+  // bin_log_players_count is the number of currently running binlog players.
+  // if the value is 0, it means that filtered replication is currently not
+  // running on the tablet. If >0, filtered replication is running.
+  // NOTE: This field must not be evaluated if "health_error" is not empty.
+  int32 binlog_players_count = 3;
+
+  // filtered_replication_lag_seconds is populated for the receiving
+  // primary of an ongoing filtered replication only.
+  // It specifies how far the receiving primary lags behind the sending primary.
+  // NOTE: This field must not be evaluated if "health_error" is not empty.
+  // NOTE: This field must not be evaluated if "bin_log_players_count" is 0.
+  int64 filtered_replication_lag_seconds = 4;
+
+  // cpu_usage is used for load-based balancing
+  double cpu_usage = 5;
+
+  // qps is the average QPS (queries per second) rate in the last XX seconds
+  // where XX is usually 60 (See query_service_stats.go).
+  double qps = 6;
+
+  // table_schema_changed is to provide list of tables that have schema changes detected by the tablet.
+  repeated string table_schema_changed = 7;
+}
+
+// AggregateStats contains information about the health of a group of
+// tablets for a Target.  It is used to propagate stats from a vtgate
+// to another, or from the Gateway layer of a vtgate to the routing
+// layer.
+message AggregateStats {
+  // healthy_tablet_count is the number of healthy tablets in the group.
+  int32 healthy_tablet_count = 1;
+
+  // unhealthy_tablet_count is the number of unhealthy tablets in the group.
+  int32 unhealthy_tablet_count = 2;
+
+  // replication_lag_seconds_min is the minimum of the
+  // replication_lag_seconds values of the healthy tablets. It is unset
+  // if the tablet type is primary.
+  uint32 replication_lag_seconds_min = 3;
+
+  // replication_lag_seconds_max is the maximum of the
+  // replication_lag_seconds values of the healthy tablets. It is unset
+  // if the tablet type is primary.
+  uint32 replication_lag_seconds_max = 4;
+}
+
+// StreamHealthResponse is streamed by StreamHealth on a regular basis.
+// It is expected to be used between a vtgate and vttablet:
+// - target describes the tablet.
+// - realtime_stats is set.
+// - aggregate_stats is not set (deprecated)
+message StreamHealthResponse {
+  // target is the current server type. Only queries with that exact Target
+  // record will be accepted (the cell may not match, however).
+  Target target = 1;
+
+  // serving is true iff the tablet is serving. A tablet may not be serving
+  // if filtered replication is enabled on a primary for instance,
+  // or if a replica should not be used because the keyspace is being resharded.
+  bool serving = 2;
+
+  // tablet_externally_reparented_timestamp can be interpreted as the
+  // last time we knew that this tablet was the PRIMARY of this shard
+  // (if StreamHealthResponse describes a group of tablets, between
+  // two vtgates, only one primary will be present in the group, and
+  // this is this primary's value).
+  //
+  // It is used by vtgate when determining the current PRIMARY of a shard.
+  // If vtgate sees more than one PRIMARY tablet, this timestamp is used
+  // as tiebreaker where the PRIMARY with the highest timestamp wins.
+  // Another usage of this timestamp is in go/vt/vtgate/buffer to detect the end
+  // of a reparent (failover) and stop buffering.
+  //
+  // In practice, this field is set to:
+  // a) the last time the RPC tabletmanager.TabletExternallyReparented was
+  //    called on this tablet (usually done by an external failover tool e.g.
+  //    Orchestrator). The failover tool can call this as long as we are the
+  //    primary i.e. even ages after the last reparent occurred.
+  // OR
+  // b) the last time an active reparent was executed through a vtctl command
+  //    (InitShardPrimary, PlannedReparentShard, EmergencyReparentShard)
+  // OR
+  // c) the last time vttablet was started and it initialized its tablet type
+  //    as PRIMARY because it was recorded as the shard's current primary in the
+  //    topology (see go/vt/vttablet/tabletmanager/init_tablet.go)
+  // OR
+  // d) 0 if the vttablet was never a PRIMARY.
+  int64 tablet_externally_reparented_timestamp = 3;
+
+  // realtime_stats contains information about the tablet status.
+  // It is only filled in if the information is about a tablet.
+  RealtimeStats realtime_stats = 4;
+
+  reserved 6;
+  // Deprecated
+  // AggregateStats constrains information about the group of tablet status.
+  // It is only filled in if the information is about a group of tablets.
+  // AggregateStats aggregate_stats = 6;
+
+  // tablet_alias is the alias of the sending tablet. The discovery/healthcheck.go
+  // code uses it to verify that it's talking to the correct tablet and that it
+  // hasn't changed in the meantime e.g. due to tablet restarts where ports or
+  // ips have been reused but assigned differently.
+  topodata.TabletAlias tablet_alias = 5;
+}
+
+// TransactionState represents the state of a distributed transaction.
+enum TransactionState {
+  UNKNOWN = 0;
+  PREPARE = 1;
+  COMMIT = 2;
+  ROLLBACK = 3;
+}
+
+// TransactionMetadata contains the metadata for a distributed transaction.
+message TransactionMetadata {
+  string dtid = 1;
+  TransactionState state = 2;
+  int64 time_created = 3;
+  repeated Target participants = 4;
+}
