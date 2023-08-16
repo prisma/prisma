@@ -32,5 +32,9 @@ testMatrix.setupTestSuite(
         sqlserver: returns undefined
       `,
     },
+    skipDataProxy: {
+      runtimes: ['node', 'edge'],
+      reason: 'InvalidDatasourceError is not compatible with asserted error // Change in Prisma 6',
+    },
   },
 )
