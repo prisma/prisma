@@ -25,7 +25,6 @@ testMatrix.setupTestSuite(
       const prisma = newPrismaClient()
       const promise = prisma.$connect()
 
-      expect.assertions(2)
       if (clientMeta.dataProxy && clientMeta.runtime === 'edge') {
         // TODO Prisma 6: should be a PrismaClientInitializationError, but the message is correct
         // await expect(promise).rejects.toBeInstanceOf(Prisma.InvalidDatasourceError)

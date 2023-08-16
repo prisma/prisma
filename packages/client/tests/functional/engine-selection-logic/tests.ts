@@ -10,11 +10,11 @@ testMatrix.setupTestSuite(
     const OLD_ENV = process.env
 
     beforeEach(() => {
-      process.env = { ...OLD_ENV } // Make a copy
+      process.env = { ...OLD_ENV }
     })
 
     afterAll(() => {
-      process.env = OLD_ENV // Restore old environment
+      process.env = OLD_ENV
     })
 
     testIf(clientMeta.dataProxy /** = --no-engine */)('--no-engine prevents from using the other engines', async () => {

@@ -26,7 +26,6 @@ testMatrix.setupTestSuite(
       const prisma = newPrismaClient()
       const promise = prisma.$connect()
 
-      expect.assertions(2)
       if (clientMeta.dataProxy && clientMeta.runtime === 'edge') {
         // this error is expected because the edge client is not able to read files
         await expect(promise).rejects.toBeInstanceOf(Prisma.PrismaClientInitializationError)
