@@ -77,7 +77,7 @@
     "checkpoint-client": "1.1.27",
     "debug": "4.3.4",
     "dotenv": "16.0.3",
-    "esbuild": "0.19.1",
+    "esbuild": "0.19.2",
     "execa": "5.1.1",
     "fast-glob": "3.3.1",
     "fs-extra": "11.1.1",
