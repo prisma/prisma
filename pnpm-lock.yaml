@@ -219,8 +219,8 @@ importers:
         specifier: 1.3.75
         version: 1.3.75
       '@swc/jest':
-        specifier: 0.2.28
-        version: 0.2.28(@swc/core@1.3.75)
+        specifier: 0.2.29
+        version: 0.2.29(@swc/core@1.3.75)
       '@types/debug':
         specifier: 4.1.8
         version: 4.1.8
@@ -382,8 +382,8 @@ importers:
         specifier: 1.3.75
         version: 1.3.75
       '@swc/jest':
-        specifier: 0.2.28
-        version: 0.2.28(@swc/core@1.3.75)
+        specifier: 0.2.29
+        version: 0.2.29(@swc/core@1.3.75)
       '@timsuchanek/copy':
         specifier: 1.4.5
         version: 1.4.5
@@ -599,8 +599,8 @@ importers:
         specifier: 1.3.75
         version: 1.3.75
       '@swc/jest':
-        specifier: 0.2.28
-        version: 0.2.28(@swc/core@1.3.75)
+        specifier: 0.2.29
+        version: 0.2.29(@swc/core@1.3.75)
       '@types/jest':
         specifier: 29.5.3
         version: 29.5.3
@@ -678,8 +678,8 @@ importers:
         specifier: 1.3.75
         version: 1.3.75
       '@swc/jest':
-        specifier: 0.2.28
-        version: 0.2.28(@swc/core@1.3.75)
+        specifier: 0.2.29
+        version: 0.2.29(@swc/core@1.3.75)
       '@types/jest':
         specifier: 29.5.3
         version: 29.5.3
@@ -727,8 +727,8 @@ importers:
         specifier: 1.3.75
         version: 1.3.75
       '@swc/jest':
-        specifier: 0.2.28
-        version: 0.2.28(@swc/core@1.3.75)
+        specifier: 0.2.29
+        version: 0.2.29(@swc/core@1.3.75)
       '@types/jest':
         specifier: 29.5.3
         version: 29.5.3
@@ -791,8 +791,8 @@ importers:
         specifier: 1.3.75
         version: 1.3.75
       '@swc/jest':
-        specifier: 0.2.28
-        version: 0.2.28(@swc/core@1.3.75)
+        specifier: 0.2.29
+        version: 0.2.29(@swc/core@1.3.75)
       '@types/jest':
         specifier: 29.5.3
         version: 29.5.3
@@ -864,8 +864,8 @@ importers:
         specifier: 1.3.75
         version: 1.3.75
       '@swc/jest':
-        specifier: 0.2.28
-        version: 0.2.28(@swc/core@1.3.75)
+        specifier: 0.2.29
+        version: 0.2.29(@swc/core@1.3.75)
       '@types/jest':
         specifier: 29.5.3
         version: 29.5.3
@@ -1063,8 +1063,8 @@ importers:
         specifier: 1.2.204
         version: 1.2.204
       '@swc/jest':
-        specifier: 0.2.28
-        version: 0.2.28(@swc/core@1.2.204)
+        specifier: 0.2.29
+        version: 0.2.29(@swc/core@1.2.204)
       '@types/jest':
         specifier: 29.5.3
         version: 29.5.3
@@ -1175,8 +1175,8 @@ importers:
         specifier: 1.3.75
         version: 1.3.75
       '@swc/jest':
-        specifier: 0.2.28
-        version: 0.2.28(@swc/core@1.3.75)
+        specifier: 0.2.29
+        version: 0.2.29(@swc/core@1.3.75)
       '@types/jest':
         specifier: 29.5.3
         version: 29.5.3
@@ -4250,8 +4250,8 @@ packages:
       '@swc/core-win32-x64-msvc': 1.3.75
     dev: true
 
-  /@swc/jest@0.2.28(@swc/core@1.2.204):
-    resolution: {integrity: sha512-iCB3lvngkQldLga35krb8LPa+6gmkVXnlpfCTXOAgMaEYFagLxOIFbIO8II7dhHa8ApOv5ap8iFRETI4lVY0vw==}
+  /@swc/jest@0.2.29(@swc/core@1.2.204):
+    resolution: {integrity: sha512-8reh5RvHBsSikDC3WGCd5ZTd2BXKkyOdK7QwynrCH58jk2cQFhhHhFBg/jvnWZehUQe/EoOImLENc9/DwbBFow==}
     engines: {npm: '>= 7.0.0'}
     peerDependencies:
       '@swc/core': '*'
@@ -4261,8 +4261,8 @@ packages:
       jsonc-parser: 3.2.0
     dev: true
 
-  /@swc/jest@0.2.28(@swc/core@1.3.75):
-    resolution: {integrity: sha512-iCB3lvngkQldLga35krb8LPa+6gmkVXnlpfCTXOAgMaEYFagLxOIFbIO8II7dhHa8ApOv5ap8iFRETI4lVY0vw==}
+  /@swc/jest@0.2.29(@swc/core@1.3.75):
+    resolution: {integrity: sha512-8reh5RvHBsSikDC3WGCd5ZTd2BXKkyOdK7QwynrCH58jk2cQFhhHhFBg/jvnWZehUQe/EoOImLENc9/DwbBFow==}
     engines: {npm: '>= 7.0.0'}
     peerDependencies:
       '@swc/core': '*'
