@@ -48,7 +48,7 @@ testMatrix.setupTestSuite(
         '--no-engine prevents from using the other engines',
         async () => {
           const prisma = newPrismaClient({
-            datasource: {
+            datasources: {
               db: {
                 url: 'postgresql://postgres:password@localhost:5432/db',
               },
@@ -64,7 +64,7 @@ testMatrix.setupTestSuite(
       // test that we can pass a prisma:// url when the tests is not run as a dataproxy
       testIf(!clientMeta.dataProxy)('prisma:// url works as expected even when --no-engine is not used', async () => {
         const prisma = newPrismaClient({
-          datasource: {
+          datasources: {
             db: {
               url: 'prisma://localhost:5432/db',
             },
