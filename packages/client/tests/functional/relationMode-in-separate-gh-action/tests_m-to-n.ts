@@ -117,8 +117,9 @@ testMatrix.setupTestSuite(
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
     // Looking at CI results
-    // 30s was often not enough for vitess
+    // 30s was often not enough for Vitess
     // so we put it back to 60s for now in this case
+    // TODO Maybe?
     if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
       jest.setTimeout(60_000)
     }

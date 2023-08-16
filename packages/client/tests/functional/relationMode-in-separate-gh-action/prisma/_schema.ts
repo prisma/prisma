@@ -1,5 +1,5 @@
+import { computeSchemaHeader } from '../../_utils/computeSchemaHeader'
 import { computeReferentialActionLine } from '../../_utils/relationMode/computeReferentialActionLine'
-import { computeSchemaHeader } from '../../_utils/relationMode/computeSchemaHeader'
 import testMatrix from '../_matrix'
 import { schema_1to1 } from './_schema_1_to_1'
 import { schema_1ton } from './_schema_1_to_n'

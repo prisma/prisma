@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 patchedDependencies:
+  '@planetscale/database@1.10.0':
+    hash: sjmp4pnsx3hatgum24kci44d4e
+    path: patches/@planetscale__database@1.10.0.patch
   node-fetch@2.6.12:
     hash: d2f4ywbzdgzmypej5sz7qs7qpy
     path: patches/node-fetch@2.6.12.patch
@@ -331,7 +334,10 @@ importers:
         specifier: 29.6.2
         version: 29.6.2
       '@jkomyno/prisma-js-connector-utils':
-        specifier: ^0.0.5
+        specifier: 0.0.5
+        version: 0.0.5
+      '@jkomyno/prisma-planetscale-js-connector':
+        specifier: 0.0.5
         version: 0.0.5
       '@opentelemetry/api':
         specifier: 1.4.1
@@ -2659,6 +2665,15 @@ packages:
       - supports-color
     dev: true
 
+  /@jkomyno/prisma-planetscale-js-connector@0.0.5:
+    resolution: {integrity: sha512-3xyKqSfrBzCXNnRMDaUBxcoUAM/JdrXqSARtV2fZ6YCgmwr2IsbiadcTrzcJNiTvNV9zTm/W3jyZXKe3MAINrw==}
+    dependencies:
+      '@jkomyno/prisma-js-connector-utils': 0.0.5
+      '@planetscale/database': 1.10.0(patch_hash=sjmp4pnsx3hatgum24kci44d4e)
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /@jridgewell/gen-mapping@0.1.1:
     resolution: {integrity: sha512-sQXCasFk+U8lWYEe66WxRDOE9PjVz4vSM51fTu3Hw+ClTpUSQb718772vH3pyS5pShp6lvQM7SxgIDXXXmOX7w==}
     engines: {node: '>=6.0.0'}
@@ -3181,6 +3196,12 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@planetscale/database@1.10.0(patch_hash=sjmp4pnsx3hatgum24kci44d4e):
+    resolution: {integrity: sha512-XMfNRjIPgGTga6g1YpGr7E21CcnHZcHZdyhRUIiZ/AlpD+ts65UF2B3wKjcu7MKMynmmcOGs6R9kAT6D1OTlZQ==}
+    engines: {node: '>=16'}
+    dev: true
+    patched: true
 
   /@prisma/engines-version@5.2.0-15.ca2cd60ab117f09113c89bcdf584b2c9b2e39cce:
     resolution: {integrity: sha512-0UgdkX70FIDu73e2J27AO7jciYH1StBvPpXNII54NqJzxUs+HYei0ItTRhPvz8IyaboTMHvUum39VgbxmgDC1Q==}

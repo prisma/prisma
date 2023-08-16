@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, test } from '@jest/globals'
+import { createPlanetScaleConnector } from '@jkomyno/prisma-planetscale-js-connector'
 import fs from 'fs-extra'
 import path from 'path'
+import { fetch as undiciFetch } from 'undici'
 
 import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
@@ -75,6 +77,7 @@ function setupTestSuiteMatrix(
   for (const { name, suiteConfig, skip } of testPlan) {
     const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
     const describeFn = skip ? describe.skip : describe
+    const providerFlavor = suiteConfig.matrixOptions['providerFlavor'] as ProviderFlavors
 
     describeFn(name, () => {
       const clients = [] as any[]
@@ -95,8 +98,24 @@ function setupTestSuiteMatrix(
         })
 
         globalThis['newPrismaClient'] = (...args) => {
-          const client = new globalThis['loaded']['PrismaClient'](...args)
-          clients.push(client)
+          let client
+          if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+            const connectionString = `${process.env.TEST_FUNCTIONAL_JS_PLANETSCALE_URI as string}`
+
+            const jsConnector = createPlanetScaleConnector({
+              url: connectionString,
+              /**
+               * Custom `fetch` implementation is only necessary on Node.js < v18.x.x.
+               */
+              fetch: undiciFetch,
+            })
+
+            client = new globalThis['loaded']['PrismaClient']({ jsConnector, ...args })
+            clients.push(client)
+          } else {
+            client = new globalThis['loaded']['PrismaClient'](...args)
+            clients.push(client)
+          }
           return client
         }
         if (!options?.skipDefaultClientInstance) {
@@ -133,19 +152,23 @@ function setupTestSuiteMatrix(
           }
         }
         clients.length = 0
-        if (!options?.skipDb && suiteConfig.matrixOptions['providerFlavor'] !== ProviderFlavors.VITESS_8) {
+
+        // Skip the database drop?
+        if (!options?.skipDb && ![ProviderFlavors.VITESS_8, ProviderFlavors.JS_PLANETSCALE].includes(providerFlavor)) {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
           await dropTestSuiteDatabase(suiteMeta, suiteConfig)
         }
+
+        // cleanup env vars
         process.env = originalEnv
         delete globalThis['datasourceInfo']
         delete globalThis['loaded']
         delete globalThis['prisma']
         delete globalThis['Prisma']
         delete globalThis['newPrismaClient']
-      }, 180_000)
+      }, 180_000) // TODO: lower the timeout?
 
       const setupDatabase = async () => {
         if (!options?.skipDb) {

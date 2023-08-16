@@ -116,12 +116,12 @@ export async function setupTestSuiteDatabase(
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     const dbpushParams = ['--schema', schemaPath, '--skip-generate']
-    const providerFlavor = suiteConfig.matrixOptions['providerFlavor'] as ProviderFlavor | undefined
+    const providerFlavor = suiteConfig.matrixOptions['providerFlavor'] as ProviderFlavors
     // `--force-reset` is great but only using it where it's necessary makes the
     // tests faster Since we have full isolation of tests / database, we do not
     // need to force reset but we currently break isolation for Vitess (for
     // faster tests), so it's good to force reset in this case
-    if (providerFlavor === ProviderFlavors.VITESS_8) {
+    if ([ProviderFlavors.VITESS_8, ProviderFlavors.JS_PLANETSCALE].includes(providerFlavor)) {
       dbpushParams.push('--force-reset')
     }
     await DbPush.new().parse(dbpushParams)
@@ -230,7 +230,9 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   // So we can reuse the same database for all tests
   // It has a significant impact on the test runtime
   // Example: 60s -> 3s
-  if (providerFlavor === ProviderFlavors.VITESS_8) {
+  if (process.env.TEST_JS_PLANETSCALE) {
+    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'tests')
+  } else if (providerFlavor === ProviderFlavors.VITESS_8) {
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
   } else {
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
@@ -287,6 +289,7 @@ function getDbUrl(provider: Providers): string {
 function getDbUrlFromFlavor(providerFlavor: ProviderFlavor | undefined, provider: Providers): string {
   return match(providerFlavor)
     .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+    .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_JS_PLANETSCALE_URI'))
     .otherwise(() => getDbUrl(provider))
 }
 

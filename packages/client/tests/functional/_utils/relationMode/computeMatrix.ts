@@ -14,6 +14,9 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     Providers.SQLITE,
     Providers.MYSQL,
     ProviderFlavors.VITESS_8,
+    ProviderFlavors.JS_PLANETSCALE,
+    // TODO
+    // ProviderFlavors.JS_NEON,
   ] as const
   // Note: SetDefault is not implemented in the emulation (relationMode="prisma")
 
@@ -25,7 +28,7 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
   const referentialActionsBase = ['DEFAULT', 'Cascade', 'NoAction', 'Restrict', 'SetNull'] as const
 
   const providerFlavors = providerFlavorsBase.filter(
-    (provideFlavor) => !(providersDenyList || []).includes(provideFlavor),
+    (providerFlavor) => !(providersDenyList || []).includes(providerFlavor),
   )
 
   // "foreignKeys"
@@ -50,8 +53,9 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     foreignKeys: {
       [Providers.SQLSERVER]: ['Restrict'],
 
-      // skip all actions for Vitess & relationMode="foreignKeys" as Foreign Keys are not supported by that provider
+      // skip all actions for Vitess/PlanetScale & relationMode="foreignKeys" as Foreign Keys are not supported by that provider
       [ProviderFlavors.VITESS_8]: referentialActionsBase,
+      [ProviderFlavors.JS_PLANETSCALE]: referentialActionsBase,
     },
     prisma: {
       [Providers.SQLSERVER]: ['Restrict'],
@@ -83,7 +87,9 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     providersMatrix = providersMatrix.filter((it) => it.provider !== Providers.COCKROACHDB)
   }
   if (skipVitess) {
-    providersMatrix = providersMatrix.filter((it) => it.providerFlavor !== ProviderFlavors.VITESS_8)
+    providersMatrix = providersMatrix.filter(
+      (it) => it.providerFlavor !== ProviderFlavors.VITESS_8 && it.providerFlavor !== ProviderFlavors.JS_PLANETSCALE,
+    )
   }
 
   const referentialActionsMatrix = providersMatrix.flatMap((entry) => {

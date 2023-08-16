@@ -1,4 +1,4 @@
-import { computeSchemaHeader } from '../../_utils/relationMode/computeSchemaHeader'
+import { computeSchemaHeader } from '../../_utils/computeSchemaHeader'
 import testMatrix from '../_matrix'
 import { schema_mixed_action } from './_schema_mixed_actions'
 
