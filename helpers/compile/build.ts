@@ -1,5 +1,6 @@
 import { watch as createWatcher } from 'chokidar'
 import * as esbuild from 'esbuild'
+import { BuildContext } from 'esbuild'
 import glob from 'globby'
 import path from 'path'
 
@@ -27,7 +28,6 @@ const DEFAULT_BUILD_OPTIONS = {
   target: 'ES2020',
   logLevel: 'error',
   tsconfig: 'tsconfig.build.json',
-  incremental: process.env.WATCH === 'true',
   metafile: true,
 } as const
 
@@ -105,7 +105,13 @@ function addDefaultOutDir(options: BuildOptions) {
  * Execute esbuild with all the configurations we pass
  */
 async function executeEsBuild(options: BuildOptions) {
-  return [options, await esbuild.build(omit(options, ['name', 'emitTypes']))] as const
+  if (process.env.WATCH === 'true') {
+    const context = await esbuild.context(omit(options, ['name', 'emitTypes']) as any)
+
+    watch(context, options)
+  }
+
+  return [options, await esbuild.build(omit(options, ['name', 'emitTypes']) as any)] as const
 }
 
 /**
@@ -148,7 +154,7 @@ export async function build(options: BuildOptions[]) {
 
   return transduce.async(
     createBuildOptions(options),
-    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild, watch(options)),
+    pipe.async(computeOptions, addExtensionFormat, addDefaultOutDir, executeEsBuild),
   )
 }
 
@@ -156,59 +162,37 @@ export async function build(options: BuildOptions[]) {
  * Executes the build and rebuilds what is necessary
  * @param builds
  */
-const watch =
-  (allOptions: BuildOptions[]) =>
-  ([options, result]: readonly [BuildOptions, esbuild.BuildResult | esbuild.BuildIncremental]) => {
-    if (process.env.WATCH !== 'true') return result
+const watch = (context: BuildContext, options: BuildOptions) => {
+  if (process.env.WATCH !== 'true') return context
 
-    // common chokidar options for the watchers
-    const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*', './package.json'] }
+  // common chokidar options for the watchers
+  const config = { ignoreInitial: true, useFsEvents: true, ignored: ['./src/__tests__/**/*', './package.json'] }
 
-    // prepare the incremental builds watcher
-    const watched = getWatchedFiles(result)
-    const changeWatcher = createWatcher(watched, config)
+  // prepare the incremental builds watcher
+  const changeWatcher = createWatcher(['./src/**/*'], config)
 
-    // watcher for restarting a full rebuild
-    const restartWatcher = createWatcher(['./src/**/*'], config)
+  // triggers quick rebuild on file change
+  const fastRebuild = debounce(async () => {
+    const timeBefore = Date.now()
 
-    // triggers quick rebuild on file change
-    const fastRebuild = debounce(async () => {
-      const timeBefore = Date.now()
+    // we handle possible rebuild exceptions
+    const rebuildResult = await handle.async(() => {
+      return context.rebuild()
+    })
 
-      // we handle possible rebuild exceptions
-      const rebuildResult = await handle.async(() => {
-        return result?.rebuild?.()
-      })
+    if (rebuildResult instanceof Error) {
+      console.error(rebuildResult.message)
+    }
 
-      if (rebuildResult instanceof Error) {
-        console.error(rebuildResult.message)
-      }
+    console.log(`${Date.now() - timeBefore}ms [${options.name ?? ''}]`)
+  }, 10)
 
-      console.log(`${Date.now() - timeBefore}ms [${options.name ?? ''}]`)
-    }, 10)
+  changeWatcher.on('change', fastRebuild)
 
-    // triggers a full rebuild on added file
-    const fullRebuild = debounce(async () => {
-      void changeWatcher.close() // stop all
-
-      // only one watcher will do this task
-      if (watchLock === false) {
-        watchLock = true
-        await build(allOptions)
-      }
-    }, 10)
-
-    changeWatcher.on('change', fastRebuild)
-    restartWatcher.once('add', fullRebuild)
-    restartWatcher.once('unlink', fullRebuild)
-
-    return undefined
-  }
+  return undefined
+}
 
 // Utils ::::::::::::::::::::::::::::::::::::::::::::::::::
-
-// so that only one watcher restarts a full build
-let watchLock = false
 
 // get a default directory if needed (no outfile)
 function getOutDir(options: BuildOptions) {
@@ -229,9 +213,4 @@ function getOutFile(options: BuildOptions) {
   }
 
   return undefined
-}
-
-// gets the files to be watched from esbuild
-function getWatchedFiles(build: esbuild.BuildIncremental | esbuild.BuildResult | undefined) {
-  return Object.keys(build?.metafile?.inputs ?? {})
 }

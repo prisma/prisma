@@ -196,7 +196,7 @@ function zeroOutPatch(version: string): string {
  * @param packages Local package definitions
  */
 async function getNewDevVersion(packages: Packages): Promise<string> {
-  const before = Date.now()
+  const before = Math.round(performance.now())
   console.log('\nCalculating new dev version...')
   // Why are we calling zeroOutPatch?
   // Because here we're only interested in the 2.5.0 <- the next minor stable version
@@ -209,7 +209,7 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
   const maxDev = getMaxDevVersionIncrement(versions)
 
   const version = `${nextStable}-dev.${maxDev + 1}`
-  console.log(`Got ${version} in ${Date.now() - before}ms`)
+  console.log(`Got ${version} in ${Math.round(performance.now()) - before}ms`)
   return version
 }
 
@@ -219,7 +219,7 @@ async function getNewDevVersion(packages: Packages): Promise<string> {
  * @param packages Local package definitions
  */
 async function getNewIntegrationVersion(packages: Packages, branch: string): Promise<string> {
-  const before = Date.now()
+  const before = Math.round(performance.now())
   console.log('\nCalculating new integration version...')
   // Why are we calling zeroOutPatch?
   // Because here we're only interested in the 2.5.0 <- the next minor stable version
@@ -237,7 +237,7 @@ async function getNewIntegrationVersion(packages: Packages, branch: string): Pro
   const version = `${versionNameSlug}.${maxIntegration + 1}`
 
   // TODO: can we remove this?
-  console.log(`Got ${version} in ${Date.now() - before}ms`)
+  console.log(`Got ${version} in ${Math.round(performance.now()) - before}ms`)
 
   return version
 }
@@ -514,10 +514,10 @@ async function publish() {
   let unlock: undefined | (() => void)
   if (process.env.BUILDKITE && args['--publish']) {
     console.log(`We're in buildkite and will publish, so we will acquire a lock...`)
-    const before = Date.now()
+    const before = Math.round(performance.now())
     // TODO: problem lock might not work for more than 2 jobs
     unlock = await acquireLock(process.env.BUILDKITE_BRANCH)
-    const after = Date.now()
+    const after = Math.round(performance.now())
     console.log(`Acquired lock after ${after - before}ms`)
   }
 
@@ -952,11 +952,11 @@ function isSkipped(pkgName) {
 }
 
 async function acquireLock(branch: string): Promise<() => void> {
-  const before = Date.now()
+  const before = Math.round(performance.now())
   if (!process.env.REDIS_URL) {
     console.log(bold(red(`REDIS_URL missing. Setting dummy lock`)))
     return () => {
-      console.log(`Lock removed after ${Date.now() - before}ms`)
+      console.log(`Lock removed after ${Math.round(performance.now()) - before}ms`)
     }
   }
   const client = redis.createClient({
@@ -972,7 +972,8 @@ async function acquireLock(branch: string): Promise<() => void> {
   const cb = await lock(`prisma-release-${branch}`, 15 * 60 * 1000)
   return async () => {
     cb()
-    console.log(`Lock removed after ${Date.now() - before}ms`)
+    const after = Math.round(performance.now())
+    console.log(`Lock removed after ${after - before}ms`)
     await new Promise((r) => setTimeout(r, 200))
     client.quit()
   }
