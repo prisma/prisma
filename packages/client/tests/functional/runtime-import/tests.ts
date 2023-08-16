@@ -5,7 +5,6 @@ import testMatrix from './_matrix'
 
 const libraryRuntime = 'runtime/library'
 const binaryRuntime = 'runtime/binary'
-const dataProxyRuntime = 'runtime/data-proxy'
 const edgeRuntime = 'runtime/edge'
 
 testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
@@ -16,24 +15,24 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
 
     if (clientMeta.runtime === 'edge') {
       expect(generatedClientContents).toContain(edgeRuntime)
-      expect(generatedClientContents).not.toContain(dataProxyRuntime)
       expect(generatedClientContents).not.toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(binaryRuntime)
-    } else if (clientMeta.dataProxy) {
-      expect(generatedClientContents).toContain(dataProxyRuntime)
-      expect(generatedClientContents).not.toContain(binaryRuntime)
-      expect(generatedClientContents).not.toContain(libraryRuntime)
+    } else if (clientMeta.dataProxy && getClientEngineType() === ClientEngineType.Library) {
+      expect(generatedClientContents).toContain(libraryRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
+      expect(generatedClientContents).not.toContain(binaryRuntime)
+    } else if (clientMeta.dataProxy && getClientEngineType() === ClientEngineType.Binary) {
+      expect(generatedClientContents).toContain(binaryRuntime)
+      expect(generatedClientContents).not.toContain(edgeRuntime)
+      expect(generatedClientContents).not.toContain(libraryRuntime)
     } else if (getClientEngineType() === ClientEngineType.Library) {
       expect(generatedClientContents).toContain(libraryRuntime)
-      expect(generatedClientContents).not.toContain(binaryRuntime)
-      expect(generatedClientContents).not.toContain(dataProxyRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
+      expect(generatedClientContents).not.toContain(binaryRuntime)
     } else if (getClientEngineType() === ClientEngineType.Binary) {
       expect(generatedClientContents).toContain(binaryRuntime)
-      expect(generatedClientContents).not.toContain(libraryRuntime)
-      expect(generatedClientContents).not.toContain(dataProxyRuntime)
       expect(generatedClientContents).not.toContain(edgeRuntime)
+      expect(generatedClientContents).not.toContain(libraryRuntime)
     }
   })
 })
