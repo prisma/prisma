@@ -17,25 +17,64 @@ testMatrix.setupTestSuite(
       process.env = OLD_ENV
     })
 
-    testIf(clientMeta.dataProxy /** = --no-engine */)('--no-engine prevents from using the other engines', async () => {
-      process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'postgresql://postgres:password@localhost:5432/db'
+    describe('via env var', () => {
+      testIf(clientMeta.dataProxy /** = --no-engine */)(
+        '--no-engine prevents from using the other engines',
+        async () => {
+          process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'postgresql://postgres:password@localhost:5432/db'
 
-      const prisma = newPrismaClient()
-      const promise = prisma.$connect()
+          const prisma = newPrismaClient()
+          const promise = prisma.$connect()
 
-      // proof that the correct engine is used
-      await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`Datasource URL must use prisma:// protocol`)
+          // proof that the correct engine is used
+          await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`Datasource URL must use prisma:// protocol`)
+        },
+      )
+
+      // test that we can pass a prisma:// url when the tests is not run as a dataproxy
+      testIf(!clientMeta.dataProxy)('prisma:// url works as expected even when --no-engine is not used', async () => {
+        process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'prisma://localhost:5432/db'
+
+        const prisma = newPrismaClient()
+        const promise = prisma.$connect()
+
+        // proof that the correct engine is used
+        await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`No valid API key found in the datasource URL`)
+      })
     })
 
-    // test that we can pass a prisma:// url when the tests is not run as a dataproxy
-    testIf(!clientMeta.dataProxy)('prisma:// url works as expected even when --no-engine is not used', async () => {
-      process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'prisma://localhost:5432/db'
+    describe('via url override', () => {
+      testIf(clientMeta.dataProxy /** = --no-engine */)(
+        '--no-engine prevents from using the other engines',
+        async () => {
+          const prisma = newPrismaClient({
+            datasource: {
+              db: {
+                url: 'postgresql://postgres:password@localhost:5432/db',
+              },
+            },
+          })
+          const promise = prisma.$connect()
 
-      const prisma = newPrismaClient()
-      const promise = prisma.$connect()
+          // proof that the correct engine is used
+          await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`Datasource URL must use prisma:// protocol`)
+        },
+      )
 
-      // proof that the correct engine is used
-      await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`No valid API key found in the datasource URL`)
+      // test that we can pass a prisma:// url when the tests is not run as a dataproxy
+      testIf(!clientMeta.dataProxy)('prisma:// url works as expected even when --no-engine is not used', async () => {
+        const prisma = newPrismaClient({
+          datasource: {
+            db: {
+              url: 'prisma://localhost:5432/db',
+            },
+          },
+        })
+        const promise = prisma.$connect()
+
+        // proof that the correct engine is used
+        await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`No valid API key found in the datasource URL`)
+      })
     })
   },
   {
