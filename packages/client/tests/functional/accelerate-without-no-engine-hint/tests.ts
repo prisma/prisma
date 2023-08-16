@@ -19,6 +19,8 @@ testMatrix.setupTestSuite(
           In production, we recommend using \`prisma generate --no-engine\` (See: \`prisma generate --help\`),
         ]
       `)
+
+      consoleWarnMock.mockRestore()
     })
 
     testIf(clientMeta.dataProxy === true)('using accelerate with --no-engine produces no warning at runtime', () => {
@@ -28,6 +30,7 @@ testMatrix.setupTestSuite(
       newPrismaClient()
 
       expect(consoleWarnMock).toHaveBeenCalledTimes(0)
+      consoleWarnMock.mockRestore()
     })
   },
   {
