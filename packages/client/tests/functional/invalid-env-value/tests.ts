@@ -10,8 +10,15 @@ declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
   (suitConfig, suiteMeta, clientMeta) => {
+    const OLD_ENV = process.env
+
     beforeEach(() => {
+      process.env = { ...OLD_ENV }
       process.env[`DATABASE_URI_${suitConfig.provider}`] = 'http://some-invalid-url'
+    })
+
+    afterEach(() => {
+      process.env = OLD_ENV
     })
 
     test('PrismaClientInitializationError for invalid env', async () => {
