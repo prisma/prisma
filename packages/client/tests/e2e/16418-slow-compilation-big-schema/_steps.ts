@@ -9,9 +9,9 @@ void executeSteps({
     await $`pnpm prisma generate`
   },
   test: async () => {
-    const timeBefore = Date.now()
+    const timeBefore = Math.round(performance.now())
     await $`pnpm exec tsc`
-    const timeAfter = Date.now()
+    const timeAfter = Math.round(performance.now())
 
     const timeDiff = timeAfter - timeBefore
     console.log(`timeDiff: ${timeDiff}`)

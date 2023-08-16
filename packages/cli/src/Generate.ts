@@ -76,10 +76,10 @@ ${bold('Examples')}
     const message: string[] = []
 
     for (const generator of generators) {
-      const before = Date.now()
+      const before = Math.round(performance.now())
       try {
         await generator.generate()
-        const after = Date.now()
+        const after = Math.round(performance.now())
         message.push(getGeneratorSuccessMessage(generator, after - before) + '\n')
         generator.stop()
       } catch (err) {
