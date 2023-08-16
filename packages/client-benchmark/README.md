@@ -76,7 +76,7 @@ It is also possible to combine `--features` and `--baseline-features` with `--pr
 Benchmark script can also be used to measure performance on AWS lambda. This requires some additional configurations:
 
 1. Get AWS Credentials as described [here](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html). The role you are using should
-   be allows to create, delete and invoke lambda functions.
+   be allowed to create, delete and invoke lambda functions.
 2. Create execution role for Lambda as described [here](https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html).
 3. Copy `config.example.json` into `config.json` and fill in the values.
 
