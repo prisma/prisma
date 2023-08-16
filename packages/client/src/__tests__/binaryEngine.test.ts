@@ -22,6 +22,12 @@ describe('BinaryEngine', () => {
         env: {},
         cwd: process.cwd(),
         logEmitter: new EventEmitter(),
+        clientVersion: '0.0.0',
+        engineVersion: '0000000000000000000000000000000000000000',
+        inlineDatasources: {},
+        inlineSchema: '',
+        inlineSchemaHash: '',
+        overrideDatasources: {},
       })
       await engine.start()
     } catch (e) {
