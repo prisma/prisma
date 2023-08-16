@@ -347,16 +347,29 @@ exports.Prisma.ModelName = {
 };
 
 /**
- * Create the Client
+ * This is a fake Prisma Client
+ * It will error at runtime, if called 
  */
 class PrismaClient {
+  private message = \`PrismaClient is unable to be run \${runtimeDescription}.
+In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`
   constructor() {
-    throw new Error(
-      \`PrismaClient is unable to be run \${runtimeDescription}.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
-    )
+    return new Proxy(this, {
+      get(target, prop) {
+        if (prop === '$extends') {
+          return () => new Proxy(this, {
+            get(target, prop) {
+              throw new Error(this.message)
+            }
+          })
+        } else {
+          throw new Error(this.message)
+        }
+      }
+    })
   }
 }
+
 exports.PrismaClient = PrismaClient
 
 Object.assign(exports, Prisma)
