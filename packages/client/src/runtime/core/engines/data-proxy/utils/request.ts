@@ -18,6 +18,7 @@ export type RequestResponse = {
   headers: NodeHeaders
   text: () => Promise<string>
   json: () => Promise<any>
+  clone: () => RequestResponse
 }
 
 export type Fetch = typeof nodeFetch
@@ -40,7 +41,13 @@ export async function request(
 
   try {
     if (typeof fetch === 'function') {
-      return await customFetch(fetch)(url, options)
+      const response = await customFetch(fetch)(url, options)
+
+      // needed to be able to call json() multiple times
+      response.json = () => response.clone().json()
+      response.text = () => response.clone().text()
+
+      return response
     } else {
       return await customFetch(nodeFetch)(url, options)
     }
@@ -91,6 +98,7 @@ function buildResponse(incomingData: Buffer[], response: IncomingMessage): Reque
     status: response.statusCode!,
     url: response.url!,
     headers: new NodeHeaders(response.headers),
+    clone: () => buildResponse(incomingData, response),
   }
 }
 
