@@ -81,7 +81,7 @@ async function _getClientVersion(host: string, config: EngineConfig) {
   }
 
   // nothing matched, meaning that the provided version is invalid
-  throw new NotImplementedYetError('Only `major.minor.patch` versions are supported by Prisma Data Proxy.', {
+  throw new NotImplementedYetError('Only `major.minor.patch` versions are supported by Accelerate.', {
     clientVersion,
   })
 }
