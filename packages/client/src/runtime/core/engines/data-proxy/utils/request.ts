@@ -15,7 +15,7 @@ export type RequestResponse = {
   url: string
   statusText?: string
   status: number
-  headers: NodeHeaders
+  headers: any // NodeHeaders (cannot export because of node types)
   text: () => Promise<string>
   json: () => Promise<any>
 }
