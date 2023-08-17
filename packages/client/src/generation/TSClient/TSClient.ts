@@ -47,6 +47,7 @@ export interface TSClientOptions {
   activeProvider: string
   deno?: boolean
   postinstall?: boolean
+  noEngine?: boolean
 }
 
 export class TSClient implements Generatable {
@@ -62,7 +63,8 @@ export class TSClient implements Generatable {
   }
 
   public async toJS(edge = false): Promise<string> {
-    const { platforms, generator, outputDir, schemaPath, runtimeDir, runtimeName, datasources, deno } = this.options
+    const { platforms, generator, outputDir, schemaPath, runtimeDir, runtimeName, datasources, deno, noEngine } =
+      this.options
     const envPaths = getEnvPaths(schemaPath, { cwd: outputDir })
 
     const relativeEnvPaths = {
@@ -93,6 +95,7 @@ export class TSClient implements Generatable {
       }, {} as GetPrismaClientConfig['inlineDatasources']),
       inlineSchema,
       inlineSchemaHash,
+      noEngine,
     }
 
     // get relative output dir for it to be preserved even after bundling, or
@@ -128,12 +131,7 @@ ${buildDebugInitialization(edge)}
 const PrismaClient = getPrismaClient(config)
 exports.PrismaClient = PrismaClient
 Object.assign(exports, Prisma)${deno ? '\nexport { exports as default, Prisma, PrismaClient }' : ''}
-${buildNFTAnnotations(
-  edge || false /** TODO after removal of dataProxy, do if --no-engine or edge */,
-  engineType,
-  platforms,
-  relativeOutdir,
-)}
+${buildNFTAnnotations(Boolean(edge || noEngine), engineType, platforms, relativeOutdir)}
 `
     return code
   }
