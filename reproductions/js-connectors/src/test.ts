@@ -1,9 +1,9 @@
 // @ts-nocheck
 import { PrismaClient } from '.prisma/client'
 import { setImmediate, setTimeout } from 'node:timers/promises'
-import type { Connector, Queryable } from '@jkomyno/prisma-js-connector-utils'
+import type { Connector } from '@jkomyno/prisma-js-connector-utils'
 
-type Flavor = Queryable['flavour']
+type Flavor = Connector['flavour']
 
 export async function smokeTest(db: Connector, prismaSchemaRelativePath: string) {
   // wait for the database pool to be initialized
@@ -18,7 +18,6 @@ export async function smokeTest(db: Connector, prismaSchemaRelativePath: string)
 
   const test = new SmokeTest(prisma, db.flavour)
   
-  // await test.interactiveTransactionsConflict()
   await test.$raw()
   await test.interactiveTransactions()
   await test.explicitTransaction()
