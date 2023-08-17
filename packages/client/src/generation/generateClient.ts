@@ -1,3 +1,4 @@
+import Debug from '@prisma/debug'
 import { overwriteFile } from '@prisma/fetch-engine'
 import type { BinaryPaths, DataSource, DMMF, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever, ClientEngineType, getClientEngineType, Platform, setClassName } from '@prisma/internals'
@@ -17,6 +18,7 @@ import { BrowserJS, JS, TS, TSClient } from './TSClient'
 import type { Dictionary } from './utils/common'
 
 const GENERATED_PACKAGE_NAME = '.prisma/client'
+const debug = Debug('prisma:client:generateClient')
 
 type OutputDeclaration = {
   content: string
@@ -554,9 +556,14 @@ async function copyRuntimeFiles({ from, to, runtimeName, sourceMaps }: CopyRunti
  */
 async function deleteOutputDir(finalOutputDir: string) {
   try {
+    debug(`attempting to delete ${finalOutputDir} recursively`)
     // we want to make sure that if we delete, we delete the right directory
     if (require(`${finalOutputDir}/package.json`).name === GENERATED_PACKAGE_NAME) {
-      await fs.rmdir(finalOutputDir, { recursive: true })
+      await fs.rmdir(finalOutputDir, { recursive: true }).catch(() => {
+        debug(`failed to delete ${finalOutputDir} recursively`)
+      })
     }
-  } catch {}
+  } catch {
+    debug(`failed to delete ${finalOutputDir} recursively, not found`)
+  }
 }
