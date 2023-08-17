@@ -109,3 +109,7 @@ model Post {
 
   @@index([authorId], name: "author_id")
 }
+
+model leak_test {
+  id Int @id
+}

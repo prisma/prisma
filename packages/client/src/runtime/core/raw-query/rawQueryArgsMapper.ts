@@ -1,3 +1,4 @@
+import type { Connector } from '@jkomyno/prisma-js-connector-utils'
 import Debug from '@prisma/debug'
 import { Sql } from 'sql-template-tag'
 
@@ -28,65 +29,80 @@ More Information: https://pris.ly/d/execute-raw
   }
 }
 
-export const rawQueryArgsMapper = (activeProvider: string, clientMethod: string) => (args: RawQueryArgs) => {
-  // TODO Clean up types
-  let queryString = ''
-  let parameters: { values: string; __prismaRawParameters__: true } | undefined
-
-  if (Array.isArray(args)) {
-    // If this was called as prisma.$executeRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
-    const [query, ...values] = args
-    queryString = query
-    parameters = {
-      values: serializeRawParameters(values || []),
-      __prismaRawParameters__: true,
-    }
-  } else {
-    // If this was called as prisma.$executeRaw`<SQL>` try to generate a SQL prepared statement
-    switch (activeProvider) {
-      case 'sqlite':
-      case 'mysql': {
-        queryString = args.sql
-        parameters = {
-          values: serializeRawParameters(args.values),
-          __prismaRawParameters__: true,
-        }
-        break
-      }
-
-      case 'cockroachdb':
-      case 'postgresql': {
-        queryString = args.text
-
-        parameters = {
-          values: serializeRawParameters(args.values),
-          __prismaRawParameters__: true,
-        }
-        break
-      }
-
-      case 'sqlserver': {
-        queryString = mssqlPreparedStatement(args)
-        parameters = {
-          values: serializeRawParameters(args.values),
-          __prismaRawParameters__: true,
-        }
-        break
-      }
-      default: {
-        throw new Error(`The ${activeProvider} provider does not support ${clientMethod}`)
-      }
-    }
-  }
-
-  if (parameters?.values) {
-    debug(`prisma.${clientMethod}(${queryString}, ${parameters.values})`)
-  } else {
-    debug(`prisma.${clientMethod}(${queryString})`)
-  }
-
-  return { query: queryString, parameters }
+type RawQueryArgsMapperInput = {
+  clientMethod: string
+  activeProvider: string
+  activeProviderFlavour?: Connector['flavour']
 }
+
+export const rawQueryArgsMapper =
+  ({ clientMethod, activeProvider, activeProviderFlavour }: RawQueryArgsMapperInput) =>
+  (args: RawQueryArgs) => {
+    if (activeProviderFlavour !== undefined) {
+      // When using the JS connector, we need to use the flavour of the connector,
+      // in order to avoid enumerating all the possible `@prisma/*` provider names.
+      activeProvider = activeProviderFlavour
+    }
+
+    // TODO Clean up types
+    let queryString = ''
+    let parameters: { values: string; __prismaRawParameters__: true } | undefined
+
+    if (Array.isArray(args)) {
+      // If this was called as prisma.$executeRaw(<SQL>, [...values]), assume it is a pre-prepared SQL statement, and forward it without any changes
+      const [query, ...values] = args
+      queryString = query
+      parameters = {
+        values: serializeRawParameters(values || []),
+        __prismaRawParameters__: true,
+      }
+    } else {
+      // If this was called as prisma.$executeRaw`<SQL>` try to generate a SQL prepared statement
+      switch (activeProvider) {
+        case 'sqlite':
+        case 'mysql': {
+          queryString = args.sql
+          parameters = {
+            values: serializeRawParameters(args.values),
+            __prismaRawParameters__: true,
+          }
+          break
+        }
+
+        case 'cockroachdb':
+        case 'postgresql':
+        case 'postgres': {
+          queryString = args.text
+
+          parameters = {
+            values: serializeRawParameters(args.values),
+            __prismaRawParameters__: true,
+          }
+          break
+        }
+
+        case 'sqlserver': {
+          queryString = mssqlPreparedStatement(args)
+          parameters = {
+            values: serializeRawParameters(args.values),
+            __prismaRawParameters__: true,
+          }
+          break
+        }
+        default: {
+          throw new Error(`The ${activeProvider} provider does not support ${clientMethod}`)
+        }
+      }
+    }
+
+    if (parameters?.values) {
+      debug(`prisma.${clientMethod}(${queryString}, ${parameters.values})`)
+    } else {
+      debug(`prisma.${clientMethod}(${queryString})`)
+    }
+
+    return { query: queryString, parameters }
+  }
 
 type MiddlewareRawArgsTemplateString = [string[], ...unknown[]]
 type MiddlewareRawArgsSql = [Sql]

@@ -1,11 +1,11 @@
 // @ts-nocheck
 import { PrismaClient } from '.prisma/client'
 import { setImmediate, setTimeout } from 'node:timers/promises'
-import type { Connector, Closeable } from '@jkomyno/prisma-js-connector-utils'
+import type { Connector, Queryable } from '@jkomyno/prisma-js-connector-utils'
 
-type Flavor = Connector['flavor']
+type Flavor = Queryable['flavour']
 
-export async function smokeTest(db: Connector & Closeable, prismaSchemaRelativePath: string) {
+export async function smokeTest(db: Connector, prismaSchemaRelativePath: string) {
   // wait for the database pool to be initialized
   await setImmediate(0)
 
@@ -16,9 +16,10 @@ export async function smokeTest(db: Connector & Closeable, prismaSchemaRelativeP
   await prisma.$connect()
   console.log('[nodejs] connected')
 
-  const test = new SmokeTest(prisma, db.flavor)
-
-  // Note: these tests currently trigger a panic!
+  const test = new SmokeTest(prisma, db.flavour)
+  
+  // await test.interactiveTransactionsConflict()
+  await test.$raw()
   await test.interactiveTransactions()
   await test.explicitTransaction()
   await test.testFindManyTypeTest()
@@ -43,13 +44,11 @@ export async function smokeTest(db: Connector & Closeable, prismaSchemaRelativeP
   console.log('[nodejs] closing database connection...')
   await db.close()
   console.log('[nodejs] closed database connection')
-
-  process.exit(0)
 }
 
 
 class SmokeTest {
-  constructor(private readonly prisma: PrismaClient, readonly flavor: Connector['flavor']) {}
+  constructor(private readonly prisma: PrismaClient, readonly flavor: Connector['flavour']) {}
 
   async explicitTransaction() {
     const [children, totalChildren] = await this.prisma.$transaction([
@@ -61,6 +60,20 @@ class SmokeTest {
 
     console.log('[nodejs] children', JSON.stringify(children, null, 2))
     console.log('[nodejs] totalChildren', totalChildren)
+  }
+
+  async $raw() {
+    const cleanUp = async () => {
+      await this.prisma.$executeRaw`DELETE FROM leak_test`
+    }
+
+    await cleanUp()
+
+    await this.prisma.$executeRaw`INSERT INTO leak_test (id) VALUES (1)`
+    const result = await this.prisma.$queryRaw`SELECT * FROM leak_test`
+    console.log('[nodejs] result', JSON.stringify(result, null, 2))
+
+    await cleanUp()
   }
 
   async interactiveTransactions() {

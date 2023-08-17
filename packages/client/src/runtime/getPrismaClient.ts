@@ -502,12 +502,15 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       args: RawQueryArgs,
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
+      const activeProvider = this._activeProvider
+      const activeProviderFlavour = this._engineConfig.jsConnector?.flavour
+
       return this._request({
         action: 'executeRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
@@ -599,12 +602,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       args: RawQueryArgs,
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
+      const activeProvider = this._activeProvider
+      const activeProviderFlavour = this._engineConfig.jsConnector?.flavour
+
       return this._request({
         action: 'queryRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
