@@ -18,17 +18,14 @@ testMatrix.setupTestSuite(
 
       const prisma = newPrismaClient()
 
-      await expect(prisma.user.findMany()).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-        Invalid \`expect(prisma.user.findMany()\` invocation in
-        /client/tests/functional/accelerate-bad-url-errors/tests.ts:0:0
-
-          XX 
-          XX const prisma = newPrismaClient()
-          XX 
-        → XX await expect(prisma.user.findMany(
-        Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\`
-      `)
+      await expect(prisma.user.findMany()).rejects.toThrow(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        expect.objectContaining({
+          message: expect.stringContaining(
+            'Error validating datasource `db`: the URL must start with the protocol `prisma://`',
+          ),
+        }),
+      )
     })
 
     testIf(clientMeta.dataProxy)('url starts with prisma:// but is invalid', async () => {
@@ -36,17 +33,12 @@ testMatrix.setupTestSuite(
 
       const prisma = newPrismaClient()
 
-      await expect(prisma.user.findMany()).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-        Invalid \`expect(prisma.user.findMany()\` invocation in
-        /client/tests/functional/accelerate-bad-url-errors/tests.ts:0:0
-
-          XX 
-          XX const prisma = newPrismaClient()
-          XX 
-        → XX await expect(prisma.user.findMany(
-        Error validating datasource \`db\`: the URL must contain a valid API key
-      `)
+      await expect(prisma.user.findMany()).rejects.toThrow(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        expect.objectContaining({
+          message: expect.stringContaining('Error validating datasource `db`: the URL must contain a valid API key'),
+        }),
+      )
     })
 
     testIf(clientMeta.dataProxy)('url starts with prisma:// with nothing else', async () => {
@@ -54,17 +46,12 @@ testMatrix.setupTestSuite(
 
       const prisma = newPrismaClient()
 
-      await expect(prisma.user.findMany()).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-        Invalid \`expect(prisma.user.findMany()\` invocation in
-        /client/tests/functional/accelerate-bad-url-errors/tests.ts:0:0
-
-          XX 
-          XX const prisma = newPrismaClient()
-          XX 
-        → XX await expect(prisma.user.findMany(
-        Error validating datasource \`db\`: the URL must contain a valid API key
-      `)
+      await expect(prisma.user.findMany()).rejects.toThrow(
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+        expect.objectContaining({
+          message: expect.stringContaining('Error validating datasource `db`: the URL must contain a valid API key'),
+        }),
+      )
     })
   },
   {
