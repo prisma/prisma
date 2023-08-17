@@ -288,7 +288,7 @@ ${
 /**
  * Aliases for legacy arg types
  */
-${context.defaultArgsAliases.generateAliases(this.dmmf)}
+${context.defaultArgsAliases.generateAliases()}
 
 /**
  * Batch Payload for updateMany & deleteMany & createMany
