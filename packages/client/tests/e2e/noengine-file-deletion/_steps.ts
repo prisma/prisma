@@ -1,3 +1,4 @@
+import fs from 'fs'
 import path from 'path'
 import { $ } from 'zx'
 
@@ -38,12 +39,7 @@ async function hasEngineFile() {
     }),
   )
 
-  let hasEngineFile = false
-  for await (const line of $`ls -l ${prismaPath}`.stdout) {
-    if (line.includes('libquery_engine-debian')) {
-      hasEngineFile = true
-    }
-  }
+  const folderFilePaths = await fs.promises.readdir(prismaPath)
 
-  return hasEngineFile
+  return folderFilePaths.includes('libquery_engine-debian-openssl-1.1.x.so.node')
 }
