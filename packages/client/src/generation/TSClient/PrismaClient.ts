@@ -457,7 +457,7 @@ export interface PrismaClientOptions {
    * maxWait ?= 2000
    * timeout ?= 5000
    */
-  transactionOptions?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }
+  transactionOptions?: { maxWait?: number, timeout?: number, isolationLevel?: TransactionIsolationLevel }
 }
 
 /* Types for Logging */
