@@ -80,7 +80,7 @@ async function main(): Promise<number> {
 
   // Detect Deno and trigger install of @prisma/client
   if (globalThis.Deno) {
-    await import("npm:@prisma/client")
+    await import("@prisma/client")
   }
   
   const cli = CLI.new(
