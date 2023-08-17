@@ -133,9 +133,10 @@ describe('postgresql', () => {
     const result = MigrateDeploy.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-      Using an Accelerate or Data Proxy URL is not supported for this CLI command prisma migrate deploy yet. Please use a direct connection to your database via the datasource \`directUrl\` setting.
+      Using an Accelerate URL is not supported for this CLI command prisma migrate deploy yet.
+      Please use a direct connection to your database via the datasource \`directUrl\` setting.
 
-      More information about this limitation: https://pris.ly/d/accelerate-cli
+      More information about this limitation: https://pris.ly/d/accelerate-limitations
 
     `)
   })

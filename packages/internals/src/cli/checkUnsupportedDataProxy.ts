@@ -29,11 +29,10 @@ type Args = O.Optional<O.Update<typeof checkedArgs, any, string>>
  * @returns
  */
 export const forbiddenCmdWithDataProxyFlagMessage = (command: string) => `
-Using an Accelerate or Data Proxy URL is not supported for this CLI command ${green(
-  `prisma ${command}`,
-)} yet. Please use a direct connection to your database via the datasource \`directUrl\` setting.
+Using an Accelerate URL is not supported for this CLI command ${green(`prisma ${command}`)} yet.
+Please use a direct connection to your database via the datasource \`directUrl\` setting.
 
-More information about this limitation: ${link('https://pris.ly/d/accelerate-cli')}
+More information about this limitation: ${link('https://pris.ly/d/accelerate-limitations')}
 `
 
 /**
