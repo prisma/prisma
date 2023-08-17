@@ -140,10 +140,11 @@ ${bold('Examples')}
         postinstall: Boolean(args['--postinstall']),
         noEngine:
           Boolean(args['--no-engine']) ||
-          Boolean(args['--data-proxy']) || // legacy
-          Boolean(args['--accelerate']) || // legacy
-          Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy
-          Boolean(process.env.PRISMA_GENERATE_ACCELERATE), // legacy
+          Boolean(args['--data-proxy']) || // legacy, keep for backwards compatibility
+          Boolean(args['--accelerate']) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
       })
 
       if (!generators || generators.length === 0) {
