@@ -27,7 +27,9 @@ testMatrix.setupTestSuite(
           const promise = prisma.$connect()
 
           // proof that the correct engine is used
-          await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`Datasource URL must use prisma:// protocol`)
+          await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
+            `Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\``,
+          )
         },
       )
 
@@ -39,7 +41,9 @@ testMatrix.setupTestSuite(
         const promise = prisma.$connect()
 
         // proof that the correct engine is used
-        await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`No valid API key found in the datasource URL`)
+        await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
+          `Error validating datasource \`db\`: the URL must contain a valid API key`,
+        )
       })
     })
 
@@ -57,7 +61,9 @@ testMatrix.setupTestSuite(
           const promise = prisma.$connect()
 
           // proof that the correct engine is used
-          await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`Datasource URL must use prisma:// protocol`)
+          await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
+            `Error validating datasource \`db\`: the URL must start with the protocol \`prisma://\``,
+          )
         },
       )
 
@@ -73,7 +79,9 @@ testMatrix.setupTestSuite(
         const promise = prisma.$connect()
 
         // proof that the correct engine is used
-        await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(`No valid API key found in the datasource URL`)
+        await expect(promise).rejects.toThrowErrorMatchingInlineSnapshot(
+          `Error validating datasource \`db\`: the URL must contain a valid API key`,
+        )
       })
     })
   },
