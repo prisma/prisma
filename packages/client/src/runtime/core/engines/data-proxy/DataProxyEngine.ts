@@ -276,11 +276,11 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
         debug('schema response status', response.status)
       }
 
-      const err = responseToError(response, {}, this.clientVersion)
+      const error = await responseToError(response, this.clientVersion)
 
-      if (err) {
-        this.logEmitter.emit('warn', { message: `Error while uploading schema: ${err.message}` })
-        throw err
+      if (error) {
+        this.logEmitter.emit('warn', { message: `Error while uploading schema: ${error.message}` })
+        throw error
       } else {
         this.logEmitter.emit('info', {
           message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
@@ -360,8 +360,9 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
           debug('graphql response status', response.status)
         }
 
+        await this.handleError(await responseToError(response, this.clientVersion))
+
         const json = await response.json()
-        await this.handleError(responseToError(response, json, this.clientVersion))
 
         const extensions = json.extensions as DataProxyExtensions | undefined
         if (extensions) {
@@ -421,8 +422,9 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
             clientVersion: this.clientVersion,
           })
 
+          await this.handleError(await responseToError(response, this.clientVersion))
+
           const json = await response.json()
-          await this.handleError(responseToError(response, json, this.clientVersion))
 
           const extensions = json.extensions as DataProxyExtensions | undefined
           if (extensions) {
@@ -444,8 +446,9 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
             clientVersion: this.clientVersion,
           })
 
+          await this.handleError(await responseToError(response, this.clientVersion))
+
           const json = await response.json()
-          await this.handleError(responseToError(response, json, this.clientVersion))
 
           const extensions = json.extensions as DataProxyExtensions | undefined
           if (extensions) {
