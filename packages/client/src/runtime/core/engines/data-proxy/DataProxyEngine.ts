@@ -276,11 +276,11 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
         debug('schema response status', response.status)
       }
 
-      const err = await responseToError(response, this.clientVersion)
+      const error = await responseToError(response, this.clientVersion)
 
-      if (err) {
-        this.logEmitter.emit('warn', { message: `Error while uploading schema: ${err.message}` })
-        throw err
+      if (error) {
+        this.logEmitter.emit('warn', { message: `Error while uploading schema: ${error.message}` })
+        throw error
       } else {
         this.logEmitter.emit('info', {
           message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
@@ -360,26 +360,26 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
           debug('graphql response status', response.status)
         }
 
-        const e = await responseToError(response, this.clientVersion)
-        await this.handleError(e)
+        await this.handleError(await responseToError(response, this.clientVersion))
 
-        const data = await response.json()
-        const extensions = data.extensions as DataProxyExtensions | undefined
+        const json = await response.json()
+
+        const extensions = json.extensions as DataProxyExtensions | undefined
         if (extensions) {
           this.propagateResponseExtensions(extensions)
         }
 
         // TODO: headers contain `x-elapsed` and it needs to be returned
 
-        if (data.errors) {
-          if (data.errors.length === 1) {
-            throw prismaGraphQLToJSError(data.errors[0], this.config.clientVersion!)
+        if (json.errors) {
+          if (json.errors.length === 1) {
+            throw prismaGraphQLToJSError(json.errors[0], this.config.clientVersion!)
           } else {
-            throw new PrismaClientUnknownRequestError(data.errors, { clientVersion: this.config.clientVersion! })
+            throw new PrismaClientUnknownRequestError(json.errors, { clientVersion: this.config.clientVersion! })
           }
         }
 
-        return data
+        return json
       },
     })
   }
@@ -422,8 +422,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
             clientVersion: this.clientVersion,
           })
 
-          const err = await responseToError(response, this.clientVersion)
-          await this.handleError(err)
+          await this.handleError(await responseToError(response, this.clientVersion))
 
           const json = await response.json()
 
@@ -447,14 +446,14 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
             clientVersion: this.clientVersion,
           })
 
+          await this.handleError(await responseToError(response, this.clientVersion))
+
           const json = await response.json()
+
           const extensions = json.extensions as DataProxyExtensions | undefined
           if (extensions) {
             this.propagateResponseExtensions(extensions)
           }
-
-          const err = await responseToError(response, this.clientVersion)
-          await this.handleError(err)
 
           return undefined
         }

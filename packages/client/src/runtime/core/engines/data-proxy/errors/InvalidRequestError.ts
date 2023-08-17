@@ -1,13 +1,10 @@
 import { setClassName } from '@prisma/internals'
 
-import type { RequestResponse } from '../utils/request'
 import type { DataProxyAPIErrorInfo } from './DataProxyAPIError'
 import { DataProxyAPIError } from './DataProxyAPIError'
 import { setRetryable } from './utils/setRetryable'
 
-export interface InvalidRequestErrorInfo extends DataProxyAPIErrorInfo {
-  response: RequestResponse
-}
+export interface InvalidRequestErrorInfo extends DataProxyAPIErrorInfo {}
 
 export const INVALID_REQUEST_DEFAULT_MESSAGE = 'Request parameters are invalid'
 
