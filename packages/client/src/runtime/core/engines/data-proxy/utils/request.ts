@@ -1,4 +1,4 @@
-import type { IncomingHttpHeaders, IncomingMessage } from 'http'
+import type { IncomingMessage } from 'http'
 import type Https from 'https'
 
 import { RequestError } from '../errors/NetworkError'
@@ -15,7 +15,7 @@ export type RequestResponse = {
   url: string
   statusText?: string
   status: number
-  headers: any // NodeHeaders (cannot export because of node types)
+  headers: NodeHeaders
   text: () => Promise<string>
   json: () => Promise<any>
 }
@@ -142,7 +142,7 @@ const include = typeof require !== 'undefined' ? require : () => {}
 export class NodeHeaders {
   readonly #headers = new Map<string, string>()
 
-  constructor(init: IncomingHttpHeaders = {}) {
+  constructor(init: Record<any, any> = {}) {
     for (const [key, value] of Object.entries(init)) {
       if (typeof value === 'string') {
         this.#headers.set(key, value)
