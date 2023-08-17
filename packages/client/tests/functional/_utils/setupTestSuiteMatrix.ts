@@ -153,7 +153,7 @@ function setupTestSuiteMatrix(
             // disconnect might also fail, so ignoring the error here
           })
           if (clientMeta.dataProxy) {
-            await stopMiniProxyQueryEngine(client)
+            await stopMiniProxyQueryEngine(client, globalThis['datasourceInfo'])
           }
         }
         clients.length = 0

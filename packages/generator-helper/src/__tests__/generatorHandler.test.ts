@@ -49,7 +49,6 @@ const stubOptions: GeneratorOptions = {
   otherGenerators: [],
   schemaPath: '',
   version: 'latest',
-  dataProxy: false,
 }
 
 function getExecutable(name: string): string {

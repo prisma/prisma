@@ -48,11 +48,19 @@ describe('--schema from project directory', () => {
     expect(output).toMatchInlineSnapshot(`
 
       ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./@prisma/client in XXXms
-      You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+      Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
       \`\`\`
       import { PrismaClient } from './@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
+      or start using Prisma Client at the edge (See: https://pris.ly/d/data-proxy)
+      \`\`\`
+      import { PrismaClient } from './@prisma/client/edge'
+      const prisma = new PrismaClient()
+      \`\`\`
+
+      See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
     `)
     // Check that the client path in the import statement actually contains
     // forward slashes regardless of the platform (a snapshot test wouldn't
@@ -76,11 +84,19 @@ describe('--schema from project directory', () => {
     expect(replaceEngineType(result)).toMatchInlineSnapshot(`
 
       ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./@prisma/client in XXXms
-      You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+      Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
       \`\`\`
       import { PrismaClient } from './@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
+      or start using Prisma Client at the edge (See: https://pris.ly/d/data-proxy)
+      \`\`\`
+      import { PrismaClient } from './@prisma/client/edge'
+      const prisma = new PrismaClient()
+      \`\`\`
+
+      See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
     `)
   })
 
@@ -101,11 +117,19 @@ describe('--schema from parent directory', () => {
     expect(output).toMatchInlineSnapshot(`
 
       ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
-      You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+      Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
       \`\`\`
       import { PrismaClient } from './subdirectory/@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
+      or start using Prisma Client at the edge (See: https://pris.ly/d/data-proxy)
+      \`\`\`
+      import { PrismaClient } from './subdirectory/@prisma/client/edge'
+      const prisma = new PrismaClient()
+      \`\`\`
+
+      See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
     `)
     // Check that the client path in the import statement actually contains
     // forward slashes regardless of the platform (a snapshot test wouldn't
@@ -132,11 +156,19 @@ describe('--schema from parent directory', () => {
     expect(output).toMatchInlineSnapshot(`
 
       ✔ Generated Prisma Client (0.0.0 | TEST_ENGINE_TYPE) to ./subdirectory/@prisma/client in XXXms
-      You can now start using Prisma Client in your code. Reference: https://pris.ly/d/client
+      Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
       \`\`\`
       import { PrismaClient } from './subdirectory/@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
+      or start using Prisma Client at the edge (See: https://pris.ly/d/data-proxy)
+      \`\`\`
+      import { PrismaClient } from './subdirectory/@prisma/client/edge'
+      const prisma = new PrismaClient()
+      \`\`\`
+
+      See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+
     `)
     // Check that the client path in the import statement actually contains
     // forward slashes regardless of the platform (a snapshot test wouldn't

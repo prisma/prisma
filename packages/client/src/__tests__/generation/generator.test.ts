@@ -33,7 +33,6 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
-      dataProxy: false,
     })
 
     const manifest = omit<any, any>(generator.manifest, ['version']) as any
@@ -121,7 +120,6 @@ describe('generator', () => {
         baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
-        dataProxy: false,
       })
     } catch (e) {
       expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
@@ -173,7 +171,6 @@ describe('generator', () => {
         baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
-        dataProxy: false,
       })
     } catch (e) {
       doesNotExistError = e
@@ -190,7 +187,6 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
-      dataProxy: false,
     })
 
     try {
@@ -232,7 +228,6 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
-      dataProxy: false,
     })
 
     const manifest = omit<any, any>(generator.manifest, ['version']) as any
