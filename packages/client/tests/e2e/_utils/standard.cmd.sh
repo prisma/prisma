@@ -37,12 +37,6 @@ OUTPUT_REMOVAL_REGEX="$PNPM_EXDEV_WARN_REGEX|$PNPM_FALLBACK_COPY_REGEX"
   # copy some necessary files that are needed for all the tests to run well
   cp tsconfig.base.json /test/tsconfig.base.json;
   cp jest.config.js /test/$NAME/jest.config.js;
-  cp prisma-0.0.0.tgz /test/prisma-0.0.0.tgz;
-  cp prisma-client-0.0.0.tgz /test/prisma-client-0.0.0.tgz;
-  cp prisma-debug-0.0.0.tgz /test/prisma-debug-0.0.0.tgz;
-  cp prisma-engines-0.0.0.tgz /test/prisma-engines-0.0.0.tgz;
-  cp prisma-generator-helper-0.0.0.tgz /test/prisma-generator-helper-0.0.0.tgz;
-  cp prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz /test/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz;
   # execute the test by running the _steps.ts file with esbuild-register
   cd /test/$NAME;
   node -r 'esbuild-register' _steps.ts;
