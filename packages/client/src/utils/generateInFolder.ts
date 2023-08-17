@@ -29,7 +29,6 @@ export interface GenerateInFolderOptions {
   packageSource?: string
   useBuiltRuntime?: boolean
   overrideEngineType?: ClientEngineType
-  overrideDataProxy?: boolean
 }
 
 export async function generateInFolder({
@@ -39,7 +38,6 @@ export async function generateInFolder({
   packageSource,
   useBuiltRuntime,
   overrideEngineType,
-  overrideDataProxy,
 }: GenerateInFolderOptions): Promise<number> {
   const before = performance.now()
   if (!projectDir) {
@@ -142,7 +140,6 @@ export async function generateInFolder({
     clientVersion: 'local',
     engineVersion: 'local',
     activeProvider: config.datasources[0].activeProvider,
-    dataProxy: overrideDataProxy ?? !!process.env.TEST_DATA_PROXY,
     overrideEngineType,
   })
 

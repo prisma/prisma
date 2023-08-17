@@ -50,7 +50,6 @@ export type GetGeneratorOptions = {
   overrideGenerators?: GeneratorConfig[]
   skipDownload?: boolean
   binaryPathsOverride?: BinaryPathsOverride
-  dataProxy: boolean
   generatorNames?: string[]
   postinstall?: boolean
 }
@@ -72,7 +71,6 @@ export async function getGenerators(options: GetGeneratorOptions): Promise<Gener
     overrideGenerators,
     skipDownload,
     binaryPathsOverride,
-    dataProxy,
     generatorNames = [],
     postinstall,
   } = options
@@ -212,7 +210,6 @@ The generator needs to either define the \`defaultOutput\` path in the manifest 
           otherGenerators: skipIndex(generatorConfigs, index),
           schemaPath,
           version: version || enginesVersion, // this version makes no sense anymore and should be ignored
-          dataProxy,
           postinstall,
         }
 

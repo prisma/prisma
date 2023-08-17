@@ -6,42 +6,54 @@ import { PrismaClient as PrismaClientEdge } from '../prisma/client/edge'
 
 test('assert node data proxy runtime can be used', async () => {
   try {
-    const prisma = new PrismaClient()
+    const prisma = new PrismaClient({
+      datasources: {
+        db: {
+          url: 'prisma://localhost:5555',
+        },
+      },
+    })
 
     await prisma.user.create({
       data: { email: 'jane@doe.io' },
     })
   } catch (e) {
-    expect(e.message).toMatchInlineSnapshot(
-      `"Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used"`,
-    )
+    expect(e.message).toMatchInlineSnapshot(`
+"
+Invalid \`prisma.user.create()\` invocation in
+/test/runtimes/data-proxy-custom-output/tests/main.ts:17:23
+
+  14   },
+  15 })
+  16 
+→ 17 await prisma.user.create(
+No valid API key found in the datasource URL"
+`)
   }
-})
-
-test('assert node data proxy index requires the right file', async () => {
-  const data = await fs.readFile(path.join(__dirname, '..', 'prisma', 'client', 'index.js'))
-
-  expect(data.includes('./runtime/data-proxy')).toBe(true)
 })
 
 test('assert edge data proxy runtime can be used', async () => {
   try {
-    const prisma = new PrismaClientEdge()
+    const prisma = new PrismaClientEdge({
+      datasources: {
+        db: {
+          url: 'prisma://localhost:5555',
+        },
+      },
+    })
 
     await prisma.user.create({
       data: { email: 'jane@doe.io' },
     })
   } catch (e) {
-    expect(e.message).toMatchInlineSnapshot(
-      `"Datasource URL must use prisma:// protocol when --accelerate or --data-proxy are used"`,
-    )
+    expect(e.message).toMatchInlineSnapshot(`
+"
+Invalid \`prisma.user.create()\` invocation:
+
+
+No valid API key found in the datasource URL"
+`)
   }
-})
-
-test('assert edge data proxy index requires the right file', async () => {
-  const data = await fs.readFile(path.join(__dirname, '..', 'prisma', 'client', 'edge.js'))
-
-  expect(data.includes('./runtime/edge')).toBe(true)
 })
 
 test('runtime files exists', async () => {
@@ -51,13 +63,12 @@ test('runtime files exists', async () => {
 
   expect(files).toMatchInlineSnapshot(`
 [
-  "data-proxy.d.ts",
-  "data-proxy.js",
   "edge-esm.js",
   "edge.js",
   "index-browser.d.ts",
   "index-browser.js",
   "library.d.ts",
+  "library.js",
 ]
 `)
 })
