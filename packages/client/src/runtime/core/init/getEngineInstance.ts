@@ -1,4 +1,4 @@
-import { ClientEngineType, getClientEngineType } from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, warnOnce } from '@prisma/internals'
 
 import { GetPrismaClientConfig } from '../../getPrismaClient'
 import { BinaryEngine, DataProxyEngine, EngineConfig, LibraryEngine } from '../engines'
@@ -29,7 +29,10 @@ export function getEngineInstance(clientConfig: GetPrismaClientConfig, engineCon
   }
 
   if (clientConfig.noEngine !== true && url?.startsWith('prisma://')) {
-    console.warn('In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)')
+    warnOnce(
+      'recommend--no-engine',
+      'In production, we recommend using `prisma generate --no-engine` (See: `prisma generate --help`)',
+    )
   }
 
   const engineType = getClientEngineType(engineConfig.generator!)

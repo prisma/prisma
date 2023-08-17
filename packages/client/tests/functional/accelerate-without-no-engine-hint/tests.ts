@@ -13,10 +13,13 @@ testMatrix.setupTestSuite(
 
       newPrismaClient()
 
+      // should only warn once
+      newPrismaClient()
+
       expect(consoleWarnMock).toHaveBeenCalledTimes(1)
       expect(consoleWarnMock.mock.calls[0]).toMatchInlineSnapshot(`
         [
-          In production, we recommend using \`prisma generate --no-engine\` (See: \`prisma generate --help\`),
+          prisma:warn In production, we recommend using \`prisma generate --no-engine\` (See: \`prisma generate --help\`),
         ]
       `)
 
