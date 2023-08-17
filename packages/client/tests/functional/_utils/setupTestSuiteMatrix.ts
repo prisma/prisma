@@ -98,7 +98,7 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
-        globalThis['newPrismaClient'] = (...args) => {
+        globalThis['newPrismaClient'] = (args) => {
           let client
           if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
             // When using a remote database
@@ -129,10 +129,9 @@ function setupTestSuiteMatrix(
                */
               // fetchFunction: undiciFetch,
             })
-
             client = new globalThis['loaded']['PrismaClient']({ jsConnector, ...args })
           } else {
-            client = new globalThis['loaded']['PrismaClient'](...args)
+            client = new globalThis['loaded']['PrismaClient']({ ...args })
           }
 
           clients.push(client)
