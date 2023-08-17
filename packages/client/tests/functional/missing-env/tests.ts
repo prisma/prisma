@@ -1,3 +1,5 @@
+import stripAnsi from 'strip-ansi'
+
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -10,18 +12,34 @@ testMatrix.setupTestSuite(
   () => {
     test('PrismaClientInitializationError for missing env', async () => {
       const prisma = newPrismaClient()
-      await expect(prisma.$connect()).rejects.toBeInstanceOf(Prisma.PrismaClientInitializationError)
+
+      try {
+        await prisma.$connect()
+      } catch (e) {
+        const message = stripAnsi(e.message as string)
+        expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
+        expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
+      }
+    })
+
+    test('PrismaClientInitializationError for missing env and empty override', async () => {
+      const prisma = newPrismaClient({
+        datasources: {
+          db: {},
+        },
+      })
+
+      try {
+        await prisma.$connect()
+      } catch (e) {
+        const message = stripAnsi(e.message as string)
+        expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
+        expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
+      }
     })
   },
   {
     skipDb: true,
-    skipDefaultClientInstance: true, // So we can manually call connect for this test
-    skipDataProxy: {
-      runtimes: ['node', 'edge'],
-      reason: `
-        Fails with Data Proxy: error is an instance of InvalidDatasourceError
-        instead of Prisma.PrismaClientInitializationError.
-      `,
-    },
+    skipDefaultClientInstance: true,
   },
 )

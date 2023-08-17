@@ -1,7 +1,6 @@
 export { BinaryEngine } from './binary/BinaryEngine'
 export {
   type BatchTransactionOptions,
-  type DatasourceOverwrite,
   Engine,
   type EngineConfig,
   type EngineEventType,
