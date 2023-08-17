@@ -3,7 +3,7 @@ import leven from 'js-levenshtein'
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = ['datasources', 'errorFormat', 'log', '__internal']
+const knownProperties = ['datasources', 'errorFormat', 'log', 'transactionOptions', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -116,6 +116,25 @@ It should have this form: { url: "CONNECTION_STRING" }`,
           }
         }
       }
+    }
+  },
+  transactionOptions: (options: any) => {
+    if (!options) {
+      return
+    }
+
+    const maxWait = options.maxWait
+    if (maxWait != null && maxWait <= 0) {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${maxWait} for maxWait in "transactionOptions" provided to PrismaClient constructor. maxWait needs to be greater than 0`,
+      )
+    }
+
+    const timeout = options.timeout
+    if (timeout != null && timeout <= 0) {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${timeout} for timeout in "transactionOptions" provided to PrismaClient constructor. timeout needs to be greater than 0`,
+      )
     }
   },
   __internal: (value) => {

@@ -454,6 +454,13 @@ export interface PrismaClientOptions {
    * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
    */
   log?: Array<LogLevel | LogDefinition>
+
+  /**
+   * The default values for transactionOptions
+   * maxWait ?= 2000
+   * timeout ?= 5000
+   */
+  transactionOptions?: { maxWait?: number, timeout?: number, isolationLevel?: Prisma.TransactionIsolationLevel }
 }
 
 /* Types for Logging */
