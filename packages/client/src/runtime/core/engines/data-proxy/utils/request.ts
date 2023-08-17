@@ -18,7 +18,6 @@ export type RequestResponse = {
   headers: NodeHeaders
   text: () => Promise<string>
   json: () => Promise<any>
-  clone: () => RequestResponse
 }
 
 export type Fetch = typeof nodeFetch
@@ -92,7 +91,6 @@ function buildResponse(incomingData: Buffer[], response: IncomingMessage): Reque
     status: response.statusCode!,
     url: response.url!,
     headers: new NodeHeaders(response.headers),
-    clone: () => buildResponse(incomingData, response),
   }
 }
 
@@ -142,42 +140,42 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
 const include = typeof require !== 'undefined' ? require : () => {}
 
 export class NodeHeaders {
-  readonly #headers = new Map<string, string>()
+  readonly headers = new Map<string, string>()
 
   constructor(init: Record<any, any> = {}) {
     for (const [key, value] of Object.entries(init)) {
       if (typeof value === 'string') {
-        this.#headers.set(key, value)
+        this.headers.set(key, value)
       } else if (Array.isArray(value)) {
         for (const val of value) {
-          this.#headers.set(key, val)
+          this.headers.set(key, val)
         }
       }
     }
   }
 
   append(name: string, value: string): void {
-    this.#headers.set(name, value)
+    this.headers.set(name, value)
   }
 
   delete(name: string): void {
-    this.#headers.delete(name)
+    this.headers.delete(name)
   }
 
   get(name: string): string | null {
-    return this.#headers.get(name) ?? null
+    return this.headers.get(name) ?? null
   }
 
   has(name: string): boolean {
-    return this.#headers.has(name)
+    return this.headers.has(name)
   }
 
   set(name: string, value: string): void {
-    this.#headers.set(name, value)
+    this.headers.set(name, value)
   }
 
   forEach(callbackfn: (value: string, key: string, parent: this) => void, thisArg?: any): void {
-    for (const [key, value] of this.#headers) {
+    for (const [key, value] of this.headers) {
       callbackfn.call(thisArg, value, key, this)
     }
   }
