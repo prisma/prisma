@@ -962,6 +962,8 @@ jobs:
           NODE_OPTIONS: "${{ matrix.os == 'macos-13' && '--max-old-space-size=14336' || '--max-old-space-size=7168' }}"
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+          DEBUG: 'prisma:js-connector*'
+          TEST_FUNCTIONAL_JS_NEON_URI: ${{ secrets.TEST_FUNCTIONAL_JS_NEON_URI }}
 
       - uses: codecov/codecov-action@v3
         with:
