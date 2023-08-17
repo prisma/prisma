@@ -457,7 +457,11 @@ export interface PrismaClientOptions {
    * maxWait ?= 2000
    * timeout ?= 5000
    */
-  transactionOptions?: { maxWait?: number, timeout?: number, isolationLevel?: TransactionIsolationLevel }
+  transactionOptions?: { maxWait?: number, timeout?: number${
+    this.dmmf.hasEnumInNamespace('TransactionIsolationLevel', 'prisma')
+      ? ', isolationLevel?: TransactionIsolationLevel'
+      : ''
+  } }
 }
 
 /* Types for Logging */
