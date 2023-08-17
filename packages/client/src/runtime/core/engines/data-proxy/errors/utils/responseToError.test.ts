@@ -10,6 +10,7 @@ const response = (body: string, code?: number, requestId?: string): RequestRespo
   headers: new NodeHeaders({
     'prisma-request-id': requestId,
   }),
+  clone: undefined as never,
 })
 
 describe('responseToError', () => {
