@@ -504,7 +504,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   metrics(options: MetricsOptionsJson): Promise<Metrics>
   metrics(options: MetricsOptionsPrometheus): Promise<string>
   metrics(): Promise<Metrics> | Promise<string> {
-    throw new NotImplementedYetError('Metrics are not yet supported for Data Proxy', {
+    throw new NotImplementedYetError('Metrics are not yet supported for Accelerate', {
       clientVersion: this.clientVersion,
     })
   }
