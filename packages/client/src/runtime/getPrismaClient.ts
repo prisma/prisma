@@ -222,7 +222,7 @@ export type GetPrismaClientConfig = {
    * Allows platforms to declare global variables as env (Workers).
    * @remarks only used for the purpose of data proxy
    */
-  injectableEdgeEnv?: LoadedEnv
+  injectableEdgeEnv?: () => LoadedEnv
 
   /**
    * The contents of the datasource url saved in a string.
@@ -260,6 +260,12 @@ export type GetPrismaClientConfig = {
    * in the current working directory. This usually means it has been bundled.
    */
   isBundled?: boolean
+
+  /**
+   * A boolean that is `true` when the client was generated with --no-engine. At
+   * runtime, this means the client will be bound to be using the Data Proxy.
+   */
+  noEngine?: boolean
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -324,7 +330,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
       }
 
-      const loadedEnv = NODE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })
+      const loadedEnv = // for node we load the env from files, for edge only via env injections
+        (NODE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -378,8 +385,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
                 ? options.log === 'query'
                 : options.log.find((o) => (typeof o === 'string' ? o === 'query' : o.level === 'query')),
             ),
-          // we attempt to load env with fs -> attempt edge env -> default
-          env: loadedEnv?.parsed ?? config.injectableEdgeEnv?.parsed ?? {},
+          env: loadedEnv?.parsed ?? {},
           flags: [],
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
@@ -396,7 +402,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
         debug('clientVersion', config.clientVersion)
 
-        this._engine = getEngineInstance(this._engineConfig)
+        this._engine = getEngineInstance(config, this._engineConfig)
         this._requestHandler = new RequestHandler(this, logEmitter)
 
         if (options.log) {
@@ -478,10 +484,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         e.clientVersion = this._clientVersion
         throw e
       } finally {
-        // Debug module keeps a list of last 100 logs regardless of environment variables.
-        // This can cause a memory leak. It's especially bad in jest environment where keeping an
-        // error in this list will prevent jest sandbox from being GCed. Clearing logs on disconnect
-        // helps to avoid that
+        // Debug module keeps a list of last 100 logs regardless of environment
+        // variables. This can cause a memory leak. It's especially bad in jest
+        // environment where keeping an error in this list prevents jest sandbox
+        // from being GCed. Clearing logs on disconnect helps to avoid that
         clearLogs()
       }
     }
