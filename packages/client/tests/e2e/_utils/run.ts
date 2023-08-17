@@ -140,9 +140,8 @@ async function main() {
     `/tmp/prisma-client-0.0.0.tgz:/tmp/prisma-client-0.0.0.tgz`,
     `/tmp/prisma-engines-0.0.0.tgz:/tmp/prisma-engines-0.0.0.tgz`,
     `/tmp/prisma-generator-helper-0.0.0.tgz:/tmp/prisma-generator-helper-0.0.0.tgz`,
-    `/tmp/nextjs-monorepo-workaround-plugin-0.0.0.tgz:/tmp/nextjs-monorepo-workaround-plugin-0.0.0.tgz`,
+    `/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz:/tmp/prisma-nextjs-monorepo-workaround-plugin-0.0.0.tgz`,
     `${path.join(monorepoRoot, 'packages', 'engines')}:/engines`,
-
     `${path.join(monorepoRoot, 'packages', 'client')}:/client`,
     `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e')}:/e2e`,
     `${path.join(monorepoRoot, 'packages', 'client', 'tests', 'e2e', '.cache')}:/root/.cache`,
