@@ -139,7 +139,7 @@ async function nodeFetch(url: string, options: RequestOptions = {}): Promise<Req
 // trick to obfuscate require from bundlers, useful for Vercel Edge
 const include = typeof require !== 'undefined' ? require : () => {}
 
-class NodeHeaders {
+export class NodeHeaders {
   readonly #headers = new Map<string, string>()
 
   constructor(init: IncomingHttpHeaders = {}) {
