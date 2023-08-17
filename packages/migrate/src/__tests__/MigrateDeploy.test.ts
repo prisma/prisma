@@ -133,11 +133,11 @@ describe('postgresql', () => {
     const result = MigrateDeploy.new().parse([])
     await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-    Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma migrate deploy yet. Please use a direct connection to your database via the datasource 'directUrl' setting.
+      Using an Accelerate or Data Proxy URL is not supported for this CLI command prisma migrate deploy yet. Please use a direct connection to your database via the datasource \`directUrl\` setting.
 
-    More information about Data Proxy: https://pris.ly/d/accelerate-cli
+      More information about this limitation: https://pris.ly/d/accelerate-cli
 
-  `)
+    `)
   })
 
   it('should work if directUrl is set as an env var', async () => {
