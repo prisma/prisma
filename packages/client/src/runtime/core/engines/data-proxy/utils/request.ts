@@ -2,7 +2,6 @@ import type { IncomingMessage } from 'http'
 import type Https from 'https'
 
 import { RequestError } from '../errors/NetworkError'
-import { getJSRuntimeName } from './getJSRuntimeName'
 
 // our implementation handles less
 export type RequestOptions = {
@@ -40,10 +39,9 @@ export async function request(
   customFetch: (fetch: Fetch) => Fetch = (fetch) => fetch,
 ): Promise<RequestResponse> {
   const clientVersion = options.clientVersion
-  const jsRuntimeName = getJSRuntimeName()
 
   try {
-    if (jsRuntimeName === 'browser-like') {
+    if (typeof fetch === 'function') {
       return await customFetch(fetch)(url, options)
     } else {
       return await customFetch(nodeFetch)(url, options)
