@@ -36,6 +36,9 @@ on:
         default: '8'
     secrets:
       # TODO Remove once testing against the proxy
+      TEST_FUNCTIONAL_JS_NEON_URI:
+        required: false
+      # TODO Remove once testing against the proxy
       TEST_FUNCTIONAL_JS_PLANETSCALE_URI:
         required: false
       BUILDPULSE_ACCESS_KEY_ID:
@@ -123,6 +126,7 @@ jobs:
       TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
       DEBUG: 'prisma:js-connector*'
+      TEST_FUNCTIONAL_JS_NEON_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
       # Remote
       # TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
       # Local - using Vitess (MySQL 8)
@@ -243,6 +247,7 @@ jobs:
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
           DEBUG: 'prisma:js-connector*'
+          TEST_FUNCTIONAL_JS_NEON_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
           # Remote
           # TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
           # Local - using Vitess (MySQL 8)
@@ -261,6 +266,7 @@ jobs:
           TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
           TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
           DEBUG: 'prisma:js-connector*'
+          TEST_FUNCTIONAL_JS_NEON_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
           # Remote
           # TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
           # Local - using Vitess (MySQL 8)
@@ -457,6 +463,7 @@ jobs:
       TEST_FUNCTIONAL_MYSQL_URI: 'mysql://root:root@localhost:3306/PRISMA_DB_NAME'
       TEST_FUNCTIONAL_VITESS_8_URI: 'mysql://root:root@localhost:33807/PRISMA_DB_NAME'
       DEBUG: 'prisma:js-connector*'
+      TEST_FUNCTIONAL_JS_NEON_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
       # Remote
       # TEST_FUNCTIONAL_JS_PLANETSCALE_URI: ${{ secrets.TEST_FUNCTIONAL_JS_PLANETSCALE_URI }}
       # Local - using Vitess (MySQL 8)

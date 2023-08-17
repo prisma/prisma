@@ -13,6 +13,17 @@ export default defineMatrix(() => [
       badQuery: 'John Smith',
     },
     {
+      provider: 'postgresql',
+      providerFlavor: 'js_neon',
+      previewFeatures: '"fullTextSearch"',
+      index: '',
+      andQuery: 'John & Smith',
+      orQuery: 'John | April',
+      notQuery: '(John | April) & !Smith',
+      noResultsQuery: 'April & Smith',
+      badQuery: 'John Smith',
+    },
+    {
       provider: 'mysql',
       previewFeatures: '"fullTextSearch", "fullTextIndex"',
       index: `

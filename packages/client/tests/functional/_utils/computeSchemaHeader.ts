@@ -1,4 +1,4 @@
-import { match } from 'ts-pattern'
+import { match, P } from 'ts-pattern'
 
 import { Providers } from './providers'
 import { type ProviderFlavor, ProviderFlavors } from './relationMode/ProviderFlavor'
@@ -27,7 +27,8 @@ export function computeSchemaHeader({
 
   const url = match({ provider, providerFlavor })
     .with({ provider: Providers.SQLITE }, () => `"file:./test.db"`)
-    .otherwise(({ providerFlavor }) => `env("DATABASE_URI_${providerFlavor}")`)
+    .with({ providerFlavor: P.string }, () => `env("DATABASE_URI_${providerFlavor}")`)
+    .otherwise(({ provider }) => `env("DATABASE_URI_${provider}")`)
 
   const providerName = match({ provider, providerFlavor })
     .with({ provider: Providers.MYSQL, providerFlavor: ProviderFlavors.JS_PLANETSCALE }, () => '@prisma/planetscale')

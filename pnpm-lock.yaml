@@ -336,6 +336,9 @@ importers:
       '@jkomyno/prisma-js-connector-utils':
         specifier: 0.0.5
         version: 0.0.5
+      '@jkomyno/prisma-neon-js-connector':
+        specifier: 0.0.5
+        version: 0.0.5
       '@jkomyno/prisma-planetscale-js-connector':
         specifier: 0.0.5
         version: 0.0.5
@@ -2845,6 +2848,18 @@ packages:
       - supports-color
     dev: true
 
+  /@jkomyno/prisma-neon-js-connector@0.0.5:
+    resolution: {integrity: sha512-f3SCOHtqmGoQuyYgEymrfzYZy1z0ys14Ug+RAo89ZhQc1CCcT2NKB+Up6MQ3hana4MK4YV4NyKwyvwvuooFEZA==}
+    dependencies:
+      '@jkomyno/prisma-js-connector-utils': 0.0.5
+      '@neondatabase/serverless': 0.5.7
+      ws: 8.13.0
+    transitivePeerDependencies:
+      - bufferutil
+      - supports-color
+      - utf-8-validate
+    dev: true
+
   /@jkomyno/prisma-planetscale-js-connector@0.0.5:
     resolution: {integrity: sha512-3xyKqSfrBzCXNnRMDaUBxcoUAM/JdrXqSARtV2fZ6YCgmwr2IsbiadcTrzcJNiTvNV9zTm/W3jyZXKe3MAINrw==}
     dependencies:
@@ -2968,6 +2983,12 @@ packages:
 
   /@microsoft/tsdoc@0.14.2:
     resolution: {integrity: sha512-9b8mPpKrfeGRuhFH5iO1iwCLeIIsV6+H1sRfxbkoGXIyQE2BTsPd9zqSqQJ+pv5sJ/hT5M1zvOFL02MnEezFug==}
+    dev: true
+
+  /@neondatabase/serverless@0.5.7:
+    resolution: {integrity: sha512-pIcgFWueCn5WQvtwHxji1EBpo1iGnlnPs/K02qmy7P150oHiohvgH5C4gWMTW52fqiMpPvK9kAdV9D07oJsd7w==}
+    dependencies:
+      '@types/pg': 8.6.6
     dev: true
 
   /@nodelib/fs.scandir@2.1.5:
@@ -4599,6 +4620,14 @@ packages:
       '@types/node': 18.17.5
       pg-protocol: 1.6.0
       pg-types: 4.0.1
+    dev: true
+
+  /@types/pg@8.6.6:
+    resolution: {integrity: sha512-O2xNmXebtwVekJDD+02udOncjVcMZQuTEQEMpKJ0ZRf5E7/9JJX3izhKUcUifBkyKpljyUM6BTgy2trmviKlpw==}
+    dependencies:
+      '@types/node': 18.17.5
+      pg-protocol: 1.6.0
+      pg-types: 2.2.0
     dev: true
 
   /@types/progress@2.0.5:
@@ -13749,6 +13778,19 @@ packages:
     dependencies:
       imurmurhash: 0.1.4
       signal-exit: 3.0.7
+    dev: true
+
+  /ws@8.13.0:
+    resolution: {integrity: sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==}
+    engines: {node: '>=10.0.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: '>=5.0.2'
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
     dev: true
 
   /xdg-basedir@4.0.0:

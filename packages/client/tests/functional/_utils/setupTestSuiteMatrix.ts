@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, test } from '@jest/globals'
+import { createNeonConnector } from '@jkomyno/prisma-neon-js-connector'
 import { createPlanetScaleConnector } from '@jkomyno/prisma-planetscale-js-connector'
 import fs from 'fs-extra'
 import path from 'path'
@@ -114,15 +115,31 @@ function setupTestSuiteMatrix(
                */
               fetch: undiciFetch,
             })
+            client = new globalThis['loaded']['PrismaClient']({ jsConnector, ...args })
+          } else if (providerFlavor === ProviderFlavors.JS_NEON) {
+            const connectionString = `${process.env.TEST_FUNCTIONAL_JS_NEON_URI as string}`.replace(
+              'PRISMA_DB_NAME',
+              'tests',
+            )
+
+            const jsConnector = createNeonConnector({
+              url: connectionString,
+              /**
+               * Custom `fetch` implementation is only necessary on Node.js < v18.x.x.
+               */
+              // fetchFunction: undiciFetch,
+            })
 
             client = new globalThis['loaded']['PrismaClient']({ jsConnector, ...args })
-            clients.push(client)
           } else {
             client = new globalThis['loaded']['PrismaClient'](...args)
-            clients.push(client)
           }
+
+          clients.push(client)
+
           return client
         }
+
         if (!options?.skipDefaultClientInstance) {
           globalThis['prisma'] = globalThis['newPrismaClient']()
         }
@@ -159,7 +176,10 @@ function setupTestSuiteMatrix(
         clients.length = 0
 
         // Skip the database drop?
-        if (!options?.skipDb && ![ProviderFlavors.VITESS_8, ProviderFlavors.JS_PLANETSCALE].includes(providerFlavor)) {
+        if (
+          !options?.skipDb &&
+          ![ProviderFlavors.VITESS_8, ProviderFlavors.JS_PLANETSCALE, ProviderFlavors.JS_NEON].includes(providerFlavor)
+        ) {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl

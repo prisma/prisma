@@ -121,7 +121,7 @@ export async function setupTestSuiteDatabase(
     // tests faster Since we have full isolation of tests / database, we do not
     // need to force reset but we currently break isolation for Vitess (for
     // faster tests), so it's good to force reset in this case
-    if ([ProviderFlavors.VITESS_8, ProviderFlavors.JS_PLANETSCALE].includes(providerFlavor)) {
+    if ([ProviderFlavors.VITESS_8, ProviderFlavors.JS_PLANETSCALE, ProviderFlavors.JS_NEON].includes(providerFlavor)) {
       dbpushParams.push('--force-reset')
     }
     await DbPush.new().parse(dbpushParams)
@@ -232,9 +232,8 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   // Example: 60s -> 3s
   if (providerFlavor === ProviderFlavors.VITESS_8) {
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
-  } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-    // TODO
-    // Hardcoded for now
+  } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE || providerFlavor === ProviderFlavors.JS_NEON) {
+    // TODO - for simplicity it is hardcoded for now
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'tests')
   } else {
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
@@ -292,6 +291,7 @@ function getDbUrlFromFlavor(providerFlavor: ProviderFlavor | undefined, provider
   return match(providerFlavor)
     .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
     .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_JS_PLANETSCALE_URI'))
+    .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_JS_NEON_URI'))
     .otherwise(() => getDbUrl(provider))
 }
 

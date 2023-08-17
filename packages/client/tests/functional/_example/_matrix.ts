@@ -13,9 +13,22 @@ export default defineMatrix(() => [
       providerFeatures: '',
     },
     {
+      provider: 'postgresql',
+      providerFlavor: 'js_neon',
+      id: 'Int @id @default(autoincrement())',
+      providerFeatures: '',
+    },
+    {
       provider: 'mysql',
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
+    },
+    {
+      provider: 'mysql',
+      providerFlavor: 'js_planetscale',
+      id: 'Int @id @default(autoincrement())',
+      providerFeatures: '',
+      // relationMode: 'prisma',
     },
     {
       provider: 'sqlserver',
@@ -30,17 +43,17 @@ export default defineMatrix(() => [
     {
       provider: 'mongodb',
       id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      providerFeatures: '"mongoDb", ',
+      providerFeatures: '',
     },
   ],
-  [
-    {
-      previewFeatures: '"tracing"',
-    },
-    {
-      previewFeatures: '"referentialIntegrity"',
-    },
-  ],
+  // [
+  //   {
+  //     previewFeatures: '"tracing"',
+  //   },
+  //   {
+  //     previewFeatures: '"views"',
+  //   },
+  // ],
 ])
 /* Each test suite gets its `TestSuiteConfig` thanks to `getTestSuiteConfigs`.
    `getTestSuiteConfigs` gives you `TestSuiteConfig[]`, the matrix cross-product.
@@ -56,7 +69,7 @@ export default defineMatrix(() => [
     {
       'provider': 'mongodb',
       'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      'providerFeatures': '"mongoDb", ',
+      'providerFeatures': '',
       'previewFeatures': '"previewFeatureFlag1"',
     },
     {
@@ -68,7 +81,7 @@ export default defineMatrix(() => [
     {
       'provider': 'mongodb',
       'id': 'String @id @default(auto()) @map("_id") @db.ObjectId',
-      'providerFeatures': '"mongoDb", ',
+      'providerFeatures': '',
       'previewFeatures': '"previewFeatureFlag2"',
     },
   ]

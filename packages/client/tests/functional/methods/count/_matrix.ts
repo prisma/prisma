@@ -11,6 +11,11 @@ export default defineMatrix(() => [
       foreignKeyId: 'String?',
     },
     {
+      provider: 'postgresql',
+      providerFlavor: 'js_neon',
+      foreignKeyId: 'String?',
+    },
+    {
       provider: 'mysql',
       foreignKeyId: 'String?',
     },
