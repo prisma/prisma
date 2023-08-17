@@ -41,13 +41,7 @@ export async function request(
 
   try {
     if (typeof fetch === 'function') {
-      const response = await customFetch(fetch)(url, options)
-
-      // needed to be able to call json() multiple times
-      response.json = () => response.clone().json()
-      response.text = () => response.clone().text()
-
-      return response
+      return await customFetch(fetch)(url, options)
     } else {
       return await customFetch(nodeFetch)(url, options)
     }

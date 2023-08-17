@@ -3,11 +3,11 @@ import type { DataProxyErrorInfo } from './DataProxyError'
 import { DataProxyError } from './DataProxyError'
 
 export interface DataProxyAPIErrorInfo extends DataProxyErrorInfo {
-  response: RequestResponse
+  response: Pick<RequestResponse, 'headers'>
 }
 
 export abstract class DataProxyAPIError extends DataProxyError {
-  response: RequestResponse
+  response: Pick<RequestResponse, 'headers'>
 
   constructor(message: string, info: DataProxyAPIErrorInfo) {
     super(message, info)

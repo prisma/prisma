@@ -43,55 +43,42 @@ type ResponseErrorBody =
   | { type: 'UnknownTextError'; body: string }
   | { type: 'EmptyError' }
 
-async function getResponseErrorBody(response: RequestResponse): Promise<ResponseErrorBody> {
-  let text: string
-
-  try {
-    text = await response.text()
-  } catch {
-    return { type: 'EmptyError' }
-  }
-
-  try {
-    const error = JSON.parse(text)
-
-    if (typeof error === 'string') {
-      switch (error) {
-        case 'InternalDataProxyError':
-          return { type: 'DataProxyError', body: error }
-        default:
-          return { type: 'UnknownTextError', body: error }
-      }
-    }
-
-    if (typeof error === 'object' && error !== null) {
-      if ('is_panic' in error && 'message' in error && 'error_code' in error) {
-        return { type: 'QueryEngineError', body: error }
-      }
-
-      if ('EngineNotStarted' in error || 'InteractiveTransactionMisrouted' in error || 'InvalidRequestError' in error) {
-        const reason = (Object.values(error as object)[0] as any).reason
-        if (typeof reason === 'string' && !['SchemaMissing', 'EngineVersionNotSupported'].includes(reason)) {
-          return { type: 'UnknownJsonError', body: error }
-        }
+function getResponseErrorBody(error: any): ResponseErrorBody {
+  if (typeof error === 'string') {
+    switch (error) {
+      case 'InternalDataProxyError':
         return { type: 'DataProxyError', body: error }
-      }
+      default:
+        return { type: 'UnknownTextError', body: error }
+    }
+  }
+
+  if (typeof error === 'object' && error !== null) {
+    if ('is_panic' in error && 'message' in error && 'error_code' in error) {
+      return { type: 'QueryEngineError', body: error }
     }
 
-    return { type: 'UnknownJsonError', body: error }
-  } catch {
-    return text === '' ? { type: 'EmptyError' } : { type: 'UnknownTextError', body: text }
+    if ('EngineNotStarted' in error || 'InteractiveTransactionMisrouted' in error || 'InvalidRequestError' in error) {
+      const reason = (Object.values(error as object)[0] as any).reason
+      if (typeof reason === 'string' && !['SchemaMissing', 'EngineVersionNotSupported'].includes(reason)) {
+        return { type: 'UnknownJsonError', body: error }
+      }
+      return { type: 'DataProxyError', body: error }
+    }
   }
+
+  return { type: 'UnknownJsonError', body: error }
 }
 
-export async function responseToError(
-  response: RequestResponse,
+export function responseToError(
+  response: Pick<RequestResponse, 'ok' | 'headers'>,
+  json: any,
   clientVersion: string,
-): Promise<DataProxyError | undefined> {
+): DataProxyError | undefined {
   if (response.ok) return undefined
 
   const info = { clientVersion, response }
-  const error = await getResponseErrorBody(response)
+  const error = getResponseErrorBody(json)
 
   if (error.type === 'QueryEngineError') {
     throw new PrismaClientKnownRequestError(error.body.message, { code: error.body.error_code, clientVersion })
@@ -137,27 +124,27 @@ export async function responseToError(
     }
   }
 
-  if (response.status === 401 || response.status === 403) {
+  if (json.status === 401 || json.status === 403) {
     throw new UnauthorizedError(info, buildErrorMessage(UNAUTHORIZED_DEFAULT_MESSAGE, error))
   }
 
-  if (response.status === 404) {
+  if (json.status === 404) {
     return new NotFoundError(info, buildErrorMessage(NOT_FOUND_DEFAULT_MESSAGE, error))
   }
 
-  if (response.status === 429) {
+  if (json.status === 429) {
     throw new UsageExceededError(info, buildErrorMessage(USAGE_EXCEEDED_DEFAULT_MESSAGE, error))
   }
 
-  if (response.status === 504) {
+  if (json.status === 504) {
     throw new GatewayTimeoutError(info, buildErrorMessage(GATEWAY_TIMEOUT_DEFAULT_MESSAGE, error))
   }
 
-  if (response.status >= 500) {
+  if (json.status >= 500) {
     throw new ServerError(info, buildErrorMessage(SERVER_ERROR_DEFAULT_MESSAGE, error))
   }
 
-  if (response.status >= 400) {
+  if (json.status >= 400) {
     throw new BadRequestError(info, buildErrorMessage(BAD_REQUEST_DEFAULT_MESSAGE, error))
   }
 
