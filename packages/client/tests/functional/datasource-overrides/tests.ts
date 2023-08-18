@@ -1,13 +1,12 @@
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient } from './node_modules/@prisma/client'
 
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
-declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider }, suiteMeta, clientMeta) => {
     let dbURL: string
     beforeAll(() => {
       dbURL = process.env[`DATABASE_URI_${provider}`]!
@@ -24,7 +23,11 @@ testMatrix.setupTestSuite(
       // If this test fails, subsequent tests can't be trusted regardless of whether or not they pass or not.
 
       const prisma = newPrismaClient()
-      await expect(prisma.$connect()).rejects.toThrow(Prisma.PrismaClientInitializationError)
+      const expectedError = clientMeta.dataProxy
+        ? { name: 'InvalidDatasourceError' }
+        : { name: 'PrismaClientInitializationError' }
+
+      await expect(prisma.$connect()).rejects.toMatchObject(expectedError)
     })
 
     test('does not throw when URL is overriden (long syntax)', async () => {
@@ -56,5 +59,9 @@ testMatrix.setupTestSuite(
   },
   {
     skipDefaultClientInstance: true,
+    skipDataProxy: {
+      runtimes: ['edge'],
+      reason: 'Smoke test fails since original env var are embedded into client',
+    },
   },
 )
