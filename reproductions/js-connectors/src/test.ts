@@ -19,6 +19,7 @@ export async function smokeTest(db: Connector, prismaSchemaRelativePath: string)
   const test = new SmokeTest(prisma, db.flavour)
   
   await test.$raw()
+  await test.transactionsWithConflits()
   await test.interactiveTransactions()
   await test.explicitTransaction()
   await test.testFindManyTypeTest()
@@ -48,6 +49,24 @@ export async function smokeTest(db: Connector, prismaSchemaRelativePath: string)
 
 class SmokeTest {
   constructor(private readonly prisma: PrismaClient, readonly flavor: Connector['flavour']) {}
+
+  async transactionsWithConflits() {
+    const one = async () => {
+      await this.prisma.$transaction(async (tx) => {
+        await tx.leak_test.create({ data: { id: '1' } })
+        await setTimeout(1000)
+        throw new Error('Abort the mission')
+      })
+    }
+    
+    const two = async () => {
+      await setTimeout(500)
+      await this.prisma.leak_test.create({ data: { id: '100' } })
+    }
+    
+    await this.prisma.leak_test.deleteMany()
+    await Promise.allSettled([one(), two()])
+  }
 
   async explicitTransaction() {
     const [children, totalChildren] = await this.prisma.$transaction([
