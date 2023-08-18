@@ -3,7 +3,7 @@ import leven from 'js-levenshtein'
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = ['datasources', 'errorFormat', 'log', '__internal']
+const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'log', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
@@ -48,6 +48,15 @@ It should have this form: { url: "CONNECTION_STRING" }`,
           }
         }
       }
+    }
+  },
+
+  datasourceUrl: (options: unknown) => {
+    if (typeof options !== 'undefined' && typeof options !== 'string') {
+      throw new PrismaClientConstructorValidationError(
+        `Invalid value ${JSON.stringify(options)} for "datasourceUrl" provided to PrismaClient constructor.
+Expected string or undefined.`,
+      )
     }
   },
   errorFormat: (options: any) => {
@@ -150,6 +159,11 @@ export function validatePrismaClientOptions(options: PrismaClientOptions, dataso
       )
     }
     validators[key](value, datasourceNames)
+  }
+  if (options.datasourceUrl && options.datasources) {
+    throw new PrismaClientConstructorValidationError(
+      'Can not use "datasourceUrl" and "datasources" options at the same time. Pick one of them',
+    )
   }
 }
 

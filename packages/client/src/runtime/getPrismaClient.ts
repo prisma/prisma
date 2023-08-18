@@ -73,7 +73,11 @@ export type Datasource = {
 }
 export type Datasources = { [name in string]: Datasource }
 
-export interface PrismaClientOptions {
+export type PrismaClientOptions = {
+  /**
+   * Overwrites the primary datasource url from your schema.prisma file
+   */
+  datasourceUrl?: string
   /**
    * Overwrites the datasource url from your schema.prisma file
    */
@@ -114,7 +118,7 @@ export interface PrismaClientOptions {
       allowTriggerPanic?: boolean
     }
   }
-}
+} & ({} | {})
 
 export type Unpacker = (data: any) => any
 
@@ -392,7 +396,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: options.datasources ?? {},
+          overrideDatasources: getDataSourceOverrides(options, config.datasourceNames),
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
@@ -949,4 +953,20 @@ function toSql(query: TemplateStringsArray | Sql, values: unknown[]): [Sql, Midd
 
 function isTemplateStringArray(value: unknown): value is TemplateStringsArray {
   return Array.isArray(value) && Array.isArray(value['raw'])
+}
+
+function getDataSourceOverrides(options: PrismaClientOptions | undefined, datasourceNames: string[]): Datasources {
+  if (!options) {
+    return {}
+  }
+
+  if (options.datasources) {
+    return options.datasources
+  }
+
+  if (options.datasourceUrl) {
+    const primaryDatasource = datasourceNames[0]
+    return { [primaryDatasource]: { url: options.datasourceUrl } }
+  }
+  return {}
 }
