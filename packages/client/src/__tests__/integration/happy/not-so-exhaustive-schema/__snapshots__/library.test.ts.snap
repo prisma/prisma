@@ -2141,6 +2141,11 @@ export namespace Prisma {
     datasources?: Datasources
 
     /**
+     * Overwrites the datasource url from your schema.prisma file
+     */
+    datasourceUrl?: string
+
+    /**
      * @default "colorless"
      */
     errorFormat?: ErrorFormat
@@ -20753,6 +20758,22 @@ export namespace Prisma {
   /**
    * Aliases for legacy arg types
    */
+    /**
+     * @deprecated Use UserCountOutputTypeDefaultArgs instead
+     */
+    export type UserCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = UserCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MCountOutputTypeDefaultArgs instead
+     */
+    export type MCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = MCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use NCountOutputTypeDefaultArgs instead
+     */
+    export type NCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = NCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use OneOptionalCountOutputTypeDefaultArgs instead
+     */
+    export type OneOptionalCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = OneOptionalCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use PostDefaultArgs instead
      */

@@ -19,6 +19,7 @@ import { applyAllResultExtensions } from './core/extensions/applyAllResultExtens
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
+import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
@@ -74,7 +75,11 @@ export type Datasource = {
 }
 export type Datasources = { [name in string]: Datasource }
 
-export interface PrismaClientOptions {
+export type PrismaClientOptions = {
+  /**
+   * Overwrites the primary datasource url from your schema.prisma file
+   */
+  datasourceUrl?: string
   /**
    * Instance of a JS connector, e.g., like one provided by `@prisma/planetscale-js-connector`.
    */
@@ -398,7 +403,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: options.datasources ?? {},
+          overrideDatasources: getDatasourceOverrides(options, config.datasourceNames),
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,

@@ -466,6 +466,11 @@ export interface PrismaClientOptions {${this.runtimeName === 'library' ? jsConne
   datasources?: Datasources
 
   /**
+   * Overwrites the datasource url from your schema.prisma file
+   */
+  datasourceUrl?: string
+
+  /**
    * @default "colorless"
    */
   errorFormat?: ErrorFormat
