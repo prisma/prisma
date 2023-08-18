@@ -49,11 +49,11 @@ testMatrix.setupTestSuite(
           const message = stripAnsi(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
           expect(message).toMatchInlineSnapshot(`
-                      error: Environment variable not found: DATABASE_URI.
-                      Only \`process.env\` and \`globalThis\` can be read, but not \`.env\`.
+            error: Environment variable not found: DATABASE_URI.
+            In edge runtimes, only \`process.env\` & \`globalThis\` are read, not \`.env\`.
 
-                      To solve this, provide it directly: https://pris.ly/d/datasource-url
-                  `)
+            To solve this, provide the URL directly: https://pris.ly/d/datasource-url
+          `)
         }
       },
     )

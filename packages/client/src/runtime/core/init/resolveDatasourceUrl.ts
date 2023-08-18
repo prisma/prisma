@@ -32,9 +32,9 @@ export function resolveDatasourceUrl({
     if (TARGET_ENGINE_TYPE === 'edge') {
       throw new PrismaClientInitializationError(
         `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.
-Only \`process.env\` and \`globalThis\` can be read, but not \`.env\`.
+In edge runtimes, only \`process.env\` & \`globalThis\` are read, not \`.env\`.
 
-To solve this, provide it directly: https://pris.ly/d/datasource-url`,
+To solve this, provide the URL directly: https://pris.ly/d/datasource-url`,
         clientVersion,
       )
     }
