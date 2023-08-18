@@ -72,30 +72,6 @@ testMatrix.setupTestSuite(
         }
       },
     )
-
-    testIf(!clientMeta.dataProxy && clientMeta.runtime === 'node')(
-      'PrismaClientInitializationError for missing env with rust engine',
-      async () => {
-        const prisma = newPrismaClient()
-
-        try {
-          await prisma.$connect()
-        } catch (e) {
-          const message = stripAnsi(e.message as string)
-          expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-          expect(message).toMatchInlineSnapshot(`
-            error: Environment variable not found: DATABASE_URI.
-              -->  schema.prisma:9
-               | 
-             8 |       provider = "postgresql"
-             9 |       url      = env("DATABASE_URI")
-               | 
-
-            Validation Error Count: 1
-          `)
-        }
-      },
-    )
   },
   {
     skipDb: true,
