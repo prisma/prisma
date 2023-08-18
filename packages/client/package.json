@@ -47,7 +47,7 @@
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "pnpm run build",
-    "new-test": "NODE_OPTIONS='-r ts-node/register' yo ./helpers/generator-test/index.ts"
+    "new-test": "NODE_OPTIONS='-r esbuild-register' yo ./helpers/generator-test/index.ts"
   },
   "files": [
     "README.md",
