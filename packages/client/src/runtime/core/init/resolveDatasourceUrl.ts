@@ -29,6 +29,16 @@ export function resolveDatasourceUrl({
 
   // env var is set for use but url is undefined
   if (datasourceUrl?.fromEnvVar !== undefined && resolvedUrl === undefined) {
+    if (TARGET_ENGINE_TYPE === 'edge') {
+      throw new PrismaClientInitializationError(
+        `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.
+Only \`process.env\` and \`globalThis\` can be read, but not \`.env\`.
+
+To solve this, provide it directly: https://pris.ly/d/datasource-url`,
+        clientVersion,
+      )
+    }
+
     // error matches as much as possible the usual engine error
     throw new PrismaClientInitializationError(
       `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.`,
