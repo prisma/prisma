@@ -5,6 +5,7 @@ import {
   format,
   Generator,
   getCommandWithExecutor,
+  getConfig,
   getGenerators,
   getGeneratorSuccessMessage,
   HelpError,
@@ -24,6 +25,7 @@ import os from 'os'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
+import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { simpleDebounce } from './utils/simpleDebounce'
 
@@ -124,7 +126,11 @@ ${bold('Examples')}
     loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
+
     if (!schemaPath) return ''
+
+    const datamodel = await fs.promises.readFile(schemaPath, 'utf-8')
+    const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
 
     // TODO Extract logic from here
     let hasJsClient
@@ -256,7 +262,7 @@ const prisma = new PrismaClient()`)}
 ${dim('```')}
 
 See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
-${breakingChangesStr}${versionsWarning}`
+${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
