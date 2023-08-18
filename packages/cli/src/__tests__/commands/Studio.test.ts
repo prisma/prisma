@@ -39,20 +39,6 @@ describe('studio with alternative urls and prisma://', () => {
     process.env = { ...originalEnv }
   })
 
-  test('should fail if url is prisma://', async () => {
-    ctx.fixture('schema-only-data-proxy')
-
-    const result = Studio.new().parse([])
-
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-
-      Using the Data Proxy (connection URL starting with protocol prisma://) is not supported for this CLI command prisma studio yet. Please use a direct connection to your database via the datasource 'directUrl' setting.
-
-      More information about Data Proxy: https://pris.ly/d/data-proxy-cli
-
-    `)
-  })
-
   test('queries work if url is prisma:// and directUrl is set', async () => {
     ctx.fixture('schema-only-data-proxy-direct-url')
 

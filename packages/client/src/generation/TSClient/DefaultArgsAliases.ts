@@ -1,25 +1,31 @@
-import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
-import { extArgsParam, getLegacyModelArgName, getModelArgName } from '../utils'
+import { extArgsParam } from '../utils'
+
+type AliasDefinition = {
+  newName: string
+  legacyName: string
+}
 
 export class DefaultArgsAliases {
   private existingArgTypes = new Set<string>()
+  private possibleAliases: AliasDefinition[] = []
+
+  addPossibleAlias(newName: string, legacyName: string) {
+    this.possibleAliases.push({ newName, legacyName })
+  }
 
   registerArgName(name: string) {
     this.existingArgTypes.add(name)
   }
 
-  generateAliases(dmmf: DMMFHelper) {
+  generateAliases() {
     const aliases: string[] = []
-    for (const modelName of Object.keys(dmmf.typeAndModelMap)) {
-      const legacyName = getLegacyModelArgName(modelName)
+    for (const { newName, legacyName } of this.possibleAliases) {
       if (this.existingArgTypes.has(legacyName)) {
         // alias to and old name is not created if there
         // is already existing arg type with the same name
         continue
       }
-
-      const newName = getModelArgName(modelName)
 
       aliases.push(
         ts.stringify(

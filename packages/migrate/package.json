@@ -17,7 +17,7 @@
     "version": "latest"
   },
   "devDependencies": {
-    "@prisma/engines-version": "5.2.0-18.a20f5b4ad6a06b61f34d0e55b47f22ae99b70211",
+    "@prisma/engines-version": "5.2.0-24.0bc8ee687eb17771fa7ca5167bcad38f8f2d0847",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/internals": "workspace:*",
     "@swc/core": "1.3.75",
@@ -27,7 +27,7 @@
     "@types/pg": "8.10.2",
     "@types/prompts": "2.4.4",
     "@types/sqlite3": "3.1.8",
-    "esbuild": "0.19.1",
+    "esbuild": "0.19.2",
     "fs-jetpack": "5.1.0",
     "jest": "29.6.2",
     "jest-junit": "16.0.0",
