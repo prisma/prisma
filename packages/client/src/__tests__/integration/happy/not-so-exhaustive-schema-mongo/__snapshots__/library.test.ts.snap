@@ -326,12 +326,11 @@ exports.Prisma.ModelName = {
 };
 
 /**
- * This is a fake Prisma Client
- * It will error at runtime, if called 
+ * This is a stub Prisma Client that will error at runtime if called.
  */
 class PrismaClient {
   message = \`PrismaClient is unable to be run \${runtimeDescription}.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`
+In case this error is unexpected for you, please report it via https://github.com/prisma/prisma/issues\`
 
   constructor() {
     return new Proxy(this, {
