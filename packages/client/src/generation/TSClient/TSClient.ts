@@ -343,20 +343,13 @@ ${new Enum(
  * It will error at runtime, if called 
  */
 class PrismaClient {
-  private message = \`PrismaClient is unable to be run \${runtimeDescription}.
+  message = \`PrismaClient is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`
+
   constructor() {
     return new Proxy(this, {
       get(target, prop) {
-        if (prop === '$extends') {
-          return () => new Proxy(this, {
-            get(target, prop) {
-              throw new Error(this.message)
-            }
-          })
-        } else {
-          throw new Error(this.message)
-        }
+        throw new Error(this.message)
       }
     })
   }
