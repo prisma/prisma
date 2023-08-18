@@ -28,6 +28,7 @@ import { NotImplementedYetError } from './errors/NotImplementedYetError'
 import { SchemaMissingError } from './errors/SchemaMissingError'
 import { responseToError } from './errors/utils/responseToError'
 import { backOff } from './utils/backOff'
+import { checkForbiddenMetrics } from './utils/checkForbiddenMetrics'
 import { getClientVersion } from './utils/getClientVersion'
 import { Fetch, request } from './utils/request'
 
@@ -152,6 +153,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
   constructor(config: EngineConfig) {
     super()
+
+    checkForbiddenMetrics(config)
 
     this.config = config
     this.env = { ...this.config.env, ...process.env }
