@@ -18,6 +18,7 @@ import { applyAllResultExtensions } from './core/extensions/applyAllResultExtens
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
+import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
@@ -396,7 +397,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: getDataSourceOverrides(options, config.datasourceNames),
+          overrideDatasources: getDatasourceOverrides(options, config.datasourceNames),
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
@@ -953,20 +954,4 @@ function toSql(query: TemplateStringsArray | Sql, values: unknown[]): [Sql, Midd
 
 function isTemplateStringArray(value: unknown): value is TemplateStringsArray {
   return Array.isArray(value) && Array.isArray(value['raw'])
-}
-
-function getDataSourceOverrides(options: PrismaClientOptions | undefined, datasourceNames: string[]): Datasources {
-  if (!options) {
-    return {}
-  }
-
-  if (options.datasources) {
-    return options.datasources
-  }
-
-  if (options.datasourceUrl) {
-    const primaryDatasource = datasourceNames[0]
-    return { [primaryDatasource]: { url: options.datasourceUrl } }
-  }
-  return {}
 }
