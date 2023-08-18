@@ -50,6 +50,7 @@ ${bold('Options')}
       --schema   Custom path to your Prisma schema
        --watch   Watch the Prisma schema and rerun after a change
    --generator   Generator to use (may be provided multiple times)
+   --no-engine   Generate a client for use with Accelerate only
 
 ${bold('Examples')}
 
@@ -96,8 +97,9 @@ ${bold('Examples')}
       '-h': '--help',
       '--watch': Boolean,
       '--schema': String,
-      '--data-proxy': Boolean, // remove in Prisma 6
-      '--accelerate': Boolean, // remove in Prisma 6
+      '--data-proxy': Boolean,
+      '--accelerate': Boolean,
+      '--no-engine': Boolean,
       '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
@@ -136,6 +138,13 @@ ${bold('Examples')}
         cliVersion: pkg.version,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
+        noEngine:
+          Boolean(args['--no-engine']) ||
+          Boolean(args['--data-proxy']) || // legacy, keep for backwards compatibility
+          Boolean(args['--accelerate']) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
       })
 
       if (!generators || generators.length === 0) {
@@ -239,7 +248,7 @@ ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
 ${dim('```')}
-or start using Prisma Client at the edge (See: ${link('https://pris.ly/d/data-proxy')})
+or start using Prisma Client at the edge (See: ${link('https://pris.ly/d/accelerate')})
 ${dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'

@@ -46,7 +46,7 @@ function declareInjectableEdgeEnv(datasources: DataSource[]) {
   const injectableEdgeEnvCode = injectableEdgeEnvJson.replace(/"/g, '')
 
   return `
-config.injectableEdgeEnv = ${injectableEdgeEnvCode}`
+config.injectableEdgeEnv = () => (${injectableEdgeEnvCode})`
 }
 
 /**

@@ -14,7 +14,7 @@ Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
 import { PrismaClient } from './generated/client'
 const prisma = new PrismaClient()
 \`\`\`
-or start using Prisma Client at the edge (See: https://pris.ly/d/data-proxy)
+or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
 \`\`\`
 import { PrismaClient } from './generated/client/edge'
 const prisma = new PrismaClient()
@@ -33,7 +33,7 @@ Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
 import { PrismaClient } from './generated/client'
 const prisma = new PrismaClient()
 \`\`\`
-or start using Prisma Client at the edge (See: https://pris.ly/d/data-proxy)
+or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
 \`\`\`
 import { PrismaClient } from './generated/client/edge'
 const prisma = new PrismaClient()

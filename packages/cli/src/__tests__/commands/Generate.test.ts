@@ -53,7 +53,7 @@ describe('--schema from project directory', () => {
       import { PrismaClient } from './@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
-      or start using Prisma Client at the edge (See: https://pris.ly/d/data-proxy)
+      or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
       \`\`\`
       import { PrismaClient } from './@prisma/client/edge'
       const prisma = new PrismaClient()
@@ -89,7 +89,7 @@ describe('--schema from project directory', () => {
       import { PrismaClient } from './@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
-      or start using Prisma Client at the edge (See: https://pris.ly/d/data-proxy)
+      or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
       \`\`\`
       import { PrismaClient } from './@prisma/client/edge'
       const prisma = new PrismaClient()
@@ -122,7 +122,7 @@ describe('--schema from parent directory', () => {
       import { PrismaClient } from './subdirectory/@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
-      or start using Prisma Client at the edge (See: https://pris.ly/d/data-proxy)
+      or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
       \`\`\`
       import { PrismaClient } from './subdirectory/@prisma/client/edge'
       const prisma = new PrismaClient()
@@ -161,7 +161,7 @@ describe('--schema from parent directory', () => {
       import { PrismaClient } from './subdirectory/@prisma/client'
       const prisma = new PrismaClient()
       \`\`\`
-      or start using Prisma Client at the edge (See: https://pris.ly/d/data-proxy)
+      or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
       \`\`\`
       import { PrismaClient } from './subdirectory/@prisma/client/edge'
       const prisma = new PrismaClient()
