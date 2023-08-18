@@ -118,7 +118,7 @@ export type PrismaClientOptions = {
       allowTriggerPanic?: boolean
     }
   }
-} & ({} | {})
+}
 
 export type Unpacker = (data: any) => any
 
