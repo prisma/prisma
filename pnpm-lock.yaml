@@ -331,8 +331,8 @@ importers:
         specifier: 29.6.2
         version: 29.6.2
       '@jkomyno/prisma-js-connector-utils':
-        specifier: ^0.0.5
-        version: 0.0.5
+        specifier: ^0.0.6
+        version: 0.0.6
       '@opentelemetry/api':
         specifier: 1.4.1
         version: 1.4.1
@@ -2831,8 +2831,8 @@ packages:
       chalk: 4.1.2
     dev: true
 
-  /@jkomyno/prisma-js-connector-utils@0.0.5:
-    resolution: {integrity: sha512-RvqrB6R4pBDGa+helhigtG7rZ3tnLPDu2siIK5RiyCqM1/3vEqda+Y82XBxdZeU/CNkpvgYqukDimsB9mFacDQ==}
+  /@jkomyno/prisma-js-connector-utils@0.0.6:
+    resolution: {integrity: sha512-1G6/bmJdsdL4Fb3qrICAjw3jWBwlPWLEwPQ5TYfmEya0lCFdJZjtGASPxKJcA5ZPAcF5KuWS+eF8mkM/d1sOxw==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
@@ -8820,7 +8820,7 @@ packages:
       pretty-format: 29.6.2
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.17.5)(typescript@4.9.5)
+      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.17.5)(typescript@4.9.5)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
