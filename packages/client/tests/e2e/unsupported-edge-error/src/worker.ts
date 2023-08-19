@@ -4,9 +4,10 @@ export interface Env {}
 
 export default {
   async fetch(): Promise<Response> {
-    try {
-      const prisma = new PrismaClient()
+    // outside of try/catch, error has to happens on access only
+    const prisma = new PrismaClient()
 
+    try {
       await prisma.user.findMany()
     } catch (e: any) {
       return new Response(e.message)
