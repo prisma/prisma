@@ -423,6 +423,9 @@ importers:
       decimal.js:
         specifier: 10.4.3
         version: 10.4.3
+      detect-runtime:
+        specifier: 1.0.4
+        version: 1.0.4
       env-paths:
         specifier: 2.2.1
         version: 2.2.1
@@ -6452,6 +6455,11 @@ packages:
 
   /detect-node@2.1.0:
     resolution: {integrity: sha512-T0NIuQpnTvFDATNuHN5roPwSBG83rFsuO+MXXH9/3N1eFbn4wcPjttvjMLEPWJ0RGUYgQE7cGgS3tNxbqCGM7g==}
+    dev: true
+
+  /detect-runtime@1.0.4:
+    resolution: {integrity: sha512-oJJu3EzRFbmJcflC0Z55Gs08z7lOZ+68HsegIOVmg9WjDFdolJ/PoHQokv+usWcBqyZvUSVdrpDghOhoZCXJyw==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
     dev: true
 
   /dezalgo@1.0.4:
