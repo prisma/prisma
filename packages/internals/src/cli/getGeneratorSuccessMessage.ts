@@ -23,7 +23,18 @@ function formatVersion(generator: Generator): string | undefined {
 
   if (generator.getProvider() === 'prisma-client-js') {
     const engineType = getClientEngineType(generator.config)
-    return version ? `${version} | ${engineType}` : engineType
+
+    let engineHint = ''
+    if (generator.options?.noEngine) {
+      engineHint = ', engine=none'
+    } else if (engineType === 'binary') {
+      engineHint = ', engine=binary'
+    } else if (engineType === 'library') {
+      engineHint = ''
+    }
+
+    // version is always defined for prisma-client-js
+    return `v${version ?? '?.?.?'}${engineHint}`
   }
 
   return version
