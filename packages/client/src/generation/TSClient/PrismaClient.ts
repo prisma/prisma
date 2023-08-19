@@ -442,23 +442,23 @@ interface Queryable {
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the type-aware result set of the query.
    */
-  queryRaw(params: Query): Promise<ResultSet>
+  queryRaw(params: Query): $Utils.JsPromise<ResultSet>
   /**
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the number of affected rows.
    */
-  executeRaw(params: Query): Promise<number>
+  executeRaw(params: Query): $Utils.JsPromise<number>
 }
 
 interface Transaction extends Queryable {
   /**
    * Commit the transaction
    */
-  commit(): Promise<void>
+  commit(): $Utils.JsPromise<void>
   /**
    * Roll back the transaction
    */
-  rollback(): Promise<void>
+  rollback(): $Utils.JsPromise<void>
 }
 
 interface Connector extends Queryable {
@@ -466,11 +466,11 @@ interface Connector extends Queryable {
    * Starts new transation with the specified isolation level
    * @param isolationLevel
    */
-  startTransaction(isolationLevel?: string): Promise<Transaction>
+  startTransaction(isolationLevel?: string): $Utils.JsPromise<Transaction>
   /**
    * Closes the connection to the database, if any.
    */
-  close: () => Promise<void>
+  close: () => $Utils.JsPromise<void>
 }
 `
 
