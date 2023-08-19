@@ -2262,37 +2262,37 @@ export namespace Prisma {
   interface Queryable {
     readonly flavour: 'mysql' | 'postgres'
     /**
-    * Execute a query given as SQL, interpolating the given parameters,
-    * and returning the type-aware result set of the query.
-    */
+     * Execute a query given as SQL, interpolating the given parameters,
+     * and returning the type-aware result set of the query.
+     */
     queryRaw(params: Query): $Utils.JsPromise<ResultSet>
     /**
-    * Execute a query given as SQL, interpolating the given parameters,
-    * and returning the number of affected rows.
-    */
+     * Execute a query given as SQL, interpolating the given parameters,
+     * and returning the number of affected rows.
+     */
     executeRaw(params: Query): $Utils.JsPromise<number>
   }
 
   interface Transaction extends Queryable {
     /**
-    * Commit the transaction
-    */
+     * Commit the transaction
+     */
     commit(): $Utils.JsPromise<void>
     /**
-    * Roll back the transaction
-    */
+     * Roll back the transaction
+     */
     rollback(): $Utils.JsPromise<void>
   }
 
   interface Connector extends Queryable {
     /**
-    * Starts new transation with the specified isolation level
-    * @param isolationLevel
-    */
+     * Starts new transation with the specified isolation level
+     * @param isolationLevel
+     */
     startTransaction(isolationLevel?: string): $Utils.JsPromise<Transaction>
     /**
-    * Closes the connection to the database, if any.
-    */
+     * Closes the connection to the database, if any.
+     */
     close: () => $Utils.JsPromise<void>
   }
 
