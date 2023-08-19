@@ -26,6 +26,7 @@
     "@jkomyno/prisma-pg-js-connector": "0.0.7",
     "@jkomyno/prisma-planetscale-js-connector": "0.0.7",
     "@prisma/client": "../../packages/client",
+    "superjson": "^1.13.1",
     "undici": "^5.22.1"
   },
   "devDependencies": {

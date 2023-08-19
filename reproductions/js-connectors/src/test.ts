@@ -1,4 +1,5 @@
 // @ts-nocheck
+import superjson from 'superjson'
 import { PrismaClient } from '.prisma/client'
 import { setImmediate, setTimeout } from 'node:timers/promises'
 import type { Connector } from '@jkomyno/prisma-js-connector-utils'
@@ -76,7 +77,7 @@ class SmokeTest {
       isolationLevel: 'Serializable',
     })
 
-    console.log('[nodejs] children', JSON.stringify(children, null, 2))
+    console.log('[nodejs] children', superjson.stringify(children))
     console.log('[nodejs] totalChildren', totalChildren)
   }
 
@@ -89,7 +90,7 @@ class SmokeTest {
 
     await this.prisma.$executeRaw`INSERT INTO leak_test (id) VALUES (1)`
     const result = await this.prisma.$queryRaw`SELECT * FROM leak_test`
-    console.log('[nodejs] result', JSON.stringify(result, null, 2))
+    console.log('[nodejs] result', superjson.stringify(result))
 
     await cleanUp()
   }
@@ -100,7 +101,7 @@ class SmokeTest {
         name: 'Name 1',
       },
     })
-    console.log('[nodejs] author', JSON.stringify(author, null, 2))
+    console.log('[nodejs] author', superjson.stringify(author))
 
     const result = await this.prisma.$transaction(async tx => {
       await tx.author.deleteMany()
@@ -125,7 +126,7 @@ class SmokeTest {
       return { author, post }
     })
 
-    console.log('[nodejs] result', JSON.stringify(result, null, 2))
+    console.log('[nodejs] result', superjson.stringify(result))
   }
 
   async testFindManyTypeTest() {
@@ -141,14 +142,7 @@ class SmokeTest {
         'smallint_column': true,
         'mediumint_column': true,
         'int_column': true,
-
-        /**
-         * Prisma Client fails to parse the `bigint` type with:
-         * `TypeError: Do not know how to serialize a BigInt`.
-         * Note that libquery is able to parse it correctly.
-         */
-        // 'bigint_column': true,
-        
+        'bigint_column': true,
         'float_column': true,
         'double_column': true,
         'decimal_column': true,
@@ -167,7 +161,7 @@ class SmokeTest {
         'blob_column': true
       }
     })
-    console.log('[nodejs] findMany resultSet', JSON.stringify(resultSet, null, 2))
+    console.log('[nodejs] findMany resultSet', superjson.stringify(resultSet))
   
     return resultSet
   }
@@ -194,7 +188,7 @@ class SmokeTest {
         'enum_column': true
       }
     })
-    console.log('[nodejs] findMany resultSet', JSON.stringify(resultSet, null, 2))
+    console.log('[nodejs] findMany resultSet', superjson.stringify(resultSet))
   
     return resultSet
   }
@@ -232,7 +226,7 @@ class SmokeTest {
         p: 'p1'
       }
     })
-    console.log('[nodejs] resultDeleteMany', JSON.stringify(resultDeleteMany, null, 2))
+    console.log('[nodejs] resultDeleteMany', superjson.stringify(resultDeleteMany))
   }
 }
 

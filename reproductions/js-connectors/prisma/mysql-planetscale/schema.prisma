@@ -7,6 +7,7 @@ generator client {
 datasource db {
   provider = "@prisma/planetscale"
   url      = env("JS_PLANETSCALE_DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model type_test {
