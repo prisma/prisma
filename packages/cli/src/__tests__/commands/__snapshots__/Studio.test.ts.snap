@@ -12,6 +12,32 @@ exports[`studio with alternative urls and prisma:// queries work if url is prism
 }
 `;
 
+exports[`studio with alternative urls and prisma:// queries work if url is prisma:// via the mini-proxy 1`] = `
+{
+  action: clientRequest,
+  channel: -prisma,
+  payload: {
+    data: null,
+    error: {
+      code: P5010,
+      message: 
+Invalid \`prisma.someUser.findMany()\` invocation:
+
+
+Cannot fetch data from service:
+fetch failed,
+      stack: 
+Invalid \`prisma.someUser.findMany()\` invocation:
+
+
+Cannot fetch data from service:
+fetch failed,
+    },
+  },
+  requestId: 1,
+}
+`;
+
 exports[`studio with custom schema.prisma filename can respond to \`create\` queries 1`] = `
 {
   action: clientRequest,

@@ -209,6 +209,9 @@ importers:
       '@prisma/migrate':
         specifier: workspace:*
         version: link:../migrate
+      '@prisma/mini-proxy':
+        specifier: 0.9.4
+        version: 0.9.4
       '@prisma/studio':
         specifier: 0.494.0
         version: 0.494.0
@@ -305,6 +308,9 @@ importers:
       typescript:
         specifier: 4.9.5
         version: 4.9.5
+      zx:
+        specifier: 7.2.3
+        version: 7.2.3
 
   packages/client:
     dependencies:

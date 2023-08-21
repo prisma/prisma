@@ -33,7 +33,7 @@ async function _getClientVersion(host: string, config: EngineConfig) {
   // for this we infer the data proxy version from the engine version
   if (suffix !== undefined || clientVersion === '0.0.0' || clientVersion === 'in-memory') {
     // we use the generated engine version to infer if we're in a test
-    if (config.engineVersion === '0000000000000000000000000000000000000000') {
+    if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
       return '0.0.0' // when we are running in tests, we use mini proxy
     }
 
