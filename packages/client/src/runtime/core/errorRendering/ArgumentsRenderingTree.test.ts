@@ -410,6 +410,25 @@ test('error in empty array', () => {
   `)
 })
 
+test('error in array element', () => {
+  const tree = buildArgumentsRenderingTree({
+    where: { id: ['hello'] },
+  })
+
+  tree.arguments.getDeepFieldValue(['where', 'id', '0'])?.markAsError()
+
+  expect(printTree(tree)).toMatchInlineSnapshot(`
+    {
+      where: {
+        id: [
+          "hello"
+          ~~~~~~~
+        ]
+      }
+    }
+  `)
+})
+
 test('nested empty list', () => {
   const tree = buildArgumentsRenderingTree({
     where: { AND: [[]] },

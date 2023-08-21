@@ -59,6 +59,36 @@ testMatrix.setupTestSuite(
                                     `)
     })
 
+    test('undefined within array', async () => {
+      const result = prisma.user.findMany({
+        where: {
+          OR: [
+            // @ts-expect-error
+            undefined,
+          ],
+        },
+      })
+      await expect(result).rejects.toMatchPrismaErrorInlineSnapshot(`
+
+        Invalid \`prisma.user.findMany()\` invocation in
+        /client/tests/functional/query-validation/tests.ts:0:0
+
+          XX })
+          XX 
+          XX test('undefined within array', async () => {
+        → XX   const result = prisma.user.findMany({
+                 where: {
+                   OR: [
+                     undefined
+                     ~~~~~~~~~
+                   ]
+                 }
+               })
+
+        Invalid value for argument \`OR[0]\`: Can not use \`undefined\` value within array. Use \`null\` or filter out \`undefined\` values.
+      `)
+    })
+
     test('unknown selection field', async () => {
       const result = prisma.user.findMany({
         select: {
@@ -107,16 +137,16 @@ testMatrix.setupTestSuite(
                   XX 
                   XX test('empty selection', async () => {
                 → XX   const result = prisma.user.findMany({
-                         select: {
-                       ?   id?: true,
-                       ?   email?: true,
-                       ?   name?: true,
-                       ?   createdAt?: true,
-                       ?   published?: true,
-                       ?   organizationId?: true,
-                       ?   organization?: true
-                         }
-                       })
+                          select: {
+                        ?   id?: true,
+                        ?   email?: true,
+                        ?   name?: true,
+                        ?   createdAt?: true,
+                        ?   published?: true,
+                        ?   organizationId?: true,
+                        ?   organization?: true
+                          }
+                        })
 
                 The \`select\` statement for type User must not be empty. Available options are listed in green.
             `)
