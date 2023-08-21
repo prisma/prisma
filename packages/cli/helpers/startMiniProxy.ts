@@ -5,6 +5,10 @@ import execa from 'execa'
 import { existsSync } from 'fs'
 import { tmpdir } from 'os'
 
+/**
+ * Starts the Mini Proxy in a background process and returns a "kill" handle.
+ * @returns an object to kill the process
+ */
 export async function startMiniProxy() {
   const platform = await getPlatform()
   const cacheDir = (await getCacheDir('master', enginesVersion, platform))!
