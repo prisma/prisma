@@ -48,7 +48,7 @@
     "@prisma/fetch-engine": "workspace:*",
     "@prisma/generator-helper": "workspace:*",
     "@prisma/get-platform": "workspace:*",
-    "@prisma/prisma-schema-wasm": "5.2.0-24.0bc8ee687eb17771fa7ca5167bcad38f8f2d0847",
+    "@prisma/prisma-schema-wasm": "5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f",
     "archiver": "5.3.1",
     "arg": "5.0.2",
     "checkpoint-client": "1.1.27",
