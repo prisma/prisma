@@ -353,8 +353,9 @@ class PrismaClient {
         } else {
           message += 'this browser environment, or has been bundled for the browser (running in \`' + runtime + '\`).'
         }
-
-        message += '\\nIf this is unexpected, please open an issue: https://github.com/prisma/prisma/issues'
+        
+        message += \`
+If this is unexpected, please open an issue: https://github.com/prisma/prisma/issues\`
 
         throw new Error(message)
       }
