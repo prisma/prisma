@@ -17,22 +17,8 @@ exports[`studio with alternative urls and prisma:// queries work if url is prism
   action: clientRequest,
   channel: -prisma,
   payload: {
-    data: null,
-    error: {
-      code: P5010,
-      message: 
-Invalid \`prisma.someUser.findMany()\` invocation:
-
-
-Cannot fetch data from service:
-fetch failed,
-      stack: 
-Invalid \`prisma.someUser.findMany()\` invocation:
-
-
-Cannot fetch data from service:
-fetch failed,
-    },
+    data: [],
+    error: null,
   },
   requestId: 1,
 }

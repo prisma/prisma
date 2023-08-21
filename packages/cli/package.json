@@ -104,7 +104,7 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "test": "jest --maxConcurrency=1 --silent",
+    "test": "NODE_EXTRA_CA_CERTS=$(node -r esbuild-register ./helpers/printMiniProxyCaCert.ts) jest --silent",
     "tsc": "tsc -d -p tsconfig.build.json",
     "preinstall": "node scripts/preinstall-entry.js",
     "prepublishOnly": "pnpm run build"

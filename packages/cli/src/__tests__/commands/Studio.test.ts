@@ -25,8 +25,16 @@ function sendRequest(message: any): Promise<any> {
 }
 
 let studio: Studio
-
+let miniProxy: { kill: () => void }
 describe('studio with alternative urls and prisma://', () => {
+  beforeAll(async () => {
+    miniProxy = await startMiniProxy()
+  })
+
+  afterAll(() => {
+    miniProxy.kill()
+  })
+
   afterEach(() => {
     // Back to original env vars
     process.env = { ...originalEnv }
@@ -73,7 +81,6 @@ describe('studio with alternative urls and prisma://', () => {
     process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_BASE_URI}/studio`
 
     ctx.fixture('schema-only-data-proxy')
-    await new Promise(() => setTimeout(() => 0))
 
     await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'])
     delete process.env.DATABASE_URL
@@ -82,7 +89,6 @@ describe('studio with alternative urls and prisma://', () => {
     const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'])
 
     await expect(result).resolves.not.toThrow()
-    const { kill: killMiniProxy } = await startMiniProxy()
 
     const res = await sendRequest({
       requestId: 1,
@@ -104,7 +110,8 @@ describe('studio with alternative urls and prisma://', () => {
     expect(res).toMatchSnapshot()
 
     studio.instance?.stop()
-    await killMiniProxy()
+
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
 })
 
