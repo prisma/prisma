@@ -16,6 +16,7 @@ export async function startMiniProxy() {
 
   if (existsSync(qePath) === false) {
     await download({
+      // we download it anywhere as it gets copied to the cache dir anyway
       binaries: { 'query-engine': tmpdir() },
       version: enginesVersion,
     })

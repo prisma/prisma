@@ -1,4 +1,5 @@
 import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import * as miniProxy from '@prisma/mini-proxy'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
@@ -25,14 +26,14 @@ function sendRequest(message: any): Promise<any> {
 }
 
 let studio: Studio
-let miniProxy: { kill: () => void }
+let miniProxyProcess: { kill: () => void }
 describe('studio with alternative urls and prisma://', () => {
   beforeAll(async () => {
-    miniProxy = await startMiniProxy()
+    miniProxyProcess = await startMiniProxy()
   })
 
   afterAll(() => {
-    miniProxy.kill()
+    miniProxyProcess.kill()
   })
 
   afterEach(() => {
@@ -42,7 +43,7 @@ describe('studio with alternative urls and prisma://', () => {
 
   test('queries work if url is prisma:// and directUrl is set', async () => {
     process.env.PDP_URL = 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY'
-    process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_BASE_URI}/${Date.now()}-studio`
+    process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_URI}-${Date.now()}-studio`
 
     ctx.fixture('schema-only-data-proxy-direct-url')
 
@@ -76,9 +77,12 @@ describe('studio with alternative urls and prisma://', () => {
   })
 
   test('queries work if url is prisma:// via the mini-proxy', async () => {
-    process.env.PDP_URL =
-      'prisma://localhost:4477/?api_key=eyJ1cmwiOiJwb3N0Z3JlczovL3ByaXNtYTpwcmlzbWFAbG9jYWxob3N0OjU0MzIvc3R1ZGlvIiwiZW52VmFyIjoiUERQX1VSTCJ9'
-    process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_BASE_URI}/studio`
+    process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_URI}-${Date.now()}-studio`
+    process.env.PDP_URL = miniProxy.generateConnectionString({
+      envVar: 'PDP_URL',
+      databaseUrl: process.env.DATABASE_URL,
+      port: miniProxy.defaultServerConfig.port,
+    })
 
     ctx.fixture('schema-only-data-proxy')
 
