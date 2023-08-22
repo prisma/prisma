@@ -1,0 +1,58 @@
+import { Datasources, GetPrismaClientConfig } from '../../getPrismaClient'
+import { PrismaClientInitializationError } from '../errors/PrismaClientInitializationError'
+
+export function resolveDatasourceUrl({
+  inlineDatasources,
+  overrideDatasources,
+  env,
+  clientVersion,
+}: {
+  inlineDatasources: GetPrismaClientConfig['inlineDatasources']
+  overrideDatasources: Datasources
+  env: Record<string, string | undefined>
+  clientVersion: string
+}) {
+  let resolvedUrl: string | undefined
+  const datasourceName = Object.keys(inlineDatasources)[0]
+  const datasourceUrl = inlineDatasources[datasourceName]?.url
+  const overrideUrl = overrideDatasources[datasourceName]?.url
+
+  if (datasourceName === undefined) {
+    resolvedUrl = undefined
+  } else if (overrideUrl) {
+    resolvedUrl = overrideUrl
+  } else if (datasourceUrl?.value) {
+    resolvedUrl = datasourceUrl.value
+  } else if (datasourceUrl?.fromEnvVar) {
+    resolvedUrl = env[datasourceUrl.fromEnvVar]
+  }
+
+  // env var is set for use but url is undefined
+  if (datasourceUrl?.fromEnvVar !== undefined && resolvedUrl === undefined) {
+    if (TARGET_ENGINE_TYPE === 'edge') {
+      throw new PrismaClientInitializationError(
+        `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.
+In edge runtimes, only \`process.env\` & \`globalThis\` are read, not \`.env\`.
+
+To solve this, provide the URL directly: https://pris.ly/d/datasource-url`,
+        clientVersion,
+      )
+    }
+
+    // error matches as much as possible the usual engine error
+    throw new PrismaClientInitializationError(
+      `error: Environment variable not found: ${datasourceUrl.fromEnvVar}.`,
+      clientVersion,
+    )
+  }
+
+  // should not happen: no override, no env, no direct value
+  if (resolvedUrl === undefined) {
+    throw new PrismaClientInitializationError(
+      `error: Missing URL environment variable, value, or override.`,
+      clientVersion,
+    )
+  }
+
+  return resolvedUrl
+}

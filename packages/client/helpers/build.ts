@@ -1,3 +1,4 @@
+import { ClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 
@@ -11,7 +12,7 @@ const functionPolyfillPath = path.join(fillPluginPath, 'fillers', 'function.ts')
 const runtimeDir = path.resolve(__dirname, '..', 'runtime')
 
 // we define the config for runtime
-function nodeRuntimeBuildConfig(targetEngineType: 'binary' | 'library' | 'data-proxy'): BuildOptions {
+function nodeRuntimeBuildConfig(targetEngineType: ClientEngineType): BuildOptions {
   return {
     name: targetEngineType,
     entryPoints: ['src/runtime/index.ts'],
@@ -37,6 +38,8 @@ const browserBuildConfig: BuildOptions = {
   outfile: 'runtime/index-browser',
   target: ['chrome58', 'firefox57', 'safari11', 'edge16'],
   bundle: true,
+  minify: true,
+  sourcemap: 'linked',
 }
 
 // we define the config for edge
@@ -53,7 +56,8 @@ const edgeRuntimeBuildConfig: BuildOptions = {
   define: {
     // that helps us to tree-shake unused things out
     NODE_CLIENT: 'false',
-    TARGET_ENGINE_TYPE: '"data-proxy"',
+    // tree shake the Library and Binary engines out
+    TARGET_ENGINE_TYPE: '"edge"',
     // that fixes an issue with lz-string umd builds
     'define.amd': 'false',
   },
@@ -108,14 +112,12 @@ function writeDtsRexport(fileName: string) {
 
 void build([
   generatorBuildConfig,
-  nodeRuntimeBuildConfig('binary'),
-  nodeRuntimeBuildConfig('library'),
-  nodeRuntimeBuildConfig('data-proxy'),
+  nodeRuntimeBuildConfig(ClientEngineType.Binary),
+  nodeRuntimeBuildConfig(ClientEngineType.Library),
   browserBuildConfig,
   edgeRuntimeBuildConfig,
   edgeEsmRuntimeBuildConfig,
   defaultIndexConfig,
 ]).then(() => {
   writeDtsRexport('binary.d.ts')
-  writeDtsRexport('data-proxy.d.ts')
 })

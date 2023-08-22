@@ -158,7 +158,7 @@ describe('download', () => {
       const queryEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.QueryEngineBinary, platform))
       const schemaEnginePath = path.join(baseDirAll, getBinaryName(BinaryType.SchemaEngineBinary, platform))
 
-      const before0 = Date.now()
+      const before0 = Math.round(performance.now())
       await download({
         binaries: {
           [BinaryType.QueryEngineLibrary]: baseDirAll,
@@ -195,7 +195,7 @@ describe('download', () => {
         version: FIXED_ENGINES_HASH,
       })
 
-      const after0 = Date.now()
+      const after0 = Math.round(performance.now())
       const timeInMsToDownloadAll = after0 - before0
       console.debug(
         `1 - No Cache: first time, download everything.
@@ -437,7 +437,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
       const deletedEngines = await del(path.posix.join(baseDirAll, '/*engine*'))
       expect(deletedEngines.length).toBeGreaterThan(0)
 
-      const before = Date.now()
+      const before = Math.round(performance.now())
       await download({
         binaries: {
           'libquery-engine': baseDirAll,
@@ -474,7 +474,7 @@ It took ${timeInMsToDownloadAll}ms to execute download() for all binaryTargets.`
         version: FIXED_ENGINES_HASH,
       })
 
-      const after = Date.now()
+      const after = Math.round(performance.now())
       const timeInMsToDownloadAllFromCache1 = after - before
       console.debug(
         `2 - With cache1: We deleted the engines locally but not from the cache folder.
@@ -486,7 +486,7 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
       // 1- We keep all artifacts from previous download
       // 2- We measure how much time it takes to call download
       //
-      const before2 = Date.now()
+      const before2 = Math.round(performance.now())
       await download({
         binaries: {
           'libquery-engine': baseDirAll,
@@ -523,7 +523,7 @@ It took ${timeInMsToDownloadAllFromCache1}ms to execute download() for all binar
         version: FIXED_ENGINES_HASH,
       })
 
-      const after2 = Date.now()
+      const after2 = Math.round(performance.now())
       const timeInMsToDownloadAllFromCache2 = after2 - before2
       console.debug(
         `3 - With cache2: Engines were already present
@@ -639,6 +639,118 @@ It took ${timeInMsToDownloadAllFromCache2}ms to execute download() for all binar
         binaryTargets: ['marvin'] as any, // eslint-disable-line @typescript-eslint/no-explicit-any
       })
       expect(testResult['query-engine']!['marvin']).toEqual(targetPath)
+    })
+  })
+
+  describe('retries', () => {
+    test('if fetching of checksums fails with a non 200 code it retries it 2 more times', async () => {
+      mockFetch.mockImplementation((url, opts) => {
+        if (String(url).endsWith('.sha256')) {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            statusText: 'KO',
+          } as Response)
+        }
+        return actualFetch(url, opts)
+      })
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+          },
+          binaryTargets: ['rhel-openssl-3.0.x'],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).rejects.toThrow(
+        `Failed to fetch sha256 checksum at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz.sha256. 500 KO`,
+      )
+
+      // Because we try to fetch 2 different checksum files
+      // And there are 2 retries for the checksums
+      // 2 checksums * 3 attempts = 6
+      expect(mockFetch).toHaveBeenCalledTimes(6)
+    })
+
+    test('if fetching of a binary fails with a non 200 code it retries it 2 more times', async () => {
+      mockFetch.mockImplementation((url, opts) => {
+        if (!String(url).endsWith('.sha256')) {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            statusText: 'KO',
+          } as Response)
+        }
+        return actualFetch(url, opts)
+      })
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+          },
+          binaryTargets: ['rhel-openssl-3.0.x'],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).rejects.toThrow(
+        `Failed to fetch the engine file at https://binaries.prisma.sh/all_commits/${CURRENT_ENGINES_HASH}/rhel-openssl-3.0.x/libquery_engine.so.node.gz. 500 KO`,
+      )
+
+      // Because we try to fetch 2 different checksum files before we even start downloading the binaries
+      // And there are 2 retries for the binary
+      // 2 checksums + (1 engine * 3 attempts) = 5
+      expect(mockFetch).toHaveBeenCalledTimes(5)
+    })
+
+    test('if fetching of checksums fails with a timeout it retries it 2 more times', async () => {
+      mockFetch.mockImplementation((url, opts) => {
+        opts = opts || {}
+        // This makes everything fail with a timeout
+        opts.timeout = 1
+        return actualFetch(url, opts)
+      })
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+          },
+          binaryTargets: [platform],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).rejects.toThrow(`network timeout at:`)
+
+      // Because we try to fetch 2 different checksum files
+      // And there are 2 retries for the checksums
+      // 2 checksums * 3 attempts = 6
+      expect(mockFetch).toHaveBeenCalledTimes(6)
+    })
+
+    test('if fetching of a binary fails with a timeout it retries it 2 more times', async () => {
+      mockFetch.mockImplementation((url, opts) => {
+        opts = opts || {}
+        // We only make binaries fail with a timeout, not checksums
+        if (!String(url).endsWith('.sha256')) {
+          opts.timeout = 1
+        }
+        return actualFetch(url, opts)
+      })
+
+      await expect(
+        download({
+          binaries: {
+            [BinaryType.QueryEngineLibrary]: baseDirChecksum,
+          },
+          binaryTargets: [platform],
+          version: CURRENT_ENGINES_HASH,
+        }),
+      ).rejects.toThrow(`network timeout at:`)
+
+      // Because we try to fetch 2 different checksum files before we even start downloading the binaries
+      // And there are 2 retries for the binary
+      // 2 checksums + (1 engine * 3 attempts) = 5
+      expect(mockFetch).toHaveBeenCalledTimes(5)
     })
   })
 

@@ -13,14 +13,14 @@ import { BinaryType } from './BinaryType'
 import { chmodPlusX } from './chmodPlusX'
 import { cleanupCache } from './cleanupCache'
 import { downloadZip } from './downloadZip'
-import { getBinaryEnvVarPath } from './env'
+import { allEngineEnvVarsSet, getBinaryEnvVarPath } from './env'
 import { getHash } from './getHash'
 import { getBar } from './log'
 import { getCacheDir, getDownloadUrl, overwriteFile } from './utils'
 
 const { enginesOverride } = require('../package.json')
 
-const debug = Debug('prisma:download')
+const debug = Debug('prisma:fetch-engine:download')
 const exists = promisify(fs.exists)
 
 const channel = 'master'
@@ -70,8 +70,12 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   const platform = await getPlatform()
   const os = await getos()
 
-  if (os.targetDistro && ['nixos'].includes(os.targetDistro)) {
-    console.error(`${yellow('Warning')} Precompiled engine files are not available for ${os.targetDistro}.`)
+  if (os.targetDistro && ['nixos'].includes(os.targetDistro) && !allEngineEnvVarsSet(Object.keys(options.binaries))) {
+    console.error(
+      `${yellow('Warning')} Precompiled engine files are not available for ${
+        os.targetDistro
+      }, please provide the paths via environment variables, see https://pris.ly/d/custom-engines`,
+    )
   } else if (['freebsd11', 'freebsd12', 'freebsd13', 'openbsd', 'netbsd'].includes(platform)) {
     console.error(
       `${yellow(
@@ -113,6 +117,7 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
   )
 
   if (process.env.BINARY_DOWNLOAD_VERSION) {
+    debug(`process.env.BINARY_DOWNLOAD_VERSION is set to "${process.env.BINARY_DOWNLOAD_VERSION}"`)
     opts.version = process.env.BINARY_DOWNLOAD_VERSION
   }
 
@@ -146,16 +151,26 @@ export async function download(options: DownloadOptions): Promise<BinaryPaths> {
       setProgress = collectiveBar.setProgress
     }
 
-    await Promise.all(
-      binariesToDownload.map((job) =>
-        downloadBinary({
-          ...job,
-          version: opts.version,
-          failSilent: opts.failSilent,
-          progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
-        }),
-      ),
-    )
+    const promises = binariesToDownload.map((job) => {
+      const downloadUrl = getDownloadUrl({
+        channel: 'all_commits',
+        version: opts.version,
+        platform: job.binaryTarget,
+        binaryName: job.binaryName,
+      })
+
+      debug(`${downloadUrl} will be downloaded to ${job.targetFilePath}`)
+
+      return downloadBinary({
+        ...job,
+        downloadUrl,
+        version: opts.version,
+        failSilent: opts.failSilent,
+        progressCb: setProgress ? setProgress(job.targetFilePath) : undefined,
+      })
+    })
+
+    await Promise.all(promises)
 
     await cleanupPromise // make sure, that cleanup finished
     if (finishBar) {
@@ -376,13 +391,13 @@ async function getCachedBinaryPath({
 
 type DownloadBinaryOptions = BinaryDownloadJob & {
   version: string
+  downloadUrl: string
   progressCb?: (progress: number) => void
   failSilent?: boolean
 }
 
 async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
-  const { version, progressCb, targetFilePath, binaryTarget, binaryName } = options
-  const downloadUrl = getDownloadUrl('all_commits', version, binaryTarget, binaryName)
+  const { version, progressCb, targetFilePath, downloadUrl } = options
 
   const targetDir = path.dirname(targetFilePath)
 
@@ -397,7 +412,7 @@ async function downloadBinary(options: DownloadBinaryOptions): Promise<void> {
     }
   }
 
-  debug(`Downloading ${downloadUrl} to ${targetFilePath}`)
+  debug(`Downloading ${downloadUrl} to ${targetFilePath} ...`)
 
   if (progressCb) {
     progressCb(0)

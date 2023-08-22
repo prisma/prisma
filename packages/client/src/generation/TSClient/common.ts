@@ -42,6 +42,7 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
+  detectRuntime,
 } = require('${runtimeDir}/${runtimeName}')
 `
     : `
@@ -72,6 +73,7 @@ const {
 const Prisma = {}
 
 exports.Prisma = Prisma
+exports.$Enums = {}
 
 /**
  * Prisma Client JS version: ${clientVersion}
@@ -80,24 +82,6 @@ exports.Prisma = Prisma
 Prisma.prismaVersion = {
   client: "${clientVersion}",
   engine: "${engineVersion}"
-}
-
-${
-  browser &&
-  `
-const runtimeDescription = (() => {
-  // https://edge-runtime.vercel.app/features/available-apis#addressing-the-runtime
-  if ("EdgeRuntime" in globalThis && typeof globalThis.EdgeRuntime === "string") {
-    return "under the Vercel Edge Runtime";
-  }
-  // Deno
-  if ("Deno" in globalThis && typeof globalThis.Deno === "object") {
-    return "under the Deno runtime";
-  }
-  // Default to assuming browser
-  return "in the browser";
-})();
-`
 }
 
 Prisma.PrismaClientKnownRequestError = ${notSupportOnBrowser('PrismaClientKnownRequestError', browser)};
@@ -152,6 +136,7 @@ import $Types = runtime.Types // general types
 import $Public = runtime.Types.Public
 import $Utils = runtime.Types.Utils
 import $Extensions = runtime.Types.Extensions
+import $Result = runtime.Types.Result
 
 export type PrismaPromise<T> = $Public.PrismaPromise<T>
 `,
@@ -201,12 +186,12 @@ export type MetricHistogramBucket = runtime.MetricHistogramBucket
 /**
 * Extensions
 */
-export type Extension = $Extensions.UserArgs
+export import Extension = $Extensions.UserArgs
 export import getExtensionContext = runtime.Extensions.getExtensionContext
-export type Args<T, F extends $Public.Operation> = $Public.Args<T, F>
-export type Payload<T, F extends $Public.Operation> = $Public.Payload<T, F>
-export type Result<T, A, F extends $Public.Operation> = $Public.Result<T, A, F>
-export type Exact<T, W> = $Public.Exact<T, W>
+export import Args = $Public.Args
+export import Payload = $Public.Payload
+export import Result = $Public.Result
+export import Exact = $Public.Exact
 
 /**
  * Prisma Client JS version: ${clientVersion}

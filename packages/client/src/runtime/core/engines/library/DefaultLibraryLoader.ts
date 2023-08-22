@@ -1,5 +1,5 @@
 import { getPlatformInfo } from '@prisma/get-platform'
-import { handleLibraryLoadingErrors } from '@prisma/internals'
+import { ClientEngineType, handleLibraryLoadingErrors } from '@prisma/internals'
 import os from 'os'
 import path from 'path'
 
@@ -69,7 +69,7 @@ export class DefaultLibraryLoader implements LibraryLoader {
 
   async loadLibrary(): Promise<Library> {
     const platformInfo = await getPlatformInfo()
-    const enginePath = await resolveEnginePath('library', this.config)
+    const enginePath = await resolveEnginePath(ClientEngineType.Library, this.config)
 
     try {
       return this.config.tracingHelper.runInChildSpan({ name: 'loadLibrary', internal: true }, () => load(enginePath))

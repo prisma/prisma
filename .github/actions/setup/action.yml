@@ -3,16 +3,19 @@ description: Boilerplate steps needed by most jobs.
 
 inputs:
   node-version:
-    description: Version of Node.js to use.
+    description: 'Version of Node.js to use.'
     required: true
   pnpm-version:
-    description: Version of pnpm to use.
+    description: 'Version of pnpm to use.'
+    required: true
+  skip-tsc:
+    description: 'Skip type checking (Default: false).'
     required: true
 
 runs:
   using: composite
   steps:
-    - uses: pnpm/action-setup@v2.2.4
+    - uses: pnpm/action-setup@v2.4.0
       with:
         version: ${{ inputs.pnpm-version }}
 
@@ -28,5 +31,10 @@ runs:
     - run: pnpm install
       shell: bash
 
-    - run: pnpm run setup
+    - run: pnpm -r run dev
+      if: inputs.skip-tsc == 'true'
+      shell: bash
+
+    - run: pnpm run build
+      if: inputs.skip-tsc == 'false'
       shell: bash

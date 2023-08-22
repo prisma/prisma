@@ -6,8 +6,6 @@ on:
     paths-ignore:
       # Any update here needs to be done for
       # - `pull_request` see below
-      # - https://github.com/prisma/prisma/blob/main/.buildkite/test/buildkite-entry.sh
-      # - https://github.com/prisma/prisma/blob/main/.buildkite/publish/buildkite-entry.sh
       - '*.md'
       - '.devcontainer/**'
       - '.vscode/**'
@@ -15,7 +13,8 @@ on:
       - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
-      - '.buildkite/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.github/ISSUE_TEMPLATE/**'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
@@ -28,7 +27,8 @@ on:
       - 'examples/**'
       - 'LICENSE'
       - '.github/CODEOWNERS'
-      - '.buildkite/**'
+      - '.github/DISCUSSION_TEMPLATE/**'
+      - '.github/ISSUE_TEMPLATE/**'
       - '.dockerignore'
       - 'scripts/ci/publish.ts'
       - 'graphs/**'
@@ -56,6 +56,7 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           pnpm-version: 8
+          skip-tsc: true
 
       - name: Run benchmarks
         run: pnpm run bench

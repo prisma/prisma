@@ -246,7 +246,7 @@ Some information will be lost (relations, comments, mapped fields, @ignore...), 
         : ''
     const introspectionSpinner = spinnerFactory(`Introspecting${basedOn}`)
 
-    const before = Date.now()
+    const before = Math.round(performance.now())
     let introspectionSchema = ''
     let introspectionWarnings: EngineArgs.IntrospectResult['warnings']
     try {
@@ -362,7 +362,7 @@ Or run this command with the ${green(
 
       introspectionSpinner.success(`Introspected ${modelsAndTypesCountMessage} into ${underline(
         path.relative(process.cwd(), schemaPath),
-      )} in ${bold(formatms(Date.now() - before))}
+      )} in ${bold(formatms(Math.round(performance.now()) - before))}
       ${yellow(introspectionWarningsMessage)}
 ${`Run ${green(getCommandWithExecutor('prisma generate'))} to generate Prisma Client.`}`)
     }
