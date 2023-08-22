@@ -19,15 +19,14 @@ export async function main() {
     }
 
     miniProxyProcess = await startMiniProxy()
+
+    process.env.NODE_EXTRA_CA_CERTS = miniProxy.defaultCertificatesConfig.caCert
   }
 
   execa.sync('jest', ['--silent', ...process.argv.slice(2)], {
     preferLocal: true,
     stdio: 'inherit',
-    env: {
-      ...process.env,
-      NODE_EXTRA_CA_CERTS: miniProxy.defaultCertificatesConfig.caCert,
-    },
+    env: process.env,
   })
 
   miniProxyProcess?.kill()
