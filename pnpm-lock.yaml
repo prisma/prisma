@@ -315,8 +315,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f
-        version: 5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f
+        specifier: 5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb
+        version: 5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -596,8 +596,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f
-        version: 5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f
+        specifier: 5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb
+        version: 5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -681,8 +681,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f
-        version: 5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f
+        specifier: 5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb
+        version: 5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb
       '@swc/core':
         specifier: 1.3.75
         version: 1.3.75
@@ -963,8 +963,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f
-        version: 5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f
+        specifier: 5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb
+        version: 5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb
       archiver:
         specifier: 5.3.1
         version: 5.3.1
@@ -1172,8 +1172,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f
-        version: 5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f
+        specifier: 5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb
+        version: 5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3360,8 +3360,8 @@ packages:
     dev: true
     optional: true
 
-  /@prisma/engines-version@5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f:
-    resolution: {integrity: sha512-jsnKT5JIDIE01lAeCj2ghY9IwxkedhKNvxQeoyLs6dr4ZXynetD0vTy7u6wMJt8vVPv8I5DPy/I4CFaoXAgbtg==}
+  /@prisma/engines-version@5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb:
+    resolution: {integrity: sha512-cQwRwWl5V7O5bk+2C7GDo7aekEPbpQpqeDJUEB/AgvQeIa/r4/l1a3NMl8394piVeLhLHpw55DYvRbev+2dE7w==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3369,8 +3369,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f:
-    resolution: {integrity: sha512-ZxiWSmzhzI0RcQq2/bTCWY659l5JMv+9t/vDXR4WLE/HUXdPtu7ruDMhcQU8P7KHJ53WtGq+lyZpAVXFOOtssA==}
+  /@prisma/prisma-schema-wasm@5.3.0-1.98bd6d18365f86d632686c26d1b26d8e054c67fb:
+    resolution: {integrity: sha512-nttyRq8jeOMRpaxq5KiK6mDRfq9TEBQGeuWJbwRzCKGJkPQBCjUQACDrPDYp0SFb4dhGVdxWdzN6/nVFBD2LHg==}
     dev: false
 
   /@prisma/studio-common@0.494.0:
@@ -5922,7 +5922,7 @@ packages:
       normalize-path: 3.0.0
       readdirp: 3.6.0
     optionalDependencies:
-      fsevents: 2.3.2
+      fsevents: 2.3.3
     dev: true
 
   /chownr@2.0.0:
@@ -7606,8 +7606,8 @@ packages:
   /fs.realpath@1.0.0:
     resolution: {integrity: sha512-OO0pH2lK6a0hZnAdau5ItzHPI6pUlvI7jMVnxUQRtw4owF2wk8lOSabtGDCTP4Ggrg2MbGnWO9X8K1t4+fGMDw==}
 
-  /fsevents@2.3.2:
-    resolution: {integrity: sha512-xiqMQR4xAeHTuB9uWm+fFRcIOgKBMiOBP+eXiyT7jsgVCq1bkVygt00oASowB7EdtpOHaaPgKt812P9ab+DDKA==}
+  /fsevents@2.3.3:
+    resolution: {integrity: sha512-5xoDfX+fL7faATnagmWPpbFtwh/R77WmMMqqHGS65C3vvB0YHrgF+B1YmZ3441tMj5n63k0212XNoJwzlhffQw==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
     requiresBuild: true
@@ -8974,7 +8974,7 @@ packages:
       micromatch: 4.0.5
       walker: 1.0.8
     optionalDependencies:
-      fsevents: 2.3.2
+      fsevents: 2.3.3
     dev: true
 
   /jest-junit@16.0.0:
