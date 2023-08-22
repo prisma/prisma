@@ -2112,7 +2112,7 @@ export namespace Prisma {
   type IntRange<T extends number> = number extends T ? number : _IntRange<T, []>
   type _IntRange<T extends number, R extends unknown[]> = R['length'] extends T ? R[number] : _IntRange<T, [R['length'], ...R]>
 
-  type ColumnType = IntRange<13>
+  type ColumnType = IntRange<14>
 
   type ResultSet = {
     columnTypes: Array<ColumnType>
