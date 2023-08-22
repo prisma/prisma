@@ -18,6 +18,7 @@ export TEST_E2E_COCKROACH_URI="postgresql://prisma@${DOCKER_BRIDGE_IP}:26257/${P
 export NODE_PATH=$(npm root --quiet -g) # make global packages available
 export NEXT_TELEMETRY_DISABLED=1
 export NO_COLOR=1
+export PRISMA_SKIP_POSTINSTALL_GENERATE='true' # because we run generate already
 
 # Script variables
 BASE_DIR=$(echo "$NAME" | awk -F "/" '{print $1}')
@@ -42,4 +43,5 @@ OUTPUT_REMOVAL_REGEX="$PNPM_EXDEV_WARN_REGEX|$PNPM_FALLBACK_COPY_REGEX"
   node -r 'esbuild-register' _steps.ts;
   # when inline snapshots are created the first time, copy for convencience
   cp -r /test/$NAME/tests/* /e2e/$NAME/tests/ 2> /dev/null || true;
+  cp -r /test/$NAME/pnpm-lock.yaml /e2e/$NAME/tests/ 2> /dev/null || true;
 ) 2>&1 | grep -v -E --line-buffered "$OUTPUT_REMOVAL_REGEX" > /e2e/$NAME/LOGS.txt;
