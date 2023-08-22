@@ -3,7 +3,7 @@ import leven from 'js-levenshtein'
 import { PrismaClientConstructorValidationError } from '../core/errors/PrismaClientConstructorValidationError'
 import type { ErrorFormat, LogLevel, PrismaClientOptions } from '../getPrismaClient'
 
-const knownProperties = ['datasources', 'errorFormat', 'log', 'transactionOptions', '__internal']
+const knownProperties = ['datasources', 'datasourceUrl', 'errorFormat', 'log', 'transactionOptions', '__internal']
 const errorFormats: ErrorFormat[] = ['pretty', 'colorless', 'minimal']
 const logLevels: LogLevel[] = ['info', 'query', 'warn', 'error']
 
