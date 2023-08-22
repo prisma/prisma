@@ -32,22 +32,13 @@ async function _getClientVersion(host: string, config: EngineConfig) {
   // if it is an integration or dev version, we resolve its dataproxy
   // for this we infer the data proxy version from the engine version
   if (suffix !== undefined || clientVersion === '0.0.0' || clientVersion === 'in-memory') {
-    // we use the generated engine version to infer if we're in a test
-    if (config.engineVersion === '0000000000000000000000000000000000000000') {
+    // if the host is local, then it means we are using the mini-proxy
+    if (host.startsWith('localhost') || host.startsWith('127.0.0.1')) {
       return '0.0.0' // when we are running in tests, we use mini proxy
     }
 
     const [version] = engineVersion.split('-') ?? []
     const [major, minor, patch] = version.split('.')
-
-    // If the engines version is 4.17, this is for testing Prisma 5 dev versions in
-    // ecosystem-tests against a real Data Proxy. We need to test with a Data Proxy
-    // engine version deployed which includes an engine with `jsonProtocol` GA
-    // because `jsonProtocol` is GA in the client but not in the Data Proxy version
-    // that we fallback to by default, here `4.16.2`
-    if (major === '4' && minor === '17') {
-      return '5.0.0'
-    }
 
     // to ensure that the data proxy exists, we check if it's published
     // we resolve with the closest or previous version published on npm
@@ -81,7 +72,7 @@ async function _getClientVersion(host: string, config: EngineConfig) {
   }
 
   // nothing matched, meaning that the provided version is invalid
-  throw new NotImplementedYetError('Only `major.minor.patch` versions are supported by Prisma Data Proxy.', {
+  throw new NotImplementedYetError('Only `major.minor.patch` versions are supported by Accelerate.', {
     clientVersion,
   })
 }

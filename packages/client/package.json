@@ -47,7 +47,7 @@
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "pnpm run build",
-    "new-test": "NODE_OPTIONS='-r ts-node/register' yo ./helpers/generator-test/index.ts"
+    "new-test": "NODE_OPTIONS='-r esbuild-register' yo ./helpers/generator-test/index.ts"
   },
   "files": [
     "README.md",
@@ -101,6 +101,7 @@
     "benchmark": "2.1.4",
     "ci-info": "3.8.0",
     "decimal.js": "10.4.3",
+    "detect-runtime": "1.0.4",
     "env-paths": "2.2.1",
     "esbuild": "0.19.2",
     "execa": "5.1.1",
@@ -153,7 +154,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.2.0-21.0d2ee4d3fe757d532d33fc6f961d61b74f110395"
+    "@prisma/engines-version": "5.2.0-25.2804dc98259d2ea960602aca6b8e7fdc03c1758f"
   },
   "sideEffects": false
 }

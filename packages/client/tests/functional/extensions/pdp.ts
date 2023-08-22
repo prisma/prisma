@@ -14,7 +14,6 @@ declare let Prisma: typeof PrismaNamespace
  */
 testMatrix.setupTestSuite(() => {
   let mockedRequest: jest.SpyInstance<any>
-  const originalRequest = https.request
   const randomId1 = randomBytes(12).toString('hex')
   const randomId2 = randomBytes(12).toString('hex')
 
@@ -41,11 +40,15 @@ testMatrix.setupTestSuite(() => {
   })
 
   beforeEach(() => {
-    mockedRequest = jest.spyOn(https, 'request')
+    if (typeof globalThis['fetch'] === 'function') {
+      mockedRequest = jest.spyOn(globalThis as any, 'fetch')
+    } else {
+      mockedRequest = jest.spyOn(https, 'request')
+    }
   })
 
   afterEach(() => {
-    https.request = originalRequest
+    mockedRequest.mockRestore()
   })
 
   test('_runtimeDataModel is available on the client instance and provides model info', () => {
@@ -89,7 +92,7 @@ testMatrix.setupTestSuite(() => {
                 const res = await fetch(url, options)
 
                 expect(res).toHaveProperty('headers')
-                expect(res.headers).toHaveProperty('content-length')
+                expect(res.headers.get('content-length')).toBeDefined()
 
                 return res
               }

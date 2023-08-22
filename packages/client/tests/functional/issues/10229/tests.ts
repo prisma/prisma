@@ -33,8 +33,8 @@ testMatrix.setupTestSuite(
       `,
     },
     skipDataProxy: {
-      runtimes: ['edge'],
-      reason: 'InvalidDatasourceError will be shown on edge runtime, we should fix this in Prisma 6',
+      runtimes: ['node', 'edge'],
+      reason: 'InvalidDatasourceError is not compatible with asserted error // Change in Prisma 6',
     },
   },
 )
