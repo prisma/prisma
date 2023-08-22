@@ -12,6 +12,18 @@ exports[`studio with alternative urls and prisma:// queries work if url is prism
 }
 `;
 
+exports[`studio with alternative urls and prisma:// queries work if url is prisma:// via the mini-proxy 1`] = `
+{
+  action: clientRequest,
+  channel: -prisma,
+  payload: {
+    data: [],
+    error: null,
+  },
+  requestId: 1,
+}
+`;
+
 exports[`studio with custom schema.prisma filename can respond to \`create\` queries 1`] = `
 {
   action: clientRequest,
