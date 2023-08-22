@@ -6,7 +6,6 @@ import path from 'path'
 import rimraf from 'rimraf'
 
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
-import { startMiniProxy } from '../../../helpers/startMiniProxy'
 import { Studio } from '../../Studio'
 
 const originalEnv = { ...process.env }
@@ -26,16 +25,7 @@ function sendRequest(message: any): Promise<any> {
 }
 
 let studio: Studio
-let miniProxyProcess: { kill: () => void }
 describe('studio with alternative urls and prisma://', () => {
-  beforeAll(async () => {
-    miniProxyProcess = await startMiniProxy()
-  })
-
-  afterAll(() => {
-    miniProxyProcess.kill()
-  })
-
   afterEach(() => {
     // Back to original env vars
     process.env = { ...originalEnv }

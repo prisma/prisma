@@ -1,9 +1,33 @@
 import { enginesVersion } from '@prisma/engines'
 import { download, getCacheDir } from '@prisma/fetch-engine'
 import { getPlatform } from '@prisma/internals'
+import * as miniProxy from '@prisma/mini-proxy'
 import execa from 'execa'
 import { existsSync } from 'fs'
 import { tmpdir } from 'os'
+
+/**
+ * Generates a certificate for the Mini Proxy and prints its CA path to stdout.
+ * This is used to configure Node.js so it trusts the Mini proxy certificate.
+ */
+export async function main() {
+  if (existsSync(miniProxy.defaultCertificatesConfig.caCert) === false) {
+    await miniProxy.generateCertificates(miniProxy.defaultCertificatesConfig)
+  }
+
+  const miniProxyProcess = await startMiniProxy()
+
+  execa.sync('jest', ['--silent', ...process.argv.slice(2)], {
+    preferLocal: true,
+    stdio: 'inherit',
+    env: {
+      ...process.env,
+      NODE_EXTRA_CA_CERTS: miniProxy.defaultCertificatesConfig.caCert,
+    },
+  })
+
+  miniProxyProcess.kill()
+}
 
 /**
  * Starts the Mini Proxy in a background process and returns a "kill" handle.
@@ -33,3 +57,5 @@ export async function startMiniProxy() {
     },
   }
 }
+
+void main()
