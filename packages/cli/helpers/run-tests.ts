@@ -11,11 +11,15 @@ import { tmpdir } from 'os'
  * This is used to configure Node.js so it trusts the Mini proxy certificate.
  */
 export async function main() {
-  if (existsSync(miniProxy.defaultCertificatesConfig.caCert) === false) {
-    await miniProxy.generateCertificates(miniProxy.defaultCertificatesConfig)
-  }
+  let miniProxyProcess: Awaited<ReturnType<typeof startMiniProxy>> | undefined
 
-  const miniProxyProcess = await startMiniProxy()
+  if (process.platform !== 'win32') {
+    if (existsSync(miniProxy.defaultCertificatesConfig.caCert) === false) {
+      await miniProxy.generateCertificates(miniProxy.defaultCertificatesConfig)
+    }
+
+    miniProxyProcess = await startMiniProxy()
+  }
 
   execa.sync('jest', ['--silent', ...process.argv.slice(2)], {
     preferLocal: true,
@@ -26,7 +30,7 @@ export async function main() {
     },
   })
 
-  miniProxyProcess.kill()
+  miniProxyProcess?.kill()
 }
 
 /**
