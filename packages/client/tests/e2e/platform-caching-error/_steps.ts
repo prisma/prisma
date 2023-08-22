@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/require-await */
 import { $ } from 'zx'
 
 import { executeSteps } from '../_utils/executeSteps'
 
 void executeSteps({
-  setup: async () => {},
+  setup: async () => {
+    delete process.env.PRISMA_SKIP_POSTINSTALL_GENERATE
+  },
   test: async () => {
     // vercel + auto generate = error
     {

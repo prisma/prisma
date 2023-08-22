@@ -4,7 +4,6 @@ import { executeSteps } from '../_utils/executeSteps'
 
 void executeSteps({
   setup: async () => {
-    process.env.PRISMA_SKIP_POSTINSTALL_GENERATE = 'true'
     await $`pnpm install`
     await $`pnpm prisma generate`
   },
