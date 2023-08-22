@@ -329,16 +329,36 @@ ${new Enum(
 ).toJS()}
 
 /**
- * Create the Client
+ * This is a stub Prisma Client that will error at runtime if called.
  */
 class PrismaClient {
   constructor() {
-    throw new Error(
-      \`PrismaClient is unable to be run \${runtimeDescription}.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
-    )
+    return new Proxy(this, {
+      get(target, prop) {
+        const runtime = detectRuntime()
+        const edgeRuntimeName = {
+          'workerd': 'Cloudflare Workers',
+          'deno': 'Deno and Deno Deploy',
+          'netlify': 'Netlify Edge Functions',
+          'edge-light': 'Vercel Edge Functions',
+        }[runtime]
+
+        let message = 'PrismaClient is unable to run in '
+        if (edgeRuntimeName !== undefined) {
+          message += edgeRuntimeName + '. As an alternative, try Accelerate: https://pris.ly/d/accelerate.'
+        } else {
+          message += 'this browser environment, or has been bundled for the browser (running in \`' + runtime + '\`).'
+        }
+        
+        message += \`
+If this is unexpected, please open an issue: https://github.com/prisma/prisma/issues\`
+
+        throw new Error(message)
+      }
+    })
   }
 }
+
 exports.PrismaClient = PrismaClient
 
 Object.assign(exports, Prisma)
