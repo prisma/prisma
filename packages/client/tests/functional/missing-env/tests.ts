@@ -68,8 +68,8 @@ testMatrix.setupTestSuite(
           expect(message).toMatchInlineSnapshot(`
             error: Environment variable not found: DATABASE_URI.
 
-            In Cloudflare Module Workers, the URL is in the Worker's \`env\` parameter of \`fetch\`.
-            To solve this, provide the URL directly: https://pris.ly/d/cloudflare-datasource-url
+            In Cloudflare module Workers, environment variables are available only in the Worker's \`env\` parameter of \`fetch\`.
+            To solve this, provide the connection string directly: https://pris.ly/d/cloudflare-datasource-url
           `)
         }
 
