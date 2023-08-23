@@ -977,6 +977,8 @@ jobs:
       - name: Set up Windows dependencies
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
+          iwr -useb 'https://raw.githubusercontent.com/scoopinstaller/install/master/install.ps1' -outfile 'install.ps1'
+          .\install.ps1 -RunAsAdmin
           scoop install openssl
 
       - name: Set up PostgreSQL
