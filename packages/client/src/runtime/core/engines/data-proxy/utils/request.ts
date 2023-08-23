@@ -46,7 +46,7 @@ export async function request(
     }
   } catch (e) {
     const message = e.message ?? 'Unknown error'
-    throw new RequestError(message, { clientVersion })
+    throw new RequestError(message as string, { clientVersion })
   }
 }
 
