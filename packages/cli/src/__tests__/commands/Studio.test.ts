@@ -14,8 +14,6 @@ const ctx = jestContext.new().add(jestConsoleContext()).assemble()
 
 const STUDIO_TEST_PORT = 5678
 
-const testIf = (condition: boolean) => (condition ? test : test.skip)
-
 function sendRequest(message: any): Promise<any> {
   return fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
     method: 'POST',
@@ -68,7 +66,7 @@ describe('studio with alternative urls and prisma://', () => {
     studio.instance?.stop()
   })
 
-  testIf(process.platform !== 'win32')('queries work if url is prisma:// via the mini-proxy', async () => {
+  test('queries work if url is prisma:// via the mini-proxy', async () => {
     process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_URI}-${Date.now()}-studio`
     process.env.PDP_URL = miniProxy.generateConnectionString({
       envVar: 'PDP_URL',
