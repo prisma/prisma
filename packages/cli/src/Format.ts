@@ -1,7 +1,7 @@
-import { arg, Command, format, formatms, formatSchema, getDMMF, HelpError } from '@prisma/internals'
+import { arg, Command, format, formatms, formatSchema, HelpError, validate } from '@prisma/internals'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
-import chalk from 'chalk'
 import fs from 'fs'
+import { bold, dim, red, underline } from 'kleur/colors'
 
 /**
  * $ prisma format
@@ -14,27 +14,27 @@ export class Format implements Command {
   private static help = format(`
 Format a Prisma schema.
 
-${chalk.bold('Usage')}
+${bold('Usage')}
 
-  ${chalk.dim('$')} prisma format [options]
+  ${dim('$')} prisma format [options]
 
-${chalk.bold('Options')}
+${bold('Options')}
 
   -h, --help   Display this help message
     --schema   Custom path to your Prisma schema
 
-${chalk.bold('Examples')}
+${bold('Examples')}
 
 With an existing Prisma schema
-  ${chalk.dim('$')} prisma format
+  ${dim('$')} prisma format
 
 Or specify a Prisma schema path
-  ${chalk.dim('$')} prisma format --schema=./schema.prisma
+  ${dim('$')} prisma format --schema=./schema.prisma
 
   `)
 
   public async parse(argv: string[]): Promise<string | Error> {
-    const before = Date.now()
+    const before = Math.round(performance.now())
     const args = arg(argv, {
       '--help': Boolean,
       '-h': '--help',
@@ -54,25 +54,20 @@ Or specify a Prisma schema path
 
     const output = await formatSchema({ schemaPath })
 
-    try {
-      // Validate whether the formatted output is a valid schema
-      await getDMMF({
-        datamodel: output,
-      })
-    } catch (e) {
-      console.error('') // empty line for better readability
-      throw e
-    }
+    // Validate whether the formatted output is a valid schema
+    validate({
+      datamodel: output,
+    })
 
     fs.writeFileSync(schemaPath, output)
-    const after = Date.now()
+    const after = Math.round(performance.now())
 
-    return `Formatted ${chalk.underline(schemaPath)} in ${formatms(after - before)} 🚀`
+    return `Formatted ${underline(schemaPath)} in ${formatms(after - before)} 🚀`
   }
 
   public help(error?: string): string | HelpError {
     if (error) {
-      return new HelpError(`\n${chalk.bold.red(`!`)} ${error}\n${Format.help}`)
+      return new HelpError(`\n${bold(red(`!`))} ${error}\n${Format.help}`)
     }
     return Format.help
   }

@@ -19,7 +19,7 @@ testMatrix.setupTestSuite(() => {
     })
 
     // TODO: stack trace is not able to locate this error via dataproxy
-    if (!process.env.DATA_PROXY) {
+    if (!process.env.TEST_DATA_PROXY) {
       await expect(promise).rejects.toMatchPrismaErrorInlineSnapshot(`
 
       Invalid \`prisma.resource.create()\` invocation in

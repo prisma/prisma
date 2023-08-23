@@ -66,9 +66,9 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining('Argument set for data.contents.set must not be null'),
+        message: expect.stringContaining('Argument `set` must not be null'),
       }),
     )
   })
@@ -83,9 +83,9 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining('Argument contents for data.contents must not be null'),
+        message: expect.stringContaining('Argument `contents` must not be null'),
       }),
     )
   })
@@ -177,11 +177,9 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining(
-          'Unknown arg `unset` in data.contents.unset for type CommentContentListUpdateEnvelopeInput',
-        ),
+        message: expect.stringContaining('Unknown argument `unset`'),
       }),
     )
   })
@@ -202,11 +200,9 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining(
-          'Unknown arg `upsert` in data.contents.upsert for type CommentContentListUpdateEnvelopeInput',
-        ),
+        message: expect.stringContaining('Unknown argument `upsert`'),
       }),
     )
   })
@@ -235,11 +231,9 @@ setupTestSuite(() => {
       },
     })
 
-    await expect(comment).rejects.toThrowError(
+    await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining(
-          'Unknown arg `upsert` in data.contents.upsert for type CommentContentListUpdateEnvelopeInput',
-        ),
+        message: expect.stringContaining('Unknown argument `upsert`'),
       }),
     )
   })

@@ -25,7 +25,6 @@ export default testMatrix.setupSchema(({ provider }) => {
   return /* Prisma */ `
   generator client {
     provider = "prisma-client-js"
-    previewFeatures = ["filteredRelationCount"]
   }
   
   datasource db {

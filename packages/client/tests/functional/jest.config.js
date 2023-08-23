@@ -1,69 +1,49 @@
 'use strict'
-const os = require('os')
-const path = require('path')
 
-const runtimeDir = path.dirname(require.resolve('../../runtime'))
-const packagesDir = path.resolve('..', '..', '..')
+const isMacOrWindowsCI = Boolean(process.env.CI) && ['darwin', 'win32'].includes(process.platform)
+const isBuildkiteCI = Boolean(process.env.BUILDKITE)
 
 module.exports = () => {
+  // Default
+  let testTimeout = 30_000
+  if (isMacOrWindowsCI) {
+    testTimeout = 100_000
+  } else if (isBuildkiteCI) {
+    testTimeout = 50_000
+  }
+
   const configCommon = {
     testMatch: ['**/*.ts', '!(**/*.d.ts)', '!(**/_utils/**)', '!(**/_*.ts)', '!(**/.generated/**)'],
-    // By default, jest passes every file it loads thorough a transform and caches result both on disk and in memory
-    // That includes all generated clients as well. So, unless we ignore them, they'd be kept in memory until test process
-    // is finished, even though they are needed for 1 test only
-    transformIgnorePatterns: [
-      '[\\/]node_modules[\\/]',
-      escapeRegex(runtimeDir),
-      `${escapeRegex(packagesDir)}[\\/][^\\/]+[\\/]dist[\\/]`,
-    ],
-    reporters: [
-      'default',
-      [
-        'jest-junit',
-        {
-          addFileAttribute: 'true',
-          ancestorSeparator: ' › ',
-          classNameTemplate: '{classname}',
-          titleTemplate: '{title}',
-        },
-      ],
-    ],
+    transformIgnorePatterns: [],
+    reporters: ['default'],
     globalSetup: './_utils/globalSetup.js',
-    snapshotSerializers: ['@prisma/internals/src/utils/jestSnapshotSerializer'],
+    snapshotSerializers: ['@prisma/get-platform/src/test-utils/jestSnapshotSerializer'],
     setupFilesAfterEnv: ['./_utils/setupFilesAfterEnv.ts'],
-    testTimeout: 60_000,
+    testTimeout,
     collectCoverage: process.env.CI ? true : false,
   }
 
-  if (os.platform() === 'win32') {
-    // swc sometimes produces incorrect source maps, in our case on windows only
-    // https://github.com/swc-project/swc/issues/3180
-    // this causes error stack traces to point to incorrect lines and all enriched errors
-    // snapshots to fail. Until this is fixed, on windows we will be still using ts-jest
-    return {
-      ...configCommon,
-      preset: 'ts-jest/presets/js-with-babel-legacy',
-      globals: {
-        'ts-jest': {
-          isolatedModules: true,
+  if (process.env['JEST_JUNIT_DISABLE'] !== 'true') {
+    configCommon.reporters.push([
+      'jest-junit',
+      {
+        addFileAttribute: 'true',
+        ancestorSeparator: ' › ',
+        classNameTemplate: (vars) => {
+          return vars.classname
+            .replace(/(\(.*)provider=\w+,? ?(.*\))/, '$1$2')
+            .replace(/(\(.*)providerFlavor=\w+,? ?(.*\))/, '$1$2')
+            .replace(' ()', '')
         },
+        titleTemplate: '{title}',
       },
-    }
+    ])
   }
 
   return {
     ...configCommon,
     transform: {
-      '^.+\\.(m?j|t)s$': '@swc/jest',
+      '^.+\\.(m?j|t)s$': ['./esbuild-transformer', {}],
     },
   }
-}
-
-/**
- * https://stackoverflow.com/a/6969486
- * @param {string} str
- * @returns {string}
- */
-function escapeRegex(str) {
-  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }

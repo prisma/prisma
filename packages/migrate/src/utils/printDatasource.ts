@@ -1,4 +1,4 @@
-import chalk from 'chalk'
+import { dim } from 'kleur/colors'
 
 import type { DatasourceInfo } from '../utils/ensureDatabaseExists'
 
@@ -28,5 +28,5 @@ export function printDatasource({ datasourceInfo }: { datasourceInfo: Datasource
     message += ` at "${datasourceInfo.dbLocation}"`
   }
 
-  console.info(chalk.dim(message))
+  console.info(dim(message))
 }

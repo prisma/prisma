@@ -1,0 +1,21 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client_1 {
+  provider = "predefined-generator-1"
+}
+
+generator client_2 {
+  provider = "predefined-generator-2"
+}
+
+generator client_3 {
+  provider = "predefined-generator-3"
+}
+
+model User {
+  id   Int    @id
+  name String
+}

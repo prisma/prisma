@@ -1,7 +1,5 @@
-import { serializeQueryEngineName } from '@prisma/internals'
+import { getDMMF } from '@prisma/internals'
 import stripAnsi from 'strip-ansi'
-
-import { getDMMF } from '../generation/getDMMF'
 
 describe('dmmf', () => {
   test('dmmf enum filter mysql', async () => {
@@ -39,6 +37,12 @@ describe('dmmf', () => {
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
+              },
+              {
+                isList: false,
+                location: fieldRefTypes,
+                namespace: prisma,
+                type: EnumPostKindFieldRefInput,
               },
             ],
             isNullable: false,
@@ -108,6 +112,12 @@ describe('dmmf', () => {
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
+              },
+              {
+                isList: false,
+                location: fieldRefTypes,
+                namespace: prisma,
+                type: EnumPostKindFieldRefInput,
               },
             ],
             isNullable: false,
@@ -201,6 +211,12 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
+              {
+                isList: false,
+                location: fieldRefTypes,
+                namespace: prisma,
+                type: EnumPostKindFieldRefInput,
+              },
             ],
             isNullable: false,
             isRequired: false,
@@ -214,6 +230,12 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
+              {
+                isList: false,
+                location: fieldRefTypes,
+                namespace: prisma,
+                type: ListEnumPostKindFieldRefInput,
+              },
             ],
             isNullable: false,
             isRequired: false,
@@ -226,6 +248,12 @@ describe('dmmf', () => {
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
+              },
+              {
+                isList: false,
+                location: fieldRefTypes,
+                namespace: prisma,
+                type: ListEnumPostKindFieldRefInput,
               },
             ],
             isNullable: false,
@@ -270,6 +298,12 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
+              {
+                isList: false,
+                location: fieldRefTypes,
+                namespace: prisma,
+                type: EnumPostKindFieldRefInput,
+              },
             ],
             isNullable: false,
             isRequired: false,
@@ -283,6 +317,12 @@ describe('dmmf', () => {
                 namespace: model,
                 type: PostKind,
               },
+              {
+                isList: false,
+                location: fieldRefTypes,
+                namespace: prisma,
+                type: ListEnumPostKindFieldRefInput,
+              },
             ],
             isNullable: false,
             isRequired: false,
@@ -295,6 +335,12 @@ describe('dmmf', () => {
                 location: enumTypes,
                 namespace: model,
                 type: PostKind,
+              },
+              {
+                isList: false,
+                location: fieldRefTypes,
+                namespace: prisma,
+                type: ListEnumPostKindFieldRefInput,
               },
             ],
             isNullable: false,
@@ -348,8 +394,8 @@ describe('dmmf', () => {
     try {
       await getDMMF({ datamodel })
     } catch (e) {
-      expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
-        Prisma schema validation - (query-engine-NORMALIZED)
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        Prisma schema validation - (get-dmmf wasm)
         Error code: P1012
         error: Error validating: You defined the enum \`PostKind\`. But the current connector does not support enums.
           -->  schema.prisma:14

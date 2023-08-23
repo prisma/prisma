@@ -13,7 +13,7 @@ export function buildWarnEnvConflicts(edge: boolean, runtimeDir: string, runtime
 const { warnEnvConflicts } = require('${runtimeDir}/${runtimeName}')
 
 warnEnvConflicts({
-    rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(dirname, config.relativeEnvPaths.rootEnvPath),
-    schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(dirname, config.relativeEnvPaths.schemaEnvPath)
+    rootEnvPath: config.relativeEnvPaths.rootEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.rootEnvPath),
+    schemaEnvPath: config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath)
 })`
 }

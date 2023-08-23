@@ -1,4 +1,4 @@
-import { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE } from '@prisma/internals'
+import { ClientEngineType, DEFAULT_CLIENT_ENGINE_TYPE, getClientEngineType } from '@prisma/internals'
 import fs from 'fs'
 import os from 'os'
 import path from 'path'
@@ -76,7 +76,7 @@ function buildTests() {
           process.env[envVar] = value
 
           // Generate Client to tmp dir
-          await generateTestClient(projectDir)
+          await generateTestClient({ projectDir })
 
           // Run Tests
           const { PrismaClient } = require(path.join(projectDir, 'node_modules/@prisma/client'))
@@ -92,7 +92,7 @@ function buildTests() {
             ]
             `)
 
-          expect(prisma._clientEngineType).toMatch(expectedClientEngine)
+          expect(getClientEngineType(prisma._engineConfig.generator)).toMatch(expectedClientEngine)
           await prisma.$disconnect()
         })
       }

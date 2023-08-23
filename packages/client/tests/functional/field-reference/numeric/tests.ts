@@ -99,4 +99,16 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
 
     await expect(products).rejects.toMatchPrismaErrorSnapshot()
   })
+
+  test('via extended client', async () => {
+    const xprisma = prisma.$extends({})
+
+    const products = await xprisma.product.findMany({
+      where: {
+        quantity: { gt: xprisma.product.fields.maxQuantity },
+      },
+    })
+
+    expect(products).toEqual([expect.objectContaining({ title: 'Rice' })])
+  })
 })

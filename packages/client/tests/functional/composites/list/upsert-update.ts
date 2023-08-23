@@ -109,7 +109,7 @@ setupTestSuite(() => {
 
     await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining('Argument set for update.contents.set must not be null'),
+        message: expect.stringContaining('Argument `set` must not be null'),
       }),
     )
   })
@@ -127,7 +127,7 @@ setupTestSuite(() => {
 
     await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining('Argument contents for update.contents must not be null'),
+        message: expect.stringContaining('Argument `contents` must not be null'),
       }),
     )
   })
@@ -350,9 +350,7 @@ setupTestSuite(() => {
 
     await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining(
-          'Unknown arg `unset` in update.contents.unset for type CommentContentListUpdateEnvelopeInput',
-        ),
+        message: expect.stringContaining('Unknown argument `unset`'),
       }),
     )
   })
@@ -376,9 +374,7 @@ setupTestSuite(() => {
 
     await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining(
-          'Unknown arg `upsert` in update.contents.upsert for type CommentContentListUpdateEnvelopeInput',
-        ),
+        message: expect.stringContaining('Unknown argument `upsert`'),
       }),
     )
   })
@@ -410,9 +406,7 @@ setupTestSuite(() => {
 
     await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining(
-          'Unknown arg `upsert` in update.contents.upsert for type CommentContentListUpdateEnvelopeInput',
-        ),
+        message: expect.stringContaining('Unknown argument `upsert`'),
       }),
     )
   })

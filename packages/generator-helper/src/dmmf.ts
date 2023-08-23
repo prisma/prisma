@@ -58,7 +58,7 @@ export namespace DMMF {
     uniqueIndexes: uniqueIndex[]
     documentation?: string
     primaryKey: PrimaryKey | null
-    [key: string]: any // safe net for additional new props // TODO: remove this and the others, not safe
+    isGenerated?: boolean
   }
 
   export type FieldKind = 'scalar' | 'object' | 'enum' | 'unsupported'
@@ -77,11 +77,11 @@ export namespace DMMF {
     isGenerated?: boolean // does not exist on 'type' but does on 'model'
     isUpdatedAt?: boolean // does not exist on 'type' but does on 'model'
     /**
-     * Describes the data type in the same the way is is defined in the Prisma schema:
+     * Describes the data type in the same the way it is defined in the Prisma schema:
      * BigInt, Boolean, Bytes, DateTime, Decimal, Float, Int, JSON, String, $ModelName
      */
     type: string
-    dbNames?: string[] | null
+    dbName?: string | null
     hasDefaultValue: boolean
     default?: FieldDefault | FieldDefaultScalar | FieldDefaultScalar[]
     relationFromFields?: string[]

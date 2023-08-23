@@ -12,6 +12,8 @@ testMatrix.setupTestSuite(
           title: 'Potato',
           quantity: 100,
           forbiddenQuantities: [1, 500, 100],
+          enum1: 'a',
+          enum2: ['a'],
         },
       })
 
@@ -20,6 +22,8 @@ testMatrix.setupTestSuite(
           title: 'Rice',
           quantity: 500,
           forbiddenQuantities: [10, 100, 1000],
+          enum1: 'a',
+          enum2: ['b'],
         },
       })
 
@@ -28,6 +32,8 @@ testMatrix.setupTestSuite(
           title: 'Tomato',
           forbiddenQuantities: [1, 500, 100],
           quantity: 30,
+          enum1: 'b',
+          enum2: ['c'],
         },
       })
     })
@@ -40,6 +46,14 @@ testMatrix.setupTestSuite(
       })
 
       expect(products).toEqual([expect.objectContaining({ title: 'Potato' })])
+
+      const enums = await prisma.product.findMany({
+        where: {
+          enum1: { in: prisma.product.fields.enum2 },
+        },
+      })
+
+      expect(enums).toEqual([expect.objectContaining({ title: 'Potato' })])
     })
 
     test('notIn', async () => {
@@ -53,6 +67,37 @@ testMatrix.setupTestSuite(
         expect.objectContaining({ title: 'Rice' }),
         expect.objectContaining({ title: 'Tomato' }),
       ])
+
+      const enums = await prisma.product.findMany({
+        where: {
+          enum1: { notIn: prisma.product.fields.enum2 },
+        },
+      })
+
+      expect(enums).toEqual([expect.objectContaining({ title: 'Rice' }), expect.objectContaining({ title: 'Tomato' })])
+    })
+
+    test('via extended client', async () => {
+      const xprisma = prisma.$extends({})
+
+      const products = await xprisma.product.findMany({
+        where: {
+          quantity: { notIn: xprisma.product.fields.forbiddenQuantities },
+        },
+      })
+
+      expect(products).toEqual([
+        expect.objectContaining({ title: 'Rice' }),
+        expect.objectContaining({ title: 'Tomato' }),
+      ])
+
+      const enums = await xprisma.product.findMany({
+        where: {
+          enum1: { notIn: xprisma.product.fields.enum2 },
+        },
+      })
+
+      expect(enums).toEqual([expect.objectContaining({ title: 'Rice' }), expect.objectContaining({ title: 'Tomato' })])
     })
   },
   {

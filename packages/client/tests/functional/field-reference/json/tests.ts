@@ -134,6 +134,30 @@ testMatrix.setupTestSuite(
 
       await expect(products).rejects.toMatchPrismaErrorSnapshot()
     })
+
+    test('via extended client', async () => {
+      const xprisma = prisma.$extends({})
+
+      await xprisma.product.createMany({
+        data: [
+          {
+            title: 'Potato',
+            properties1: {
+              kind: 'root vegetable',
+            },
+            properties2: {
+              kind: 'root vegetable',
+            },
+          },
+        ],
+      })
+
+      const products = await xprisma.product.findMany({
+        where: { properties1: { equals: xprisma.product.fields.properties2 } },
+      })
+
+      expect(products).toEqual([expect.objectContaining({ title: 'Potato' })])
+    })
   },
   {
     optOut: {

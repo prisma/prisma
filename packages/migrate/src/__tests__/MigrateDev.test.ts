@@ -1,7 +1,7 @@
 // describeIf is making eslint unhappy about the test names
 /* eslint-disable jest/no-identical-title */
 
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import fs from 'fs-jetpack'
 import path from 'path'
 import prompt from 'prompts'
@@ -27,6 +27,8 @@ process.env.PRISMA_MIGRATE_SKIP_GENERATE = '1'
 function removeSeedlingEmoji(str: string) {
   return str.replace('🌱  ', '')
 }
+
+const originalEnv = { ...process.env }
 
 describe('common', () => {
   it('invalid schema', async () => {
@@ -115,32 +117,6 @@ describe('common', () => {
             You can either provide it with --schema, set it as \`prisma.schema\` in your package.json or put it into the default location ./prisma/schema.prisma https://pris.ly/d/prisma-schema-location
           `)
   })
-  it('should fail if old migrate', async () => {
-    ctx.fixture('old-migrate')
-    const result = MigrateDev.new().parse([])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            The migrations folder contains migration files from an older version of Prisma Migrate which is not compatible.
-
-            Read more about how to upgrade to the new version of Migrate:
-            https://pris.ly/d/migrate-upgrade
-          `)
-  })
-  it('should fail if experimental flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateDev.new().parse(['--experimental'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was Experimental and is now Generally Available.
-            WARNING this new version has some breaking changes to use it it's recommended to read the documentation first and remove the --experimental flag.
-          `)
-  })
-  it('should fail if early access flag', async () => {
-    ctx.fixture('empty')
-    const result = MigrateDev.new().parse(['--early-access-feature'])
-    await expect(result).rejects.toThrowErrorMatchingInlineSnapshot(`
-            Prisma Migrate was in Early Access and is now Generally Available.
-            Remove the --early-access-feature flag.
-          `)
-  })
   it('dev should error in unattended environment', async () => {
     ctx.fixture('transition-db-push-migrate')
     const result = MigrateDev.new().parse([])
@@ -206,7 +182,7 @@ describe('sqlite', () => {
   // [Error: Failed to create a new migration directory.
   //    0: migration_core::api::CreateMigration
   //            with migration_name="xl556ba8iva0gd2qfoyk2fvifsysnq7c766sscsa18rwolofgwo6j1mwc4d5xhgmkfumr8ktberb1y177de7uxcd6v7l44b6fkhlwycl70lrxw0u7h6bdpuf595n046bp9ek87dk59o0nlruto403n7esdq6wgm3o5w425i7svaw557latsslakyjifkd1p21jwj1end" draft=false
-  //              at migration-engine\core\src\api.rs:94
+  //              at schema-engine\core\src\api.rs:94
   // ]
   //
   // Probably the file name is too long for Windows?
@@ -693,14 +669,14 @@ describe('sqlite', () => {
 
     await expect(result).rejects.toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              ⚠️ We found changes that cannot be executed:
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ⚠️ We found changes that cannot be executed:
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      • Step 0 Made the column \`fullname\` on table \`Blog\` required, but there are 1 existing NULL values.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              Then run prisma migrate dev to apply it and verify it works.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    You can use prisma migrate dev --create-only to create the migration file, and manually modify it to address the underlying issue(s).
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Then run prisma migrate dev to apply it and verify it works.
 
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      `)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          `)
     expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
       Prisma schema loaded from prisma/schema.prisma
       Datasource "my_db": SQLite database "dev.db" at "file:dev.db"
@@ -754,10 +730,10 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                              ⚠️  Warnings for the current datasource:
+                                                                                                                                                                                                                                                                                                                                                                                    ⚠️  Warnings for the current datasource:
 
-                                                                                                                                                                                                                                                                                                                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                                                                                                                                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                                                                                                                                                                        `)
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
   })
 
@@ -780,10 +756,10 @@ describe('sqlite', () => {
     `)
     expect(ctx.mocked['console.log'].mock.calls.join('\n')).toMatchInlineSnapshot(`
 
-                                                                                                                                                                                                                                                                                                                                                                              ⚠️  Warnings for the current datasource:
+                                                                                                                                                                                                                                                                                                                                                                                    ⚠️  Warnings for the current datasource:
 
-                                                                                                                                                                                                                                                                                                                                                                                • You are about to drop the \`Blog\` table, which is not empty (2 rows).
-                                                                                                                                                                                                                                                    `)
+                                                                                                                                                                                                                                                                                                                                                                                      • You are about to drop the \`Blog\` table, which is not empty (2 rows).
+                                                                                                                                                                                                                                                        `)
     expect(ctx.mocked['console.error'].mock.calls).toEqual([])
     expect(mockExit).toHaveBeenCalledWith(130)
   })
@@ -942,29 +918,36 @@ describe('sqlite', () => {
 })
 
 describe('postgresql', () => {
-  const connectionString = (
-    process.env.TEST_POSTGRES_URI_MIGRATE || 'postgres://prisma:prisma@localhost:5432/tests-migrate'
-  ).replace('tests-migrate', 'tests-migrate-dev')
-
-  // Update env var because it's the one that is used in the schemas tested
-  process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
-  process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE = connectionString.replace(
-    'tests-migrate-dev',
-    'tests-migrate-dev-shadowdb',
-  )
+  const connectionString = process.env.TEST_POSTGRES_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   const setupParams: SetupParams = {
     connectionString,
     dirname: '',
   }
 
-  beforeEach(async () => {
-    await setupPostgres(setupParams).catch((e) => {
+  beforeAll(async () => {
+    await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
+  beforeEach(async () => {
+    await setupPostgres(setupParams).catch((e) => {
+      console.error(e)
+    })
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_POSTGRES_URI_MIGRATE = connectionString
+    process.env.TEST_POSTGRES_SHADOWDB_URI_MIGRATE = connectionString.replace(
+      'tests-migrate-dev',
+      'tests-migrate-dev-shadowdb',
+    )
+  })
+
   afterEach(async () => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
     await tearDownPostgres(setupParams).catch((e) => {
       console.error(e)
     })
@@ -1179,7 +1162,7 @@ describe('postgresql', () => {
   // Failed with
   // Snapshot: db error: ERROR: relation "_prisma_migrations" already exists
   // 0: migration_core::state::ApplyMigrations
-  // at migration-engine/core/src/state.rs:199
+  // at schema-engine/core/src/state.rs:199
   // Probably needs to run on an isolated db (currently in a git stash)
   it.skip('need to reset prompt: (no) should succeed', async () => {
     ctx.fixture('schema-only-postgresql')
@@ -1207,7 +1190,7 @@ describe('postgresql', () => {
     await expect(result).rejects.toMatchInlineSnapshot(`
       db error: ERROR: relation "_prisma_migrations" already exists
          0: migration_core::state::ApplyMigrations
-                   at migration-engine/core/src/state.rs:199
+                   at schema-engine/core/src/state.rs:199
 
     `)
     expect(mockExit).toHaveBeenCalledWith(130)
@@ -1221,32 +1204,58 @@ describe('postgresql', () => {
     expect(ctx.mocked['console.log'].mock.calls.join()).toMatchInlineSnapshot(`Canceled by user.`)
     expect(ctx.mocked['console.error'].mock.calls.join()).toMatchInlineSnapshot(``)
   })
+
+  it('should work if directUrl is set as env var', async () => {
+    ctx.fixture('schema-only-data-proxy')
+    const result = MigrateDev.new().parse(['--schema', 'with-directUrl-env.prisma', '--name=first'])
+
+    await expect(result).resolves.toMatchInlineSnapshot(``)
+    expect(ctx.mocked['console.info'].mock.calls.join('\n')).toMatchInlineSnapshot(`
+      Environment variables loaded from .env
+      Prisma schema loaded from with-directUrl-env.prisma
+      Datasource "db": PostgreSQL database "tests-migrate-dev", schema "public" at "localhost:5432"
+
+      Already in sync, no schema change or pending migration was found.
+    `)
+    expect(ctx.mocked['console.log'].mock.calls).toEqual([])
+    expect(ctx.mocked['console.error'].mock.calls).toEqual([])
+  })
 })
 
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
-  const connectionString = (
-    process.env.TEST_COCKROACH_URI_MIGRATE || 'postgresql://prisma@localhost:26257/tests-migrate'
-  ).replace('tests-migrate', 'tests-migrate-dev')
-
-  // Update env var because it's the one that is used in the schemas tested
-  process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
-  process.env.TEST_COCKROACH_SHADOWDB_URI_MIGRATE = connectionString.replace(
-    'tests-migrate-dev',
-    'tests-migrate-dev-shadowdb',
-  )
+  if (!process.env.TEST_SKIP_COCKROACHDB && !process.env.TEST_COCKROACH_URI_MIGRATE) {
+    throw new Error('You must set a value for process.env.TEST_COCKROACH_URI_MIGRATE. See TESTING.md')
+  }
+  const connectionString = process.env.TEST_COCKROACH_URI_MIGRATE?.replace('tests-migrate', 'tests-migrate-dev')
 
   const setupParams = {
-    connectionString,
+    connectionString: connectionString!,
     dirname: '',
   }
+
+  beforeAll(async () => {
+    await tearDownCockroach(setupParams).catch((e) => {
+      console.error(e)
+    })
+  })
 
   beforeEach(async () => {
     await setupCockroach(setupParams).catch((e) => {
       console.error(e)
     })
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_COCKROACH_URI_MIGRATE = connectionString
+    process.env.TEST_COCKROACH_SHADOWDB_URI_MIGRATE = connectionString?.replace(
+      'tests-migrate-dev',
+      'tests-migrate-dev-shadowdb',
+    )
   })
 
   afterEach(async () => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
     await tearDownCockroach(setupParams).catch((e) => {
       console.error(e)
     })
@@ -1412,29 +1421,36 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('cockroachdb', () => {
 })
 
 describe('mysql', () => {
-  const connectionString = (
-    process.env.TEST_MYSQL_URI_MIGRATE || 'mysql://root:root@localhost:3306/tests-migrate'
-  ).replace('tests-migrate', 'tests-migrate-dev')
-
-  // Update env var because it's the one that is used in the schemas tested
-  process.env.TEST_MYSQL_URI_MIGRATE = connectionString
-  process.env.TEST_MYSQL_SHADOWDB_URI_MIGRATE = connectionString.replace(
-    'tests-migrate-dev',
-    'tests-migrate-dev-shadowdb',
-  )
+  const connectionString = process.env.TEST_MYSQL_URI_MIGRATE!.replace('tests-migrate', 'tests-migrate-dev')
 
   const setupParams: SetupParams = {
     connectionString,
     dirname: '',
   }
 
-  beforeEach(async () => {
-    await setupMysql(setupParams).catch((e) => {
+  beforeAll(async () => {
+    await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
   })
 
+  beforeEach(async () => {
+    await setupMysql(setupParams).catch((e) => {
+      console.error(e)
+    })
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_MYSQL_URI_MIGRATE = connectionString
+    process.env.TEST_MYSQL_SHADOWDB_URI_MIGRATE = connectionString.replace(
+      'tests-migrate-dev',
+      'tests-migrate-dev-shadowdb',
+    )
+  })
+
   afterEach(async () => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
     await tearDownMysql(setupParams).catch((e) => {
       console.error(e)
     })
@@ -1626,37 +1642,39 @@ describeIf(!process.env.TEST_SKIP_MSSQL)('SQL Server', () => {
     jest.setTimeout(20_000)
   }
 
-  const connectionString = process.env.TEST_MSSQL_URI || 'mssql://SA:Pr1sm4_Pr1sm4@localhost:1433/master'
-
-  // Update env var because it's the one that is used in the schemas tested
-  process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
-    'tests-migrate',
-    'tests-migrate-dev',
-  )
-  process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
-    'tests-migrate-shadowdb',
-    'tests-migrate-dev-shadowdb',
-  )
-
+  const databaseName = 'tests-migrate-dev'
   const setupParams: SetupParams = {
-    connectionString,
+    connectionString: process.env.TEST_MSSQL_URI!,
     dirname: '',
   }
 
   beforeAll(async () => {
-    await tearDownMSSQL(setupParams, 'tests-migrate-dev').catch((e) => {
+    await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
   })
 
   beforeEach(async () => {
-    await setupMSSQL(setupParams, 'tests-migrate-dev').catch((e) => {
+    await setupMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    // Update env var because it's the one that is used in the schemas tested
+    process.env.TEST_MSSQL_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_JDBC_URI_MIGRATE?.replace(
+      'tests-migrate',
+      databaseName,
+    )
+    process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE = process.env.TEST_MSSQL_SHADOWDB_JDBC_URI_MIGRATE?.replace(
+      'tests-migrate-shadowdb',
+      `${databaseName}-shadowdb`,
+    )
   })
 
   afterEach(async () => {
-    await tearDownMSSQL(setupParams, 'tests-migrate-dev').catch((e) => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
+    await tearDownMSSQL(setupParams, databaseName).catch((e) => {
       console.error(e)
     })
   })

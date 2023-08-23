@@ -1,17 +1,5 @@
-import { handlePanic, jestConsoleContext, jestContext } from '@prisma/internals'
-import {
-  DbCommand,
-  DbPull,
-  DbPush,
-  // DbDrop,
-  DbSeed,
-  MigrateCommand,
-  MigrateDeploy,
-  MigrateDev,
-  MigrateReset,
-  MigrateResolve,
-  MigrateStatus,
-} from '@prisma/migrate'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import { DbPull } from '@prisma/migrate'
 
 import { CLI } from '../../CLI'
 
@@ -87,7 +75,7 @@ it('help flag', async () => {
 })
 
 it('unknown command', async () => {
-  await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrowError()
+  await expect(cliInstance.parse(['doesnotexist'])).resolves.toThrow()
 })
 
 it('introspect should include deprecation warning', async () => {

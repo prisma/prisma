@@ -114,14 +114,10 @@ In the `prisma/prisma` repository we have a few places where you can write tests
   - `src/__tests__/types/**` - Tests for generated Client TS Types
 - **`debug`**
   - Unit tests for `debug` package
-- **`engine-core`**
-  - Unit tests for `engine-core` package
 - **`generator-helper`**
   - Integration tests for generator interface implementation
 - **`migrate`**
   - Unit and integration tests for `migrate` and `db` commands
-- **`react-prisma`**
-  - Doesn't have tests
 - **`internals`**
   - Convert credentials to connection string and back
   - Dotenv expansion
@@ -160,17 +156,13 @@ To change the default Rust artifacts' type used under the hood, you can set the 
 - `mkdir artificial-panics && cd artificial-panics`
 - `npx prisma init --datasource-provider sqlite`
 
-### Trigger panic in Migration Engine
+### Trigger panic in Schema Engine
 
-- run `FORCE_PANIC_MIGRATION_ENGINE=1 npx prisma migrate dev`
-
-### Trigger panic in Introspection Engine
-
-- run `FORCE_PANIC_INTROSPECTION_ENGINE=1 npx prisma db pull`
+- run `FORCE_PANIC_SCHEMA_ENGINE=1 npx prisma migrate dev`
 
 ### Trigger panic in Formatter
 
-- run `FORCE_PANIC_PRISMA_FMT=1 npx prisma format`
+- run `FORCE_PANIC_PRISMA_SCHEMA=1 npx prisma format`
 
 ### Trigger panic in Query Engine - Get DMMF
 
@@ -504,18 +496,32 @@ You will need to have installed the Rust toolchain and just a few extra dependen
 
 By creating a Pull Request the following pipelines will be triggered
 
-- [Buildkite `[Test] Prisma TypeScript`](https://buildkite.com/prisma/test-prisma-typescript)
 - [GitHub Action `CI`](https://github.com/prisma/prisma/blob/main/.github/workflows/test.yml)
+- [GitHub Action `Benchmark`](https://github.com/prisma/prisma/blob/main/.github/workflows/benchmark.yml)
 
-They are both running the same tests but with different Node.js version and will need to be successful before merging ("flaky" tests might show up and might be ignored).
+`CI` will need to be successful before merging ("flaky" tests might show up and might be ignored).
 
-### Publishing an integration version of all the packages
+By default, some tests are tested only during daily builds (e.g. `binary` engine). If you need to run all of them for your PR leave a `ci test all` comment on the PR and re-run the workflow.
 
-If a branch name starts with `integration/` like `integration/fix-all-the-things` the [Buildkite `[Release] Prisma TypeScript`](https://buildkite.com/prisma/release-prisma-typescript) pipeline will be triggered.
-If tests pass, a new version of the packages will be published to npm with a version like `3.12.0-integration-fix-all-the-things.1` (where `3.12.0-` is the current dev version prefix, `integration-` is statically added, `fix-all-the-things` is from the branch name and `.1` indicates the first version published from this integration branch)
+### Publishing all the packages to npm on the `integration` tag
 
-To make a PR which will release an integration version, the name of the branch of the PR would need to start with `integration/`.
-The `Buildkite [Release] Prisma TypeScript` will show its status in the PR checks and might take up to 30min to finish.
+If a branch name starts with `integration/` like `integration/fix-all-the-things` the [GitHub Actions - npm - release to dev/integration](https://github.com/prisma/prisma/blob/main/.github/workflows/release-ci.yml) pipeline will be triggered.
+This workflow will directly publish (without running tests) the packages to npm on the `integration` tag with a version like `3.12.0-integration-fix-all-the-things.1` (where `3.12.0-` is the current dev version prefix, `integration-` is statically added, `fix-all-the-things` is from the branch name and `.1` indicates the first version published from this branch)
+
+To make a Pull Request which will release a version to the `integration` tag automatically, the name of the branch of the PR would need to start with `integration/`.
+Alternatively, add `/integration` in the Pull Request description:
+
+- If this is added before opening the Pull Request, a release will happen automatically
+- If this is added after the creation of the PR, the `Detect jobs to run` job from the `CI` workflow would need to be re-triggered to get a release.
+
+The [GitHub Actions - npm - release to dev/integration](https://github.com/prisma/prisma/blob/main/.github/workflows/release-ci.yml) workflow can also be manually triggered to run on any branch.
+Example:
+
+- Go to https://github.com/prisma/prisma/actions/workflows/release-ci.yml?query=branch%3Ajoel%2Fdotenv
+- Click "Run workflow"
+- Change "Use workflow from" to match the branch you want to release, here `joel/dotenv`
+- Check the box for "Check to force an integration release for any given branch name"
+- Wait for the workflow to finish
 
 Once published to npm the version will need to be installed with the exact version like:
 

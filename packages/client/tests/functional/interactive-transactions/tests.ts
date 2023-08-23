@@ -296,6 +296,35 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
     },
   )
 
+  testIf(clientMeta.runtime !== 'edge')('batching rollback within callback', async () => {
+    const result = prisma.$transaction(async (tx) => {
+      await Promise.all([
+        tx.user.create({
+          data: {
+            email: 'user_1@website.com',
+          },
+        }),
+        tx.user.create({
+          data: {
+            email: 'user_2@website.com',
+          },
+        }),
+      ])
+
+      await tx.user.create({
+        data: {
+          email: 'user_1@website.com',
+        },
+      })
+    })
+
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
+
+    const users = await prisma.user.findMany()
+
+    expect(users.length).toBe(0)
+  })
+
   /**
    * A bad batch should rollback using the interactive transaction logic
    * // TODO: skipped because output differs from binary to library
@@ -422,7 +451,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
             },
           })
         })
-        .catch((e) => {})
+        .catch(() => {})
 
       const users = await isolatedPrisma.user.findMany()
       expect(users).toHaveLength(1)
@@ -607,8 +636,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
           // @ts-test-if: provider !== 'mongodb'
           await transactionPrisma.$queryRaw`SELECT id from "User" where email = 'x' FOR UPDATE`
 
-          const user = await transactionPrisma.user.findUnique({
-            rejectOnNotFound: true,
+          const user = await transactionPrisma.user.findUniqueOrThrow({
             where: {
               email: 'x',
             },
@@ -636,8 +664,7 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
 
     await Promise.allSettled(promises)
 
-    const finalUser = await prisma.user.findUnique({
-      rejectOnNotFound: true,
+    const finalUser = await prisma.user.findUniqueOrThrow({
       where: {
         email: 'x',
       },
@@ -647,7 +674,6 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
   })
 
   describeIf(provider !== 'mongodb')('isolation levels', () => {
-    /* eslint-disable jest/no-standalone-expect */
     function testIsolationLevel(title: string, supported: boolean, fn: () => Promise<void>) {
       test(title, async () => {
         if (supported) {
@@ -749,7 +775,6 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
         `Inconsistent column data: Conversion failed: Invalid isolation level \`NotAValidLevel\``,
       )
     })
-    /* eslint-enable jest/no-standalone-expect */
   })
 
   testIf(provider === 'mongodb')('attempt to set isolation level on mongo', async () => {

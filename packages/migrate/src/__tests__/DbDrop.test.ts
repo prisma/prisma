@@ -1,4 +1,4 @@
-import { jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import prompt from 'prompts'
 
 import { DbDrop } from '../commands/DbDrop'
@@ -42,7 +42,7 @@ describe('drop', () => {
     ctx.fs.remove('prisma/dev.db')
 
     const result = DbDrop.new().parse(['--preview-feature', '--force'])
-    // Migration engine error:
+    // Schema engine error:
     // Failed to delete SQLite database at \`dev.db\`.
     // On Linux/macOS:
     // No such file or directory (os error 2)
@@ -111,7 +111,7 @@ describe('drop', () => {
       Drop cancelled.
     `)
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
-    expect(mockExit).toBeCalledWith(130)
+    expect(mockExit).toHaveBeenCalledWith(130)
   })
 
   it('should ask for --force if not provided if CI', async () => {

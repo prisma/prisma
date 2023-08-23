@@ -6,6 +6,7 @@
   <a href="https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" /></a>
   <a href="https://github.com/prisma/prisma/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache%202-blue" /></a>
   <a href="https://slack.prisma.io/"><img src="https://img.shields.io/badge/chat-on%20slack-blue.svg" /></a>
+  <a href="https://pris.ly/discord"><img alt="Discord" src="https://img.shields.io/discord/937751382725886062?label=Discord"></a>
   <br />
   <br />
   <a href="https://www.prisma.io/docs/getting-started/quickstart">Quickstart</a>
@@ -20,9 +21,9 @@
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
   <a href="https://slack.prisma.io/">Slack</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://twitter.com/prisma">Twitter</a>
+  <a href="https://pris.ly/discord">Discord</a>
   <span>&nbsp;&nbsp;•&nbsp;&nbsp;</span>
-  <a href="https://github.com/prisma/prisma1">Prisma 1</a>
+  <a href="https://twitter.com/prisma">Twitter</a>
   <br />
   <hr />
 </div>
@@ -37,8 +38,6 @@ Prisma is a **next-generation ORM** that consists of these tools:
 
 Prisma Client can be used in _any_ Node.js or TypeScript backend application (including serverless applications and microservices). This can be a [REST API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/rest), a [GraphQL API](https://www.prisma.io/docs/understand-prisma/prisma-in-your-stack/graphql), a gRPC API, or anything else that needs a database.
 
-> **Are you looking for Prisma 1? The Prisma 1 repository has been renamed to [`prisma/prisma1`](https://github.com/prisma/prisma1)**.
-
 ## Getting started
 
 The fastest way to get started with Prisma is by following the [**Quickstart (5 min)**](https://www.prisma.io/docs/getting-started/quickstart-typescript).
@@ -48,7 +47,7 @@ The Quickstart is based on a preconfigured SQLite database. You can also get sta
 - [Add Prisma to an existing project](https://www.prisma.io/docs/getting-started/setup-prisma/add-to-existing-project-typescript-postgres)
 - [Set up a new project with Prisma from scratch](https://www.prisma.io/docs/getting-started/setup-prisma/start-from-scratch-typescript-postgres)
 
-## How does Prisma work
+## How Prisma works
 
 This section provides a high-level overview of how Prisma works and its most important technical components. For a more thorough introduction, visit the [Prisma documentation](https://www.prisma.io/docs/).
 
@@ -128,7 +127,7 @@ npm install @prisma/client
 
 Note that the installation of this package invokes the `prisma generate` command which reads your Prisma schema and _generates_ the Prisma Client code. The code will be located in `node_modules/.prisma/client`, which is exported by `node_modules/@prisma/client/index.d.ts`.
 
-After you change your data model, you'll need to manually re-generate Prisma Client to ensure the code inside `node_modules/.prisma/client` get updated:
+After you change your data model, you'll need to manually re-generate Prisma Client to ensure the code inside `node_modules/.prisma/client` gets updated:
 
 ```
 npx prisma generate
@@ -158,7 +157,7 @@ const { PrismaClient } = require('@prisma/client')
 const prisma = new PrismaClient()
 ```
 
-Now you can start sending queries via the generated Prisma Client API, here are few sample queries. Note that all Prisma Client queries return _plain old JavaScript objects_.
+Now you can start sending queries via the generated Prisma Client API, here are a few sample queries. Note that all Prisma Client queries return _plain old JavaScript objects_.
 
 Learn more about the available operations in the [Prisma Client docs](https://www.prisma.io/docs/concepts/components/prisma-client) or watch this [demo video](https://www.youtube.com/watch?v=LggrE5kJ75I&list=PLn2e1F9Rfr6k9PnR_figWOcSHgc_erDr5&index=4) (2 min).
 
@@ -220,7 +219,7 @@ Note that when using TypeScript, the result of this query will be _statically ty
 
 ## Community
 
-Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io) and here on [GitHub](https://github.com/prisma/prisma/discussions).
+Prisma has a large and supportive [community](https://www.prisma.io/community) of enthusiastic application developers. You can join us on [Slack](https://slack.prisma.io), [Discord](https://pris.ly/discord), and here on [GitHub](https://github.com/prisma/prisma/discussions).
 
 ## Security
 
@@ -244,7 +243,7 @@ If you see an error message or run into an issue, please make sure to create a b
 
 If Prisma currently doesn't have a certain feature, be sure to check out the [roadmap](https://www.prisma.io/docs/more/roadmap) to see if this is already planned for the future.
 
-If the feature on the roadmap is linked to a GitHub issue, please make sure to leave a +1 on the issue and ideally a comment with your thoughts about the feature!
+If the feature on the roadmap is linked to a GitHub issue, please make sure to leave a 👍 reaction on the issue and ideally a comment with your thoughts about the feature!
 
 👉 [**Submit feature request**](https://github.com/prisma/prisma/issues/new?assignees=&labels=&template=feature_request.md&title=)
 
@@ -252,9 +251,9 @@ If the feature on the roadmap is linked to a GitHub issue, please make sure to l
 
 Refer to our [contribution guidelines](https://github.com/prisma/prisma/blob/main/CONTRIBUTING.md) and [Code of Conduct for contributors](https://github.com/prisma/prisma/blob/main/CODE_OF_CONDUCT.md).
 
-## Build Status
+## Tests Status
 
 - Prisma Tests Status:  
-  [![Build status](https://badge.buildkite.com/590e1981074b70961362481ad8319a831b44a38c5d468d6408.svg?branch=main)](https://buildkite.com/prisma/prisma2-test)
+  [![Prisma Tests Status](https://github.com/prisma/prisma/workflows/CI/badge.svg)](https://github.com/prisma/prisma/actions/workflows/test.yml?query=branch%3Amain)
 - Ecosystem Tests Status:  
-  [![Actions Status](https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg)](https://github.com/prisma/ecosystem-tests/actions)
+  [![Ecosystem Tests Status](https://github.com/prisma/ecosystem-tests/workflows/test/badge.svg)](https://github.com/prisma/ecosystem-tests/actions/workflows/test.yaml?query=branch%3Adev)

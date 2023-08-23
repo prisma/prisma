@@ -9,16 +9,18 @@ const describeIf = (condition: boolean) => (condition ? describe : describe.skip
 describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () => {
   let prisma: any = null
   let PrismaHelpers: any = null
-  let setupParams: any = null
-  const requests: any[] = []
-  const errorLogs: any[] = []
+  let setupParams: SetupParams
+  // const errorLogs: any[] = []
 
   beforeAll(async () => {
     await generateTestClient()
     const { PrismaClient, Prisma } = require('./node_modules/@prisma/client')
     PrismaHelpers = Prisma
 
-    let originalConnectionString = process.env.TEST_COCKROACH_URI || 'postgresql://prisma@localhost:26257/tests'
+    if (!process.env.TEST_COCKROACH_URI) {
+      throw new Error('You must set a value for process.env.TEST_COCKROACH_URI. See TESTING.md')
+    }
+    let originalConnectionString = process.env.TEST_COCKROACH_URI
     originalConnectionString += '-blog-env-cockroachdb'
 
     setupParams = {
@@ -32,9 +34,6 @@ describeIf(!process.env.TEST_SKIP_COCKROACHDB)('Blog fixture: Cockroachdb', () =
       errorFormat: 'colorless',
       __internal: {
         measurePerformance: true,
-        hooks: {
-          beforeRequest: (request) => requests.push(request),
-        },
       },
       datasources: {
         db: {

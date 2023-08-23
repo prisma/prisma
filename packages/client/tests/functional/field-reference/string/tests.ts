@@ -61,25 +61,15 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
 
     await expect(products).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-      Invalid \`prisma.product.findMany()\` invocation in
-      /client/tests/functional/field-reference/string/tests.ts:0:0
+            Invalid \`prisma.product.findMany()\` invocation in
+            /client/tests/functional/field-reference/string/tests.ts:0:0
 
-        XX 
-        XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong field type', async () => {
-      → XX   const products = prisma.product.findMany({
-               where: {
-                 string: {
-                   equals: prisma.product.fields.notString
-                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                 }
-               }
-             })
-
-      Argument equals: Got invalid value prisma.product.fields.notString on prisma.findManyProduct. Provided IntFieldRefInput<Product>, expected String or StringFieldRefInput.
-
-
-    `)
+              XX 
+              XX // TODO: Edge: skipped because of the error snapshot
+              XX testIf(runtime !== 'edge')('wrong field type', async () => {
+            → XX   const products = prisma.product.findMany(
+            Input error. Expected a referenced scalar field of type String but found Product.notString of type Int.
+        `)
   })
 
   // TODO: Edge: skipped because of the error snapshot
@@ -95,25 +85,15 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
 
     await expect(products).rejects.toMatchPrismaErrorInlineSnapshot(`
 
-      Invalid \`prisma.product.findMany()\` invocation in
-      /client/tests/functional/field-reference/string/tests.ts:0:0
+            Invalid \`prisma.product.findMany()\` invocation in
+            /client/tests/functional/field-reference/string/tests.ts:0:0
 
-        XX 
-        XX // TODO: Edge: skipped because of the error snapshot
-        XX testIf(runtime !== 'edge')('wrong model', async () => {
-      → XX   const products = prisma.product.findMany({
-               where: {
-                 string: {
-                   equals: prisma.otherModel.fields.string
-                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                 }
-               }
-             })
-
-      Argument equals: Got invalid value prisma.otherModel.fields.string on prisma.findManyProduct. Provided StringFieldRefInput<OtherModel>, expected String or StringFieldRefInput.
-
-
-    `)
+              XX 
+              XX // TODO: Edge: skipped because of the error snapshot
+              XX testIf(runtime !== 'edge')('wrong model', async () => {
+            → XX   const products = prisma.product.findMany(
+            Input error. Expected a referenced scalar field of model Product, but found a field of model OtherModel.
+        `)
   })
 
   // TODO: Edge: skipped because of the error snapshot
@@ -132,21 +112,11 @@ testMatrix.setupTestSuite((_suiteConfig, _suiteMeta, { runtime }) => {
       Invalid \`prisma.product.findMany()\` invocation in
       /client/tests/functional/field-reference/string/tests.ts:0:0
 
-        XX 
-        XX // TODO: Edge: skipped because of the error snapshot
+         XX 
+         XX // TODO: Edge: skipped because of the error snapshot
         XX testIf(runtime !== 'edge')('wrong identical model', async () => {
-      → XX   const products = prisma.product.findMany({
-                where: {
-                  string: {
-                    equals: prisma.identicalToProduct.fields.string
-                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                  }
-                }
-              })
-
-      Argument equals: Got invalid value prisma.identicalToProduct.fields.string on prisma.findManyProduct. Provided StringFieldRefInput<IdenticalToProduct>, expected String or StringFieldRefInput.
-
-
+      → XX   const products = prisma.product.findMany(
+      Input error. Expected a referenced scalar field of model Product, but found a field of model IdenticalToProduct.
     `)
   })
 })

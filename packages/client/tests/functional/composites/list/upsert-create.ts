@@ -115,7 +115,7 @@ setupTestSuite(() => {
 
     await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining('Argument set for create.contents.set must not be null'),
+        message: expect.stringContaining('Argument `set` must not be null'),
       }),
     )
   })
@@ -136,7 +136,7 @@ setupTestSuite(() => {
 
     await expect(comment).rejects.toThrow(
       expect.objectContaining({
-        message: expect.stringContaining('Argument contents for create.contents must not be null'),
+        message: expect.stringContaining('Argument `contents` must not be null'),
       }),
     )
   })

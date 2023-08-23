@@ -28,18 +28,15 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
                ?   referralId?: String,
                ?   paymentId?: String,
                ?   AND?: UserWhereInput | UserWhereInput[],
-               ?   OR?: UserWhereInput,
+               ?   OR?: UserWhereInput[],
                ?   NOT?: UserWhereInput | UserWhereInput[],
                ?   posts?: PostListRelationFilter,
-               ?   profile?: ProfileRelationFilter | ProfileWhereInput | null,
-               ?   payment?: PaymentRelationFilter | PaymentWhereInput | null
+               ?   profile?: ProfileNullableRelationFilter | ProfileWhereInput | Null,
+               ?   payment?: PaymentNullableRelationFilter | PaymentWhereInput | Null
                  }
                })
 
-      Argument where of type UserWhereUniqueInput needs at least one argument and at least one argument for id, or referralId, or paymentId. Available args are listed in green.
-
-      Note: Lines with ? are optional.
-
+      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are listed in green.
     `)
   })
 
@@ -61,13 +58,19 @@ testMatrix.setupTestSuite((_0, _1, { runtime }) => {
         XX testIf(runtime !== 'edge')('where and missing unique keys', async () => {
       → XX   const result = prisma.user.delete({
                where: {
-                 profile: {}
+                 profile: {},
+             ?   id?: String,
+             ?   referralId?: String,
+             ?   paymentId?: String,
+             ?   AND?: UserWhereInput | UserWhereInput[],
+             ?   OR?: UserWhereInput[],
+             ?   NOT?: UserWhereInput | UserWhereInput[],
+             ?   posts?: PostListRelationFilter,
+             ?   payment?: PaymentNullableRelationFilter | PaymentWhereInput | Null
                }
              })
 
-      Argument where of type UserWhereUniqueInput needs at least one argument and at least one argument for id, or referralId, or paymentId. Available args are listed in green.
-
-
+      Argument \`where\` of type UserWhereUniqueInput needs at least one of \`id\`, \`referralId\` or \`paymentId\` arguments. Available options are listed in green.
     `)
   })
 

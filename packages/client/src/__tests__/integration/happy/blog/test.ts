@@ -7,14 +7,8 @@ test('blog', async () => {
 
   const { prismaVersion, sql, raw, join, empty, PrismaClientValidationError, PrismaClientKnownRequestError } = Prisma
 
-  const requests: any[] = []
   const db = new PrismaClient({
     errorFormat: 'colorless',
-    __internal: {
-      hooks: {
-        beforeRequest: (request) => requests.push(request),
-      },
-    },
   })
 
   if (!prismaVersion || !prismaVersion.client) {
@@ -33,11 +27,9 @@ test('blog', async () => {
 
   expect(posts.length).toBe(0)
   db.$disconnect()
-  expect(requests.length).toBe(2)
 
   await db.user.findMany()
   db.$disconnect()
-  expect(requests.length).toBe(3)
 
   const count = await db.user.count()
   expect(typeof count === 'number').toBe(true)

@@ -1,16 +1,16 @@
-import { isRustPanic, jestConsoleContext, jestContext } from '@prisma/internals'
+import { jestContext } from '@prisma/get-platform'
+import { serialize } from '@prisma/get-platform/src/test-utils/jestSnapshotSerializer'
+import { getDMMF, isRustPanic } from '@prisma/internals'
 import { DbPull } from '@prisma/migrate'
 
 import { Format } from '../Format'
 import { Validate } from '../Validate'
 
-const ctx = jestContext
-  .new()
-  // .add(jestConsoleContext())
-  .assemble()
+const ctx = jestContext.new().assemble()
 
-// @ts-ignore
-const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
+/**
+ * Note: under the hood, these artificial-panic tests uses the Wasm'd `getConfig` and `getDMMF` definitions
+ */
 
 describe('artificial-panic introspection', () => {
   // backup env vars
@@ -21,21 +21,18 @@ describe('artificial-panic introspection', () => {
     process.env = { ...OLD_ENV }
   })
 
-  it('migration-engine', async () => {
+  it('schema-engine', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(6)
-    process.env.FORCE_PANIC_MIGRATION_ENGINE = '1'
+    process.env.FORCE_PANIC_SCHEMA_ENGINE = '1'
 
     const command = new DbPull()
     try {
       await command.parse(['--print'])
     } catch (e) {
       expect(e).toMatchInlineSnapshot(`
-        Error in migration engine.
+        Error in Schema engine.
         Reason: [/some/rust/path:0:0] This is the debugPanic artificial panic
-
-        Please create an issue with your \`schema.prisma\` at
-        https://github.com/prisma/prisma/issues/new
 
       `)
       expect(isRustPanic(e)).toBe(true)
@@ -72,13 +69,15 @@ describe('artificial-panic formatter', () => {
   it('formatter', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(5)
-    process.env.FORCE_PANIC_PRISMA_FMT = '1'
+    process.env.FORCE_PANIC_PRISMA_SCHEMA = '1'
 
     const command = new Format()
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(serialize(e.message)).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-schema-wasm/src/lib.rs:0:0`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schemaPath.replace(/\\/g, '/')) // replace due to Windows CI
@@ -106,7 +105,9 @@ describe('artificial-panic get-config', () => {
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`unreachable`)
+      expect(serialize(e.message)).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-schema-wasm/src/lib.rs:0:0`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -130,14 +131,14 @@ describe('artificial-panic get-config', () => {
   })
 })
 
-describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-panic library', () => {
+describe('artificial-panic validate', () => {
   const OLD_ENV = { ...process.env }
 
   afterEach(() => {
     process.env = { ...OLD_ENV }
   })
 
-  it('query-engine get-dmmf library - validate', async () => {
+  it('validate', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(5)
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
@@ -146,7 +147,9 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`FORCE_PANIC_QUERY_ENGINE_GET_DMMF`)
+      expect(serialize(e.message)).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-schema-wasm/src/lib.rs:0:0`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -169,7 +172,7 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
     }
   })
 
-  it('query-engine get-dmmf library - format', async () => {
+  it('format', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(5)
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
@@ -178,7 +181,9 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
     try {
       await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(`FORCE_PANIC_QUERY_ENGINE_GET_DMMF`)
+      expect(serialize(e.message)).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-schema-wasm/src/lib.rs:0:0`,
+      )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
       expect(e.schema).toMatchInlineSnapshot(`
@@ -202,51 +207,37 @@ describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'library')('artificial-pa
   })
 })
 
-describeIf(process.env.PRISMA_CLI_QUERY_ENGINE_TYPE == 'binary')('artificial-panic binary', () => {
+describe('artificial-panic getDMMF', () => {
   const OLD_ENV = { ...process.env }
 
   afterEach(() => {
     process.env = { ...OLD_ENV }
   })
 
-  it('query-engine get-dmmf binary - validate', async () => {
+  it('getDMMF', async () => {
     ctx.fixture('artificial-panic')
     expect.assertions(5)
     process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
 
-    const command = new Validate()
     try {
-      await command.parse([])
-    } catch (e) {
-      expect(e).toMatchInlineSnapshot(
-        `Command failed with exit code 101: prisma-engines-path FORCE_PANIC_QUERY_ENGINE_GET_DMMF`,
-      )
-      expect(isRustPanic(e)).toBe(true)
-      expect(e.rustStack).toBeTruthy()
-      expect(e.schemaPath).toBeTruthy()
-      expect(e).toMatchObject({
-        schema: undefined,
+      await getDMMF({
+        datamodel: /* prisma */ `generator client {
+  provider = "prisma-client-js"
+}`,
       })
-    }
-  })
-
-  it('query-engine get-dmmf binary - format', async () => {
-    ctx.fixture('artificial-panic')
-    expect.assertions(5)
-    process.env.FORCE_PANIC_QUERY_ENGINE_GET_DMMF = '1'
-
-    const command = new Format()
-    try {
-      await command.parse([])
     } catch (e) {
-      expect(e).toMatchInlineSnapshot(
-        `Command failed with exit code 101: prisma-engines-path FORCE_PANIC_QUERY_ENGINE_GET_DMMF`,
+      expect(serialize(e.message)).toMatchInlineSnapshot(
+        `RuntimeError: panicked at 'This is the panic triggered by \`prisma_fmt::debug_panic()\`', prisma-schema-wasm/src/lib.rs:0:0`,
       )
       expect(isRustPanic(e)).toBe(true)
       expect(e.rustStack).toBeTruthy()
-      expect(e.schemaPath).toBeTruthy()
+      expect(e.schema).toMatchInlineSnapshot(`
+        generator client {
+          provider = "prisma-client-js"
+        }
+      `)
       expect(e).toMatchObject({
-        schema: undefined,
+        schemaPath: undefined,
       })
     }
   })

@@ -116,7 +116,7 @@ setupTestSuite(({ contentProperty }) => {
     } else {
       await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining('Argument set for create.content.set must not be null'),
+          message: expect.stringContaining('Argument `set` must not be null'),
         }),
       )
     }
@@ -146,9 +146,11 @@ setupTestSuite(({ contentProperty }) => {
       `,
       )
     } else {
-      expect.objectContaining({
-        message: expect.stringContaining('Got invalid value null on prisma.upsertOneCommentRequiredProp'),
-      })
+      await expect(comment).rejects.toThrow(
+        expect.objectContaining({
+          message: expect.stringContaining('Argument `content` must not be null.'),
+        }),
+      )
     }
   })
 

@@ -81,9 +81,9 @@ setupTestSuite(({ contentProperty }) => {
     if (contentProperty === 'optional') {
       expect(await comment).toEqual({ count: 1 })
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining('Argument set for data.content.set must not be null'),
+          message: expect.stringContaining('Argument `set`'),
         }),
       )
     }
@@ -102,9 +102,9 @@ setupTestSuite(({ contentProperty }) => {
     if (contentProperty === 'optional') {
       expect(await comment).toEqual({ count: 1 })
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining('Argument content for data.content must not be null'),
+          message: expect.stringContaining('Argument `content` must not be null'),
         }),
       )
     }
@@ -265,11 +265,9 @@ setupTestSuite(({ contentProperty }) => {
     if (contentProperty === 'optional') {
       expect(await comment).toEqual({ count: 1 })
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining(
-            'Unknown arg `unset` in data.content.unset for type CommentContentUpdateEnvelopeInput',
-          ),
+          message: expect.stringContaining('Unknown argument `unset`'),
         }),
       )
     }
@@ -297,11 +295,9 @@ setupTestSuite(({ contentProperty }) => {
     if (contentProperty === 'optional') {
       expect(await comment).toEqual({ count: 1 })
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining(
-            'Unknown arg `upsert` in data.content.upsert for type CommentContentUpdateEnvelopeInput',
-          ),
+          message: expect.stringContaining('Unknown argument `upsert`'),
         }),
       )
     }
@@ -332,11 +328,9 @@ setupTestSuite(({ contentProperty }) => {
     if (contentProperty === 'optional') {
       expect(await comment).toEqual({ count: 1 })
     } else {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining(
-            'Unknown arg `upsert` in data.content.upsert for type CommentContentUpdateEnvelopeInput',
-          ),
+          message: expect.stringContaining('Unknown argument `upsert`'),
         }),
       )
     }

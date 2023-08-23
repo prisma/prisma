@@ -53,9 +53,9 @@ setupTestSuite(({ contentProperty }) => {
     })
 
     if (contentProperty === 'required') {
-      await expect(result).rejects.toThrowError(
+      await expect(result).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining('Argument set for data.0.content.set must not be null'),
+          message: expect.stringContaining('Argument `set` must not be null'),
         }),
       )
     } else {
@@ -73,9 +73,9 @@ setupTestSuite(({ contentProperty }) => {
     })
 
     if (contentProperty === 'required') {
-      await expect(comment).rejects.toThrowError(
+      await expect(comment).rejects.toThrow(
         expect.objectContaining({
-          message: expect.stringContaining('Got invalid value null on prisma.createManyComment'),
+          message: expect.stringContaining('Argument `content` must not be null.'),
         }),
       )
     } else {

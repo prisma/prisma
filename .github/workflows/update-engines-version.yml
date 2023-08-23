@@ -29,9 +29,9 @@ jobs:
 
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v2.4.0
         with:
-          version: 7
+          version: 8
 
       - uses: actions/setup-node@v3
         with:
@@ -44,12 +44,12 @@ jobs:
           echo 'Checking that @prisma/engines-version have the published version @${{ github.event.inputs.version }}'
           pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/engines-version -u ${{ github.event.inputs.version }}
 
-      # Note: @prisma/prisma-fmt-wasm might take a few minutes before it's available
+      # Note: @prisma/prisma-schema-wasm might take a few minutes before it's available
       # So expect to see a few automated retries happening in logs before it succeeds
-      - name: Check if version of @prisma/prisma-fmt-wasm is available on npm
+      - name: Check if version of @prisma/prisma-schema-wasm is available on npm
         run: |
-          echo 'Checking that @prisma/prisma-fmt-wasm have the published version @${{ github.event.inputs.version }}'
-          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/prisma-fmt-wasm -u ${{ github.event.inputs.version }}
+          echo 'Checking that @prisma/prisma-schema-wasm have the published version @${{ github.event.inputs.version }}'
+          pnpm --package=@prisma/ensure-npm-release dlx enr update -p @prisma/prisma-schema-wasm -u ${{ github.event.inputs.version }}
 
       - name: Update the dependencies (@prisma/engines-version)
         uses: nick-fields/retry@v2
@@ -60,14 +60,14 @@ jobs:
             echo 'Updating @prisma/engines-version to ${{ github.event.inputs.version }} using pnpm'
             pnpm update -r @prisma/engines-version@${{ github.event.inputs.version }}
 
-      - name: Update the dependencies (@prisma/prisma-fmt-wasm)
+      - name: Update the dependencies (@prisma/prisma-schema-wasm)
         uses: nick-fields/retry@v2
         with:
           timeout_minutes: 7
           max_attempts: 3
           command: |
-            echo 'Updating @prisma/prisma-fmt-wasm to ${{ github.event.inputs.version }} using pnpm'
-            pnpm update -r @prisma/prisma-fmt-wasm@${{ github.event.inputs.version }}
+            echo 'Updating @prisma/prisma-schema-wasm to ${{ github.event.inputs.version }} using pnpm'
+            pnpm update -r @prisma/prisma-schema-wasm@${{ github.event.inputs.version }}
 
       - name: Extract Engine Commit hash from version
         id: extract-engine-commit-hash
@@ -84,7 +84,7 @@ jobs:
       - name: Create Pull Request
         id: cpr
         if: github.event.inputs.npmDistTag == 'latest'
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
@@ -103,7 +103,7 @@ jobs:
             | Package | NPM URL |
             |---------|---------|
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
-            |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-schema-wasm`| https://npmjs.com/package/@prisma/prisma-schema-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
       - name: PR url
@@ -130,7 +130,7 @@ jobs:
       - name: Create Pull Request for Integration Engine
         id: cpr-integration
         if: github.event.inputs.npmDistTag == 'integration'
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
@@ -148,7 +148,7 @@ jobs:
             | Package | NPM URL |
             |---------|---------|
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
-            |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-schema-wasm`| https://npmjs.com/package/@prisma/prisma-schema-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
       - name: PR url
@@ -172,7 +172,7 @@ jobs:
       - name: Create Pull Request for Patch Engine
         id: cpr-patch
         if: github.event.inputs.npmDistTag == 'patch'
-        uses: peter-evans/create-pull-request@v4
+        uses: peter-evans/create-pull-request@v5
         with:
           token: ${{ secrets.BOT_TOKEN }}
           commit-message: 'chore(deps): update engines to ${{ github.event.inputs.version }}'
@@ -189,7 +189,7 @@ jobs:
             | Package | NPM URL |
             |---------|---------|
             |`@prisma/engines-version`| https://npmjs.com/package/@prisma/engines-version/v/${{ github.event.inputs.version }}|
-            |`@prisma/prisma-fmt-wasm`| https://npmjs.com/package/@prisma/prisma-fmt-wasm/v/${{ github.event.inputs.version }}|
+            |`@prisma/prisma-schema-wasm`| https://npmjs.com/package/@prisma/prisma-schema-wasm/v/${{ github.event.inputs.version }}|
             ## Engines commit
             [`prisma/prisma-engines@${{ steps.extract-engine-commit-hash.outputs.hash }}`](https://github.com/prisma/prisma-engines/commit/${{ steps.extract-engine-commit-hash.outputs.hash }})
       - name: PR url
