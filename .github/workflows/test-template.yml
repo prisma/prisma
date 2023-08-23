@@ -974,12 +974,12 @@ jobs:
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - name: Set up Windows dependencies
-        if: ${{ matrix.os == 'windows-latest' }}
-        run: |
-          iwr -useb 'https://raw.githubusercontent.com/scoopinstaller/install/master/install.ps1' -outfile 'install.ps1'
-          .\install.ps1 -RunAsAdmin
-          scoop install openssl
+      # - name: Set up Windows dependencies
+      #   if: ${{ matrix.os == 'windows-latest' }}
+      #   run: |
+      #     iwr -useb 'https://raw.githubusercontent.com/scoopinstaller/install/master/install.ps1' -outfile 'install.ps1'
+      #     .\install.ps1 -RunAsAdmin
+      #     scoop install openssl
 
       - name: Set up PostgreSQL
         run: bash .github/workflows/scripts/setup-postgres.sh
@@ -1047,6 +1047,7 @@ jobs:
       - name: Test packages/cli
         if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-cli-') }}
         run: pnpm run test --testTimeout=40000
+        shell: bash
         working-directory: packages/cli
         env:
           JEST_JUNIT_SUITE_NAME: 'cli'
