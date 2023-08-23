@@ -900,11 +900,6 @@ jobs:
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - name: Set up Windows dependencies
-        if: ${{ env.RUNNER_OS == 'Windows' }}
-        run: |
-          scoop install openssl
-
       - name: Set up PostgreSQL
         run: bash .github/workflows/scripts/setup-postgres.sh
 
@@ -978,6 +973,11 @@ jobs:
           echo "TEST_MONGO_URI_MIGRATE=mongodb://localhost:27017/tests-migrate" >> $GITHUB_ENV
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
+
+      - name: Set up Windows dependencies
+        if: ${{ env.RUNNER_OS == 'Windows' }}
+        run: |
+          scoop install openssl
 
       - name: Set up PostgreSQL
         run: bash .github/workflows/scripts/setup-postgres.sh
