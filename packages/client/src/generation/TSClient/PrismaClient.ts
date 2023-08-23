@@ -422,7 +422,7 @@ get ${methodName}(): Prisma.${m.model}Delegate<ExtArgs>;`
 type IntRange<T extends number> = number extends T ? number : _IntRange<T, []>
 type _IntRange<T extends number, R extends unknown[]> = R['length'] extends T ? R[number] : _IntRange<T, [R['length'], ...R]>
 
-type ColumnType = IntRange<13>
+type ColumnType = IntRange<14>
 
 type ResultSet = {
   columnTypes: Array<ColumnType>
@@ -436,12 +436,40 @@ type Query = {
   args: Array<unknown>
 }
 
-type Connector = {
+interface Queryable {
   readonly flavour: 'mysql' | 'postgres'
-  queryRaw: (params: Query) => $Utils.JsPromise<ResultSet>
-  executeRaw: (params: Query) => $Utils.JsPromise<number>
-  version: () => $Utils.JsPromise<string | undefined>
-  isHealthy: () => boolean
+  /**
+   * Execute a query given as SQL, interpolating the given parameters,
+   * and returning the type-aware result set of the query.
+   */
+  queryRaw(params: Query): $Utils.JsPromise<ResultSet>
+  /**
+   * Execute a query given as SQL, interpolating the given parameters,
+   * and returning the number of affected rows.
+   */
+  executeRaw(params: Query): $Utils.JsPromise<number>
+}
+
+interface Transaction extends Queryable {
+  /**
+   * Commit the transaction
+   */
+  commit(): $Utils.JsPromise<void>
+  /**
+   * Roll back the transaction
+   */
+  rollback(): $Utils.JsPromise<void>
+}
+
+interface Connector extends Queryable {
+  /**
+   * Starts new transation with the specified isolation level
+   * @param isolationLevel
+   */
+  startTransaction(isolationLevel?: string): $Utils.JsPromise<Transaction>
+  /**
+   * Closes the connection to the database, if any.
+   */
   close: () => $Utils.JsPromise<void>
 }
 `
@@ -464,6 +492,11 @@ export interface PrismaClientOptions {${this.runtimeName === 'library' ? jsConne
    * Overwrites the datasource url from your schema.prisma file
    */
   datasources?: Datasources
+
+  /**
+   * Overwrites the datasource url from your schema.prisma file
+   */
+  datasourceUrl?: string
 
   /**
    * @default "colorless"

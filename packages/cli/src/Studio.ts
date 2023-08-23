@@ -96,6 +96,7 @@ ${bold('Examples')}
     const schema = await fs.promises.readFile(schemaPath, 'utf-8')
     const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
 
+    process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
       schemaPath,
       hostname,

@@ -1,7 +1,7 @@
 /* eslint-disable prettier/prettier */
 
 import { Payload } from './Payload'
-import { JsonObject, Select } from './Utils'
+import { Equals, JsonObject, Select } from './Utils'
 
 // prettier-ignore
 export type Operation =
@@ -49,7 +49,7 @@ type Count<O> = { [K in keyof O]: Count<number> } & {}
 
 // prettier-ignore
 export type GetFindResult<P extends Payload, A> =
-  {} extends A ? DefaultSelection<P> :
+  Equals<A, any> extends 1 ? DefaultSelection<P> :
   A extends
   | { select: infer S extends object } & Record<string, unknown>
   | { include: infer I extends object } & Record<string, unknown>

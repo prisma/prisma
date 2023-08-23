@@ -9,6 +9,7 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
+  detectRuntime,
 } = require('@prisma/client/runtime/index-browser')
 
 
@@ -25,21 +26,6 @@ Prisma.prismaVersion = {
   client: "local",
   engine: "local"
 }
-
-
-const runtimeDescription = (() => {
-  // https://edge-runtime.vercel.app/features/available-apis#addressing-the-runtime
-  if ("EdgeRuntime" in globalThis && typeof globalThis.EdgeRuntime === "string") {
-    return "under the Vercel Edge Runtime";
-  }
-  // Deno
-  if ("Deno" in globalThis && typeof globalThis.Deno === "object") {
-    return "under the Deno runtime";
-  }
-  // Default to assuming browser
-  return "in the browser";
-})();
-
 
 Prisma.PrismaClientKnownRequestError = () => {
   throw new Error(\`PrismaClientKnownRequestError is unable to be run \${runtimeDescription}.
@@ -347,16 +333,36 @@ exports.Prisma.ModelName = {
 };
 
 /**
- * Create the Client
+ * This is a stub Prisma Client that will error at runtime if called.
  */
 class PrismaClient {
   constructor() {
-    throw new Error(
-      \`PrismaClient is unable to be run \${runtimeDescription}.
-In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
-    )
+    return new Proxy(this, {
+      get(target, prop) {
+        const runtime = detectRuntime()
+        const edgeRuntimeName = {
+          'workerd': 'Cloudflare Workers',
+          'deno': 'Deno and Deno Deploy',
+          'netlify': 'Netlify Edge Functions',
+          'edge-light': 'Vercel Edge Functions',
+        }[runtime]
+
+        let message = 'PrismaClient is unable to run in '
+        if (edgeRuntimeName !== undefined) {
+          message += edgeRuntimeName + '. As an alternative, try Accelerate: https://pris.ly/d/accelerate.'
+        } else {
+          message += 'this browser environment, or has been bundled for the browser (running in \`' + runtime + '\`).'
+        }
+        
+        message += \`
+If this is unexpected, please open an issue: https://github.com/prisma/prisma/issues\`
+
+        throw new Error(message)
+      }
+    })
   }
 }
+
 exports.PrismaClient = PrismaClient
 
 Object.assign(exports, Prisma)
@@ -2106,7 +2112,7 @@ export namespace Prisma {
   type IntRange<T extends number> = number extends T ? number : _IntRange<T, []>
   type _IntRange<T extends number, R extends unknown[]> = R['length'] extends T ? R[number] : _IntRange<T, [R['length'], ...R]>
 
-  type ColumnType = IntRange<13>
+  type ColumnType = IntRange<14>
 
   type ResultSet = {
     columnTypes: Array<ColumnType>
@@ -2120,12 +2126,40 @@ export namespace Prisma {
     args: Array<unknown>
   }
 
-  type Connector = {
+  interface Queryable {
     readonly flavour: 'mysql' | 'postgres'
-    queryRaw: (params: Query) => $Utils.JsPromise<ResultSet>
-    executeRaw: (params: Query) => $Utils.JsPromise<number>
-    version: () => $Utils.JsPromise<string | undefined>
-    isHealthy: () => boolean
+    /**
+     * Execute a query given as SQL, interpolating the given parameters,
+     * and returning the type-aware result set of the query.
+     */
+    queryRaw(params: Query): $Utils.JsPromise<ResultSet>
+    /**
+     * Execute a query given as SQL, interpolating the given parameters,
+     * and returning the number of affected rows.
+     */
+    executeRaw(params: Query): $Utils.JsPromise<number>
+  }
+
+  interface Transaction extends Queryable {
+    /**
+     * Commit the transaction
+     */
+    commit(): $Utils.JsPromise<void>
+    /**
+     * Roll back the transaction
+     */
+    rollback(): $Utils.JsPromise<void>
+  }
+
+  interface Connector extends Queryable {
+    /**
+     * Starts new transation with the specified isolation level
+     * @param isolationLevel
+     */
+    startTransaction(isolationLevel?: string): $Utils.JsPromise<Transaction>
+    /**
+     * Closes the connection to the database, if any.
+     */
     close: () => $Utils.JsPromise<void>
   }
 
@@ -2139,6 +2173,11 @@ export namespace Prisma {
      * Overwrites the datasource url from your schema.prisma file
      */
     datasources?: Datasources
+
+    /**
+     * Overwrites the datasource url from your schema.prisma file
+     */
+    datasourceUrl?: string
 
     /**
      * @default "colorless"
@@ -20753,6 +20792,22 @@ export namespace Prisma {
   /**
    * Aliases for legacy arg types
    */
+    /**
+     * @deprecated Use UserCountOutputTypeDefaultArgs instead
+     */
+    export type UserCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = UserCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use MCountOutputTypeDefaultArgs instead
+     */
+    export type MCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = MCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use NCountOutputTypeDefaultArgs instead
+     */
+    export type NCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = NCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use OneOptionalCountOutputTypeDefaultArgs instead
+     */
+    export type OneOptionalCountOutputTypeArgs<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = OneOptionalCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use PostDefaultArgs instead
      */

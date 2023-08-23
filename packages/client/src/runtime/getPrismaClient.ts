@@ -19,6 +19,7 @@ import { applyAllResultExtensions } from './core/extensions/applyAllResultExtens
 import { applyQueryExtensions } from './core/extensions/applyQueryExtensions'
 import { MergedExtensionsList } from './core/extensions/MergedExtensionsList'
 import { checkPlatformCaching } from './core/init/checkPlatformCaching'
+import { getDatasourceOverrides } from './core/init/getDatasourceOverrides'
 import { getEngineInstance } from './core/init/getEngineInstance'
 import { serializeJsonQuery } from './core/jsonProtocol/serializeJsonQuery'
 import { MetricsClient } from './core/metrics/MetricsClient'
@@ -74,7 +75,11 @@ export type Datasource = {
 }
 export type Datasources = { [name in string]: Datasource }
 
-export interface PrismaClientOptions {
+export type PrismaClientOptions = {
+  /**
+   * Overwrites the primary datasource url from your schema.prisma file
+   */
+  datasourceUrl?: string
   /**
    * Instance of a JS connector, e.g., like one provided by `@prisma/planetscale-js-connector`.
    */
@@ -228,7 +233,7 @@ export type GetPrismaClientConfig = {
    * Allows platforms to declare global variables as env (Workers).
    * @remarks only used for the purpose of data proxy
    */
-  injectableEdgeEnv?: LoadedEnv
+  injectableEdgeEnv?: () => LoadedEnv
 
   /**
    * The contents of the datasource url saved in a string.
@@ -266,6 +271,12 @@ export type GetPrismaClientConfig = {
    * in the current working directory. This usually means it has been bundled.
    */
   isBundled?: boolean
+
+  /**
+   * A boolean that is `true` when the client was generated with --no-engine. At
+   * runtime, this means the client will be bound to be using the Data Proxy.
+   */
+  noEngine?: boolean
 }
 
 const TX_ID = Symbol.for('prisma.client.transaction.id')
@@ -330,7 +341,8 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           config.relativeEnvPaths.schemaEnvPath && path.resolve(config.dirname, config.relativeEnvPaths.schemaEnvPath),
       }
 
-      const loadedEnv = NODE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })
+      const loadedEnv = // for node we load the env from files, for edge only via env injections
+        (NODE_CLIENT && tryLoadEnvs(envPaths, { conflictCheck: 'none' })) || config.injectableEdgeEnv?.()
 
       try {
         const options: PrismaClientOptions = optionsArg ?? {}
@@ -384,15 +396,14 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
                 ? options.log === 'query'
                 : options.log.find((o) => (typeof o === 'string' ? o === 'query' : o.level === 'query')),
             ),
-          // we attempt to load env with fs -> attempt edge env -> default
-          env: loadedEnv?.parsed ?? config.injectableEdgeEnv?.parsed ?? {},
+          env: loadedEnv?.parsed ?? {},
           flags: [],
           clientVersion: config.clientVersion,
           engineVersion: config.engineVersion,
           previewFeatures: this._previewFeatures,
           activeProvider: config.activeProvider,
           inlineSchema: config.inlineSchema,
-          overrideDatasources: options.datasources ?? {},
+          overrideDatasources: getDatasourceOverrides(options, config.datasourceNames),
           inlineDatasources: config.inlineDatasources,
           inlineSchemaHash: config.inlineSchemaHash,
           tracingHelper: this._tracingHelper,
@@ -403,7 +414,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
 
         debug('clientVersion', config.clientVersion)
 
-        this._engine = getEngineInstance(this._engineConfig)
+        this._engine = getEngineInstance(config, this._engineConfig)
         this._requestHandler = new RequestHandler(this, logEmitter)
 
         if (options.log) {
@@ -485,10 +496,10 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         e.clientVersion = this._clientVersion
         throw e
       } finally {
-        // Debug module keeps a list of last 100 logs regardless of environment variables.
-        // This can cause a memory leak. It's especially bad in jest environment where keeping an
-        // error in this list will prevent jest sandbox from being GCed. Clearing logs on disconnect
-        // helps to avoid that
+        // Debug module keeps a list of last 100 logs regardless of environment
+        // variables. This can cause a memory leak. It's especially bad in jest
+        // environment where keeping an error in this list prevents jest sandbox
+        // from being GCed. Clearing logs on disconnect helps to avoid that
         clearLogs()
       }
     }
@@ -502,12 +513,15 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       args: RawQueryArgs,
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
+      const activeProvider = this._activeProvider
+      const activeProviderFlavour = this._engineConfig.jsConnector?.flavour
+
       return this._request({
         action: 'executeRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,
@@ -599,12 +613,15 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       args: RawQueryArgs,
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
+      const activeProvider = this._activeProvider
+      const activeProviderFlavour = this._engineConfig.jsConnector?.flavour
+
       return this._request({
         action: 'queryRaw',
         args,
         transaction,
         clientMethod,
-        argsMapper: rawQueryArgsMapper(this._activeProvider, clientMethod),
+        argsMapper: rawQueryArgsMapper({ clientMethod, activeProvider, activeProviderFlavour }),
         callsite: getCallSite(this._errorFormat),
         dataPath: [],
         middlewareArgsMapper,

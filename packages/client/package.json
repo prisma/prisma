@@ -47,7 +47,7 @@
     "generate": "node scripts/postinstall.js",
     "postinstall": "node scripts/postinstall.js",
     "prepublishOnly": "pnpm run build",
-    "new-test": "NODE_OPTIONS='-r ts-node/register' yo ./helpers/generator-test/index.ts"
+    "new-test": "NODE_OPTIONS='-r esbuild-register' yo ./helpers/generator-test/index.ts"
   },
   "files": [
     "README.md",
@@ -67,12 +67,12 @@
     "@codspeed/benchmark.js-plugin": "2.2.0",
     "@faker-js/faker": "8.0.2",
     "@fast-check/jest": "1.7.1",
-    "@jest/create-cache-key-function": "29.6.2",
-    "@jest/globals": "29.6.2",
-    "@jest/test-sequencer": "29.6.2",
-    "@jkomyno/prisma-js-connector-utils": "0.0.5",
-    "@jkomyno/prisma-neon-js-connector": "0.0.5",
-    "@jkomyno/prisma-planetscale-js-connector": "0.0.5",
+    "@jest/create-cache-key-function": "29.6.3",
+    "@jest/globals": "29.6.3",
+    "@jest/test-sequencer": "29.6.3",
+    "@jkomyno/prisma-js-connector-utils": "0.0.8",
+    "@jkomyno/prisma-neon-js-connector": "0.0.8",
+    "@jkomyno/prisma-planetscale-js-connector": "0.0.8",
     "@opentelemetry/api": "1.4.1",
     "@opentelemetry/context-async-hooks": "1.15.2",
     "@opentelemetry/instrumentation": "0.41.2",
@@ -94,7 +94,7 @@
     "@timsuchanek/copy": "1.4.5",
     "@types/debug": "4.1.8",
     "@types/fs-extra": "9.0.13",
-    "@types/jest": "29.5.3",
+    "@types/jest": "29.5.4",
     "@types/js-levenshtein": "1.1.1",
     "@types/mssql": "8.1.2",
     "@types/node": "18.17.5",
@@ -104,6 +104,7 @@
     "benchmark": "2.1.4",
     "ci-info": "3.8.0",
     "decimal.js": "10.4.3",
+    "detect-runtime": "1.0.4",
     "env-paths": "2.2.1",
     "esbuild": "0.19.2",
     "execa": "5.1.1",
@@ -113,10 +114,10 @@
     "get-stream": "6.0.1",
     "globby": "11.1.0",
     "indent-string": "4.0.0",
-    "jest": "29.6.2",
+    "jest": "29.6.3",
     "jest-junit": "16.0.0",
     "jest-serializer-ansi-escapes": "2.0.1",
-    "jest-snapshot": "29.6.2",
+    "jest-snapshot": "29.6.3",
     "js-levenshtein": "1.1.6",
     "kleur": "4.1.5",
     "klona": "2.0.6",
@@ -156,7 +157,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.2.0-19.5f5f05f0ad19414db3359ad9abb14bca315017b3"
+    "@prisma/engines-version": "5.3.0-3.36f92fe21d1f83d8e47fa7d662ab64ddcff6e493"
   },
   "sideEffects": false
 }

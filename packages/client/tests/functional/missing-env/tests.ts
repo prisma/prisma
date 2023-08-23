@@ -9,7 +9,7 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  () => {
+  (suiteConfig, suiteMeta, clientMeta) => {
     test('PrismaClientInitializationError for missing env', async () => {
       const prisma = newPrismaClient()
 
@@ -37,6 +37,60 @@ testMatrix.setupTestSuite(
         expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
       }
     })
+
+    testIf(clientMeta.dataProxy && clientMeta.runtime === 'edge')(
+      'PrismaClientInitializationError for missing env on edge',
+      async () => {
+        const prisma = newPrismaClient()
+
+        try {
+          await prisma.$connect()
+        } catch (e) {
+          const message = stripAnsi(e.message as string)
+          expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
+          expect(message).toMatchInlineSnapshot(`error: Environment variable not found: DATABASE_URI.`)
+        }
+      },
+    )
+
+    testIf(clientMeta.dataProxy && clientMeta.runtime === 'edge')(
+      'PrismaClientInitializationError for missing env on edge on cloudflare',
+      async () => {
+        globalThis.navigator = { userAgent: 'Cloudflare-Workers' }
+
+        const prisma = newPrismaClient()
+
+        try {
+          await prisma.$connect()
+        } catch (e) {
+          const message = stripAnsi(e.message as string)
+          expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
+          expect(message).toMatchInlineSnapshot(`
+            error: Environment variable not found: DATABASE_URI.
+
+            In Cloudflare module Workers, environment variables are available only in the Worker's \`env\` parameter of \`fetch\`.
+            To solve this, provide the connection string directly: https://pris.ly/d/cloudflare-datasource-url
+          `)
+        }
+
+        delete globalThis.navigator
+      },
+    )
+
+    testIf(clientMeta.dataProxy && clientMeta.runtime === 'node')(
+      'PrismaClientInitializationError for missing env with --no-engine on node',
+      async () => {
+        const prisma = newPrismaClient()
+
+        try {
+          await prisma.$connect()
+        } catch (e) {
+          const message = stripAnsi(e.message as string)
+          expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
+          expect(message).toMatchInlineSnapshot(`error: Environment variable not found: DATABASE_URI.`)
+        }
+      },
+    )
   },
   {
     skipDb: true,

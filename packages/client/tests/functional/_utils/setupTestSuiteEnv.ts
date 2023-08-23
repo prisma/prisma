@@ -115,16 +115,16 @@ export async function setupTestSuiteDatabase(
 
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
-    const dbpushParams = ['--schema', schemaPath, '--skip-generate']
+    const dbPushParams = ['--schema', schemaPath, '--skip-generate']
     const providerFlavor = suiteConfig.matrixOptions['providerFlavor'] as ProviderFlavors
     // `--force-reset` is great but only using it where it's necessary makes the
     // tests faster Since we have full isolation of tests / database, we do not
     // need to force reset but we currently break isolation for Vitess (for
     // faster tests), so it's good to force reset in this case
     if ([ProviderFlavors.VITESS_8, ProviderFlavors.JS_PLANETSCALE, ProviderFlavors.JS_NEON].includes(providerFlavor)) {
-      dbpushParams.push('--force-reset')
+      dbPushParams.push('--force-reset')
     }
-    await DbPush.new().parse(dbpushParams)
+    await DbPush.new().parse(dbPushParams)
 
     if (alterStatementCallback) {
       const provider = suiteConfig.matrixOptions['provider'] as Providers

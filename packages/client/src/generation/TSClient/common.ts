@@ -42,6 +42,7 @@ const {
   objectEnumValues,
   makeStrictEnum,
   Public,
+  detectRuntime,
 } = require('${runtimeDir}/${runtimeName}')
 `
     : `
@@ -81,24 +82,6 @@ exports.$Enums = {}
 Prisma.prismaVersion = {
   client: "${clientVersion}",
   engine: "${engineVersion}"
-}
-
-${
-  browser &&
-  `
-const runtimeDescription = (() => {
-  // https://edge-runtime.vercel.app/features/available-apis#addressing-the-runtime
-  if ("EdgeRuntime" in globalThis && typeof globalThis.EdgeRuntime === "string") {
-    return "under the Vercel Edge Runtime";
-  }
-  // Deno
-  if ("Deno" in globalThis && typeof globalThis.Deno === "object") {
-    return "under the Deno runtime";
-  }
-  // Default to assuming browser
-  return "in the browser";
-})();
-`
 }
 
 Prisma.PrismaClientKnownRequestError = ${notSupportOnBrowser('PrismaClientKnownRequestError', browser)};

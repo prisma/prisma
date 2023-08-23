@@ -93,8 +93,7 @@
       }
     },
     "patchedDependencies": {
-      "node-fetch@2.6.12": "patches/node-fetch@2.6.12.patch",
-      "@planetscale/database@1.10.0": "patches/@planetscale__database@1.10.0.patch"
+      "node-fetch@2.6.12": "patches/node-fetch@2.6.12.patch"
     }
   },
   "lint-staged": {
