@@ -974,13 +974,6 @@ jobs:
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      # - name: Set up Windows dependencies
-      #   if: ${{ matrix.os == 'windows-latest' }}
-      #   run: |
-      #     iwr -useb 'https://raw.githubusercontent.com/scoopinstaller/install/master/install.ps1' -outfile 'install.ps1'
-      #     .\install.ps1 -RunAsAdmin
-      #     scoop install openssl
-
       - name: Set up PostgreSQL
         run: bash .github/workflows/scripts/setup-postgres.sh
 
