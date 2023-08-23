@@ -901,7 +901,7 @@ jobs:
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
       - name: Set up Windows dependencies
-        if: env.RUNNER_OS == 'Windows'
+        if: ${{ env.RUNNER_OS == 'Windows' }}
         run: |
           scoop install openssl
 
