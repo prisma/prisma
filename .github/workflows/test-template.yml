@@ -150,6 +150,9 @@ jobs:
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+
       - name: Install & build
         uses: ./.github/actions/setup
         with:
@@ -214,6 +217,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -295,6 +301,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -391,6 +400,9 @@ jobs:
       # Not currently needed, but we might need it in the future
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+
       - name: Install & build
         uses: ./.github/actions/setup
         with:
@@ -449,6 +461,9 @@ jobs:
           if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -560,6 +575,9 @@ jobs:
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
 
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+
       - name: Install & build
         uses: ./.github/actions/setup
         with:
@@ -614,6 +632,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
 
       - name: Set CLI Engine Type
         run: |
@@ -674,6 +695,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
 
       - name: Set CLI Engine Type
         run: |
@@ -748,6 +772,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres
+
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
 
       - name: Set CLI Engine Type
         run: |
