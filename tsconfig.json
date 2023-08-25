@@ -1,4 +1,18 @@
 {
-  "extends": "./tsconfig.build.bundle.json",
-  "include": ["./**/*"]
+  "extends": "./tsconfig.utils.typecheck.json",
+  "include": ["./**/*"],
+  // same list as in tsconfig.regular.json, minus extra test exclusion
+  "exclude": [
+    "**/dist",
+    "**/build",
+    "**/fixtures",
+    "**/node_modules",
+    "**/.prisma/client",
+    "./reproductions",
+    "./packages/cli/preinstall",
+    "./packages/cli/prisma-client",
+    "./packages/client/runtime",
+    "./packages/client/declaration",
+    "./packages/client/generator-build"
+  ]
 }

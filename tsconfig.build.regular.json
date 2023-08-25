@@ -18,6 +18,7 @@
     "emitDeclarationOnly": true,
     "resolveJsonModule": true
   },
+  // same list as in tsconfig.json, with extra test exclusion
   "exclude": [
     "**/dist",
     "**/build",
