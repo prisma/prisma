@@ -139,7 +139,7 @@
     "ts-node": "10.9.1",
     "ts-pattern": "4.3.0",
     "tsd": "0.28.1",
-    "typescript": "4.9.5",
+    "typescript": "5.2.2",
     "undici": "5.23.0",
     "yeoman-generator": "5.9.0",
     "yo": "4.3.1",
