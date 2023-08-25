@@ -8,13 +8,12 @@ import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import type {
   BatchQueryEngineResult,
   EngineConfig,
-  EngineEventType,
   InteractiveTransactionOptions,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import { EventEmitter } from '../common/types/Events'
+import { LogEmitter } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
@@ -141,7 +140,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   readonly inlineSchemaHash: string
   private inlineDatasources: GetPrismaClientConfig['inlineDatasources']
   private config: EngineConfig
-  private logEmitter: EventEmitter
+  private logEmitter: LogEmitter
   private env: { [k in string]?: string }
 
   private clientVersion: string
@@ -247,12 +246,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     }
   }
 
-  on(event: EngineEventType, listener: (args?: any) => any): void {
-    if (event === 'beforeExit') {
-      throw new Error('"beforeExit" hook is not applicable to the remote query engine')
-    } else {
-      this.logEmitter.on(event, listener)
-    }
+  override onBeforeExit() {
+    throw new Error('"beforeExit" hook is not applicable to the remote query engine')
   }
 
   private async url(s: string) {

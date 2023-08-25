@@ -232,12 +232,8 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return process.cwd()
   }
 
-  on(event: EngineEventType, listener: (args?: any) => any): void {
-    if (event === 'beforeExit') {
-      this.beforeExitListener = listener
-    } else {
-      this.logEmitter.on(event, listener)
-    }
+  override onBeforeExit(listener: () => Promise<void>) {
+    this.beforeExitListener = listener
   }
 
   async emitExit() {

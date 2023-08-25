@@ -13,7 +13,8 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, EngineEventType, Fetch, Options } from './core/engines'
-import { EngineEventCallback } from './core/engines/common/Engine'
+import { EngineEventCallback, LogEmitter } from './core/engines/common/Engine'
+import { EngineEvent } from './core/engines/common/types/Events'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
@@ -175,15 +176,6 @@ export type LogDefinition = {
   emit: 'stdout' | 'event'
 }
 
-export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefinition
-  ? T['emit'] extends 'event'
-    ? T['level']
-    : never
-  : never
-export type GetEvents<T> = T extends Array<LogLevel | LogDefinition>
-  ? GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
-  : never
-
 export type QueryEvent = {
   timestamp: Date
   query: string
@@ -198,6 +190,13 @@ export type LogEvent = {
   target: string
 }
 /* End Types for Logging */
+
+type ExtendedEventType = LogLevel | 'beforeExit'
+type EventCallback<E extends ExtendedEventType> = E extends 'beforeExit'
+  ? () => Promise<void>
+  : E extends LogLevel
+  ? (event: EngineEvent<E>) => void
+  : never
 
 /**
  * Config that is stored into the generated client. When the generated client is
@@ -329,7 +328,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
         // enabled error logging, this would be executed, and a trace for the error would be logged
         // in debug mode, which is like going in the opposite direction than what the user wanted by
         // not enabling error logging in the first place.
-      })
+      }) as LogEmitter
 
       this._extensions = MergedExtensionsList.empty()
       this._previewFeatures = getPreviewFeatures(config)
@@ -453,7 +452,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._middlewares.use(middleware)
     }
 
-    $on<E extends EngineEventType>(eventType: E, callback: EngineEventCallback<E>) {
+    $on<E extends ExtendedEventType>(eventType: E, callback: EventCallback<E>) {
       // if (eventType === 'query') {
       //   return (callback as EngineEventCallback<typeof eventType>)({
       //     timestamp: event.timestamp,
@@ -470,7 +469,12 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       //     target: event.target,
       //   })
       // }
-      this._engine.on(eventType, callback)
+      if (eventType === 'beforeExit') {
+        this._engine.onBeforeExit(callback as EventCallback<'beforeExit'>)
+      } else {
+        // TODO: types
+        this._engineConfig.logEmitter.on(eventType, callback as EventCallback<LogLevel> & (() => void))
+      }
     }
 
     $connect() {

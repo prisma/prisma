@@ -4,7 +4,7 @@ import { TracingHelper } from '@prisma/internals'
 
 import { Datasources, GetPrismaClientConfig } from '../../../getPrismaClient'
 import { Fetch } from '../data-proxy/utils/request'
-import { EventEmitter } from './types/Events'
+import { LogEmitter } from './types/Events'
 import { JsonQuery } from './types/JsonProtocol'
 import type { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from './types/Metrics'
 import type { QueryEngineResult } from './types/QueryEngine'
@@ -55,7 +55,7 @@ export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error
 
 // TODO Move shared logic in here
 export abstract class Engine<InteractiveTransactionPayload = unknown> {
-  abstract on<E extends EngineEventType>(event: E, listener: EngineEventCallback<E>): void
+  abstract onBeforeExit(callback: () => Promise<void>): void
   abstract start(): Promise<void>
   abstract stop(): Promise<void>
   abstract version(forceRun?: boolean): Promise<string> | string
@@ -87,33 +87,6 @@ export abstract class Engine<InteractiveTransactionPayload = unknown> {
   abstract metrics(options: MetricsOptionsPrometheus): Promise<string>
 }
 
-export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
-
-export type EngineQueryEvent = {
-  timestamp: Date
-  query: string
-  params: string
-  duration: number
-  target: string
-}
-
-export type EngineLogEvent = {
-  timestamp: Date
-  message: string
-  target: string
-}
-
-export type EngineEventCallback<E extends EngineEventType> = E extends 'beforeExit'
-  ? () => Promise<void>
-  : E extends 'query'
-  ? (event: EngineQueryEvent) => void
-  : (event: EngineLogEvent) => void
-
-export type LogEmitter = {
-  on(event: string, listener: (...args: any[]) => void): unknown
-  emit(event: string, args?: any): boolean
-}
-
 export interface EngineConfig {
   cwd: string
   dirname: string
@@ -133,7 +106,7 @@ export interface EngineConfig {
   previewFeatures?: string[]
   engineEndpoint?: string
   activeProvider?: string
-  logEmitter: EventEmitter
+  logEmitter: LogEmitter
 
   /**
    * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`.
