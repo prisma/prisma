@@ -148,10 +148,12 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
+      - run: docker compose -f docker/docker-compose.yml pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
+
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -216,10 +218,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - run: docker compose -f docker/docker-compose.yml pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
+
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -300,10 +304,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
+      - run: docker compose -f docker/docker-compose.yml pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
+
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -397,11 +403,12 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Not currently needed, but we might need it in the future
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - run: docker compose -f docker/docker-compose.yml pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
+
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -460,10 +467,12 @@ jobs:
           echo "RELATION_MODE=${{ matrix.relationMode }}"
           if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
+      - run: docker compose -f docker/docker-compose.yml pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
+
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -573,10 +582,12 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
+      - run: docker compose -f docker/docker-compose.yml pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
+
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
 
       - name: Install & build
         uses: ./.github/actions/setup
@@ -631,10 +642,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql
+      - run: docker compose -f docker/docker-compose.yml pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
+
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql
 
       - name: Set CLI Engine Type
         run: |
@@ -694,10 +707,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
+      - run: docker compose -f docker/docker-compose.yml pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
+
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
 
       - name: Set CLI Engine Type
         run: |
@@ -771,10 +786,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml up --detach postgres
+      - run: docker compose -f docker/docker-compose.yml pull
 
       - uses: satackey/action-docker-layer-caching@v0.0.11
         continue-on-error: true
+
+      - run: docker compose -f docker/docker-compose.yml up --detach postgres
 
       - name: Set CLI Engine Type
         run: |
