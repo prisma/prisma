@@ -523,6 +523,23 @@ jobs:
           name: client-types-${{ matrix.os }}
 
   #
+  # Workspace type checks
+  #
+  workspace-types:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [16]
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - run: pnpm i && pnpm tsc -p tsconfig.utils.typecheck.json
+
+  #
   # INTEGRATION-TESTS
   #
   integration-tests:

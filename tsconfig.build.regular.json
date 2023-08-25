@@ -18,5 +18,19 @@
     "emitDeclarationOnly": true,
     "resolveJsonModule": true
   },
-  "exclude": ["**/dist", "**/node_modules", "**/src/__tests__"]
+  "exclude": [
+    "**/dist",
+    "**/build",
+    "**/tests",
+    "**/__tests__",
+    "**/fixtures",
+    "**/node_modules",
+    "**/.prisma/client",
+    "./reproductions",
+    "./packages/cli/preinstall",
+    "./packages/cli/prisma-client",
+    "./packages/client/runtime",
+    "./packages/client/declaration",
+    "./packages/client/generator-build"
+  ]
 }
