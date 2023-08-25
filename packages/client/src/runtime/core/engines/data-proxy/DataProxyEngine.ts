@@ -8,13 +8,12 @@ import { resolveDatasourceUrl } from '../../init/resolveDatasourceUrl'
 import type {
   BatchQueryEngineResult,
   EngineConfig,
-  EngineEventType,
   InteractiveTransactionOptions,
   RequestBatchOptions,
   RequestOptions,
 } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import { EventEmitter } from '../common/types/Events'
+import { LogEmitter } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import { QueryEngineResult, QueryEngineResultBatchQueryResult } from '../common/types/QueryEngine'
@@ -147,7 +146,7 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
   readonly inlineSchemaHash: string
   private inlineDatasources: GetPrismaClientConfig['inlineDatasources']
   private config: EngineConfig
-  private logEmitter: EventEmitter
+  private logEmitter: LogEmitter
   private env: { [k in string]?: string }
 
   private clientVersion: string
@@ -242,8 +241,9 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
             this.logEmitter.emit('query', {
               query: dbQuery,
-              timestamp: log.timestamp,
-              duration: log.attributes.duration_ms,
+              // first part is in seconds, second is in nanoseconds, we need to convert both to milliseconds
+              timestamp: new Date(log.timestamp[0] * 1e3 + log.timestamp[1] / 1e6),
+              duration: Number(log.attributes.duration_ms),
               params: log.attributes.params,
               target: log.attributes.target,
             })
@@ -257,12 +257,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
     }
   }
 
-  on(event: EngineEventType, listener: (args?: any) => any): void {
-    if (event === 'beforeExit') {
-      throw new Error('"beforeExit" hook is not applicable to the remote query engine')
-    } else {
-      this.logEmitter.on(event, listener)
-    }
+  override onBeforeExit() {
+    throw new Error('"beforeExit" hook is not applicable to the remote query engine')
   }
 
   private async url(action: string) {
@@ -292,11 +288,17 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       const error = await responseToError(response, this.clientVersion)
 
       if (error) {
-        this.logEmitter.emit('warn', { message: `Error while uploading schema: ${error.message}` })
+        this.logEmitter.emit('warn', {
+          message: `Error while uploading schema: ${error.message}`,
+          timestamp: new Date(),
+          target: '',
+        })
         throw error
       } else {
         this.logEmitter.emit('info', {
           message: `Schema (re)uploaded (hash: ${this.inlineSchemaHash})`,
+          timestamp: new Date(),
+          target: '',
         })
       }
     })
@@ -530,6 +532,8 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
       const logHttpCall = (url: string) => {
         this.logEmitter.emit('info', {
           message: `Calling ${url} (n=${attempt})`,
+          timestamp: new Date(),
+          target: '',
         })
       }
 
@@ -548,9 +552,17 @@ export class DataProxyEngine extends Engine<DataProxyTxInfoPayload> {
 
         this.logEmitter.emit('warn', {
           message: `Attempt ${attempt + 1}/${MAX_RETRIES} failed for ${args.actionGerund}: ${e.message ?? '(unknown)'}`,
+          timestamp: new Date(),
+          target: '',
         })
+
         const delay = await backOff(attempt)
-        this.logEmitter.emit('warn', { message: `Retrying after ${delay}ms` })
+
+        this.logEmitter.emit('warn', {
+          message: `Retrying after ${delay}ms`,
+          timestamp: new Date(),
+          target: '',
+        })
       }
     }
   }
