@@ -20,14 +20,15 @@
   },
   // same list as in tsconfig.json, with extra test exclusion
   "exclude": [
-    "**/dist",
-    "**/build",
     "**/tests",
     "**/__tests__",
+    "./reproductions",
+
+    "**/dist",
+    "**/build",
     "**/fixtures",
     "**/node_modules",
     "**/.prisma/client",
-    "./reproductions",
     "./packages/cli/preinstall",
     "./packages/cli/prisma-client",
     "./packages/client/runtime",
