@@ -179,10 +179,9 @@ export type GetLogType<T extends LogLevel | LogDefinition> = T extends LogDefini
     ? T['level']
     : never
   : never
-export type GetEvents<T extends Array<LogLevel | LogDefinition>> =
-  | GetLogType<T[0]>
-  | GetLogType<T[1]>
-  | GetLogType<T[2]>
+export type GetEvents<T> = T extends Array<LogLevel | LogDefinition>
+  ? GetLogType<T[0]> | GetLogType<T[1]> | GetLogType<T[2]> | GetLogType<T[3]>
+  : never
 
 export type QueryEvent = {
   timestamp: Date
