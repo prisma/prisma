@@ -148,10 +148,10 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker compose -f docker/docker-compose.yml pull
-
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.4
+        with:
+          key: docker-${{ hashFiles('docker/docker-compose.yml') }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres postgres_isolated mysql mysql_isolated mssql mongo cockroachdb vitess-8
 
@@ -218,10 +218,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml pull
-
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.4
+        with:
+          key: docker-${{ hashFiles('docker/docker-compose.yml') }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
@@ -304,10 +304,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml pull
-
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.4
+        with:
+          key: docker-${{ hashFiles('docker/docker-compose.yml') }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres # mysql mysql_isolated mssql mongo cockroachdb
 
@@ -403,10 +403,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - run: docker compose -f docker/docker-compose.yml pull
-
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.4
+        with:
+          key: docker-${{ hashFiles('docker/docker-compose.yml') }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
@@ -467,10 +467,10 @@ jobs:
           echo "RELATION_MODE=${{ matrix.relationMode }}"
           if [ ! -z "${{ matrix.relationMode }}" ]; then echo "RELATION_MODE=${{ matrix.relationMode }}" >> $GITHUB_ENV; fi
 
-      - run: docker compose -f docker/docker-compose.yml pull
-
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.4
+        with:
+          key: docker-${{ hashFiles('docker/docker-compose.yml') }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongo cockroachdb vitess-8
 
@@ -582,10 +582,10 @@ jobs:
         run: |
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
-      - run: docker compose -f docker/docker-compose.yml pull
-
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.4
+        with:
+          key: docker-${{ hashFiles('docker/docker-compose.yml') }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mariadb mssql
 
@@ -642,10 +642,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml pull
-
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.4
+        with:
+          key: docker-${{ hashFiles('docker/docker-compose.yml') }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql
 
@@ -707,10 +707,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml pull
-
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.4
+        with:
+          key: docker-${{ hashFiles('docker/docker-compose.yml') }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres mysql mssql mongodb_migrate mongodb_migrate_seed cockroachdb
 
@@ -786,10 +786,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - run: docker compose -f docker/docker-compose.yml pull
-
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        continue-on-error: true
+      - name: Cache Docker images
+        uses: ScribeMD/docker-cache@0.3.4
+        with:
+          key: docker-${{ hashFiles('docker/docker-compose.yml') }}
 
       - run: docker compose -f docker/docker-compose.yml up --detach postgres
 
