@@ -13,6 +13,7 @@ import { RawValue, Sql } from 'sql-template-tag'
 import { PrismaClientValidationError } from '.'
 import { addProperty, createCompositeProxy, removeProperties } from './core/compositeProxy'
 import { BatchTransactionOptions, Engine, EngineConfig, EngineEventType, Fetch, Options } from './core/engines'
+import { EngineEventCallback } from './core/engines/common/Engine'
 import { prettyPrintArguments } from './core/errorRendering/prettyPrintArguments'
 import { $extends } from './core/extensions/$extends'
 import { applyAllResultExtensions } from './core/extensions/applyAllResultExtensions'
@@ -452,30 +453,24 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       this._middlewares.use(middleware)
     }
 
-    $on(eventType: EngineEventType, callback: (event: any) => void) {
-      if (eventType === 'beforeExit') {
-        this._engine.on('beforeExit', callback)
-      } else {
-        this._engine.on(eventType, (event) => {
-          const fields = event.fields
-          if (eventType === 'query') {
-            return callback({
-              timestamp: event.timestamp,
-              query: fields?.query ?? event.query,
-              params: fields?.params ?? event.params,
-              duration: fields?.duration_ms ?? event.duration,
-              target: event.target,
-            })
-          } else {
-            // warn, info, or error events
-            return callback({
-              timestamp: event.timestamp,
-              message: fields?.message ?? event.message,
-              target: event.target,
-            })
-          }
-        })
-      }
+    $on<E extends EngineEventType>(eventType: E, callback: EngineEventCallback<E>) {
+      // if (eventType === 'query') {
+      //   return (callback as EngineEventCallback<typeof eventType>)({
+      //     timestamp: event.timestamp,
+      //     query: fields?.query ?? event.query,
+      //     params: fields?.params ?? event.params,
+      //     duration: fields?.duration_ms ?? event.duration,
+      //     target: event.target,
+      //   })
+      // } else {
+      //   // warn, info, or error events
+      //   return (callback as EngineEventCallback<typeof eventType>)({
+      //     timestamp: event.timestamp,
+      //     message: fields?.message ?? event.message,
+      //     target: event.target,
+      //   })
+      // }
+      this._engine.on(eventType, callback)
     }
 
     $connect() {

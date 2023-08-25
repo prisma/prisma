@@ -55,7 +55,7 @@ export type BatchQueryEngineResult<T> = QueryEngineResult<T> | Error
 
 // TODO Move shared logic in here
 export abstract class Engine<InteractiveTransactionPayload = unknown> {
-  abstract on(event: EngineEventType, listener: (args?: any) => any): void
+  abstract on<E extends EngineEventType>(event: E, listener: EngineEventCallback<E>): void
   abstract start(): Promise<void>
   abstract stop(): Promise<void>
   abstract version(forceRun?: boolean): Promise<string> | string
@@ -88,6 +88,31 @@ export abstract class Engine<InteractiveTransactionPayload = unknown> {
 }
 
 export type EngineEventType = 'query' | 'info' | 'warn' | 'error' | 'beforeExit'
+
+export type EngineQueryEvent = {
+  timestamp: Date
+  query: string
+  params: string
+  duration: number
+  target: string
+}
+
+export type EngineLogEvent = {
+  timestamp: Date
+  message: string
+  target: string
+}
+
+export type EngineEventCallback<E extends EngineEventType> = E extends 'beforeExit'
+  ? () => Promise<void>
+  : E extends 'query'
+  ? (event: EngineQueryEvent) => void
+  : (event: EngineLogEvent) => void
+
+export type LogEmitter = {
+  on(event: string, listener: (...args: any[]) => void): unknown
+  emit(event: string, args?: any): boolean
+}
 
 export interface EngineConfig {
   cwd: string

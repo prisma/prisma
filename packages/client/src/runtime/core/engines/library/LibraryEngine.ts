@@ -13,6 +13,7 @@ import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSErro
 import type {
   BatchQueryEngineResult,
   EngineConfig,
+  EngineEventCallback,
   EngineEventType,
   RequestBatchOptions,
   RequestOptions,
@@ -341,7 +342,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
     return str
   }
 
-  on(event: EngineEventType, listener: (args?: any) => any): void {
+  on<E extends EngineEventType>(event: E, listener: EngineEventCallback<E>): void {
     if (event === 'beforeExit') {
       throw new Error(
         '"beforeExit" hook is not applicable to the library engine since Prisma 5.0.0, it is only relevant and implemented for the binary engine. Please add your event listener to the `process` object directly instead.',
