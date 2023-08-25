@@ -52,12 +52,13 @@ export interface TSClientOptions {
 
 export class TSClient implements Generatable {
   protected readonly dmmf: DMMFHelper
-  protected readonly genericsInfo: GenericArgsInfo = new GenericArgsInfo()
+  protected readonly genericsInfo: GenericArgsInfo
 
   static enabledPreviewFeatures: string[]
 
   constructor(protected readonly options: TSClientOptions) {
     this.dmmf = new DMMFHelper(klona(options.document))
+    this.genericsInfo = new GenericArgsInfo(this.dmmf)
 
     TSClient.enabledPreviewFeatures = this.options.generator?.previewFeatures ?? []
   }
@@ -259,7 +260,7 @@ ${fieldRefs.join('\n\n')}`
 ${this.dmmf.inputObjectTypes.prisma
   .reduce((acc, inputType) => {
     if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
-      const needsGeneric = this.genericsInfo.inputTypeNeedsGenericModelArg(inputType)
+      const needsGeneric = this.genericsInfo.typeNeedsGenericModelArg(inputType, 'prisma')
       const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
       const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
       // This generates types for JsonFilter to prevent the usage of 'path' without another parameter

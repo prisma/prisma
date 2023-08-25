@@ -42,37 +42,29 @@ function buildInputField(field: DMMF.SchemaArg, genericsInfo: GenericArgsInfo, s
   return tsProperty
 }
 
-function buildSingleFieldType(
-  t: DMMF.SchemaArgInputType,
-  genericsInfo: GenericArgsInfo,
-  source?: string,
-): ts.TypeBuilder {
+function buildSingleFieldType(t: DMMF.InputTypeRef, genericsInfo: GenericArgsInfo, source?: string): ts.TypeBuilder {
   let type: ts.NamedType
-  if (typeof t.type === 'string') {
-    if (t.type === 'Null') {
-      return ts.nullType
-    }
-    const scalarType = GraphQLScalarToJSTypeTable[t.type]
-    if (Array.isArray(scalarType)) {
-      const union = ts.unionType(scalarType.map(namedInputType))
-      if (t.isList) {
-        return union.mapVariants((variant) => ts.array(variant))
-      }
-      return union
-    }
 
-    type = namedInputType(scalarType ?? t.type)
-  } else if (t.location === 'enumTypes' && t.namespace === 'model') {
-    type = ts.namedType(`$Enums.${t.type.name}`)
+  const scalarType = GraphQLScalarToJSTypeTable[t.type]
+  if (t.location === 'enumTypes' && t.namespace === 'model') {
+    type = ts.namedType(`$Enums.${t.type}`)
+  } else if (t.type === 'Null') {
+    return ts.nullType
+  } else if (Array.isArray(scalarType)) {
+    const union = ts.unionType(scalarType.map(namedInputType))
+    if (t.isList) {
+      return union.mapVariants((variant) => ts.array(variant))
+    }
+    return union
   } else {
-    type = namedInputType(t.type.name)
+    type = namedInputType(scalarType ?? t.type)
   }
 
   if (type.name.endsWith('Select') || type.name.endsWith('Include')) {
     type.addGenericArgument(ts.namedType('ExtArgs'))
   }
 
-  if (genericsInfo.needsGenericModelArg(t)) {
+  if (genericsInfo.typeRefNeedsGenericModelArg(t)) {
     if (source) {
       type.addGenericArgument(ts.stringLiteral(source))
     } else {
@@ -104,7 +96,7 @@ function namedInputType(typeName: string) {
  * 2. Generate them out and `|` them
  */
 function buildAllFieldTypes(
-  inputTypes: DMMF.SchemaArgInputType[],
+  inputTypes: DMMF.InputTypeRef[],
   genericsInfo: GenericArgsInfo,
   source?: string,
 ): ts.TypeBuilder {
@@ -155,7 +147,7 @@ export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
   }
 
   private getTypeName() {
-    if (this.genericsInfo.inputTypeNeedsGenericModelArg(this.type)) {
+    if (this.genericsInfo.typeNeedsGenericModelArg(this.type, 'prisma')) {
       return `${this.type.name}<$PrismaModel = never>`
     }
     return this.type.name
