@@ -54,7 +54,7 @@ function getHtmlTemplate(results: TestResult[]) {
                     data: {
                         datasets: [
                             {
-                                label: name + ' test heap usage',
+                                label: name + ' test rss usage',
                                 data,
                                 fill: false,
                                 borderColor: hasLeak ? '#A33B36' : '#46A368',
