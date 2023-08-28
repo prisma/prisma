@@ -37,5 +37,20 @@ export default defineMatrix(() => [
       noResultsQuery: '+April +Smith',
       badQuery: 'John <--> Smith',
     },
+    {
+      provider: 'mysql',
+      providerFlavor: 'vitess_8',
+      previewFeatures: '"fullTextSearch", "fullTextIndex"',
+      index: `
+      @@fulltext([name])
+      @@fulltext([name, email])
+      @@fulltext([email])
+      `,
+      andQuery: '+John +Smith',
+      orQuery: 'John April',
+      notQuery: 'John -Smith April',
+      noResultsQuery: '+April +Smith',
+      badQuery: 'John <--> Smith',
+    },
   ],
 ])

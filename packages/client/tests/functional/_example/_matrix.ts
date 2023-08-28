@@ -25,11 +25,17 @@ export default defineMatrix(() => [
     },
     {
       provider: 'mysql',
-      providerFlavor: 'js_planetscale',
+      providerFlavor: 'vitess_8',
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
-      // relationMode: 'prisma',
     },
+    // {
+    //   provider: 'mysql',
+    //   providerFlavor: 'js_planetscale',
+    //   id: 'Int @id @default(autoincrement())',
+    //   providerFeatures: '',
+    //   // relationMode: 'prisma',
+    // },
     {
       provider: 'sqlserver',
       id: 'Int @id @default(autoincrement())',
