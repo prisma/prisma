@@ -248,7 +248,8 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        hint = `Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
+        hint = `
+Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
 ${dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
