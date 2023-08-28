@@ -76,9 +76,9 @@ describe('push', () => {
 
       Your database is now in sync with your Prisma schema. Done in XXXms
     `)
-    await expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
-    await expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
-    await expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
+    expect(ctx.fs.inspect(schemaPath)?.size).toBeGreaterThan(0)
+    expect(ctx.fs.inspect(path.join(path.dirname(schemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
+    expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })
@@ -101,11 +101,11 @@ describe('push', () => {
 
       Your database is now in sync with your Prisma schema. Done in XXXms
     `)
-    await expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
-    await expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
-    await expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), 'dev.db'))?.size).toBeUndefined()
-    await expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
-    await expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
+    expect(ctx.fs.inspect(oldSchemaPath)?.size).toBeUndefined()
+    expect(ctx.fs.inspect(newSchemaPath)?.size).toBeGreaterThan(0)
+    expect(ctx.fs.inspect(path.join(path.dirname(oldSchemaPath), 'dev.db'))?.size).toBeUndefined()
+    expect(ctx.fs.inspect(path.join(path.dirname(newSchemaPath), 'dev.db'))?.size).toBeGreaterThan(0)
+    expect(ctx.fs.inspect('dev.db')?.size).toBeUndefined()
 
     expect(ctx.mocked['console.error'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
   })

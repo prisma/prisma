@@ -83,6 +83,8 @@ export const defaultURL = (provider: ConnectorType, port = defaultPort(provider)
       return `mongodb+srv://root:randompassword@cluster0.ab1cd.mongodb.net/mydb?retryWrites=true&w=majority`
     case 'sqlite':
       return 'file:./dev.db'
+    default:
+      return undefined
   }
 }
 
