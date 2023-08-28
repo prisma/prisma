@@ -267,10 +267,21 @@ function serializeArgumentsObject(
 function serializeArgumentsArray(array: JsInputValue[], context: SerializeContext): JsonArgumentValue[] {
   const result: JsonArgumentValue[] = []
   for (let i = 0; i < array.length; i++) {
+    const itemContext = context.nestArgument(String(i))
     const value = array[i]
-    if (value !== undefined) {
-      result.push(serializeArgumentsValue(value, context.nestArgument(String(i))))
+    if (value === undefined) {
+      context.throwValidationError({
+        kind: 'InvalidArgumentValue',
+        selectionPath: itemContext.getSelectionPath(),
+        argumentPath: itemContext.getArgumentPath(),
+        argument: {
+          name: `${context.getArgumentName()}[${i}]`,
+          typeNames: [],
+        },
+        underlyingError: 'Can not use `undefined` value within array. Use `null` or filter out `undefined` values',
+      })
     }
+    result.push(serializeArgumentsValue(value, itemContext))
   }
   return result
 }
