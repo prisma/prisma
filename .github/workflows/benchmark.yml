@@ -91,7 +91,7 @@ jobs:
 
       - name: Slack Notification on Failure
         if: ${{ failure() && github.ref == 'refs/heads/main' }}
-        uses: rtCamp/action-slack-notify@v2.2.0
+        uses: rtCamp/action-slack-notify@v2.2.1
         env:
           SLACK_TITLE: 'Benchmark failed :x:'
           SLACK_COLOR: '#FF0000'

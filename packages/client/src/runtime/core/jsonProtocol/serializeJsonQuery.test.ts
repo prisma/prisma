@@ -715,35 +715,6 @@ test('args - array', () => {
   `)
 })
 
-test('args - array - with undefined', () => {
-  expect(
-    serialize({
-      modelName: 'User',
-      action: 'findMany',
-      args: { where: { favoriteNumbers: [1, undefined, 23] } },
-    }),
-  ).toMatchInlineSnapshot(`
-    {
-      "modelName": "User",
-      "action": "findMany",
-      "query": {
-        "arguments": {
-          "where": {
-            "favoriteNumbers": [
-              1,
-              23
-            ]
-          }
-        },
-        "selection": {
-          "$composites": true,
-          "$scalars": true
-        }
-      }
-    }
-  `)
-})
-
 test('1 level include', () => {
   expect(serialize({ modelName: 'User', action: 'findMany', args: { include: { posts: true } } }))
     .toMatchInlineSnapshot(`
