@@ -25,9 +25,10 @@ export function computeSchemaHeader({
   const previewFeaturesLine = previewFeatures ? `previewFeatures = ["${previewFeatures}"]` : ''
   const engineTypeLine = engineType ? `engineType = ["${engineType}"]` : ''
 
-  const url = match({ provider, providerFlavor })
+  const isDataProxy = Boolean(process.env.TEST_DATA_PROXY)
+  const url = match({ provider, providerFlavor, isDataProxy })
     .with({ provider: Providers.SQLITE }, () => `"file:./test.db"`)
-    .with({ providerFlavor: P.string }, () => `env("DATABASE_URI_${providerFlavor}")`)
+    .with({ providerFlavor: P.string, isDataProxy: false }, () => `env("DATABASE_URI_${providerFlavor}")`)
     .otherwise(({ provider }) => `env("DATABASE_URI_${provider}")`)
 
   const providerName = match({ provider, providerFlavor })

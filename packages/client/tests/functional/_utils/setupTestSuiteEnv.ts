@@ -222,7 +222,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
         return { envVarName: envVarNameDefault, newURI: newURIDefault }
       } else {
         const envVarName = `DATABASE_URI_${providerFlavor!}`
-        const newURI = getDbUrlFromFlavor(providerFlavor, provider, clientMeta.dataProxy)
+        const newURI = getDbUrlFromFlavor(providerFlavor, provider)
         return { envVarName, newURI }
       }
     })
