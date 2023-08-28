@@ -104,7 +104,7 @@
   "scripts": {
     "dev": "DEV=true node -r esbuild-register helpers/build.ts",
     "build": "node -r esbuild-register helpers/build.ts",
-    "test": "node -r esbuild-register helpers/run-tests.ts",
+    "test": "dotenv -e ../../.db.env -- node -r esbuild-register helpers/run-tests.ts",
     "tsc": "tsc -d -p tsconfig.build.json",
     "preinstall": "node scripts/preinstall-entry.js",
     "prepublishOnly": "pnpm run build"
