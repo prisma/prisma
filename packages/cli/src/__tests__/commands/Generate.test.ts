@@ -22,6 +22,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -41,6 +42,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -81,6 +83,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -100,6 +103,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=none) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -130,6 +134,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -151,6 +156,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -183,6 +189,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -202,6 +209,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -232,6 +240,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -251,6 +260,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -281,6 +291,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -302,6 +313,7 @@ describe('using cli', () => {
         Prisma schema loaded from prisma/schema.prisma
 
         ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+
         Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
         \`\`\`
         import { PrismaClient } from './generated/client'
@@ -347,37 +359,39 @@ describe('--schema from project directory', () => {
     if (getClientEngineType() === 'binary') {
       expect(result).toMatchInlineSnapshot(`
 
-                                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
-                                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                                        \`\`\`
-                                                        import { PrismaClient } from './@prisma/client'
-                                                        const prisma = new PrismaClient()
-                                                        \`\`\`
-                                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                                        \`\`\`
-                                                        import { PrismaClient } from './@prisma/client/edge'
-                                                        const prisma = new PrismaClient()
-                                                        \`\`\`
+        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
 
-                                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        import { PrismaClient } from './@prisma/client'
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        import { PrismaClient } from './@prisma/client/edge'
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                                           `)
     } else {
       expect(result).toMatchInlineSnapshot(`
 
-                                                                ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
-                                                                Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                                                \`\`\`
-                                                                import { PrismaClient } from './@prisma/client'
-                                                                const prisma = new PrismaClient()
-                                                                \`\`\`
-                                                                or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                                                \`\`\`
-                                                                import { PrismaClient } from './@prisma/client/edge'
-                                                                const prisma = new PrismaClient()
-                                                                \`\`\`
+        ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
 
-                                                                See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        import { PrismaClient } from './@prisma/client'
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        import { PrismaClient } from './@prisma/client/edge'
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                                                 `)
     }
@@ -399,37 +413,39 @@ describe('--schema from project directory', () => {
     if (getClientEngineType() === 'binary') {
       expect(output).toMatchInlineSnapshot(`
 
-                                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
-                                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                                        \`\`\`
-                                                        import { PrismaClient } from './@prisma/client'
-                                                        const prisma = new PrismaClient()
-                                                        \`\`\`
-                                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                                        \`\`\`
-                                                        import { PrismaClient } from './@prisma/client/edge'
-                                                        const prisma = new PrismaClient()
-                                                        \`\`\`
+        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./@prisma/client in XXXms
 
-                                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        import { PrismaClient } from './@prisma/client'
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        import { PrismaClient } from './@prisma/client/edge'
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                                           `)
     } else {
       expect(output).toMatchInlineSnapshot(`
 
-                                                                ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
-                                                                Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                                                \`\`\`
-                                                                import { PrismaClient } from './@prisma/client'
-                                                                const prisma = new PrismaClient()
-                                                                \`\`\`
-                                                                or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                                                \`\`\`
-                                                                import { PrismaClient } from './@prisma/client/edge'
-                                                                const prisma = new PrismaClient()
-                                                                \`\`\`
+        ✔ Generated Prisma Client (v0.0.0) to ./@prisma/client in XXXms
 
-                                                                See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        import { PrismaClient } from './@prisma/client'
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        import { PrismaClient } from './@prisma/client/edge'
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                                                 `)
     }
@@ -452,37 +468,39 @@ describe('--schema from parent directory', () => {
     if (getClientEngineType() === 'binary') {
       expect(result).toMatchInlineSnapshot(`
 
-                                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
-                                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                                        \`\`\`
-                                                        import { PrismaClient } from './subdirectory/@prisma/client'
-                                                        const prisma = new PrismaClient()
-                                                        \`\`\`
-                                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                                        \`\`\`
-                                                        import { PrismaClient } from './subdirectory/@prisma/client/edge'
-                                                        const prisma = new PrismaClient()
-                                                        \`\`\`
+        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
 
-                                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        import { PrismaClient } from './subdirectory/@prisma/client'
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        import { PrismaClient } from './subdirectory/@prisma/client/edge'
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                                           `)
     } else {
       expect(result).toMatchInlineSnapshot(`
 
-                                                                ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
-                                                                Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                                                \`\`\`
-                                                                import { PrismaClient } from './subdirectory/@prisma/client'
-                                                                const prisma = new PrismaClient()
-                                                                \`\`\`
-                                                                or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                                                \`\`\`
-                                                                import { PrismaClient } from './subdirectory/@prisma/client/edge'
-                                                                const prisma = new PrismaClient()
-                                                                \`\`\`
+        ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
 
-                                                                See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        import { PrismaClient } from './subdirectory/@prisma/client'
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        import { PrismaClient } from './subdirectory/@prisma/client/edge'
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                                                 `)
     }
@@ -506,37 +524,39 @@ describe('--schema from parent directory', () => {
     if (getClientEngineType() === 'binary') {
       expect(result).toMatchInlineSnapshot(`
 
-                                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
-                                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                                        \`\`\`
-                                                        import { PrismaClient } from './subdirectory/@prisma/client'
-                                                        const prisma = new PrismaClient()
-                                                        \`\`\`
-                                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                                        \`\`\`
-                                                        import { PrismaClient } from './subdirectory/@prisma/client/edge'
-                                                        const prisma = new PrismaClient()
-                                                        \`\`\`
+        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./subdirectory/@prisma/client in XXXms
 
-                                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        import { PrismaClient } from './subdirectory/@prisma/client'
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        import { PrismaClient } from './subdirectory/@prisma/client/edge'
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                                           `)
     } else {
       expect(result).toMatchInlineSnapshot(`
 
-                                                                ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
-                                                                Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                                                \`\`\`
-                                                                import { PrismaClient } from './subdirectory/@prisma/client'
-                                                                const prisma = new PrismaClient()
-                                                                \`\`\`
-                                                                or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                                                \`\`\`
-                                                                import { PrismaClient } from './subdirectory/@prisma/client/edge'
-                                                                const prisma = new PrismaClient()
-                                                                \`\`\`
+        ✔ Generated Prisma Client (v0.0.0) to ./subdirectory/@prisma/client in XXXms
 
-                                                                See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        import { PrismaClient } from './subdirectory/@prisma/client'
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        import { PrismaClient } from './subdirectory/@prisma/client/edge'
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                                                 `)
     }
@@ -561,41 +581,43 @@ describe('--schema from parent directory', () => {
     if (getClientEngineType() === 'binary') {
       expect(result).toMatchInlineSnapshot(`
 
-                                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
+        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client in XXXms
 
-                                                        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client_3 in XXXms
-                                                        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                                        \`\`\`
-                                                        import { PrismaClient } from './generated/client'
-                                                        const prisma = new PrismaClient()
-                                                        \`\`\`
-                                                        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                                        \`\`\`
-                                                        import { PrismaClient } from './generated/client/edge'
-                                                        const prisma = new PrismaClient()
-                                                        \`\`\`
+        ✔ Generated Prisma Client (v0.0.0, engine=binary) to ./generated/client_3 in XXXms
 
-                                                        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        import { PrismaClient } from './generated/client'
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        import { PrismaClient } from './generated/client/edge'
+        const prisma = new PrismaClient()
+        \`\`\`
+
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                                           `)
     } else {
       expect(result).toMatchInlineSnapshot(`
 
-                                                                ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
+        ✔ Generated Prisma Client (v0.0.0) to ./generated/client in XXXms
 
-                                                                ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
-                                                                Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
-                                                                \`\`\`
-                                                                import { PrismaClient } from './generated/client'
-                                                                const prisma = new PrismaClient()
-                                                                \`\`\`
-                                                                or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
-                                                                \`\`\`
-                                                                import { PrismaClient } from './generated/client/edge'
-                                                                const prisma = new PrismaClient()
-                                                                \`\`\`
+        ✔ Generated Prisma Client (v0.0.0) to ./generated/client_3 in XXXms
+        
+        Start using Prisma Client in Node.js (See: https://pris.ly/d/client)
+        \`\`\`
+        import { PrismaClient } from './generated/client'
+        const prisma = new PrismaClient()
+        \`\`\`
+        or start using Prisma Client at the edge (See: https://pris.ly/d/accelerate)
+        \`\`\`
+        import { PrismaClient } from './generated/client/edge'
+        const prisma = new PrismaClient()
+        \`\`\`
 
-                                                                See other ways of importing Prisma Client: http://pris.ly/d/importing-client
+        See other ways of importing Prisma Client: http://pris.ly/d/importing-client
 
                                                 `)
     }
