@@ -52,3 +52,11 @@ export class SomeClassWrapper {
 export function someFunction(data: Prisma.Args<typeof xprismaViaInlineExt.modelA, 'create'>['data']) {
   return xprismaViaInlineExt.modelA.create({ data })
 }
+
+// from https://github.com/prisma/prisma/issues/20243
+export type StripePriceUpsert = Omit<Prisma.ModelAUpsertArgs, 'create' | 'update'> & {
+  create: Prisma.ModelAUncheckedCreateInput
+  update: Prisma.ModelAUncheckedUpdateInput
+}
+
+export const upsertPromise = new PrismaClient().$extends({}).modelA.upsert({} as any as StripePriceUpsert)

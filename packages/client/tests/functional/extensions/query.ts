@@ -1199,7 +1199,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'aggregate'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserAggregateArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserAggregateArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.AggregateUser>>()
 
                 return data
@@ -1208,7 +1208,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'count'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCountArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCountArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.UserCountAggregateOutputType> | number>()
 
                 return data
@@ -1217,7 +1217,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'create'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCreateArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                 expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1231,7 +1231,7 @@ testMatrix.setupTestSuite(
                 // @ts-test-if: provider !== 'sqlite'
                 expectTypeOf(operation).toEqualTypeOf<'createMany'>()
                 // @ts-test-if: provider !== 'sqlite'
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCreateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                 return data
@@ -1240,7 +1240,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'delete'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserDeleteArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserDeleteArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                 expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1250,7 +1250,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'deleteMany'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserDeleteManyArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserDeleteManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                 return data
@@ -1259,7 +1259,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'findMany'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindManyArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[] | undefined>()
                 expectTypeOf(data?.[0]?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1269,7 +1269,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindFirstArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindFirstArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User> | null>()
                 expectTypeOf(data?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1279,7 +1279,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'findUnique'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindUniqueArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindUniqueArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User> | null>()
                 expectTypeOf(data?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1289,7 +1289,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'findFirstOrThrow'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindFirstOrThrowArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindFirstOrThrowArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
 
                 return data
@@ -1298,7 +1298,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'findUniqueOrThrow'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindUniqueOrThrowArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindUniqueOrThrowArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
 
                 return data
@@ -1307,7 +1307,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'groupBy'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserGroupByArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserGroupByArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.UserGroupByOutputType>[]>()
 
                 return data
@@ -1316,7 +1316,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'update'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpdateArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                 expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1326,7 +1326,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'updateMany'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpdateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                 return data
@@ -1335,7 +1335,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'upsert'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpsertArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpsertArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                 expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1347,7 +1347,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'aggregate'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserAggregateArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserAggregateArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.AggregateUser>>()
 
                   return data
@@ -1356,7 +1356,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'count'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCountArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCountArgs>()
                   expectTypeOf(data).toMatchTypeOf<
                     OptionalDeep<PrismaNamespace.UserCountAggregateOutputType> | number
                   >()
@@ -1367,7 +1367,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'create'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCreateArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1382,7 +1382,7 @@ testMatrix.setupTestSuite(
                   // @ts-test-if: provider !== 'sqlite'
                   expectTypeOf(operation).toEqualTypeOf<'createMany'>()
                   // @ts-test-if: provider !== 'sqlite'
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCreateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                   return data
@@ -1391,7 +1391,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'delete'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserDeleteArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserDeleteArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1401,7 +1401,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'deleteMany'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserDeleteManyArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserDeleteManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                   return data
@@ -1410,7 +1410,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'findMany'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindManyArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[] | undefined>()
                   expectTypeOf(data?.[0]?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1420,7 +1420,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindFirstArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindFirstArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User> | null>()
                   expectTypeOf(data?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1430,7 +1430,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'findUnique'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindUniqueArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindUniqueArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User> | null>()
                   expectTypeOf(data?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1440,7 +1440,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'findFirstOrThrow'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindFirstOrThrowArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindFirstOrThrowArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1450,7 +1450,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'findUniqueOrThrow'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindUniqueOrThrowArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindUniqueOrThrowArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1460,7 +1460,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'groupBy'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserGroupByArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserGroupByArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.UserGroupByOutputType>[]>()
 
                   return data
@@ -1469,7 +1469,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'update'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpdateArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1479,7 +1479,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'updateMany'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpdateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                   return data
@@ -1488,7 +1488,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'upsert'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpsertArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpsertArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1506,7 +1506,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'aggregate'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserAggregateArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserAggregateArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.AggregateUser>>()
 
                   return data
@@ -1515,7 +1515,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'count'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCountArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCountArgs>()
                   expectTypeOf(data).toMatchTypeOf<
                     OptionalDeep<PrismaNamespace.UserCountAggregateOutputType> | number
                   >()
@@ -1526,7 +1526,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'create'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCreateArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1540,7 +1540,7 @@ testMatrix.setupTestSuite(
                   // @ts-test-if: provider !== 'sqlite'
                   expectTypeOf(operation).toEqualTypeOf<'createMany'>()
                   // @ts-test-if: provider !== 'sqlite'
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCreateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                   return data
@@ -1549,7 +1549,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'delete'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserDeleteArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserDeleteArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1559,7 +1559,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'deleteMany'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserDeleteManyArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserDeleteManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                   return data
@@ -1568,7 +1568,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'findMany'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindManyArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[] | undefined>()
                   expectTypeOf(data?.[0]?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1578,7 +1578,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindFirstArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindFirstArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User> | null>()
                   expectTypeOf(data?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1588,7 +1588,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'findUnique'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindUniqueArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindUniqueArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User> | null>()
                   expectTypeOf(data?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1598,7 +1598,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'findFirstOrThrow'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindFirstOrThrowArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindFirstOrThrowArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1608,7 +1608,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'findUniqueOrThrow'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindUniqueOrThrowArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindUniqueOrThrowArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1618,7 +1618,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'groupBy'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserGroupByArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserGroupByArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.UserGroupByOutputType>[]>()
 
                   return data
@@ -1627,7 +1627,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'update'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpdateArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1637,7 +1637,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'updateMany'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateManyArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpdateManyArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                   return data
@@ -1646,7 +1646,7 @@ testMatrix.setupTestSuite(
                   const data = await query(args)
 
                   expectTypeOf(operation).toEqualTypeOf<'upsert'>()
-                  expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpsertArgs>()
+                  expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpsertArgs>()
                   expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                   expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1661,7 +1661,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'aggregate'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserAggregateArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserAggregateArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.AggregateUser>>()
 
                 return data
@@ -1672,7 +1672,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'count'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCountArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCountArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.UserCountAggregateOutputType> | number>()
 
                 return data
@@ -1683,7 +1683,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'create'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCreateArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                 expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1699,7 +1699,7 @@ testMatrix.setupTestSuite(
                 // @ts-test-if: provider !== 'sqlite'
                 expectTypeOf(operation).toEqualTypeOf<'createMany'>()
                 // @ts-test-if: provider !== 'sqlite'
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserCreateManyArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserCreateManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                 return data
@@ -1710,7 +1710,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'delete'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserDeleteArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserDeleteArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                 expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1722,7 +1722,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'deleteMany'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserDeleteManyArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserDeleteManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.BatchPayload>>()
 
                 return data
@@ -1733,7 +1733,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'findMany'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindManyArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindManyArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>[] | undefined>()
                 expectTypeOf(data?.[0]?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1745,7 +1745,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'findFirst'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindFirstArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindFirstArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User> | null>()
                 expectTypeOf(data).toBeNullable()
                 expectTypeOf(data?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
@@ -1758,7 +1758,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'findUnique'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindUniqueArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindUniqueArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User> | null>()
                 expectTypeOf(data).toBeNullable()
                 expectTypeOf(data?.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
@@ -1771,7 +1771,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'findFirstOrThrow'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindFirstOrThrowArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindFirstOrThrowArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                 expectTypeOf(data).not.toBeNullable()
 
@@ -1783,7 +1783,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'findUniqueOrThrow'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserFindUniqueOrThrowArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserFindUniqueOrThrowArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                 expectTypeOf(data).not.toBeNullable()
 
@@ -1795,7 +1795,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'groupBy'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserGroupByArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserGroupByArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<PrismaNamespace.UserGroupByOutputType>[]>()
 
                 return data
@@ -1806,7 +1806,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'update'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpdateArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpdateArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                 expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
@@ -1829,7 +1829,7 @@ testMatrix.setupTestSuite(
                 const data = await query(args)
 
                 expectTypeOf(operation).toEqualTypeOf<'upsert'>()
-                expectTypeOf(args).toEqualTypeOf<PrismaNamespace.UserUpsertArgs>()
+                expectTypeOf(args).toMatchTypeOf<PrismaNamespace.UserUpsertArgs>()
                 expectTypeOf(data).toMatchTypeOf<OptionalDeep<User>>()
                 expectTypeOf(data.posts).toMatchTypeOf<OptionalDeep<Post>[] | undefined>()
 
