@@ -1,7 +1,13 @@
+import { computeSchemaHeader } from '../../../_utils/computeSchemaHeader'
 import { idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider }) => {
+export default testMatrix.setupSchema(({ provider, providerFlavor }): string => {
+  const schemaHeader = computeSchemaHeader({
+    provider,
+    providerFlavor,
+  })
+
   const fields = /* Prisma */ `
     id ${idForProvider(provider)}
     string String
@@ -9,26 +15,19 @@ export default testMatrix.setupSchema(({ provider }) => {
     notString Int
   `
   return /* Prisma */ `
-  generator client {
-    provider = "prisma-client-js"
-  }
-  
-  datasource db {
-    provider = "${provider}"
-    url      = env("DATABASE_URI_${provider}")
-  }
+${schemaHeader}
 
-  model Product {
-    ${fields}
-  }
+model Product {
+  ${fields}
+}
 
-  model IdenticalToProduct {
-    ${fields}
-  }
+model IdenticalToProduct {
+  ${fields}
+}
 
-  model OtherModel {
-    id ${idForProvider(provider)}
-    string String
-  }
-  `
+model OtherModel {
+  id ${idForProvider(provider)}
+  string String
+}
+`
 })

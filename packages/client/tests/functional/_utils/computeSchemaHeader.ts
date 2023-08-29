@@ -1,7 +1,7 @@
 import { match, P } from 'ts-pattern'
 
-import { Providers } from './providers'
 import { type ProviderFlavor, ProviderFlavors } from './providerFlavors'
+import { Providers } from './providers'
 
 export type ComputeSchemaHeader = {
   provider: Providers
