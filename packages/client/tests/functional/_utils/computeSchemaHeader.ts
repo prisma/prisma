@@ -5,7 +5,7 @@ import { type ProviderFlavor, ProviderFlavors } from './relationMode/ProviderFla
 
 export type ComputeSchemaHeader = {
   provider: Providers
-  relationMode: string
+  relationMode?: string
   providerFlavor?: ProviderFlavor
   previewFeatures?: string
   engineType?: 'binary' | 'library'
@@ -21,7 +21,20 @@ export function computeSchemaHeader({
   // if relationModeLine is not defined, we do not add the line
   // if relationModeLine is defined
   // we add the line only if the provider is not MongoDB, since MongoDB doesn't need the setting, it's on by default
-  const relationModeLine = provider === Providers.MONGODB || !relationMode ? '' : `relationMode = "${relationMode}"`
+  let relationModeLine = ''
+  if (provider === Providers.MONGODB) {
+    // do nothing
+  } else if (
+    !relationMode &&
+    (providerFlavor === ProviderFlavors.JS_PLANETSCALE || providerFlavor === ProviderFlavors.VITESS_8)
+  ) {
+    // Set relationMode to prisma for tests running on Vitess to avoid the following error:
+    // VT10001: foreign key constraints are not allowed
+    relationModeLine = `relationMode = "prisma"`
+  } else if (relationMode) {
+    relationModeLine = `relationMode = "${relationMode}"`
+  }
+
   const previewFeaturesLine = previewFeatures ? `previewFeatures = ["${previewFeatures}"]` : ''
   const engineTypeLine = engineType ? `engineType = ["${engineType}"]` : ''
 

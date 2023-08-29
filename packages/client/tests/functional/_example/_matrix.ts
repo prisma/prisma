@@ -29,13 +29,13 @@ export default defineMatrix(() => [
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
-    // {
-    //   provider: 'mysql',
-    //   providerFlavor: 'js_planetscale',
-    //   id: 'Int @id @default(autoincrement())',
-    //   providerFeatures: '',
-    //   // relationMode: 'prisma',
-    // },
+    {
+      provider: 'mysql',
+      providerFlavor: 'js_planetscale',
+      id: 'Int @id @default(autoincrement())',
+      providerFeatures: '',
+      // relationMode: 'prisma',
+    },
     {
       provider: 'sqlserver',
       id: 'Int @id @default(autoincrement())',

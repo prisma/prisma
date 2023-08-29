@@ -106,10 +106,10 @@ function setupTestSuiteMatrix(
 
             // Ignoring the type error, `url` is actually not required
             // `host` only works and is pointing to the local proxy
-            // @ts-ignore
             const jsConnector = createPlanetScaleConnector({
               // url: connectionString,
-              host: '127.0.0.1:8085',
+              url: 'http://root:root@127.0.0.1:8085',
+
               /**
                * Custom `fetch` implementation is only necessary on Node.js < v18.x.x.
                */
