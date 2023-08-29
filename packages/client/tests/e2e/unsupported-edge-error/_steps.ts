@@ -1,4 +1,4 @@
-import { $ } from 'zx'
+import { $, sleep } from 'zx'
 
 import { executeSteps } from '../_utils/executeSteps'
 
@@ -10,11 +10,7 @@ void executeSteps({
   test: async () => {
     const wrangler = $`pnpm wrangler dev`.nothrow()
 
-    for await (const line of wrangler.stdout) {
-      if (line.includes('http://127.0.0.1:8787')) {
-        break
-      }
-    }
+    await sleep('1s')
 
     await $`pnpm exec jest`
 
