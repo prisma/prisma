@@ -339,7 +339,7 @@ jobs:
   # CLIENT test:e2e
   #
   client-e2e:
-    timeout-minutes: 25
+    timeout-minutes: 35
     runs-on: ${{ matrix.os }}
 
     if: ${{ contains(inputs.jobsToRun, '-all-') || contains(inputs.jobsToRun, '-client-') }}
