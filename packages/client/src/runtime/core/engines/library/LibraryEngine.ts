@@ -10,16 +10,9 @@ import { PrismaClientKnownRequestError } from '../../errors/PrismaClientKnownReq
 import { PrismaClientRustPanicError } from '../../errors/PrismaClientRustPanicError'
 import { PrismaClientUnknownRequestError } from '../../errors/PrismaClientUnknownRequestError'
 import { prismaGraphQLToJSError } from '../../errors/utils/prismaGraphQLToJSError'
-import type {
-  BatchQueryEngineResult,
-  EngineConfig,
-  EngineEventCallback,
-  EngineEventType,
-  RequestBatchOptions,
-  RequestOptions,
-} from '../common/Engine'
+import type { BatchQueryEngineResult, EngineConfig, RequestBatchOptions, RequestOptions } from '../common/Engine'
 import { Engine } from '../common/Engine'
-import { EventEmitter } from '../common/types/Events'
+import { LogEmitter } from '../common/types/Events'
 import { JsonQuery } from '../common/types/JsonProtocol'
 import { EngineMetricsOptions, Metrics, MetricsOptionsJson, MetricsOptionsPrometheus } from '../common/types/Metrics'
 import type {
@@ -66,7 +59,7 @@ export class LibraryEngine extends Engine<undefined> {
   private QueryEngineConstructor?: QueryEngineConstructor
   private libraryLoader: LibraryLoader
   private library?: Library
-  private logEmitter: EventEmitter
+  private logEmitter: LogEmitter
   libQueryEnginePath?: string
   platform?: Platform
   datasourceOverrides?: Record<string, string>
