@@ -11,6 +11,7 @@ export type TestPlanEntry = {
 type SuitePlanContext = {
   includedProviders?: string[]
   excludedProviders: string[]
+  includedProviderFlavors?: string[]
   updateSnapshots: 'inline' | 'external' | undefined
 }
 
@@ -46,12 +47,14 @@ function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): b
 }
 
 function shouldSkipProvider(
-  { updateSnapshots, includedProviders, excludedProviders }: SuitePlanContext,
+  { updateSnapshots, includedProviders, excludedProviders, includedProviderFlavors }: SuitePlanContext,
   config: NamedTestSuiteConfig,
   configIndex: number,
   clientMeta: ClientMeta,
 ): boolean {
   const provider = config.matrixOptions['provider'].toLocaleLowerCase()
+  const providerFlavor = config.matrixOptions['providerFlavor'].toLocaleLowerCase()
+
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
     // otherwise jest will fail with "Multiple inline snapshots for the same call are not supported" error
@@ -68,6 +71,10 @@ function shouldSkipProvider(
     return true
   }
 
+  if (includedProviderFlavors && !includedProviderFlavors.includes(providerFlavor)) {
+    return true
+  }
+
   if (clientMeta.dataProxy && provider === 'sqlite') {
     return true
   }
@@ -79,6 +86,7 @@ function buildPlanContext(): SuitePlanContext {
   return {
     includedProviders: process.env.ONLY_TEST_PROVIDERS?.split(','),
     excludedProviders: getExcludedProviders(),
+    includedProviderFlavors: process.env.ONLY_TEST_PROVIDER_FLAVORS?.split(','),
     updateSnapshots: process.env.UPDATE_SNAPSHOTS as 'inline' | 'external' | undefined,
   }
 }

@@ -1,5 +1,5 @@
 import { Providers } from '../providers'
-import { getProviderFromFlavor, ProviderFlavor, ProviderFlavors } from './ProviderFlavor'
+import { getProviderFromFlavor, ProviderFlavor, ProviderFlavors } from '../providerFlavors'
 
 type ComputeMatrix = {
   relationMode: 'prisma' | 'foreignKeys' | ''

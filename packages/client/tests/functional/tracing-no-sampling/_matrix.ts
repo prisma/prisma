@@ -1,8 +1,8 @@
 import { defineMatrix } from '../_utils/defineMatrix'
-import { allProviders } from '../_utils/providers'
+import { allProvidersMatrix } from '../_utils/providerFlavors'
 
 export default defineMatrix(() => [
-  allProviders,
+  allProvidersMatrix,
   [
     {
       previewFeatures: '"tracing"',

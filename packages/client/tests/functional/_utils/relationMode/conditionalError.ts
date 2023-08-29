@@ -1,7 +1,7 @@
 import { O } from 'ts-toolbelt'
 
 import { Providers } from '../providers'
-import { ProviderFlavor } from './ProviderFlavor'
+import { ProviderFlavor } from '../providerFlavors'
 
 type RelationMode = 'prisma' | 'foreignKeys'
 

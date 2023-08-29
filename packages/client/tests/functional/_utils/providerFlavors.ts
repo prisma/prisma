@@ -1,4 +1,4 @@
-import { Providers } from '../providers'
+import { Providers } from './providers'
 
 export enum ProviderFlavors {
   VITESS_8 = 'vitess_8',
@@ -6,8 +6,14 @@ export enum ProviderFlavors {
   JS_NEON = 'js_neon',
 }
 
-const providerFlavors = [...Object.values(Providers), ...Object.values(ProviderFlavors)] as const
-export type ProviderFlavor = (typeof providerFlavors)[number]
+const allProviderFlavors = [...Object.values(Providers), ...Object.values(ProviderFlavors)] as const
+
+export const allProvidersMatrix = allProviderFlavors.map((providerFlavor) => ({
+  provider: getProviderFromFlavor(providerFlavor),
+  providerFlavor,
+}))
+
+export type ProviderFlavor = (typeof allProviderFlavors)[number]
 
 export function getProviderFromFlavor(providerFlavor: ProviderFlavor): Providers {
   switch (providerFlavor) {
