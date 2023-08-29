@@ -120,6 +120,7 @@ func main() {
 	initConnPool()
 	mux := http.NewServeMux()
 	mux.Handle(psdbv1alpha1connect.NewDatabaseHandler(&server{}))
+	fmt.Println("Listening...")
 	panic(http.ListenAndServe(
 		fmt.Sprintf("%s:%d", *flagHTTPAddr, *flagHTTPPort),
 		h2c.NewHandler(mux, &http2.Server{}),
@@ -183,6 +184,7 @@ func (s *server) Execute(
 	}
 
 	// This is a gross simplificiation, but is likely sufficient
+	fmt.Println("Sending SQL to execute:", query)
 	qr, err := conn.ExecuteFetch(query, int(*flagMySQLMaxRows), true)
 	return connect.NewResponse(&psdbv1alpha1.ExecuteResponse{
 		Session: session,

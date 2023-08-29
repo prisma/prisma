@@ -1,7 +1,8 @@
+import { computeSchemaHeader } from '../../_utils/computeSchemaHeader'
 import { foreignKeyForProvider, idForProvider } from '../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
+export default testMatrix.setupSchema(({ provider, providerFlavor, previewFeatures }) => {
   const fields: string[] = []
   const declarations: string[] = []
 
@@ -32,16 +33,15 @@ export default testMatrix.setupSchema(({ provider, previewFeatures }) => {
     fields.push('composite Composite')
   }
 
+  const schemaHeader = computeSchemaHeader({
+    provider,
+    providerFlavor,
+    previewFeatures,
+  })
+
   return /* Prisma */ `
-  generator client {
-    provider = "prisma-client-js"
-    previewFeatures = [${previewFeatures}]
-  }
-  
-  datasource db {
-    provider = "${provider}"
-    url      = env("DATABASE_URI_${provider}")
-  }
+  ${schemaHeader}
+
   
   model Model {
     id ${idForProvider(provider)}

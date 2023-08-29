@@ -53,7 +53,7 @@ function shouldSkipProvider(
   clientMeta: ClientMeta,
 ): boolean {
   const provider = config.matrixOptions['provider'].toLocaleLowerCase()
-  const providerFlavor = config.matrixOptions['providerFlavor'].toLocaleLowerCase()
+  const providerFlavor = config.matrixOptions['providerFlavor']?.toLocaleLowerCase()
 
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
