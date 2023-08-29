@@ -24,11 +24,11 @@ export default defineMatrix(() => [
       providerFlavor: 'vitess_8',
       foreignKeyId: 'String?',
     },
-    // {
-    //   provider: 'mysql',
-    //   providerFlavor: 'js_planetscale',
-    //   foreignKeyId: 'String?',
-    // },
+    {
+      provider: 'mysql',
+      providerFlavor: 'js_planetscale',
+      foreignKeyId: 'String?',
+    },
     {
       provider: 'sqlserver',
       foreignKeyId: 'String?',

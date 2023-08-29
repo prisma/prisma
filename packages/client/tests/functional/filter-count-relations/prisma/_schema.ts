@@ -1,7 +1,13 @@
+import { computeSchemaHeader } from '../../_utils/computeSchemaHeader'
 import { idForProvider } from '../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider }) => {
+export default testMatrix.setupSchema(({ provider, providerFlavor }) => {
+  const schemaHeader = computeSchemaHeader({
+    provider,
+    providerFlavor,
+  })
+
   let foreignKeyType
   let manyToManyGroup
   let manyToManyUser
@@ -23,36 +29,29 @@ export default testMatrix.setupSchema(({ provider }) => {
   }
 
   return /* Prisma */ `
-  generator client {
-    provider = "prisma-client-js"
-  }
+${schemaHeader}
   
-  datasource db {
-    provider = "${provider}"
-    url      = env("DATABASE_URI_${provider}")
-  }
-  
-  model User {
-    id ${idForProvider(provider)}
-    email String
-    blocked Boolean @default(false)
-    balance Int
-    posts Post[]
-    ${manyToManyUser}
-  }
+model User {
+  id ${idForProvider(provider)}
+  email String
+  blocked Boolean @default(false)
+  balance Int
+  posts Post[]
+  ${manyToManyUser}
+}
 
-  model Group {
-    id ${idForProvider(provider)}
-    title String
-    ${manyToManyGroup}
-  }
+model Group {
+  id ${idForProvider(provider)}
+  title String
+  ${manyToManyGroup}
+}
 
-  model Post {
-    id ${idForProvider(provider)}
-    published Boolean
-    upvotes Int
-    authorId ${foreignKeyType}
-    author User @relation(fields: [authorId], references: [id])
-  }
-  `
+model Post {
+  id ${idForProvider(provider)}
+  published Boolean
+  upvotes Int
+  authorId ${foreignKeyType}
+  author User @relation(fields: [authorId], references: [id])
+}
+`
 })

@@ -8,23 +8,23 @@ export default testMatrix.setupSchema(({ provider, providerFlavor, foreignKeyId 
   return /* Prisma */ `
 ${schemaHeader}
       
-      model User {
-        id ${idForProvider(provider)}
-        email String  @unique
-        age   Int
-        name  String?
-        posts Post[]
-      }
+model User {
+  id ${idForProvider(provider)}
+  email String  @unique
+  age   Int
+  name  String?
+  posts Post[]
+}
 
-      model Post {
-        id ${idForProvider(provider)}
-        createdAt DateTime @default(now())
-        updatedAt DateTime @updatedAt
-        published Boolean
-        title     String
-        content   String?
-        authorId  ${foreignKeyId}
-        author    User?    @relation(fields: [authorId], references: [id])
-      }
-    `
+model Post {
+  id ${idForProvider(provider)}
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  published Boolean
+  title     String
+  content   String?
+  authorId  ${foreignKeyId}
+  author    User?    @relation(fields: [authorId], references: [id])
+}
+`
 })
