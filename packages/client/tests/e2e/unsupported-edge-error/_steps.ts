@@ -10,7 +10,7 @@ void executeSteps({
   test: async () => {
     const wrangler = $`pnpm wrangler dev`.nothrow()
 
-    await sleep('1s')
+    await sleep('5s')
 
     await $`pnpm exec jest`
 
