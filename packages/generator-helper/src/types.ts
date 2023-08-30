@@ -34,7 +34,7 @@ export interface GeneratorConfig {
   isCustomOutput?: boolean
   provider: EnvValue
   config: {
-    /** `output` is a reserved name and always will only be available at `generator.output` directly */
+    /** `output` is a reserved name and will only be available directly at `generator.output` */
     output: never
     [key: string]: string | string[]
   }
