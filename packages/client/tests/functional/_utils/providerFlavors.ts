@@ -8,10 +8,21 @@ export enum ProviderFlavors {
 
 const allProviderFlavors = [...Object.values(Providers), ...Object.values(ProviderFlavors)] as const
 
-export const allProvidersMatrix = allProviderFlavors.map((providerFlavor) => ({
-  provider: getProviderFromFlavor(providerFlavor),
-  providerFlavor,
-}))
+export const allProvidersMatrix = allProviderFlavors.map((providerFlavor) => {
+  const provider = getProviderFromFlavor(providerFlavor)
+
+  console.log('providerFlavor', providerFlavor, 'provider', provider)
+  if (providerFlavor === provider) {
+    return {
+      provider,
+    }
+  } else {
+    return {
+      provider,
+      providerFlavor,
+    }
+  }
+})
 
 export type ProviderFlavor = (typeof allProviderFlavors)[number]
 

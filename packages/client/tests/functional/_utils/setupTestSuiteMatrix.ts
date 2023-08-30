@@ -116,21 +116,23 @@ function setupTestSuiteMatrix(
               fetch: undiciFetch,
             })
             client = new globalThis['loaded']['PrismaClient']({ jsConnector, ...args })
-          } else if (providerFlavor === ProviderFlavors.JS_NEON) {
-            const connectionString = `${process.env.TEST_FUNCTIONAL_JS_NEON_URI as string}`.replace(
-              'PRISMA_DB_NAME',
-              'tests',
-            )
+          }
+          //  else if (providerFlavor === ProviderFlavors.JS_NEON) {
+          //   const connectionString = `${process.env.TEST_FUNCTIONAL_JS_NEON_URI as string}`.replace(
+          //     'PRISMA_DB_NAME',
+          //     'tests',
+          //   )
 
-            const jsConnector = createNeonConnector({
-              url: connectionString,
-              /**
-               * Custom `fetch` implementation is only necessary on Node.js < v18.x.x.
-               */
-              // fetchFunction: undiciFetch,
-            })
-            client = new globalThis['loaded']['PrismaClient']({ jsConnector, ...args })
-          } else {
+          //   const jsConnector = createNeonConnector({
+          //     url: connectionString,
+          //     /**
+          //      * Custom `fetch` implementation is only necessary on Node.js < v18.x.x.
+          //      */
+          //     // fetchFunction: undiciFetch,
+          //   })
+          //   client = new globalThis['loaded']['PrismaClient']({ jsConnector, ...args })
+          // }
+          else {
             client = new globalThis['loaded']['PrismaClient']({ ...args })
           }
 
