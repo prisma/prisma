@@ -45,16 +45,7 @@ export const process: NodeJS.Process = {
   cwd: () => '/',
   debugPort: 0,
   disconnect: noop(undefined),
-  domain: {
-    ...{
-      run: noop(undefined),
-      add: noop(undefined),
-      remove: noop(undefined),
-      bind: noop(undefined),
-      intercept: noop(undefined),
-    },
-    ...getProcess(),
-  } as any,
+  constrainedMemory: () => undefined,
   emit: noop(getProcess() as any),
   emitWarning: noop(undefined),
   env: {},
@@ -90,7 +81,7 @@ export const process: NodeJS.Process = {
     heapTotal: 0,
     heapUsed: 0,
     rss: 0,
-  }),
+  }) as any,
   nextTick: (fn: Function, ...args: unknown[]) => {
     setTimeout(() => {
       fn(...args)
