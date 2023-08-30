@@ -5,7 +5,7 @@ export default defineMatrix(() => [
   allProvidersMatrix,
   [
     {
-      previewFeatures: '"tracing"',
+      previewFeatures: 'tracing',
     },
     {
       previewFeatures: '',
