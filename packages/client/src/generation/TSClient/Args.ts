@@ -1,14 +1,12 @@
 import indent from 'indent-string'
 
-import { DMMF } from '../../runtime/dmmf-types'
-import { lowerCase } from '../../runtime/utils/common'
-import { GenericArgsInfo } from '../GenericsArgsInfo'
-import { getIncludeName, getModelArgName, getSelectName } from '../utils'
+import { DMMF } from '../dmmf-types'
+import { getIncludeName, getLegacyModelArgName, getModelArgName, getSelectName } from '../utils'
 import { TAB_SIZE } from './constants'
 import type { Generatable } from './Generatable'
+import { GenerateContext } from './GenerateContext'
 import { getArgFieldJSDoc } from './helpers'
 import { InputField } from './Input'
-import { ifExtensions } from './utils/ifExtensions'
 
 export class ArgsType implements Generatable {
   private generatedName: string | null = null
@@ -16,7 +14,7 @@ export class ArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
-    protected readonly genericsInfo: GenericArgsInfo,
+    protected readonly context: GenerateContext,
     protected readonly action?: DMMF.ModelAction,
   ) {}
   public setGeneratedName(name: string): this {
@@ -84,62 +82,20 @@ export class ArgsType implements Generatable {
     }
 
     argsToGenerate.push(...args)
-    const generatedName = this.generatedName ?? getModelArgName(name, action)
-    if (action === DMMF.ModelAction.findUnique || action === DMMF.ModelAction.findFirst) {
-      return this.generateFindMethodArgs(action, name, argsToGenerate, generatedName)
+    if (!action && !this.generatedName) {
+      this.context.defaultArgsAliases.addPossibleAlias(getModelArgName(name), getLegacyModelArgName(name))
     }
+    const generatedName = this.generatedName ?? getModelArgName(name, action)
+    this.context.defaultArgsAliases.registerArgName(generatedName)
 
     return `
 /**
  * ${this.getGeneratedComment()}
  */
-export type ${generatedName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
+export type ${generatedName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
+${indent(argsToGenerate.map((arg) => new InputField(arg, this.context.genericArgsInfo).toTS()).join('\n'), TAB_SIZE)}
 }
 `
-  }
-
-  private generateFindMethodArgs(
-    action: DMMF.ModelAction.findFirst | DMMF.ModelAction.findUnique,
-    name: string,
-    argsToGenerate: DMMF.SchemaArg[],
-    modelArgName: string,
-  ) {
-    const baseTypeName = getBaseTypeName(name, action)
-    const replacement =
-      action === DMMF.ModelAction.findFirst ? DMMF.ModelAction.findFirstOrThrow : DMMF.ModelAction.findUniqueOrThrow
-
-    // we have to use interface for arg type here, since as for TS 4.7.2
-    // using BaseType & { rejectOnNotFound } intersection breaks type checking for `select`
-    // option
-    return `
-/**
- * ${name} base type for ${action} actions
- */
-export type ${baseTypeName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
-${indent(argsToGenerate.map((arg) => new InputField(arg, false, false, this.genericsInfo).toTS()).join('\n'), TAB_SIZE)}
-}
-
-/**
- * ${this.getGeneratedComment()}
- */
-export interface ${modelArgName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} extends ${baseTypeName}${ifExtensions('<ExtArgs>', '')} {
- /**
-  * Throw an Error if query returns no results
-  * @deprecated since 4.0.0: use \`${replacement}\` method instead
-  */
-  rejectOnNotFound?: RejectOnNotFound
-}
-      `
   }
 
   private getGeneratedComment() {
@@ -151,9 +107,9 @@ export class MinimalArgsType implements Generatable {
   constructor(
     protected readonly args: DMMF.SchemaArg[],
     protected readonly type: DMMF.OutputType,
-    protected readonly genericsInfo: GenericArgsInfo,
+    protected readonly context: GenerateContext,
     protected readonly action?: DMMF.ModelAction,
-    protected readonly generatedTypeName = getModelArgName(type.name, action),
+    protected readonly generatedTypeName?: string,
   ) {}
   public toTS(): string {
     const { action, args } = this
@@ -163,35 +119,25 @@ export class MinimalArgsType implements Generatable {
       arg.comment = getArgFieldJSDoc(this.type, action, arg)
     }
 
+    if (!action && !this.generatedTypeName) {
+      this.context.defaultArgsAliases.addPossibleAlias(getModelArgName(name), getLegacyModelArgName(name))
+    }
+    const typeName = this.generatedTypeName ?? getModelArgName(name, action)
+    this.context.defaultArgsAliases.registerArgName(typeName)
     return `
 /**
  * ${name} ${action ? action : 'without action'}
  */
-export type ${this.generatedTypeName}${ifExtensions(
-      '<ExtArgs extends runtime.Types.Extensions.Args = runtime.Types.Extensions.DefaultArgs>',
-      '',
-    )} = {
+export type ${typeName}<ExtArgs extends $Extensions.Args = $Extensions.DefaultArgs> = {
 ${indent(
   args
     .map((arg) => {
-      const noEnumerable = arg.inputTypes.some((input) => input.type === 'Json') && arg.name === 'pipeline'
-      return new InputField(arg, false, noEnumerable, this.genericsInfo).toTS()
+      return new InputField(arg, this.context.genericArgsInfo).toTS()
     })
     .join('\n'),
   TAB_SIZE,
 )}
 }
 `
-  }
-}
-
-type ActionWithBaseType = DMMF.ModelAction.findFirst | DMMF.ModelAction.findUnique
-
-function getBaseTypeName(modelName: string, action: ActionWithBaseType): string {
-  switch (action) {
-    case DMMF.ModelAction.findFirst:
-      return `${modelName}FindFirstArgsBase`
-    case DMMF.ModelAction.findUnique:
-      return `${modelName}FindUniqueArgsBase`
   }
 }

@@ -11,7 +11,6 @@ beforeAll(async () => {
   process.env.TEST_MYSQL_URI += '-wrong-native-types'
   await tearDownMysql(process.env.TEST_MYSQL_URI!)
   await migrateDb({
-    connectionString: process.env.TEST_MYSQL_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
 })
@@ -43,10 +42,29 @@ test('wrong-native-types-mysql A: Int, SmallInt, TinyInt, MediumInt, BigInt', as
       },
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Argument tInt: Got invalid value 1 on prisma.createOneA. Provided Int, expected Boolean.
-          Argument bInt: Got invalid value 123123123.1 on prisma.createOneA. Provided Float, expected BigInt.
 
-        `)
+    Invalid \`prisma.a.create()\` invocation:
+
+    {
+      data: {
+        int: 123,
+        sInt: 12,
+        tInt: 1,
+              ~
+        mInt: 100,
+        bInt: 123123123.1
+      },
+      select: {
+        int: true,
+        sInt: true,
+        mInt: true,
+        bInt: true,
+        tInt: true
+      }
+    }
+
+    Argument \`tInt\`: Invalid value provided. Expected Boolean, provided Int.
+  `)
 
   await prisma.$disconnect()
 })
@@ -76,9 +94,27 @@ test('wrong-native-types-mysql B: Float, Double, Decimal, Numeric', async () => 
       },
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Argument numFloat: Got invalid value 'a5.6' on prisma.createOneB. Provided String, expected Decimal or Null.
 
-        `)
+    Invalid \`prisma.b.create()\` invocation:
+
+    {
+      data: {
+        float: 12.2,
+        dFloat: 10.2,
+        decFloat: 1.1,
+        numFloat: "a5.6"
+                  ~~~~~~
+      },
+      select: {
+        float: true,
+        dFloat: true,
+        decFloat: true,
+        numFloat: true
+      }
+    }
+
+    Invalid value for argument \`numFloat\`: invalid digit found in string. Expected decimal String.
+  `)
 
   await prisma.$disconnect()
 })
@@ -113,11 +149,11 @@ test('wrong-native-types-mysql C: Char, VarChar, TinyText, Text, MediumText, Lon
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
 
-          Invalid \`prisma.c.create()\` invocation:
+              Invalid \`prisma.c.create()\` invocation:
 
 
-          The provided value for the column is too long for the column's type. Column: char
-        `)
+              The provided value for the column is too long for the column's type. Column: char
+          `)
 
   await prisma.$disconnect()
 })
@@ -149,10 +185,29 @@ test('wrong-native-types-mysql D: Date, Time, DateTime, Timestamp, Year', async 
       },
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Argument ts: Got invalid value '2020-05-05T16:28:33.983+03:0012312' on prisma.createOneD. Provided String, expected DateTime.
-          Argument year: Got invalid value 'string' on prisma.createOneD. Provided String, expected Int.
 
-        `)
+    Invalid \`prisma.d.create()\` invocation:
+
+    {
+      data: {
+        date: new Date("2020-05-05T16:28:33.983Z"),
+        time: new Date("2020-05-02T16:28:33.983Z"),
+        dtime: new Date("2020-05-02T16:28:33.983Z"),
+        ts: "2020-05-05T16:28:33.983+03:0012312",
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        year: "string"
+      },
+      select: {
+        date: true,
+        time: true,
+        dtime: true,
+        ts: true,
+        year: true
+      }
+    }
+
+    Invalid value for argument \`ts\`: trailing input. Expected ISO-8601 DateTime.
+  `)
 
   await prisma.$disconnect()
 })
@@ -188,19 +243,35 @@ test('wrong-native-types-mysql E: Bit, Binary, VarBinary, Blob, TinyBlob, Medium
       },
     }),
   ).rejects.toThrowErrorMatchingInlineSnapshot(`
-          Argument bit: Got invalid value 
-          [
-            98
-          ]
-          on prisma.createOneE. Provided List<Int>, expected Bytes.
-          Argument bin: Got invalid value '1234' on prisma.createOneE. Provided String, expected Bytes.
-          Argument vBin: Got invalid value '12345' on prisma.createOneE. Provided String, expected Bytes.
-          Argument blob: Got invalid value 'hi' on prisma.createOneE. Provided String, expected Bytes.
-          Argument tBlob: Got invalid value 'tbob' on prisma.createOneE. Provided String, expected Bytes.
-          Argument mBlob: Got invalid value 'mbob' on prisma.createOneE. Provided String, expected Bytes.
-          Argument lBlob: Got invalid value 'longbob' on prisma.createOneE. Provided String, expected Bytes.
 
-        `)
+    Invalid \`prisma.e.create()\` invocation:
+
+    {
+      data: {
+        bit: [
+          98
+        ],
+        ~~~~
+        bin: "1234",
+        vBin: "12345",
+        blob: "hi",
+        tBlob: "tbob",
+        mBlob: "mbob",
+        lBlob: "longbob"
+      },
+      select: {
+        bit: true,
+        bin: true,
+        vBin: true,
+        blob: true,
+        tBlob: true,
+        mBlob: true,
+        lBlob: true
+      }
+    }
+
+    Argument \`bit\`: Invalid value provided. Expected Bytes, provided (Int).
+  `)
 
   await prisma.$disconnect()
 })

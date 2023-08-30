@@ -36,7 +36,7 @@ export interface GeneratorConfig {
   config: {
     /** `output` is a reserved name and always will only be available at `generator.output` directly */
     output: never
-    [key: string]: string
+    [key: string]: string | string[]
   }
   binaryTargets: BinaryTargetsEnvValue[]
   // TODO why is this not optional?
@@ -49,8 +49,9 @@ export interface EnvValue {
 }
 
 export interface BinaryTargetsEnvValue {
-  fromEnvVar: null | string
+  fromEnvVar: string | null
   value: string
+  native?: boolean
 }
 
 export type ConnectorType =
@@ -76,11 +77,9 @@ export interface DataSource {
 }
 
 export type BinaryPaths = {
-  migrationEngine?: { [binaryTarget: string]: string } // key: target, value: path
+  schemaEngine?: { [binaryTarget: string]: string } // key: target, value: path
   queryEngine?: { [binaryTarget: string]: string }
   libqueryEngine?: { [binaryTarget: string]: string }
-  introspectionEngine?: { [binaryTarget: string]: string }
-  prismaFmt?: { [binaryTarget: string]: string }
 }
 
 /** The options passed to the generator implementations */
@@ -96,10 +95,11 @@ export type GeneratorOptions = {
   // TODO is it really always version hash? Feature is unclear.
   version: string // version hash
   binaryPaths?: BinaryPaths
-  dataProxy: boolean
+  postinstall?: boolean
+  noEngine?: boolean
 }
 
-export type EngineType = 'queryEngine' | 'libqueryEngine' | 'migrationEngine' | 'introspectionEngine' | 'prismaFmt'
+export type EngineType = 'queryEngine' | 'libqueryEngine' | 'schemaEngine'
 
 export type GeneratorManifest = {
   prettyName?: string

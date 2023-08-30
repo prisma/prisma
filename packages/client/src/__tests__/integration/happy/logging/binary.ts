@@ -10,7 +10,6 @@ beforeEach(async () => {
   process.env.TEST_POSTGRES_URI += '-logging-binary'
   await tearDownPostgres(process.env.TEST_POSTGRES_URI!)
   await migrateDb({
-    connectionString: process.env.TEST_POSTGRES_URI!,
     schemaPath: path.join(__dirname, 'schema.prisma'),
   })
 })

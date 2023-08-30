@@ -1,11 +1,4 @@
-import {
-  ClientEngineType,
-  getClientEngineType,
-  getGenerator,
-  getPackedPackage,
-  parseEnvValue,
-  serializeQueryEngineName,
-} from '@prisma/internals'
+import { ClientEngineType, getClientEngineType, getGenerator, getPackedPackage, parseEnvValue } from '@prisma/internals'
 import fs from 'fs'
 import path from 'path'
 import rimraf from 'rimraf'
@@ -40,7 +33,6 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
-      dataProxy: false,
     })
 
     const manifest = omit<any, any>(generator.manifest, ['version']) as any
@@ -76,7 +68,13 @@ describe('generator', () => {
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       {
-        binaryTargets: [],
+        binaryTargets: [
+          {
+            fromEnvVar: null,
+            native: true,
+            value: TEST_PLATFORM,
+          },
+        ],
         config: {},
         name: client,
         previewFeatures: [],
@@ -122,11 +120,10 @@ describe('generator', () => {
         baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
-        dataProxy: false,
       })
     } catch (e) {
-      expect(serializeQueryEngineName(stripAnsi(e.message))).toMatchInlineSnapshot(`
-        Prisma schema validation - (query-engine-NORMALIZED)
+      expect(stripAnsi(e.message)).toMatchInlineSnapshot(`
+        Prisma schema validation - (get-dmmf wasm)
         Error code: P1012
         error: Error validating model "public": The model name \`public\` is invalid. It is a reserved name. Please change it. Read more at https://pris.ly/d/naming-models
           -->  schema.prisma:10
@@ -167,19 +164,18 @@ describe('generator', () => {
       throw new Error(`Prisma Client didn't get packed properly 🤔`)
     }
 
-    let doesnNotExistError
+    let doesNotExistError
     try {
       await getGenerator({
         schemaPath: path.join(__dirname, 'doesnotexist.prisma'),
         baseDir: __dirname,
         printDownloadProgress: false,
         skipDownload: true,
-        dataProxy: false,
       })
     } catch (e) {
-      doesnNotExistError = e
+      doesNotExistError = e
     } finally {
-      expect(stripAnsi(doesnNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
+      expect(stripAnsi(doesNotExistError.message).split('generation' + path.sep)[1]).toMatchInlineSnapshot(
         `doesnotexist.prisma does not exist`,
       )
     }
@@ -191,7 +187,6 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
-      dataProxy: false,
     })
 
     try {
@@ -233,7 +228,6 @@ describe('generator', () => {
       baseDir: __dirname,
       printDownloadProgress: false,
       skipDownload: true,
-      dataProxy: false,
     })
 
     const manifest = omit<any, any>(generator.manifest, ['version']) as any
@@ -269,7 +263,13 @@ describe('generator', () => {
 
     expect(omit(generator.options!.generator, ['output'])).toMatchInlineSnapshot(`
       {
-        binaryTargets: [],
+        binaryTargets: [
+          {
+            fromEnvVar: null,
+            native: true,
+            value: TEST_PLATFORM,
+          },
+        ],
         config: {},
         name: client,
         previewFeatures: [],

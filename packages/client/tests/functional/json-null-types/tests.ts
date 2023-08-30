@@ -61,10 +61,7 @@ testMatrix.setupTestSuite(
                      }
                    })
 
-          Argument json: Provided value Prisma.DbNull of type DbNull on prisma.createOneRequiredJsonField is not a JsonNullValueInput.
-          → Possible values: JsonNullValueInput.JsonNull
-
-
+          Invalid value for argument \`json\`. Expected JsonNullValueInput.
         `)
       })
     })
@@ -85,26 +82,7 @@ testMatrix.setupTestSuite(
               json: new Prisma.NullTypes.JsonNull(),
             },
           }),
-        ).rejects.toMatchPrismaErrorInlineSnapshot(`
-
-          Invalid \`prisma.requiredJsonField.create()\` invocation in
-          /client/tests/functional/json-null-types/tests.ts:0:0
-
-            XX // TODO: Edge: skipped because of the error snapshot
-            XX testIf(clientMeta.runtime !== 'edge')('custom instances are not allowed', async () => {
-            XX   await expect(
-          → XX     prisma.requiredJsonField.create({
-                     data: {
-                       json: new Prisma.NullTypes.JsonNull()
-                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-                     }
-                   })
-
-          Argument json: Provided value new Prisma.NullTypes.JsonNull() of type JsonNull on prisma.createOneRequiredJsonField is not a JsonNullValueInput.
-          → Possible values: JsonNullValueInput.JsonNull
-
-
-        `)
+        ).rejects.toMatchPrismaErrorInlineSnapshot(`Invalid ObjectEnumValue`)
       })
     })
   },

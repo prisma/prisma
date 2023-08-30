@@ -1,11 +1,20 @@
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+import * as miniProxy from '@prisma/mini-proxy'
 import fs from 'fs'
 import fetch from 'node-fetch'
 import path from 'path'
 import rimraf from 'rimraf'
 
+import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import { Studio } from '../../Studio'
 
+const originalEnv = { ...process.env }
+
+const ctx = jestContext.new().add(jestConsoleContext()).assemble()
+
 const STUDIO_TEST_PORT = 5678
+
+const testIf = (condition: boolean) => (condition ? test : test.skip)
 
 function sendRequest(message: any): Promise<any> {
   return fetch(`http://localhost:${STUDIO_TEST_PORT}/api`, {
@@ -18,6 +27,89 @@ function sendRequest(message: any): Promise<any> {
 }
 
 let studio: Studio
+describe('studio with alternative urls and prisma://', () => {
+  afterEach(() => {
+    // Back to original env vars
+    process.env = { ...originalEnv }
+  })
+
+  test('queries work if url is prisma:// and directUrl is set', async () => {
+    process.env.PDP_URL = 'prisma://aws-us-east-1.prisma-data.com/?api_key=MY_API_KEY'
+    process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_URI}-${Date.now()}-studio`
+
+    ctx.fixture('schema-only-data-proxy-direct-url')
+
+    const studio = Studio.new()
+
+    await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'])
+    const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'])
+
+    await expect(result).resolves.not.toThrow()
+
+    const res = await sendRequest({
+      requestId: 1,
+      channel: 'prisma',
+      action: 'clientRequest',
+      payload: {
+        data: {
+          modelName: 'SomeUser',
+          operation: 'findMany',
+          args: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    })
+
+    expect(res).toMatchSnapshot()
+
+    studio.instance?.stop()
+  })
+
+  testIf(process.platform !== 'win32')('queries work if url is prisma:// via the mini-proxy', async () => {
+    process.env.DATABASE_URL = `${process.env.TEST_POSTGRES_URI}-${Date.now()}-studio`
+    process.env.PDP_URL = miniProxy.generateConnectionString({
+      envVar: 'PDP_URL',
+      databaseUrl: process.env.DATABASE_URL,
+      port: miniProxy.defaultServerConfig.port,
+    })
+
+    ctx.fixture('schema-only-data-proxy')
+
+    await DbPush.new().parse(['--schema', 'schema.prisma', '--skip-generate'])
+    delete process.env.DATABASE_URL
+
+    const studio = Studio.new()
+    const result = studio.parse(['--port', `${STUDIO_TEST_PORT}`, '--browser', 'none'])
+
+    await expect(result).resolves.not.toThrow()
+
+    const res = await sendRequest({
+      requestId: 1,
+      channel: 'prisma',
+      action: 'clientRequest',
+      payload: {
+        data: {
+          modelName: 'SomeUser',
+          operation: 'findMany',
+          args: {
+            select: {
+              id: true,
+            },
+          },
+        },
+      },
+    })
+
+    expect(res).toMatchSnapshot()
+
+    studio.instance?.stop()
+
+    expect(ctx.mocked['console.warn'].mock.calls.join('\n')).toMatchInlineSnapshot(``)
+  })
+})
 
 describe('studio with default schema.prisma filename', () => {
   jest.setTimeout(20_000)

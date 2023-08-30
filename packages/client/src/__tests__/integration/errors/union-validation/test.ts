@@ -31,18 +31,17 @@ test('union validation', async () => {
         8 try {
       → 9   await prisma.organization.create({
               data: {
-                fullName: 'name',
+                fullName: "name",
                 accounts: {
                   create: {
                     operator: {
                       create: {
-                        prefix: 'prefix',
+                        prefix: "prefix",
             +           organization: {
-            +             create?: OrganizationCreateWithoutOperatorInput | OrganizationUncheckedCreateWithoutOperatorInput,
-            +             connectOrCreate?: OrganizationCreateOrConnectWithoutOperatorInput,
-            +             connect?: OrganizationWhereUniqueInput
-            +           },
-            ?           id?: String
+            +             create: OrganizationCreateWithoutOperatorInput | OrganizationUncheckedCreateWithoutOperatorInput,
+            +             connectOrCreate: OrganizationCreateOrConnectWithoutOperatorInput,
+            +             connect: OrganizationWhereUniqueInput
+            +           }
                       }
                     }
                   }
@@ -50,10 +49,7 @@ test('union validation', async () => {
               }
             })
 
-      Argument organization for data.accounts.create.operator.create.organization is missing.
-
-      Note: Lines with + are required, lines with ? are optional.
-
+      Argument \`organization\` is missing.
     `)
   }
 

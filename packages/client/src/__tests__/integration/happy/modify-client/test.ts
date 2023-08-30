@@ -52,6 +52,7 @@ describe('modify-client', () => {
         user,
         profile,
         post,
+        $parent,
       ]
     `)
 

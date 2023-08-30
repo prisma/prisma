@@ -1,14 +1,14 @@
-import { AnyTypeBuilder } from './AnyTypeBuilder'
 import { BasicBuilder } from './BasicBuilder'
 import { DocComment } from './DocComment'
 import { GenericParameter } from './GenericParameter'
 import { Parameter } from './Parameter'
 import { voidType } from './PrimitiveType'
+import { TypeBuilder } from './TypeBuilder'
 import { Writer } from './Writer'
 
 export class Method implements BasicBuilder {
   private docComment?: DocComment
-  private returnType: AnyTypeBuilder = voidType
+  private returnType: TypeBuilder = voidType
   private parameters: Parameter[] = []
   private genericParameters: GenericParameter[] = []
   constructor(private name: string) {}
@@ -18,7 +18,7 @@ export class Method implements BasicBuilder {
     return this
   }
 
-  setReturnType(returnType: AnyTypeBuilder): this {
+  setReturnType(returnType: TypeBuilder): this {
     this.returnType = returnType
     return this
   }

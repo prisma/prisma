@@ -11,7 +11,7 @@ declare let prisma: import('@prisma/client').PrismaClient
 const describeIf = (condition: boolean) => (condition ? describe : describe.skip)
 
 // m:n relation (MongoDB database)
-async function createXPostsWith2CategoriesMongoDB({ count, postModel }) {
+async function createXPostsWith2CategoriesMongoDB({ count, postModel }: { count: number; postModel: string }) {
   const prismaPromises: any = []
 
   for (let i = 0; i < count; i++) {
@@ -79,7 +79,6 @@ const expectedFindManyCategoryModelIfNoChange = [
 
 testMatrix.setupTestSuite(
   (suiteConfig, suiteMeta) => {
-    // @ts-expect-error
     const isMongoDB = suiteConfig.provider === Providers.MONGODB
 
     /**
@@ -183,7 +182,7 @@ testMatrix.setupTestSuite(
               },
             }),
             // Runtime error
-          ).rejects.toThrowError('Unknown arg `id` in data.id for type PostManyToManyUpdateInput. Available args:')
+          ).rejects.toThrow('Unknown arg `id` in data.id for type PostManyToManyUpdateInput. Available args:')
 
           expect(await prisma[postModel].findMany({ orderBy: { id: 'asc' } })).toEqual(
             expectedFindManyPostModelIfNoChange,

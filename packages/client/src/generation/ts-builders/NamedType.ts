@@ -1,13 +1,14 @@
-import { AnyTypeBuilder } from './AnyTypeBuilder'
-import { BasicBuilder } from './BasicBuilder'
+import { TypeBuilder } from './TypeBuilder'
 import { Writer } from './Writer'
 
-export class NamedType implements BasicBuilder {
-  readonly genericArguments: AnyTypeBuilder[] = []
+export class NamedType extends TypeBuilder {
+  readonly genericArguments: TypeBuilder[] = []
 
-  constructor(readonly name: string) {}
+  constructor(readonly name: string) {
+    super()
+  }
 
-  addGenericArgument(type: AnyTypeBuilder): this {
+  addGenericArgument(type: TypeBuilder): this {
     this.genericArguments.push(type)
     return this
   }
@@ -22,12 +23,4 @@ export class NamedType implements BasicBuilder {
 
 export function namedType(name: string): NamedType {
   return new NamedType(name)
-}
-
-export function promise(resultType: AnyTypeBuilder): NamedType {
-  return new NamedType('Promise').addGenericArgument(resultType)
-}
-
-export function prismaPromise(resultType: AnyTypeBuilder): NamedType {
-  return new NamedType('PrismaPromise').addGenericArgument(resultType)
 }

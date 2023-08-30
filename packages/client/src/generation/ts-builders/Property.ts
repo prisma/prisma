@@ -1,6 +1,6 @@
-import { AnyTypeBuilder } from './AnyTypeBuilder'
 import { BasicBuilder } from './BasicBuilder'
 import { DocComment } from './DocComment'
+import { TypeBuilder } from './TypeBuilder'
 import { Writer } from './Writer'
 
 export class Property implements BasicBuilder {
@@ -8,7 +8,7 @@ export class Property implements BasicBuilder {
   private isReadonly = false
   private docComment?: DocComment
 
-  constructor(private name: string, private type: AnyTypeBuilder) {}
+  constructor(private name: string, private type: TypeBuilder) {}
 
   optional(): this {
     this.isOptional = true
@@ -40,6 +40,6 @@ export class Property implements BasicBuilder {
   }
 }
 
-export function property(name: string, type: AnyTypeBuilder) {
+export function property(name: string, type: TypeBuilder) {
   return new Property(name, type)
 }

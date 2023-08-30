@@ -1,3 +1,4 @@
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
 import { ensureDir } from 'fs-extra'
 import { stdin } from 'mock-stdin'
 import { join, resolve } from 'path'
@@ -5,7 +6,7 @@ import prompt from 'prompts'
 import stripAnsi from 'strip-ansi'
 import tempy from 'tempy'
 
-import { ErrorArea, jestConsoleContext, jestContext, RustPanic } from '..'
+import { ErrorArea, RustPanic } from '..'
 import * as sendPanicUtils from '../sendPanic'
 import * as githubUtils from '../utils/getGitHubIssueUrl'
 import { handlePanic } from '../utils/handlePanic'
@@ -104,9 +105,9 @@ describe('handlePanic', () => {
       })
     } catch (error) {
       error.schemaPath = 'Some Schema Path'
-      expect(error).toMatchInlineSnapshot(`[Error: Some error message!]`)
+      expect(error).toMatchInlineSnapshot(`[RustPanic: Some error message!]`)
       expect(JSON.stringify(error)).toMatchInlineSnapshot(
-        `"{"__typename":"RustPanic","rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}"`,
+        `"{"__typename":"RustPanic","name":"RustPanic","rustStack":"","area":"LIFT_CLI","schemaPath":"Some Schema Path"}"`,
       )
     }
   })

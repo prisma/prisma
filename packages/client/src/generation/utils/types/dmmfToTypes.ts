@@ -1,4 +1,4 @@
-import type { DMMF } from '../../../runtime/dmmf-types'
+import type { DMMF } from '../../dmmf-types'
 import { TSClient } from '../../TSClient/TSClient'
 
 /**
@@ -17,6 +17,5 @@ export function dmmfToTypes(document: DMMF.Document) {
     schemaPath: '',
     outputDir: '',
     activeProvider: '',
-    dataProxy: false,
   }).toTS()
 }

@@ -1,5 +1,4 @@
-import { PrismaClientInitializationError } from '@prisma/engine-core'
-
+import type { PrismaClientInitializationError } from '../../../../src/runtime/core/errors/PrismaClientInitializationError'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -35,7 +34,7 @@ testMatrix.setupTestSuite(
     },
     skipDataProxy: {
       runtimes: ['node', 'edge'],
-      reason: 'InvalidDatasourceError: Datasource URL must use prisma:// protocol when --data-proxy is used',
+      reason: 'InvalidDatasourceError is not compatible with asserted error // Change in Prisma 6',
     },
   },
 )

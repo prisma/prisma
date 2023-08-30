@@ -17,7 +17,6 @@ test('with property', () => {
     {
       foo: A
     }
-
   `)
 })
 
@@ -27,7 +26,6 @@ test('with method', () => {
     {
       doThing(): void
     }
-
   `)
 })
 

@@ -8,7 +8,7 @@ test('mixed transaction', async () => {
 
   try {
     // Test connecting and disconnecting all the time
-    const result = await prisma.$transaction([
+    await prisma.$transaction([
       prisma.user.create({
         data: {
           email: 'test@hey.com',

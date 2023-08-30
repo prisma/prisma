@@ -1,13 +1,12 @@
-import { MappedTypeNode } from 'typescript'
-
-import { AnyTypeBuilder } from './AnyTypeBuilder'
-import { BasicBuilder } from './BasicBuilder'
+import { TypeBuilder } from './TypeBuilder'
 import { Writer } from './Writer'
 
-export class UnionType<VariantType extends AnyTypeBuilder = AnyTypeBuilder> implements BasicBuilder {
+export class UnionType<VariantType extends TypeBuilder = TypeBuilder> extends TypeBuilder {
+  needsParenthesisWhenIndexed = true
   readonly variants: VariantType[]
 
   constructor(firstType: VariantType) {
+    super()
     this.variants = [firstType]
   }
 
@@ -27,14 +26,14 @@ export class UnionType<VariantType extends AnyTypeBuilder = AnyTypeBuilder> impl
     writer.writeJoined(' | ', this.variants)
   }
 
-  mapVariants<NewVariantType extends AnyTypeBuilder>(
+  mapVariants<NewVariantType extends TypeBuilder>(
     callback: (type: VariantType) => NewVariantType,
   ): UnionType<NewVariantType> {
     return unionType(this.variants.map((v) => callback(v)))
   }
 }
 
-export function unionType<VariantType extends AnyTypeBuilder = AnyTypeBuilder>(types: VariantType[] | VariantType) {
+export function unionType<VariantType extends TypeBuilder = TypeBuilder>(types: VariantType[] | VariantType) {
   if (Array.isArray(types)) {
     if (types.length === 0) {
       throw new TypeError('Union types array can not be empty')

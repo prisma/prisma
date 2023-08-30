@@ -1,6 +1,5 @@
 import fs from 'fs/promises'
 
-import { MemoryTestDir } from './MemoryTestDir'
 import type { TestResult } from './runMemoryTest'
 
 export async function generateMemoryUsageReport(outputFile: string, results: TestResult[]) {

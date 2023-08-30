@@ -2,7 +2,6 @@ import indent from 'indent-string'
 
 import { TAB_SIZE } from './constants'
 import type { TSClientOptions } from './TSClient'
-import { ifExtensions } from './utils/ifExtensions'
 
 export const commonCodeJS = ({
   runtimeDir,
@@ -23,7 +22,6 @@ import {
   PrismaClientInitializationError,
   PrismaClientValidationError,
   NotFoundError,
-  decompressFromBase64,
   getPrismaClient,
   sqltag,
   empty,
@@ -33,14 +31,18 @@ import {
   Debug,
   objectEnumValues,
   makeStrictEnum,
-  Extensions
+  Extensions,
+  defineDmmfProperty,
+  Public,
 } from '${runtimeDir}/edge-esm.js'`
     : browser
     ? `
 const {
   Decimal,
   objectEnumValues,
-  makeStrictEnum
+  makeStrictEnum,
+  Public,
+  detectRuntime,
 } = require('${runtimeDir}/${runtimeName}')
 `
     : `
@@ -51,7 +53,6 @@ const {
   PrismaClientInitializationError,
   PrismaClientValidationError,
   NotFoundError,
-  decompressFromBase64,
   getPrismaClient,
   sqltag,
   empty,
@@ -61,7 +62,10 @@ const {
   Debug,
   objectEnumValues,
   makeStrictEnum,
-  Extensions
+  Extensions,
+  warnOnce,
+  defineDmmfProperty,
+  Public,
 } = require('${runtimeDir}/${runtimeName}')
 `
 }
@@ -69,6 +73,7 @@ const {
 const Prisma = {}
 
 exports.Prisma = Prisma
+exports.$Enums = {}
 
 /**
  * Prisma Client JS version: ${clientVersion}
@@ -94,18 +99,14 @@ Prisma.sql = ${notSupportOnBrowser('sqltag', browser)}
 Prisma.empty = ${notSupportOnBrowser('empty', browser)}
 Prisma.join = ${notSupportOnBrowser('join', browser)}
 Prisma.raw = ${notSupportOnBrowser('raw', browser)}
-Prisma.validator = () => (val) => val
+Prisma.validator = Public.validator
 
-${ifExtensions(
-  `/**
+/**
 * Extensions
 */
 Prisma.getExtensionContext = ${notSupportOnBrowser('Extensions.getExtensionContext', browser)}
 Prisma.defineExtension = ${notSupportOnBrowser('Extensions.defineExtension', browser)}
 
-`,
-  '',
-)}
 /**
  * Shorthand utilities for JSON filtering
  */
@@ -123,7 +124,7 @@ Prisma.NullTypes = {
 export const notSupportOnBrowser = (fnc: string, browser?: boolean) => {
   if (browser)
     return `() => {
-  throw new Error(\`${fnc} is unable to be run in the browser.
+  throw new Error(\`${fnc} is unable to be run \${runtimeDescription}.
 In case this error is unexpected for you, please report it in https://github.com/prisma/prisma/issues\`,
 )}`
   return fnc
@@ -131,14 +132,22 @@ In case this error is unexpected for you, please report it in https://github.com
 
 export const commonCodeTS = ({ runtimeDir, runtimeName, clientVersion, engineVersion }: TSClientOptions) => ({
   tsWithoutNamespace: () => `import * as runtime from '${runtimeDir}/${runtimeName}';
-declare const prisma: unique symbol
-export interface PrismaPromise<A> extends Promise<A> {[prisma]: true}
-type UnwrapPromise<P extends any> = P extends Promise<infer R> ? R : P
-type UnwrapTuple<Tuple extends readonly unknown[]> = {
-  [K in keyof Tuple]: K extends \`\$\{number\}\` ? Tuple[K] extends PrismaPromise<infer X> ? X : UnwrapPromise<Tuple[K]> : UnwrapPromise<Tuple[K]>
-};
+import $Types = runtime.Types // general types
+import $Public = runtime.Types.Public
+import $Utils = runtime.Types.Utils
+import $Extensions = runtime.Types.Extensions
+import $Result = runtime.Types.Result
+
+export type PrismaPromise<T> = $Public.PrismaPromise<T>
 `,
-  ts: (hideFetcher?: boolean) => `export import DMMF = runtime.DMMF
+  ts: () => `export import DMMF = runtime.DMMF
+
+export type PrismaPromise<T> = $Public.PrismaPromise<T>
+
+/**
+ * Validator
+ */
+export import validator = runtime.Public.validator
 
 /**
  * Prisma Errors
@@ -174,16 +183,16 @@ export type Metric<T> = runtime.Metric<T>
 export type MetricHistogram = runtime.MetricHistogram
 export type MetricHistogramBucket = runtime.MetricHistogramBucket
 
-${ifExtensions(
-  `/**
+/**
 * Extensions
 */
-export type Extension = runtime.Types.Extensions.Args
+export import Extension = $Extensions.UserArgs
 export import getExtensionContext = runtime.Extensions.getExtensionContext
+export import Args = $Public.Args
+export import Payload = $Public.Payload
+export import Result = $Public.Result
+export import Exact = $Public.Exact
 
-`,
-  '',
-)}
 /**
  * Prisma Client JS version: ${clientVersion}
  * Query Engine version: ${engineVersion}
@@ -242,7 +251,7 @@ export interface InputJsonArray extends ReadonlyArray<InputJsonValue | null> {}
  *
  * @see https://www.prisma.io/docs/concepts/components/prisma-client/working-with-fields/working-with-json-fields#filtering-by-null-values
  */
-export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray
+export type InputJsonValue = string | number | boolean | InputJsonObject | InputJsonArray | { toJSON(): unknown }
 
 /**
  * Types of the values used to represent different kinds of \`null\` values when working with JSON fields.
@@ -282,19 +291,6 @@ type SelectAndInclude = {
   select: any
   include: any
 }
-type HasSelect = {
-  select: any
-}
-type HasInclude = {
-  include: any
-}
-type CheckSelect<T, S, U> = T extends SelectAndInclude
-  ? 'Please either choose \`select\` or \`include\`'
-  : T extends HasSelect
-  ? U
-  : T extends HasInclude
-  ? U
-  : S
 
 /**
  * Get the type of the value, that the Promise holds.
@@ -304,7 +300,7 @@ export type PromiseType<T extends PromiseLike<any>> = T extends PromiseLike<infe
 /**
  * Get the return type of a function which returns a Promise.
  */
-export type PromiseReturnType<T extends (...args: any) => Promise<any>> = PromiseType<ReturnType<T>>
+export type PromiseReturnType<T extends (...args: any) => $Utils.JsPromise<any>> = PromiseType<ReturnType<T>>
 
 /**
  * From T, pick a set of properties whose keys are in the union K
@@ -520,19 +516,11 @@ export type Or<B1 extends Boolean, B2 extends Boolean> = {
 
 export type Keys<U extends Union> = U extends unknown ? keyof U : never
 
-type Exact<A, W = unknown> = 
-W extends unknown ? A extends Narrowable ? Cast<A, W> : Cast<
-{[K in keyof A]: K extends keyof W ? Exact<A[K], W[K]> : never},
-{[K in keyof W]: K extends keyof A ? Exact<A[K], W[K]> : W[K]}>
-: never;
-
-type Narrowable = string | number | boolean | bigint;
-
 type Cast<A, B> = A extends B ? A : B;
 
 export const type: unique symbol;
 
-export function validator<V>(): <S>(select: Exact<S, V>) => S;
+
 
 /**
  * Used by group by
@@ -573,9 +561,9 @@ type TupleToUnion<K extends readonly any[]> = _TupleToUnion<K>
 type MaybeTupleToUnion<T> = T extends any[] ? TupleToUnion<T> : T
 
 /**
- * Like \`Pick\`, but with an array
+ * Like \`Pick\`, but additionally can also accept an array of keys
  */
-type PickArray<T, K extends Array<keyof T>> = Prisma__Pick<T, TupleToUnion<K>>
+type PickEnumerable<T, K extends Enumerable<keyof T> | keyof T> = Prisma__Pick<T, MaybeTupleToUnion<K>>
 
 /**
  * Exclude all keys with underscores
@@ -587,19 +575,6 @@ export type FieldRef<Model, FieldType> = runtime.FieldRef<Model, FieldType>
 
 type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRef<Model, FieldType>
 
-${
-  !hideFetcher
-    ? `class PrismaClientFetcher {
-  private readonly prisma;
-  private readonly debug;
-  private readonly hooks?;
-  constructor(prisma: PrismaClient<any, any>, debug?: boolean, hooks?: Hooks | undefined);
-  request<T>(document: any, dataPath?: string[], rootField?: string, typeName?: string, isList?: boolean, callsite?: string): Promise<T>;
-  sanitizeMessage(message: string): string;
-  protected unpack(document: any, data: any, path: string[], rootField?: string, isList?: boolean): any;
-}`
-    : ''
-}
 `,
 })
 

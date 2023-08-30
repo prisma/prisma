@@ -1,8 +1,10 @@
-import { BasicBuilder } from './BasicBuilder'
+import { TypeBuilder } from './TypeBuilder'
 import { Writer } from './Writer'
 
-export class PrimitiveType implements BasicBuilder {
-  constructor(private name: string) {}
+export class PrimitiveType extends TypeBuilder {
+  constructor(private name: string) {
+    super()
+  }
 
   write(writer: Writer): void {
     writer.write(this.name)
@@ -18,3 +20,4 @@ export const bigintType = new PrimitiveType('bigint')
 export const unknownType = new PrimitiveType('unknown')
 export const anyType = new PrimitiveType('any')
 export const voidType = new PrimitiveType('void')
+export const thisType = new PrimitiveType('this')

@@ -3,7 +3,7 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines-version'
 import { handlePanic, HelpError, isError } from '@prisma/internals'
-import chalk from 'chalk'
+import { bold, red } from 'kleur/colors'
 
 import { CLI } from './CLI'
 import { DbCommand } from './commands/DbCommand'
@@ -98,9 +98,9 @@ main()
       })
         .catch((e) => {
           if (Debug.enabled('migrate')) {
-            console.error(chalk.redBright.bold('Error: ') + e.stack)
+            console.error(red(bold('Error: ')) + e.stack)
           } else {
-            console.error(chalk.redBright.bold('Error: ') + e.message)
+            console.error(red(bold('Error: ')) + e.message)
           }
         })
         .finally(() => {
@@ -108,9 +108,9 @@ main()
         })
     } else {
       if (Debug.enabled('migrate')) {
-        console.error(chalk.redBright.bold('Error: ') + error.stack)
+        console.error(red(bold('Error: ')) + error.stack)
       } else {
-        console.error(chalk.redBright.bold('Error: ') + error.message)
+        console.error(red(bold('Error: ')) + error.message)
       }
       process.exit(1)
     }

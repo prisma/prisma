@@ -1,16 +1,16 @@
-import { AnyTypeBuilder } from './AnyTypeBuilder'
-import { BasicBuilder } from './BasicBuilder'
 import { GenericParameter } from './GenericParameter'
 import { Parameter } from './Parameter'
 import { voidType } from './PrimitiveType'
+import { TypeBuilder } from './TypeBuilder'
 import { Writer } from './Writer'
 
-export class FunctionType implements BasicBuilder {
-  private returnType: AnyTypeBuilder = voidType
+export class FunctionType extends TypeBuilder {
+  needsParenthesisWhenIndexed = true
+  private returnType: TypeBuilder = voidType
   private parameters: Parameter[] = []
   private genericParameters: GenericParameter[] = []
 
-  setReturnType(returnType: AnyTypeBuilder): this {
+  setReturnType(returnType: TypeBuilder): this {
     this.returnType = returnType
     return this
   }

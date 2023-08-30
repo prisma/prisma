@@ -28,7 +28,7 @@ export interface CreateErrorReportInput {
 export async function uploadZip(zip: Buffer, url: string): Promise<any> {
   return await fetch(url, {
     method: 'PUT',
-    agent: getProxyAgent(url) as any,
+    agent: getProxyAgent(url),
     headers: {
       'Content-Length': String(zip.byteLength),
     },
@@ -62,20 +62,26 @@ async function request(query: string, variables: any): Promise<any> {
     query,
     variables,
   })
+
   return await fetch(url, {
     method: 'POST',
-    agent: getProxyAgent(url) as any,
+    agent: getProxyAgent(url),
     body,
     headers: {
       Accept: 'application/json',
       'Content-Type': 'application/json',
     },
   })
-    .then((res) => res.json())
-    .then((res) => {
-      if (res.errors) {
-        throw new Error(JSON.stringify(res.errors))
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Error during request: ${response.status} ${response.statusText} - Query: ${query}`)
       }
-      return res.data
+      return response.json()
+    })
+    .then((responseAsJson) => {
+      if (responseAsJson.errors) {
+        throw new Error(JSON.stringify(responseAsJson.errors))
+      }
+      return responseAsJson.data
     })
 }

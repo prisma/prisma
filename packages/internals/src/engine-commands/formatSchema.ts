@@ -2,8 +2,8 @@ import fs from 'fs'
 import { match } from 'ts-pattern'
 
 import { logger } from '..'
-import { ErrorArea, RustPanic } from '../panic'
-import { prismaFmt } from '../wasm'
+import { ErrorArea, getWasmError, RustPanic, WasmPanic } from '../panic'
+import { prismaSchemaWasm } from '../wasm'
 import { getLintWarningsAsText, lintSchema } from './lintSchema'
 
 type FormatSchemaParams = { schema: string; schemaPath?: never } | { schema?: never; schemaPath: string }
@@ -28,10 +28,10 @@ export async function formatSchema(
     throw new Error(`Parameter schema or schemaPath must be passed.`)
   }
 
-  if (process.env.FORCE_PANIC_PRISMA_FMT) {
+  if (process.env.FORCE_PANIC_PRISMA_SCHEMA) {
     handleFormatPanic(
       () => {
-        prismaFmt.debug_panic()
+        prismaSchemaWasm.debug_panic()
       },
       { schemaPath, schema } as FormatSchemaParams,
     )
@@ -94,15 +94,18 @@ function handleFormatPanic<T>(tryCb: () => T, { schemaPath, schema }: FormatSche
   try {
     return tryCb()
   } catch (e: unknown) {
-    const wasmError = e as Error
-    throw new RustPanic(
-      /* message */ wasmError.message,
-      /* rustStack */ wasmError.stack || 'NO_BACKTRACE',
-      /* request */ '@prisma/prisma-fmt-wasm format',
+    const { message, stack } = getWasmError(e as WasmPanic)
+
+    const panic = new RustPanic(
+      /* message */ message,
+      /* rustStack */ stack,
+      /* request */ '@prisma/prisma-schema-wasm format',
       ErrorArea.FMT_CLI,
       schemaPath,
       schema,
     )
+
+    throw panic
   }
 }
 
@@ -131,6 +134,6 @@ type DocumentFormattingParams = {
 }
 
 function formatWasm(schema: string, documentFormattingParams: DocumentFormattingParams): string {
-  const formattedSchema = prismaFmt.format(schema, JSON.stringify(documentFormattingParams))
+  const formattedSchema = prismaSchemaWasm.format(schema, JSON.stringify(documentFormattingParams))
   return formattedSchema
 }

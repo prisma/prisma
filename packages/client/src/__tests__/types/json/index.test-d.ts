@@ -15,7 +15,7 @@ const prisma = new PrismaClient({
     await prisma.user.create({
       data: {
         info: {
-          x: new Date(),
+          x: () => '123',
         },
         email: '',
       },

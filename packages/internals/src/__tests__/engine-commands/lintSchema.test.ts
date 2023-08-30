@@ -1,4 +1,5 @@
-import { jestConsoleContext, jestContext } from '../..'
+import { jestConsoleContext, jestContext } from '@prisma/get-platform'
+
 import { lintSchema } from '../../engine-commands'
 import { getLintWarnings, LintError, LintWarning } from '../../engine-commands/lintSchema'
 

@@ -1,5 +1,5 @@
+import type { UserArgs } from '../../request/UserArgs'
 import type { ModelAction } from '../applyModel'
-import type { UserArgs } from '../UserArgs'
 import { desugarUserArgs as desugarUserArgsAggregate } from './aggregate'
 
 /**
@@ -20,6 +20,8 @@ function desugarUserArgs(args: UserArgs = {}) {
         _args['select'][key] = true
       }
     }
+  } else if (typeof _args['by'] === 'string') {
+    _args['select'][_args['by']] = true
   }
 
   return _args

@@ -1,21 +1,26 @@
-import { AnyTypeBuilder } from './AnyTypeBuilder'
 import { BasicBuilder } from './BasicBuilder'
+import { NamedType } from './NamedType'
+import { TypeBuilder } from './TypeBuilder'
 import { Writer } from './Writer'
 
 export class GenericParameter implements BasicBuilder {
-  private extendedType?: AnyTypeBuilder
-  private defaultType?: AnyTypeBuilder
+  private extendedType?: TypeBuilder
+  private defaultType?: TypeBuilder
 
   constructor(private name: string) {}
 
-  extends(type: AnyTypeBuilder): this {
+  extends(type: TypeBuilder): this {
     this.extendedType = type
     return this
   }
 
-  default(type: AnyTypeBuilder): this {
+  default(type: TypeBuilder): this {
     this.defaultType = type
     return this
+  }
+
+  toArgument(): NamedType {
+    return new NamedType(this.name)
   }
 
   write(writer: Writer): void {

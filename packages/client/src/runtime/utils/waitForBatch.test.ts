@@ -1,5 +1,4 @@
-import { PrismaClientKnownRequestError } from '@prisma/engine-core'
-
+import { PrismaClientKnownRequestError } from '../core/errors/PrismaClientKnownRequestError'
 import { waitForBatch } from './waitForBatch'
 
 test('resolves when all promises successfully resolve', async () => {
@@ -66,7 +65,7 @@ test('rejects with error if one of the promises rejects with non-batch error', a
   await expect(result).rejects.toBe(error)
 })
 
-test('rejects with error if one of the promises rejects with non-batch error, even if other promsies never resolve', async () => {
+test('rejects with error if one of the promises rejects with non-batch error, even if other promises never resolve', async () => {
   const error = new Error('nope')
   const result = waitForBatch([new Promise(() => {}), Promise.reject(error)])
 

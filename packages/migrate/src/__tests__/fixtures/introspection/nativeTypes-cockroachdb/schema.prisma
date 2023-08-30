@@ -1,8 +1,0 @@
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "cockroachdb"
-  url      = env("TEST_COCKROACH_URI")
-}

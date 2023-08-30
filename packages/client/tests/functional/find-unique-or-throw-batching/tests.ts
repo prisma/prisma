@@ -7,7 +7,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let prisma: PrismaClient
 const missing = faker.database.mongodbObjectId()
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite(() => {
   let id1: string
   let id2: string
   beforeAll(async () => {

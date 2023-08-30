@@ -8,7 +8,7 @@ declare let prisma: PrismaClient
 
 const id = randomBytes(12).toString('hex')
 
-testMatrix.setupTestSuite((suiteConfig, suiteMeta) => {
+testMatrix.setupTestSuite(() => {
   test('transaction', async () => {
     await prisma.$transaction([prisma.user.findUnique({ where: { id } }), prisma.user.findMany()])
   })

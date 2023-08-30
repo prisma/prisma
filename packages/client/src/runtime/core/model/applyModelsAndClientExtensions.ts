@@ -23,7 +23,11 @@ const rawClient = Symbol()
  * @returns a proxy to access models
  */
 export function applyModelsAndClientExtensions(client: Client) {
-  const layers = [modelsLayer(client), addProperty(rawClient, () => client)]
+  const layers = [
+    modelsLayer(client),
+    addProperty(rawClient, () => client),
+    addProperty('$parent', () => client._appliedParent),
+  ]
   const clientExtensions = client._extensions.getAllClientExtensions()
   if (clientExtensions) {
     layers.push(addObjectProperties(clientExtensions))
@@ -32,7 +36,7 @@ export function applyModelsAndClientExtensions(client: Client) {
 }
 
 function modelsLayer(client: Client): CompositeProxyLayer {
-  const dmmfModelKeys = Object.keys(client._baseDmmf.modelMap)
+  const dmmfModelKeys = Object.keys(client._runtimeDataModel.models)
   const jsModelKeys = dmmfModelKeys.map(dmmfToJSModelName)
   const allKeys = [...new Set(dmmfModelKeys.concat(jsModelKeys))]
 
@@ -44,12 +48,12 @@ function modelsLayer(client: Client): CompositeProxyLayer {
     getPropertyValue(prop) {
       const dmmfModelName = jsToDMMFModelName(prop)
       // creates a new model proxy on the fly and caches it
-      if (client._baseDmmf.modelMap[dmmfModelName] !== undefined) {
+      if (client._runtimeDataModel.models[dmmfModelName] !== undefined) {
         return applyModel(client, dmmfModelName)
       }
 
       // above silently failed if model name is lower cased
-      if (client._baseDmmf.modelMap[prop] !== undefined) {
+      if (client._runtimeDataModel.models[prop] !== undefined) {
         return applyModel(client, prop)
       }
 
@@ -66,7 +70,7 @@ function modelsLayer(client: Client): CompositeProxyLayer {
   })
 }
 
-export function unapplyModelsAndClientExtensions(client: Client): Client {
+export function unApplyModelsAndClientExtensions(client: Client): Client {
   if (client[rawClient]) {
     return client[rawClient]
   }

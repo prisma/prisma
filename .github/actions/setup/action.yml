@@ -1,0 +1,40 @@
+name: Setup
+description: Boilerplate steps needed by most jobs.
+
+inputs:
+  node-version:
+    description: 'Version of Node.js to use.'
+    required: true
+  pnpm-version:
+    description: 'Version of pnpm to use.'
+    required: true
+  skip-tsc:
+    description: 'Skip type checking (Default: false).'
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v2.4.0
+      with:
+        version: ${{ inputs.pnpm-version }}
+
+    - name: Use Node.js ${{ inputs.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: 'pnpm'
+        # This makes it possible to publish to npm later
+        # The NPM_TOKEN secret needs to be defined in the job
+        registry-url: 'https://registry.npmjs.org'
+
+    - run: pnpm install
+      shell: bash
+
+    - run: pnpm -r run dev
+      if: inputs.skip-tsc == 'true'
+      shell: bash
+
+    - run: pnpm run build
+      if: inputs.skip-tsc == 'false'
+      shell: bash
