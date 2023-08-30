@@ -1,19 +1,19 @@
+import { computeSchemaHeader } from '../../../_utils/computeSchemaHeader'
 import { idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, url }) => {
+export default testMatrix.setupSchema(({ provider, providerFlavor, url }): string => {
+  const schemaHeader = computeSchemaHeader({
+    provider,
+    providerFlavor,
+    customUrl: url,
+  })
+
   return /* Prisma */ `
-    generator client {
-      provider = "prisma-client-js"
-    }
+${schemaHeader}
     
-    datasource db {
-      provider = "${provider}"
-      url      = "${url}"
-    }
-    
-    model User {
-      id ${idForProvider(provider)}
-    }
-  `
+model User {
+  id ${idForProvider(provider)}
+}
+`
 })

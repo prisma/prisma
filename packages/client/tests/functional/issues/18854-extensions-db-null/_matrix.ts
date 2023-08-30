@@ -16,10 +16,10 @@ export default defineMatrix(() => [
       provider: 'mysql',
       providerFlavor: 'vitess_8',
     },
-    //    {
-    //      provider: 'mysql',
-    //      providerFlavor: 'js_planetscale',
-    //    },
+    {
+      provider: 'mysql',
+      providerFlavor: 'js_planetscale',
+    },
     {
       provider: 'cockroachdb',
     },

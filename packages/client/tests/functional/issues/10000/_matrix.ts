@@ -1,4 +1,5 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 import { Providers } from '../../_utils/providers'
 
 const RelationModeEnv = process.env.RELATION_MODE
@@ -25,7 +26,15 @@ export default defineMatrix(() => [
         onDelete,
       },
     },
-
+    {
+      provider: Providers.MYSQL,
+      providerFlavor: ProviderFlavors.JS_PLANETSCALE,
+      relationMode,
+      referentialActions: {
+        onUpdate,
+        onDelete,
+      },
+    },
     /*
     {
       provider: Providers.COCKROACHDB,

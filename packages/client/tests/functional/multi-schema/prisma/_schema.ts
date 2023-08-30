@@ -1,21 +1,20 @@
+import { computeSchemaHeader } from '../../_utils/computeSchemaHeader'
 import { idForProvider } from '../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, mapTable }) => {
+export default testMatrix.setupSchema(({ provider, providerFlavor, mapTable }): string => {
+  const schemaHeader = computeSchemaHeader({
+    provider,
+    providerFlavor,
+    previewFeatures: 'multiSchema',
+    schemas: ['base', 'transactional'],
+  })
+
   const mapTableUser = mapTable === 'IDENTICAL_NAMES' ? 'some_table' : 'some_table_user'
   const mapTablePost = mapTable === 'IDENTICAL_NAMES' ? 'some_table' : 'some_table_post'
 
   return /* Prisma */ `
-generator client {
-  provider = "prisma-client-js"
-  previewFeatures = ["multiSchema"]
-}
-
-datasource db {
-  provider = "${provider}"
-  url      = env("DATABASE_URI_${provider}")
-  schemas  = ["base", "transactional"]
-}
+${schemaHeader}
 
 model User {
   id ${idForProvider(provider)}

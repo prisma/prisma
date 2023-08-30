@@ -5,18 +5,22 @@ import { Providers } from './providers'
 
 export type ComputeSchemaHeader = {
   provider: Providers
-  relationMode?: string
   providerFlavor?: ProviderFlavor
+  relationMode?: string
   previewFeatures?: string
   engineType?: 'binary' | 'library'
+  customUrl?: string
+  schemas?: string[]
 }
 
 export function computeSchemaHeader({
   provider,
   providerFlavor,
+  relationMode,
   previewFeatures,
   engineType,
-  relationMode,
+  customUrl,
+  schemas,
 }: ComputeSchemaHeader): string {
   // if relationModeLine is not defined, we do not add the line
   // if relationModeLine is defined
@@ -34,12 +38,16 @@ export function computeSchemaHeader({
   } else if (relationMode) {
     relationModeLine = `relationMode = "${relationMode}"`
   }
+  const schemasLine = schemas ? `schemas = ["${schemas.join('", "')}"]` : ''
+  const datasourceLines = [relationModeLine, schemasLine].filter(Boolean).join('\n  ')
 
   const previewFeaturesLine = previewFeatures ? `previewFeatures = ["${previewFeatures}"]` : ''
   const engineTypeLine = engineType ? `engineType = ["${engineType}"]` : ''
+  const generatorLines = [previewFeaturesLine, engineTypeLine].filter(Boolean).join('\n  ')
 
   const isDataProxy = Boolean(process.env.TEST_DATA_PROXY)
-  const url = match({ provider, providerFlavor, isDataProxy })
+  const url = match({ provider, providerFlavor, isDataProxy, customUrl })
+    .with({ customUrl: P.string }, () => `"${customUrl}"`)
     .with({ provider: Providers.SQLITE }, () => `"file:./test.db"`)
     .with({ providerFlavor: P.string, isDataProxy: false }, () => `env("DATABASE_URI_${providerFlavor}")`)
     .otherwise(({ provider }) => `env("DATABASE_URI_${provider}")`)
@@ -52,16 +60,14 @@ export function computeSchemaHeader({
   const schemaHeader = /* Prisma */ `
 generator client {
   provider = "prisma-client-js"
-  ${previewFeaturesLine}
-  ${engineTypeLine}
+  ${generatorLines}
 }
 
 datasource db {
   provider = "${providerName}"
   url = ${url}
-  ${relationModeLine}
-}
-  `
+  ${datasourceLines}
+}`
 
   return schemaHeader
 }
