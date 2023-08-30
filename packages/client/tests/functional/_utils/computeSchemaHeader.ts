@@ -53,8 +53,8 @@ export function computeSchemaHeader({
     .otherwise(({ provider }) => `env("DATABASE_URI_${provider}")`)
 
   const providerName = match({ provider, providerFlavor })
-    .with({ provider: Providers.MYSQL, providerFlavor: ProviderFlavors.JS_PLANETSCALE }, () => '@prisma/planetscale')
-    .with({ provider: Providers.POSTGRESQL, providerFlavor: ProviderFlavors.JS_NEON }, () => '@prisma/neon')
+    // This could be useful for inspiration for D1 later
+    // .with({ provider: Providers.MYSQL, providerFlavor: ProviderFlavors.JS_PLANETSCALE }, () => '@prisma/planetscale')
     .otherwise(({ provider }) => provider)
 
   const schemaHeader = /* Prisma */ `
