@@ -14,7 +14,7 @@
     "@swc/core": "1.3.75",
     "@swc/jest": "0.2.29",
     "@types/jest": "29.5.4",
-    "@types/node": "18.17.5",
+    "@types/node": "18.17.12",
     "execa": "5.1.1",
     "jest": "29.6.3",
     "typescript": "5.2.2"
