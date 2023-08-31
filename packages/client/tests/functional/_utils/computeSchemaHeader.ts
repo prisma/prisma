@@ -40,7 +40,13 @@ export function computeSchemaHeader({
   } else if (relationMode) {
     relationModeLine = `relationMode = "${relationMode}"`
   }
-  const directUrlLine = directUrl ? `directUrl = ${directUrl}` : ''
+
+  const sqliteDbUrl = `"file:./test.db"`
+
+  const directUrlLine = match({ provider, directUrl })
+    .with({ directUrl: P.string, provider: Providers.SQLITE }, () => `directUrl = ${sqliteDbUrl}`)
+    .with({ directUrl: P.string }, () => `directUrl = ${directUrl}`)
+    .otherwise(() => '')
   const schemasLine = schemas ? `schemas = ["${schemas.join('", "')}"]` : ''
   const datasourceLines = [relationModeLine, directUrlLine, schemasLine].filter(Boolean).join('\n  ')
 
@@ -51,7 +57,7 @@ export function computeSchemaHeader({
   const isDataProxy = Boolean(process.env.TEST_DATA_PROXY)
   const url = match({ provider, providerFlavor, isDataProxy, customUrl })
     .with({ customUrl: P.string }, () => `"${customUrl}"`)
-    .with({ provider: Providers.SQLITE }, () => `"file:./test.db"`)
+    .with({ provider: Providers.SQLITE }, () => sqliteDbUrl)
     .with({ providerFlavor: P.string }, () => `env("DATABASE_URI_${providerFlavor}")`)
     .otherwise(({ provider }) => `env("DATABASE_URI_${provider}")`)
 
