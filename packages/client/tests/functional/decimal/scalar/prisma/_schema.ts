@@ -11,9 +11,9 @@ export default testMatrix.setupSchema(({ provider, providerFlavor }): string => 
   return /* Prisma */ `
 ${schemaHeader}
     
-    model User {
-      id ${idForProvider(provider)}
-      money Decimal
-    }
-  `
+model User {
+  id ${idForProvider(provider)}
+  money Decimal
+}
+`
 })

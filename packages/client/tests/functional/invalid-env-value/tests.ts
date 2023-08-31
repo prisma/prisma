@@ -9,12 +9,13 @@ declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  (suitConfig, suiteMeta, clientMeta) => {
+  ({ provider, providerFlavor }, suiteMeta, clientMeta) => {
     const OLD_ENV = process.env
 
     beforeEach(() => {
       process.env = { ...OLD_ENV }
-      process.env[`DATABASE_URI_${suitConfig.provider}`] = 'http://some-invalid-url'
+      const envVarName = providerFlavor ? `DATABASE_URI_${providerFlavor}` : `DATABASE_URI_${provider}`
+      process.env[envVarName] = 'http://some-invalid-url'
     })
 
     afterEach(() => {

@@ -1,3 +1,4 @@
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
 // @ts-ignore
@@ -7,7 +8,7 @@ declare let prisma: PrismaClient
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider, providerFlavor }) => {
     describe('empty', () => {
       test('does not crash before client is connected', async () => {
         await expect(prisma.$metrics.prometheus()).resolves.not.toThrow()
@@ -34,7 +35,8 @@ testMatrix.setupTestSuite(
         expect(metrics).toContain('prisma_client_queries_active')
         expect(metrics).toContain('prisma_client_queries_duration_histogram_ms_bucket')
 
-        if (provider !== 'mongodb') {
+        const isJsPlanetscale = providerFlavor && providerFlavor === ProviderFlavors.JS_PLANETSCALE
+        if (provider !== 'mongodb' && !isJsPlanetscale) {
           expect(metrics).toContain('prisma_client_queries_wait_histogram_ms_bucket')
           expect(metrics).toContain('prisma_pool_connections_open')
           expect(metrics).toContain('prisma_pool_connections_idle')

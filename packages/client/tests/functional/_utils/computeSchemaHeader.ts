@@ -9,6 +9,7 @@ export type ComputeSchemaHeader = {
   relationMode?: string
   previewFeatures?: string
   engineType?: 'binary' | 'library'
+  directUrl?: string
   customUrl?: string
   schemas?: string[]
 }
@@ -19,6 +20,7 @@ export function computeSchemaHeader({
   relationMode,
   previewFeatures,
   engineType,
+  directUrl,
   customUrl,
   schemas,
 }: ComputeSchemaHeader): string {
@@ -38,8 +40,9 @@ export function computeSchemaHeader({
   } else if (relationMode) {
     relationModeLine = `relationMode = "${relationMode}"`
   }
+  const directUrlLine = directUrl ? `directUrl = ${directUrl}` : ''
   const schemasLine = schemas ? `schemas = ["${schemas.join('", "')}"]` : ''
-  const datasourceLines = [relationModeLine, schemasLine].filter(Boolean).join('\n  ')
+  const datasourceLines = [relationModeLine, directUrlLine, schemasLine].filter(Boolean).join('\n  ')
 
   const previewFeaturesLine = previewFeatures ? `previewFeatures = ["${previewFeatures}"]` : ''
   const engineTypeLine = engineType ? `engineType = ["${engineType}"]` : ''

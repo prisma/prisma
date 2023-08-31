@@ -6,15 +6,17 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ provider }, suiteMeta, clientMeta) => {
+  ({ provider, providerFlavor }, suiteMeta, clientMeta) => {
+    const envVarName = providerFlavor ? `DATABASE_URI_${providerFlavor}` : `DATABASE_URI_${provider}`
     let dbURL: string
+
     beforeAll(() => {
-      dbURL = process.env[`DATABASE_URI_${provider}`]!
-      process.env[`DATABASE_URI_${provider}`] = 'invalid://url'
+      dbURL = process.env[envVarName]!
+      process.env[envVarName] = 'invalid://url'
     })
 
     afterAll(() => {
-      process.env[`DATABASE_URI_${provider}`] = dbURL
+      process.env[envVarName] = dbURL
     })
 
     test('verify that connect fails without override', async () => {

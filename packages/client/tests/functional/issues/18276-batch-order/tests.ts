@@ -1,3 +1,4 @@
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
@@ -7,7 +8,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  () => {
+  (suiteConfig) => {
     test('executes batch queries in the right order when using extensions + middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -36,10 +37,11 @@ testMatrix.setupTestSuite(
       })
 
       await xprisma.$queryRawUnsafe('SELECT 2')
-
-      await waitFor(() =>
-        expect(queries).toEqual([expect.stringContaining('BEGIN'), 'SELECT 1', 'SELECT 2', 'SELECT 3', 'COMMIT']),
-      )
+      const generalExpectation = [expect.stringContaining('BEGIN'), 'SELECT 1', 'SELECT 2', 'SELECT 3', 'COMMIT']
+      const jsPlanetscaleExpectation = ['SELECT 1', 'SELECT 2', 'SELECT 3']
+      const isJsPlanetscale =
+        suiteConfig.providerFlavor && suiteConfig.providerFlavor === ProviderFlavors.JS_PLANETSCALE
+      await waitFor(() => expect(queries).toEqual(isJsPlanetscale ? jsPlanetscaleExpectation : generalExpectation))
     })
 
     test('executes batch in right order when using delayed middleware', async () => {
