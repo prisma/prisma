@@ -33,7 +33,7 @@ export default defineMatrix(() => [
     },
     {
       provider: Providers.MYSQL,
-      providerFlavor: ProviderFlavors.JS_PLANETSCALE,
+      providerFlavor: ProviderFlavors.VITESS_8,
       relationMode: 'prisma',
     },
     {

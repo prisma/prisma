@@ -15,25 +15,26 @@ type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'Set
 const onUpdate: ReferentialActions | string = 'Cascade'
 const onDelete: ReferentialActions | string = 'Cascade'
 
+const mysqlProvider = {
+  provider: Providers.MYSQL,
+  relationMode,
+  referentialActions: {
+    onUpdate,
+    onDelete,
+  },
+}
+
 // TODO: fix mysql issues with Restrict
 export default defineMatrix(() => [
   [
+    mysqlProvider,
     {
-      provider: Providers.MYSQL,
-      relationMode,
-      referentialActions: {
-        onUpdate,
-        onDelete,
-      },
+      ...mysqlProvider,
+      providerFlavor: ProviderFlavors.VITESS_8,
     },
     {
-      provider: Providers.MYSQL,
+      ...mysqlProvider,
       providerFlavor: ProviderFlavors.JS_PLANETSCALE,
-      relationMode,
-      referentialActions: {
-        onUpdate,
-        onDelete,
-      },
     },
     /*
     {

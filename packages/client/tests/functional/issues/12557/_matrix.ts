@@ -18,6 +18,11 @@ export default defineMatrix(() => [
     },
     {
       provider: Providers.MYSQL,
+      providerFlavor: ProviderFlavors.VITESS_8,
+      relationMode,
+    },
+    {
+      provider: Providers.MYSQL,
       providerFlavor: ProviderFlavors.JS_PLANETSCALE,
       relationMode,
     },
