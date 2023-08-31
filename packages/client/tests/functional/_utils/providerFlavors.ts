@@ -23,6 +23,11 @@ export const allProvidersMatrix = allProviderFlavors.map((providerFlavor) => {
   }
 })
 
+export const allSqlProvidersMatrix = allProvidersMatrix.filter((it) => {
+  const isMongoDb = it.provider === Providers.MONGODB
+  return !isMongoDb
+})
+
 export type ProviderFlavor = (typeof allProviderFlavors)[number]
 
 export function getProviderFromFlavor(providerFlavor: ProviderFlavor): Providers {

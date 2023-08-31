@@ -5,6 +5,7 @@ export default defineMatrix(() => [
     {
       provider: 'postgresql',
     },
+    //  TODO cockroachdb?
     // {
     //   provider: 'postgresql',
     //   providerFlavor: 'js_neon',

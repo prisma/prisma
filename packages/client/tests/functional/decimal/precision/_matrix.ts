@@ -1,5 +1,6 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
-import { ProviderFlavors } from '../../_utils/providerFlavors'
+import { allSqlProvidersMatrix } from '../../_utils/providerFlavors'
+import { Providers } from '../../_utils/providers'
 
 const maxPrecisionByProvider = {
   sqlserver: 38,
@@ -8,32 +9,7 @@ const maxPrecisionByProvider = {
 
 export default defineMatrix(
   () => [
-    [
-      {
-        provider: 'postgresql',
-      },
-      // {
-      //   provider: 'postgresql',
-      //   providerFlavor: 'js_neon',
-      // },
-      {
-        provider: 'mysql',
-      },
-      {
-        provider: 'mysql',
-        providerFlavor: ProviderFlavors.VITESS_8,
-      },
-      {
-        provider: 'mysql',
-        providerFlavor: ProviderFlavors.JS_PLANETSCALE,
-      },
-      {
-        provider: 'cockroachdb',
-      },
-      {
-        provider: 'sqlserver',
-      },
-    ],
+    allSqlProvidersMatrix.filter((it) => it.provider !== Providers.SQLITE),
     [
       {
         precision: '10',
