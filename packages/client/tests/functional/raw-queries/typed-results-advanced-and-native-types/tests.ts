@@ -42,6 +42,8 @@ testMatrix.setupTestSuite(
       from: ['mongodb', 'sqlite', 'sqlserver'],
       reason: `
         $queryRaw only works on SQL based providers
+        mysql: error: Field "string_list" in model "TestModel" can't be a list. The current connector does not support lists of primitive types.
+               error: Field "bInt_list" in model "TestModel" can't be a list. The current connector does not support lists of primitive types.
         sqlite: The current connector does not support lists of primitive types
         sqlserver: The current connector does not support the Json type.
       `,

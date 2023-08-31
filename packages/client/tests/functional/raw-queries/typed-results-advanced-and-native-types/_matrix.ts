@@ -13,16 +13,5 @@ export default defineMatrix(() => [
     {
       provider: 'cockroachdb',
     },
-    {
-      provider: 'mysql',
-    },
-    {
-      provider: 'mysql',
-      providerFlavor: ProviderFlavors.VITESS_8,
-    },
-    {
-      provider: 'mysql',
-      providerFlavor: ProviderFlavors.JS_PLANETSCALE,
-    },
   ],
 ])

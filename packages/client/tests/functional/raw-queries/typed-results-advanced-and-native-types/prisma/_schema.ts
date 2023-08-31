@@ -10,13 +10,13 @@ export default testMatrix.setupSchema(({ provider, providerFlavor }): string => 
   return /* Prisma */ `
 ${schemaHeader}
 
-    model TestModel {
-      id          Int       @id
-      json        Json
-      string_list String[]
-      bInt_list   BigInt[]
-      date        DateTime  @db.Date
-      time        DateTime  @db.Time(3)
-    }
-  `
+model TestModel {
+  id          Int       @id
+  json        Json
+  string_list String[]
+  bInt_list   BigInt[]
+  date        DateTime  @db.Date
+  time        DateTime  @db.Time(3)
+}
+`
 })
