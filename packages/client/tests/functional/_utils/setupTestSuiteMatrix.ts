@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, test } from '@jest/globals'
-import { createNeonConnector } from '@jkomyno/prisma-neon-js-connector'
+// import { createNeonConnector } from '@jkomyno/prisma-neon-js-connector'
 import { createPlanetScaleConnector } from '@jkomyno/prisma-planetscale-js-connector'
 import fs from 'fs-extra'
 import path from 'path'
@@ -179,7 +179,11 @@ function setupTestSuiteMatrix(
         // Skip the database drop?
         if (
           !options?.skipDb &&
-          ![ProviderFlavors.VITESS_8, ProviderFlavors.JS_PLANETSCALE, ProviderFlavors.JS_NEON].includes(providerFlavor)
+          ![
+            ProviderFlavors.VITESS_8,
+            ProviderFlavors.JS_PLANETSCALE,
+            // ProviderFlavors.JS_NEON
+          ].includes(providerFlavor)
         ) {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl

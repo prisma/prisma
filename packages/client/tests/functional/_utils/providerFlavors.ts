@@ -11,7 +11,6 @@ const allProviderFlavors = [...Object.values(Providers), ...Object.values(Provid
 export const allProvidersMatrix = allProviderFlavors.map((providerFlavor) => {
   const provider = getProviderFromFlavor(providerFlavor)
 
-  console.log('providerFlavor', providerFlavor, 'provider', provider)
   if (providerFlavor === provider) {
     return {
       provider,

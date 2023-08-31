@@ -183,8 +183,8 @@ func (s *server) Execute(
 		return nil, err
 	}
 
-	// This is a gross simplificiation, but is likely sufficient
-	fmt.Println("Sending SQL to execute:", query)
+	// This is a gross simplification, but is likely sufficient
+	fmt.Println("Sending SQL to execute:\n", query)
 	qr, err := conn.ExecuteFetch(query, int(*flagMySQLMaxRows), true)
 	return connect.NewResponse(&psdbv1alpha1.ExecuteResponse{
 		Session: session,
