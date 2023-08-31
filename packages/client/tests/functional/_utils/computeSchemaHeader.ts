@@ -52,7 +52,7 @@ export function computeSchemaHeader({
   const url = match({ provider, providerFlavor, isDataProxy, customUrl })
     .with({ customUrl: P.string }, () => `"${customUrl}"`)
     .with({ provider: Providers.SQLITE }, () => `"file:./test.db"`)
-    .with({ providerFlavor: P.string, isDataProxy: false }, () => `env("DATABASE_URI_${providerFlavor}")`)
+    .with({ providerFlavor: P.string }, () => `env("DATABASE_URI_${providerFlavor}")`)
     .otherwise(({ provider }) => `env("DATABASE_URI_${provider}")`)
 
   const providerName = match({ provider, providerFlavor })

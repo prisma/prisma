@@ -210,21 +210,13 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   const providerFlavor = suiteConfig['providerFlavor'] as ProviderFlavor | undefined
   const dbId = `${faker.string.alphanumeric(5)}-${process.pid}-${Date.now()}`
 
-  const envVarNameDefault = `DATABASE_URI_${provider}`
-  const newURIDefault = getDbUrl(provider)
-
   const { envVarName, newURI } = match(providerFlavor)
     .with(undefined, () => {
-      return { envVarName: envVarNameDefault, newURI: newURIDefault }
+      return { envVarName: `DATABASE_URI_${provider}`, newURI: getDbUrl(provider) }
     })
     .otherwise(() => {
-      if (clientMeta.dataProxy) {
-        return { envVarName: envVarNameDefault, newURI: newURIDefault }
-      } else {
-        const envVarName = `DATABASE_URI_${providerFlavor!}`
-        const newURI = getDbUrlFromFlavor(providerFlavor, provider)
-        return { envVarName, newURI }
-      }
+      const newURI = getDbUrlFromFlavor(providerFlavor, provider)
+      return { envVarName: `DATABASE_URI_${providerFlavor!}`, newURI }
     })
 
   // when testing with `directUrl` is required

@@ -19,5 +19,5 @@ export async function stopMiniProxyQueryEngine(client: Client, datasourceInfo: D
     },
   })
 
-  debug('response status', response.status)
+  debug('mini-proxy response status', response.status)
 }
