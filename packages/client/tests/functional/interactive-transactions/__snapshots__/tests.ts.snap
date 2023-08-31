@@ -124,14 +124,6 @@ Invalid \`prisma.user.create()\` invocation in
 Unique constraint failed on the constraint: \`User_email_key\`
 `;
 
-exports[`interactive-transactions (provider=mysql,providerFlavor=js_planetscale) batching raw rollback 1`] = `
-
-Invalid \`prisma.$executeRaw()\` invocation:
-
-
-Raw query failed. Code: \`N/A\`. Message: \`called \`Result::unwrap()\` on an \`Err\` value: Error { status: GenericFailure, reason: "", maybe_raw: 0x13966ec30, maybe_env: 0x12b067cf0 }\`
-`;
-
 exports[`interactive-transactions (provider=mysql,providerFlavor=js_planetscale) batching rollback 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
