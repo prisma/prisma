@@ -1,4 +1,5 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 import { Providers } from '../../_utils/providers'
 
 const RelationModeEnv = process.env.RELATION_MODE
@@ -14,19 +15,24 @@ type ReferentialActions = 'DEFAULT' | 'Cascade' | 'Restrict' | 'NoAction' | 'Set
 const onUpdate: ReferentialActions | string = 'DEFAULT'
 const onDelete: ReferentialActions | string = 'SetNull'
 
+const postgresqlProvider = {
+  provider: Providers.POSTGRESQL,
+  id: 'String @id',
+  relationMode,
+  referentialActions: {
+    onUpdate,
+    onDelete,
+  },
+}
+
 // TODO: fix mysql issues with Restrict
 export default defineMatrix(() => [
   [
-    {
-      provider: Providers.POSTGRESQL,
-      id: 'String @id',
-      relationMode,
-      referentialActions: {
-        onUpdate,
-        onDelete,
-      },
-    },
-
+    postgresqlProvider,
+    // {
+    //   ...postgresqlProvider,
+    //   providerFlavor: ProviderFlavors.JS_PLANETSCALE,
+    // },
     /*
     {
       provider: Providers.COCKROACHDB,

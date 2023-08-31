@@ -1,6 +1,4 @@
-import { match } from 'ts-pattern'
-
-import { Providers } from '../../_utils/providers'
+import { computeSchemaHeader } from '../../_utils/computeSchemaHeader'
 import testMatrix from '../_matrix'
 import { schema_1to1 } from './_schema_1_to_1'
 import { schema_1ton } from './_schema_1_to_n'
@@ -14,24 +12,16 @@ import { schema_1ton } from './_schema_1_to_n'
 //
 // The obvious solution for us was to avoid `@default(autoincrement())` in tests.
 // Providing a separate `id` schema definition for each provider is not necessary.
-export default testMatrix.setupSchema(({ provider, providerFlavor, defaultUserId }) => {
-  const url = match({ provider, providerFlavor })
-    .with({ provider: Providers.SQLITE }, () => `"file:test.db"`)
-    .otherwise(({ providerFlavor }) => `env("DATABASE_URI_${providerFlavor}")`)
+export default testMatrix.setupSchema(({ provider, providerFlavor, defaultUserId }): string => {
+  const schemaHeader = computeSchemaHeader({
+    provider,
+    providerFlavor,
+  })
 
-  const schema = /* prisma */ `
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "${provider}"
-  url = ${url}
-}
+  return /* Prisma */ `
+  ${schemaHeader}
 
 ${schema_1to1(defaultUserId)}
 ${schema_1ton(defaultUserId)}
   `
-
-  return schema
 })
