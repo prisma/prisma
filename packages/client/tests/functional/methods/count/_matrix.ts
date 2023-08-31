@@ -1,4 +1,5 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 
 export default defineMatrix(() => [
   [
@@ -21,12 +22,12 @@ export default defineMatrix(() => [
     },
     {
       provider: 'mysql',
-      providerFlavor: 'vitess_8',
+      providerFlavor: ProviderFlavors.VITESS_8,
       foreignKeyId: 'String?',
     },
     {
       provider: 'mysql',
-      providerFlavor: 'js_planetscale',
+      providerFlavor: ProviderFlavors.JS_PLANETSCALE,
       foreignKeyId: 'String?',
     },
     {

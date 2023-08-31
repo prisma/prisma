@@ -1,4 +1,5 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { ProviderFlavors } from '../_utils/providerFlavors'
 
 const mysqlProvider = {
   provider: 'mysql',
@@ -36,11 +37,11 @@ export default defineMatrix(() => [
     mysqlProvider,
     {
       ...mysqlProvider,
-      providerFlavor: 'vitess_8',
+      providerFlavor: ProviderFlavors.VITESS_8,
     },
     {
       ...mysqlProvider,
-      providerFlavor: 'js_planetscale',
+      providerFlavor: ProviderFlavors.JS_PLANETSCALE,
     },
   ],
 ])

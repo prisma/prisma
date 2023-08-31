@@ -1,4 +1,5 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 import { builtInNames } from '../_builtInNames'
 
 export default defineMatrix(() => [
@@ -15,11 +16,11 @@ export default defineMatrix(() => [
     },
     {
       provider: 'mysql',
-      providerFlavor: 'vitess_8',
+      providerFlavor: ProviderFlavors.VITESS_8,
     },
     {
       provider: 'mysql',
-      providerFlavor: 'js_planetscale',
+      providerFlavor: ProviderFlavors.JS_PLANETSCALE,
     },
     {
       provider: 'mongodb',
