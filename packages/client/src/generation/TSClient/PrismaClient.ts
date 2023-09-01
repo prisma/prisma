@@ -441,7 +441,7 @@ export type ExternalError = {
   id: number
 }
 
-type Result<T> = {
+type NapiResult<T> = {
   ok: true,
   value: T
 } | {
@@ -455,23 +455,23 @@ interface Queryable {
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the type-aware result set of the query.
    */
-  queryRaw(params: Query): $Utils.JsPromise<Result<ResultSet>>
+  queryRaw(params: Query): $Utils.JsPromise<NapiResult<ResultSet>>
   /**
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the number of affected rows.
    */
-  executeRaw(params: Query): $Utils.JsPromise<Result<number>>
+  executeRaw(params: Query): $Utils.JsPromise<NapiResult<number>>
 }
 
 interface Transaction extends Queryable {
   /**
    * Commit the transaction
    */
-  commit(): $Utils.JsPromise<Result<void>>
+  commit(): $Utils.JsPromise<NapiResult<void>>
   /**
    * Roll back the transaction
    */
-  rollback(): $Utils.JsPromise<Result<void>>
+  rollback(): $Utils.JsPromise<NapiResult<void>>
 }
 
 interface Connector extends Queryable {
@@ -479,11 +479,11 @@ interface Connector extends Queryable {
    * Starts new transation with the specified isolation level
    * @param isolationLevel
    */
-  startTransaction(isolationLevel?: string): $Utils.JsPromise<Result<Transaction>>
+  startTransaction(isolationLevel?: string): $Utils.JsPromise<NapiResult<Transaction>>
   /**
    * Closes the connection to the database, if any.
    */
-  close: () => $Utils.JsPromise<Result<void>>
+  close: () => $Utils.JsPromise<NapiResult<void>>
 }
 
 interface ErrorCapturingConnector extends Connector {
