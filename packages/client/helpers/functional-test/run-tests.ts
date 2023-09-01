@@ -27,6 +27,7 @@ const args = arg(
     '-p': '--provider',
     // Restrict the list of provider flavors
     '--provider-flavor': [String],
+    '--pf': '--provider-flavor',
     // Generate Data Proxy client and run tests using Mini-Proxy
     '--data-proxy': Boolean,
     // Use edge client (requires --data-proxy)
