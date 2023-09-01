@@ -6,7 +6,7 @@ settings:
 
 patchedDependencies:
   '@planetscale/database@1.11.0':
-    hash: gnnuhabapfpl3kzpn5uitopibq
+    hash: x7ynj7erfxwojl2nuz5zdgt7ta
     path: patches/@planetscale__database@1.11.0.patch
   node-fetch@2.6.12:
     hash: d2f4ywbzdgzmypej5sz7qs7qpy
@@ -2879,7 +2879,7 @@ packages:
     resolution: {integrity: sha512-ryupFn3W54bBwGQJjtn+Jt9Wjn+viKirusjFA11BeNWjSecDT+p1ZzOW82bYWaYYaRaUuXpKmWPLArGvBWnHVw==}
     dependencies:
       '@jkomyno/prisma-js-connector-utils': 0.0.9
-      '@planetscale/database': 1.11.0(patch_hash=gnnuhabapfpl3kzpn5uitopibq)
+      '@planetscale/database': 1.11.0(patch_hash=x7ynj7erfxwojl2nuz5zdgt7ta)
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -3421,7 +3421,7 @@ packages:
     dev: true
     optional: true
 
-  /@planetscale/database@1.11.0(patch_hash=gnnuhabapfpl3kzpn5uitopibq):
+  /@planetscale/database@1.11.0(patch_hash=x7ynj7erfxwojl2nuz5zdgt7ta):
     resolution: {integrity: sha512-aWbU+D/IRHoDE9975y+Q4c+EwwAWxCPwFId+N1AhQVFXzbeJMkj6KN2iQtoi03elcLMRdfT+V3i9Z4WRw+/oIA==}
     engines: {node: '>=16'}
     dev: true
