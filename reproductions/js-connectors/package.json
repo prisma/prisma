@@ -21,10 +21,10 @@
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "license": "ISC",
   "dependencies": {
-    "@jkomyno/prisma-js-connector-utils": "0.0.7",
-    "@jkomyno/prisma-neon-js-connector": "0.0.7",
-    "@jkomyno/prisma-pg-js-connector": "0.0.7",
-    "@jkomyno/prisma-planetscale-js-connector": "0.0.7",
+    "@jkomyno/prisma-js-connector-utils": "0.0.9",
+    "@jkomyno/prisma-neon-js-connector": "0.0.9",
+    "@jkomyno/prisma-pg-js-connector": "0.0.9",
+    "@jkomyno/prisma-planetscale-js-connector": "0.0.9",
     "@prisma/client": "../../packages/client",
     "superjson": "^1.13.1",
     "undici": "^5.22.1"
