@@ -30,8 +30,6 @@ coverage
 
 .pnpm-debug.log
 
-.envrc
-
 esm
 reproductions/*
 !reproductions/basic-sqlite
@@ -41,3 +39,5 @@ reproductions/*
 dev.db
 junit.xml
 /output.txt
+
+.envrc.local
