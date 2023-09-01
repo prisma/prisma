@@ -110,6 +110,7 @@ const excludeEnvToProviderMap = {
 
 const excludeEnvToProviderFlavorMap = {
   TEST_SKIP_VITESS: ProviderFlavors.VITESS_8,
+  TEST_SKIP_JS_PLANETSCALE: ProviderFlavors.JS_PLANETSCALE,
 }
 
 function getExcludedProviderFlavors() {
