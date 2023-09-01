@@ -346,14 +346,14 @@ importers:
         specifier: 29.6.4
         version: 29.6.4
       '@jkomyno/prisma-js-connector-utils':
-        specifier: 0.0.8
-        version: 0.0.8
+        specifier: 0.0.9
+        version: 0.0.9
       '@jkomyno/prisma-neon-js-connector':
-        specifier: 0.0.8
-        version: 0.0.8
+        specifier: 0.0.9
+        version: 0.0.9
       '@jkomyno/prisma-planetscale-js-connector':
-        specifier: 0.0.8
-        version: 0.0.8
+        specifier: 0.0.9
+        version: 0.0.9
       '@opentelemetry/api':
         specifier: 1.4.1
         version: 1.4.1
@@ -2855,18 +2855,18 @@ packages:
       chalk: 4.1.2
     dev: true
 
-  /@jkomyno/prisma-js-connector-utils@0.0.8:
-    resolution: {integrity: sha512-TVnKR9ooJoynqYZGf/9dk0xANTp+bNxy4A7B5qoE/0RntoT7XqQiFPfk/wIkrnTVNkwvm8yqg/3yITrYWSSVBA==}
+  /@jkomyno/prisma-js-connector-utils@0.0.9:
+    resolution: {integrity: sha512-zgetylwOdGqy/BqhTHg66uH9FF1qDZDayy9ECiujmxlKjyY+3v//YjXOagC8nEBZ76JusWzBA1+AZYGbUCoqEA==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@jkomyno/prisma-neon-js-connector@0.0.8:
-    resolution: {integrity: sha512-4MeMXDZBcSH4m9vulXox8iN2VbHZdZf5Bj6sVLWS4gy64KMBwrLFf1zDcwEkvFfMW3cRxYM2WS99QIzDYdK7MQ==}
+  /@jkomyno/prisma-neon-js-connector@0.0.9:
+    resolution: {integrity: sha512-slJbateQDtEpp3o96EyCaT/UalLlE1xfSOEXXJvETjj0vXIrPWcmTfnKALEjmT6agSfetN0W0kYCUmk1so6+uQ==}
     dependencies:
-      '@jkomyno/prisma-js-connector-utils': 0.0.8
+      '@jkomyno/prisma-js-connector-utils': 0.0.9
       '@neondatabase/serverless': 0.6.0
       ws: 8.13.0
     transitivePeerDependencies:
@@ -2875,10 +2875,10 @@ packages:
       - utf-8-validate
     dev: true
 
-  /@jkomyno/prisma-planetscale-js-connector@0.0.8:
-    resolution: {integrity: sha512-yPRfHF+0/l6lq7nEfEZDfWbMWYOS0JPyBjN/IsMSiRYZh5SEcBM1quk7OT4y/z11sb/kwIfGykIZM9jE4IDjOw==}
+  /@jkomyno/prisma-planetscale-js-connector@0.0.9:
+    resolution: {integrity: sha512-ryupFn3W54bBwGQJjtn+Jt9Wjn+viKirusjFA11BeNWjSecDT+p1ZzOW82bYWaYYaRaUuXpKmWPLArGvBWnHVw==}
     dependencies:
-      '@jkomyno/prisma-js-connector-utils': 0.0.8
+      '@jkomyno/prisma-js-connector-utils': 0.0.9
       '@planetscale/database': 1.11.0(patch_hash=gnnuhabapfpl3kzpn5uitopibq)
     transitivePeerDependencies:
       - supports-color

@@ -5,8 +5,8 @@ generator client {
 }
 
 datasource db {
-  provider = "@prisma/planetscale"
-  url      = env("JS_PLANETSCALE_DATABASE_URL")
+  provider     = "mysql"
+  url          = env("JS_PLANETSCALE_DATABASE_URL")
   relationMode = "prisma"
 }
 
@@ -96,13 +96,13 @@ model Parent {
 }
 
 model Author {
-  id    Int  @id @default(autoincrement())
+  id    Int     @id @default(autoincrement())
   name  String?
   posts Post[]
 }
 
 model Post {
-  id        Int  @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   title     String?
   published Boolean @default(false)
   authorId  Int?

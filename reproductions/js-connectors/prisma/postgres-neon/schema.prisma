@@ -5,8 +5,8 @@ generator client {
 }
 
 datasource db {
-  provider     = "@prisma/neon"
-  url          = env("JS_NEON_DATABASE_URL")
+  provider = "postgresql"
+  url      = env("JS_NEON_DATABASE_URL")
 }
 
 model type_test {
@@ -79,13 +79,13 @@ enum type_test_enum_column_null {
 }
 
 model Author {
-  id    Int  @id @default(autoincrement())
+  id    Int     @id @default(autoincrement())
   name  String?
   posts Post[]
 }
 
 model Post {
-  id        Int  @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   title     String?
   published Boolean @default(false)
   authorId  Int?
