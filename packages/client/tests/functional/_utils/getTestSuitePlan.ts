@@ -1,4 +1,5 @@
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
+import { ProviderFlavors } from './providerFlavors'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, MatrixOptions } from './types'
 
@@ -12,6 +13,7 @@ type SuitePlanContext = {
   includedProviders?: string[]
   excludedProviders: string[]
   includedProviderFlavors?: string[]
+  excludedProviderFlavors: string[]
   updateSnapshots: 'inline' | 'external' | undefined
 }
 
@@ -47,7 +49,13 @@ function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): b
 }
 
 function shouldSkipProvider(
-  { updateSnapshots, includedProviders, excludedProviders, includedProviderFlavors }: SuitePlanContext,
+  {
+    updateSnapshots,
+    includedProviders,
+    excludedProviders,
+    includedProviderFlavors,
+    excludedProviderFlavors,
+  }: SuitePlanContext,
   config: NamedTestSuiteConfig,
   configIndex: number,
   clientMeta: ClientMeta,
@@ -79,7 +87,7 @@ function shouldSkipProvider(
     return true
   }
 
-  return excludedProviders.includes(provider)
+  return excludedProviders.includes(provider) || excludedProviderFlavors.includes(providerFlavor)
 }
 
 function buildPlanContext(): SuitePlanContext {
@@ -87,6 +95,7 @@ function buildPlanContext(): SuitePlanContext {
     includedProviders: process.env.ONLY_TEST_PROVIDERS?.split(','),
     excludedProviders: getExcludedProviders(),
     includedProviderFlavors: process.env.ONLY_TEST_PROVIDER_FLAVORS?.split(','),
+    excludedProviderFlavors: getExcludedProviderFlavors(),
     updateSnapshots: process.env.UPDATE_SNAPSHOTS as 'inline' | 'external' | undefined,
   }
 }
@@ -97,6 +106,19 @@ const excludeEnvToProviderMap = {
   TEST_SKIP_COCKROACHDB: 'cockroachdb',
   TEST_SKIP_POSTGRESQL: 'postgresql',
   TEST_SKIP_SQLITE: 'sqlite',
+}
+
+const excludeEnvToProviderFlavorMap = {
+  TEST_SKIP_VITESS: ProviderFlavors.VITESS_8,
+}
+
+function getExcludedProviderFlavors() {
+  return Object.entries(excludeEnvToProviderFlavorMap).reduce((acc, [envVarName, providerFlavor]) => {
+    if (process.env[envVarName]) {
+      acc.push(providerFlavor)
+    }
+    return acc
+  }, [] as string[])
 }
 
 function getExcludedProviders() {
