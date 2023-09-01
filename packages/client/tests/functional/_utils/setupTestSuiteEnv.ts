@@ -121,7 +121,13 @@ export async function setupTestSuiteDatabase(
     // tests faster Since we have full isolation of tests / database, we do not
     // need to force reset but we currently break isolation for Vitess (for
     // faster tests), so it's good to force reset in this case
-    if ([ProviderFlavors.VITESS_8, ProviderFlavors.JS_PLANETSCALE, ProviderFlavors.JS_NEON].includes(providerFlavor)) {
+    if (
+      [
+        ProviderFlavors.VITESS_8,
+        ProviderFlavors.JS_PLANETSCALE,
+        // ProviderFlavors.JS_NEON
+      ].includes(providerFlavor)
+    ) {
       dbPushParams.push('--force-reset')
     }
     await DbPush.new().parse(dbPushParams)
