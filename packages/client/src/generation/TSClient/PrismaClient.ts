@@ -479,11 +479,15 @@ interface Connector extends Queryable {
    * Starts new transation with the specified isolation level
    * @param isolationLevel
    */
-  startTransaction(isolationLevel?: string): $Utils.JsPromise<Transaction>
+  startTransaction(isolationLevel?: string): $Utils.JsPromise<Result<Transaction>>
   /**
    * Closes the connection to the database, if any.
    */
   close: () => $Utils.JsPromise<Result<void>>
+}
+
+interface ErrorCapturingConnector extends Connector {
+  readonly errorRegistry: ErrorRegistry
 }
 
 interface ErrorRegistry {
@@ -498,7 +502,7 @@ type ErrorRecord = { error: unknown }
   /**
    * Instance of a JS connector, e.g., like one provided by ${prismaPlanetScaleJsConnectorRef}.
    */
-  jsConnector?: Connector
+  jsConnector?: ErrorCapturingConnector
 `
 
     return `${new Datasources(this.internalDatasources).toTS()}

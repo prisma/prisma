@@ -2308,11 +2308,15 @@ export namespace Prisma {
     * Starts new transation with the specified isolation level
     * @param isolationLevel
     */
-    startTransaction(isolationLevel?: string): $Utils.JsPromise<Transaction>
+    startTransaction(isolationLevel?: string): $Utils.JsPromise<Result<Transaction>>
     /**
     * Closes the connection to the database, if any.
     */
     close: () => $Utils.JsPromise<Result<void>>
+  }
+
+  interface ErrorCapturingConnector extends Connector {
+    readonly errorRegistry: ErrorRegistry
   }
 
   interface ErrorRegistry {
@@ -2325,7 +2329,7 @@ export namespace Prisma {
     /**
      * Instance of a JS connector, e.g., like one provided by \`@prisma/planetscale-js-connector\`.
      */
-    jsConnector?: Connector
+    jsConnector?: ErrorCapturingConnector
 
     /**
      * Overwrites the datasource url from your schema.prisma file
