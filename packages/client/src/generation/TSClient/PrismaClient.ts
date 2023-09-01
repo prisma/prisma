@@ -436,29 +436,42 @@ type Query = {
   args: Array<unknown>
 }
 
+type ExternalError = {
+  kind: 'GenericJsError',
+  id: number
+}
+
+type NapiResult<T> = {
+  ok: true,
+  value: T
+} | {
+  ok: false,
+  error: ExternalError
+}
+
 interface Queryable {
   readonly flavour: 'mysql' | 'postgres'
   /**
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the type-aware result set of the query.
    */
-  queryRaw(params: Query): $Utils.JsPromise<ResultSet>
+  queryRaw(params: Query): $Utils.JsPromise<NapiResult<ResultSet>>
   /**
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the number of affected rows.
    */
-  executeRaw(params: Query): $Utils.JsPromise<number>
+  executeRaw(params: Query): $Utils.JsPromise<NapiResult<number>>
 }
 
 interface Transaction extends Queryable {
   /**
    * Commit the transaction
    */
-  commit(): $Utils.JsPromise<void>
+  commit(): $Utils.JsPromise<NapiResult<void>>
   /**
    * Roll back the transaction
    */
-  rollback(): $Utils.JsPromise<void>
+  rollback(): $Utils.JsPromise<NapiResult<void>>
 }
 
 interface Connector extends Queryable {
@@ -466,12 +479,22 @@ interface Connector extends Queryable {
    * Starts new transation with the specified isolation level
    * @param isolationLevel
    */
-  startTransaction(isolationLevel?: string): $Utils.JsPromise<Transaction>
+  startTransaction(isolationLevel?: string): $Utils.JsPromise<NapiResult<Transaction>>
   /**
    * Closes the connection to the database, if any.
    */
-  close: () => $Utils.JsPromise<void>
+  close: () => $Utils.JsPromise<NapiResult<void>>
 }
+
+interface ErrorCapturingConnector extends Connector {
+  readonly errorRegistry: ErrorRegistry
+}
+
+interface ErrorRegistry {
+  consumeError(id: number): ErrorRecord | undefined
+}
+
+type ErrorRecord = { error: unknown }
 `
 
     const prismaPlanetScaleJsConnectorRef = '`@prisma/planetscale-js-connector`'
@@ -479,7 +502,7 @@ interface Connector extends Queryable {
   /**
    * Instance of a JS connector, e.g., like one provided by ${prismaPlanetScaleJsConnectorRef}.
    */
-  jsConnector?: Connector
+  jsConnector?: ErrorCapturingConnector
 `
 
     return `${new Datasources(this.internalDatasources).toTS()}

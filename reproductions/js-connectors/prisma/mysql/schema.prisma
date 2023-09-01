@@ -1,12 +1,11 @@
 generator client {
-  provider        = "prisma-client-js"
-  output          = "../../node_modules/.prisma/client"
-  previewFeatures = []
+  provider = "prisma-client-js"
+  output   = "../../node_modules/.prisma/client"
 }
 
 datasource db {
   provider     = "mysql"
-  url          = env("JS_PLANETSCALE_DATABASE_URL")
+  url          = env("DATABASE_URL")
   relationMode = "prisma"
 }
 
@@ -44,8 +43,8 @@ model type_test {
   time_column_null      DateTime?                   @db.Time(0)
   year_column           Int                         @db.Year
   year_column_null      Int?                        @db.Year
-  datetime_column       DateTime                    @db.DateTime(0)
-  datetime_column_null  DateTime?                   @db.DateTime(0)
+  datetime_column       DateTime                    @db.DateTime(3)
+  datetime_column_null  DateTime?                   @db.DateTime(3)
   timestamp_column      DateTime                    @db.Timestamp(0)
   timestamp_column_null DateTime?                   @db.Timestamp(0)
   json_column           Json
@@ -60,6 +59,13 @@ model type_test {
   blob_null             Bytes?                      @db.Blob
   set_column            String
   set_column_null       String?
+}
+
+// This will eventually supersede type_test
+model type_test_2 {
+  id                   String    @id @default(cuid())
+  datetime_column      DateTime  @default(now()) @db.DateTime(3)
+  datetime_column_null DateTime? @db.DateTime(3)
 }
 
 enum type_test_enum_column {
@@ -96,9 +102,13 @@ model Parent {
 }
 
 model Author {
-  id    Int     @id @default(autoincrement())
-  name  String?
+  id        Int    @id @default(autoincrement())
+  firstName String
+  lastName  String
+  age       Int
   posts Post[]
+
+  @@map("authors")
 }
 
 model Post {
@@ -111,6 +121,12 @@ model Post {
   @@index([authorId], name: "author_id")
 }
 
+model Product {
+  id              String @id @default(cuid())
+  properties      Json
+  properties_null Json?
+}
+
 model leak_test {
-  id Int @id
+  id String @id @default(cuid())
 }

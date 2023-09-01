@@ -7,14 +7,10 @@ async function planetscale() {
 
   const jsConnector = createPlanetScaleConnector({
     url: connectionString,
-
-    /**
-     * Custom `fetch` implementation is only necessary on Node.js < v18.x.x.
-     */
     fetch: undiciFetch,
   })
 
-  await smokeTest(jsConnector, '../prisma/mysql-planetscale/schema.prisma')
+  await smokeTest(jsConnector)
 }
 
 planetscale().catch((e) => {
