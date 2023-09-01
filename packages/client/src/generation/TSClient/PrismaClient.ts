@@ -436,7 +436,7 @@ type Query = {
   args: Array<unknown>
 }
 
-export type ExternalError = {
+type ExternalError = {
   kind: 'GenericJsError',
   id: number
 }
