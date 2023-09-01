@@ -40,7 +40,7 @@ INSERT INTO type_test (
     '2023-07-24', -- date
     '23:59:59', -- time
     2023, -- year
-    '2023-07-24 23:59:59', -- datetime
+    '2023-07-24 23:59:59.415', -- datetime
     '2023-07-24 23:59:59', -- timestamp
     '{"key": "value"}', -- json
     'value3', -- enum

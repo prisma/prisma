@@ -7,14 +7,11 @@ async function neon() {
 
   const jsConnector = createNeonConnector({
     url: connectionString,
-
-    /**
-     * Custom `fetch` implementation is only necessary on Node.js < v18.x.x.
-     */
+    httpMode: false,
     fetchFunction: undiciFetch,
   })
 
-  await smokeTest(jsConnector, '../prisma/postgres-neon/schema.prisma')
+  await smokeTest(jsConnector)
 }
 
 neon().catch((e) => {

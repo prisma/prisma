@@ -1,32 +1,30 @@
-// @ts-nocheck
 import superjson from 'superjson'
 import { PrismaClient } from '.prisma/client'
 import { setImmediate, setTimeout } from 'node:timers/promises'
-import type { Connector } from '@jkomyno/prisma-js-connector-utils'
+import type { ErrorCapturingConnector } from '@jkomyno/prisma-js-connector-utils'
 
-type Flavor = Connector['flavour']
-
-export async function smokeTest(db: Connector, prismaSchemaRelativePath: string) {
+export async function smokeTest(jsConnector: ErrorCapturingConnector) {
   // wait for the database pool to be initialized
   await setImmediate(0)
 
   // DEBUG='prisma:client:libraryEngine'
-  const prisma = new PrismaClient({ jsConnector: db })
+  const prisma = new PrismaClient({ jsConnector })
 
   console.log('[nodejs] connecting...')
   await prisma.$connect()
   console.log('[nodejs] connected')
 
-  const test = new SmokeTest(prisma, db.flavour)
+  const test = new SmokeTest(prisma, jsConnector.flavour)
   
+  await test.testJSON()
+  await test.testTypeTest2()
   await test.$raw()
+  await test.testFindManyTypeTest()
   await test.transactionsWithConflits()
+  await test.testCreateAndDeleteChildParent()
   await test.interactiveTransactions()
   await test.explicitTransaction()
-  await test.testFindManyTypeTest()
-  await test.testCreateAndDeleteChildParent()
 
-  // Note: calling `engine.disconnect` won't actually close the database connection.
   console.log('[nodejs] disconnecting...')
   await prisma.$disconnect()
   console.log('[nodejs] disconnected')
@@ -40,21 +38,41 @@ export async function smokeTest(db: Connector, prismaSchemaRelativePath: string)
   console.log('[nodejs] re-disconnecting...')
   await prisma.$disconnect()
   console.log('[nodejs] re-disconnected')
-
-  // Close the database connection. This is required to prevent the process from hanging.
-  console.log('[nodejs] closing database connection...')
-  await db.close()
-  console.log('[nodejs] closed database connection')
 }
 
 
 class SmokeTest {
-  constructor(private readonly prisma: PrismaClient, readonly flavor: Connector['flavour']) {}
+  constructor(private readonly prisma: PrismaClient, readonly flavour: ErrorCapturingConnector['flavour']) {}
+
+  async testJSON() {
+    const json = JSON.stringify({
+      foo: 'bar',
+      baz: 1,
+    })
+
+    const created = await this.prisma.product.create({
+      data: {
+        properties: json,
+      },
+      select: {
+        properties: true,
+      }
+    })
+
+    console.log('[nodejs] created', superjson.serialize(created).json)
+
+    const resultSet = await this.prisma.product.findMany({})
+    console.log('[nodejs] resultSet', superjson.serialize(resultSet).json)
+
+    await this.prisma.product.deleteMany({})
+  }
 
   async transactionsWithConflits() {
+    await this.prisma.leak_test.deleteMany()
+
     const one = async () => {
       await this.prisma.$transaction(async (tx) => {
-        await tx.leak_test.create({ data: { id: '1' } })
+        await tx.leak_test.create({ data: {} })
         await setTimeout(1000)
         throw new Error('Abort the mission')
       })
@@ -62,7 +80,7 @@ class SmokeTest {
     
     const two = async () => {
       await setTimeout(500)
-      await this.prisma.leak_test.create({ data: { id: '100' } })
+      await this.prisma.leak_test.create({ data: {} })
     }
     
     await this.prisma.leak_test.deleteMany()
@@ -77,7 +95,7 @@ class SmokeTest {
       isolationLevel: 'Serializable',
     })
 
-    console.log('[nodejs] children', superjson.stringify(children))
+    console.log('[nodejs] children', superjson.serialize(children).json)
     console.log('[nodejs] totalChildren', totalChildren)
   }
 
@@ -90,7 +108,7 @@ class SmokeTest {
 
     await this.prisma.$executeRaw`INSERT INTO leak_test (id) VALUES (1)`
     const result = await this.prisma.$queryRaw`SELECT * FROM leak_test`
-    console.log('[nodejs] result', superjson.stringify(result))
+    console.log('[nodejs] result', superjson.serialize(result).json)
 
     await cleanUp()
   }
@@ -98,10 +116,12 @@ class SmokeTest {
   async interactiveTransactions() {
     const author = await this.prisma.author.create({
       data: {
-        name: 'Name 1',
+        firstName: 'Firstname 1 from autoincrement',
+        lastName: 'Lastname 1 from autoincrement',
+        age: 99,
       },
     })
-    console.log('[nodejs] author', superjson.stringify(author))
+    console.log('[nodejs] author', superjson.serialize(author).json)
 
     const result = await this.prisma.$transaction(async tx => {
       await tx.author.deleteMany()
@@ -109,7 +129,9 @@ class SmokeTest {
 
       const author = await tx.author.create({
         data: {
-          name: 'Name 2 from transaction',
+          firstName: 'Firstname 2 from autoincrement',
+          lastName: 'Lastname 2 from autoincrement',
+          age: 100,
         },
       })
       const post = await tx.post.create({
@@ -126,7 +148,19 @@ class SmokeTest {
       return { author, post }
     })
 
-    console.log('[nodejs] result', superjson.stringify(result))
+    console.log('[nodejs] result', superjson.serialize(result).json)
+  }
+
+  async testTypeTest2() {
+    const created = await this.prisma.type_test_2.create({
+      data: {},
+    })
+    console.log('[nodejs] created', superjson.serialize(created).json)
+
+    const resultSet = await this.prisma.type_test_2.findMany({})
+    console.log('[nodejs] resultSet', superjson.serialize(resultSet).json)
+
+    await this.prisma.type_test_2.deleteMany({})
   }
 
   async testFindManyTypeTest() {
@@ -134,8 +168,11 @@ class SmokeTest {
     await this.testFindManyTypeTestPostgres()
   }
 
-  @withFlavor({ only: ['mysql'] })
   private async testFindManyTypeTestMySQL() {
+    if (this.flavour !== 'mysql') {
+      return
+    }
+
     const resultSet = await this.prisma.type_test.findMany({
       select: {
         'tinyint_column': true,
@@ -161,13 +198,16 @@ class SmokeTest {
         'blob_column': true
       }
     })
-    console.log('[nodejs] findMany resultSet', superjson.stringify(resultSet))
+    console.log('[nodejs] findMany resultSet', superjson.serialize(resultSet).json)
   
     return resultSet
   }
 
-  @withFlavor({ only: ['postgres'] })
   private async testFindManyTypeTestPostgres() {
+    if (this.flavour !== 'postgres') {
+      return
+    }
+
     const resultSet = await this.prisma.type_test.findMany({
       select: {
         'smallint_column': true,
@@ -188,7 +228,7 @@ class SmokeTest {
         'enum_column': true
       }
     })
-    console.log('[nodejs] findMany resultSet', superjson.stringify(resultSet))
+    console.log('[nodejs] findMany resultSet', superjson.serialize(resultSet).json)
   
     return resultSet
   }
@@ -226,28 +266,6 @@ class SmokeTest {
         p: 'p1'
       }
     })
-    console.log('[nodejs] resultDeleteMany', superjson.stringify(resultDeleteMany))
-  }
-}
-
-type WithFlavorInput
-  = { only: Array<Flavor>, exclude?: never }
-  | { exclude: Array<Flavor>, only?: never }
-
-function withFlavor({ only, exclude }: WithFlavorInput) {
-  return function decorator(originalMethod: () => any, _ctx: ClassMethodDecoratorContext<SmokeTest, () => unknown>) {
-    return function replacement(this: SmokeTest) {
-      if ((exclude || []).includes(this.flavor)) {
-        console.log(`[nodejs::exclude] Skipping test '${originalMethod.name}' with flavor: ${this.flavor}`)
-        return
-      }
-
-      if ((only || []).length > 0 && !(only || []).includes(this.flavor)) {
-        console.log(`[nodejs::only] Skipping test '${originalMethod.name}' with flavor: ${this.flavor}`)
-        return
-      }
-
-      return originalMethod.call(this)
-    }
+    console.log('[nodejs] resultDeleteMany', superjson.serialize(resultDeleteMany).json)
   }
 }
