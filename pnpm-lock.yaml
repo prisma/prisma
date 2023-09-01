@@ -321,8 +321,8 @@ importers:
   packages/client:
     dependencies:
       '@prisma/engines-version':
-        specifier: 5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0
-        version: 5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0
+        specifier: 5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6
+        version: 5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6
     devDependencies:
       '@codspeed/benchmark.js-plugin':
         specifier: 2.2.0
@@ -602,8 +602,8 @@ importers:
         specifier: workspace:*
         version: link:../debug
       '@prisma/engines-version':
-        specifier: 5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0
-        version: 5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0
+        specifier: 5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6
+        version: 5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6
       '@prisma/fetch-engine':
         specifier: workspace:*
         version: link:../fetch-engine
@@ -687,8 +687,8 @@ importers:
         version: 1.0.1
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0
-        version: 5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0
+        specifier: 5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6
+        version: 5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6
       '@swc/core':
         specifier: 1.3.75
         version: 1.3.75
@@ -969,8 +969,8 @@ importers:
         specifier: workspace:*
         version: link:../get-platform
       '@prisma/prisma-schema-wasm':
-        specifier: 5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0
-        version: 5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0
+        specifier: 5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6
+        version: 5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6
       archiver:
         specifier: 5.3.1
         version: 5.3.1
@@ -1178,8 +1178,8 @@ importers:
         version: 4.3.0
     devDependencies:
       '@prisma/engines-version':
-        specifier: 5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0
-        version: 5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0
+        specifier: 5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6
+        version: 5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6
       '@prisma/generator-helper':
         specifier: workspace:*
         version: link:../generator-helper
@@ -3374,8 +3374,8 @@ packages:
     dev: true
     optional: true
 
-  /@prisma/engines-version@5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0:
-    resolution: {integrity: sha512-Osd1JsYW04EyLalEJemXArlSrmVo/Lod0xndl5yvB0D/aw36M0+wjbJFZSlOn5BnN8FyM5/yIIJGsXlx+LxEMg==}
+  /@prisma/engines-version@5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6:
+    resolution: {integrity: sha512-g+wnSW5PXq0s5IUfbZb97U0XmHZ6T71mc0hGUjH0rEQ9nJmSQlKLO9u0u2g5YmQWscSjvH0UkfqKRRLmwjB7eA==}
 
   /@prisma/mini-proxy@0.9.4:
     resolution: {integrity: sha512-QydFgafroCKNaLJ/79Zr9auEb2/87+v8gI8s6RdHyLkBL/iSRtv9btPgCvcpcm9IhN3uYHt6hloX/W16FdcJag==}
@@ -3383,8 +3383,8 @@ packages:
     hasBin: true
     dev: true
 
-  /@prisma/prisma-schema-wasm@5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0:
-    resolution: {integrity: sha512-i3GT5dkUTdbXu9ABiu4GjJjjMO+mYxd89S80rkLmJJEB5q7h9kXxCfyTwh2Ju3y0XJTYKlB2LEeK1SX4ZPUtBw==}
+  /@prisma/prisma-schema-wasm@5.3.0-24.integration-arm-openssl-main-92c9273a161ecfa87c1e2b27abd570c922b184a6:
+    resolution: {integrity: sha512-I5bZ/kuvYEX1CEyXWpgOgMRVxNydexbhnK5edo/DHMXhmCxgLKdeotD7T9YfooV2q3NbLqzyVBjodHNdUS4c7g==}
     dev: false
 
   /@prisma/studio-common@0.494.0:
