@@ -8,7 +8,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 testMatrix.setupTestSuite(
   ({ provider, providerFlavor }, suiteMeta, clientMeta) => {
     const OLD_ENV = process.env
-    const envVarName = providerFlavor ? `DATABASE_URL_${providerFlavor}` : `DATABASE_URL_${provider}`
+    const envVarName = providerFlavor ? `DATABASE_URI_${providerFlavor}` : `DATABASE_URI_${provider}`
 
     beforeEach(() => {
       process.env = { ...OLD_ENV }
