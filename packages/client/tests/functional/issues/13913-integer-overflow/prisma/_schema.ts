@@ -6,7 +6,6 @@ export default testMatrix.setupSchema(({ provider, providerFlavor }): string => 
   const schemaHeader = computeSchemaHeader({
     provider,
     providerFlavor,
-    relationMode: 'prisma',
   })
 
   return /* Prisma */ `
