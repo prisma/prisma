@@ -1,4 +1,4 @@
-import type { Connector } from '@jkomyno/prisma-js-connector-utils'
+import type { ErrorCapturingConnector } from '@jkomyno/prisma-js-connector-utils'
 import Debug from '@prisma/debug'
 import { Sql } from 'sql-template-tag'
 
@@ -32,7 +32,7 @@ More Information: https://pris.ly/d/execute-raw
 type RawQueryArgsMapperInput = {
   clientMethod: string
   activeProvider: string
-  activeProviderFlavour?: Connector['flavour']
+  activeProviderFlavour?: ErrorCapturingConnector['flavour']
 }
 
 export const rawQueryArgsMapper =

@@ -436,29 +436,42 @@ type Query = {
   args: Array<unknown>
 }
 
+export type ExternalError = {
+  kind: 'GenericJsError',
+  id: number
+}
+
+type Result<T> = {
+  ok: true,
+  value: T
+} | {
+  ok: false,
+  error: ExternalError
+}
+
 interface Queryable {
   readonly flavour: 'mysql' | 'postgres'
   /**
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the type-aware result set of the query.
    */
-  queryRaw(params: Query): $Utils.JsPromise<ResultSet>
+  queryRaw(params: Query): $Utils.JsPromise<Result<ResultSet>>
   /**
    * Execute a query given as SQL, interpolating the given parameters,
    * and returning the number of affected rows.
    */
-  executeRaw(params: Query): $Utils.JsPromise<number>
+  executeRaw(params: Query): $Utils.JsPromise<Result<number>>
 }
 
 interface Transaction extends Queryable {
   /**
    * Commit the transaction
    */
-  commit(): $Utils.JsPromise<void>
+  commit(): $Utils.JsPromise<Result<void>>
   /**
    * Roll back the transaction
    */
-  rollback(): $Utils.JsPromise<void>
+  rollback(): $Utils.JsPromise<Result<void>>
 }
 
 interface Connector extends Queryable {
@@ -470,8 +483,14 @@ interface Connector extends Queryable {
   /**
    * Closes the connection to the database, if any.
    */
-  close: () => $Utils.JsPromise<void>
+  close: () => $Utils.JsPromise<Result<void>>
 }
+
+interface ErrorRegistry {
+  consumeError(id: number): ErrorRecord | undefined
+}
+
+type ErrorRecord = { error: unknown }
 `
 
     const prismaPlanetScaleJsConnectorRef = '`@prisma/planetscale-js-connector`'
