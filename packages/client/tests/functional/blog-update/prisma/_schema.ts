@@ -17,6 +17,7 @@ model User {
   name        String?
   posts       Post[]
   profile     Profile?
+  wakesUpAt DateTime? @default(now())
   lastLoginAt DateTime? @default(now())
 }
 
@@ -26,6 +27,8 @@ model Profile {
   notrequired    String?
   user           User      @relation(fields: [userId], references: [id])
   userId         String    @unique
+  goesToBedAt DateTime? @default(now())
+  goesToOfficeAt DateTime? @default(now())
 }
 
 model Post {
@@ -38,6 +41,8 @@ model Post {
   optional        String?
   authorId        String?   @map("author")
   author          User?     @relation(fields: [authorId], references: [id])
+  lastReviewedAt DateTime? @default(now())
+  lastPublishedAt DateTime? @default(now())
 }
 `
 })
