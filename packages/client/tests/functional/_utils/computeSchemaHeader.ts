@@ -10,7 +10,7 @@ export type ComputeSchemaHeader = {
   previewFeatures?: string
   engineType?: 'binary' | 'library'
   directUrl?: string
-  customUrl?: string
+  url?: string
   schemas?: string[]
 }
 
@@ -21,7 +21,7 @@ export function computeSchemaHeader({
   previewFeatures,
   engineType,
   directUrl,
-  customUrl,
+  url,
   schemas,
 }: ComputeSchemaHeader): string {
   // if relationModeLine is not defined, we do not add the line
@@ -55,8 +55,8 @@ export function computeSchemaHeader({
   const generatorLines = [previewFeaturesLine, engineTypeLine].filter(Boolean).join('\n  ')
 
   const isDataProxy = Boolean(process.env.TEST_DATA_PROXY)
-  const url = match({ provider, providerFlavor, isDataProxy, customUrl })
-    .with({ customUrl: P.string }, () => `"${customUrl}"`)
+  const urlValue = match({ provider, providerFlavor, isDataProxy, url })
+    .with({ url: P.string }, () => url)
     .with({ provider: Providers.SQLITE }, () => sqliteDbUrl)
     .with({ providerFlavor: P.string }, () => `env("DATABASE_URI_${providerFlavor}")`)
     .otherwise(({ provider }) => `env("DATABASE_URI_${provider}")`)
@@ -74,7 +74,7 @@ generator client {
 
 datasource db {
   provider = "${providerName}"
-  url = ${url}
+  url = ${urlValue}
   ${datasourceLines}
 }`
 

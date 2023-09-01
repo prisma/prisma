@@ -6,6 +6,7 @@ export default testMatrix.setupSchema(({ provider, providerFlavor }): string => 
   const schemaHeader = computeSchemaHeader({
     provider,
     providerFlavor,
+    url: `env("DATABASE_URI_DOES_NOT_EXISTS")`,
   })
 
   return /* Prisma */ `

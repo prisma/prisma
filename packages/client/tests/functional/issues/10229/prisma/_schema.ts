@@ -6,7 +6,7 @@ export default testMatrix.setupSchema(({ provider, providerFlavor, url }): strin
   const schemaHeader = computeSchemaHeader({
     provider,
     providerFlavor,
-    customUrl: url,
+    url,
   })
 
   return /* Prisma */ `
