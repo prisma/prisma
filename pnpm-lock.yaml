@@ -344,6 +344,7 @@ importers:
         version: 29.6.4
       '@jkomyno/prisma-js-connector-utils':
         specifier: ^0.0.9
+        specifier: 0.0.9
         version: 0.0.9
       '@opentelemetry/api':
         specifier: 1.4.1
