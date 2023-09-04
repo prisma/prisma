@@ -109,19 +109,24 @@
   },
   "size-limit": [
     {
-      "path": "packages/client/runtime/library.d.ts"
+      "path": "packages/client/runtime/library.d.ts",
+      "gzip": false
     },
     {
-      "path": "packages/client/runtime/library.js"
+      "path": "packages/client/runtime/library.js",
+      "gzip": false
     },
     {
-      "path": "packages/client/runtime/binary.js"
+      "path": "packages/client/runtime/binary.js",
+      "gzip": false
     },
     {
-      "path": "packages/client/runtime/edge.js"
+      "path": "packages/client/runtime/edge.js",
+      "gzip": false
     },
     {
-      "path": "packages/cli/build/index.js"
+      "path": "packages/cli/build/index.js",
+      "gzip": false
     }
   ]
 }
