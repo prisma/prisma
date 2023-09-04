@@ -1,5 +1,6 @@
 import type { DMMF } from '@prisma/generator-helper'
 
+import { Cache } from './Cache'
 import type { Dictionary } from './utils/common'
 import { keyBy } from './utils/common'
 
@@ -10,6 +11,7 @@ type NamespacedTypeMap<T> = {
 
 export class DMMFHelper implements DMMF.Document {
   private compositeNames: Set<string>
+  private inputTypesCache = new Cache<string, DMMF.InputType | undefined>()
   readonly typeAndModelMap: Dictionary<DMMF.Model>
   readonly mappingsMap: Dictionary<DMMF.ModelMapping>
   readonly outputTypeMap: NamespacedTypeMap<DMMF.OutputType>
@@ -59,11 +61,13 @@ export class DMMFHelper implements DMMF.Document {
   }
 
   resolveInputObjectType(ref: DMMF.InputTypeRef): DMMF.InputType | undefined {
-    if (ref.location !== 'inputObjectTypes') {
-      return undefined
-    }
-
-    return this.inputObjectTypes[ref.namespace ?? 'prisma']?.find((inputObject) => inputObject.name === ref.type)
+    const key = typeRefCacheKey(ref)
+    return this.inputTypesCache.getOrCreate(key, () => {
+      if (ref.location !== 'inputObjectTypes') {
+        return undefined
+      }
+      return this.inputObjectTypes[ref.namespace ?? 'prisma']?.find((inputObject) => inputObject.name === ref.type)
+    })
   }
 
   resolveOutputObjectType(ref: DMMF.OutputTypeRef): DMMF.OutputType | undefined {
@@ -102,4 +106,11 @@ export class DMMFHelper implements DMMF.Document {
       ...keyBy(this.outputTypeMap.prisma.Mutation.fields, 'name'),
     }
   }
+}
+
+function typeRefCacheKey(typeRef: DMMF.InputTypeRef) {
+  if (typeRef.namespace) {
+    return `${typeRef.namespace}.${typeRef.type}`
+  }
+  return typeRef.type
 }
