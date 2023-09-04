@@ -145,7 +145,16 @@ export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo>
   )()
 
   const engineInfo: EngineInfo = {
-    path: enginePathEither,
+    path: pipe(
+      enginePathEither,
+      E.fold(
+        (error) => E.left(error),
+        (path) => {
+          const absolutePath = `${process.cwd()}/${path}`
+          return E.right(absolutePath)
+        },
+      ),
+    ),
     version: versionEither,
     fromEnvVar: fromEnvVarOption,
   }
