@@ -1,6 +1,5 @@
 import type { DMMF } from '@prisma/generator-helper'
 
-import { Cache } from './Cache'
 import type { Dictionary } from './utils/common'
 import { keyBy } from './utils/common'
 
@@ -9,9 +8,11 @@ type NamespacedTypeMap<T> = {
   model: Record<string, T>
 }
 
+type FullyQualifiedName = string & { readonly _brand: unique symbol }
+
 export class DMMFHelper implements DMMF.Document {
   private compositeNames: Set<string>
-  private inputTypesCache = new Cache<string, DMMF.InputType | undefined>()
+  private inputTypesByName: Map<FullyQualifiedName, DMMF.InputType>
   readonly typeAndModelMap: Dictionary<DMMF.Model>
   readonly mappingsMap: Dictionary<DMMF.ModelMapping>
   readonly outputTypeMap: NamespacedTypeMap<DMMF.OutputType>
@@ -23,6 +24,7 @@ export class DMMFHelper implements DMMF.Document {
     this.mappingsMap = this.buildMappingsMap()
     this.outputTypeMap = this.buildMergedOutputTypeMap()
     this.rootFieldMap = this.buildRootFieldMap()
+    this.inputTypesByName = this.buildInputTypesMap()
   }
 
   get datamodel() {
@@ -61,13 +63,7 @@ export class DMMFHelper implements DMMF.Document {
   }
 
   resolveInputObjectType(ref: DMMF.InputTypeRef): DMMF.InputType | undefined {
-    const key = typeRefCacheKey(ref)
-    return this.inputTypesCache.getOrCreate(key, () => {
-      if (ref.location !== 'inputObjectTypes') {
-        return undefined
-      }
-      return this.inputObjectTypes[ref.namespace ?? 'prisma']?.find((inputObject) => inputObject.name === ref.type)
-    })
+    return this.inputTypesByName.get(typeCacheKey(ref.type, ref.namespace))
   }
 
   resolveOutputObjectType(ref: DMMF.OutputTypeRef): DMMF.OutputType | undefined {
@@ -106,11 +102,27 @@ export class DMMFHelper implements DMMF.Document {
       ...keyBy(this.outputTypeMap.prisma.Mutation.fields, 'name'),
     }
   }
+
+  private buildInputTypesMap() {
+    const result = new Map<FullyQualifiedName, DMMF.InputType>()
+    for (const type of this.inputObjectTypes.prisma) {
+      result.set(typeCacheKey(type.name, 'prisma'), type)
+    }
+
+    if (!this.inputObjectTypes.model) {
+      return result
+    }
+
+    for (const type of this.inputObjectTypes.model) {
+      result.set(typeCacheKey(type.name, 'model'), type)
+    }
+    return result
+  }
 }
 
-function typeRefCacheKey(typeRef: DMMF.InputTypeRef) {
-  if (typeRef.namespace) {
-    return `${typeRef.namespace}.${typeRef.type}`
+function typeCacheKey(typeName: string, namespace?: string) {
+  if (namespace) {
+    return `${namespace}.${typeName}` as FullyQualifiedName
   }
-  return typeRef.type
+  return typeName as FullyQualifiedName
 }
