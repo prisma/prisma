@@ -15,6 +15,7 @@ function inputObjectType(name: string, fields: DMMF.SchemaArg[], meta?: { source
 function inputObjectRef(name: string): DMMF.InputTypeRef {
   return {
     location: 'inputObjectTypes',
+    namespace: 'prisma',
     isList: false,
     type: name,
   }
