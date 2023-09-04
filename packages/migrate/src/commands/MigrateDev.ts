@@ -14,7 +14,7 @@ import {
   validate,
 } from '@prisma/internals'
 import fs from 'fs'
-import { bold, dim, green, red } from 'kleur/colors'
+import { bold, dim, green, red, yellow } from 'kleur/colors'
 import prompt from 'prompts'
 
 import { Migrate } from '../Migrate'
@@ -101,6 +101,31 @@ ${bold('Examples')}
     printDatasource({ datasourceInfo })
 
     console.info() // empty line
+
+    // Seek confirmation if the database is not local and not set via an env var
+    if (
+      datasourceInfo.isUrlFromEnvVar === false &&
+      datasourceInfo.dbLocation &&
+      !/localhost|127\.0\.0\.1/.test(datasourceInfo.dbLocation)
+    ) {
+      console.info(
+        `${yellow(
+          'Warning',
+        )}: Your private database may be at risk. Please set your DATABASE_URL in the .env file to enhance security.`,
+      )
+
+      const confirmation = await prompt({
+        type: 'confirm',
+        name: 'value',
+        message: 'Do you wish to proceed at risk?',
+      })
+
+      if (!confirmation.value) {
+        console.info('Migration cancelled.')
+        // Return SIGINT exit code to signal that the process was cancelled.
+        process.exit(130)
+      }
+    }
 
     // Validate schema (same as prisma validate)
     const schema = fs.readFileSync(schemaPath, 'utf-8')

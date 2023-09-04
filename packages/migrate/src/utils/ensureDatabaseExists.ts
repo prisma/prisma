@@ -21,6 +21,7 @@ export type DatasourceInfo = {
   name?: string // from datasource name
   prettyProvider?: PrettyProvider | string // pretty name for the provider
   url?: string // from getConfig
+  isUrlFromEnvVar?: boolean // from getConfig
   dbLocation?: string // host without credentials
   dbName?: string // database name
   schema?: string // database schema (!= multiSchema, can be found in the connection string like `?schema=myschema`)
@@ -56,6 +57,7 @@ export async function getDatasourceInfo({
       dbName: undefined,
       dbLocation: undefined,
       url: undefined,
+      isUrlFromEnvVar: undefined,
       schema: undefined,
       schemas: undefined,
     }
@@ -63,6 +65,7 @@ export async function getDatasourceInfo({
 
   const prettyProvider = prettifyProvider(firstDatasource.provider)
   const url = getEffectiveUrl(firstDatasource).value
+  const isUrlFromEnvVar = getEffectiveUrl(firstDatasource).fromEnvVar === null ? false : true
 
   // url parsing for sql server is not implemented
   if (!url || firstDatasource.provider === 'sqlserver') {
@@ -72,6 +75,7 @@ export async function getDatasourceInfo({
       dbName: undefined,
       dbLocation: undefined,
       url: url || undefined,
+      isUrlFromEnvVar: isUrlFromEnvVar || undefined,
       schema: undefined,
       schemas: firstDatasource.schemas,
     }
@@ -96,6 +100,7 @@ export async function getDatasourceInfo({
       dbName: credentials.database,
       dbLocation,
       url,
+      isUrlFromEnvVar,
       schema,
       schemas: firstDatasource.schemas,
     }
@@ -114,6 +119,7 @@ export async function getDatasourceInfo({
       dbName: undefined,
       dbLocation: undefined,
       url,
+      isUrlFromEnvVar,
       schema: undefined,
       schemas: firstDatasource.schemas,
     }
