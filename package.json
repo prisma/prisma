@@ -71,6 +71,7 @@
     "p-reduce": "2.1.0",
     "p-retry": "4.6.2",
     "path-browserify": "1.0.1",
+    "pkg-size": "2.4.0",
     "prettier": "2.8.8",
     "redis": "3.1.2",
     "redis-lock": "0.1.4",
@@ -103,5 +104,27 @@
     "*.{js,ts}": [
       "eslint --fix"
     ]
-  }
+  },
+  "size-limit": [
+    {
+      "name": "client",
+      "path": "packages/client/runtime/library.d.ts"
+    },
+    {
+      "name": "client",
+      "path": "packages/client/runtime/library.js"
+    },
+    {
+      "name": "client",
+      "path": "packages/client/runtime/binary.js"
+    },
+    {
+      "name": "client",
+      "path": "packages/client/runtime/edge.js"
+    },
+    {
+      "name": "prisma",
+      "path": "packages/cli/build/index.js"
+    }
+  ]
 }
