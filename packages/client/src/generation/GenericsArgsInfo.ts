@@ -3,13 +3,12 @@ import { DMMFHelper } from './dmmf'
 import { DMMF } from './dmmf-types'
 
 type ToVisitItem = {
-  key: string
   type: DMMF.InputType
   parent?: ToVisitItem
 }
 
 export class GenericArgsInfo {
-  private _cache = new Cache<string, boolean>()
+  private _cache = new Cache<DMMF.InputType, boolean>()
 
   constructor(private _dmmf: DMMFHelper) {}
 
@@ -21,60 +20,48 @@ export class GenericArgsInfo {
    * @param type
    * @returns
    */
-  typeNeedsGenericModelArg(topLevelType: DMMF.InputType, namespace?: DMMF.FieldNamespace | undefined): boolean {
-    const topLevelKey = getTypeKey(topLevelType, namespace)
-
-    return this._cache.getOrCreate(topLevelKey, () => {
-      const toVisit: ToVisitItem[] = [{ key: topLevelKey, type: topLevelType }]
-      const visited = new Set<string>()
-
+  typeNeedsGenericModelArg(topLevelType: DMMF.InputType): boolean {
+    return this._cache.getOrCreate(topLevelType, () => {
+      const toVisit: ToVisitItem[] = [{ type: topLevelType }]
+      const visited = new Set<DMMF.InputType>()
       let item: ToVisitItem | undefined
       while ((item = toVisit.shift())) {
-        const { type: currentType, key } = item
-        const cached = this._cache.get(key)
+        const { type: currentType } = item
+        const cached = this._cache.get(currentType)
         if (cached === true) {
           this._cacheResultsForTree(item)
           return true
         }
-
         if (cached === false) {
           continue
         }
-
-        if (visited.has(key)) {
+        if (visited.has(currentType)) {
           // if we have a loop, outcome is determined by other keys
           continue
         }
-
         if (currentType.meta?.source) {
           // if source is defined, we know model for sure and do not need generic argument
-          this._cache.set(key, false)
+          this._cache.set(currentType, false)
           continue
         }
-
-        visited.add(key)
-
+        visited.add(currentType)
         for (const field of currentType.fields) {
           for (const fieldType of field.inputTypes) {
             if (fieldType.location === 'fieldRefTypes') {
               this._cacheResultsForTree(item)
               return true
             }
-
             const inputObject = this._dmmf.resolveInputObjectType(fieldType)
             if (inputObject) {
-              toVisit.push({ key: getTypeKey(inputObject, fieldType.namespace), type: inputObject, parent: item })
+              toVisit.push({ type: inputObject, parent: item })
             }
           }
         }
       }
-
       // if we reached this point then none of the types we have visited so far require generic type
-
-      for (const visitedKey of visited) {
-        this._cache.set(visitedKey, false)
+      for (const visitedType of visited) {
+        this._cache.set(visitedType, false)
       }
-
       return false
     })
   }
@@ -85,25 +72,16 @@ export class GenericArgsInfo {
     }
     const inputType = this._dmmf.resolveInputObjectType(ref)
     if (!inputType) {
-      return
+      return false
     }
-    return this.typeNeedsGenericModelArg(inputType, ref.namespace)
+    return this.typeNeedsGenericModelArg(inputType)
   }
 
   private _cacheResultsForTree(item: ToVisitItem): void {
     let currentItem: ToVisitItem | undefined = item
     while (currentItem) {
-      this._cache.set(currentItem.key, true)
+      this._cache.set(currentItem.type, true)
       currentItem = currentItem.parent
     }
   }
-}
-
-function getTypeKey(type: DMMF.InputType, namespace: DMMF.FieldNamespace | undefined) {
-  const parts: string[] = []
-  if (namespace) {
-    parts.push(namespace)
-  }
-  parts.push(type.name)
-  return parts.join('.')
 }
