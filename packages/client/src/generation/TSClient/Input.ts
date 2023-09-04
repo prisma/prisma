@@ -147,7 +147,7 @@ export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
   }
 
   private getTypeName() {
-    if (this.genericsInfo.typeNeedsGenericModelArg(this.type, 'prisma')) {
+    if (this.genericsInfo.typeNeedsGenericModelArg(this.type)) {
       return `${this.type.name}<$PrismaModel = never>`
     }
     return this.type.name

@@ -260,7 +260,7 @@ ${fieldRefs.join('\n\n')}`
 ${this.dmmf.inputObjectTypes.prisma
   .reduce((acc, inputType) => {
     if (inputType.name.includes('Json') && inputType.name.includes('Filter')) {
-      const needsGeneric = this.genericsInfo.typeNeedsGenericModelArg(inputType, 'prisma')
+      const needsGeneric = this.genericsInfo.typeNeedsGenericModelArg(inputType)
       const innerName = needsGeneric ? `${inputType.name}Base<$PrismaModel>` : `${inputType.name}Base`
       const typeName = needsGeneric ? `${inputType.name}<$PrismaModel = never>` : inputType.name
       // This generates types for JsonFilter to prevent the usage of 'path' without another parameter
