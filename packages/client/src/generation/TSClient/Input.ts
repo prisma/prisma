@@ -124,7 +124,10 @@ function xorTypes(types: ts.TypeBuilder[]) {
 }
 
 export class InputType implements Generatable {
-  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {}
+  private generatedName: string
+  constructor(protected readonly type: DMMF.InputType, protected readonly genericsInfo: GenericArgsInfo) {
+    this.generatedName = type.name
+  }
 
   public toTS(): string {
     const { type } = this
@@ -146,11 +149,16 @@ ${indent(
 export type ${this.getTypeName()} = ${wrapWithAtLeast(body, type)}`
   }
 
+  public overrideName(name: string): this {
+    this.generatedName = name
+    return this
+  }
+
   private getTypeName() {
     if (this.genericsInfo.typeNeedsGenericModelArg(this.type)) {
-      return `${this.type.name}<$PrismaModel = never>`
+      return `${this.generatedName}<$PrismaModel = never>`
     }
-    return this.type.name
+    return this.generatedName
   }
 }
 
