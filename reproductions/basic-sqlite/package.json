@@ -4,6 +4,7 @@
   "description": "Prisma development playground",
   "main": "index.ts",
   "scripts": {
+    "prisma": "node -e 'console.log(require.resolve(\"@prisma/cli\"))'",
     "dbpush": "prisma db push --skip-generate",
     "generate": "PRISMA_COPY_RUNTIME_SOURCEMAPS=1 prisma generate",
     "test": "node -r ts-node/register --enable-source-maps index.ts",
@@ -17,7 +18,7 @@
   },
   "devDependencies": {
     "@types/node": "17.0.45",
-    "prisma": "../../packages/cli",
+    "prisma": "^5.2.0",
     "ts-node": "10.9.1",
     "typescript": "5.2.2"
   }
