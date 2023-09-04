@@ -1,17 +1,9 @@
-const { createCompilerHost, createProgram, ModuleKind, ScriptTarget } = require('typescript')
+const { createCompilerHost, createProgram } = require('typescript')
 const ts = require('typescript')
+const tsconfig = require('../../../../tsconfig.build.regular.json')
 
 function compileFile(filePath) {
-  const options = {
-    module: ModuleKind.CommonJS,
-    target: ScriptTarget.ES2018,
-    lib: ['lib.esnext.d.ts', 'lib.dom.d.ts'],
-    declaration: true,
-    strict: true,
-    esModuleInterop: true,
-    noEmitOnError: true,
-    skipLibCheck: false,
-  }
+  const options = tsconfig.compilerOptions
 
   const compilerHost = createCompilerHost(options)
   compilerHost.writeFile = () => {}
