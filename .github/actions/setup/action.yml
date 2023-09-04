@@ -9,11 +9,12 @@ inputs:
     description: 'Version of pnpm to use.'
     required: true
   skip-tsc:
-    description: 'Skip type checking (Default: false).'
+    description: 'Skip type checking.'
     required: true
   skip-build:
     description: 'Skip build (Default: false).'
     required: false
+    default: 'false'
 
 runs:
   using: composite
