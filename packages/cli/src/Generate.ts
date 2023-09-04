@@ -27,6 +27,7 @@ import resolvePkg from 'resolve-pkg'
 
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { breakingChangesMessage } from './utils/breakingChanges'
+import { resumeOnAnyKeyPress } from './utils/prompt/utils/helpers'
 import { simpleDebounce } from './utils/simpleDebounce'
 
 const pkg = eval(`require('../package.json')`)
@@ -188,6 +189,7 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     let printBreakingChangesMessage = false
     if (hasJsClient) {
       try {
+        await warnOnMismatchOfGlobalAndLocalVersions()
         const clientVersionBeforeGenerate = getCurrentClientVersion()
 
         if (clientVersionBeforeGenerate && typeof clientVersionBeforeGenerate === 'string') {
@@ -368,4 +370,34 @@ function replacePathSeparatorsIfNecessary(path: string): string {
     return path.replace(/\\/g, '/')
   }
   return path
+}
+
+async function warnOnMismatchOfGlobalAndLocalVersions(): Promise<void> {
+  try {
+    const globalPackagePath = resolvePkg('.prisma/client', { cwd: process.cwd() })
+    const localPackagePath = path.join(process.cwd(), 'node_modules/.prisma/client')
+
+    if (!globalPackagePath || !fs.existsSync(localPackagePath)) {
+      return
+    }
+
+    const globalIndexPath = path.join(globalPackagePath, 'index.js')
+    const localIndexPath = path.join(localPackagePath, 'index.js')
+
+    if (fs.existsSync(globalIndexPath) && fs.existsSync(localIndexPath)) {
+      const globalVersion = require(globalIndexPath)?.prismaVersion?.client
+      const localVersion = require(localIndexPath)?.prismaVersion?.client
+
+      if (globalVersion && localVersion && globalVersion !== localVersion) {
+        await resumeOnAnyKeyPress(`${yellow(bold('warn'))} Found global and local prisma versions. Global ${bold(
+          `@prisma/client@${globalVersion}`,
+        )} and Local ${bold(`@prisma/client@${localVersion}`)} don't match. This might lead to unexpected behavior.
+        Please press any key to continue.`)
+      }
+    }
+
+    return
+  } catch (e) {
+    return
+  }
 }

@@ -47,4 +47,20 @@ export function action(key: Key): ActionKey {
   return false
 }
 
+export const resumeOnAnyKeyPress = async (message: string) => {
+  console.log(message)
+  process.stdin.setRawMode(true)
+  return new Promise<void>((resolve) =>
+    process.stdin.once('data', (data) => {
+      const byteArray = [...data]
+      if (byteArray.length > 0 && byteArray[0] === 3) {
+        console.log('^C')
+        process.exit(1)
+      }
+      process.stdin.setRawMode(false)
+      resolve()
+    }),
+  )
+}
+
 export const BACK_SYMBOL = process.platform !== 'win32' ? '❮' : '<'
