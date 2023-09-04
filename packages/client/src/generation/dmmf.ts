@@ -63,7 +63,7 @@ export class DMMFHelper implements DMMF.Document {
   }
 
   resolveInputObjectType(ref: DMMF.InputTypeRef): DMMF.InputType | undefined {
-    return this.inputTypesByName.get(typeCacheKey(ref.type, ref.namespace))
+    return this.inputTypesByName.get(fullyQualifiedName(ref.type, ref.namespace))
   }
 
   resolveOutputObjectType(ref: DMMF.OutputTypeRef): DMMF.OutputType | undefined {
@@ -106,7 +106,7 @@ export class DMMFHelper implements DMMF.Document {
   private buildInputTypesMap() {
     const result = new Map<FullyQualifiedName, DMMF.InputType>()
     for (const type of this.inputObjectTypes.prisma) {
-      result.set(typeCacheKey(type.name, 'prisma'), type)
+      result.set(fullyQualifiedName(type.name, 'prisma'), type)
     }
 
     if (!this.inputObjectTypes.model) {
@@ -114,13 +114,13 @@ export class DMMFHelper implements DMMF.Document {
     }
 
     for (const type of this.inputObjectTypes.model) {
-      result.set(typeCacheKey(type.name, 'model'), type)
+      result.set(fullyQualifiedName(type.name, 'model'), type)
     }
     return result
   }
 }
 
-function typeCacheKey(typeName: string, namespace?: string) {
+function fullyQualifiedName(typeName: string, namespace?: string) {
   if (namespace) {
     return `${namespace}.${typeName}` as FullyQualifiedName
   }
