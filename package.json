@@ -27,7 +27,7 @@
     "bench-stdout-only": "ts-node scripts/bench.ts",
     "prepare": "is-ci || husky install",
     "clean": "git clean -fdx -e /.envrc -e /docker/docker-compose.override.yml -e /reproductions",
-    "size": "pnpm size-limit"
+    "size": "pnpm run build && pnpm size-limit"
   },
   "devDependencies": {
     "@microsoft/api-extractor": "7.36.4",
