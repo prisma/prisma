@@ -149,8 +149,8 @@ export async function resolveEngine(binaryName: BinaryType): Promise<EngineInfo>
       enginePathEither,
       E.fold(
         (error) => E.left(error),
-        (path) => {
-          const absolutePath = `${process.cwd()}/${path}`
+        (_path) => {
+          const absolutePath = path.join(process.cwd(), _path)
           return E.right(absolutePath)
         },
       ),
