@@ -2303,19 +2303,18 @@ export namespace Prisma {
     rollback(): $Utils.JsPromise<NapiResult<void>>
   }
 
-  interface Connector extends Queryable {
+  interface DriverAdapter extends Queryable {
     /**
-     * Starts new transation with the specified isolation level
-     * @param isolationLevel
+     * Starts a new transation.
      */
-    startTransaction(isolationLevel?: string): $Utils.JsPromise<NapiResult<Transaction>>
+    startTransaction(): $Utils.JsPromise<NapiResult<Transaction>>
     /**
      * Closes the connection to the database, if any.
      */
     close: () => $Utils.JsPromise<NapiResult<void>>
   }
 
-  interface ErrorCapturingConnector extends Connector {
+  interface ErrorCapturingDriverAdapter extends DriverAdapter {
     readonly errorRegistry: ErrorRegistry
   }
 
@@ -2327,9 +2326,9 @@ export namespace Prisma {
 
   export interface PrismaClientOptions {
     /**
-     * Instance of a JS connector, e.g., like one provided by \`@prisma/planetscale-js-connector\`.
+     * Instance of a Driver Adapter, e.g., like one provided by \`@prisma/adapter-planetscale\`.
      */
-    jsConnector?: ErrorCapturingConnector
+    adapter?: DriverAdapter
 
     /**
      * Overwrites the datasource url from your schema.prisma file

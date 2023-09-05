@@ -163,7 +163,7 @@ export class BinaryEngine extends Engine<undefined> {
     this.previewFeatures = this.previewFeatures.filter((e) => !removedFlags.includes(e))
     this.engineEndpoint = config.engineEndpoint
 
-    if (this.config.jsConnector) {
+    if (this.config.adapter) {
       throw new PrismaClientInitializationError(
         `Cannot use JS Connectors with the query engine binary. Please use the query engine library.`,
         this.clientVersion!,

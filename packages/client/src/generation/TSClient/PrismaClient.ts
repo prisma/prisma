@@ -474,19 +474,18 @@ interface Transaction extends Queryable {
   rollback(): $Utils.JsPromise<NapiResult<void>>
 }
 
-interface Connector extends Queryable {
+interface DriverAdapter extends Queryable {
   /**
-   * Starts new transation with the specified isolation level
-   * @param isolationLevel
+   * Starts a new transation.
    */
-  startTransaction(isolationLevel?: string): $Utils.JsPromise<NapiResult<Transaction>>
+  startTransaction(): $Utils.JsPromise<NapiResult<Transaction>>
   /**
    * Closes the connection to the database, if any.
    */
   close: () => $Utils.JsPromise<NapiResult<void>>
 }
 
-interface ErrorCapturingConnector extends Connector {
+interface ErrorCapturingDriverAdapter extends DriverAdapter {
   readonly errorRegistry: ErrorRegistry
 }
 
@@ -497,12 +496,12 @@ interface ErrorRegistry {
 type ErrorRecord = { error: unknown }
 `
 
-    const prismaPlanetScaleJsConnectorRef = '`@prisma/planetscale-js-connector`'
-    const jsConnectorOption = /* typescript */ `
+    const prismaPlanetScaleAdapterRef = '`@prisma/adapter-planetscale`'
+    const adapterOption = /* typescript */ `
   /**
-   * Instance of a JS connector, e.g., like one provided by ${prismaPlanetScaleJsConnectorRef}.
+   * Instance of a Driver Adapter, e.g., like one provided by ${prismaPlanetScaleAdapterRef}.
    */
-  jsConnector?: ErrorCapturingConnector
+  adapter?: DriverAdapter
 `
 
     return `${new Datasources(this.internalDatasources).toTS()}
@@ -510,7 +509,7 @@ ${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
 ${this.runtimeName === 'library' ? libraryOnly : ''}
-export interface PrismaClientOptions {${this.runtimeName === 'library' ? jsConnectorOption : '\n'}
+export interface PrismaClientOptions {${this.runtimeName === 'library' ? adapterOption : '\n'}
   /**
    * Overwrites the datasource url from your schema.prisma file
    */

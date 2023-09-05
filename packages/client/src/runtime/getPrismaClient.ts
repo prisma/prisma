@@ -1,4 +1,5 @@
-import type { ErrorCapturingConnector } from '@jkomyno/prisma-js-connector-utils'
+import type { DriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
+import { bindAdapter } from '@jkomyno/prisma-driver-adapter-utils'
 import type { Context } from '@opentelemetry/api'
 import Debug, { clearLogs } from '@prisma/debug'
 import type { EnvValue, GeneratorConfig } from '@prisma/generator-helper'
@@ -81,9 +82,9 @@ export type PrismaClientOptions = {
    */
   datasourceUrl?: string
   /**
-   * Instance of a JS connector, e.g., like one provided by `@prisma/planetscale-js-connector`.
+   * Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale.
    */
-  jsConnector?: ErrorCapturingConnector
+  adapter?: DriverAdapter
 
   /**
    * Overwrites the datasource url from your schema.prisma file
@@ -409,7 +410,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
           tracingHelper: this._tracingHelper,
           logEmitter: logEmitter,
           isBundled: config.isBundled,
-          jsConnector: options?.jsConnector,
+          adapter: options?.adapter ? bindAdapter(options.adapter) : undefined,
         }
 
         debug('clientVersion', config.clientVersion)
@@ -514,7 +515,7 @@ export function getPrismaClient(config: GetPrismaClientConfig) {
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ): Promise<number> {
       const activeProvider = this._activeProvider
-      const activeProviderFlavour = this._engineConfig.jsConnector?.flavour
+      const activeProviderFlavour = this._engineConfig.adapter?.flavour
 
       return this._request({
         action: 'executeRaw',
@@ -614,7 +615,7 @@ Or read our docs at https://www.prisma.io/docs/concepts/components/prisma-client
       middlewareArgsMapper?: MiddlewareArgsMapper<unknown, unknown>,
     ) {
       const activeProvider = this._activeProvider
-      const activeProviderFlavour = this._engineConfig.jsConnector?.flavour
+      const activeProviderFlavour = this._engineConfig.adapter?.flavour
 
       return this._request({
         action: 'queryRaw',

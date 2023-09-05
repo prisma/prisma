@@ -239,10 +239,10 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
         // same time, `this.engine` field will prevent native instance from
         // being GCed. Using weak ref helps to avoid this cycle
         const weakThis = new WeakRef(this)
+        const { adapter } = this.config
 
-        const { jsConnector } = this.config
-        if (jsConnector) {
-          debug('Using jsConnector: %O', jsConnector)
+        if (adapter) {
+          debug('Using driver adapter: %O', adapter)
         }
 
         this.engine = new this.QueryEngineConstructor(
@@ -259,7 +259,7 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
           (log) => {
             weakThis.deref()?.logger(log)
           },
-          jsConnector,
+          adapter,
         )
         engineInstanceCount++
       } catch (_e) {
@@ -543,10 +543,10 @@ You may have to run ${green('prisma generate')} for your changes to take effect.
       )
     }
 
-    if (error.user_facing_error.error_code === JS_CONNECTOR_EXTERNAL_ERROR && this.config.jsConnector) {
+    if (error.user_facing_error.error_code === JS_CONNECTOR_EXTERNAL_ERROR && this.config.adapter) {
       const id = error.user_facing_error.meta?.id
       assertAlways(typeof id === 'number', 'Malformed external JS error received from the engine')
-      const errorRecord = this.config.jsConnector.errorRegistry.consumeError(id)
+      const errorRecord = this.config.adapter.errorRegistry.consumeError(id)
       assertAlways(errorRecord, `External error with reported id was not registered`)
       return errorRecord.error
     }

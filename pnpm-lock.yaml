@@ -348,9 +348,9 @@ importers:
       '@jest/test-sequencer':
         specifier: 29.6.4
         version: 29.6.4
-      '@jkomyno/prisma-js-connector-utils':
-        specifier: 0.0.9
-        version: 0.0.9
+      '@jkomyno/prisma-driver-adapter-utils':
+        specifier: 0.2.0
+        version: 0.2.0
       '@opentelemetry/api':
         specifier: 1.4.1
         version: 1.4.1
@@ -2871,8 +2871,8 @@ packages:
       chalk: 4.1.2
     dev: true
 
-  /@jkomyno/prisma-js-connector-utils@0.0.9:
-    resolution: {integrity: sha512-zgetylwOdGqy/BqhTHg66uH9FF1qDZDayy9ECiujmxlKjyY+3v//YjXOagC8nEBZ76JusWzBA1+AZYGbUCoqEA==}
+  /@jkomyno/prisma-driver-adapter-utils@0.2.0:
+    resolution: {integrity: sha512-LkPrB6ueG2U0Mbc/yvetfRdVejgVINB5/kxvQjg2D5/tLVwt09F97WcGV0ZO7ZUZ9Ib1SK5PC/8YM7uJfGcxYQ==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:

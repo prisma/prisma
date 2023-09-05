@@ -1,4 +1,4 @@
-import type { ErrorCapturingConnector } from '@jkomyno/prisma-js-connector-utils'
+import type { ErrorCapturingDriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
 
 import type { QueryEngineConfig } from '../../common/types/QueryEngine'
 
@@ -22,7 +22,7 @@ export interface QueryEngineConstructor {
   new (
     config: QueryEngineConfig,
     logger: (log: string) => void,
-    connector?: ErrorCapturingConnector,
+    adapter?: ErrorCapturingDriverAdapter,
   ): QueryEngineInstance
 }
 
