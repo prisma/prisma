@@ -418,131 +418,13 @@ get ${methodName}(): Prisma.${m.model}Delegate<ExtArgs>;`
 }`
   }
   public toTS(): string {
-    const libraryOnly = /* typescript */ `
-type IntRange<T extends number> = number extends T ? number : _IntRange<T, []>
-type _IntRange<T extends number, R extends unknown[]> = R['length'] extends T ? R[number] : _IntRange<T, [R['length'], ...R]>
-
-type ColumnType = IntRange<14>
-
-type ResultSet = {
-  columnTypes: Array<ColumnType>
-  columnNames: Array<string>
-  rows: Array<Array<unknown>>
-  lastInsertId?: string
-}
-
-type Query = {
-  sql: string
-  args: Array<unknown>
-}
-
-type ExternalError = {
-  kind: 'GenericJsError',
-  id: number
-}
-
-type NapiResult<T> = {
-  ok: true,
-  value: T
-} | {
-  ok: false,
-  error: ExternalError
-}
-
-interface Queryable {
-  readonly flavour: 'mysql' | 'postgres'
-  /**
-   * Execute a query given as SQL, interpolating the given parameters,
-   * and returning the type-aware result set of the query.
-   */
-  queryRaw(params: Query): $Utils.JsPromise<NapiResult<ResultSet>>
-  /**
-   * Execute a query given as SQL, interpolating the given parameters,
-   * and returning the number of affected rows.
-   */
-  executeRaw(params: Query): $Utils.JsPromise<NapiResult<number>>
-}
-
-interface Transaction extends Queryable {
-  /**
-   * Commit the transaction
-   */
-  commit(): $Utils.JsPromise<NapiResult<void>>
-  /**
-   * Roll back the transaction
-   */
-  rollback(): $Utils.JsPromise<NapiResult<void>>
-}
-
-interface DriverAdapter extends Queryable {
-  /**
-   * Starts a new transation.
-   */
-  startTransaction(): $Utils.JsPromise<NapiResult<Transaction>>
-  /**
-   * Closes the connection to the database, if any.
-   */
-  close: () => $Utils.JsPromise<NapiResult<void>>
-}
-
-interface ErrorCapturingDriverAdapter extends DriverAdapter {
-  readonly errorRegistry: ErrorRegistry
-}
-
-interface ErrorRegistry {
-  consumeError(id: number): ErrorRecord | undefined
-}
-
-type ErrorRecord = { error: unknown }
-`
-
-    const prismaPlanetScaleAdapterRef = '`@prisma/adapter-planetscale`'
-    const adapterOption = /* typescript */ `
-  /**
-   * Instance of a Driver Adapter, e.g., like one provided by ${prismaPlanetScaleAdapterRef}.
-   */
-  adapter?: DriverAdapter
-`
+    const clientOptions = this.buildClientOptions()
 
     return `${new Datasources(this.internalDatasources).toTS()}
 ${this.clientExtensionsDefinitions.prismaNamespaceDefinitions}
 export type DefaultPrismaClient = PrismaClient
 export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
-${this.runtimeName === 'library' ? libraryOnly : ''}
-export interface PrismaClientOptions {${this.runtimeName === 'library' ? adapterOption : '\n'}
-  /**
-   * Overwrites the datasource url from your schema.prisma file
-   */
-  datasources?: Datasources
-
-  /**
-   * Overwrites the datasource url from your schema.prisma file
-   */
-  datasourceUrl?: string
-
-  /**
-   * @default "colorless"
-   */
-  errorFormat?: ErrorFormat
-
-  /**
-   * @example
-   * \`\`\`
-   * // Defaults to stdout
-   * log: ['query', 'info', 'warn', 'error']
-   * 
-   * // Emit as events
-   * log: [
-   *  { emit: 'stdout', level: 'query' },
-   *  { emit: 'stdout', level: 'info' },
-   *  { emit: 'stdout', level: 'warn' }
-   *  { emit: 'stdout', level: 'error' }
-   * ]
-   * \`\`\`
-   * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
-   */
-  log?: Array<LogLevel | LogDefinition>
-}
+${ts.stringify(ts.moduleExport(clientOptions))}
 
 /* Types for Logging */
 export type LogLevel = 'info' | 'query' | 'warn' | 'error'
@@ -620,5 +502,59 @@ export function getLogLevel(log: Array<LogLevel | LogDefinition>): LogLevel | un
  */
 export type TransactionClient = Omit<Prisma.DefaultPrismaClient, runtime.ITXClientDenyList>
 `
+  }
+
+  private buildClientOptions() {
+    const clientOptions = ts
+      .interfaceDeclaration('PrismaClientOptions')
+      .add(
+        ts
+          .property('datasources', ts.namedType('Datasources'))
+          .optional()
+          .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
+      )
+      .add(
+        ts
+          .property('datasourceUrl', ts.stringType)
+          .optional()
+          .setDocComment(ts.docComment('Overwrites the datasource url from your schema.prisma file')),
+      )
+      .add(
+        ts
+          .property('errorFormat', ts.namedType('ErrorFormat'))
+          .optional()
+          .setDocComment(ts.docComment('@default "colorless"')),
+      )
+      .add(
+        ts.property('log', ts.array(ts.unionType([ts.namedType('LogLevel'), ts.namedType('LogDefinition')]))).optional()
+          .setDocComment(ts.docComment`
+             @example
+             \`\`\`
+             // Defaults to stdout
+             log: ['query', 'info', 'warn', 'error']
+            
+             // Emit as events
+             log: [
+               { emit: 'stdout', level: 'query' },
+               { emit: 'stdout', level: 'info' },
+               { emit: 'stdout', level: 'warn' }
+               { emit: 'stdout', level: 'error' }
+             ]
+             \`\`\`
+             Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
+          `),
+      )
+
+    if (this.runtimeName === 'library' && this.generator?.previewFeatures.includes('jsConnectors')) {
+      clientOptions.add(
+        ts
+          .property('adapter', ts.namedType('runtime.DriverAdapter'))
+          .optional()
+          .setDocComment(
+            ts.docComment('Instance of a Driver Adapter, e.g., like one provided by `@prisma/adapter-planetscale`'),
+          ),
+      )
+    }
+    return clientOptions
   }
 }
