@@ -2187,7 +2187,7 @@ export namespace Prisma {
 
   export interface PrismaClientOptions {
     /**
-     * Instance of a Driver Adapter, e.g., like one provided by \`@prisma/planetscale-js-connector\`.
+     * Instance of a Driver Adapter, e.g., like one provided by \`@prisma/adapter-planetscale\`.
      */
     adapter?: DriverAdapter
 
