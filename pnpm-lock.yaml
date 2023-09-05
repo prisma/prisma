@@ -349,8 +349,8 @@ importers:
         specifier: 29.6.4
         version: 29.6.4
       '@jkomyno/prisma-driver-adapter-utils':
-        specifier: 0.2.0
-        version: 0.2.0
+        specifier: 0.2.1
+        version: 0.2.1
       '@opentelemetry/api':
         specifier: 1.4.1
         version: 1.4.1
@@ -2871,8 +2871,8 @@ packages:
       chalk: 4.1.2
     dev: true
 
-  /@jkomyno/prisma-driver-adapter-utils@0.2.0:
-    resolution: {integrity: sha512-LkPrB6ueG2U0Mbc/yvetfRdVejgVINB5/kxvQjg2D5/tLVwt09F97WcGV0ZO7ZUZ9Ib1SK5PC/8YM7uJfGcxYQ==}
+  /@jkomyno/prisma-driver-adapter-utils@0.2.1:
+    resolution: {integrity: sha512-wijRWfwLVIs/hJi4Plrc3JHBW3I4bVvgWM6uLvybQUWTtz4LwzdcPt3inZsPXr6qLkwqkjVe9q+XbeHCMPsLdg==}
     dependencies:
       debug: 4.3.4
     transitivePeerDependencies:
@@ -8918,7 +8918,7 @@ packages:
       pretty-format: 29.6.3
       slash: 3.0.0
       strip-json-comments: 3.1.1
-      ts-node: 10.9.1(@swc/core@1.2.204)(@types/node@18.17.12)(typescript@5.2.2)
+      ts-node: 10.9.1(@swc/core@1.3.75)(@types/node@18.17.12)(typescript@5.2.2)
     transitivePeerDependencies:
       - babel-plugin-macros
       - supports-color
