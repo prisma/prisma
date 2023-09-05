@@ -2108,104 +2108,19 @@ export namespace Prisma {
   export const defineExtension: $Extensions.ExtendsHook<'define', Prisma.TypeMapCb, $Extensions.DefaultArgs>
   export type DefaultPrismaClient = PrismaClient
   export type ErrorFormat = 'pretty' | 'colorless' | 'minimal'
-
-  type IntRange<T extends number> = number extends T ? number : _IntRange<T, []>
-  type _IntRange<T extends number, R extends unknown[]> = R['length'] extends T ? R[number] : _IntRange<T, [R['length'], ...R]>
-
-  type ColumnType = IntRange<14>
-
-  type ResultSet = {
-    columnTypes: Array<ColumnType>
-    columnNames: Array<string>
-    rows: Array<Array<unknown>>
-    lastInsertId?: string
-  }
-
-  type Query = {
-    sql: string
-    args: Array<unknown>
-  }
-
-  type ExternalError = {
-    kind: 'GenericJsError',
-    id: number
-  }
-
-  type NapiResult<T> = {
-    ok: true,
-    value: T
-  } | {
-    ok: false,
-    error: ExternalError
-  }
-
-  interface Queryable {
-    readonly flavour: 'mysql' | 'postgres'
-    /**
-     * Execute a query given as SQL, interpolating the given parameters,
-     * and returning the type-aware result set of the query.
-     */
-    queryRaw(params: Query): $Utils.JsPromise<NapiResult<ResultSet>>
-    /**
-     * Execute a query given as SQL, interpolating the given parameters,
-     * and returning the number of affected rows.
-     */
-    executeRaw(params: Query): $Utils.JsPromise<NapiResult<number>>
-  }
-
-  interface Transaction extends Queryable {
-    /**
-     * Commit the transaction
-     */
-    commit(): $Utils.JsPromise<NapiResult<void>>
-    /**
-     * Roll back the transaction
-     */
-    rollback(): $Utils.JsPromise<NapiResult<void>>
-  }
-
-  interface DriverAdapter extends Queryable {
-    /**
-     * Starts a new transation.
-     */
-    startTransaction(): $Utils.JsPromise<NapiResult<Transaction>>
-    /**
-     * Closes the connection to the database, if any.
-     */
-    close: () => $Utils.JsPromise<NapiResult<void>>
-  }
-
-  interface ErrorCapturingDriverAdapter extends DriverAdapter {
-    readonly errorRegistry: ErrorRegistry
-  }
-
-  interface ErrorRegistry {
-    consumeError(id: number): ErrorRecord | undefined
-  }
-
-  type ErrorRecord = { error: unknown }
-
   export interface PrismaClientOptions {
-    /**
-     * Instance of a Driver Adapter, e.g., like one provided by \`@prisma/adapter-planetscale\`.
-     */
-    adapter?: DriverAdapter
-
     /**
      * Overwrites the datasource url from your schema.prisma file
      */
     datasources?: Datasources
-
     /**
      * Overwrites the datasource url from your schema.prisma file
      */
     datasourceUrl?: string
-
     /**
      * @default "colorless"
      */
     errorFormat?: ErrorFormat
-
     /**
      * @example
      * \`\`\`
@@ -2214,15 +2129,15 @@ export namespace Prisma {
      * 
      * // Emit as events
      * log: [
-     *  { emit: 'stdout', level: 'query' },
-     *  { emit: 'stdout', level: 'info' },
-     *  { emit: 'stdout', level: 'warn' }
-     *  { emit: 'stdout', level: 'error' }
+     *   { emit: 'stdout', level: 'query' },
+     *   { emit: 'stdout', level: 'info' },
+     *   { emit: 'stdout', level: 'warn' }
+     *   { emit: 'stdout', level: 'error' }
      * ]
      * \`\`\`
      * Read more in our [docs](https://www.prisma.io/docs/reference/tools-and-interfaces/prisma-client/logging#the-log-option).
      */
-    log?: Array<LogLevel | LogDefinition>
+    log?: (LogLevel | LogDefinition)[]
   }
 
   /* Types for Logging */
