@@ -1,9 +1,8 @@
-import type { GeneratorConfig } from '@prisma/generator-helper'
+import type { DataSource, GeneratorConfig } from '@prisma/generator-helper'
 import { assertNever } from '@prisma/internals'
 import indent from 'indent-string'
 
 import { Operation } from '../../runtime/core/types/Result'
-import { InternalDatasource } from '../../runtime/utils/printDatasources'
 import { DMMFHelper } from '../dmmf'
 import * as ts from '../ts-builders'
 import {
@@ -17,7 +16,6 @@ import {
 } from '../utils'
 import { lowerCase } from '../utils/common'
 import { runtimeImport } from '../utils/runtimeImport'
-import type { DatasourceOverwrite } from './../extractSqliteSources'
 import { TAB_SIZE } from './constants'
 import { Datasources } from './Datasources'
 import type { Generatable } from './Generatable'
@@ -323,12 +321,11 @@ export class PrismaClientClass implements Generatable {
   }
   constructor(
     protected readonly dmmf: DMMFHelper,
-    protected readonly internalDatasources: InternalDatasource[],
+    protected readonly internalDatasources: DataSource[],
     protected readonly outputDir: string,
     protected readonly runtimeName: string,
     protected readonly browser?: boolean,
     protected readonly generator?: GeneratorConfig,
-    protected readonly sqliteDatasourceOverrides?: DatasourceOverwrite[],
     protected readonly cwd?: string,
   ) {
     this.clientExtensionsDefinitions = clientExtensionsDefinitions.bind(this)()
@@ -431,6 +428,11 @@ export interface PrismaClientOptions {
    * Overwrites the datasource url from your schema.prisma file
    */
   datasources?: Datasources
+
+  /**
+   * Overwrites the datasource url from your schema.prisma file
+   */
+  datasourceUrl?: string
 
   /**
    * @default "colorless"

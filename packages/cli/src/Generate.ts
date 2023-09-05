@@ -5,6 +5,7 @@ import {
   format,
   Generator,
   getCommandWithExecutor,
+  getConfig,
   getGenerators,
   getGeneratorSuccessMessage,
   HelpError,
@@ -24,6 +25,7 @@ import os from 'os'
 import path from 'path'
 import resolvePkg from 'resolve-pkg'
 
+import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { breakingChangesMessage } from './utils/breakingChanges'
 import { simpleDebounce } from './utils/simpleDebounce'
 
@@ -48,10 +50,9 @@ ${bold('Options')}
 
     -h, --help   Display this help message
       --schema   Custom path to your Prisma schema
-  --accelerate   Enable Accelerate in the Prisma Client
-  --data-proxy   Enable the Data Proxy in the Prisma Client
        --watch   Watch the Prisma schema and rerun after a change
    --generator   Generator to use (may be provided multiple times)
+   --no-engine   Generate a client for use with Accelerate only
 
 ${bold('Examples')}
 
@@ -100,6 +101,7 @@ ${bold('Examples')}
       '--schema': String,
       '--data-proxy': Boolean,
       '--accelerate': Boolean,
+      '--no-engine': Boolean,
       '--generator': [String],
       // Only used for checkpoint information
       '--postinstall': String,
@@ -124,7 +126,11 @@ ${bold('Examples')}
     loadEnvFile(args['--schema'], true)
 
     const schemaPath = await getSchemaPathAndPrint(args['--schema'], cwd)
+
     if (!schemaPath) return ''
+
+    const datamodel = await fs.promises.readFile(schemaPath, 'utf-8')
+    const config = await getConfig({ datamodel, ignoreEnvVarErrors: true })
 
     // TODO Extract logic from here
     let hasJsClient
@@ -136,13 +142,15 @@ ${bold('Examples')}
         printDownloadProgress: !watchMode,
         version: enginesVersion,
         cliVersion: pkg.version,
-        dataProxy:
-          !!args['--data-proxy'] ||
-          !!args['--accelerate'] ||
-          !!process.env.PRISMA_GENERATE_DATAPROXY ||
-          !!process.env.PRISMA_GENERATE_ACCELERATE,
         generatorNames: args['--generator'],
         postinstall: Boolean(args['--postinstall']),
+        noEngine:
+          Boolean(args['--no-engine']) ||
+          Boolean(args['--data-proxy']) || // legacy, keep for backwards compatibility
+          Boolean(args['--accelerate']) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_DATAPROXY) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_ACCELERATE) || // legacy, keep for backwards compatibility
+          Boolean(process.env.PRISMA_GENERATE_NO_ENGINE),
       })
 
       if (!generators || generators.length === 0) {
@@ -240,31 +248,22 @@ This might lead to unexpected behavior.
 Please make sure they have the same version.`
             : ''
 
-        hint = `You can now start using Prisma Client in your code. Reference: ${link('https://pris.ly/d/client')}
+        hint = `
+Start using Prisma Client in Node.js (See: ${link('https://pris.ly/d/client')})
 ${dim('```')}
 ${highlightTS(`\
 import { PrismaClient } from '${importPath}'
 const prisma = new PrismaClient()`)}
-${dim('```')}${
-          prismaClientJSGenerator.options?.dataProxy
-            ? `
-
-${
-  isDeno
-    ? 'To use Prisma Client with Deno and the Data Proxy, import it like this:'
-    : 'To use Prisma Client in edge runtimes like Cloudflare Workers or Vercel Edge Functions, import it like this:'
-}
-${dim('```')} 
+${dim('```')}
+or start using Prisma Client at the edge (See: ${link('https://pris.ly/d/accelerate')})
+${dim('```')}
 ${highlightTS(`\
-import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'`)}
+import { PrismaClient } from '${importPath}/${isDeno ? 'deno/' : ''}edge${isDeno ? '.ts' : ''}'
+const prisma = new PrismaClient()`)}
 ${dim('```')}
 
-You will need an Accelerate or a Prisma Data Proxy connection string. See documentation: ${link(
-                'https://pris.ly/d/data-proxy',
-              )}
-`
-            : ''
-        }${breakingChangesStr}${versionsWarning}`
+See other ways of importing Prisma Client: ${link('http://pris.ly/d/importing-client')}
+${getHardcodedUrlWarning(config)}${breakingChangesStr}${versionsWarning}`
       }
 
       const message = '\n' + this.logText + (hasJsClient && !this.hasGeneratorErrored ? hint : '')
@@ -292,11 +291,6 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
               printDownloadProgress: !watchMode,
               version: enginesVersion,
               cliVersion: pkg.version,
-              dataProxy:
-                !!args['--data-proxy'] ||
-                !!args['--accelerate'] ||
-                !!process.env.PRISMA_GENERATE_DATAPROXY ||
-                !!process.env.PRISMA_GENERATE_ACCELERATE,
               generatorNames: args['--generator'],
             })
 

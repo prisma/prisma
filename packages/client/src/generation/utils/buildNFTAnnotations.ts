@@ -16,13 +16,13 @@ import { map } from '../../../../../helpers/blaze/map'
  * @returns
  */
 export function buildNFTAnnotations(
-  dataProxy: boolean,
+  noEngine: boolean,
   engineType: ClientEngineType,
   platforms: Platform[] | undefined,
   relativeOutdir: string,
 ) {
-  // We don't want to bundle engines when `--data-proxy` is enabled
-  if (dataProxy === true) return ''
+  // We don't want to bundle engines when `--no-engine is enabled or for the edge runtime
+  if (noEngine === true) return ''
 
   if (platforms === undefined) {
     // TODO: should we still build the schema annotations in this case?
@@ -74,6 +74,7 @@ function buildNFTAnnotation(fileName: string, relativeOutdir: string) {
   const relativeFilePath = path.join(relativeOutdir, fileName)
 
   return `
+// file annotations for bundling tools to include these files
 path.join(__dirname, ${JSON.stringify(pathToPosix(fileName))});
 path.join(process.cwd(), ${JSON.stringify(pathToPosix(relativeFilePath))})`
 }

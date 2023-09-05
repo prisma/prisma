@@ -1,16 +1,6 @@
 import Debug from '@prisma/debug'
 import { enginesVersion } from '@prisma/engines'
-import {
-  arg,
-  checkUnsupportedDataProxy,
-  Command,
-  format,
-  getConfig,
-  getDirectUrl,
-  HelpError,
-  isError,
-  loadEnvFile,
-} from '@prisma/internals'
+import { arg, Command, format, getConfig, getDirectUrl, HelpError, isError, loadEnvFile } from '@prisma/internals'
 import { resolveUrl } from '@prisma/internals/dist/engine-commands/getConfig'
 import { getSchemaPathAndPrint } from '@prisma/migrate'
 import { StudioServer } from '@prisma/studio-server'
@@ -89,8 +79,6 @@ ${bold('Examples')}
       return this.help(args.message)
     }
 
-    await checkUnsupportedDataProxy('studio', args, true)
-
     if (args['--help']) {
       return this.help()
     }
@@ -106,8 +94,9 @@ ${bold('Examples')}
     const staticAssetDir = path.resolve(__dirname, '../build/public')
 
     const schema = await fs.promises.readFile(schemaPath, 'utf-8')
-    const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: false })
+    const config = await getConfig({ datamodel: schema, ignoreEnvVarErrors: true })
 
+    process.env.PRISMA_DISABLE_WARNINGS = 'true' // disable client warnings
     const studio = new StudioServer({
       schemaPath,
       hostname,

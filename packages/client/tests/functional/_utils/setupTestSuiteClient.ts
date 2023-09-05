@@ -73,7 +73,7 @@ export async function setupTestSuiteClient({
       edge: [__dirname.replace(/\\/g, '/'), '..', '..', '..', 'runtime'].join('/'),
     },
     projectRoot: suiteFolderPath,
-    dataProxy: clientMeta.dataProxy,
+    noEngine: clientMeta.dataProxy,
   })
 
   const clientPathForRuntime: Record<ClientRuntime, string> = {
