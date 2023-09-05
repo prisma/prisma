@@ -499,8 +499,8 @@ importers:
         specifier: 4.2.1
         version: 4.2.1
       mssql:
-        specifier: 9.2.0
-        version: 9.2.0
+        specifier: 9.3.0
+        version: 9.3.0
       new-github-issue-url:
         specifier: 0.2.1
         version: 0.2.1
@@ -924,8 +924,8 @@ importers:
         specifier: 3.2.0
         version: 3.2.0
       mssql:
-        specifier: 9.2.0
-        version: 9.2.0
+        specifier: 9.3.0
+        version: 9.3.0
       pg:
         specifier: 8.11.2
         version: 8.11.2
@@ -1159,8 +1159,8 @@ importers:
         specifier: 6.12.0
         version: 6.12.0
       mssql:
-        specifier: 9.2.0
-        version: 9.2.0
+        specifier: 9.3.0
+        version: 9.3.0
       ora:
         specifier: 5.4.1
         version: 5.4.1
@@ -10322,8 +10322,8 @@ packages:
   /ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  /mssql@9.2.0:
-    resolution: {integrity: sha512-FxX/CTGLH+X5UHH0d4lUJzVGlIZlLoY/ZdFCVect4VwbfKtDtNZWG8vq9SEjVfduhtydVrE4K2y69JnDAYgXlw==}
+  /mssql@9.3.0:
+    resolution: {integrity: sha512-Eb79Ki+wEicK5/9MU8Lce0HSBepvcaHJkTktEsenmB44OZObKN1RuspoQP+fDnc6cn5SYSCy6od9cLhZ9DnXDw==}
     engines: {node: '>=10'}
     hasBin: true
     dependencies:
