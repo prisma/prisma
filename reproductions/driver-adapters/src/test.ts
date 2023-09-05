@@ -1,20 +1,20 @@
 import superjson from 'superjson'
 import { PrismaClient } from '.prisma/client'
 import { setImmediate, setTimeout } from 'node:timers/promises'
-import type { ErrorCapturingConnector } from '@jkomyno/prisma-js-connector-utils'
+import type { DriverAdapter } from '@jkomyno/prisma-driver-adapter-utils'
 
-export async function smokeTest(jsConnector: ErrorCapturingConnector) {
+export async function smokeTest(adapter: DriverAdapter) {
   // wait for the database pool to be initialized
   await setImmediate(0)
 
   // DEBUG='prisma:client:libraryEngine'
-  const prisma = new PrismaClient({ jsConnector })
+  const prisma = new PrismaClient({ adapter })
 
   console.log('[nodejs] connecting...')
   await prisma.$connect()
   console.log('[nodejs] connected')
 
-  const test = new SmokeTest(prisma, jsConnector.flavour)
+  const test = new SmokeTest(prisma, adapter.flavour)
   
   await test.testJSON()
   await test.testTypeTest2()
@@ -42,7 +42,7 @@ export async function smokeTest(jsConnector: ErrorCapturingConnector) {
 
 
 class SmokeTest {
-  constructor(private readonly prisma: PrismaClient, readonly flavour: ErrorCapturingConnector['flavour']) {}
+  constructor(private readonly prisma: PrismaClient, readonly flavour: DriverAdapter['flavour']) {}
 
   async testJSON() {
     const json = JSON.stringify({

@@ -2,8 +2,8 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2020", "ES2021.WeakRef"],
-    "moduleResolution": "NodeNext",
+    "lib": ["ES2022"],
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "isolatedModules": true,
     "sourceMap": true,

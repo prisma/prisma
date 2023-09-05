@@ -1,7 +1,7 @@
 {
-  "name": "js-connectors",
+  "name": "driver-adapters",
   "version": "1.0.0",
-  "description": "Smoke tests for Prisma JS connectors",
+  "description": "Smoke tests for Prisma Driver Adapters",
   "main": "index.js",
   "scripts": {
     "prisma:db:push:postgres": "prisma db push --schema ./prisma/postgres/schema.prisma --force-reset",
@@ -9,7 +9,8 @@
     "prisma:db:push:mysql": "prisma db push --schema ./prisma/mysql/schema.prisma --force-reset",
     "prisma:db:execute:mysql": "prisma db execute --schema ./prisma/mysql/schema.prisma --file ./prisma/mysql/commands/type_test/insert.sql",
     "prisma:neon": "cross-env-shell DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"pnpm prisma:db:push:postgres && pnpm prisma:db:execute:postgres\"",
-    "neon": "cross-env-shell DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"tsx ./src/neon.ts\"",
+    "neon:ws": "cross-env-shell DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"tsx ./src/neon.ws.ts\"",
+    "neon:http": "cross-env-shell DATABASE_URL=\"${JS_NEON_DATABASE_URL}\" \"tsx ./src/neon.http.ts\"",
     "prisma:pg": "cross-env-shell DATABASE_URL=\"${JS_PG_DATABASE_URL}\" \"pnpm prisma:db:push:postgres && pnpm prisma:db:execute:postgres\"",
     "pg": "cross-env-shell DATABASE_URL=\"${JS_PG_DATABASE_URL}\" \"tsx ./src/pg.ts\"",
     "prisma:planetscale": "cross-env-shell DATABASE_URL=\"${JS_PLANETSCALE_DATABASE_URL}\" \"pnpm prisma:db:push:mysql && pnpm prisma:db:execute:mysql\"",
@@ -19,19 +20,23 @@
   "author": "Alberto Schiabel <schiabel@prisma.io>",
   "license": "ISC",
   "dependencies": {
-    "@jkomyno/prisma-js-connector-utils": "0.0.9",
-    "@jkomyno/prisma-neon-js-connector": "0.0.9",
-    "@jkomyno/prisma-pg-js-connector": "0.0.9",
-    "@jkomyno/prisma-planetscale-js-connector": "0.0.9",
+    "@jkomyno/prisma-adapter-neon": "0.2.0",
+    "@jkomyno/prisma-adapter-pg": "0.2.0",
+    "@jkomyno/prisma-adapter-planetscale": "0.2.0",
+    "@jkomyno/prisma-driver-adapter-utils": "0.2.0",
+    "@neondatabase/serverless": "^0.6.0",
+    "@planetscale/database": "^1.11.0",
     "@prisma/client": "../../packages/client",
+    "pg": "^8.11.3",
     "superjson": "^1.13.1",
     "undici": "^5.22.1"
   },
   "devDependencies": {
     "@types/node": "17.0.45",
+    "@types/pg": "^8.10.2",
     "cross-env": "^7.0.3",
     "prisma": "../../packages/cli",
     "tsx": "^3.12.8",
-    "typescript": "5.1.6"
+    "typescript": "5.2.2"
   }
 }
