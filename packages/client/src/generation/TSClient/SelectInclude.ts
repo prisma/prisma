@@ -72,7 +72,6 @@ function getIncludeFields(fields: DMMF.SchemaField[], dmmf: DMMFHelper) {
     if (field.outputType.location !== 'outputObjectTypes') {
       return false
     }
-    const name = typeof field.outputType.type === 'string' ? field.outputType.type : field.outputType.type.name
-    return !dmmf.typeMap[name]
+    return !dmmf.isComposite(field.outputType.type)
   })
 }

@@ -1,4 +1,3 @@
-import { hasOwnProperty } from '@prisma/internals'
 import indent from 'indent-string'
 import { klona } from 'klona'
 
@@ -74,15 +73,18 @@ export class Model implements Generatable {
     }
 
     for (const field of this.type.fields) {
-      if (field.args.length) {
-        if (field.outputType.location === 'outputObjectTypes' && typeof field.outputType.type === 'object') {
-          argsTypes.push(
-            new ArgsType(field.args, field.outputType.type, this.context)
-              .setGeneratedName(getModelFieldArgsName(field, this.model.name))
-              .setComment(`${this.model.name}.${field.name}`),
-          )
-        }
+      if (!field.args.length) {
+        continue
       }
+      const fieldOutput = this.dmmf.resolveOutputObjectType(field.outputType)
+      if (!fieldOutput) {
+        continue
+      }
+      argsTypes.push(
+        new ArgsType(field.args, fieldOutput, this.context)
+          .setGeneratedName(getModelFieldArgsName(field, this.model.name))
+          .setComment(`${this.model.name}.${field.name}`),
+      )
     }
 
     argsTypes.push(new ArgsType([], this.type, this.context))
@@ -125,9 +127,7 @@ ${indent(
         .filter((f) => f.outputType.location === 'outputObjectTypes')
         .map((f) => {
           if (f.outputType.location === 'outputObjectTypes') {
-            return `${f.name}?: ${getAggregateInputType((f.outputType.type as DMMF.OutputType).name)}${
-              f.name === '_count' ? ' | true' : ''
-            }`
+            return `${f.name}?: ${getAggregateInputType(f.outputType.type)}${f.name === '_count' ? ' | true' : ''}`
           }
 
           // to make TS happy, but can't happen, as we filter for outputObjectTypes
@@ -248,7 +248,7 @@ ${indent(
         if (f.name === '_count' || f.name === 'count') {
           data += `${f.name}?: true | ${getCountAggregateInputName(model.name)}`
         } else {
-          data += `${f.name}?: ${getAggregateInputType((f.outputType.type as DMMF.OutputType).name)}`
+          data += `${f.name}?: ${getAggregateInputType(f.outputType.type)}`
         }
         return data
       }),
@@ -286,7 +286,7 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
   }
   public toTS(): string {
     const { model } = this
-    const isComposite = hasOwnProperty(this.dmmf.typeMap, model.name)
+    const isComposite = this.dmmf.isComposite(model.name)
 
     const hasRelationField = model.fields.some((f) => f.kind === 'object')
     const includeType = hasRelationField
@@ -300,9 +300,9 @@ export type ${getAggregateGetName(model.name)}<T extends ${getAggregateArgsName(
  * Model ${model.name}
  */
 
-${!hasOwnProperty(this.dmmf.typeMap, model.name) ? this.getAggregationTypes() : ''}
+${!isComposite ? this.getAggregationTypes() : ''}
 
-${!hasOwnProperty(this.dmmf.typeMap, model.name) ? this.getGroupByTypes() : ''}
+${!isComposite ? this.getGroupByTypes() : ''}
 
 ${ts.stringify(buildSelectType({ modelName: this.model.name, fields: this.type.fields }))}
 ${ts.stringify(buildScalarSelectType({ modelName: this.model.name, fields: this.type.fields }), {
@@ -484,21 +484,17 @@ export interface Prisma__${name}Client<T, Null = never, ExtArgs extends $Extensi
 ${indent(
   fields
     .filter((f) => {
-      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return (
-        f.outputType.location === 'outputObjectTypes' &&
-        !hasOwnProperty(dmmf.typeMap, fieldTypeName) &&
-        f.name !== '_count'
+        f.outputType.location === 'outputObjectTypes' && !dmmf.isComposite(f.outputType.type) && f.name !== '_count'
       )
     })
     .map((f) => {
-      const fieldTypeName = (f.outputType.type as DMMF.OutputType).name
       return `
 ${f.name}<T extends ${getFieldArgName(f, name)}<ExtArgs> = {}>(args?: Subset<T, ${getFieldArgName(
         f,
         name,
       )}<ExtArgs>>): ${getReturnType({
-        name: fieldTypeName,
+        name: f.outputType.type,
         actionName: f.outputType.isList ? DMMF.ModelAction.findMany : DMMF.ModelAction.findUniqueOrThrow,
         hideCondition: false,
         renderPromise: true,
