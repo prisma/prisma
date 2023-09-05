@@ -43,7 +43,7 @@ jobs:
       jobs: ${{ steps.detect.outputs.jobs }}
       queryEngine: ${{ steps.enginesOutput.outputs.queryEngine }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - id: files
         uses: Ana06/get-changed-files@v2.2.0 # it's a fork of jitterbit/get-changed-files@v1 which works better with pull requests
