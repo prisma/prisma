@@ -22,7 +22,7 @@ import type { Generatable } from './Generatable'
 import { getModelActions } from './utils/getModelActions'
 
 function clientTypeMapModelsDefinition(this: PrismaClientClass) {
-  const modelNames = Object.keys(this.dmmf.modelMap)
+  const modelNames = this.dmmf.datamodel.models.map((m) => m.name)
 
   return `{
   meta: {
