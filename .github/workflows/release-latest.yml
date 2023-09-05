@@ -43,7 +43,7 @@ jobs:
         run: |
           echo $THE_INPUT
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: ./.github/actions/setup
         with:
