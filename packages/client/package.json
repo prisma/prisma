@@ -121,7 +121,7 @@
     "klona": "2.0.6",
     "mariadb": "3.2.0",
     "memfs": "4.2.1",
-    "mssql": "9.2.0",
+    "mssql": "9.3.0",
     "new-github-issue-url": "0.2.1",
     "node-fetch": "2.7.0",
     "p-retry": "4.6.2",
@@ -155,7 +155,7 @@
     }
   },
   "dependencies": {
-    "@prisma/engines-version": "5.3.0-22.6473dadba8a7fff9689b35ad2ca9f9e5aff4d0d0"
+    "@prisma/engines-version": "5.3.0-27.74f592b2fe4fbae91aee1b08d1b857634cf88674"
   },
   "sideEffects": false
 }
