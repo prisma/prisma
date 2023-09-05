@@ -1,0 +1,5 @@
+export JS_PLANETSCALE_DATABASE_URL="mysql://USER:PASSWORD@aws.connect.psdb.cloud/DATABASE?sslaccept=strict"
+export JS_NEON_DATABASE_URL="postgres://USER:PASSWORD@DATABASE-pooler.eu-central-1.aws.neon.tech/neondb?pgbouncer=true&connect_timeout=10"
+
+# Note: if you use hosted Postgres instances (e.g., from PDP provision), you need `?sslmode=disable`
+export JS_PG_DATABASE_URL="postgres://postgres:prisma@localhost:5438"

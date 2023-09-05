@@ -1,0 +1,22 @@
+{
+  "private": true,
+  "name": "js",
+  "version": "0.0.2",
+  "description": "",
+  "engines": {
+    "node": ">=16.13",
+    "pnpm": ">=8.6.7 <9"
+  },
+  "license": "Apache-2.0",
+  "scripts": {
+    "build": "pnpm -r run build",
+    "lint": "pnpm -r run lint"
+  },
+  "keywords": [],
+  "author": "",
+  "devDependencies": {
+    "@types/node": "^20.5.1",
+    "tsup": "^7.2.0",
+    "typescript": "^5.1.6"
+  }
+}
