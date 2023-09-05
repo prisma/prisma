@@ -46,7 +46,7 @@ jobs:
         run: |
           echo $THE_INPUT
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install & build
         uses: ./.github/actions/setup
