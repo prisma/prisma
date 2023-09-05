@@ -3,7 +3,11 @@ const ts = require('typescript')
 const tsconfig = require('../../../../tsconfig.build.regular.json')
 
 function compileFile(filePath) {
-  const options = tsconfig.compilerOptions
+  const options = {
+    ...tsconfig.compilerOptions,
+    lib: tsconfig.compilerOptions.lib.map((lib) => `lib.${lib.toLowerCase()}.d.ts`),
+    noEmitOnError: true,
+  }
 
   const compilerHost = createCompilerHost(options)
   compilerHost.writeFile = () => {}
