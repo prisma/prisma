@@ -1,6 +1,6 @@
 import { computeSchemaHeader } from '../../_utils/computeSchemaHeader'
-import { Providers } from '../../_utils/providers'
 import { ProviderFlavor } from '../../_utils/providerFlavors'
+import { Providers } from '../../_utils/providers'
 import testMatrix from '../_matrix'
 
 export default testMatrix.setupSchema(({ provider, providerFlavor, relationMode, id }): string => {

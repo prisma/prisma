@@ -41,6 +41,13 @@ export function computeSchemaHeader({
     relationModeLine = `relationMode = "${relationMode}"`
   }
 
+  // TODO, do this differently later
+  if (previewFeatures) {
+    previewFeatures += '", "driverAdapters'
+  } else {
+    previewFeatures = 'driverAdapters'
+  }
+
   const sqliteDbUrl = `"file:./test.db"`
 
   const directUrlLine = match({ provider, directUrl })
