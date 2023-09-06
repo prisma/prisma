@@ -66,7 +66,7 @@
   "devDependencies": {
     "@codspeed/benchmark.js-plugin": "2.2.0",
     "@faker-js/faker": "8.0.2",
-    "@fast-check/jest": "1.7.1",
+    "@fast-check/jest": "1.7.2",
     "@jest/create-cache-key-function": "29.6.3",
     "@jest/globals": "29.6.4",
     "@jest/test-sequencer": "29.6.4",
@@ -139,7 +139,7 @@
     "strip-indent": "3.0.0",
     "ts-node": "10.9.1",
     "ts-pattern": "4.3.0",
-    "tsd": "0.28.1",
+    "tsd": "0.29.0",
     "typescript": "5.2.2",
     "undici": "5.23.0",
     "yeoman-generator": "5.9.0",
