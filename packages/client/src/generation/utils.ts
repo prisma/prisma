@@ -71,7 +71,7 @@ export function getFieldArgName(field: DMMF.SchemaField, modelName: string): str
   if (field.args.length) {
     return getModelFieldArgsName(field, modelName)
   }
-  return getModelArgName((field.outputType.type as DMMF.OutputType).name)
+  return getModelArgName(field.outputType.type)
 }
 
 export function getModelFieldArgsName(field: DMMF.SchemaField, modelName: string) {
@@ -227,12 +227,7 @@ export function capitalize(str: string): string {
 }
 
 export function getRefAllowedTypeName(type: DMMF.OutputTypeRef) {
-  let typeName: string
-  if (typeof type.type === 'string') {
-    typeName = type.type
-  } else {
-    typeName = type.type.name
-  }
+  let typeName = type.type
   if (type.isList) {
     typeName += '[]'
   }
