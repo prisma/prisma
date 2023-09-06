@@ -105,7 +105,7 @@ exports[`extensions.tx (provider=postgresql,providerFlavor=pg) extended client i
 Invalid \`prisma.user.create()\` invocation:
 
 
-Unique constraint failed on the fields: (\`email\`)
+duplicate key value violates unique constraint "User_email_key"
 `;
 
 exports[`extensions.tx (provider=postgresql,providerFlavor=pg) extended client in tx can rollback via normal call 1`] = `
@@ -113,11 +113,11 @@ exports[`extensions.tx (provider=postgresql,providerFlavor=pg) extended client i
 Invalid \`xprisma.user.create()\` invocation in
 /client/tests/functional/extensions/tx.ts:0:0
 
-  XX     lastName: 'Smith',
-  XX   },
-  XX }),
-→ XX xprisma.user.create(
-Unique constraint failed on the fields: (\`email\`)
+  XX })
+  XX 
+  XX const result = xprisma.$transaction([
+→ XX   xprisma.user.create(
+duplicate key value violates unique constraint "User_email_key"
 `;
 
 exports[`extensions.tx (provider=sqlite) extended client in tx can rollback via custom call 1`] = `

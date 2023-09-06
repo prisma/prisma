@@ -105,7 +105,7 @@ exports[`extensions.itx (provider=postgresql,providerFlavor=pg) extended client 
 Invalid \`prisma.user.create()\` invocation:
 
 
-Unique constraint failed on the fields: (\`email\`)
+duplicate key value violates unique constraint "User_email_key"
 `;
 
 exports[`extensions.itx (provider=postgresql,providerFlavor=pg) extended client in itx can rollback via normal call 1`] = `
@@ -117,7 +117,7 @@ Invalid \`tx.user.create()\` invocation in
   XX })
   XX 
 → XX await tx.user.create(
-Unique constraint failed on the fields: (\`email\`)
+duplicate key value violates unique constraint "User_email_key"
 `;
 
 exports[`extensions.itx (provider=sqlite) extended client in itx can rollback via custom call 1`] = `
