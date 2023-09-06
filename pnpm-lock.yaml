@@ -337,8 +337,8 @@ importers:
         specifier: 8.0.2
         version: 8.0.2
       '@fast-check/jest':
-        specifier: 1.7.1
-        version: 1.7.1(@jest/globals@29.6.4)
+        specifier: 1.7.2
+        version: 1.7.2(@jest/globals@29.6.4)
       '@jest/create-cache-key-function':
         specifier: 29.6.3
         version: 29.6.3
@@ -2531,8 +2531,8 @@ packages:
     engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
     dev: true
 
-  /@fast-check/jest@1.7.1(@jest/globals@29.6.4):
-    resolution: {integrity: sha512-5qY1+rVK4S7aN4gYligDzeofuz1CFLgTl8r3PM3YqZ1JHtJIiPpYVYUJuWZHo6pRg1pd2g6x1PQ4uDYSuuuD7Q==}
+  /@fast-check/jest@1.7.2(@jest/globals@29.6.4):
+    resolution: {integrity: sha512-TJcUBtEgo6pvjmwCYyneUy3jyWxcUUONuajcQyczPMuKCionpxVg2+g1rQDM3MMuhEXvFiEO23ojpgfrp8QF8Q==}
     peerDependencies:
       '@fast-check/worker': ~0.0.7
       '@jest/expect': '>=28.0.0'
@@ -8411,6 +8411,7 @@ packages:
 
   /ip@2.0.0:
     resolution: {integrity: sha512-WKa+XuLG1A1R0UWhl2+1XQSi+fZWMsYKffMZTTYsiZaUD8k2yDAj5atimTUD2TZkyCkNEeYE5NhFZmupOGtjYQ==}
+    requiresBuild: true
 
   /ipaddr.js@1.9.1:
     resolution: {integrity: sha512-0KI/607xoxSToH7GjN1FfSbLoU0+btTicjsQSWQlh/hZykN8KpmMf7uYwPW3R+akZ6R/w18ZlXSHBYXiYUPO3g==}
@@ -12362,6 +12363,7 @@ packages:
   /smart-buffer@4.2.0:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
     engines: {node: '>= 6.0.0', npm: '>= 3.0.0'}
+    requiresBuild: true
 
   /socks-proxy-agent@6.2.1:
     resolution: {integrity: sha512-a6KW9G+6B3nWZ1yB8G7pJwL3ggLy1uTzKAgCb7ttblwqdz9fMGJUuTy3uFzEP48FAs9FLILlmzDlE2JJhVQaXQ==}
