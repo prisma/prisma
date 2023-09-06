@@ -117,7 +117,7 @@ function setupTestSuiteMatrix(
             })
 
             const adapter = new PrismaPlanetScale(connection)
-            console.log({ adapter })
+
             client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
           }
           // else if (providerFlavor === ProviderFlavors.JS_NEON) {
