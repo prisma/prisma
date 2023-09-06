@@ -535,8 +535,8 @@ importers:
         specifier: 0.5.21
         version: 0.5.21
       sql-template-tag:
-        specifier: 5.0.3
-        version: 5.0.3
+        specifier: 5.1.0
+        version: 5.1.0
       stacktrace-parser:
         specifier: 0.1.10
         version: 0.1.10
@@ -12485,8 +12485,8 @@ packages:
   /sprintf-js@1.1.2:
     resolution: {integrity: sha512-VE0SOVEHCk7Qc8ulkWw3ntAzXuqf7S2lvwQaDLRnUeIEaKNQJzV6BwmLKhOqT61aGhfUMrXeaBk+oDGCzvhcug==}
 
-  /sql-template-tag@5.0.3:
-    resolution: {integrity: sha512-LGxasxbVflQlgP5cme4+7zee7LeFGQyILTAnlI6RzxOOPMg/d+n74To0+0TkiYiD+2Hzy8gX6inkgJkQfyNlFQ==}
+  /sql-template-tag@5.1.0:
+    resolution: {integrity: sha512-+0uwu2fn1LJ3KzZYUrTSViBuHEkyjpAGMnJ3X7RYRFDNIMft99lLAe6kkybPPkV+8GgDrifxUmj+C4j1hpYAgQ==}
     engines: {node: '>=14'}
     dev: true
 
