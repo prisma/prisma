@@ -1,3 +1,4 @@
+import { ProviderFlavors } from '../_utils/providerFlavors'
 import { Providers } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
@@ -87,6 +88,7 @@ testMatrix.setupTestSuite(
               conditionalError.snapshot({
                 foreignKeys: {
                   [Providers.POSTGRESQL]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
+                  [ProviderFlavors.PG]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
                   [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `aliceId`',
                   [Providers.SQLSERVER]: 'Foreign key constraint failed on the field: `Main_aliceId_fkey (index)`',
