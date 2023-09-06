@@ -133,7 +133,7 @@ Invalid \`prisma.user.create()\` invocation in
   XX   },
   XX }),
 → XX prisma.user.create(
-Raw query failed. Code: \`GenericFailure\`. Message: \`\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`interactive-transactions (provider=mysql,providerFlavor=js_planetscale) batching rollback within callback 1`] = `
@@ -145,7 +145,7 @@ Invalid \`tx.user.create()\` invocation in
   XX ])
   XX 
 → XX await tx.user.create(
-Raw query failed. Code: \`GenericFailure\`. Message: \`\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`interactive-transactions (provider=mysql,providerFlavor=js_planetscale) rollback query 1`] = `
@@ -157,7 +157,7 @@ Invalid \`prisma.user.create()\` invocation in
   XX })
   XX 
 → XX await prisma.user.create(
-Raw query failed. Code: \`GenericFailure\`. Message: \`\`
+Unique constraint failed on the (not available)
 `;
 
 exports[`interactive-transactions (provider=mysql,providerFlavor=vitess_8) batching raw rollback 1`] = `
