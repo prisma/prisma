@@ -609,10 +609,10 @@ testMatrix.setupTestSuite(
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`userId`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
-                          [ProviderFlavors.JS_PLANETSCALE]: 'Unique constraint failed on the (not available)',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
+                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [ProviderFlavors.JS_PLANETSCALE]: `Duplicate entry '2' for key 'ProfileOneToOne.ProfileOneToOne_userId_key' (errno 1062) (sqlstate 23000)`,
                         },
                   })
 
@@ -691,10 +691,10 @@ testMatrix.setupTestSuite(
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
-                          [ProviderFlavors.JS_PLANETSCALE]: 'Unique constraint failed on the (not available)',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
+                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [ProviderFlavors.JS_PLANETSCALE]: `Duplicate entry '2' for key 'ProfileOneToOne.PRIMARY' (errno 1062) (sqlstate 23000)`,
                         },
                       }),
                 )
