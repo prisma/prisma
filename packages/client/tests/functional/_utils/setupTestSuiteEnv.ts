@@ -290,11 +290,14 @@ function getDbUrl(provider: Providers): string {
  * @param provider provider supported by Prisma, e.g. `mysql`
  */
 function getDbUrlFromFlavor(providerFlavor: ProviderFlavor | undefined, provider: Providers): string {
-  return match(providerFlavor)
-    .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
-    .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_JS_PLANETSCALE_URI'))
-    .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_JS_NEON_URI'))
-    .otherwise(() => getDbUrl(provider))
+  return (
+    match(providerFlavor)
+      .with(ProviderFlavors.PG, () => requireEnvVariable('TEST_FUNCTIONAL_POSTGRES_URI'))
+      .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+      .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_JS_PLANETSCALE_URI'))
+      // .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_JS_NEON_URI'))
+      .otherwise(() => getDbUrl(provider))
+  )
 }
 
 /**
