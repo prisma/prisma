@@ -122,8 +122,9 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [ProviderFlavors.PG]:
-                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                      [ProviderFlavors.PG]: ['DEFAULT'].includes(onUpdate)
+                        ? 'insert or update on table "ProfileOneToOne" violates foreign key constraint "ProfileOneToOne_userId_fkey"'
+                        : 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       // [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
@@ -590,7 +591,9 @@ testMatrix.setupTestSuite(
                     // see _utils/relationMode/computeMatrix.ts
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                      [ProviderFlavors.PG]: 'Unique constraint failed on the fields: (`id`)',
+                      [ProviderFlavors.PG]: ['Restrict', 'NoAction', 'SetNull'].includes(onUpdate)
+                        ? 'Unique constraint failed on the fields: (`id`)'
+                        : 'duplicate key value violates unique constraint "UserOneToOne_pkey"',
                       // [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]: ['Restrict', 'NoAction'].includes(onUpdate)
@@ -616,14 +619,16 @@ testMatrix.setupTestSuite(
                       : // DEFAULT / SetNull
                         {
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`userId`)',
-                          [ProviderFlavors.PG]: 'Unique constraint failed on the fields: (`userId`)',
+                          [ProviderFlavors.PG]: ['SetNull'].includes(onUpdate)
+                            ? 'Unique constraint failed on the fields: (`userId`)'
+                            : 'duplicate key value violates unique constraint "ProfileOneToOne_userId_key"',
                           // [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`userId`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
-                          [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
-                          [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
                           [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
                           [ProviderFlavors.JS_PLANETSCALE]: `Duplicate entry '2' for key 'ProfileOneToOne.ProfileOneToOne_userId_key' (errno 1062) (sqlstate 23000)`,
+                          [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
+                          [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
                         },
                   })
 
@@ -689,11 +694,15 @@ testMatrix.setupTestSuite(
                   isSchemaUsingMap
                     ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                       // So we can be less specific here
-                      `Unique constraint failed on the`
+                      // With pg adapter, it's different and lowercase:
+                      // duplicate key value violates unique constraint \"ProfileOneToOne_AtAtMap_pkey\"
+                      `nique constraint`
                     : conditionalError.snapshot({
                         foreignKeys: {
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.PG]: 'Unique constraint failed on the fields: (`id`)',
+                          [ProviderFlavors.PG]: ['DEFAULT'].includes(onUpdate)
+                            ? 'duplicate key value violates unique constraint "ProfileOneToOne_pkey"'
+                            : 'Unique constraint failed on the fields: (`id`)',
                           // [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
@@ -702,14 +711,16 @@ testMatrix.setupTestSuite(
                         },
                         prisma: {
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.PG]: 'Unique constraint failed on the fields: (`id`)',
+                          [ProviderFlavors.PG]: ['DEFAULT'].includes(onUpdate)
+                            ? 'duplicate key value violates unique constraint "ProfileOneToOne_pkey"'
+                            : 'Unique constraint failed on the fields: (`id`)',
                           // [ProviderFlavors.JS_NEON]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
-                          [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
-                          [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                           [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
                           [ProviderFlavors.JS_PLANETSCALE]: `Duplicate entry '2' for key 'ProfileOneToOne.PRIMARY' (errno 1062) (sqlstate 23000)`,
+                          [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
+                          [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
                         },
                       }),
                 )
@@ -897,8 +908,9 @@ testMatrix.setupTestSuite(
                         "The change you are trying to make would violate the required relation 'ProfileOneToOneToUserOneToOne' between the `ProfileOneToOne` and `UserOneToOne` models.",
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
-                      [ProviderFlavors.PG]:
-                        'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
+                      [ProviderFlavors.PG]: ['Restrict', 'NoAction'].includes(onDelete)
+                        ? 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`'
+                        : 'update or delete on table "UserOneToOne" violates foreign key constraint "ProfileOneToOne_userId_fkey" on table "ProfileOneToOne"',
                       // [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `ProfileOneToOne_userId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `userId`',
