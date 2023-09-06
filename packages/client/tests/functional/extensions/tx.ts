@@ -1,7 +1,6 @@
 import { faker } from '@faker-js/faker'
 import { expectTypeOf } from 'expect-type'
 
-import { ProviderFlavors } from '../_utils/providerFlavors'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { PrismaClient } from './node_modules/@prisma/client'
@@ -10,7 +9,7 @@ declare let prisma: PrismaClient
 
 const email = faker.internet.email()
 
-testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
+testMatrix.setupTestSuite((suiteConfig, _1, clientMeta) => {
   beforeEach(async () => {
     await prisma.post.deleteMany()
     await prisma.user.deleteMany()
@@ -60,13 +59,7 @@ testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
       }),
     ])
 
-    if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-      // Full error has a random id so we can't snapshot it
-      // extended client in tx can rollback via custom call 1`] = `target: tests.0.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry 'jane@smith.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email, firstName, lastName) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */, :vtg3 /* VARCHAR */, :vtg4 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"clm0ll3oe002s4pcr8d80i8v8\\""vtg2: "type:VARCHAR value:\\"jane@smith.com\\""vtg3: "type:VARCHAR value:\\"Jane\\""vtg4: "type:VARCHAR value:\\"Smith\\""} (errno 1062) (sqlstate 23000) during query: INSERT INTO \`tests\`.\`User\` (\`id\`,\`email\`,\`firstName\`,\`lastName\`) VALUES ('clm0ll3oe002s4pcr8d80i8v8','jane@smith.com','Jane','Smith')`;
-      await expect(result).rejects.toThrow(`code = AlreadyExists`)
-    } else {
-      await expect(result).rejects.toMatchPrismaErrorSnapshot()
-    }
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
     const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
     expect(users).toHaveLength(0)
@@ -142,13 +135,7 @@ testMatrix.setupTestSuite(({ providerFlavor }, _1, clientMeta) => {
       }),
     ])
 
-    if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-      // Full error has a random id so we can't snapshot it
-      // extended client in tx can rollback via custom call 1`] = `target: tests.0.primary: vttablet: rpc error: code = AlreadyExists desc = Duplicate entry 'jane@smith.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000) (CallerID: userData1): Sql: "insert into \`User\`(id, email, firstName, lastName) values (:vtg1 /* VARCHAR */, :vtg2 /* VARCHAR */, :vtg3 /* VARCHAR */, :vtg4 /* VARCHAR */)", BindVars: {vtg1: "type:VARCHAR value:\\"clm0ll3oe002s4pcr8d80i8v8\\""vtg2: "type:VARCHAR value:\\"jane@smith.com\\""vtg3: "type:VARCHAR value:\\"Jane\\""vtg4: "type:VARCHAR value:\\"Smith\\""} (errno 1062) (sqlstate 23000) during query: INSERT INTO \`tests\`.\`User\` (\`id\`,\`email\`,\`firstName\`,\`lastName\`) VALUES ('clm0ll3oe002s4pcr8d80i8v8','jane@smith.com','Jane','Smith')`;
-      await expect(result).rejects.toThrow(`code = AlreadyExists`)
-    } else {
-      await expect(result).rejects.toMatchPrismaErrorSnapshot()
-    }
+    await expect(result).rejects.toMatchPrismaErrorSnapshot()
 
     const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
