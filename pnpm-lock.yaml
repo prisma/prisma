@@ -553,8 +553,8 @@ importers:
         specifier: 4.3.0
         version: 4.3.0
       tsd:
-        specifier: 0.28.1
-        version: 0.28.1
+        specifier: 0.29.0
+        version: 0.29.0
       typescript:
         specifier: 5.2.2
         version: 5.2.2
@@ -4358,8 +4358,9 @@ packages:
     resolution: {integrity: sha512-yOlFc+7UtL/89t2ZhjPvvB/DeAr3r+Dq58IgzsFkOAvVC6NMJXmCGjbptdXdR9qsX7pKcTL+s87FtYREi2dEEQ==}
     dev: true
 
-  /@tsd/typescript@5.0.4:
-    resolution: {integrity: sha512-YQi2lvZSI+xidKeUjlbv6b6Zw7qB3aXHw5oGJLs5OOGAEqKIOvz5UIAkWyg0bJbkSUWPBEtaOHpVxU4EYBO1Jg==}
+  /@tsd/typescript@5.2.2:
+    resolution: {integrity: sha512-VtjHPAKJqLJoHHKBDNofzvQB2+ZVxjXU/Gw6INAS9aINLQYVsxfzrQ2s84huCeYWZRTtrr7R0J7XgpZHjNwBCw==}
+    engines: {node: '>=14.17'}
     dev: true
 
   /@tufjs/canonical-json@1.0.0:
@@ -8935,16 +8936,6 @@ packages:
       - supports-color
     dev: true
 
-  /jest-diff@29.4.3:
-    resolution: {integrity: sha512-YB+ocenx7FZ3T5O9lMVMeLYV4265socJKtkwgk/6YUz/VsEzYDkiMuMhWzZmxm3wDRQvayJu/PjkjjSkjoHsCA==}
-    engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
-    dependencies:
-      chalk: 4.1.2
-      diff-sequences: 29.6.3
-      jest-get-type: 29.6.3
-      pretty-format: 29.6.3
-    dev: true
-
   /jest-diff@29.6.3:
     resolution: {integrity: sha512-3sw+AdWnwH9sSNohMRKA7JiYUJSRr/WS6+sEFfBuhxU5V5GlEVKfvUn8JuMHE0wqKowemR1C2aHy8VtXbaV8dQ==}
     engines: {node: ^14.15.0 || ^16.10.0 || >=18.0.0}
@@ -13152,15 +13143,15 @@ packages:
       strip-bom: 3.0.0
     dev: true
 
-  /tsd@0.28.1:
-    resolution: {integrity: sha512-FeYrfJ05QgEMW/qOukNCr4fAJHww4SaKnivAXRv4g5kj4FeLpNV7zH4dorzB9zAfVX4wmA7zWu/wQf7kkcvfbw==}
+  /tsd@0.29.0:
+    resolution: {integrity: sha512-5B7jbTj+XLMg6rb9sXRBGwzv7h8KJlGOkTHxY63eWpZJiQ5vJbXEjL0u7JkIxwi5EsrRE1kRVUWmy6buK/ii8A==}
     engines: {node: '>=14.16'}
     hasBin: true
     dependencies:
-      '@tsd/typescript': 5.0.4
+      '@tsd/typescript': 5.2.2
       eslint-formatter-pretty: 4.1.0
       globby: 11.1.0
-      jest-diff: 29.4.3
+      jest-diff: 29.6.4
       meow: 9.0.0
       path-exists: 4.0.0
       read-pkg-up: 7.0.1
