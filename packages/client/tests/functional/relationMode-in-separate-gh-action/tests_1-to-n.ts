@@ -138,8 +138,10 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
-                      [ProviderFlavors.PG]:
-                        'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                      [ProviderFlavors.PG]: ['SetNull', 'Cascade', 'Restrict', 'NoAction'].includes(onUpdate)
+                        ? 'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`'
+                        : // DEFAULT
+                          'insert or update on table "PostOneToMany" violates foreign key constraint "PostOneToMany_authorId_fkey"',
                       // [ProviderFlavors.JS_NEON]:
                       //   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
@@ -359,7 +361,10 @@ testMatrix.setupTestSuite(
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                      [ProviderFlavors.PG]: 'Unique constraint failed on the fields: (`id`)',
+                      [ProviderFlavors.PG]: ['SetNull', 'Cascade', 'Restrict', 'NoAction'].includes(onUpdate)
+                        ? 'Unique constraint failed on the fields: (`id`)'
+                        : // DEFAULT
+                          'duplicate key value violates unique constraint "UserOneToMany_pkey"',
                       // [ProviderFlavors.JS_NEON]:'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]: ['DEFAULT', 'Cascade', 'SetNull'].includes(onUpdate)
@@ -376,15 +381,20 @@ testMatrix.setupTestSuite(
                       : // Other
                         {
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.PG]: 'Unique constraint failed on the fields: (`id`)',
+                          [ProviderFlavors.PG]: ['SetNull', 'Cascade'].includes(onUpdate)
+                            ? 'Unique constraint failed on the fields: (`id`)'
+                            : // DEFAULT
+                              'duplicate key value violates unique constraint "UserOneToMany_pkey"',
                           // [ProviderFlavors.JS_NEON]:'Unique constraint failed on the fields: (`id`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [ProviderFlavors.JS_PLANETSCALE]: ['Cascade', 'SetNull'].includes(onUpdate)
+                            ? 'Unique constraint failed on the (not available)'
+                            : // DEFAULT
+                              `code = AlreadyExists desc = Duplicate entry '2' for key 'UserOneToMany.PRIMARY' (errno 1062) (sqlstate 23000)`,
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
-                          // TODO
-                          // [ProviderFlavors.JS_PLANETSCALE]: 'Unique constraint failed on the (not available)',
                         },
                   }),
             )
