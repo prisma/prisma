@@ -1,10 +1,10 @@
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
+import { ProviderFlavors } from '../_utils/providerFlavors'
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
-import { ProviderFlavors } from '../_utils/providerFlavors'
 // @ts-ignore
-import type { PrismaClient, Prisma as PrismaNamespace } from './node_modules/@prisma/client'
+import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -289,7 +289,13 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
         }),
       ])
 
-      await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+        await expect(result).rejects.toThrow(
+          `code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000)`,
+        )
+      } else {
+        await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      }
 
       const users = await prisma.user.findMany()
 
@@ -319,8 +325,13 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
       })
     })
 
-    await expect(result).rejects.toMatchPrismaErrorSnapshot()
-
+    if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+      await expect(result).rejects.toThrow(
+        `code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000)`,
+      )
+    } else {
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
+    }
     const users = await prisma.user.findMany()
 
     expect(users.length).toBe(0)
@@ -364,7 +375,9 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
             ])
 
       if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-        await expect(result).rejects.toThrow(`Raw query failed. Code: \`N/A\`.`)
+        await expect(result).rejects.toThrow(
+          `code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000)`,
+        )
       } else {
         await expect(result).rejects.toMatchPrismaErrorSnapshot()
       }
