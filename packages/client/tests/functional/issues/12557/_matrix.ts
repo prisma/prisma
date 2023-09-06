@@ -30,15 +30,15 @@ export default defineMatrix(() => [
       provider: Providers.POSTGRESQL,
       relationMode,
     },
-    // {
-    //   provider: Providers.POSTGRESQL,
-    //   providerFlavor: ProviderFlavors.JS_NEON,
-    //   relationMode,
-    // },
     {
       provider: Providers.POSTGRESQL,
       providerFlavor: ProviderFlavors.PG,
       relationMode,
     },
+    // {
+    //   provider: Providers.POSTGRESQL,
+    //   providerFlavor: ProviderFlavors.JS_NEON,
+    //   relationMode,
+    // },
   ],
 ])

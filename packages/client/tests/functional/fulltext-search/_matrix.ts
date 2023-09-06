@@ -30,6 +30,10 @@ const postgresqlProvider = {
 export default defineMatrix(() => [
   [
     postgresqlProvider,
+    {
+      ...postgresqlProvider,
+      providerFlavor: 'pg',
+    },
     // {
     //   ...postgresqlProvider,
     //   providerFlavor: 'js_neon',

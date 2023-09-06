@@ -1,4 +1,5 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 import { Providers } from '../../_utils/providers'
 
 const RelationModeEnv = process.env.RELATION_MODE
@@ -28,9 +29,13 @@ const postgresqlProvider = {
 export default defineMatrix(() => [
   [
     postgresqlProvider,
+    {
+      ...postgresqlProvider,
+      providerFlavor: ProviderFlavors.PG,
+    },
     // {
     //   ...postgresqlProvider,
-    //   providerFlavor: ProviderFlavors.JS_PLANETSCALE,
+    //   providerFlavor: ProviderFlavors.JS_NEON,
     // },
     /*
     {

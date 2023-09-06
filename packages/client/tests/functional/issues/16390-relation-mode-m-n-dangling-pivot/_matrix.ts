@@ -13,16 +13,6 @@ export default defineMatrix(() => [
       provider: Providers.POSTGRESQL,
       relationMode: '',
     },
-    // {
-    //   provider: Providers.POSTGRESQL,
-    //   providerFlavor: ProviderFlavors.JS_NEON,
-    //   relationMode: 'prisma',
-    // },
-    // {
-    //   provider: Providers.POSTGRESQL,
-    //   providerFlavor: ProviderFlavors.JS_NEON,
-    //   relationMode: '',
-    // },
     {
       provider: Providers.POSTGRESQL,
       providerFlavor: ProviderFlavors.PG,
@@ -33,6 +23,16 @@ export default defineMatrix(() => [
       providerFlavor: ProviderFlavors.PG,
       relationMode: '',
     },
+    // {
+    //   provider: Providers.POSTGRESQL,
+    //   providerFlavor: ProviderFlavors.JS_NEON,
+    //   relationMode: 'prisma',
+    // },
+    // {
+    //   provider: Providers.POSTGRESQL,
+    //   providerFlavor: ProviderFlavors.JS_NEON,
+    //   relationMode: '',
+    // },
     {
       provider: Providers.MYSQL,
       relationMode: 'prisma',

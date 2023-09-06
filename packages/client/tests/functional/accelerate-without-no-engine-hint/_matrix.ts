@@ -5,5 +5,9 @@ export default defineMatrix(() => [
     {
       provider: 'postgresql',
     },
+    {
+      provider: 'postgresql',
+      providerFlavor: 'pg',
+    },
   ],
 ])
