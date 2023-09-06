@@ -200,7 +200,14 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
       })
     })
 
-    await expect(result).rejects.toMatchPrismaErrorSnapshot()
+    if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+      const dataproxyError = 'Unique constraint failed on the (not available)'
+      const adapterError = `code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000)`
+      const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
+      await expect(result).rejects.toThrow(expectedError)
+    } else {
+      await expect(result).rejects.toMatchPrismaErrorSnapshot()
+    }
 
     const users = await prisma.user.findMany()
 
@@ -290,9 +297,10 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
       ])
 
       if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-        await expect(result).rejects.toThrow(
-          `code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000)`,
-        )
+        const dataproxyError = 'Unique constraint failed on the (not available)'
+        const adapterError = `code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000)`
+        const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
+        await expect(result).rejects.toThrow(expectedError)
       } else {
         await expect(result).rejects.toMatchPrismaErrorSnapshot()
       }
@@ -326,9 +334,10 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
     })
 
     if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-      await expect(result).rejects.toThrow(
-        `code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000)`,
-      )
+      const dataproxyError = 'Unique constraint failed on the (not available)'
+      const adapterError = `code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000)`
+      const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
+      await expect(result).rejects.toThrow(expectedError)
     } else {
       await expect(result).rejects.toMatchPrismaErrorSnapshot()
     }
@@ -375,9 +384,8 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
             ])
 
       if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-        await expect(result).rejects.toThrow(
-          `code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000)`,
-        )
+        const adapterError = `code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000)`
+        await expect(result).rejects.toThrow(adapterError)
       } else {
         await expect(result).rejects.toMatchPrismaErrorSnapshot()
       }
