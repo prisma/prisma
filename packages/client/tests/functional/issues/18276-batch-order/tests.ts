@@ -1,4 +1,3 @@
-import { ProviderFlavors } from '../../_utils/providerFlavors'
 import { waitFor } from '../../_utils/tests/waitFor'
 import { NewPrismaClient } from '../../_utils/types'
 import testMatrix from './_matrix'
@@ -8,7 +7,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  ({ providerFlavor }, suiteMeta, clientMeta) => {
+  (suiteConfig, suiteMeta, clientMeta) => {
     test('executes batch queries in the right order when using extensions + middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -37,13 +36,8 @@ testMatrix.setupTestSuite(
       })
 
       await xprisma.$queryRawUnsafe('SELECT 2')
-      const generalExpectation = [expect.stringContaining('BEGIN'), 'SELECT 1', 'SELECT 2', 'SELECT 3', 'COMMIT']
-      const jsPlanetscaleExpectation = ['SELECT 1', 'SELECT 2', 'SELECT 3']
-      const isJsPlanetscale = providerFlavor === ProviderFlavors.JS_PLANETSCALE
       await waitFor(() =>
-        expect(queries).toEqual(
-          isJsPlanetscale && !clientMeta.dataProxy ? jsPlanetscaleExpectation : generalExpectation,
-        ),
+        expect(queries).toEqual([expect.stringContaining('BEGIN'), 'SELECT 1', 'SELECT 2', 'SELECT 3', 'COMMIT']),
       )
     })
 
