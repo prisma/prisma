@@ -55,14 +55,14 @@ class SmokeTest {
       baz: 1,
     })
 
-    const created = await this.engine.query(`
+    const created = await this.doQuery(
       {
         "action": "createOne",
         "modelName": "Product",
         "query": {
           "arguments": {
             "data": {
-              "properties": ${json},
+              "properties": json,
               "properties_null": null
             }
           },
@@ -70,12 +70,11 @@ class SmokeTest {
             "properties": true
           }
         }
-      }
-    `, 'trace', undefined)
+      })
 
-    console.log('[nodejs] created', JSON.stringify(JSON.parse(created), null, 2))
+    console.log('[nodejs] created', JSON.stringify(created, null, 2))
 
-    const resultSet = await this.engine.query(`
+    const resultSet = await this.doQuery(
       {
         "action": "findMany",
         "modelName": "Product",
@@ -87,10 +86,11 @@ class SmokeTest {
           }
         } 
       }
-    `, 'trace', undefined)
-    console.log('[nodejs] findMany resultSet', JSON.stringify(JSON.parse(resultSet), null, 2))
+    )
 
-    await this.engine.query(`
+    console.log('[nodejs] findMany resultSet', JSON.stringify(resultSet, null, 2))
+
+    await this.doQuery(
       {
         "action": "deleteMany",
         "modelName": "Product",
@@ -103,13 +103,13 @@ class SmokeTest {
           }
         }
       }
-    `, 'trace', undefined)
+    )
 
     return resultSet
   }
 
   async testTypeTest2() {
-    const create = await this.engine.query(`
+    const create = await this.doQuery(
       {
         "action": "createOne",
         "modelName": "type_test_2",
@@ -124,11 +124,11 @@ class SmokeTest {
           }
         }
       }
-    `, 'trace', undefined)
+    )
 
-    console.log('[nodejs] create', JSON.stringify(JSON.parse(create), null, 2))
+    console.log('[nodejs] create', JSON.stringify(create, null, 2))
 
-    const resultSet = await this.engine.query(`
+    const resultSet = await this.doQuery(
       {
         "action": "findMany",
         "modelName": "type_test_2",
@@ -143,11 +143,11 @@ class SmokeTest {
           }
         }
       }
-    `, 'trace', undefined)
+    )
 
-    console.log('[nodejs] resultSet', JSON.stringify(JSON.parse(resultSet), null, 2))
+    console.log('[nodejs] resultSet', JSON.stringify(resultSet, null, 2))
 
-    await this.engine.query(`
+    await this.doQuery(
       {
         "action": "deleteMany",
         "modelName": "type_test_2",
@@ -160,7 +160,7 @@ class SmokeTest {
           }
         }
       }
-    `, 'trace', undefined)
+    )
 
     return resultSet
   }
@@ -294,7 +294,7 @@ class SmokeTest {
     //   'SELECT `cf-users`.`Child`.`id` FROM `cf-users`.`Child` WHERE 1=1',
     //   'DELETE FROM `cf-users`.`Child` WHERE (`cf-users`.`Child`.`id` IN (?) AND 1=1)'
     // ]
-    await this.engine.query(`
+    await this.doQuery(
       {
         "modelName": "Child",
         "action": "deleteMany",
@@ -307,14 +307,14 @@ class SmokeTest {
           }
         }
       }
-    `, 'trace', undefined)
+    )
   
     // Queries: [
     //   'SELECT `cf-users`.`Parent`.`id` FROM `cf-users`.`Parent` WHERE 1=1',
     //   'SELECT `cf-users`.`Parent`.`id` FROM `cf-users`.`Parent` WHERE 1=1',
     //   'DELETE FROM `cf-users`.`Parent` WHERE (`cf-users`.`Parent`.`id` IN (?) AND 1=1)'
     // ]
-    await this.engine.query(`
+    await this.doQuery(
       {
         "modelName": "Parent",
         "action": "deleteMany",
@@ -327,7 +327,7 @@ class SmokeTest {
           }
         }
       }
-    `, 'trace', undefined)
+    )
   
     /* Create a parent with some new children, within a transaction */
   
@@ -337,7 +337,7 @@ class SmokeTest {
     //   'SELECT `cf-users`.`Parent`.`id`, `cf-users`.`Parent`.`p` FROM `cf-users`.`Parent` WHERE `cf-users`.`Parent`.`id` = ? LIMIT ? OFFSET ?',
     //   'SELECT `cf-users`.`Child`.`id`, `cf-users`.`Child`.`c`, `cf-users`.`Child`.`parentId` FROM `cf-users`.`Child` WHERE `cf-users`.`Child`.`parentId` IN (?)'
     // ]
-    await this.engine.query(`
+    await this.doQuery(
       {
         "modelName": "Parent",
         "action": "createOne",
@@ -359,7 +359,6 @@ class SmokeTest {
           "selection": {
             "p": true,
             "childOpt": {
-              "arguments": null,
               "selection": {
                 "c": true
               }
@@ -367,7 +366,7 @@ class SmokeTest {
           }
         }
       }
-    `, 'trace', undefined)
+    )
   
     /* Delete the parent */
   
@@ -378,7 +377,7 @@ class SmokeTest {
     //   'SELECT `cf-users`.`Parent`.`id` FROM `cf-users`.`Parent` WHERE `cf-users`.`Parent`.`p` = ?',
     //   'DELETE FROM `cf-users`.`Parent` WHERE (`cf-users`.`Parent`.`id` IN (?) AND `cf-users`.`Parent`.`p` = ?)'
     // ]
-    const resultDeleteMany = await this.engine.query(`
+    const resultDeleteMany = await this.doQuery(
       {
         "modelName": "Parent",
         "action": "deleteMany",
@@ -393,8 +392,8 @@ class SmokeTest {
           }
         }
       }
-    `, 'trace', undefined)
-    console.log('[nodejs] resultDeleteMany', JSON.stringify(JSON.parse(resultDeleteMany), null, 2))
+    )
+    console.log('[nodejs] resultDeleteMany', JSON.stringify(resultDeleteMany, null, 2))
   }
 
   async testTransaction() {
