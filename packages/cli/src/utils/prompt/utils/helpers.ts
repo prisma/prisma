@@ -1,4 +1,5 @@
 import type { Key } from 'readline'
+import * as readline from 'readline'
 
 export type ActionKey =
   | false
@@ -47,20 +48,34 @@ export function action(key: Key): ActionKey {
   return false
 }
 
-export const resumeOnAnyKeyPress = async (message: string) => {
-  console.log(message)
-  process.stdin.setRawMode(true)
-  return new Promise<void>((resolve) =>
-    process.stdin.once('data', (data) => {
-      const byteArray = [...data]
-      if (byteArray.length > 0 && byteArray[0] === 3) {
-        console.log('^C')
-        process.exit(1)
-      }
-      process.stdin.setRawMode(false)
-      resolve()
-    }),
-  )
-}
-
 export const BACK_SYMBOL = process.platform !== 'win32' ? '❮' : '<'
+
+export async function promptQuestion(question: string) {
+  const options = {
+    yes: ['yes', 'y'],
+    no: ['no', 'n'],
+  }
+  const yValues = options.yes.map((v) => v.toLowerCase())
+  const nValues = options.no.map((v) => v.toLowerCase())
+
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+  })
+
+  return new Promise(function (resolve) {
+    rl.question(question + ' ', async function (answer) {
+      rl.close()
+      const cleaned = answer.trim().toLowerCase()
+      if (yValues.indexOf(cleaned) >= 0) return resolve(true)
+      if (nValues.indexOf(cleaned) >= 0) return resolve(false)
+
+      rl.write('')
+      rl.write(
+        '\nInvalid Response. Answer either yes : (' + yValues.join(', ') + ') Or no: (' + nValues.join(', ') + ') \n\n',
+      )
+      const result = await promptQuestion(question)
+      resolve(result)
+    })
+  })
+}

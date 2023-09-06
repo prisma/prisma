@@ -10,6 +10,7 @@ import {
   getGeneratorSuccessMessage,
   HelpError,
   highlightTS,
+  isCurrentBinInstalledGlobally,
   isError,
   link,
   loadEnvFile,
@@ -23,11 +24,13 @@ import { blue, bold, dim, green, red, yellow } from 'kleur/colors'
 import logUpdate from 'log-update'
 import os from 'os'
 import path from 'path'
+import pkgUp from 'pkg-up'
 import resolvePkg from 'resolve-pkg'
 
 import { getHardcodedUrlWarning } from './generate/getHardcodedUrlWarning'
 import { breakingChangesMessage } from './utils/breakingChanges'
-import { resumeOnAnyKeyPress } from './utils/prompt/utils/helpers'
+import { getInstalledPrismaClientVersion } from './utils/getClientVersion'
+import { promptQuestion } from './utils/prompt/utils/helpers'
 import { simpleDebounce } from './utils/simpleDebounce'
 
 const pkg = eval(`require('../package.json')`)
@@ -109,6 +112,11 @@ ${bold('Examples')}
       '--telemetry-information': String,
     })
 
+    const isPrismaInstalledGlobally = isCurrentBinInstalledGlobally()
+    if (isPrismaInstalledGlobally) {
+      await warnOnMismatchOfGlobalAndLocalVersions(String(pkg.version))
+    }
+
     const isPostinstall = process.env.PRISMA_GENERATE_IN_POSTINSTALL
     let cwd = process.cwd()
     if (isPostinstall && isPostinstall !== 'true') {
@@ -189,7 +197,6 @@ Please run \`${getCommandWithExecutor('prisma generate')}\` to see the errors.`)
     let printBreakingChangesMessage = false
     if (hasJsClient) {
       try {
-        await warnOnMismatchOfGlobalAndLocalVersions()
         const clientVersionBeforeGenerate = getCurrentClientVersion()
 
         if (clientVersionBeforeGenerate && typeof clientVersionBeforeGenerate === 'string') {
@@ -372,32 +379,51 @@ function replacePathSeparatorsIfNecessary(path: string): string {
   return path
 }
 
-async function warnOnMismatchOfGlobalAndLocalVersions(): Promise<void> {
+async function warnOnMismatchOfGlobalAndLocalVersions(globalPackageVersion: string): Promise<void> {
   try {
-    const globalPackagePath = resolvePkg('.prisma/client', { cwd: process.cwd() })
-    const localPackagePath = path.join(process.cwd(), 'node_modules/.prisma/client')
+    const localPrimsaClientPackageVersion = await getInstalledPrismaClientVersion()
+    const localPrismaPackageVersion = await getLocalPrismaVersion()
 
-    if (!globalPackagePath || !fs.existsSync(localPackagePath)) {
-      return
-    }
+    const isLocalPrismaClientVersionMismatch = localPrimsaClientPackageVersion !== globalPackageVersion
+    const isLocalPrismaVersionMismatch = localPrismaPackageVersion !== globalPackageVersion
 
-    const globalIndexPath = path.join(globalPackagePath, 'index.js')
-    const localIndexPath = path.join(localPackagePath, 'index.js')
+    if (isLocalPrismaClientVersionMismatch || isLocalPrismaVersionMismatch) {
+      const userAnswer = await promptQuestion(
+        `${yellow(bold('warn'))} Global ${bold(`prisma@${globalPackageVersion}`)} and Local ${
+          isLocalPrismaClientVersionMismatch
+            ? bold(`@prisma/client@${localPrimsaClientPackageVersion}`)
+            : bold(`prisma@${isLocalPrismaVersionMismatch}`)
+        } don't match. This might lead to unexpected behavior. Would you like to proceed ? [yes/no]`,
+      )
 
-    if (fs.existsSync(globalIndexPath) && fs.existsSync(localIndexPath)) {
-      const globalVersion = require(globalIndexPath)?.prismaVersion?.client
-      const localVersion = require(localIndexPath)?.prismaVersion?.client
-
-      if (globalVersion && localVersion && globalVersion !== localVersion) {
-        await resumeOnAnyKeyPress(`${yellow(bold('warn'))} Found global and local prisma versions. Global ${bold(
-          `@prisma/client@${globalVersion}`,
-        )} and Local ${bold(`@prisma/client@${localVersion}`)} don't match. This might lead to unexpected behavior.
-        Please press any key to continue.`)
+      if (!userAnswer) {
+        process.exit(1)
       }
     }
-
     return
   } catch (e) {
     return
+  }
+}
+
+async function getLocalPrismaVersion(cwd: string = process.cwd()): Promise<string | null> {
+  try {
+    const pkgJsonPath = await pkgUp({ cwd })
+
+    if (!pkgJsonPath) {
+      return null
+    }
+
+    const pkgJsonString = await fs.promises.readFile(pkgJsonPath, 'utf-8')
+    const pkgJson = JSON.parse(pkgJsonString)
+    const clientVersion = pkgJson.devDependencies?.['prisma'] ?? pkgJson.dependencies?.['prisma']
+
+    if (!clientVersion) {
+      return null
+    }
+
+    return clientVersion
+  } catch (err) {
+    return null
   }
 }
