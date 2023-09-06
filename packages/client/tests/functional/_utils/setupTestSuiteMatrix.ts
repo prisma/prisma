@@ -1,11 +1,14 @@
 import { afterAll, beforeAll, test } from '@jest/globals'
-import { PrismaNeon } from '@jkomyno/prisma-adapter-neon' // TODO rename to `@prisma/adapter-neon`
-import { WebSocket, fetch as undiciFetch } from 'undici'
-import { Pool, neonConfig } from '@neondatabase/serverless'
+// import { PrismaNeon } from '@jkomyno/prisma-adapter-neon' // TODO rename to `@prisma/adapter-neon`
+import { PrismaPg } from '@jkomyno/prisma-adapter-pg' // rename to `@prisma/adapter-pg`
 import { PrismaPlanetScale } from '@jkomyno/prisma-adapter-planetscale'
+// import { neonConfig, Pool as neonPool } from '@neondatabase/serverless'
 import { connect } from '@planetscale/database'
 import fs from 'fs-extra'
 import path from 'path'
+import { Pool as pgPool } from 'pg'
+// WebSocket
+import { fetch as undiciFetch } from 'undici'
 
 import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
@@ -102,7 +105,14 @@ function setupTestSuiteMatrix(
 
         globalThis['newPrismaClient'] = (args) => {
           let client
-          if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+          if (providerFlavor === ProviderFlavors.PG) {
+            const pool = new pgPool({
+              connectionString: datasourceInfo.databaseUrl,
+            })
+            const adapter = new PrismaPg(pool)
+
+            client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
+          } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
             // When using a remote database
             // const connectionString = `${process.env.TEST_FUNCTIONAL_JS_PLANETSCALE_URI as string}`
 

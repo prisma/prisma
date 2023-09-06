@@ -16,6 +16,7 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     ProviderFlavors.VITESS_8,
     ProviderFlavors.JS_PLANETSCALE,
     // ProviderFlavors.JS_NEON,
+    ProviderFlavors.PG,
   ] as const
   // Note: SetDefault is not implemented in the emulation (relationMode="prisma")
 
@@ -59,6 +60,7 @@ export function computeMatrix({ relationMode, providersDenyList }: ComputeMatrix
     prisma: {
       [Providers.SQLSERVER]: ['Restrict'],
       [Providers.POSTGRESQL]: ['NoAction'],
+      [ProviderFlavors.PG]: ['NoAction'],
       [Providers.SQLITE]: ['NoAction'],
     },
   }

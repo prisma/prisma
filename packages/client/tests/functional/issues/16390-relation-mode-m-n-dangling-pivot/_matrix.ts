@@ -24,6 +24,16 @@ export default defineMatrix(() => [
     //   relationMode: '',
     // },
     {
+      provider: Providers.POSTGRESQL,
+      providerFlavor: ProviderFlavors.PG,
+      relationMode: 'prisma',
+    },
+    {
+      provider: Providers.POSTGRESQL,
+      providerFlavor: ProviderFlavors.PG,
+      relationMode: '',
+    },
+    {
       provider: Providers.MYSQL,
       relationMode: 'prisma',
     },

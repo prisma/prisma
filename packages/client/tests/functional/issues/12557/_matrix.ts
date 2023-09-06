@@ -35,5 +35,10 @@ export default defineMatrix(() => [
     //   providerFlavor: ProviderFlavors.JS_NEON,
     //   relationMode,
     // },
+    {
+      provider: Providers.POSTGRESQL,
+      providerFlavor: ProviderFlavors.PG,
+      relationMode,
+    },
   ],
 ])
