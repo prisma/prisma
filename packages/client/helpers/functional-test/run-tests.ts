@@ -43,6 +43,7 @@ const args = arg(
     // Also the typescript tests fail and it might not be easily fixable
     // This flag is used for this purpose
     '--relation-mode-tests-only': Boolean,
+    '--rmo': '--relation-mode-tests-only',
     //
     // Jest flags
     //
