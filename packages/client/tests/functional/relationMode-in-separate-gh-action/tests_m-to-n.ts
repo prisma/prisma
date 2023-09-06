@@ -1,7 +1,7 @@
+import { ProviderFlavors } from '../_utils/providerFlavors'
 import { Providers } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
-import { ProviderFlavors } from '../_utils/providerFlavors'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
@@ -208,6 +208,9 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [ProviderFlavors.PG]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      // [ProviderFlavors.JS_NEON]:     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                       [Providers.SQLSERVER]:
@@ -368,6 +371,9 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [ProviderFlavors.PG]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      // [ProviderFlavors.JS_NEON]:  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                       [Providers.SQLSERVER]:
@@ -459,6 +465,9 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [ProviderFlavors.PG]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      // [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                       [Providers.SQLSERVER]:
@@ -653,6 +662,9 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [ProviderFlavors.PG]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      // [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                       [Providers.SQLSERVER]:
@@ -700,6 +712,9 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [ProviderFlavors.PG]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      // [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                       [Providers.SQLSERVER]:
@@ -901,6 +916,9 @@ testMatrix.setupTestSuite(
                       foreignKeys: {
                         [Providers.POSTGRESQL]:
                           'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                        [ProviderFlavors.PG]:
+                          'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                        // [ProviderFlavors.JS_NEON]:  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                         [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                         [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                         [Providers.SQLSERVER]:
@@ -939,6 +957,9 @@ testMatrix.setupTestSuite(
                       foreignKeys: {
                         [Providers.POSTGRESQL]:
                           'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                        [ProviderFlavors.PG]:
+                          'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                        // [ProviderFlavors.JS_NEON]:  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                         [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                         [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                         [Providers.SQLSERVER]:

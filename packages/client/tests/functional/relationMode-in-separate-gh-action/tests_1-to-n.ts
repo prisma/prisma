@@ -138,6 +138,10 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                      [ProviderFlavors.PG]:
+                        'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                      // [ProviderFlavors.JS_NEON]:
+                      //   'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                       [Providers.SQLSERVER]:
@@ -355,6 +359,8 @@ testMatrix.setupTestSuite(
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                      [ProviderFlavors.PG]: 'Unique constraint failed on the fields: (`id`)',
+                      // [ProviderFlavors.JS_NEON]:'Unique constraint failed on the fields: (`id`)',
                       [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                       [Providers.MYSQL]: ['DEFAULT', 'Cascade', 'SetNull'].includes(onUpdate)
                         ? // DEFAULT / Cascade / SetNull
@@ -370,6 +376,8 @@ testMatrix.setupTestSuite(
                       : // Other
                         {
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
+                          [ProviderFlavors.PG]: 'Unique constraint failed on the fields: (`id`)',
+                          // [ProviderFlavors.JS_NEON]:'Unique constraint failed on the fields: (`id`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.UserOneToMany`',
@@ -540,6 +548,9 @@ testMatrix.setupTestSuite(
                         "The change you are trying to make would violate the required relation 'PostOneToManyToUserOneToMany' between the `PostOneToMany` and `UserOneToMany` models.",
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                      [ProviderFlavors.PG]:
+                        'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                      // [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                       [Providers.SQLSERVER]:
@@ -632,6 +643,9 @@ testMatrix.setupTestSuite(
                 foreignKeys: {
                   [Providers.POSTGRESQL]:
                     'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                  [ProviderFlavors.PG]:
+                    'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
+                  // [ProviderFlavors.JS_NEON]:'Foreign key constraint failed on the field: `PostOneToMany_authorId_fkey (index)`',
                   [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                   [Providers.MYSQL]: 'Foreign key constraint failed on the field: `authorId`',
                   [Providers.SQLSERVER]:
