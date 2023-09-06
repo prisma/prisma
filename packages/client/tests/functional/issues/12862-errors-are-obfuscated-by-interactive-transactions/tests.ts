@@ -2,13 +2,18 @@ import { faker } from '@faker-js/faker'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 import testMatrix from './_matrix'
 
 declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/12862
 testMatrix.setupTestSuite(
-  () => {
+  ({ providerFlavor }) => {
+    const postgresqlError = 'violates check constraint \\"post_viewcount_check\\"'
+    const pgAdapterError = 'violates check constraint "post_viewcount_check"'
+    const providerError = ProviderFlavors.PG === providerFlavor ? pgAdapterError : postgresqlError
+
     test('should propagate the correct error when a method fails', async () => {
       const user = await prisma.user.create({
         data: {
@@ -25,7 +30,7 @@ testMatrix.setupTestSuite(
             viewCount: -1, // should fail, must be >= 0
           },
         }),
-      ).rejects.toThrow('violates check constraint \\"post_viewcount_check\\"')
+      ).rejects.toThrow(providerError)
     })
 
     test('should propagate the correct error when a method fails inside an transaction', async () => {
@@ -46,7 +51,7 @@ testMatrix.setupTestSuite(
             },
           }),
         ]),
-      ).rejects.toThrow('violates check constraint \\"post_viewcount_check\\"')
+      ).rejects.toThrow(providerError)
     })
 
     test('should propagate the correct error when a method fails inside an interactive transaction', async () => {
@@ -69,7 +74,7 @@ testMatrix.setupTestSuite(
 
           return post
         }),
-      ).rejects.toThrow('violates check constraint \\"post_viewcount_check\\"')
+      ).rejects.toThrow(providerError)
     })
   },
   {
