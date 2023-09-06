@@ -1,4 +1,5 @@
 import { getTestSuiteFullName, NamedTestSuiteConfig } from './getTestSuiteInfo'
+import { ProviderFlavors } from './providerFlavors'
 import { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { ClientMeta, MatrixOptions } from './types'
 
@@ -11,6 +12,8 @@ export type TestPlanEntry = {
 type SuitePlanContext = {
   includedProviders?: string[]
   excludedProviders: string[]
+  includedProviderFlavors?: string[]
+  excludedProviderFlavors: string[]
   updateSnapshots: 'inline' | 'external' | undefined
 }
 
@@ -46,12 +49,20 @@ function shouldSkipTestSuite(clientMeta: ClientMeta, options?: MatrixOptions): b
 }
 
 function shouldSkipProvider(
-  { updateSnapshots, includedProviders, excludedProviders }: SuitePlanContext,
+  {
+    updateSnapshots,
+    includedProviders,
+    excludedProviders,
+    includedProviderFlavors,
+    excludedProviderFlavors,
+  }: SuitePlanContext,
   config: NamedTestSuiteConfig,
   configIndex: number,
   clientMeta: ClientMeta,
 ): boolean {
   const provider = config.matrixOptions['provider'].toLocaleLowerCase()
+  const providerFlavor = config.matrixOptions['providerFlavor']?.toLocaleLowerCase()
+
   if (updateSnapshots === 'inline' && configIndex > 0) {
     // when updating inline snapshots, we have to run a  single suite only -
     // otherwise jest will fail with "Multiple inline snapshots for the same call are not supported" error
@@ -68,17 +79,23 @@ function shouldSkipProvider(
     return true
   }
 
+  if (includedProviderFlavors && !includedProviderFlavors.includes(providerFlavor)) {
+    return true
+  }
+
   if (clientMeta.dataProxy && provider === 'sqlite') {
     return true
   }
 
-  return excludedProviders.includes(provider)
+  return excludedProviders.includes(provider) || excludedProviderFlavors.includes(providerFlavor)
 }
 
 function buildPlanContext(): SuitePlanContext {
   return {
     includedProviders: process.env.ONLY_TEST_PROVIDERS?.split(','),
     excludedProviders: getExcludedProviders(),
+    includedProviderFlavors: process.env.ONLY_TEST_PROVIDER_FLAVORS?.split(','),
+    excludedProviderFlavors: getExcludedProviderFlavors(),
     updateSnapshots: process.env.UPDATE_SNAPSHOTS as 'inline' | 'external' | undefined,
   }
 }
@@ -89,6 +106,20 @@ const excludeEnvToProviderMap = {
   TEST_SKIP_COCKROACHDB: 'cockroachdb',
   TEST_SKIP_POSTGRESQL: 'postgresql',
   TEST_SKIP_SQLITE: 'sqlite',
+}
+
+const excludeEnvToProviderFlavorMap = {
+  TEST_SKIP_VITESS: ProviderFlavors.VITESS_8,
+  TEST_SKIP_JS_PLANETSCALE: ProviderFlavors.JS_PLANETSCALE,
+}
+
+function getExcludedProviderFlavors() {
+  return Object.entries(excludeEnvToProviderFlavorMap).reduce((acc, [envVarName, providerFlavor]) => {
+    if (process.env[envVarName]) {
+      acc.push(providerFlavor)
+    }
+    return acc
+  }, [] as string[])
 }
 
 function getExcludedProviders() {

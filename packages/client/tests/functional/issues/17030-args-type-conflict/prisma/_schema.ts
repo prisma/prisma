@@ -1,29 +1,28 @@
+import { computeSchemaHeader } from '../../../_utils/computeSchemaHeader'
 import { idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider }) => {
+export default testMatrix.setupSchema(({ provider, providerFlavor }): string => {
+  const schemaHeader = computeSchemaHeader({
+    provider,
+    providerFlavor,
+  })
+
   return /* Prisma */ `
-  generator client {
-    provider = "prisma-client-js"
-  }
-  
-  datasource db {
-    provider = "${provider}"
-    url      = env("DATABASE_URI_${provider}")
-  }
-  
-  model Character {
-    id   ${idForProvider(provider)}
-    info CharacterInfo[]
-  }
+${schemaHeader}
 
-  model CharacterInfo {
-    entryId       ${idForProvider(provider)}
-    entryLanguage String    
-    characterId   String    
-    details       Character @relation(fields: [characterId], references: [id])
+model Character {
+  id   ${idForProvider(provider)}
+  info CharacterInfo[]
+}
 
-    @@unique([entryLanguage, characterId])
-  }
-  `
+model CharacterInfo {
+  entryId       ${idForProvider(provider)}
+  entryLanguage String    
+  characterId   String    
+  details       Character @relation(fields: [characterId], references: [id])
+
+  @@unique([entryLanguage, characterId])
+}
+`
 })

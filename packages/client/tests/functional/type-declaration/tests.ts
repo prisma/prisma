@@ -21,7 +21,7 @@ testMatrix.setupTestSuite(
     skipDefaultClientInstance: true,
     optOut: {
       from: ['postgresql', 'mysql', 'mongodb', 'cockroachdb', 'sqlserver'],
-      reason: 'Test checks runtime file that is statically build and does not depend on  provider',
+      reason: 'Test checks runtime file that is statically build and does not depend on the provider',
     },
   },
 )

@@ -1,7 +1,7 @@
+import { ProviderFlavors } from '../_utils/providerFlavors'
 import { Providers } from '../_utils/providers'
 import { checkIfEmpty } from '../_utils/relationMode/checkIfEmpty'
 import { ConditionalError } from '../_utils/relationMode/conditionalError'
-import { ProviderFlavors } from '../_utils/relationMode/ProviderFlavor'
 import testMatrix from './_matrix'
 
 /* eslint-disable @typescript-eslint/no-unused-vars, jest/no-identical-title */
@@ -53,8 +53,9 @@ testMatrix.setupTestSuite(
     const isSchemaUsingMap = suiteConfig.isSchemaUsingMap
 
     // Looking at CI results
-    // 30s was often not enough for vitess
+    // 30s was often not enough for Vitess
     // so we put it back to 60s for now in this case
+    // TODO Maybe?
     if (suiteConfig.providerFlavor === ProviderFlavors.VITESS_8) {
       jest.setTimeout(60_000)
     }
@@ -608,9 +609,10 @@ testMatrix.setupTestSuite(
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`userId`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`userId`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `ProfileOneToOne_userId_key`',
+                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [ProviderFlavors.JS_PLANETSCALE]: 'Unique constraint failed on the (not available)',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`userId`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
                         },
                   })
 
@@ -689,9 +691,10 @@ testMatrix.setupTestSuite(
                           [Providers.POSTGRESQL]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.COCKROACHDB]: 'Unique constraint failed on the fields: (`id`)',
                           [Providers.MYSQL]: 'Unique constraint failed on the constraint: `PRIMARY`',
+                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
+                          [ProviderFlavors.JS_PLANETSCALE]: 'Unique constraint failed on the (not available)',
                           [Providers.SQLSERVER]: 'Unique constraint failed on the constraint: `dbo.ProfileOneToOne`',
                           [Providers.SQLITE]: 'Unique constraint failed on the fields: (`id`)',
-                          [ProviderFlavors.VITESS_8]: 'Unique constraint failed on the (not available)',
                         },
                       }),
                 )

@@ -6,7 +6,7 @@ declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
 
 testMatrix.setupTestSuite(
-  () => {
+  (suiteConfig) => {
     test('simple expression', async () => {
       const result = (await prisma.$queryRaw`SELECT 1 + 1`) as Array<Record<string, unknown>>
       expect(Number(Object.values(result[0])[0])).toEqual(2)
@@ -27,7 +27,10 @@ testMatrix.setupTestSuite(
         },
       })
 
-      const testModel = await prisma.$queryRaw`SELECT * FROM "TestModel"`
+      const testModel =
+        suiteConfig.provider === 'mysql'
+          ? await prisma.$queryRaw`SELECT * FROM TestModel;`
+          : await prisma.$queryRaw`SELECT * FROM "TestModel";`
 
       expect(testModel).toEqual([
         {
@@ -39,7 +42,7 @@ testMatrix.setupTestSuite(
           bInt: expect.anything(),
           float: 0.125,
           bytes: Buffer.from([1, 2, 3]),
-          bool: true,
+          bool: suiteConfig.provider === 'mysql' ? 1 : true,
           dt: new Date('1900-10-10T01:10:10.001Z'),
           dec: new Prisma.Decimal('0.0625'),
         },
@@ -49,11 +52,8 @@ testMatrix.setupTestSuite(
   },
   {
     optOut: {
-      from: ['mongodb', 'mysql'],
-      reason: `
-        $queryRaw only works on SQL based providers
-        mySql You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near '"TestModel"'
-      `,
+      from: ['mongodb'],
+      reason: `$queryRaw only works on SQL based providers`,
     },
     skipDataProxy: {
       runtimes: ['edge'],

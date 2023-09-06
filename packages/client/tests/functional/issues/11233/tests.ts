@@ -1,3 +1,4 @@
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 import testMatrix from './_matrix'
 // @ts-ignore
 import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
@@ -7,7 +8,7 @@ declare let Prisma: typeof PrismaNamespace
 
 // https://github.com/prisma/prisma/issues/11233
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider, providerFlavor }) => {
     test('should not throw when using Prisma.empty inside $executeRaw', async () => {
       expect.assertions(1)
 
@@ -31,7 +32,11 @@ testMatrix.setupTestSuite(
           break
 
         case 'mysql':
-          expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
+          if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+            expect((result as Error).message).toContain('Query was empty (errno 1065) (sqlstate 42000)')
+          } else {
+            expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
+          }
           break
 
         default:
@@ -62,7 +67,11 @@ testMatrix.setupTestSuite(
           break
 
         case 'mysql':
-          expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
+          if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+            expect((result as Error).message).toContain('Query was empty (errno 1065) (sqlstate 42000)')
+          } else {
+            expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
+          }
           break
 
         default:

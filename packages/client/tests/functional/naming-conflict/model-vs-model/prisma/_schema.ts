@@ -1,16 +1,15 @@
+import { computeSchemaHeader } from '../../../_utils/computeSchemaHeader'
 import { foreignKeyForProvider, idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, conflictingModel }) => {
+export default testMatrix.setupSchema(({ provider, providerFlavor, conflictingModel }): string => {
+  const schemaHeader = computeSchemaHeader({
+    provider,
+    providerFlavor,
+  })
+
   return /* Prisma */ `
-  generator client {
-    provider = "prisma-client-js"
-  }
-  
-  datasource db {
-    provider = "${provider}"
-    url      = env("DATABASE_URI_${provider}")
-  }
+${schemaHeader}
   
   model Model {
     id ${idForProvider(provider)}

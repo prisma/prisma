@@ -6,8 +6,9 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta, clientMeta) => {
+  ({ provider, providerFlavor }, suiteMeta, clientMeta) => {
     const OLD_ENV = process.env
+    const envVarName = providerFlavor ? `DATABASE_URI_${providerFlavor}` : `DATABASE_URI_${provider}`
 
     beforeEach(() => {
       process.env = { ...OLD_ENV }
@@ -21,7 +22,7 @@ testMatrix.setupTestSuite(
       testIf(clientMeta.dataProxy /** = --no-engine */)(
         '--no-engine prevents from using the other engines',
         async () => {
-          process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'postgresql://postgres:password@localhost:5432/db'
+          process.env[envVarName] = 'postgresql://postgres:password@localhost:5432/db'
 
           const prisma = newPrismaClient()
           const promise = prisma.$connect()
@@ -35,7 +36,7 @@ testMatrix.setupTestSuite(
 
       // test that we can pass a prisma:// url when the tests is not run as a dataproxy
       testIf(!clientMeta.dataProxy)('prisma:// url works as expected even when --no-engine is not used', async () => {
-        process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'prisma://localhost:5432/db'
+        process.env[envVarName] = 'prisma://localhost:5432/db'
 
         const prisma = newPrismaClient()
         const promise = prisma.$connect()

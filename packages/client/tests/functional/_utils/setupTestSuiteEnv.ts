@@ -11,8 +11,8 @@ import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
 import { DbPush } from '../../../../migrate/src/commands/DbPush'
 import type { NamedTestSuiteConfig } from './getTestSuiteInfo'
 import { getTestSuiteFolderPath, getTestSuiteSchemaPath } from './getTestSuiteInfo'
+import { ProviderFlavor, ProviderFlavors } from './providerFlavors'
 import { Providers } from './providers'
-import { ProviderFlavor, ProviderFlavors } from './relationMode/ProviderFlavor'
 import type { TestSuiteMeta } from './setupTestSuiteMatrix'
 import { AlterStatementCallback, ClientMeta } from './types'
 
@@ -116,12 +116,18 @@ export async function setupTestSuiteDatabase(
   try {
     const consoleInfoMock = jest.spyOn(console, 'info').mockImplementation()
     const dbPushParams = ['--schema', schemaPath, '--skip-generate']
-    const providerFlavor = suiteConfig.matrixOptions['providerFlavor'] as ProviderFlavor | undefined
+    const providerFlavor = suiteConfig.matrixOptions['providerFlavor'] as ProviderFlavors
     // `--force-reset` is great but only using it where it's necessary makes the
     // tests faster Since we have full isolation of tests / database, we do not
     // need to force reset but we currently break isolation for Vitess (for
     // faster tests), so it's good to force reset in this case
-    if (providerFlavor === ProviderFlavors.VITESS_8) {
+    if (
+      [
+        ProviderFlavors.VITESS_8,
+        ProviderFlavors.JS_PLANETSCALE,
+        // ProviderFlavors.JS_NEON
+      ].includes(providerFlavor)
+    ) {
       dbPushParams.push('--force-reset')
     }
     await DbPush.new().parse(dbPushParams)
@@ -212,14 +218,11 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
 
   const { envVarName, newURI } = match(providerFlavor)
     .with(undefined, () => {
-      const envVarName = `DATABASE_URI_${provider}`
-      const newURI = getDbUrl(provider)
-      return { envVarName, newURI }
+      return { envVarName: `DATABASE_URI_${provider}`, newURI: getDbUrl(provider) }
     })
     .otherwise(() => {
-      const envVarName = `DATABASE_URI_${providerFlavor!}`
       const newURI = getDbUrlFromFlavor(providerFlavor, provider)
-      return { envVarName, newURI }
+      return { envVarName: `DATABASE_URI_${providerFlavor!}`, newURI }
     })
 
   // when testing with `directUrl` is required
@@ -232,12 +235,14 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   // Example: 60s -> 3s
   if (providerFlavor === ProviderFlavors.VITESS_8) {
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
+  } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE || providerFlavor === ProviderFlavors.JS_NEON) {
+    // TODO - for simplicity it is hardcoded for now
+    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'tests')
   } else {
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, dbId)
   }
 
   let dataProxyUrl: string | undefined
-
   if (clientMeta.dataProxy) {
     dataProxyUrl = miniProxy.generateConnectionString({
       databaseUrl,
@@ -287,6 +292,8 @@ function getDbUrl(provider: Providers): string {
 function getDbUrlFromFlavor(providerFlavor: ProviderFlavor | undefined, provider: Providers): string {
   return match(providerFlavor)
     .with(ProviderFlavors.VITESS_8, () => requireEnvVariable('TEST_FUNCTIONAL_VITESS_8_URI'))
+    .with(ProviderFlavors.JS_PLANETSCALE, () => requireEnvVariable('TEST_FUNCTIONAL_JS_PLANETSCALE_URI'))
+    .with(ProviderFlavors.JS_NEON, () => requireEnvVariable('TEST_FUNCTIONAL_JS_NEON_URI'))
     .otherwise(() => getDbUrl(provider))
 }
 

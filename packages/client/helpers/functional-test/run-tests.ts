@@ -4,10 +4,12 @@ import execa, { ExecaChildProcess } from 'execa'
 import fs from 'fs'
 
 import { setupQueryEngine } from '../../tests/_utils/setupQueryEngine'
+import { ProviderFlavors } from '../../tests/functional/_utils/providerFlavors'
 import { Providers } from '../../tests/functional/_utils/providers'
 import { JestCli } from './JestCli'
 
 const allProviders = new Set(Object.values(Providers))
+const allProviderFlavors = new Set(Object.values(ProviderFlavors))
 
 const args = arg(
   process.argv.slice(2),
@@ -23,6 +25,9 @@ const args = arg(
     // Restrict the list of providers
     '--provider': [String],
     '-p': '--provider',
+    // Restrict the list of provider flavors
+    '--provider-flavor': [String],
+    '--pf': '--provider-flavor',
     // Generate Data Proxy client and run tests using Mini-Proxy
     '--data-proxy': Boolean,
     // Use edge client (requires --data-proxy)
@@ -38,6 +43,7 @@ const args = arg(
     // Also the typescript tests fail and it might not be easily fixable
     // This flag is used for this purpose
     '--relation-mode-tests-only': Boolean,
+    '--rmo': '--relation-mode-tests-only',
     //
     // Jest flags
     //
@@ -61,8 +67,10 @@ async function main(): Promise<number | void> {
   let miniProxyProcess: ExecaChildProcess | undefined
   const jestArgs = ['--testPathIgnorePatterns', 'typescript']
 
-  if (args['--provider']) {
-    const providers = args['--provider'] as Providers[]
+  const providers = args['--provider'] as Providers[]
+  const providerFlavors = args['--provider-flavor'] as ProviderFlavors[]
+
+  if (providers) {
     const unknownProviders = providers.filter((provider) => !allProviders.has(provider))
     if (unknownProviders.length > 0) {
       console.error(`Unknown providers: ${unknownProviders.join(', ')}`)
@@ -70,6 +78,22 @@ async function main(): Promise<number | void> {
     }
     jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDERS: providers.join(',') })
   }
+
+  if (providerFlavors) {
+    const unknownProviderFlavors = providerFlavors.filter((providerFlavor) => !allProviderFlavors.has(providerFlavor))
+    if (unknownProviderFlavors.length > 0) {
+      console.error(`Unknown provider flavors: ${unknownProviderFlavors.join(', ')}`)
+      process.exit(1)
+    }
+    jestCli = jestCli.withEnv({ ONLY_TEST_PROVIDER_FLAVORS: providerFlavors.join(',') })
+  }
+
+  // const planetscaleProxyProcess = execa('sh ../../tests/functional/_utils/proxy-planetscale', {
+  //   preferLocal: true,
+  //   stdio: 'inherit',
+  //   env: {},
+  // })
+  // console.debug('planetscaleProxyProcess should start soon...')
 
   if (args['--data-proxy']) {
     if (!fs.existsSync(miniProxy.defaultServerConfig.cert)) {
@@ -161,6 +185,9 @@ async function main(): Promise<number | void> {
     if (miniProxyProcess) {
       miniProxyProcess.kill()
     }
+    // if (planetscaleProxyProcess) {
+    //   planetscaleProxyProcess.kill()
+    // }
   }
 }
 

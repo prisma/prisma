@@ -2,8 +2,9 @@ import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 
 import { NewPrismaClient } from '../_utils/types'
 import testMatrix from './_matrix'
+import { ProviderFlavors } from '../_utils/providerFlavors'
 // @ts-ignore
-import type { Prisma as PrismaNamespace, PrismaClient } from './node_modules/@prisma/client'
+import type { PrismaClient, Prisma as PrismaNamespace } from './node_modules/@prisma/client'
 
 declare let prisma: PrismaClient
 declare let Prisma: typeof PrismaNamespace
@@ -11,7 +12,7 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
+testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta) => {
   // TODO: Technically, only "high concurrency" test requires larger timeout
   // but `jest.setTimeout` does not work inside of the test at the moment
   //  https://github.com/facebook/jest/issues/11543
@@ -362,7 +363,11 @@ testMatrix.setupTestSuite(({ provider }, _suiteMeta, clientMeta) => {
               prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
             ])
 
-      await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+        await expect(result).rejects.toThrow(`Raw query failed. Code: \`N/A\`.`)
+      } else {
+        await expect(result).rejects.toMatchPrismaErrorSnapshot()
+      }
 
       const users = await prisma.user.findMany()
 

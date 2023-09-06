@@ -1,4 +1,5 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { allSqlProvidersMatrix } from '../../_utils/providerFlavors'
 import { Providers } from '../../_utils/providers'
 
 const RelationModeEnv = process.env.RELATION_MODE
@@ -11,22 +12,5 @@ const relationMode: RelationMode = (RelationModeEnv as RelationMode) || ''
 
 // TODO: fix mysql issues with Restrict
 export default defineMatrix(() => [
-  [
-    {
-      provider: Providers.POSTGRESQL,
-      relationMode,
-    },
-    {
-      provider: Providers.MYSQL,
-      relationMode,
-    },
-    {
-      provider: Providers.COCKROACHDB,
-      relationMode,
-    },
-    {
-      provider: Providers.SQLSERVER,
-      relationMode,
-    },
-  ],
+  allSqlProvidersMatrix.filter((it) => it.provider !== Providers.SQLITE).map((it) => ({ ...it, relationMode })),
 ])

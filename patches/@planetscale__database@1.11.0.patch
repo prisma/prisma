@@ -1,0 +1,36 @@
+diff --git a/dist/cjs/index.js b/dist/cjs/index.js
+index 4f0c89d79fd6b864524aa1d3be912e76436fc0eb..5c10f527e6d6146d93c7b5a4610ab0cc9ae17fd7 100644
+--- a/dist/cjs/index.js
++++ b/dist/cjs/index.js
+@@ -73,12 +73,15 @@ class Connection {
+         const conn = new Connection(this.config);
+         const tx = new Tx(conn);
+         try {
++            console.debug('planetscaleTransaction_BEGIN')
+             await tx.execute('BEGIN');
+             const res = await fn(tx);
++            console.debug('planetscaleTransaction_COMMIT')
+             await tx.execute('COMMIT');
+             return res;
+         }
+         catch (err) {
++            console.error({ planetscaleErrorTransaction: err })
+             await tx.execute('ROLLBACK');
+             throw err;
+         }
+@@ -96,6 +99,7 @@ class Connection {
+             this.session = session;
+         }
+         if (error) {
++            console.error({ planetscaleErrorExecute: error })
+             throw new DatabaseError(error.message, 400, error);
+         }
+         const rowsAffected = result?.rowsAffected ? parseInt(result.rowsAffected, 10) : 0;
+@@ -158,6 +162,7 @@ async function postJSON(config, url, body = {}) {
+                 message: response.statusText
+             });
+         }
++        console.error({ planetscaleErrorPostJSON: error })
+         throw error;
+     }
+ }

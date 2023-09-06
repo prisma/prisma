@@ -61,10 +61,10 @@ testMatrix.setupTestSuite(
   },
   // Use `optOut` to opt out from testing the default selected providers
   // otherwise the suite will require all providers to be specified.
-  // {
-  //   optOut: {
-  //     from: ['sqlite', 'mongodb'],
-  //     reason: 'Only testing xyz provider(s) so opting out of sqlite and mongodb',
-  //   },
-  // },
+  {
+    optOut: {
+      from: ['sqlite', 'postgresql', 'mongodb', 'cockroachdb', 'sqlserver', 'mysql'],
+      reason: 'Only testing xyz provider(s) because x',
+    },
+  },
 )

@@ -130,8 +130,15 @@ function getTestSuiteParametersString(configs: Record<string, string>[]) {
         const providerFlavorStr = config.providerFlavor === undefined ? '' : `providerFlavor=${config.providerFlavor},`
         return `relationMode=${config.relationMode},provider=${config.provider},${providerFlavorStr}onUpdate=${config.onUpdate},onDelete=${config.onDelete},id=${config.id}`
       } else {
-        const firstKey = Object.keys(config)[0]
-        return `${firstKey}=${config[firstKey]}`
+        const keys = Object.keys(config)
+        let name = `${keys[0]}=${config[keys[0]]}`
+
+        const providerFlavor = config.providerFlavor
+        // Add providerFlavor to the name if it's present
+        if (keys.length > 1 && providerFlavor) {
+          name += `,${keys[1]}=${providerFlavor}`
+        }
+        return name
       }
     })
     .join(', ')

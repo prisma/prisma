@@ -86,7 +86,6 @@ testMatrix.setupTestSuite(({ provider }, _, clientMeta) => {
     })
 
     await expect(result).rejects.toMatchPrismaErrorSnapshot()
-
     const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
     expect(users).toHaveLength(0)

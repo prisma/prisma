@@ -35,6 +35,12 @@ on:
         type: string
         default: '8'
     secrets:
+      # TODO Remove once testing against the proxy
+      TEST_FUNCTIONAL_JS_NEON_URI:
+        required: false
+      # TODO Remove once testing against the proxy
+      TEST_FUNCTIONAL_JS_PLANETSCALE_URI:
+        required: false
       BUILDPULSE_ACCESS_KEY_ID:
         required: false
       BUILDPULSE_SECRET_ACCESS_KEY:
@@ -140,6 +146,11 @@ jobs:
           pnpm-version: ${{ inputs.pnpmVersion }}
           # Fails if set to true
           skip-tsc: false
+
+      - name: Start PlanetScale Proxy in background
+        working-directory: packages/client/tests/functional/_utils/proxy-planetscale
+        run: |
+          sh start.sh &
 
       # Run the functional test suite
       - run: pnpm run test:functional --silent --shard ${{ matrix.shard }}
@@ -406,6 +417,11 @@ jobs:
           node-version: ${{ matrix.node }}
           pnpm-version: ${{ inputs.pnpmVersion }}
           skip-tsc: true
+
+      - name: Start PlanetScale Proxy in background
+        working-directory: packages/client/tests/functional/_utils/proxy-planetscale
+        run: |
+          sh start.sh &
 
       # shouldn't take more than 15 minutes
       - name: 1 to 1
@@ -838,6 +854,7 @@ jobs:
           echo "TEST_SKIP_MONGODB=true" >> $GITHUB_ENV
           echo "TEST_SKIP_COCKROACHDB=true" >> $GITHUB_ENV
           echo "TEST_SKIP_VITESS=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_JS_PLANETSCALE=true" >> $GITHUB_ENV
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 
@@ -863,6 +880,8 @@ jobs:
           NODE_OPTIONS: "${{ matrix.os == 'macos-13' && '--max-old-space-size=14336' || '--max-old-space-size=7168' }}"
           JEST_JUNIT_SUITE_NAME: 'client/functional'
           JEST_JUNIT_UNIQUE_OUTPUT_NAME: true
+          DEBUG: 'prisma:js-connector*'
+          TEST_FUNCTIONAL_JS_NEON_URI: ${{ secrets.TEST_FUNCTIONAL_JS_NEON_URI }}
 
       - uses: codecov/codecov-action@v3
         with:
@@ -911,6 +930,8 @@ jobs:
           echo "TEST_SKIP_MSSQL=true" >> $GITHUB_ENV
           echo "TEST_SKIP_MONGODB=true" >> $GITHUB_ENV
           echo "TEST_SKIP_COCKROACHDB=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_VITESS=true" >> $GITHUB_ENV
+          echo "TEST_SKIP_JS_PLANETSCALE=true" >> $GITHUB_ENV
           echo "PRISMA_CLI_QUERY_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
           echo "PRISMA_CLIENT_ENGINE_TYPE=${{ matrix.queryEngine }}" >> $GITHUB_ENV
 

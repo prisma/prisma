@@ -1,4 +1,5 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { allProvidersMatrix } from '../../_utils/providerFlavors'
 
 const conflictingModels = [
   'ModelUpdate',
@@ -16,25 +17,6 @@ const conflictingModels = [
 ] as const
 
 export default defineMatrix(() => [
-  [
-    {
-      provider: 'sqlite',
-    },
-    {
-      provider: 'postgresql',
-    },
-    {
-      provider: 'mysql',
-    },
-    {
-      provider: 'mongodb',
-    },
-    {
-      provider: 'cockroachdb',
-    },
-    {
-      provider: 'sqlserver',
-    },
-  ],
+  allProvidersMatrix,
   conflictingModels.map((conflictingModel) => ({ conflictingModel })),
 ])

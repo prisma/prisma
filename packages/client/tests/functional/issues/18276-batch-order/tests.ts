@@ -7,7 +7,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  () => {
+  (suiteConfig, suiteMeta, clientMeta) => {
     test('executes batch queries in the right order when using extensions + middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
@@ -36,7 +36,6 @@ testMatrix.setupTestSuite(
       })
 
       await xprisma.$queryRawUnsafe('SELECT 2')
-
       await waitFor(() =>
         expect(queries).toEqual([expect.stringContaining('BEGIN'), 'SELECT 1', 'SELECT 2', 'SELECT 3', 'COMMIT']),
       )

@@ -235,7 +235,6 @@ export default defineMatrix(
       {
         providerFeatures: '',
       },
-
       {
         providerFeatures: 'improvedQueryRaw',
       },

@@ -1,11 +1,16 @@
 import { afterAll, beforeAll, test } from '@jest/globals'
+import { PrismaNeon } from '@jkomyno/prisma-adapter-neon' // TODO rename to `@prisma/adapter-neon`
+import { WebSocket, fetch as undiciFetch } from 'undici'
+import { Pool, neonConfig } from '@neondatabase/serverless'
+import { PrismaPlanetScale } from '@jkomyno/prisma-adapter-planetscale'
+import { connect } from '@planetscale/database'
 import fs from 'fs-extra'
 import path from 'path'
 
 import { checkMissingProviders } from './checkMissingProviders'
 import { getTestSuiteConfigs, getTestSuiteFolderPath, getTestSuiteMeta } from './getTestSuiteInfo'
 import { getTestSuitePlan } from './getTestSuitePlan'
-import { ProviderFlavors } from './relationMode/ProviderFlavor'
+import { ProviderFlavors } from './providerFlavors'
 import { getClientMeta, setupTestSuiteClient } from './setupTestSuiteClient'
 import { DatasourceInfo, dropTestSuiteDatabase, setupTestSuiteDatabase, setupTestSuiteDbURI } from './setupTestSuiteEnv'
 import { stopMiniProxyQueryEngine } from './stopMiniProxyQueryEngine'
@@ -75,6 +80,7 @@ function setupTestSuiteMatrix(
   for (const { name, suiteConfig, skip } of testPlan) {
     const generatedFolder = getTestSuiteFolderPath(suiteMeta, suiteConfig)
     const describeFn = skip ? describe.skip : describe
+    const providerFlavor = suiteConfig.matrixOptions['providerFlavor'] as ProviderFlavors
 
     describeFn(name, () => {
       const clients = [] as any[]
@@ -94,11 +100,51 @@ function setupTestSuiteMatrix(
           alterStatementCallback: options?.alterStatementCallback,
         })
 
-        globalThis['newPrismaClient'] = (...args) => {
-          const client = new globalThis['loaded']['PrismaClient'](...args)
+        globalThis['newPrismaClient'] = (args) => {
+          let client
+          if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+            // When using a remote database
+            // const connectionString = `${process.env.TEST_FUNCTIONAL_JS_PLANETSCALE_URI as string}`
+
+            const connection = connect({
+              // url: connectionString,
+              url: 'http://root:root@127.0.0.1:8085',
+
+              /**
+               * Custom `fetch` implementation is only necessary on Node.js < v18.x.x.
+               */
+              fetch: undiciFetch,
+            })
+
+            const adapter = new PrismaPlanetScale(connection)
+            console.log({ adapter })
+            client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
+          }
+          // else if (providerFlavor === ProviderFlavors.JS_NEON) {
+          //   const connectionString = `${process.env.TEST_FUNCTIONAL_JS_NEON_URI as string}`.replace(
+          //     'PRISMA_DB_NAME',
+          //     'tests',
+          //   )
+
+          //   neonConfig.webSocketConstructor = WebSocket
+          //   neonConfig.fetchFunction = undiciFetch
+
+          //   const pool = new Pool({
+          //     connectionString,
+          //   })
+          //   const adapter = new PrismaNeon(pool)
+
+          //   client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
+          // }
+          else {
+            client = new globalThis['loaded']['PrismaClient']({ ...args })
+          }
+
           clients.push(client)
+
           return client
         }
+
         if (!options?.skipDefaultClientInstance) {
           globalThis['prisma'] = globalThis['newPrismaClient']()
         }
@@ -133,19 +179,30 @@ function setupTestSuiteMatrix(
           }
         }
         clients.length = 0
-        if (!options?.skipDb && suiteConfig.matrixOptions['providerFlavor'] !== ProviderFlavors.VITESS_8) {
+
+        // Skip the database drop?
+        if (
+          !options?.skipDb &&
+          ![
+            ProviderFlavors.VITESS_8,
+            ProviderFlavors.JS_PLANETSCALE,
+            // ProviderFlavors.JS_NEON
+          ].includes(providerFlavor)
+        ) {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo
           process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
           process.env[datasourceInfo.directEnvVarName] = datasourceInfo.databaseUrl
           await dropTestSuiteDatabase(suiteMeta, suiteConfig)
         }
+
+        // cleanup env vars
         process.env = originalEnv
         delete globalThis['datasourceInfo']
         delete globalThis['loaded']
         delete globalThis['prisma']
         delete globalThis['Prisma']
         delete globalThis['newPrismaClient']
-      }, 180_000)
+      }, 180_000) // TODO: lower the timeout?
 
       const setupDatabase = async () => {
         if (!options?.skipDb) {

@@ -1,16 +1,17 @@
+import { computeSchemaHeader } from '../../_utils/computeSchemaHeader'
+import { Providers } from '../../_utils/providers'
+import { ProviderFlavor } from '../../_utils/providerFlavors'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, providerFeatures, previewFeatures, id }) => {
+export default testMatrix.setupSchema(({ provider, providerFlavor, relationMode, id }): string => {
+  const schemaHeader = computeSchemaHeader({
+    provider: provider as Providers,
+    providerFlavor: providerFlavor as ProviderFlavor,
+    relationMode,
+  })
+
   return /* Prisma */ `
-    generator client {
-      provider = "prisma-client-js"
-      previewFeatures = [${providerFeatures}${previewFeatures}]
-    }
-    
-    datasource db {
-      provider = "${provider}"
-      url      = env("DATABASE_URI_${provider}")
-    }
+${schemaHeader}
     
     model User {
       id ${id}

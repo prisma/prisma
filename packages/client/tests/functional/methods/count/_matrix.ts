@@ -1,4 +1,5 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 
 export default defineMatrix(() => [
   [
@@ -10,8 +11,23 @@ export default defineMatrix(() => [
       provider: 'postgresql',
       foreignKeyId: 'String?',
     },
+    // {
+    //   provider: 'postgresql',
+    //   providerFlavor: 'js_neon',
+    //   foreignKeyId: 'String?',
+    // },
     {
       provider: 'mysql',
+      foreignKeyId: 'String?',
+    },
+    {
+      provider: 'mysql',
+      providerFlavor: ProviderFlavors.VITESS_8,
+      foreignKeyId: 'String?',
+    },
+    {
+      provider: 'mysql',
+      providerFlavor: ProviderFlavors.JS_PLANETSCALE,
       foreignKeyId: 'String?',
     },
     {

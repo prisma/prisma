@@ -31,6 +31,7 @@ testMatrix.setupTestSuite(
       queries.length = 0
     })
 
+    // TODO: fails for js_planetscale with []
     const testIsolationLevel = (
       name: string,
       { level, expectSql }: { level: () => PrismaNamespace.TransactionIsolationLevel; expectSql: string },

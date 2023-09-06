@@ -1,0 +1,424 @@
+/*
+Copyright 2019 The Vitess Authors.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+// This file contains the Vitess topology related data structures.
+// Very few of these structures are exchanged over the wire (only
+// TabletType and KeyRange), but they are all used by the topology
+// service.
+
+syntax = "proto3";
+option go_package = "vitess.io/vitess/go/vt/proto/topodata";
+
+option java_package="io.vitess.proto";
+
+package topodata;
+
+import "vttime.proto";
+
+// KeyRange describes a range of sharding keys, when range-based
+// sharding is used.
+message KeyRange {
+  bytes start = 1;
+  bytes end = 2;
+}
+
+// KeyspaceType describes the type of the keyspace
+enum KeyspaceType {
+  // NORMAL is the default value
+  NORMAL = 0;
+
+  // SNAPSHOT is when we are creating a snapshot keyspace
+  SNAPSHOT = 1;
+}
+
+// KeyspaceIdType describes the type of the sharding key for a
+// range-based sharded keyspace.
+enum KeyspaceIdType {
+  // UNSET is the default value, when range-based sharding is not used.
+  UNSET = 0;
+
+  // UINT64 is when uint64 value is used.
+  // This is represented as 'unsigned bigint' in mysql
+  UINT64 = 1;
+
+  // BYTES is when an array of bytes is used.
+  // This is represented as 'varbinary' in mysql
+  BYTES = 2;
+}
+
+// TabletAlias is a globally unique tablet identifier.
+message TabletAlias {
+  // cell is the cell (or datacenter) the tablet is in
+  string cell = 1;
+
+  // uid is a unique id for this tablet within the shard
+  // (this is the MySQL server id as well).
+  uint32 uid = 2;
+}
+
+// TabletType represents the type of a given tablet.
+enum TabletType {
+  option allow_alias = true; // so we can have RDONLY and BATCH co-exist
+
+  // UNKNOWN is not a valid value.
+  UNKNOWN = 0;
+
+  // PRIMARY is the primary server for the shard. Only PRIMARY allows DMLs.
+  PRIMARY = 1;
+
+  // DEPRECATED
+  MASTER = 1;
+
+  // REPLICA replicates from primary. It is used to serve live traffic.
+  // A REPLICA can be promoted to PRIMARY. A demoted PRIMARY will go to REPLICA.
+  REPLICA = 2;
+
+  // RDONLY (old name) / BATCH (new name) is used to serve traffic for
+  // long-running jobs. It is a separate type from REPLICA so
+  // long-running queries don't affect web-like traffic.
+  RDONLY = 3;
+  BATCH = 3;
+
+  // SPARE is a type of servers that cannot serve queries, but is available
+  // in case an extra server is needed.
+  SPARE = 4;
+
+  // EXPERIMENTAL is like SPARE, except it can serve queries. This
+  // type can be used for usages not planned by Vitess, like online
+  // export to another storage engine.
+  EXPERIMENTAL = 5;
+
+  // BACKUP is the type a server goes to when taking a backup. No queries
+  // can be served in BACKUP mode.
+  BACKUP = 6;
+
+  // RESTORE is the type a server uses when restoring a backup, at
+  // startup time.  No queries can be served in RESTORE mode.
+  RESTORE = 7;
+
+  // DRAINED is the type a server goes into when used by Vitess tools
+  // to perform an offline action. It is a serving type (as
+  // the tools processes may need to run queries), but it's not used
+  // to route queries from Vitess users. In this state,
+  // this tablet is dedicated to the process that uses it.
+  DRAINED = 8;
+}
+
+// Tablet represents information about a running instance of vttablet.
+message Tablet {
+  // alias is the unique name of the tablet.
+  TabletAlias alias = 1;
+
+  // Fully qualified domain name of the host.
+  string hostname = 2;
+
+  // Map of named ports. Normally this should include vt and grpc.
+  // Going forward, the mysql port will be stored in mysql_port
+  // instead of here.
+  // For accessing mysql port, use topoproto.MysqlPort to fetch, and
+  // topoproto.SetMysqlPort to set. These wrappers will ensure
+  // legacy behavior is supported.
+  map<string, int32> port_map = 4;
+
+  // Keyspace name.
+  string keyspace = 5;
+
+  // Shard name. If range based sharding is used, it should match
+  // key_range.
+  string shard = 6;
+
+  // If range based sharding is used, range for the tablet's shard.
+  KeyRange key_range = 7;
+
+  // type is the current type of the tablet.
+  TabletType type = 8;
+
+  // It this is set, it is used as the database name instead of the
+  // normal "vt_" + keyspace.
+  string db_name_override = 9;
+
+  // tablet tags
+  map<string, string> tags = 10;
+
+  // MySQL hostname.
+  string mysql_hostname = 12;
+
+  // MySQL port. Use topoproto.MysqlPort and topoproto.SetMysqlPort
+  // to access this variable. The functions provide support
+  // for legacy behavior.
+  int32 mysql_port = 13;
+
+  // primary_term_start_time is the time (in UTC) at which the current term of
+  // the current tablet began as primary. If this tablet is not currently the
+  // primary, this value is ignored.
+  //
+  // A new primary term begins any time an authoritative decision is communicated
+  // about which tablet should be the primary, such as via Vitess
+  // replication-management commands like PlannedReparentShard,
+  // EmergencyReparentShard, and TabletExternallyReparented.
+  //
+  vttime.Time primary_term_start_time = 14;
+
+  // db_server_version represents the database version used by the tablet.
+  string db_server_version = 15;
+
+  // default_conn_collation is the default connection collation used by this tablet.
+  uint32 default_conn_collation = 16;
+
+  // OBSOLETE: ip and tablet health information
+  // string ip = 3;
+  // map<string, string> health_map = 11;
+  reserved 3, 11;
+}
+
+// A Shard contains data about a subset of the data whithin a keyspace.
+message Shard {
+  // primary_alias is the tablet alias of the primary for the shard.
+  // If it is unset, then there is no primary in this shard yet.
+  // No lock is necessary to update this field, when for instance
+  // TabletExternallyReparented updates this. However, we lock the
+  // shard for reparenting operations (InitShardPrimary,
+  // PlannedReparentShard,EmergencyReparentShard), to guarantee
+  // exclusive operation.
+  TabletAlias primary_alias = 1;
+
+  // primary_term_start_time is the time (in UTC) at which the current term of
+  // the primary specified in primary_alias began.
+  //
+  // A new primary term begins any time an authoritative decision is communicated
+  // about which tablet should be the primary, such as via Vitess
+  // replication-management commands like PlannedReparentShard,
+  // EmergencyReparentShard, and TabletExternallyReparented.
+  //
+  // The primary_alias should only ever be changed if the new primary's term began
+  // at a later time than this. Note that a new term can start for the tablet
+  // that is already the primary. In that case, the primary_term_start_time would
+  // be increased without changing the primary_alias.
+  vttime.Time primary_term_start_time = 8;
+
+  // key_range is the KeyRange for this shard. It can be unset if:
+  // - we are not using range-based sharding in this shard.
+  // - the shard covers the entire keyrange.
+  // This must match the shard name based on our other conventions, but
+  // helpful to have it decomposed here.
+  // Once set at creation time, it is never changed.
+  KeyRange key_range = 2;
+
+  // Deprecated: served_types = 3
+  reserved 3;
+
+  // SourceShard represents a data source for filtered replication
+  // across shards. When this is used in a destination shard, the primary
+  // of that shard will run filtered replication.
+  message SourceShard {
+    // Uid is the unique ID for this SourceShard object.
+    uint32 uid = 1;
+
+    // the source keyspace
+    string keyspace = 2;
+
+    // the source shard
+    string shard = 3;
+
+    // the source shard keyrange
+    KeyRange key_range = 4;
+
+    // the source table list to replicate
+    repeated string tables = 5;
+  }
+
+  // SourceShards is the list of shards we're replicating from,
+  // using filtered replication.
+  // The keyspace lock is always taken when changing this.
+  repeated SourceShard source_shards = 4;
+
+  // TabletControl controls tablet's behavior
+  message TabletControl {
+    // which tablet type is affected
+    TabletType tablet_type = 1;
+    repeated string cells = 2;
+
+    // OBSOLETE: disable_query_service 3
+    reserved 3;
+
+    repeated string denied_tables = 4;
+
+    // frozen is set if we've started failing over traffic for
+    // the primary. If set, this record should not be removed.
+    bool frozen = 5;
+  }
+
+  // tablet_controls has at most one entry per TabletType.
+  // The keyspace lock is always taken when changing this.
+  repeated TabletControl tablet_controls = 6;
+
+  // is_primary_serving sets whether this shard primary is serving traffic or not.
+  // The keyspace lock is always taken when changing this.
+  bool is_primary_serving = 7;
+
+  // OBSOLETE cells (5)
+  reserved 5;
+}
+
+// A Keyspace contains data about a keyspace.
+message Keyspace {
+  // name of the column used for sharding
+  // empty if the keyspace is not sharded
+  string sharding_column_name = 1;
+
+  // type of the column used for sharding
+  // UNSET if the keyspace is not sharded
+  KeyspaceIdType sharding_column_type = 2;
+
+  // OBSOLETE int32 split_shard_count = 3;
+  reserved 3;
+
+  // ServedFrom indicates a relationship between a TabletType and the
+  // keyspace name that's serving it.
+  message ServedFrom {
+    // the tablet type (key for the map)
+    TabletType tablet_type = 1;
+
+    // the cells to limit this to
+    repeated string cells = 2;
+
+    // the keyspace name that's serving it
+    string keyspace = 3;
+  }
+
+  // ServedFrom will redirect the appropriate traffic to
+  // another keyspace.
+  repeated ServedFrom served_froms = 4;
+
+  // keyspace_type will determine how this keyspace is treated by
+  // vtgate / vschema. Normal keyspaces are routable by
+  // any query. Snapshot keyspaces are only accessible
+  // by explicit addresssing or by calling "use keyspace" first
+  KeyspaceType keyspace_type = 5;
+
+  // base_keyspace is the base keyspace from which a snapshot
+  // keyspace is created. empty for normal keyspaces
+  string base_keyspace = 6;
+  
+  // snapshot_time (in UTC) is a property of snapshot
+  // keyspaces which tells us what point in time
+  // the snapshot is of
+  vttime.Time snapshot_time = 7;  
+}
+
+// ShardReplication describes the MySQL replication relationships
+// whithin a cell.
+message ShardReplication {
+
+  // Node describes a tablet instance within the cell
+  message Node {
+    TabletAlias tablet_alias = 1;
+  }
+
+  // Note there can be only one Node in this array
+  // for a given tablet.
+  repeated Node nodes = 1;
+}
+
+// ShardReference is used as a pointer from a SrvKeyspace to a Shard
+message ShardReference {
+  // Copied from Shard.
+  string name = 1;
+  KeyRange key_range = 2;
+  // Disable query serving in this shard
+}
+
+// ShardTabletControl is used as a pointer from a SrvKeyspace to a Shard
+message ShardTabletControl {
+  // Copied from Shard.
+  string name = 1;
+  KeyRange key_range = 2;
+  // Disable query serving in this shard
+  bool query_service_disabled = 3;
+}
+
+// SrvKeyspace is a rollup node for the keyspace itself.
+message SrvKeyspace {
+  message KeyspacePartition {
+    // The type this partition applies to.
+    TabletType served_type = 1;
+
+    // List of non-overlapping continuous shards sorted by range.
+    repeated ShardReference shard_references = 2;
+
+    // List of shard tablet controls
+    repeated ShardTabletControl shard_tablet_controls = 3;
+  }
+
+  // The partitions this keyspace is serving, per tablet type.
+  repeated KeyspacePartition partitions = 1;
+
+  // ServedFrom indicates a relationship between a TabletType and the
+  // keyspace name that's serving it.
+  message ServedFrom {
+    // the tablet type
+    TabletType tablet_type = 1;
+
+    // the keyspace name that's serving it
+    string keyspace = 2;
+  }
+
+  // copied from Keyspace
+  string sharding_column_name = 2;
+  KeyspaceIdType sharding_column_type = 3;
+  repeated ServedFrom served_from = 4;
+  // OBSOLETE int32 split_shard_count = 5;
+  reserved 5;
+}
+
+// CellInfo contains information about a cell. CellInfo objects are
+// stored in the global topology server, and describe how to reach
+// local topology servers.
+message CellInfo {
+  // ServerAddress contains the address of the server for the cell.
+  // The syntax of this field is topology implementation specific.
+  // For instance, for Zookeeper, it is a comma-separated list of
+  // server addresses.
+  string server_address = 1;
+
+  // Root is the path to store data in. It is only used when talking
+  // to server_address.
+  string root = 2;
+
+  // OBSOLETE: region 3
+  reserved 3;
+}
+
+// CellsAlias 
+message CellsAlias {
+  // Cells that map to this alias
+  repeated string cells = 2;
+}
+
+message TopoConfig {
+  string topo_type = 1;
+  string server = 2;
+  string root = 3;
+}
+
+message ExternalVitessCluster {
+  TopoConfig topo_config = 1;
+}
+
+// ExternalClusters
+message ExternalClusters {
+  repeated ExternalVitessCluster vitess_cluster = 1;
+}

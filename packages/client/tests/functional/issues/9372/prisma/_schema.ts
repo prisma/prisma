@@ -1,17 +1,17 @@
+import { computeSchemaHeader } from '../../../_utils/computeSchemaHeader'
 import { idForProvider } from '../../../_utils/idForProvider'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider }) => {
+export default testMatrix.setupSchema(({ provider }): string => {
+  const schemaHeader = computeSchemaHeader({
+    provider,
+  })
+
   const foreignKey = provider === 'mongodb' ? 'String? @db.ObjectId' : 'String?'
+
   return /* Prisma */ `
-  generator client {
-    provider = "prisma-client-js"
-  }
-  
-  datasource db {
-    provider = "${provider}"
-    url      = env("DATABASE_URI_${provider}")
-  }
+${schemaHeader}
+
   
   model Dictionary {
     id     ${idForProvider(provider)}

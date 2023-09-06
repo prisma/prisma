@@ -18,7 +18,7 @@ testMatrix.setupTestSuite(
       } catch (e) {
         const message = stripAnsi(e.message as string)
         expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-        expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
+        expect(message).toContain('error: Environment variable not found: DATABASE_URI_DOES_NOT_EXISTS.')
       }
     })
 
@@ -34,7 +34,7 @@ testMatrix.setupTestSuite(
       } catch (e) {
         const message = stripAnsi(e.message as string)
         expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-        expect(message).toContain('error: Environment variable not found: DATABASE_URI.')
+        expect(message).toContain('error: Environment variable not found: DATABASE_URI_DOES_NOT_EXISTS.')
       }
     })
 
@@ -48,7 +48,7 @@ testMatrix.setupTestSuite(
         } catch (e) {
           const message = stripAnsi(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-          expect(message).toMatchInlineSnapshot(`error: Environment variable not found: DATABASE_URI.`)
+          expect(message).toMatchInlineSnapshot(`error: Environment variable not found: DATABASE_URI_DOES_NOT_EXISTS.`)
         }
       },
     )
@@ -66,7 +66,7 @@ testMatrix.setupTestSuite(
           const message = stripAnsi(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
           expect(message).toMatchInlineSnapshot(`
-            error: Environment variable not found: DATABASE_URI.
+            error: Environment variable not found: DATABASE_URI_DOES_NOT_EXISTS.
 
             In Cloudflare module Workers, environment variables are available only in the Worker's \`env\` parameter of \`fetch\`.
             To solve this, provide the connection string directly: https://pris.ly/d/cloudflare-datasource-url
@@ -87,7 +87,7 @@ testMatrix.setupTestSuite(
         } catch (e) {
           const message = stripAnsi(e.message as string)
           expect(e).toBeInstanceOf(Prisma.PrismaClientInitializationError)
-          expect(message).toMatchInlineSnapshot(`error: Environment variable not found: DATABASE_URI.`)
+          expect(message).toMatchInlineSnapshot(`error: Environment variable not found: DATABASE_URI_DOES_NOT_EXISTS.`)
         }
       },
     )

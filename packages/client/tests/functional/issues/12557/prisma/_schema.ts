@@ -1,25 +1,13 @@
-import { Providers } from '../../../_utils/providers'
+import { computeSchemaHeader } from '../../../_utils/computeSchemaHeader'
 import testMatrix from '../_matrix'
 
-export default testMatrix.setupSchema(({ provider, relationMode }) => {
-  // if relationMode is not defined, we do not add the line
-  // if relationMode is defined
-  // we add the line only if the provider is not MongoDB, since MongoDB doesn't need the setting, it's on by default
-  const relationModeLine = provider === Providers.MONGODB || !relationMode ? '' : `relationMode = "${relationMode}"`
+export default testMatrix.setupSchema(({ provider, providerFlavor }): string => {
+  const schemaHeader = computeSchemaHeader({
+    provider,
+    providerFlavor,
+  })
 
-  const schemaHeader = /* Prisma */ `
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
-  provider = "${provider}"
-  url      = env("DATABASE_URI_${provider}")
-  ${relationModeLine}
-}
-  `
-
-  const schema = /* Prisma */ `
+  return /* Prisma */ `
 ${schemaHeader}
 
 model Category {
@@ -33,9 +21,5 @@ model Brand {
   name       String     @unique
   categories Category[] 
 }
-  `
-
-  // console.log('schema', schema)
-
-  return schema
+`
 })

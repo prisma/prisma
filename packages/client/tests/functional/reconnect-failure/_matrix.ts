@@ -1,11 +1,4 @@
 import { defineMatrix } from '../_utils/defineMatrix'
+import { allSqlProvidersMatrix } from '../_utils/providerFlavors'
 
-export default defineMatrix(() => [
-  [
-    { provider: 'postgresql' },
-    { provider: 'mysql' },
-    { provider: 'sqlserver' },
-    { provider: 'sqlite' },
-    { provider: 'cockroachdb' },
-  ],
-])
+export default defineMatrix(() => [allSqlProvidersMatrix])

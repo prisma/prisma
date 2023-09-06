@@ -1,28 +1,9 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { allProvidersMatrix } from '../../_utils/providerFlavors'
 import { builtInNames } from '../_builtInNames'
 
 export default defineMatrix(() => [
-  [
-    {
-      provider: 'sqlite',
-    },
-    {
-      provider: 'postgresql',
-    },
-    {
-      provider: 'mysql',
-    },
-    {
-      provider: 'mongodb',
-    },
-    {
-      provider: 'cockroachdb',
-    },
-    {
-      provider: 'sqlserver',
-    },
-  ],
-
+  allProvidersMatrix,
   builtInNames.map((typeName) => ({
     typeName,
   })),

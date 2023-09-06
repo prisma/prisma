@@ -9,7 +9,7 @@ declare let prisma: PrismaClient
 
 const email = faker.internet.email()
 
-testMatrix.setupTestSuite((_0, _1, clientMeta) => {
+testMatrix.setupTestSuite((suiteConfig, _1, clientMeta) => {
   beforeEach(async () => {
     await prisma.post.deleteMany()
     await prisma.user.deleteMany()
@@ -60,7 +60,6 @@ testMatrix.setupTestSuite((_0, _1, clientMeta) => {
     ])
 
     await expect(result).rejects.toMatchPrismaErrorSnapshot()
-
     const users = await prisma.user.findMany({ where: { email: 'jane@smith.com' } })
 
     expect(users).toHaveLength(0)

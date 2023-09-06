@@ -1,5 +1,5 @@
+import { computeSchemaHeader } from '../../_utils/computeSchemaHeader'
 import { computeReferentialActionLine } from '../../_utils/relationMode/computeReferentialActionLine'
-import { computeSchemaHeader } from '../../_utils/relationMode/computeSchemaHeader'
 import testMatrix from '../_matrix'
 import { schema_same_actions } from './_schema_same_actions'
 

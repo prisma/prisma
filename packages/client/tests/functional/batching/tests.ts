@@ -21,6 +21,7 @@ testMatrix.setupTestSuite(
         log: [{ emit: 'event', level: 'query' }],
       })
 
+      // TODO: with @prisma/planetscale, this does not receive any events
       prisma.$on('query', () => queriesExecuted++)
     })
 

@@ -10,9 +10,10 @@ declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
  * Regression test for https://github.com/prisma/prisma/issues/17810
  */
 testMatrix.setupTestSuite(
-  ({ provider }) => {
+  ({ provider, providerFlavor }) => {
     beforeEach(() => {
-      delete process.env[`DIRECT_DATABASE_URI_${provider}`]
+      const envVarName = providerFlavor ? `DIRECT_DATABASE_URI_${providerFlavor}` : `DIRECT_DATABASE_URI_${provider}`
+      delete process.env[envVarName]
       prisma = newPrismaClient()
     })
 

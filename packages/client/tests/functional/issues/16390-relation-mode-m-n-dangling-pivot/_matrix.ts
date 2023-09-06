@@ -1,6 +1,8 @@
 import { defineMatrix } from '../../_utils/defineMatrix'
+import { ProviderFlavors } from '../../_utils/providerFlavors'
 import { Providers } from '../../_utils/providers'
 
+// relationMode: '' -> empty means default (foreignKeys)
 export default defineMatrix(() => [
   [
     {
@@ -9,15 +11,35 @@ export default defineMatrix(() => [
     },
     {
       provider: Providers.POSTGRESQL,
-      relationMode: '', // empty means default (foreignKeys)
+      relationMode: '',
     },
+    // {
+    //   provider: Providers.POSTGRESQL,
+    //   providerFlavor: ProviderFlavors.JS_NEON,
+    //   relationMode: 'prisma',
+    // },
+    // {
+    //   provider: Providers.POSTGRESQL,
+    //   providerFlavor: ProviderFlavors.JS_NEON,
+    //   relationMode: '',
+    // },
     {
       provider: Providers.MYSQL,
       relationMode: 'prisma',
     },
     {
       provider: Providers.MYSQL,
-      relationMode: '', // empty means default (foreignKeys)
+      relationMode: '',
+    },
+    {
+      provider: Providers.MYSQL,
+      providerFlavor: ProviderFlavors.VITESS_8,
+      relationMode: 'prisma',
+    },
+    {
+      provider: Providers.MYSQL,
+      providerFlavor: ProviderFlavors.JS_PLANETSCALE,
+      relationMode: 'prisma',
     },
   ],
 ])
