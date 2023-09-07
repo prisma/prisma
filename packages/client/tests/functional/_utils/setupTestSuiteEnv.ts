@@ -5,6 +5,7 @@ import fs from 'fs-extra'
 import path from 'path'
 import { match } from 'ts-pattern'
 import { Script } from 'vm'
+import { $ } from 'zx'
 
 import { DbDrop } from '../../../../migrate/src/commands/DbDrop'
 import { DbExecute } from '../../../../migrate/src/commands/DbExecute'
@@ -105,12 +106,19 @@ export async function setupTestSuiteSchema(
  * @param suiteMeta
  * @param suiteConfig
  */
-export async function setupTestSuiteDatabase(
-  suiteMeta: TestSuiteMeta,
-  suiteConfig: NamedTestSuiteConfig,
-  errors: Error[] = [],
-  alterStatementCallback?: AlterStatementCallback,
-) {
+export async function setupTestSuiteDatabase({
+  suiteMeta,
+  suiteConfig,
+  errors = [],
+  datasourceInfo,
+  alterStatementCallback,
+}: {
+  suiteMeta: TestSuiteMeta
+  suiteConfig: NamedTestSuiteConfig
+  errors: Error[]
+  datasourceInfo: DatasourceInfo
+  alterStatementCallback?: AlterStatementCallback
+}) {
   const schemaPath = getTestSuiteSchemaPath(suiteMeta, suiteConfig)
 
   try {
@@ -123,13 +131,28 @@ export async function setupTestSuiteDatabase(
     // faster tests), so it's good to force reset in this case
     if (
       [
-        ProviderFlavors.VITESS_8,
+        // ProviderFlavors.VITESS_8,
         ProviderFlavors.JS_PLANETSCALE,
         // ProviderFlavors.JS_NEON
       ].includes(providerFlavor)
     ) {
       dbPushParams.push('--force-reset')
     }
+
+    if (
+      [
+        ProviderFlavors.VITESS_8,
+        // ProviderFlavors.JS_PLANETSCALE,
+      ].includes(providerFlavor)
+    ) {
+      const vitessUrl = process.env.TEST_FUNCTIONAL_VITESS_8_URI?.replace(DB_NAME_VAR, 'tests')
+      await $`echo "CREATE DATABASE ${datasourceInfo.databaseUrl
+        .split('/')
+        .pop()};" | ../cli/build/index.js db execute --stdin --url "${vitessUrl}"`
+      // wait a little for the Vitess database to be ready
+      await new Promise((r) => setTimeout(r, 300))
+    }
+
     await DbPush.new().parse(dbPushParams)
 
     if (alterStatementCallback) {
@@ -163,7 +186,7 @@ export async function setupTestSuiteDatabase(
     if (errors.length > 2) {
       throw new Error(errors.map((e) => `${e.message}\n${e.stack}`).join(`\n`))
     } else {
-      await setupTestSuiteDatabase(suiteMeta, suiteConfig, errors) // retry logic
+      await setupTestSuiteDatabase({ suiteMeta, suiteConfig, errors, datasourceInfo }) // retry logic
     }
   }
 }
@@ -214,7 +237,12 @@ export type DatasourceInfo = {
 export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientMeta: ClientMeta): DatasourceInfo {
   const provider = suiteConfig['provider'] as Providers
   const providerFlavor = suiteConfig['providerFlavor'] as ProviderFlavor | undefined
-  const dbId = `${faker.string.alphanumeric(5)}-${process.pid}-${Date.now()}`
+  // Note that `-` dashes are not working as expected with Vitess
+  // An `_` is added as a prefix because on Vitess
+  //  a database name starting with `1e` throws the following error:
+  //  Error: syntax error at position 19 near '1e'
+
+  const dbId = `_${faker.string.alphanumeric(5)}_${process.pid}_${Date.now()}`
 
   const { envVarName, newURI } = match(providerFlavor)
     .with(undefined, () => {
@@ -233,9 +261,10 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   // So we can reuse the same database for all tests
   // It has a significant impact on the test runtime
   // Example: 60s -> 3s
-  if (providerFlavor === ProviderFlavors.VITESS_8) {
-    databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
-  } else if (
+  // if (providerFlavor === ProviderFlavors.VITESS_8) {
+  //   databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
+  // } else
+  if (
     providerFlavor === ProviderFlavors.JS_PLANETSCALE
     // || providerFlavor === ProviderFlavors.JS_NEON
   ) {

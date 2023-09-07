@@ -48,7 +48,7 @@ export async function setupTestSuiteClient({
 
   if (!skipDb) {
     process.env[datasourceInfo.envVarName] = datasourceInfo.databaseUrl
-    await setupTestSuiteDatabase(suiteMeta, suiteConfig, [], alterStatementCallback)
+    await setupTestSuiteDatabase({ suiteMeta, suiteConfig, errors: [], datasourceInfo, alterStatementCallback })
   }
 
   process.env[datasourceInfo.envVarName] = datasourceInfo.dataProxyUrl ?? datasourceInfo.databaseUrl

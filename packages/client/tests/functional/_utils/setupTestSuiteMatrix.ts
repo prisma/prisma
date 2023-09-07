@@ -87,10 +87,10 @@ function setupTestSuiteMatrix(
 
     describeFn(name, () => {
       const clients = [] as any[]
-
+      let datasourceInfo
       // we inject modified env vars, and make the client available as globals
       beforeAll(async () => {
-        const datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
+        datasourceInfo = setupTestSuiteDbURI(suiteConfig.matrixOptions, clientMeta)
 
         globalThis['datasourceInfo'] = datasourceInfo
 
@@ -194,7 +194,7 @@ function setupTestSuiteMatrix(
         if (
           !options?.skipDb &&
           ![
-            ProviderFlavors.VITESS_8,
+            // ProviderFlavors.VITESS_8,
             ProviderFlavors.JS_PLANETSCALE,
             // ProviderFlavors.JS_NEON
           ].includes(providerFlavor)
@@ -221,7 +221,13 @@ function setupTestSuiteMatrix(
           )
         }
 
-        return setupTestSuiteDatabase(suiteMeta, suiteConfig, [], options?.alterStatementCallback)
+        return setupTestSuiteDatabase({
+          suiteMeta,
+          suiteConfig,
+          errors: [],
+          datasourceInfo,
+          alterStatementCallback: options?.alterStatementCallback,
+        })
       }
 
       if (originalEnv.TEST_GENERATE_ONLY === 'true') {
