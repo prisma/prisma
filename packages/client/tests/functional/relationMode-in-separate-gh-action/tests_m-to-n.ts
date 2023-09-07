@@ -208,8 +208,10 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [ProviderFlavors.PG]:
-                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [ProviderFlavors.PG]: ['SetNull', 'Restrict', 'NoAction', 'Cascade'].includes(onDelete)
+                        ? 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`'
+                        : // DEFAULT
+                          'insert or update on table "CategoriesOnPostsManyToMany" violates foreign key constraint "CategoriesOnPostsManyToMany_postId_fkey"',
                       // [ProviderFlavors.JS_NEON]:     'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
@@ -371,8 +373,10 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                      [ProviderFlavors.PG]:
-                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [ProviderFlavors.PG]: ['SetNull', 'Restrict', 'NoAction', 'Cascade'].includes(onDelete)
+                        ? 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`'
+                        : // DEFAULT
+                          'insert or update on table "CategoriesOnPostsManyToMany" violates foreign key constraint "CategoriesOnPostsManyToMany_postId_fkey"',
                       // [ProviderFlavors.JS_NEON]:  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
@@ -465,8 +469,10 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                      [ProviderFlavors.PG]:
-                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [ProviderFlavors.PG]: ['SetNull', 'Restrict', 'NoAction', 'Cascade'].includes(onDelete)
+                        ? 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`'
+                        : // DEFAULT
+                          'insert or update on table "CategoriesOnPostsManyToMany" violates foreign key constraint "CategoriesOnPostsManyToMany_categoryId_fkey"',
                       // [ProviderFlavors.JS_NEON]: 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                       [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
@@ -916,8 +922,10 @@ testMatrix.setupTestSuite(
                       foreignKeys: {
                         [Providers.POSTGRESQL]:
                           'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
-                        [ProviderFlavors.PG]:
-                          'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                        [ProviderFlavors.PG]: ['Restrict', 'NoAction'].includes(onDelete)
+                          ? 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`'
+                          : // DEFAULT
+                            'update or delete on table "PostManyToMany" violates foreign key constraint "CategoriesOnPostsManyToMany_postId_fkey" on table "CategoriesOnPostsManyToMany"',
                         // [ProviderFlavors.JS_NEON]:  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                         [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                         [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
@@ -950,15 +958,17 @@ testMatrix.setupTestSuite(
                 }),
               ).rejects.toThrow(
                 isSchemaUsingMap
-                  ? // The snaphsot changes when using @@map/@map, though only the name of the table/field is different
+                  ? // The snapshot changes when using @@map/@map, though only the name of the table/field is different
                     // So we can ignore the error message here
                     undefined
                   : conditionalError.snapshot({
                       foreignKeys: {
                         [Providers.POSTGRESQL]:
                           'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
-                        [ProviderFlavors.PG]:
-                          'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                        [ProviderFlavors.PG]: ['Restrict', 'NoAction'].includes(onDelete)
+                          ? 'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`'
+                          : // DEFAULT
+                            'update or delete on table "CategoryManyToMany" violates foreign key constraint "CategoriesOnPostsManyToMany_categoryId_fkey" on table "CategoriesOnPostsManyToMany"',
                         // [ProviderFlavors.JS_NEON]:  'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                         [Providers.COCKROACHDB]: 'Foreign key constraint failed on the field: `(not available)`',
                         [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
@@ -1004,6 +1014,8 @@ testMatrix.setupTestSuite(
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
+                      [ProviderFlavors.PG]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_postId_fkey (index)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `postId`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
                       [Providers.SQLSERVER]:
@@ -1041,6 +1053,8 @@ testMatrix.setupTestSuite(
                 : conditionalError.snapshot({
                     foreignKeys: {
                       [Providers.POSTGRESQL]:
+                        'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
+                      [ProviderFlavors.PG]:
                         'Foreign key constraint failed on the field: `CategoriesOnPostsManyToMany_categoryId_fkey (index)`',
                       [Providers.MYSQL]: 'Foreign key constraint failed on the field: `categoryId`',
                       [Providers.SQLITE]: 'Foreign key constraint failed on the field: `foreign key`',
