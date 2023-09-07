@@ -1,5 +1,6 @@
 import { ClientEngineType, getClientEngineType } from '@prisma/internals'
 import fs from 'fs/promises'
+import path from 'path'
 
 import testMatrix from './_matrix'
 
@@ -10,8 +11,9 @@ const nftAnnotation = '// file annotations for bundling tools'
 
 testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
   test('imports correct runtime', async () => {
-    const clientModule = clientMeta.runtime === 'edge' ? '@prisma/client/edge' : '@prisma/client'
-    const clientModuleEntryPoint = require.resolve(clientModule, { paths: [suiteMeta.generatedFolder] })
+    const clientModule = clientMeta.runtime === 'edge' ? 'edge.js' : 'index.js'
+    const clientModulePath = ['node_modules', '@prisma', 'client', clientModule]
+    const clientModuleEntryPoint = path.join(suiteMeta.generatedFolder, clientModulePath.join(path.sep))
     const generatedClientContents = await fs.readFile(clientModuleEntryPoint, 'utf-8')
 
     if (clientMeta.dataProxy && clientMeta.runtime === 'edge') {
@@ -40,8 +42,9 @@ testMatrix.setupTestSuite((suiteConfig, suiteMeta, clientMeta) => {
   })
 
   test('imported files have the expected annotations', async () => {
-    const clientModule = clientMeta.runtime === 'edge' ? '@prisma/client/edge' : '@prisma/client'
-    const clientModuleEntryPoint = require.resolve(clientModule, { paths: [suiteMeta.generatedFolder] })
+    const clientModule = clientMeta.runtime === 'edge' ? 'edge.js' : 'index.js'
+    const clientModulePath = ['node_modules', '@prisma', 'client', clientModule]
+    const clientModuleEntryPoint = path.join(suiteMeta.generatedFolder, clientModulePath.join(path.sep))
     const generatedClientContents = await fs.readFile(clientModuleEntryPoint, 'utf-8')
 
     if (clientMeta.dataProxy && clientMeta.runtime === 'edge') {

@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@prisma/client':
-        specifier: ../../prisma-client-0.0.0.tgz
-        version: file:../../prisma-client-0.0.0.tgz(prisma@0.0.0)
+        specifier: /tmp/prisma-client-0.0.0.tgz
+        version: file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz(prisma@0.0.0)
       next:
         specifier: 13.1.4
         version: 13.1.4(react-dom@18.2.0)(react@18.2.0)
@@ -34,8 +34,10 @@ importers:
         specifier: 18.0.26
         version: 18.0.26
       prisma:
-        specifier: ../../prisma-0.0.0.tgz
-        version: file:../../prisma-0.0.0.tgz
+        specifier: /tmp/prisma-0.0.0.tgz
+        version: file:../../../../../../../../../../tmp/prisma-0.0.0.tgz
+
+  prisma/client: {}
 
 packages:
 
@@ -234,6 +236,10 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
+    dev: false
+
+  /@prisma/engines-version@5.3.0-31.1816b81529d375ba16b9173156a20b3e0b51a9f2:
+    resolution: {integrity: sha512-sBAY49Tu8gLxSlTvCWLW4bWVGMqxGVAhXusfEw0ff4mRFdRWmRlISBWm3K2GWyRGlDVl87dX701RB0xml+WR3g==}
     dev: false
 
   /@rollup/pluginutils@4.2.1:
@@ -827,6 +833,7 @@ packages:
 
   /fast-json-stable-stringify@2.1.0:
     resolution: {integrity: sha512-lhd/wF+Lk98HZoTCtlVraHtfh5XYijIjalXck7saUtuanSDyLMxnHhSXEDJqHxD7msR8D0uCmqlkwjCV8xvwHw==}
+    requiresBuild: true
     dev: false
     optional: true
 
@@ -960,6 +967,7 @@ packages:
 
   /json-schema-traverse@0.4.1:
     resolution: {integrity: sha512-xbbCH5dCYU5T8LcEhhuh7HJ88HXuW3qsI3Y0zOZFKfZEHcpWiHU/Jxzk629Brsab/mMiHQti9wMP+845RPe3Vg==}
+    requiresBuild: true
     dev: false
     optional: true
 
@@ -1494,22 +1502,22 @@ packages:
     engines: {node: '>=6'}
     dev: false
 
-  file:../../prisma-0.0.0.tgz:
-    resolution: {integrity: sha512-S8mrUXJjyiGxhjgt1HNRTy93QLnj9mpZj2sAHRn9O5PvMBrFaLWzNMzlUveqWVUpgfQIqn8W+WQ88pwM+Kz9Qg==, tarball: file:../../prisma-0.0.0.tgz}
+  file:../../../../../../../../../../tmp/prisma-0.0.0.tgz:
+    resolution: {integrity: sha512-FbfS220Z09AmCtRYAjPth01/0yLn4uRrXYKa35CLzmWvbhYA9uDJdcxxMcHz4UEVnKF3arK0abv4/VCDwDc7Iw==, tarball: file:../../../../../../../../../../tmp/prisma-0.0.0.tgz}
     name: prisma
     version: 0.0.0
-    engines: {node: '>=14.17'}
+    engines: {node: '>=16.13'}
     hasBin: true
     requiresBuild: true
-    bundledDependencies:
-      - '@prisma/engines'
+    dependencies:
+      '@prisma/engines': file:../../../../../../../../../../tmp/prisma-engines-0.0.0.tgz
 
-  file:../../prisma-client-0.0.0.tgz(prisma@0.0.0):
-    resolution: {integrity: sha512-0w7lFM1bRUVdT7nHjyYTUqoFmYcSU+VFsmzKpiTt8qH1xVx8qUZW/ivC4KcM6Z7vM1EbPcZHzcPY2NlzpFf7BQ==, tarball: file:../../prisma-client-0.0.0.tgz}
-    id: file:../../prisma-client-0.0.0.tgz
+  file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz(prisma@0.0.0):
+    resolution: {integrity: sha512-RRALG1/8J8yaHSVoGTxJig245pgSZbBfhtBibuXU4JOnrMaSK4dl9jtxIRBRE/s/3yw8eJrEbuTp0AUreTFQpA==, tarball: file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz}
+    id: file:../../../../../../../../../../tmp/prisma-client-0.0.0.tgz
     name: '@prisma/client'
     version: 0.0.0
-    engines: {node: '>=14.17'}
+    engines: {node: '>=16.13'}
     requiresBuild: true
     peerDependencies:
       prisma: '*'
@@ -1517,7 +1525,12 @@ packages:
       prisma:
         optional: true
     dependencies:
-      prisma: file:../../prisma-0.0.0.tgz
+      '@prisma/engines-version': 5.3.0-31.1816b81529d375ba16b9173156a20b3e0b51a9f2
+      prisma: file:../../../../../../../../../../tmp/prisma-0.0.0.tgz
     dev: false
-    bundledDependencies:
-      - '@prisma/engines-version'
+
+  file:../../../../../../../../../../tmp/prisma-engines-0.0.0.tgz:
+    resolution: {integrity: sha512-W/VPjvZIYd/4lOwR0dC0RMAC4upjgL1gq3AXZlf6p5aTloc4eC/5R8Ht9X4Q+6oAjY/sMFir8hyfY+K/8vGfbg==, tarball: file:../../../../../../../../../../tmp/prisma-engines-0.0.0.tgz}
+    name: '@prisma/engines'
+    version: 0.0.0
+    requiresBuild: true

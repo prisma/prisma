@@ -43,7 +43,7 @@ const {
   makeStrictEnum,
   Public,
   detectRuntime,
-} = require('${runtimeDir}/${runtimeName}')
+} = require('${runtimeDir}/${runtimeName}.js')
 `
     : `
 const {
@@ -66,7 +66,7 @@ const {
   warnOnce,
   defineDmmfProperty,
   Public,
-} = require('${runtimeDir}/${runtimeName}')
+} = require('${runtimeDir}/${runtimeName}.js')
 `
 }
 

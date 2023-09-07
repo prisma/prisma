@@ -37,27 +37,32 @@
         "browser": "./index-browser.js",
         "workerd": "./edge.js",
         "edge-light": "./edge.js"
-      }
-    },
-    "./index": {
-      "types": "./index.d.ts",
-      "require": {
-        "node": "./index.js",
-        "browser": "./index-browser.js",
-        "workerd": "./edge.js",
-        "edge-light": "./edge.js"
       },
-      "import": {
-        "node": "./index.js",
-        "browser": "./index-browser.js",
-        "workerd": "./edge.js",
-        "edge-light": "./edge.js"
-      }
+      "default": "./index.js"
     },
     "./edge": {
       "types": "./edge.d.ts",
       "require": "./edge.js",
-      "import": "./edge.js"
+      "import": "./edge.js",
+      "default": "./edge.js"
+    },
+    "./extension": {
+      "types": "./extension.d.ts",
+      "require": "./extension.js",
+      "import": "./extension.js",
+      "default": "./extension.js"
+    },
+    "./index-browser": {
+      "types": "./index.d.ts",
+      "require": "./index-browser.js",
+      "import": "./index-browser.js",
+      "default": "./index-browser.js"
+    },
+    "./index": {
+      "types": "./index.d.ts",
+      "require": "./index.js",
+      "import": "./index.js",
+      "default": "./index.js"
     },
     "./*": "./*"
   },
