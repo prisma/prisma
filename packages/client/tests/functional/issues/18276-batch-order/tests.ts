@@ -7,7 +7,7 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare const newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta, clientMeta) => {
+  (_suiteConfig, _suiteMeta, _clientMeta) => {
     test('executes batch queries in the right order when using extensions + middleware', async () => {
       const prisma = newPrismaClient({
         log: [{ emit: 'event', level: 'query' }],
