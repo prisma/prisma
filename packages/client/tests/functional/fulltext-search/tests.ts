@@ -106,7 +106,7 @@ testMatrix.setupTestSuite(
         } else {
           await expect(result).rejects.toThrow('syntax error in tsquery: "John Smith"')
         }
-      } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+      } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE || providerFlavor === ProviderFlavors.VITESS_8) {
         // dataProxy === false
         // target: tests.0.primary: vttablet: rpc error: code = InvalidArgument desc = syntax error, unexpected '-' (errno 1064) (sqlstate 42000) (CallerID: userData1): Sql: \"select `User`.id, `User`.email, `User`.`name` from `User` where match(`User`.`name`) against (:vtg1 /* VARCHAR */ in boolean mode)\", BindVars: {#maxLimit: \"type:INT64 value:\\\"10001\\\"\"vtg1: \"type:VARCHAR value:\\\"John <--> Smith\\\"\"} (errno 1064) (sqlstate 42000) during query: SELECT `tests`.`User`.`id`, `tests`.`User`.`email`, `tests`.`User`.`name` FROM `tests`.`User` WHERE MATCH (`tests`.`User`.`name`)AGAINST ('John <--> Smith' IN BOOLEAN MODE)
         // dataProxy === true
