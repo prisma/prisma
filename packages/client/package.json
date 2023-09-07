@@ -28,15 +28,15 @@
       "types": "./index.d.ts",
       "require": {
         "node": "./index.js",
-        "browser": "./index-browser.js",
         "workerd": "./edge.js",
-        "edge-light": "./edge.js"
+        "edge-light": "./edge.js",
+        "browser": "./index-browser.js"
       },
       "import": {
         "node": "./index.js",
-        "browser": "./index-browser.js",
         "workerd": "./edge.js",
-        "edge-light": "./edge.js"
+        "edge-light": "./edge.js",
+        "browser": "./index-browser.js"
       },
       "default": "./index.js"
     },
