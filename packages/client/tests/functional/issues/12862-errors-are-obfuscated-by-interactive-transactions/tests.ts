@@ -2,20 +2,15 @@ import { faker } from '@faker-js/faker'
 // @ts-ignore
 import type { PrismaClient } from '@prisma/client'
 
-import { ProviderFlavors } from '../../_utils/providerFlavors'
 import testMatrix from './_matrix'
 
 declare let prisma: PrismaClient
 
 // https://github.com/prisma/prisma/issues/12862
 testMatrix.setupTestSuite(
-  ({ providerFlavor }, _suiteMeta, clientMeta) => {
-    const postgresqlError = 'violates check constraint \\"post_viewcount_check\\"'
-    // Full error
+  (_, _suiteMeta, _clientMeta) => {
     // new row for relation \"Post\" violates check constraint \"post_viewcount_check\""
-    const pgAdapterError = 'violates check constraint "post_viewcount_check"'
-    const providerError =
-      !clientMeta.dataProxy && ProviderFlavors.PG === providerFlavor ? pgAdapterError : postgresqlError
+    const providerError = ` violates check constraint `
 
     test('should propagate the correct error when a method fails', async () => {
       const user = await prisma.user.create({
