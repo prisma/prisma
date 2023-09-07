@@ -200,7 +200,12 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
       })
     })
 
-    if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+    if (providerFlavor === ProviderFlavors.PG) {
+      const dataproxyError = 'Unique constraint failed on the fields: (`email`)'
+      const adapterError = `duplicate key value violates unique constraint \"User_email_key\"`
+      const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
+      await expect(result).rejects.toThrow(expectedError)
+    } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
       const dataproxyError = 'Unique constraint failed on the (not available)'
       const adapterError = `code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000)`
       const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
@@ -296,7 +301,12 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
         }),
       ])
 
-      if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+      if (providerFlavor === ProviderFlavors.PG) {
+        const dataproxyError = 'Unique constraint failed on the fields: (`email`)'
+        const adapterError = `duplicate key value violates unique constraint \"User_email_key\"`
+        const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
+        await expect(result).rejects.toThrow(expectedError)
+      } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
         const dataproxyError = 'Unique constraint failed on the (not available)'
         const adapterError = `code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000)`
         const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
@@ -333,7 +343,12 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
       })
     })
 
-    if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+    if (providerFlavor === ProviderFlavors.PG) {
+      const dataproxyError = 'Unique constraint failed on the fields: (`email`)'
+      const adapterError = `duplicate key value violates unique constraint \"User_email_key\"`
+      const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
+      await expect(result).rejects.toThrow(expectedError)
+    } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
       const dataproxyError = 'Unique constraint failed on the (not available)'
       const adapterError = `code = AlreadyExists desc = Duplicate entry 'user_1@website.com' for key 'User.User_email_key' (errno 1062) (sqlstate 23000)`
       const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
@@ -348,7 +363,7 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
 
   /**
    * A bad batch should rollback using the interactive transaction logic
-   * // TODO: skipped because output differs from binary to library
+   * TODO: skipped because output differs from binary to library
    */
   testIf(getClientEngineType() === ClientEngineType.Library && provider !== 'mongodb' && clientMeta.runtime !== 'edge')(
     'batching raw rollback',
@@ -383,7 +398,12 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
               prisma.$executeRaw`INSERT INTO "User" (id, email) VALUES (${'1'}, ${'user_1@website.com'})`,
             ])
 
-      if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
+      if (providerFlavor === ProviderFlavors.PG) {
+        const dataproxyError = 'Raw query failed. Code: `23505`. Message: `Key (id)=(1) already exists.'
+        const adapterError = 'duplicate key value violates unique constraint "User_pkey"'
+        const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
+        await expect(result).rejects.toThrow(expectedError)
+      } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
         const adapterError = `code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000)`
         await expect(result).rejects.toThrow(adapterError)
       } else {
