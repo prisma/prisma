@@ -10,11 +10,6 @@ export default testMatrix.setupSchema(({ provider, providerFlavor }): string => 
 
   return /* Prisma */ `
 ${schemaHeader}
-  
-datasource db {
-  provider = "${provider}"
-  url      = env("DATABASE_URI_${provider}")
-}
 
 model User {
   id ${idForProvider(provider)}

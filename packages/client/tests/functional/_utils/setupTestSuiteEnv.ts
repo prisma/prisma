@@ -222,7 +222,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
     })
     .otherwise(() => {
       const newURI = getDbUrlFromFlavor(providerFlavor, provider)
-      return { envVarName: `DATABASE_URI_${providerFlavor!}`, newURI }
+      return { envVarName: `DATABASE_URI_${providerFlavor}`, newURI }
     })
 
   // when testing with `directUrl` is required
