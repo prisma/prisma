@@ -18,6 +18,7 @@ testMatrix.setupTestSuite(
       // should only warn once
       newPrismaClient()
 
+      // TODO: warning is not called for providerFlavor=pg
       expect(consoleWarnMock).toHaveBeenCalledTimes(1)
       expect(consoleWarnMock.mock.calls[0]).toMatchInlineSnapshot(`
         [

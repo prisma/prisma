@@ -6,7 +6,8 @@ import type { PrismaClient } from './node_modules/@prisma/client'
 declare let newPrismaClient: NewPrismaClient<typeof PrismaClient>
 
 testMatrix.setupTestSuite(
-  (suiteConfig, suiteMeta, clientMeta) => {
+  ({ provider, providerFlavor }, suiteMeta, clientMeta) => {
+    const envVarName = providerFlavor ? `DATABASE_URI_${providerFlavor}` : `DATABASE_URI_${provider}`
     const OLD_ENV = { ...process.env }
 
     afterEach(() => {
@@ -14,7 +15,7 @@ testMatrix.setupTestSuite(
     })
 
     testIf(clientMeta.dataProxy)('url starts with invalid://', async () => {
-      process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'invalid://invalid'
+      process.env[envVarName] = 'invalid://invalid'
 
       const prisma = newPrismaClient()
 
@@ -29,7 +30,7 @@ testMatrix.setupTestSuite(
     })
 
     testIf(clientMeta.dataProxy)('url starts with prisma:// but is invalid', async () => {
-      process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'prisma://invalid'
+      process.env[envVarName] = 'prisma://invalid'
 
       const prisma = newPrismaClient()
 
@@ -42,7 +43,7 @@ testMatrix.setupTestSuite(
     })
 
     testIf(clientMeta.dataProxy)('url starts with prisma:// with nothing else', async () => {
-      process.env[`DATABASE_URI_${suiteConfig.provider}`] = 'prisma://'
+      process.env[envVarName] = 'prisma://'
 
       const prisma = newPrismaClient()
 
