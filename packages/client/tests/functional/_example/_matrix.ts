@@ -5,11 +5,13 @@ export default defineMatrix(() => [
   [
     {
       provider: 'sqlite',
+      providerFlavor: '',
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
       provider: 'postgresql',
+      providerFlavor: '',
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
@@ -27,6 +29,7 @@ export default defineMatrix(() => [
     // },
     {
       provider: 'mysql',
+      providerFlavor: '',
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
@@ -45,16 +48,19 @@ export default defineMatrix(() => [
     },
     {
       provider: 'sqlserver',
+      providerFlavor: '',
       id: 'Int @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
       provider: 'cockroachdb',
+      providerFlavor: '',
       id: 'BigInt @id @default(autoincrement())',
       providerFeatures: '',
     },
     {
       provider: 'mongodb',
+      providerFlavor: '',
       id: 'String @id @default(auto()) @map("_id") @db.ObjectId',
       providerFeatures: '',
     },
