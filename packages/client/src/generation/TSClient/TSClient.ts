@@ -32,7 +32,6 @@ import { Model } from './Model'
 import { PrismaClientClass } from './PrismaClient'
 
 export interface TSClientOptions {
-  projectRoot: string
   clientVersion: string
   engineVersion: string
   document: DMMF.Document

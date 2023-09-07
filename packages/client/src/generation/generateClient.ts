@@ -11,7 +11,7 @@ import path from 'path'
 import pkgUp from 'pkg-up'
 import type { O } from 'ts-toolbelt'
 
-import { name as clientPackageName } from '../../package.json'
+import clientPackage, { name as clientPackageName } from '../../package.json'
 import type { DMMF as PrismaClientDMMF } from './dmmf-types'
 import { getPrismaClientDMMF } from './getDMMF'
 import { BrowserJS, JS, TS, TSClient } from './TSClient'
@@ -71,7 +71,6 @@ export async function buildClient({
   datasources,
   engineVersion,
   clientVersion,
-  projectRoot,
   activeProvider,
   postinstall,
   overrideEngineType,
@@ -92,7 +91,6 @@ export async function buildClient({
     outputDir,
     clientVersion,
     engineVersion,
-    projectRoot: projectRoot!,
     activeProvider,
     postinstall,
     noEngine,
@@ -121,9 +119,10 @@ export async function buildClient({
   fileMap['package.json'] = JSON.stringify(
     {
       name: GENERATED_PACKAGE_NAME,
-      main: 'index.js',
-      types: 'index.d.ts',
-      browser: 'index-browser.js',
+      types: clientPackage.types,
+      main: clientPackage.main,
+      browser: clientPackage.browser,
+      exports: clientPackage.exports,
       sideEffects: false,
     },
     null,

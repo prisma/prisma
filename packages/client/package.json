@@ -22,6 +22,45 @@
   "main": "index.js",
   "browser": "index-browser.js",
   "types": "index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./index.d.ts",
+      "require": {
+        "node": "./index.js",
+        "browser": "./index-browser.js",
+        "workerd": "./edge.js",
+        "edge-light": "./edge.js"
+      },
+      "import": {
+        "node": "./index.js",
+        "browser": "./index-browser.js",
+        "workerd": "./edge.js",
+        "edge-light": "./edge.js"
+      }
+    },
+    "./index": {
+      "types": "./index.d.ts",
+      "require": {
+        "node": "./index.js",
+        "browser": "./index-browser.js",
+        "workerd": "./edge.js",
+        "edge-light": "./edge.js"
+      },
+      "import": {
+        "node": "./index.js",
+        "browser": "./index-browser.js",
+        "workerd": "./edge.js",
+        "edge-light": "./edge.js"
+      }
+    },
+    "./edge": {
+      "types": "./edge.d.ts",
+      "require": "./edge.js",
+      "import": "./edge.js"
+    },
+    "./*": "./*"
+  },
   "license": "Apache-2.0",
   "engines": {
     "node": ">=16.13"
