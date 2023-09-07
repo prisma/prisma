@@ -1,24 +1,27 @@
-datasource db {
-  provider = "sqlite"
-  url      = "file:dev.db"
-}
+import { idForProvider } from '../../../_utils/idForProvider'
+import testMatrix from '../_matrix'
 
+export default testMatrix.setupSchema(({ provider }) => {
+  return /* Prisma */ `
 generator client {
   provider = "prisma-client-js"
 }
 
-// / User model comment
+datasource db {
+  provider = "${provider}"
+  url      = env("DATABASE_URI_${provider}")
+}
+
 model User {
-  id    String  @default(uuid()) @id
+  id    ${idForProvider(provider)}
   email String  @unique
   age   Int
-  // / name comment
   name  String?
   posts Post[]
 }
 
 model Post {
-  id        String   @default(cuid()) @id
+  id        ${idForProvider(provider)}
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   published Boolean
@@ -27,3 +30,5 @@ model Post {
   authorId  String?
   author    User?    @relation(fields: [authorId], references: [id])
 }
+`
+})
