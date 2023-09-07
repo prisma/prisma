@@ -32,8 +32,10 @@ testMatrix.setupTestSuite(
           break
 
         case 'mysql':
-          if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-            expect((result as Error).message).toContain('Query was empty (errno 1065) (sqlstate 42000)')
+          if (providerFlavor === ProviderFlavors.JS_PLANETSCALE || providerFlavor === ProviderFlavors.VITESS_8) {
+            expect((result as Error).message).toContain(
+              'Raw query failed. Code: `1105`. Message: `unknown error: <nil>`',
+            )
           } else {
             expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
           }
@@ -67,8 +69,10 @@ testMatrix.setupTestSuite(
           break
 
         case 'mysql':
-          if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-            expect((result as Error).message).toContain('Query was empty (errno 1065) (sqlstate 42000)')
+          if (providerFlavor === ProviderFlavors.JS_PLANETSCALE || providerFlavor === ProviderFlavors.VITESS_8) {
+            expect((result as Error).message).toContain(
+              'Raw query failed. Code: `1105`. Message: `unknown error: <nil>`',
+            )
           } else {
             expect((result as Error).message).toContain('Raw query failed. Code: `1065`. Message: `Query was empty`')
           }
