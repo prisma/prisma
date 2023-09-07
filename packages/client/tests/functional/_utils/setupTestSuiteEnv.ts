@@ -145,7 +145,7 @@ export async function setupTestSuiteDatabase({
         // ProviderFlavors.JS_PLANETSCALE,
       ].includes(providerFlavor)
     ) {
-      const vitessUrl = process.env.TEST_FUNCTIONAL_VITESS_8_URI?.replace(DB_NAME_VAR, 'tests')
+      const vitessUrl = process.env.TEST_FUNCTIONAL_VITESS_8_URI?.replace(DB_NAME_VAR, 'unsharded')
       await $`echo "CREATE DATABASE ${datasourceInfo.databaseUrl
         .split('/')
         .pop()};" | ../cli/build/index.js db execute --stdin --url "${vitessUrl}"`
