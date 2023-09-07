@@ -403,9 +403,10 @@ testMatrix.setupTestSuite(({ provider, providerFlavor }, _suiteMeta, clientMeta)
         const adapterError = 'duplicate key value violates unique constraint "User_pkey"'
         const expectedError = clientMeta.dataProxy ? dataproxyError : adapterError
         await expect(result).rejects.toThrow(expectedError)
-      } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
-        const adapterError = `code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000)`
-        await expect(result).rejects.toThrow(adapterError)
+      } else if (providerFlavor === ProviderFlavors.JS_PLANETSCALE || providerFlavor === ProviderFlavors.VITESS_8) {
+        await expect(result).rejects.toThrow(
+          `code = AlreadyExists desc = Duplicate entry '1' for key 'User.PRIMARY' (errno 1062) (sqlstate 23000)`,
+        )
       } else {
         await expect(result).rejects.toMatchPrismaErrorSnapshot()
       }
