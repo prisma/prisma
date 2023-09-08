@@ -130,11 +130,6 @@ function setupTestSuiteMatrix(
 
             client = new globalThis['loaded']['PrismaClient']({ adapter, ...args })
           } else if (providerFlavor === ProviderFlavors.JS_NEON) {
-            const connectionString = `${process.env.TEST_FUNCTIONAL_JS_NEON_URI as string}`.replace(
-              'PRISMA_DB_NAME',
-              'tests',
-            )
-
             // When using HTTP on Node.js <18
             // neonConfig.fetchFunction = undiciFetch
             neonConfig.webSocketConstructor = WebSocket
@@ -148,7 +143,7 @@ function setupTestSuiteMatrix(
             }
 
             const pool = new neonPool({
-              connectionString,
+              connectionString: datasourceInfo.databaseUrl,
             })
 
             const adapter = new PrismaNeon(pool)
@@ -204,7 +199,7 @@ function setupTestSuiteMatrix(
           ![
             // ProviderFlavors.VITESS_8,
             ProviderFlavors.JS_PLANETSCALE,
-            ProviderFlavors.JS_NEON,
+            // ProviderFlavors.JS_NEON,
           ].includes(providerFlavor)
         ) {
           const datasourceInfo = globalThis['datasourceInfo'] as DatasourceInfo

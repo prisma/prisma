@@ -133,7 +133,6 @@ export async function setupTestSuiteDatabase({
       [
         // ProviderFlavors.VITESS_8,
         ProviderFlavors.JS_PLANETSCALE,
-        ProviderFlavors.JS_NEON,
       ].includes(providerFlavor)
     ) {
       dbPushParams.push('--force-reset')
@@ -264,7 +263,7 @@ export function setupTestSuiteDbURI(suiteConfig: Record<string, string>, clientM
   // if (providerFlavor === ProviderFlavors.VITESS_8) {
   //   databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'test-vitess-80')
   // } else
-  if (providerFlavor === ProviderFlavors.JS_PLANETSCALE || providerFlavor === ProviderFlavors.JS_NEON) {
+  if (providerFlavor === ProviderFlavors.JS_PLANETSCALE) {
     // TODO - for simplicity it is hardcoded for now
     databaseUrl = databaseUrl.replace(DB_NAME_VAR, 'tests')
   } else {
