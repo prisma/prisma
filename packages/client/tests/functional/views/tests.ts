@@ -7,15 +7,15 @@ import testMatrix from './_matrix'
 declare let prisma: PrismaClient
 
 testMatrix.setupTestSuite(
-  (suiteConfig) => {
+  ({ provider }) => {
     const fakeUser = {
-      id: suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.alphanumeric(5),
+      id: provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.alphanumeric(5),
       email: faker.internet.email(),
       name: faker.person.firstName(),
     }
 
     const fakeProfile = {
-      id: suiteConfig.provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.alphanumeric(5),
+      id: provider === 'mongodb' ? faker.database.mongodbObjectId() : faker.string.alphanumeric(5),
       bio: faker.person.jobTitle(),
     }
 
@@ -29,7 +29,7 @@ testMatrix.setupTestSuite(
         },
       })
 
-      if (suiteConfig.provider === 'mongodb') {
+      if (provider === 'mongodb') {
         // alterStatement doesn't work with mongodb because
         // - no support for DbExecute
         // @ts-test-if: provider === 'mongodb'
