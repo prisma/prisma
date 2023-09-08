@@ -204,6 +204,42 @@ Invalid \`prisma.user.create()\` invocation in
 Unique constraint failed on the fields: (\`email\`)
 `;
 
+exports[`interactive-transactions (provider=postgresql,providerFlavor=js_neon) batching rollback 1`] = `
+
+Invalid \`prisma.user.create()\` invocation in
+/client/tests/functional/interactive-transactions/tests.ts:0:0
+
+  XX 'batching rollback',
+  XX async () => {
+  XX   const result = prisma.$transaction([
+→ XX     prisma.user.create(
+column User.val does not exist
+`;
+
+exports[`interactive-transactions (provider=postgresql,providerFlavor=js_neon) batching rollback within callback 1`] = `
+
+Invalid \`tx.user.create()\` invocation in
+/client/tests/functional/interactive-transactions/tests.ts:0:0
+
+  XX testIf(clientMeta.runtime !== 'edge')('batching rollback within callback', async () => {
+  XX   const result = prisma.$transaction(async (tx) => {
+  XX     await Promise.all([
+→ XX       tx.user.create(
+column User.val does not exist
+`;
+
+exports[`interactive-transactions (provider=postgresql,providerFlavor=js_neon) rollback query 1`] = `
+
+Invalid \`prisma.user.create()\` invocation in
+/client/tests/functional/interactive-transactions/tests.ts:0:0
+
+  XX  */
+  XX testIf(clientMeta.runtime !== 'edge')('rollback query', async () => {
+  XX   const result = prisma.$transaction(async (prisma) => {
+→ XX     await prisma.user.create(
+column User.val does not exist
+`;
+
 exports[`interactive-transactions (provider=sqlite) batching raw rollback 1`] = `
 
 Invalid \`prisma.$executeRaw()\` invocation:
