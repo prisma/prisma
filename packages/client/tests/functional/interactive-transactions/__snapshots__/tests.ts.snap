@@ -204,6 +204,14 @@ Invalid \`prisma.user.create()\` invocation in
 Unique constraint failed on the fields: (\`email\`)
 `;
 
+exports[`interactive-transactions (provider=postgresql,providerFlavor=js_neon) batching raw rollback 1`] = `
+
+Invalid \`prisma.$executeRaw()\` invocation:
+
+
+duplicate key value violates unique constraint "User_pkey"
+`;
+
 exports[`interactive-transactions (provider=postgresql,providerFlavor=js_neon) batching rollback 1`] = `
 
 Invalid \`prisma.user.create()\` invocation in
@@ -213,7 +221,7 @@ Invalid \`prisma.user.create()\` invocation in
   XX async () => {
   XX   const result = prisma.$transaction([
 → XX     prisma.user.create(
-column User.val does not exist
+duplicate key value violates unique constraint "User_email_key"
 `;
 
 exports[`interactive-transactions (provider=postgresql,providerFlavor=js_neon) batching rollback within callback 1`] = `
@@ -221,11 +229,11 @@ exports[`interactive-transactions (provider=postgresql,providerFlavor=js_neon) b
 Invalid \`tx.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:0:0
 
-  XX testIf(clientMeta.runtime !== 'edge')('batching rollback within callback', async () => {
-  XX   const result = prisma.$transaction(async (tx) => {
-  XX     await Promise.all([
-→ XX       tx.user.create(
-column User.val does not exist
+  XX   }),
+  XX ])
+  XX 
+→ XX await tx.user.create(
+duplicate key value violates unique constraint "User_email_key"
 `;
 
 exports[`interactive-transactions (provider=postgresql,providerFlavor=js_neon) rollback query 1`] = `
@@ -233,11 +241,11 @@ exports[`interactive-transactions (provider=postgresql,providerFlavor=js_neon) r
 Invalid \`prisma.user.create()\` invocation in
 /client/tests/functional/interactive-transactions/tests.ts:0:0
 
-  XX  */
-  XX testIf(clientMeta.runtime !== 'edge')('rollback query', async () => {
-  XX   const result = prisma.$transaction(async (prisma) => {
-→ XX     await prisma.user.create(
-column User.val does not exist
+  XX   },
+  XX })
+  XX 
+→ XX await prisma.user.create(
+duplicate key value violates unique constraint "User_email_key"
 `;
 
 exports[`interactive-transactions (provider=sqlite) batching raw rollback 1`] = `
